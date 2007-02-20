@@ -422,14 +422,13 @@ LDFLAGS += -DLL
 else ifeq ($(platform), xbox1_msvc2003)
 TARGET := $(TARGET_NAME)_libretro_xdk1.lib
 MSVCBINDIRPREFIX = $(XDK)/xbox/bin/vc71
-CC  = cl.exe
-CXX = cl.exe
+CC  = "$(MSVCBINDIRPREFIX)/CL.exe"
+CXX  = "$(MSVCBINDIRPREFIX)/CL.exe"
 
-PATH := $(shell IFS=$$'\n'; cygpath "$(VS71COMNTOOLS)../../Vc7/bin"):$(PATH)
-PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VS71COMNTOOLS)../IDE")
+PATH := $(shell IFS=$$'\n'; cygpath "$(MSVCBINDIRPREFIX)"):$(PATH)
 INCLUDE := $(shell IFS=$$'\n'; cygpath "$(VS71COMNTOOLS)../../Vc7/include")
 
-export INCLUDE := $(INCLUDE)
+export INCLUDE := $(INCLUDE);$(XDK)/xbox/include
 export LIB := $(XDK)/xbox/lib
 PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX1
