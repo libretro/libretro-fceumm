@@ -2,20 +2,30 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := libretro
-FCEU_SRC_DIRS := ../../../../src ../../../../src/boards ../../../../src/input ../../../../src/mappers
+ifeq ($(TARGET_ARCH),arm)
+LOCAL_CFLAGS += -DANDROID_ARM
+LOCAL_ARM_MODE := arm
+endif
 
-FCEU_SRC_FILES := $(wildcard $(LOCAL_PATH)/../../../../src/*.c) \
-		$(wildcard $(LOCAL_PATH)/../../../../src/boards/*.c) \
-		$(wildcard $(LOCAL_PATH)/../../../../src/input/*.c) \
-		$(wildcard $(LOCAL_PATH)/../../../../src/mappers/*.c)
+ifeq ($(TARGET_ARCH),x86)
+LOCAL_CFLAGS +=  -DANDROID_X86
+endif
 
-FCEU_SRC_FILES := $(FCEU_SRC_FILES:$(LOCAL_PATH)/%=%)
+ifeq ($(TARGET_ARCH),mips)
+LOCAL_CFLAGS += -DANDROID_MIPS -D__mips__ -D__MIPSEL__
+endif
 
-LOCAL_SRC_FILES  = ../libretro/libretro.c \
-		../libretro/memstream.c \
-		$(FCEU_SRC_FILES)
+FCEU_DIR := ../../..
+LIBRETRO_DIR := ..
 
-LOCAL_CFLAGS = -DINLINE=inline -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DPSS_STYLE=1 -DLSB_FIRST -D__LIBRETRO__ -DHAVE_ASPRINTF
+LOCAL_MODULE    := retro
+FCEU_SRC_DIRS := $(FCEU_DIR) $(FCEU_DIR)/boards $(FCEU_DIR)/input $(FCEU_DIR)/mappers $(FCEU_DIR)/zlib
+
+FCEU_SRC_FILES := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
+
+LOCAL_SRC_FILES  = $(LIBRETRO_DIR)/libretro.c $(LIBRETRO_DIR)/memstream.c $(FCEU_SRC_FILES)
+
+LOCAL_CFLAGS += -DINLINE=inline -DSOUND_QUALITY=0 -DPSS_STYLE=1 -DLSB_FIRST -D__LIBRETRO__ -DHAVE_ASPRINTF -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565
+LOCAL_C_INCLUDES = $(LOCAL_PATH)/$(FCEU_DIR)
 
 include $(BUILD_SHARED_LIBRARY)

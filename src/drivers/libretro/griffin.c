@@ -1,0 +1,35 @@
+#ifdef WANT_GRIFFIN
+
+#include "drivers/libretro/libretro.c"
+#include "drivers/libretro/memstream.c"
+
+#include "cart.c"
+#include "crc32.c"
+#include "fceu.c"
+#include "fceustr.c"
+#include "file.c"
+#include "general.c"
+#include "md5.c"
+#include "movie.c"
+#include "nsf.c"
+#include "ppu.c"
+#include "vsuni.c"
+#include "x6502.c"
+#include "cheat.c"
+#include "debug.c"
+#include "fceu-endian.c"
+#include "fds.c"
+#include "filter.c"
+#include "input.c"
+#include "memory.c"
+#include "netplay.c"
+#include "palette.c"
+#include "state.c"
+#include "video.c"
+#include "wave.c"
+#include "sound.c"
+
+//#include "ines.c"
+//#include "unif.c"
+
+#endif
