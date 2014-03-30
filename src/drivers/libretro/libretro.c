@@ -29,6 +29,8 @@
 #include <string.h>
 #include "memstream.h"
 
+
+
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
@@ -45,6 +47,13 @@ static __attribute__((aligned(16))) uint16_t retro_palette[256];
 static uint16_t retro_palette[256];
 #endif
 
+/* Some timing-related variables. */
+static int maxconbskip = 9;			/* Maximum consecutive blit skips. */
+static int ffbskip = 9;				/* Blit skips per blit when FF-ing */
+
+static int soundo = 1;
+
+static volatile int nofocus = 0;
 
 static int32 *sound = 0;
 static uint32 JSReturn[2];
@@ -87,6 +96,9 @@ int FCEUD_SendData(void *data, uint32 len)
 #define RED_EXPAND 3
 #define GREEN_EXPAND 2
 #define BLUE_EXPAND 3
+#define RED_MASK 0xF800
+#define GREEN_MASK 0x7e0
+#define BLUE_MASK 0x1f
 #else
 #define RED_SHIFT 10
 #define GREEN_SHIFT 5
@@ -104,6 +116,11 @@ void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, uns
    retro_palette[index] = (r << RED_SHIFT) | (g << GREEN_SHIFT) | (b << BLUE_SHIFT);
 }
 
+void FCEUD_GetPalette(unsigned char i, unsigned char *r, unsigned char *g, unsigned char *b)
+{
+}
+
+
 bool FCEUD_ShouldDrawInputAids (void)
 {
    return 1;
@@ -117,8 +134,6 @@ void FCEUD_Message(char *s)
 
 void FCEUD_NetworkClose(void)
 { }
-
-void FCEUD_GetPalette(uint8 i,uint8 *r, uint8 *g, uint8 *b) { }
 
 void FCEUD_SoundToggle (void)
 {
@@ -542,25 +557,6 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
 };
 
-static void update_input(void)
-{
-   unsigned i;
-   unsigned char pad[2];
-
-   pad[0] = 0;
-   pad[1] = 0;
-
-   poll_cb();
-
-   for ( i = 0; i < 8; i++)
-      pad[0] |= input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
-
-   for ( i = 0; i < 8; i++)
-      pad[1] |= input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
-
-   JSReturn[0] = pad[0] | (pad[1] << 8);
-}
-
 static void check_variables(void)
 {
    struct retro_variable var = {0};
@@ -605,23 +601,29 @@ static void check_variables(void)
    }
 }
 
-void retro_run(void)
+static void FCEUD_UpdateInput(void)
 {
-   unsigned y, x, width, height, pitch;
+   unsigned i;
+   unsigned char pad[2];
+
+   pad[0] = 0;
+   pad[1] = 0;
+
+   poll_cb();
+
+   for ( i = 0; i < 8; i++)
+      pad[0] |= input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
+
+   for ( i = 0; i < 8; i++)
+      pad[1] |= input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
+
+   JSReturn[0] = pad[0] | (pad[1] << 8);
+}
+
+void FCEUD_BlitScreen(uint8 *XBuf)
+{
    uint8_t *gfx;
-   int32 ssize;
-   bool updated;
-#ifndef PSP
-   static uint16_t video_out[256 * 240];
-#endif
-
-   ssize = 0;
-   updated = false;
-
-   update_input();
-
-   FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
-
+   unsigned width, height, pitch, x, y;
 #ifdef PSP
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* const texture_vram_p = (void*) (0x44200000 - (256 * 256)); // max VRAM address - frame size
@@ -648,45 +650,76 @@ void retro_run(void)
    sceGuClutLoad(32, retro_palette);
 
    sceGuFinish();
+#else
+   static uint16_t video_out[256 * 240];
 #endif
 
    if (use_overscan)
    {
       width = 256;
       height = 240;
-#ifdef PSP
       pitch = 256;
-      video_cb(texture_vram_p, width, height, pitch);
-#else
+#ifndef PSP
       pitch = 512;
       gfx = XBuf;
       for (y = 0; y < height; y++)
          for ( x = 0; x < width; x++, gfx++)
             video_out[y * width + x] = retro_palette[*gfx];
-      video_cb(video_out, width, height, pitch);
 #endif
    }
    else
    {
       width = 256 - 16;
       height = 240 - 16;
-#ifdef PSP
       pitch = 256;
-      video_cb(texture_vram_p, width, height, pitch);
-#else
+#ifndef PSP
       pitch = 512 - 32;
       gfx = XBuf + 8 + 256 * 8;
       for (y = 0; y < height; y++, gfx += 16)
          for ( x = 0; x < width; x++, gfx++)
             video_out[y * width + x] = retro_palette[*gfx];
-      video_cb(video_out, width, height, pitch);
 #endif
    }
+   
+#ifdef PSP
+   video_cb(texture_vram_p, width, height, pitch);
+#else
+   video_cb(video_out, width, height, pitch);
+#endif
+}
 
-   for (y = 0; y < ssize; y++)
-      sound[y] = (sound[y] << 16) | (sound[y] & 0xffff);
+void FCEUD_WriteSoundData(int32 *Buffer, int Count)
+{
+   int y;
+   for (y = 0; y < Count; y++)
+      Buffer[y] = (Buffer[y] << 16) | (Buffer[y] & 0xffff);
 
-   audio_batch_cb((const int16_t*)sound, ssize);
+   audio_batch_cb((const int16_t*)Buffer, Count);
+}
+
+void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
+{
+   if (Count)
+      FCEUD_WriteSoundData(Buffer, Count);
+   FCEUD_BlitScreen(XBuf);
+   Buffer += Count;
+	FCEUD_UpdateInput();
+}
+
+
+void retro_run(void)
+{
+   unsigned y, x;
+   uint8_t *gfx;
+   int32 ssize;
+   bool updated;
+
+   ssize = 0;
+   updated = false;
+
+   FCEUI_SetRenderDisable(0, 0);
+   FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
+   FCEUD_Update(gfx, sound, ssize);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
