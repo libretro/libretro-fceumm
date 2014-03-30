@@ -1,5 +1,6 @@
 #ifndef __FCEU_GIT
 #define __FCEU_GIT
+
 /* Mmm...git. Almost as funny as "gimp". */
 #define GIT_CART  0		/* Cart. */
 #define GIT_VSUNI 1		/* VS Unisystem. */
@@ -25,4 +26,5 @@ typedef struct {
 	int soundrate;		/* For Ogg Vorbis expansion sound wacky support.  0 for default. */
 	int soundchan;		/* Number of sound channels. */
 } FCEUGI;
+
 #endif

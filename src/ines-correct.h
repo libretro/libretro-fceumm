@@ -1,3 +1,5 @@
+#ifndef _FCEU_INES_CORRECT_H
+#define _FCEU_INES_CORRECT_H
 
 	{0xaf5d7aa2,	 -1,		0},	/* Clu Clu Land */
 	{0xcfb224e6,	 -1,		1},	/* Dragon Ninja (J) [p1][!].nes */
@@ -258,3 +260,5 @@
 	{0x57514c6c,	245,	   -1},	/* Yong Zhe Dou E Long - Dragon Quest VI (Ch) */
 
 	{0x00000000,	  -1,	   -1}
+
+#endif

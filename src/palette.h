@@ -1,3 +1,6 @@
+#ifndef _FCEU_PALETTE_H
+#define _FCEU_PALETTE_H
+
 typedef struct {
 	uint8 r, g, b;
 } pal;
@@ -9,3 +12,5 @@ void FCEU_ResetPalette(void);
 void FCEU_ResetMessages();
 void FCEU_LoadGamePalette(void);
 void FCEU_DrawNTSCControlBars(uint8 *XBuf);
+
+#endif

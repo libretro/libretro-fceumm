@@ -429,7 +429,7 @@ void retro_get_system_info(struct retro_system_info *info)
 {
    info->need_fullpath = true;
    info->valid_extensions = "fds|nes|unif";
-   info->library_version = "98.13mm (SVN)";
+   info->library_version = "(SVN)";
    info->library_name = "FCEUmm";
    info->block_extract = false;
 }

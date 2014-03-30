@@ -19,6 +19,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifndef _FCEU_INES_H
+#define _FCEU_INES_H
+
 typedef struct {
 	char ID[4];		/*NES^Z*/
 	uint8 ROM_size;
@@ -209,3 +212,5 @@ void Mapper250_Init(CartInfo *);
 void Mapper252_Init(CartInfo *);
 void Mapper253_Init(CartInfo *);
 void Mapper254_Init(CartInfo *);
+
+#endif

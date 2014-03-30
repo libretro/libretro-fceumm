@@ -654,7 +654,7 @@ static BMAPPINGLocal bmap[] = {
 	{"",					0, NULL}
 };
 
-int iNESLoad(const uint8 *name, FCEUFILE *fp) {
+int iNESLoad(const char *name, FCEUFILE *fp) {
 	struct md5_context md5;
 
 	if (FCEU_fread(&head, 1, 16, fp) != 16)

@@ -19,6 +19,7 @@
  */
 
 #ifndef _X6502H
+#define _X6502H
 
 #include "x6502struct.h"
 
@@ -72,5 +73,4 @@ void FASTAPASS(2) X6502_DMW(uint32 A, uint8 V);
 void FASTAPASS(1) X6502_IRQBegin(int w);
 void FASTAPASS(1) X6502_IRQEnd(int w);
 
-#define _X6502H
 #endif

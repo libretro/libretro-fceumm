@@ -1,3 +1,6 @@
+#ifndef _FCEU_PPU_H
+#define _FCEU_PPU_H
+
 void FCEUPPU_Init(void);
 void FCEUPPU_Reset(void);
 void FCEUPPU_Power(void);
@@ -18,3 +21,5 @@ void FCEUPPU_SaveState(void);
 void FCEUPPU_LoadState(int version);
 
 extern int scanline;
+
+#endif

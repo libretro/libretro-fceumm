@@ -1,4 +1,5 @@
 #ifndef _X6502STRUCTH
+#define _X6502STRUCTH
 
 typedef struct __X6502 {
 	int32 tcount;		/* Temporary cycle counter */
@@ -21,5 +22,5 @@ typedef struct __X6502 {
 	void (*WriteHook)(struct __X6502 *, uint32, uint8);
 	#endif
 } X6502;
-#define _X6502STRUCTH
+
 #endif

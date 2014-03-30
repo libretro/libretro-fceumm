@@ -1,4 +1,5 @@
 #ifndef _FCEUH
+#define _FCEUH
 
 #include "fceu-types.h"
 
@@ -103,6 +104,5 @@ extern uint8 vsdip;
 #define JOY_DOWN  0x20
 #define JOY_LEFT  0x40
 #define JOY_RIGHT       0x80
-#else
-#define _FCEUH
+
 #endif

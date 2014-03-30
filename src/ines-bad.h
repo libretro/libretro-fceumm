@@ -1,3 +1,6 @@
+#ifndef _FCEU_INES_BAD_H
+#define _FCEU_INES_BAD_H
+
 { 0xecf78d8a13a030a6LL, "Ai Sensei no Oshiete", INESB_HACKED },
 { 0x4712856d3e12f21fLL, "Akumajou Densetsu", INESB_HACKED },
 { 0x10f90ba5bd55c22eLL, "Alien Syndrome", INESB_HACKED },
@@ -38,3 +41,5 @@
 { 0x7979dc51da86f19fLL, "110-in-1", INESB_CORRUPT },
 { 0x001c0bb9c358252aLL, "110-in-1", INESB_CORRUPT },
 { 0, 0, 0 }
+
+#endif

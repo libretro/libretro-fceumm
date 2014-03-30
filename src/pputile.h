@@ -1,3 +1,6 @@
+#ifndef _FCEU_PPU_TILE_H
+#define _FCEU_PPU_TILE_H
+
 uint8 *C;
 register uint8 cc;
 uint32 vadr;
@@ -107,3 +110,5 @@ else
 	PPU_hook(0x2000 | (RefreshAddr & 0xfff));
 #endif
 
+
+#endif

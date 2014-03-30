@@ -18,6 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifndef _FCEU_NSF_H
+#define _FCEU_NSF_H
+
 typedef struct {
 	char ID[5];				// NESM^Z
 	uint8 Version;
@@ -45,3 +48,5 @@ void DrawNSF(uint8 *XBuf);
 void NSFDealloc(void);
 void NSFDodo(void);
 void DoNSFFrame(void);
+
+#endif

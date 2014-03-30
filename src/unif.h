@@ -18,6 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#ifndef _FCEU_UNIF_H
+#define _FCEU_UNIF_H
+
 void AC08_Init(CartInfo *info);
 void ANROM_Init(CartInfo *info);
 void BMC11160_Init(CartInfo *info);
@@ -150,3 +153,5 @@ void MapperCopyFami_Init(CartInfo *info);
 
 extern uint8 *UNIFchrrama;	// Meh.  So I can stop CHR RAM
 							// bank switcherooing with certain boards...
+
+#endif

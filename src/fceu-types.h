@@ -19,8 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef __FCEU_TYPES
-#define __FCEU_TYPES
+#ifndef __FCEU_TYPES_H
+#define __FCEU_TYPES_H
 
 #include <inttypes.h>
 typedef int8_t int8;
