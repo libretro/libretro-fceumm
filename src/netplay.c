@@ -34,7 +34,7 @@
 #include "state.h"
 #include "cheat.h"
 #include "input.h"
-#include "endian.h"
+#include "fceu-endian.h"
 
 #ifndef __LIBRETRO__
 #define NETPLAY_ENABLED

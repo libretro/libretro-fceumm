@@ -845,7 +845,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\src\memory.c">
+    <ClCompile Include="..\..\..\..\..\src\fceu-memory.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
     </ClCompile>
@@ -921,7 +921,7 @@
     <ClInclude Include="..\..\..\..\..\src\mappers\mapinc.h" />
     <ClInclude Include="..\..\..\..\..\src\mappers\vrc7tone.h" />
     <ClInclude Include="..\..\..\..\..\src\md5.h" />
-    <ClInclude Include="..\..\..\..\..\src\memory.h" />
+    <ClInclude Include="..\..\..\..\..\src\fceu-memory.h" />
     <ClInclude Include="..\..\..\..\..\src\fceu-endian.h" />
     <ClInclude Include="..\..\..\..\..\src\ops.h" />
     <ClInclude Include="..\..\..\..\..\src\palette.h" />

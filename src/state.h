@@ -21,7 +21,7 @@
 #ifndef _FCEU_STATE_H_
 #define _FCEU_STATE_H_
 
-#include "memory.h"
+#include "fceu-memory.h"
 
 void FCEUSS_Save(char *);
 int FCEUSS_Load(char *);

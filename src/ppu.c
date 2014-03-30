@@ -31,7 +31,7 @@
 #include        "sound.h"
 #include        "general.h"
 #include        "fceu-endian.h"
-#include        "memory.h"
+#include        "fceu-memory.h"
 #include        "ppuview.h"
 
 #include        "cart.h"

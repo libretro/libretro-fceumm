@@ -30,7 +30,7 @@
 #include "general.h"
 #include "state.h"
 #include "file.h"
-#include "memory.h"
+#include "fceu-memory.h"
 #include "cart.h"
 #include "md5.h"
 #include "netplay.h"

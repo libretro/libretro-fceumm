@@ -31,7 +31,7 @@
 #include  "netplay.h"
 #include  "general.h"
 #include  "fceu-endian.h"
-#include  "memory.h"
+#include  "fceu-memory.h"
 
 #include  "cart.h"
 #include  "nsf.h"

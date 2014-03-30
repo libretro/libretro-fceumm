@@ -36,7 +36,7 @@
 #include  "state.h"
 #include  "fceu-endian.h"
 #include  "file.h"
-#include  "memory.h"
+#include  "fceu-memory.h"
 #include  "input.h"
 #include  "md5.h"
 

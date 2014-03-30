@@ -34,7 +34,7 @@
 #include "state.h"
 #include "file.h"
 #include "general.h"
-#include "memory.h"
+#include "fceu-memory.h"
 #include "crc32.h"
 #include "md5.h"
 #include "cheat.h"

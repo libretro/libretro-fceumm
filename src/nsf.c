@@ -30,7 +30,7 @@
 #include "sound.h"
 #include "nsf.h"
 #include "general.h"
-#include "memory.h"
+#include "fceu-memory.h"
 #include "file.h"
 #include "fds.h"
 #include "cart.h"

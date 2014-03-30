@@ -22,7 +22,7 @@
 
 #include "fceu-types.h"
 #include "fceu.h"
-#include "memory.h"
+#include "fceu-memory.h"
 #include "general.h"
 
 void *FCEU_gmalloc(uint32 size) {

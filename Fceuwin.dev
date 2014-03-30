@@ -150,7 +150,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit14]
-FileName=src\memory.c
+FileName=src\fceu-memory.c
 CompileCpp=0
 Folder=
 Compile=1
@@ -460,7 +460,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit65]
-FileName=src\memory.h
+FileName=src\fceu-memory.h
 CompileCpp=0
 Folder=_Headers
 Compile=1

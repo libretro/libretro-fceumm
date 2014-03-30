@@ -29,7 +29,7 @@
 #include "fceu-types.h"
 #include "file.h"
 #include "fceu-endian.h"
-#include "memory.h"
+#include "fceu-memory.h"
 #include "driver.h"
 #include "general.h"
 

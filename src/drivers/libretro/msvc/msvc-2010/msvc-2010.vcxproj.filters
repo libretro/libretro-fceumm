@@ -75,7 +75,7 @@
     <ClCompile Include="..\..\..\..\..\src\md5.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\src\memory.c">
+    <ClCompile Include="..\..\..\..\..\src\fceu-memory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\src\mycrc32.c">
@@ -731,7 +731,7 @@
     <ClInclude Include="..\..\..\..\..\src\md5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\src\memory.h">
+    <ClInclude Include="..\..\..\..\..\src\fceu-memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\..\src\ops.h">

@@ -1587,7 +1587,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Xbox 360'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release_LTCG|Xbox 360'">CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\src\memory.c">
+    <ClCompile Include="..\..\..\..\..\src\fceu-memory.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='CodeAnalysis|Xbox 360'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Xbox 360'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Profile|Xbox 360'">CompileAsC</CompileAs>
@@ -1711,7 +1711,7 @@
     <ClInclude Include="..\..\..\..\..\srcmappers\mapinc.h" />
     <ClInclude Include="..\..\..\..\..\srcmappers\vrc7tone.h" />
     <ClInclude Include="..\..\..\..\..\srcmd5.h" />
-    <ClInclude Include="..\..\..\..\..\srcmemory.h" />
+    <ClInclude Include="..\..\..\..\..\srcfceu-memory.h" />
     <ClInclude Include="..\..\..\..\..\srcfceu-endian.h" />
     <ClInclude Include="..\..\..\..\..\srcops.h" />
     <ClInclude Include="..\..\..\..\..\srcpalette.h" />

@@ -26,7 +26,7 @@
 #endif
 
 #include <stdio.h>
-#include "memory.h"
+#include "fceu-memory.h"
 #include "fceu-types.h"
 #include "fceu-endian.h"
 
@@ -47,14 +47,14 @@ void FlipByteOrder(uint8 *src, uint32 count) {
 	}
 }
 
-int write16le(uint16 b, MEM_TYPE *fp) {
+int write16le(uint16 b, FILE *fp) {
 	uint8 s[2];
 	s[0] = b;
 	s[1] = b >> 8;
 	return((fwrite(s, 1, 2, fp) < 2) ? 0 : 2);
 }
 
-int write32le(uint32 b, MEM_TYPE *fp) {
+int write32le(uint32 b, FILE *fp) {
 	uint8 s[4];
 	s[0] = b;
 	s[1] = b >> 8;
@@ -63,7 +63,7 @@ int write32le(uint32 b, MEM_TYPE *fp) {
 	return((fwrite(s, 1, 4, fp) < 4) ? 0 : 4);
 }
 
-int read32le(uint32 *Bufo, MEM_TYPE *fp) {
+int read32le(uint32 *Bufo, FILE *fp) {
 	uint32 buf;
 	if (fread(&buf, 1, 4, fp) < 4)
 		return 0;
@@ -75,7 +75,7 @@ int read32le(uint32 *Bufo, MEM_TYPE *fp) {
 	return 1;
 }
 
-int read16le(char *d, MEM_TYPE *fp) {
+int read16le(char *d, FILE *fp) {
  #ifdef LSB_FIRST
 	return((fread(d, 1, 2, fp) < 2) ? 0 : 2);
  #else

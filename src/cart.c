@@ -27,7 +27,7 @@
 #include "ppu.h"
 
 #include "cart.h"
-#include "memory.h"
+#include "fceu-memory.h"
 #include "x6502.h"
 
 #include "general.h"
