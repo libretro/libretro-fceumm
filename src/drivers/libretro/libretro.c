@@ -620,10 +620,33 @@ static void FCEUD_UpdateInput(void)
    JSReturn[0] = pad[0] | (pad[1] << 8);
 }
 
-void FCEUD_BlitScreen(uint8 *XBuf)
+void FCEUD_WriteSoundData(int32 *Buffer, int Count)
 {
-   uint8_t *gfx;
+   int y;
+   for (y = 0; y < Count; y++)
+      Buffer[y] = (Buffer[y] << 16) | (Buffer[y] & 0xffff);
+
+   audio_batch_cb((const int16_t*)Buffer, Count);
+}
+
+void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
+{
+}
+
+
+void retro_run(void)
+{
    unsigned width, height, pitch, x, y;
+   uint8_t *gfx;
+   int32 ssize;
+   bool updated;
+
+   ssize = 0;
+   updated = false;
+
+   FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
+
+   FCEUD_WriteSoundData(sound, ssize);
 #ifdef PSP
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* const texture_vram_p = (void*) (0x44200000 - (256 * 256)); // max VRAM address - frame size
@@ -686,40 +709,7 @@ void FCEUD_BlitScreen(uint8 *XBuf)
 #else
    video_cb(video_out, width, height, pitch);
 #endif
-}
-
-void FCEUD_WriteSoundData(int32 *Buffer, int Count)
-{
-   int y;
-   for (y = 0; y < Count; y++)
-      Buffer[y] = (Buffer[y] << 16) | (Buffer[y] & 0xffff);
-
-   audio_batch_cb((const int16_t*)Buffer, Count);
-}
-
-void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
-{
-   if (Count)
-      FCEUD_WriteSoundData(Buffer, Count);
-   FCEUD_BlitScreen(XBuf);
-   Buffer += Count;
 	FCEUD_UpdateInput();
-}
-
-
-void retro_run(void)
-{
-   unsigned y, x;
-   uint8_t *gfx;
-   int32 ssize;
-   bool updated;
-
-   ssize = 0;
-   updated = false;
-
-   FCEUI_SetRenderDisable(0, 0);
-   FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
-   FCEUD_Update(gfx, sound, ssize);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
