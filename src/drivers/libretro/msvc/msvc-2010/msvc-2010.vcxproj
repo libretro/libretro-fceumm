@@ -878,6 +878,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release_LTCG|Win32'">CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\mihunche.c" />
     <ClCompile Include="..\..\..\..\boards\mmc1.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='CodeAnalysis|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
@@ -1078,6 +1079,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release_LTCG|Win32'">CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\vrc5.c" />
     <ClCompile Include="..\..\..\..\boards\vrc6.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='CodeAnalysis|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
@@ -1588,7 +1590,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <PrecompiledHeaderOutputFile>$(OutDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PreprocessorDefinitions>_DEBUG;_WIN32;_LIB;__LIBRETRO__;SOUND_QUALITY=0;INLINE=_inline;PSS_STYLE=2;PATH_MAX=1024;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;%(PreprocessorDefinitions);LOCAL_LE=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WIN32;_LIB;__LIBRETRO__;SOUND_QUALITY=0;INLINE=_inline;PSS_STYLE=2;PATH_MAX=1024;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;%(PreprocessorDefinitions);LOCAL_LE=1;HAVE_EXTERNAL_ZLIB</PreprocessorDefinitions>
       <CallAttributedProfiling>Callcap</CallAttributedProfiling>
       <AdditionalIncludeDirectories>$(SolutionDir)\..\libretro-fceumm;$(SolutionDir)\..\src-fceumm;$(SolutionDir)\..\src-fceumm\boards;$(SolutionDir)\..\src-fceumm\input;$(SolutionDir)\..\src-fceumm\mappers;$(SolutionDir)\..\..\..\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
@@ -1610,7 +1612,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <PrecompiledHeaderOutputFile>$(OutDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <PreprocessorDefinitions>NDEBUG;_WIN32;_LIB;__LIBRETRO__;SOUND_QUALITY=0;INLINE=_inline;PSS_STYLE=2;PATH_MAX=1024;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;%(PreprocessorDefinitions);LOCAL_LE=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WIN32;_LIB;__LIBRETRO__;SOUND_QUALITY=0;INLINE=_inline;PSS_STYLE=2;PATH_MAX=1024;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;%(PreprocessorDefinitions);LOCAL_LE=1;HAVE_EXTERNAL_ZLIB</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)\..\libretro-fceumm;$(SolutionDir)\..\src-fceumm;$(SolutionDir)\..\src-fceumm\boards;$(SolutionDir)\..\src-fceumm\input;$(SolutionDir)\..\src-fceumm\mappers;$(SolutionDir)\..\..\..\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>

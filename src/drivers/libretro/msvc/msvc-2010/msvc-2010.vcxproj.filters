@@ -617,6 +617,12 @@
     <ClCompile Include="..\..\..\..\fceu-memory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\vrc5.c">
+      <Filter>Source Files\boards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\mihunche.c">
+      <Filter>Source Files\boards</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-fceumm\input\suborkb.h">
