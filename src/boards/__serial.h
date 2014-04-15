@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 
-#ifdef _WIN32
 typedef int BOOL;
 
 #ifndef TRUE
@@ -12,8 +11,6 @@ typedef int BOOL;
 
 #ifndef FALSE
 #define FALSE 0
-#endif
-
 #endif
 
 #include "../fceu-types.h"
