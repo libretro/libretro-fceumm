@@ -3,10 +3,8 @@
 
 #include <stdio.h>
 
-#ifdef _WIN32 && !defined(_XBOX)
-#include <windows.h>
-#else
-#define BOOL int
+#ifdef _WIN32
+typedef int BOOL;
 
 #ifndef TRUE
 #define TRUE 1

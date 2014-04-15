@@ -65,8 +65,8 @@ void FASTAPASS(3) FCEU_memmove(void *d, void *s, uint32 l) {
 	if (t & 3) {	// Not 4-byte aligned and/or length is not a multiple of 4.
 		uint8 *tmpd, *tmps;
 
-		tmpd = d;
-		tmps = s;
+		tmpd = (uint8*)d;
+		tmps = (uint8*)s;
 
 		for (x = l; x; x--) {	// This could be optimized further, though(more tests could be performed).
 			*tmpd = *tmps;
@@ -76,8 +76,8 @@ void FASTAPASS(3) FCEU_memmove(void *d, void *s, uint32 l) {
 	} else {
 		uint32 *tmpd, *tmps;
 
-		tmpd = d;
-		tmps = s;
+		tmpd = (uint32*)d;
+		tmps = (uint32*)s;
 
 		for (x = l >> 2; x; x--) {
 			*tmpd = *tmps;

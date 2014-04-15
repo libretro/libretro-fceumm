@@ -34,7 +34,7 @@ void FCEUSS_CheckStates(void);
 typedef struct {
 	void *v;
 	uint32 s;
-	char desc[4];
+	char desc[5];
 } SFORMAT;
 
 void ResetExState(void (*PreSave)(void), void (*PostSave)(void));
