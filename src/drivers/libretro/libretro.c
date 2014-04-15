@@ -637,6 +637,9 @@ void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
 void retro_run(void)
 {
    unsigned width, height, pitch, x, y;
+#ifndef PSP
+   static uint16_t video_out[256 * 240];
+#endif
    uint8_t *gfx;
    int32 ssize;
    bool updated;
@@ -673,8 +676,6 @@ void retro_run(void)
    sceGuClutLoad(32, retro_palette);
 
    sceGuFinish();
-#else
-   static uint16_t video_out[256 * 240];
 #endif
 
    if (use_overscan)

@@ -413,9 +413,6 @@
     <ClCompile Include="..\..\..\..\boards\kof97.c">
       <Filter>Source Files\boards</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\boards\konami-qtai.c">
-      <Filter>Source Files\boards</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\boards\KS7012.c">
       <Filter>Source Files\boards</Filter>
     </ClCompile>
@@ -581,9 +578,6 @@
     <ClCompile Include="..\..\..\..\md5.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\memory.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\movie.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -619,6 +613,9 @@
     </ClCompile>
     <ClCompile Include="..\..\crc32-zlib.c">
       <Filter>Source Files\libretro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\fceu-memory.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

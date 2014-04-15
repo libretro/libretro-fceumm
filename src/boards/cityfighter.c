@@ -40,10 +40,10 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
+	int i;
 	setprg32(0x8000, prg_reg >> 2);
 	if (!prg_mode)
 		setprg8(0xC000, prg_reg);
-	int i;
 	for (i = 0; i < 8; i++)
 		setchr1(i << 10, chr_reg[i]);
 	switch (mirr) {

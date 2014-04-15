@@ -451,6 +451,7 @@ void FCEU_ResetVidSys(void) {
 FCEUS FSettings;
 
 void FCEU_printf(char *format, ...) {
+	FILE *ofile;
 	char temp[2048];
 
 	va_list ap;
@@ -459,7 +460,6 @@ void FCEU_printf(char *format, ...) {
 	vsprintf(temp, format, ap);
 	FCEUD_Message(temp);
 
-	FILE *ofile;
 	ofile = fopen("stdout.txt", "ab");
 	fwrite(temp, 1, strlen(temp), ofile);
 	fclose(ofile);

@@ -656,6 +656,8 @@ static BMAPPINGLocal bmap[] = {
 
 int iNESLoad(const char *name, FCEUFILE *fp) {
 	struct md5_context md5;
+    char* mappername;
+    uint32 mappertest;
 
 	if (FCEU_fread(&head, 1, 16, fp) != 16)
 		return 0;
@@ -744,9 +746,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	FCEU_printf(" CHR ROM:  %3d x  8KiB\n", head.VROM_size);
 	FCEU_printf(" ROM CRC32:  0x%08lx\n", iNESGameCRC32);
 	FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(iNESCart.MD5));
-	char* mappername = "Not Listed";
+	mappername = "Not Listed";
 
-	uint32 mappertest;
 	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
 		if (bmap[mappertest].number == MapperNo) {
 			mappername = bmap[mappertest].name;

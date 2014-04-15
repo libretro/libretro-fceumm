@@ -50,9 +50,9 @@ static void M222IRQ(void) {
 }
 
 static void Sync(void) {
+	int i;
 	setprg8(0x8000, prg_reg[0]);
 	setprg8(0xA000, prg_reg[1]);
-	int i;
 	for (i = 0; i < 8; i++)
 		setchr1(i << 10, chr_reg[i]);
 	setmirror(mirr ^ 1);

@@ -34,6 +34,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
+	uint8 i;
 	uint16 swap = ((mirr & 2) << 13);
 	setmirror((mirr & 1) ^ 1);
 	setprg8r(0x10, 0x6000, 0);
@@ -41,7 +42,6 @@ static void Sync(void) {
 	setprg8(0xA000, preg[1]);
 	setprg8(0xC000 ^ swap, ~1);
 	setprg8(0xE000, ~0);
-	uint8 i;
 	for (i = 0; i < 8; i++)
 		setchr1(i << 10, creg[i]);
 }

@@ -24,7 +24,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
 #include <zlib.h>
 
 #include "fceu-types.h"
@@ -76,6 +80,9 @@ int FCEUI_NetplayStart(int nlocal, int divisor) {
 }
 
 int FCEUNET_SendCommand(uint8 cmd, uint32 len) {
+#ifdef __LIBRETRO__
+	return 0;
+#else
 	uint8 buf[numlocal + 1 + 4];
 
 	buf[0] = 0xFF;
@@ -88,6 +95,7 @@ int FCEUNET_SendCommand(uint8 cmd, uint32 len) {
 	}
  #endif
 	return(1);
+#endif
 }
 
 void FCEUI_NetplayText(uint8 *text) {
