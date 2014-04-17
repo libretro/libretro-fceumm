@@ -126,11 +126,19 @@ bool FCEUD_ShouldDrawInputAids (void)
    return 1;
 }
 
+static struct retro_log_callback log;
+
+static void default_logger(enum retro_log_level level, const char *fmt, ...) {}
+
 void FCEUD_PrintError(char *c)
-{ }
+{
+   log.log(RETRO_LOG_WARNING, "%s", c);
+}
 
 void FCEUD_Message(char *s)
-{ }
+{
+   log.log(RETRO_LOG_INFO, "%s", s);
+}
 
 void FCEUD_NetworkClose(void)
 { }
@@ -468,10 +476,12 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
 void retro_init(void)
 {
+   log.log=default_logger;
+   environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log);
 #ifdef FRONTEND_SUPPORTS_RGB565
    enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
-      fprintf(stderr, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
+      log.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
    PowerNES();
 }
