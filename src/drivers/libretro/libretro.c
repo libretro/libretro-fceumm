@@ -13,7 +13,7 @@
 #include "../../fceu.h"
 #include "../../fceu-endian.h"
 #include "../../input.h"
-#include "../..//state.h"
+#include "../../state.h"
 #include "../../ppu.h"
 #include "../../cart.h"
 #include "../../x6502.h"
