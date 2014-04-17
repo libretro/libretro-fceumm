@@ -519,8 +519,9 @@ static bool fceu_init(const char * full_path)
    FCEUI_SetSoundVolume(256);
    FCEUI_Sound(32050);
 
-   GameInfo = FCEUI_LoadGame(full_path);
-   if (!GameInfo) return false;
+   GameInfo = (FCEUGI*)FCEUI_LoadGame(full_path);
+   if (!GameInfo)
+      return false;
    emulator_set_input();
    emulator_set_custom_palette();
 
@@ -531,6 +532,7 @@ static bool fceu_init(const char * full_path)
 void retro_deinit (void)
 {
    FCEUI_CloseGame();
+   FCEUI_Sound(0);
    FCEUI_Kill();
 }
 
@@ -649,7 +651,8 @@ void retro_run(void)
 
    FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
 
-   FCEUD_WriteSoundData(sound, ssize);
+   if (ssize)
+      FCEUD_WriteSoundData(sound, ssize);
 #ifdef PSP
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* const texture_vram_p = (void*) (0x44200000 - (256 * 256)); // max VRAM address - frame size
@@ -762,7 +765,8 @@ void retro_cheat_set(unsigned a, bool b, const char* c)
 
 bool retro_load_game(const struct retro_game_info *game)
 {
-   if (!fceu_init(game->path)) return false;
+   if (!fceu_init(game->path))
+      return false;
    check_variables();
 
    if (!environ_cb(RETRO_ENVIRONMENT_GET_OVERSCAN, &use_overscan))
