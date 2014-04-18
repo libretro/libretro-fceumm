@@ -477,10 +477,11 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
 void retro_init(void)
 {
+   enum retro_pixel_format rgb565;
    log_cb.log=default_logger;
    environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_cb);
 #ifdef FRONTEND_SUPPORTS_RGB565
-   enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
+   rgb565 = RETRO_PIXEL_FORMAT_RGB565;
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
