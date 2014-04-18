@@ -4,6 +4,7 @@
 	Version="7.10"
 	Name="msvc-2003-xbox1"
 	ProjectGUID="{14FEE388-B695-43E7-B8F4-BB463525D678}"
+	RootNamespace="msvc-2003-xbox1"
 	Keyword="XboxProj">
 	<Platforms>
 		<Platform
@@ -20,8 +21,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				OptimizeForProcessor="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\..\..\zlib&quot;"
-				PreprocessorDefinitions="_DEBUG;_XBOX;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\&quot;;&quot;$(SolutionDir)\..\..\..\&quot;"
+				PreprocessorDefinitions="_DEBUG;_XBOX;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;WANT_GRIFFIN;HAVE_EXTERNAL_ZLIB"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -54,8 +55,8 @@
 				Optimization="3"
 				OmitFramePointers="TRUE"
 				OptimizeForProcessor="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\..\..\zlib&quot;"
-				PreprocessorDefinitions="NDEBUG;_XBOX;PROFILE;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\&quot;;&quot;$(SolutionDir)\..\..\..\&quot;"
+				PreprocessorDefinitions="NDEBUG;_XBOX;PROFILE;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;WANT_GRIFFIN;HAVE_EXTERNAL_ZLIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="TRUE"
@@ -89,8 +90,8 @@
 				Optimization="3"
 				OmitFramePointers="TRUE"
 				OptimizeForProcessor="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\..\..\zlib&quot;"
-				PreprocessorDefinitions="NDEBUG;_XBOX;PROFILE;FASTCAP;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\&quot;;&quot;$(SolutionDir)\..\..\..\&quot;"
+				PreprocessorDefinitions="NDEBUG;_XBOX;PROFILE;FASTCAP;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;WANT_GRIFFIN;HAVE_EXTERNAL_ZLIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="TRUE"
@@ -125,8 +126,8 @@
 				Optimization="3"
 				OmitFramePointers="TRUE"
 				OptimizeForProcessor="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\..\..\zlib&quot;"
-				PreprocessorDefinitions="NDEBUG;_XBOX;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\&quot;;&quot;$(SolutionDir)\..\..\..\&quot;"
+				PreprocessorDefinitions="NDEBUG;_XBOX;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;WANT_GRIFFIN;HAVE_EXTERNAL_ZLIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="TRUE"
@@ -161,8 +162,8 @@
 				Optimization="3"
 				OmitFramePointers="TRUE"
 				OptimizeForProcessor="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\..\..\zlib&quot;"
-				PreprocessorDefinitions="NDEBUG;_XBOX;LTCG;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\msvc-2003-xbox1&quot;;&quot;$(SolutionDir)\..\&quot;;&quot;$(SolutionDir)\..\..\..\&quot;"
+				PreprocessorDefinitions="NDEBUG;_XBOX;LTCG;_LIB;__LIBRETRO__;LSB_FIRST;LOCAL_LE;INLINE=_inline;SOUND_QUALITY=0;PSS_STYLE=2;ZLIB;PATH_MAX=1024;_XBOX1;FCEU_VERSION_NUMERIC=9813;FRONTEND_SUPPORTS_RGB565;WANT_GRIFFIN;HAVE_EXTERNAL_ZLIB"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="TRUE"
@@ -197,92 +198,17 @@
 				Name="libretro"
 				Filter="">
 				<File
-					RelativePath="..\..\libretro.c">
-				</File>
-				<File
-					RelativePath="..\..\memstream.c">
+					RelativePath="..\..\griffin.c">
 				</File>
 			</Filter>
 			<Filter
 				Name="src"
 				Filter="">
 				<File
-					RelativePath="..\..\..\..\cart.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\cheat.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\crc32.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\debug.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\fceu-endian.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\fceu.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\fceustr.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\fds.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\file.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\filter.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\general.c">
-				</File>
-				<File
 					RelativePath="..\..\..\..\ines.c">
 				</File>
 				<File
-					RelativePath="..\..\..\..\input.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\md5.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\memory.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\movie.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\netplay.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\nsf.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\palette.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\ppu.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\sound.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\state.c">
-				</File>
-				<File
 					RelativePath="..\..\..\..\unif.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\video.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\vsuni.c">
-				</File>
-				<File
-					RelativePath="..\..\..\..\wave.c">
 				</File>
 				<File
 					RelativePath="..\..\..\..\x6502.c">
@@ -609,9 +535,6 @@
 						RelativePath="..\..\..\..\boards\kof97.c">
 					</File>
 					<File
-						RelativePath="..\..\..\..\boards\konami-qtai.c">
-					</File>
-					<File
 						RelativePath="..\..\..\..\boards\KS7012.c">
 					</File>
 					<File
@@ -646,6 +569,9 @@
 					</File>
 					<File
 						RelativePath="..\..\..\..\boards\malee.c">
+					</File>
+					<File
+						RelativePath="..\..\..\..\boards\mihunche.c">
 					</File>
 					<File
 						RelativePath="..\..\..\..\boards\mmc1.c">
@@ -721,6 +647,9 @@
 					</File>
 					<File
 						RelativePath="..\..\..\..\boards\vrc3.c">
+					</File>
+					<File
+						RelativePath="..\..\..\..\boards\vrc5.c">
 					</File>
 					<File
 						RelativePath="..\..\..\..\boards\vrc6.c">
