@@ -24,7 +24,7 @@
 #include "x6502.h"
 
 #include "fceu.h"
-
+#include "netplay.h"
 #include "input.h"
 #include "vsuni.h"
 #include "fds.h"
