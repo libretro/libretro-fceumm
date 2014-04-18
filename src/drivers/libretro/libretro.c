@@ -40,6 +40,7 @@ static bool use_overscan;
 
 /* emulator-specific variables */
 
+int FCEUnetplay;
 #ifdef PSP
 #include "pspgu.h"
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
@@ -126,18 +127,18 @@ bool FCEUD_ShouldDrawInputAids (void)
    return 1;
 }
 
-static struct retro_log_callback log;
+static struct retro_log_callback log_cb;
 
 static void default_logger(enum retro_log_level level, const char *fmt, ...) {}
 
 void FCEUD_PrintError(char *c)
 {
-   log.log(RETRO_LOG_WARNING, "%s", c);
+   log_cb.log(RETRO_LOG_WARN, "%s", c);
 }
 
 void FCEUD_Message(char *s)
 {
-   log.log(RETRO_LOG_INFO, "%s", s);
+   log_cb.log(RETRO_LOG_INFO, "%s", s);
 }
 
 void FCEUD_NetworkClose(void)
@@ -476,12 +477,12 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
 void retro_init(void)
 {
-   log.log=default_logger;
-   environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log);
+   log_cb.log=default_logger;
+   environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_cb);
 #ifdef FRONTEND_SUPPORTS_RGB565
    enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
-      log.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
+      log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
    PowerNES();
 }
@@ -520,9 +521,7 @@ static bool fceu_init(const char * full_path)
 {
    char* dir=NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-   {
       FCEUI_SetBaseDirectory(dir);
-   }
 
    FCEUI_Initialize();
 
@@ -532,6 +531,7 @@ static bool fceu_init(const char * full_path)
    GameInfo = (FCEUGI*)FCEUI_LoadGame(full_path);
    if (!GameInfo)
       return false;
+
    emulator_set_input();
    emulator_set_custom_palette();
 
