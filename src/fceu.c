@@ -460,11 +460,9 @@ void FCEU_printf(char *format, ...) {
 	vsprintf(temp, format, ap);
 	FCEUD_Message(temp);
 
-#ifndef __LIBRETRO__
 	ofile = fopen("stdout.txt", "ab");
 	fwrite(temp, 1, strlen(temp), ofile);
 	fclose(ofile);
-#endif
 
 	va_end(ap);
 }

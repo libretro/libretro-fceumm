@@ -40,10 +40,6 @@
 uint8 *XBuf = NULL;
 static uint8 *xbsave = NULL;
 
-#ifndef __LIBRETRO__
-#define SNAPSHOTS_ENABLED
-#endif
-
 void FCEU_KillVirtualVideo(void) {
 	if (xbsave) {
 		free(xbsave);
@@ -179,7 +175,6 @@ static int WritePNGChunk(FILE *fp, uint32 size, char *type, uint8 *data) {
 }
 
 int SaveSnapshot(void) {
-#ifdef SNAPSHOTS_ENABLED
 	static uint32 lastu = 0;
 
 	char *fn = 0;
@@ -274,7 +269,6 @@ int SaveSnapshot(void) {
 		free(compmem);
 	if (pp)
 		fclose(pp);
-#endif
 	return(0);
 }
 

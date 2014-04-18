@@ -21,10 +21,6 @@
 /*  TODO: Add (better) file io error checking */
 /*  TODO: Change save state file format. */
 
-#ifdef __LIBRETRO__
-#define STATE_LIBRETRO
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -260,9 +256,6 @@ void FCEUSS_Save(char *fname) {
 		return;
 	}
 
-#ifdef HAVE_MEMSTREAM
-	st = memstream_open(1);
-#else
 	if (fname)
 		st = FCEUD_UTF8fopen(fname, "wb");
 	else {
@@ -274,15 +267,12 @@ void FCEUSS_Save(char *fname) {
 		FCEU_DispMessage("State %d save error.", CurrentState);
 		return;
 	}
-#endif
 
 	FCEUSS_SaveFP(st);
 
 	SaveStateStatus[CurrentState] = 1;
 	fclose(st);
-#ifndef HAVE_MEMSTREAM
 	FCEU_DispMessage("State %d saved.", CurrentState);
-#endif
 }
 
 int FCEUSS_LoadFP(MEM_TYPE *st) {
@@ -314,9 +304,6 @@ int FCEUSS_Load(char *fname) {
 	MEM_TYPE *st;
 	char *fn;
 
-#ifdef HAVE_MEMSTREAM
-	st = memstream_open(0);
-#else
 	if (geniestage == 1) {
 		FCEU_DispMessage("Cannot load FCS in GG screen.");
 		return(0);
@@ -334,21 +321,16 @@ int FCEUSS_Load(char *fname) {
 		SaveStateStatus[CurrentState] = 0;
 		return(0);
 	}
-#endif
 
 	if (FCEUSS_LoadFP(st)) {
-#ifndef HAVE_MEMSTREAM
 		SaveStateStatus[CurrentState] = 1;
 		FCEU_DispMessage("State %d loaded.", CurrentState);
-#endif
 		SaveStateStatus[CurrentState] = 1;
 		fclose(st);
 		return(1);
 	} else {
 		SaveStateStatus[CurrentState] = 1;
-#ifndef HAVE_MEMSTREAM
 		FCEU_DispMessage("Error(s) reading state %d!", CurrentState);
-#endif
 		fclose(st);
 		return(0);
 	}

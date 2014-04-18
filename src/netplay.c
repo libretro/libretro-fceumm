@@ -40,10 +40,6 @@
 #include "input.h"
 #include "fceu-endian.h"
 
-#ifndef __LIBRETRO__
-#define NETPLAY_ENABLED
-#endif
-
 int FCEUnetplay = 0;
 
 static uint8 netjoy[4];	/* Controller cache. */
@@ -80,9 +76,6 @@ int FCEUI_NetplayStart(int nlocal, int divisor) {
 }
 
 int FCEUNET_SendCommand(uint8 cmd, uint32 len) {
-#ifdef __LIBRETRO__
-	return 0;
-#else
 	uint8 buf[numlocal + 1 + 4];
 
 	buf[0] = 0xFF;
@@ -95,7 +88,6 @@ int FCEUNET_SendCommand(uint8 cmd, uint32 len) {
 	}
  #endif
 	return(1);
-#endif
 }
 
 void FCEUI_NetplayText(uint8 *text) {
@@ -110,7 +102,6 @@ void FCEUI_NetplayText(uint8 *text) {
 }
 
 int FCEUNET_SendFile(uint8 cmd, char *fn) {
-#ifdef NETPLAY_ENABLED
 	uint32 len;
 	uLongf clen;
 	char *buf, *cbuf;
@@ -146,12 +137,10 @@ int FCEUNET_SendFile(uint8 cmd, char *fn) {
 	}
  #endif
 	free(cbuf);
-#endif
 	return(1);
 }
 
 static FILE *FetchFile(uint32 remlen) {
-#ifdef NETPLAY_ENABLED
 	uint32 clen = remlen;
 	char *cbuf;
 	uLongf len;
@@ -197,7 +186,6 @@ static FILE *FetchFile(uint32 remlen) {
 		return(fp);
 	}
 	free(fn);
-#endif
 	return(0);
 }
 

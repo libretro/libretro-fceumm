@@ -21,10 +21,6 @@
 /*  Contains file I/O functions that write/read data    */
 /*  LSB first.              */
 
-#ifdef __LIBRETRO__
-#define ENDIAN_LIBRETRO
-#endif
-
 #include <stdio.h>
 #include "fceu-memory.h"
 #include "fceu-types.h"

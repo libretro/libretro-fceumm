@@ -15,7 +15,6 @@ static long wsize;
 // so).
 
 void FCEU_WriteWaveData(int32 *Buffer, int Count) {
-#ifndef __LIBRETRO__
 	int16 temp[Count];	/* Yay.  Is this the first use of this "feature" of C in FCE Ultra? */
 	int16 *dest;
 	int x;
@@ -34,7 +33,6 @@ void FCEU_WriteWaveData(int32 *Buffer, int Count) {
 		Buffer++;
 	}
 	wsize += fwrite(temp, 1, Count * sizeof(int16), soundlog);
-#endif
 }
 
 int FCEUI_EndWaveRecord(void) {
