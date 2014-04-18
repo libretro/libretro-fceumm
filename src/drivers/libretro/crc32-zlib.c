@@ -1,6 +1,8 @@
 #ifndef _S_CRC32_H
 #define _S_CRC32_H
 
+#ifndef HAVE_EXTERNAL_ZLIB
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,6 +81,8 @@ unsigned long crc32(unsigned long crc, const unsigned char *buf, unsigned int le
 	} while (--len);
 	return crc ^ 0xffffffffL;
 }
+
+#endif
 
 #ifdef __cplusplus
 }

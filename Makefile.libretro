@@ -1,5 +1,5 @@
 DEBUG = 0
-WANT_GRIFFIN = 0
+EXTERNAL_ZLIB = 0
 
 ifeq ($(platform),)
 platform = unix
@@ -72,12 +72,14 @@ else ifeq ($(platform), ps3)
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
    PLATFORM_DEFINES := -D__CELLOS_LV2
 	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
 else ifeq ($(platform), sncps3)
    TARGET := $(TARGET_NAME)_libretro_ps3.a
    CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
    AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
    PLATFORM_DEFINES := -D__CELLOS_LV2
 	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
 else ifeq ($(platform), psp1)
    TARGET := $(TARGET_NAME)_libretro_psp1.a
 	CC = psp-gcc$(EXE_EXT)
@@ -85,12 +87,14 @@ else ifeq ($(platform), psp1)
 	AR = psp-ar$(EXE_EXT)
    PLATFORM_DEFINES := -DPSP -G0 -DLSB_FIRST -DHAVE_ASPRINTF
 	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
 else ifeq ($(platform), psl1ght)
    TARGET := $(TARGET_NAME)_libretro_psl1ght.a
    CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
    AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
    PLATFORM_DEFINES := -D__CELLOS_LV2 -DHAVE_ASPRINTF
 	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
 else ifeq ($(platform), xenon)
    TARGET := $(TARGET_NAME)_libretro_xenon360.a
    CC = xenon-gcc$(EXE_EXT)
@@ -98,6 +102,7 @@ else ifeq ($(platform), xenon)
    PLATFORM_DEFINES := -D__LIBXENON__
    CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
 else ifeq ($(platform), ngc)
    TARGET := $(TARGET_NAME)_libretro_ngc.a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -105,6 +110,7 @@ else ifeq ($(platform), ngc)
    PLATFORM_DEFINES := -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
    CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
 else ifeq ($(platform), wii)
    TARGET := $(TARGET_NAME)_libretro_wii.a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -112,6 +118,7 @@ else ifeq ($(platform), wii)
    PLATFORM_DEFINES := -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
    CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
@@ -145,6 +152,10 @@ ifeq ($(DEBUG), 1)
 	CFLAGS += -O0 -g
 else
 	CFLAGS += -O3 -DNDEBUG
+endif
+
+ifeq ($(EXTERNAL_ZLIB), 1)
+	CFLAGS += -DHAVE_EXTERNAL_ZLIB
 endif
 
 LIBRETRO_DIR := ./src/drivers/libretro
