@@ -45,10 +45,13 @@ else ifeq ($(platform), osx)
    fpic := -fPIC
    SHARED := -dynamiclib
 ifneq ($(arch),ppc)
-   fpic += -mmacosx-version-min=10.6
    ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
 endif
    CFLAGS += -DHAVE_ASPRINTF
+OSXVER = `sw_vers -productVersion | cut -c 4`
+ifneq ($(OSXVER),9)
+   fpic += -mmacosx-version-min=10.5
+endif
 else ifeq ($(platform), qnx)
    TARGET := $(TARGET_NAME)_libretro_qnx.so
    fpic := -fPIC
@@ -64,8 +67,13 @@ else ifeq ($(platform), ios)
    SHARED := -dynamiclib
    ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
    CFLAGS += -DHAVE_ASPRINTF -DIOS
-   CC = clang -arch armv7 -isysroot $(IOSSDK) -miphoneos-version-min=5.0
-   CFLAGS += -DIOS -miphoneos-version-min=5.0
+   CC = clang -arch armv7 -isysroot $(IOSSDK)
+   CFLAGS += -DIOS
+OSXVER = `sw_vers -productVersion | cut -c 4`
+ifneq ($(OSXVER),9)
+   CC +=  -miphoneos-version-min=5.0
+   CFLAGS += -miphoneos-version-min=5.0
+endif
 else ifeq ($(platform), ps3)
    TARGET := $(TARGET_NAME)_libretro_ps3.a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
