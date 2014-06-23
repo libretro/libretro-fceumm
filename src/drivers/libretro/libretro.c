@@ -475,6 +475,13 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->timing.sample_rate = 32040.5;
 }
 
+static void check_system_specs(void)
+{
+   // TODO - when we get it running at fullspeed on PSP, set to 4
+   unsigned level = 5;
+   environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
+}
+
 void retro_init(void)
 {
    enum retro_pixel_format rgb565;
@@ -486,6 +493,7 @@ void retro_init(void)
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
    PowerNES();
+   check_system_specs();
 }
 
 static void emulator_set_input(void)
