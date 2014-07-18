@@ -588,7 +588,7 @@ static void check_variables(void)
    {
       unsigned orig_value = current_palette;
 
-      if (strcmp(var.value, "asqreal") == 0)
+      if (strcmp(var.value, "asqrealc") == 0)
          current_palette = 0;
       else if (strcmp(var.value, "loopy") == 0)
          current_palette = 1;
