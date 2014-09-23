@@ -160,7 +160,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 13
+#define MAXPAL 14
 
 struct st_palettes {
 	char name[32];
@@ -403,6 +403,24 @@ struct st_palettes palettes[] = {
 		   0xf8b8f8, 0xfba7c3, 0xffffff, 0x00ffff,
 		   0xfbdb7b, 0xffa347, 0xb8f8b8, 0xb8f8d8,
 		   0xb8f818, 0xf8d8f8, 0x000000, 0x007800 }
+   },
+   { "nintendo-vc", "Virtual Console palette",
+	   { 0x494949, 0x00006a, 0x090063, 0x290059,
+		   0x42004a, 0x490000, 0x420000, 0x291100,
+		   0x182700, 0x003010, 0x003000, 0x002910,
+		   0x012043, 0x000000, 0x000000, 0x000000,
+		   0x747174, 0x003084, 0x3101ac, 0x4b0194,
+		   0x64007b, 0x6b0039, 0x6b2101, 0x5a2f00,
+		   0x424900, 0x185901, 0x105901, 0x015932,
+		   0x01495a, 0x101010, 0x000000, 0x000000,
+		   0xadadad, 0x4a71b6, 0x6458d5, 0x8450e6,
+		   0xa451ad, 0xad4984, 0xb5624a, 0x947132,
+		   0x7b722a, 0x5a8601, 0x388e31, 0x318e5a,
+		   0x398e8d, 0x383838, 0x000000, 0x000000,
+		   0xb6b6b6, 0x8c9db5, 0x8d8eae, 0x9c8ebc,
+		   0xa687bc, 0xad8d9d, 0xae968c, 0x9c8f7c,
+		   0x9c9e72, 0x94a67c, 0x84a77b, 0x7c9d84,
+		   0x73968d, 0xdedede, 0x000000, 0x000000 }
    }
 };
 
@@ -441,7 +459,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "nes_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb" },
+      { "nes_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc" },
       { NULL, NULL },
    };
 
@@ -588,7 +606,7 @@ static void check_variables(void)
    {
       unsigned orig_value = current_palette;
 
-      if (strcmp(var.value, "asqrealc") == 0)
+     if (strcmp(var.value, "asqrealc") == 0)
          current_palette = 0;
       else if (strcmp(var.value, "loopy") == 0)
          current_palette = 1;
@@ -616,6 +634,8 @@ static void check_variables(void)
          current_palette = 12;
       else if (strcmp(var.value, "vs-smb") == 0)
          current_palette = 13;
+      else if (strcmp(var.value, "nintendo-vc") == 0)
+         current_palette = 14;
 
       if (current_palette != orig_value)
          emulator_set_custom_palette();
