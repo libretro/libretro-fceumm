@@ -173,17 +173,13 @@ ifeq ($(EXTERNAL_ZLIB), 1)
 	CFLAGS += -DHAVE_EXTERNAL_ZLIB
 endif
 
-LIBRETRO_DIR := ./src/drivers/libretro
-FCEU_DIR := ./src
+CORE_DIR := src
+
+include Makefile.common
 
 CFLAGS += -DWANT_GRIFFIN
-FCEU_SRC_DIRS := $(FCEU_DIR)/boards $(FCEU_DIR)/input $(FCEU_DIR)/mappers
-FCEU_CSRCS := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
-FCEU_CSRCS += $(LIBRETRO_DIR)/griffin.c $(FCEU_DIR)/ines.c $(FCEU_DIR)/unif.c $(FCEU_DIR)/x6502.c
 
-FCEU_COBJ := $(FCEU_CSRCS:.c=.o)
-
-OBJS := $(FCEU_COBJ)
+OBJECTS := $(SOURCES_C:.c=.o)
 
 FCEU_DEFINES := -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565 $(PLATFORM_DEFINES)
 
@@ -196,30 +192,29 @@ endif
 CFLAGS += $(CODE_DEFINES) $(fpic) $(WARNING_DEFINES) $(FCEU_DEFINES) $(ENDIANNESS_DEFINES)
 LDFLAGS += -lm
 
-INCDIRS := -I$(LIBRETRO_DIR) -I$(FCEU_DIR) -I$(FCEU_DIR)/input -I$(FCEU_DIR)/boards -I$(FCEU_DIR)/mappers
 LIBS :=
 
 ifeq ($(platform), psp1)
-	INCDIRS += -I$(shell psp-config --pspsdk-path)/include
+	INCFLAGS += -I$(shell psp-config --pspsdk-path)/include
 endif
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
-	$(AR) rcs $@ $(OBJS)
+	$(AR) rcs $@ $(OBJECTS)
 else
-	$(CC) -o $@ $(SHARED) $(OBJS) $(CFLAGS) $(LDFLAGS) $(LIBS)
+	$(CC) -o $@ $(SHARED) $(OBJECTS) $(CFLAGS) $(LDFLAGS) $(LIBS)
 endif
 
 %.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS) $(INCDIRS)
+	$(CC) -c -o $@ $< $(CFLAGS) $(INCFLAGS)
 
 clean-objs:
-	rm -f $(OBJS)
+	rm -f $(OBJECTS)
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJECTS)
 	rm -f $(TARGET)
 
 .PHONY: clean clean-objs
