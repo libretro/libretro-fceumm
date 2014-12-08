@@ -100,6 +100,7 @@ int FCEUD_SendData(void *data, uint32 len)
 #define RED_MASK 0xF800
 #define GREEN_MASK 0x7e0
 #define BLUE_MASK 0x1f
+#define BUILD_PIXEL_RGB565(R,G,B) (((int) ((R)&0x1f) << RED_SHIFT) | ((int) ((G)&0x3f) << GREEN_SHIFT) | (int) ((B) & 0x1f))
 #else
 #define RED_SHIFT 10
 #define GREEN_SHIFT 5
@@ -109,12 +110,17 @@ int FCEUD_SendData(void *data, uint32 len)
 #define BLUE_EXPAND 3
 #endif
 
+
 void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, unsigned char b)
 {
+#ifdef FRONTEND_SUPPORTS_RGB565
+   retro_palette[index] = BUILD_PIXEL_RGB565(r >> 3, g >> 2, b >> 3);
+#else
    r >>= RED_EXPAND;
    g >>= GREEN_EXPAND;
    b >>= BLUE_EXPAND;
    retro_palette[index] = (r << RED_SHIFT) | (g << GREEN_SHIFT) | (b << BLUE_SHIFT);
+#endif
 }
 
 void FCEUD_GetPalette(unsigned char i, unsigned char *r, unsigned char *g, unsigned char *b)
@@ -661,15 +667,6 @@ static void FCEUD_UpdateInput(void)
    JSReturn[0] = pad[0] | (pad[1] << 8);
 }
 
-void FCEUD_WriteSoundData(int32 *Buffer, int Count)
-{
-   int y;
-   for (y = 0; y < Count; y++)
-      Buffer[y] = (Buffer[y] << 16) | (Buffer[y] & 0xffff);
-
-   audio_batch_cb((const int16_t*)Buffer, Count);
-}
-
 void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
 {
 }
@@ -690,8 +687,10 @@ void retro_run(void)
 
    FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
 
-   if (ssize)
-      FCEUD_WriteSoundData(sound, ssize);
+   for (y = 0; y < ssize; y++)
+      sound[y] = (sound[y] << 16) | (sound[y] & 0xffff);
+
+   audio_batch_cb((const int16_t*)sound, ssize);
 #ifdef PSP
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* const texture_vram_p = (void*) (0x44200000 - (256 * 256)); // max VRAM address - frame size
