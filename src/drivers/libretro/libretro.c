@@ -768,7 +768,7 @@ size_t retro_serialize_size(void)
       uint8_t *buffer = (uint8_t*)malloc(1000000);
       memstream_set_buffer(buffer, 1000000);
 
-      FCEUSS_Save("");
+      FCEUSS_Save_Mem();
       serialize_size = memstream_get_last_size();
       free(buffer);
    }
@@ -782,7 +782,7 @@ bool retro_serialize(void *data, size_t size)
       return false;
 
    memstream_set_buffer((uint8_t*)data, size);
-   FCEUSS_Save("");
+   FCEUSS_Save_Mem();
    return true;
 }
 
@@ -792,7 +792,7 @@ bool retro_unserialize(const void * data, size_t size)
       return false;
 
    memstream_set_buffer((uint8_t*)data, size);
-   FCEUSS_Load("");
+   FCEUSS_Load_Mem();
    return true;
 }
 

@@ -77,6 +77,29 @@ int read32le(uint32 *Bufo, FILE *fp)
    return 1;
 }
 
+int write32le_mem(uint32 b, memstream_t *mem)
+{
+   uint8 s[4];
+   s[0]=b;
+   s[1]=b>>8;
+   s[2]=b>>16;
+   s[3]=b>>24;
+   return((memstream_write(mem, s, 4)<4)?0:4);
+}
+
+int read32le_mem(uint32 *Bufo, memstream_t *mem)
+{
+   uint32 buf;
+   if(memstream_read(mem, &buf, 4)<4)
+      return 0;
+#ifdef LSB_FIRST
+   *(uint32*)Bufo=buf;
+#else
+   *(uint32*)Bufo=((buf&0xFF)<<24)|((buf&0xFF00)<<8)|((buf&0xFF0000)>>8)|((buf&0xFF000000)>>24);
+#endif
+   return 1;
+}
+
 int read16le(char *d, FILE *fp)
 {
 #ifdef LSB_FIRST
