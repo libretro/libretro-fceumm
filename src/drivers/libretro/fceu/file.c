@@ -115,26 +115,6 @@ int FCEU_fseek(FCEUFILE *fp, long offset, int whence)
 	return fseek((FILE*)fp->fp, offset, whence);
 }
 
-uint64 FCEU_ftell(FCEUFILE *fp)
-{
-	return ftell((FILE*)fp->fp);
-}
-
-void FCEU_rewind(FCEUFILE *fp)
-{
-	fseek(fp->fp, 0, SEEK_SET);
-}
-
-int FCEU_read16le(uint16 *val, FCEUFILE *fp)
-{
-	uint8 t[2];
-
-   if (fread(t, 1, 2, (FILE*)fp->fp) != 2)
-      return(0);
-	*val = t[0] | (t[1] << 8);
-	return(1);
-}
-
 int FCEU_read32le(uint32 *Bufo, FCEUFILE *fp)
 {
    return read32le(Bufo, (FILE*)fp->fp);
@@ -153,9 +133,4 @@ uint64 FCEU_fgetsize(FCEUFILE *fp)
    r = ftell((FILE*)fp->fp);
    fseek((FILE*)fp->fp, t, SEEK_SET);
    return r;
-}
-
-int FCEU_fisarchive(FCEUFILE *fp)
-{
-	return 0;
 }
