@@ -9,4 +9,6 @@ void FCEU_FlushGameCheats(FILE *override, int nosave);
 void FCEU_ApplyPeriodicCheats(void);
 void FCEU_PowerCheats(void);
 
+void FCEU_ResetCheats(void);
+
 #endif

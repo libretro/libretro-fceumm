@@ -302,6 +302,29 @@ void FCEU_FlushGameCheats(FILE *override, int nosave) {
 	RebuildSubCheats();	/* Remove memory handlers. */
 }
 
+void FCEU_ResetCheats(void)
+{
+	if (CheatComp) {
+		free(CheatComp);
+		CheatComp = 0;
+	}
+
+   if (cheats)
+   {
+      struct CHEATF *next = cheats;
+      for (;; ) {
+         struct CHEATF *last = next;
+         next = next->next;
+         free(last->name);
+         free(last);
+         if (!next) break;
+      }
+      cheats = cheatsl = 0;
+   }
+
+	RebuildSubCheats();	/* Remove memory handlers. */
+}
+
 
 int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int type) {
 	char *t;

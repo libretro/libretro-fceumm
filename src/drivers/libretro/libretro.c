@@ -797,10 +797,33 @@ bool retro_unserialize(const void * data, size_t size)
 }
 
 void retro_cheat_reset(void)
-{}
+{
+   FCEU_ResetCheats();
+}
 
-void retro_cheat_set(unsigned a, bool b, const char* c)
-{ }
+void retro_cheat_set(unsigned index, bool enabled, const char *code)
+{
+   char name[256];
+   sprintf(name, "N/A");
+   uint16 a;
+   uint8  v;
+   int    c;
+   int    type = 1;
+
+   if (FCEUI_DecodeGG(code, &a, &v, &c))
+      goto input_cheat;
+
+   /* Not a Game Genie code. */
+
+   if (FCEUI_DecodePAR(code, &a, &v, &c, &type))
+      goto input_cheat;
+
+   /* Not a Pro Action Replay code. */
+
+   return;
+input_cheat:
+   FCEUI_AddCheat(name, a, v, c, type);
+}
 
 bool retro_load_game(const struct retro_game_info *game)
 {
