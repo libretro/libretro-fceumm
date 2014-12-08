@@ -42,7 +42,7 @@ static uint8 inv_hack = 0;		// some OneBus Systems have swapped PRG reg commans 
 
 // APU Registers
 static uint8 pcm_enable = 0, pcm_irq = 0;
-static int16 pcm_addr, pcm_size, pcm_latch, pcm_clock = 0xF6;
+static int16 pcm_addr, pcm_size, pcm_latch, pcm_clock = 0xE1;
 
 static writefunc defapuwrite[64];
 static readfunc defapuread[64];
@@ -197,10 +197,12 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 		if (apu40xx[0x30] & 0x10) {
 			pcm_addr = V << 6;
 		}
+      break;
 	case 0x13:
 		if (apu40xx[0x30] & 0x10) {
 			pcm_size = (V << 4) + 1;
 		}
+      break;
 	case 0x15:
 		if (apu40xx[0x30] & 0x10) {
 			pcm_enable = V & 0x10;
@@ -212,6 +214,7 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 				pcm_latch = pcm_clock;
 			V &= 0xef;
 		}
+      break;
 	}
 	defapuwrite[A & 0x3f](A, V);
 }
@@ -224,6 +227,7 @@ static DECLFR(UNLOneBusReadAPU40XX) {
 		if (apu40xx[0x30] & 0x10) {
 			result = (result & 0x7f) | pcm_irq;
 		}
+      break;
 	}
 	return result;
 }
@@ -239,7 +243,8 @@ static void UNLOneBusCpuHook(int a) {
 				pcm_enable = 0;
 				X6502_IRQBegin(FCEU_IQEXT);
 			} else {
-				uint8 raw_pcm = ARead[pcm_addr](pcm_addr) >> 1;
+            uint16 addr = pcm_addr | ((apu40xx[0x30]^3) << 14);
+				uint8 raw_pcm = ARead[addr](addr) >> 1;
 				defapuwrite[0x11](0x4011, raw_pcm);
 				pcm_addr++;
 				pcm_addr &= 0x7FFF;
