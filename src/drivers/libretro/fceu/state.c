@@ -183,7 +183,7 @@ static int WriteStateChunk_Mem(memstream_t *mem, int type, SFORMAT *sf)
 
    memstream_putc(mem, type);
 
-   bsize = SubWrite(0,sf);
+   bsize = SubWrite_Mem(0,sf);
    write32le_mem(bsize, mem);
 
    if (!SubWrite_Mem(mem, sf))
@@ -385,15 +385,14 @@ extern int geniestage;
 
 int FCEUSS_SaveFP(MEM_TYPE *st)
 {
-	static uint32 totalsize;
-	uint8 header[16] = { 0 };
+	uint32 totalsize;
+	uint8 header[16] = {0};
 
 	header[0] = 'F';
 	header[1] = 'C';
 	header[2] = 'S';
 	header[3] = 0xFF;
 
-	header[3] = 0xFF;
 	FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
 	fwrite(header, 1, 16, st);
 	FCEUPPU_SaveState();
@@ -418,11 +417,14 @@ void FCEUSS_Save_Mem(void)
 {
    memstream_t *mem = memstream_open(1);
 
-   static uint32 totalsize;
-   static uint8 header[16] = "FCS";
-
-   memset(header + 4, 0, 12);
+   uint32 totalsize;
+   uint8 header[16] = {0};
+   
+   header[0] = 'F';
+   header[1] = 'C';
+   header[2] = 'S';
    header[3] = 0xFF;
+
    FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
    memstream_write(mem, header, 16);
 
