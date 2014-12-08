@@ -40,45 +40,14 @@ typedef struct {
 	uint32 location;
 } MEMWRAP;
 
-void ApplyIPS(FILE *ips, MEMWRAP *dest)
-{
-}
-
-static MEMWRAP *MakeMemWrap(void *tz, int type)
-{
-	MEMWRAP *tmp;
-
-	if (!(tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP))))
-		goto doret;
-	tmp->location = 0;
-
-   fseek((FILE*)tz, 0, SEEK_END);
-   tmp->size = ftell((FILE*)tz);
-   fseek((FILE*)tz, 0, SEEK_SET);
-   if (!(tmp->data = (uint8*)FCEU_malloc(tmp->size)))
-   {
-      free(tmp);
-      tmp = 0;
-      goto doret;
-   }
-   fread(tmp->data, 1, tmp->size, (FILE*)tz);
-
- doret:
-	if (type == 0)
-		fclose((FILE*)tz);
-	return tmp;
-}
-
 #ifndef __GNUC__
  #define strcasecmp strcmp
 #endif
 
 FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext)
 {
-	FCEUFILE *fceufp;
 	void *t;
-
-	fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
+	FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
 
 	if ((t = FCEUD_UTF8fopen(path, mode)))
    {
