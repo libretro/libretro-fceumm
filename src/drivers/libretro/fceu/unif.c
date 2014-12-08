@@ -56,7 +56,7 @@ typedef struct {
 	int (*init)(FCEUFILE *fp);
 } BFMAPPING;
 
-static CartInfo UNIFCart;
+CartInfo UNIFCart;
 
 static int vramo;
 static int mirrortodo;

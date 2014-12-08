@@ -48,7 +48,7 @@ uint8 *VROM = NULL;
 uint8 *ExtraNTARAM = NULL;
 iNES_HEADER head;
 
-static CartInfo iNESCart;
+CartInfo iNESCart;
 
 uint8 Mirroring = 0;
 uint32 ROM_size = 0;
