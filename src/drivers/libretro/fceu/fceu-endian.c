@@ -31,10 +31,7 @@ void FlipByteOrder(uint8 *src, uint32 count)
    uint8 *start = src;
    uint8 *end = src + count - 1;
 
-   if ((count & 1) || !count)
-      return;	/* This shouldn't happen. */
-
-   while (count--)
+   while(start < end)
    {
       uint8 tmp;
 
