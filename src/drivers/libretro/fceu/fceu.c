@@ -230,7 +230,6 @@ int NSFLoad(FCEUFILE *fp);
 FCEUGI *FCEUI_LoadGame(const char *name)
 {
    FCEUFILE *fp;
-   char *ipsfn;
 
    ResetGameLoaded();
 
@@ -250,9 +249,7 @@ FCEUGI *FCEUI_LoadGame(const char *name)
 
    GetFileBase(name);
 
-   ipsfn = FCEU_MakeFName(FCEUMKF_IPS, 0, 0);
-   fp = FCEU_fopen(name, ipsfn, "rb", 0);
-   free(ipsfn);
+   fp = FCEU_fopen(name, NULL, "rb", 0);
 
    if (!fp) {
       FCEU_PrintError("Error opening \"%s\"!", name);

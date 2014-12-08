@@ -55,8 +55,8 @@ int FCEU_InitVirtualVideo(void)
 
    if (sizeof(uint8*) == 4)
    {
-      uint32 m;
-      m = *XBuf;
+      uintptr_t m;
+      m = (uintptr_t)*XBuf;
       m = (4 - m) & 3;
       XBuf += m;
    }
