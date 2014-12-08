@@ -544,7 +544,7 @@ static void emulator_set_custom_palette (void)
    }
 }
 
-static bool fceu_init(const char * full_path)
+static bool fceu_init(const struct retro_game_info *game)
 {
    char* dir=NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
@@ -555,7 +555,7 @@ static bool fceu_init(const char * full_path)
    FCEUI_SetSoundVolume(256);
    FCEUI_Sound(32050);
 
-   GameInfo = (FCEUGI*)FCEUI_LoadGame(full_path);
+   GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path);
    if (!GameInfo)
       return false;
 
@@ -869,7 +869,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-   if (!fceu_init(game->path))
+   if (!fceu_init(game))
       return false;
    check_variables();
 
