@@ -49,7 +49,7 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
 	void *t;
 	FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
 
-	if ((t = FCEUD_UTF8fopen(path, mode)))
+	if ((t = fopen(path, mode)))
    {
 		fseek((FILE*)t, 0, SEEK_SET);
 		fceufp->type = 0;

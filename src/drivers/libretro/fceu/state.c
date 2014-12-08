@@ -560,7 +560,7 @@ void FCEUSS_CheckStates(void)
 
 	for (ssel = 0; ssel < 10; ssel++)
    {
-		st = FCEUD_UTF8fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0), "rb");
+		st = fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0), "rb");
 		free(fn);
 		if (st)
       {
