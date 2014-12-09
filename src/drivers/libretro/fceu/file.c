@@ -162,17 +162,12 @@ int FCEU_fgetc(FCEUFILE *fp)
    return EOF;
 }
 
+uint64 FCEU_ftell(FCEUFILE *fp)
+{
+   return fp->fp->location;
+}
+
 uint64 FCEU_fgetsize(FCEUFILE *fp)
 {
-   /* TODO */
-#if 0
-   long t, r;
-   t = ftell((FILE*)fp->fp);
-   fseek((FILE*)fp->fp, 0, SEEK_END);
-   r = ftell((FILE*)fp->fp);
-   fseek((FILE*)fp->fp, t, SEEK_SET);
-   return r;
-#else
-   return 0;
-#endif
+   return fp->fp->size;
 }
