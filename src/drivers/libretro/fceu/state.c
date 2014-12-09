@@ -383,36 +383,6 @@ endo:
 int CurrentState = 0;
 extern int geniestage;
 
-int FCEUSS_SaveFP(MEM_TYPE *st)
-{
-	uint32 totalsize;
-	uint8 header[16] = {0};
-
-	header[0] = 'F';
-	header[1] = 'C';
-	header[2] = 'S';
-	header[3] = 0xFF;
-
-	FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
-	fwrite(header, 1, 16, st);
-	FCEUPPU_SaveState();
-	FCEUSND_SaveState();
-	totalsize = WriteStateChunk(st, 1, SFCPU);
-	totalsize += WriteStateChunk(st, 2, SFCPUC);
-	totalsize += WriteStateChunk(st, 3, FCEUPPU_STATEINFO);
-	totalsize += WriteStateChunk(st, 4, FCEUCTRL_STATEINFO);
-	totalsize += WriteStateChunk(st, 5, FCEUSND_STATEINFO);
-	if (SPreSave)
-      SPreSave();
-	totalsize += WriteStateChunk(st, 0x10, SFMDATA);
-	if (SPreSave)
-      SPostSave();
-
-	fseek(st, 4, SEEK_SET);
-	write32le(totalsize, st);
-	return(1);
-}
-
 void FCEUSS_Save_Mem(void)
 {
    memstream_t *mem = memstream_open(1);
@@ -449,54 +419,6 @@ void FCEUSS_Save_Mem(void)
    memstream_close(mem);
 }
 
-void FCEUSS_Save(char *fname)
-{
-	MEM_TYPE *st = NULL;
-	char *fn;
-
-	if (geniestage == 1)
-   {
-		FCEU_DispMessage("Cannot save FCS in GG screen.");
-		return;
-	}
-
-	st = (MEM_TYPE*)memstream_open(1);
-
-	FCEUSS_SaveFP(st);
-
-	SaveStateStatus[CurrentState] = 1;
-	fclose(st);
-}
-
-int FCEUSS_LoadFP(MEM_TYPE *st)
-{
-   int x;
-   uint8 header[16];
-   int stateversion;
-
-   fread(&header, 1, 16, st);
-   if (memcmp(header, "FCS", 3))
-      return(0);
-
-   if (header[3] == 0xFF)
-      stateversion = FCEU_de32lsb(header + 8);
-   else
-      stateversion = header[3] * 100;
-
-   x = ReadStateChunks(st, *(uint32*)(header + 4));
-   if (stateversion < 9500)
-      X.IRQlow = 0;
-
-   if (GameStateRestore)
-      GameStateRestore(stateversion);
-   if (x)
-   {
-      FCEUPPU_LoadState(stateversion);
-      FCEUSND_LoadState(stateversion);
-   }
-   return(x);
-}
-
 void FCEUSS_Load_Mem(void)
 {
    memstream_t *mem = memstream_open(0);
@@ -531,47 +453,26 @@ void FCEUSS_Load_Mem(void)
    memstream_close(mem);
 }
 
-int FCEUSS_Load(char *fname)
-{
-	MEM_TYPE *st;
-	char *fn;
-
-	st = (MEM_TYPE*)memstream_open(0);
-
-	if (FCEUSS_LoadFP(st))
-   {
-		SaveStateStatus[CurrentState] = 1;
-		fclose(st);
-		return(1);
-	}
-   else
-   {
-		SaveStateStatus[CurrentState] = 1;
-		fclose(st);
-		return(0);
-	}
-}
-
 void FCEUSS_CheckStates(void)
 {
-	MEM_TYPE *st = NULL;
-	char *fn;
-	int ssel;
+   MEM_TYPE *st = NULL;
+   char *fn;
+   int ssel;
 
-	for (ssel = 0; ssel < 10; ssel++)
+   for (ssel = 0; ssel < 10; ssel++)
    {
-		st = fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0), "rb");
-		free(fn);
-		if (st)
+      st = fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0), "rb");
+      free(fn);
+      if (st)
       {
-			SaveStateStatus[ssel] = 1;
-			fclose(st);
-		}
+         SaveStateStatus[ssel] = 1;
+         fclose(st);
+      }
       else
-			SaveStateStatus[ssel] = 0;
-	}
+         SaveStateStatus[ssel] = 0;
+   }
 
-	CurrentState = 0;
+   CurrentState = 0;
 }
 
 void ResetExState(void (*PreSave)(void), void (*PostSave)(void))
@@ -591,25 +492,6 @@ void AddExState(void *v, uint32 s, int type, char *desc)
 	if (type) SFMDATA[SFEXINDEX].s |= RLSB;
 	if (SFEXINDEX < 63) SFEXINDEX++;
 	SFMDATA[SFEXINDEX].v = 0;	// End marker.
-}
-
-void FCEUI_SelectState(int w)
-{
-	if (w == -1)
-      return;
-
-	CurrentState = w;
-	FCEU_DispMessage("-select state-");
-}
-
-void FCEUI_SaveState(char *fname)
-{
-	FCEUSS_Save(fname);
-}
-
-void FCEUI_LoadState(char *fname)
-{
-	FCEUSS_Load(fname);
 }
 
 void FCEU_DrawSaveStates(uint8 *XBuf)
