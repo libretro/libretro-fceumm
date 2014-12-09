@@ -669,7 +669,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 			memcpy(diskdatao[x], diskdata[x], 65500);
 		}
 
-		if ((tp = FCEU_fopen(fn, 0, "rb", 0))) {
+		if ((tp = FCEU_fopen(fn, 0, "rb", 0, NULL, 0))) {
 			FCEU_printf("Disk was written. Auxillary FDS file open \"%s\".\n", fn);
 			FreeFDSMemory();
 			if (!SubLoad(tp)) {

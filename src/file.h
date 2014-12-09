@@ -18,7 +18,11 @@ typedef struct {
 	uint32 type;	// 0=normal file, 1=gzip, 2=zip
 } FCEUFILE;
 
+#ifdef __LIBRETRO__
+FCEUFILE *FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext, uint8 *buffer, size_t bufsize);
+#else
 FCEUFILE *FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext);
+#endif
 int FCEU_fclose(FCEUFILE*);
 uint64 FCEU_fread(void *ptr, size_t size, size_t nmemb, FCEUFILE*);
 uint64 FCEU_fwrite(void *ptr, size_t size, size_t nmemb, FCEUFILE*);

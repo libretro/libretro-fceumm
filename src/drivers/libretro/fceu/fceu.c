@@ -227,7 +227,7 @@ int iNESLoad(const char *name, FCEUFILE *fp);
 int FDSLoad(const char *name, FCEUFILE *fp);
 int NSFLoad(FCEUFILE *fp);
 
-FCEUGI *FCEUI_LoadGame(const char *name)
+FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
 {
    FCEUFILE *fp;
 
@@ -249,7 +249,7 @@ FCEUGI *FCEUI_LoadGame(const char *name)
 
    GetFileBase(name);
 
-   fp = FCEU_fopen(name, NULL, "rb", 0);
+   fp = FCEU_fopen(name, NULL, "rb", 0, databuf, databufsize);
 
    if (!fp) {
       FCEU_PrintError("Error opening \"%s\"!", name);

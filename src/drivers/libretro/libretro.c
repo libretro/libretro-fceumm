@@ -475,7 +475,7 @@ void retro_set_environment(retro_environment_t cb)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   info->need_fullpath = true;
+   info->need_fullpath = false;
    info->valid_extensions = "fds|nes|unif";
    info->library_version = "(SVN)";
    info->library_name = "FCEUmm";
@@ -561,7 +561,7 @@ static bool fceu_init(const struct retro_game_info *game)
    FCEUI_SetSoundVolume(256);
    FCEUI_Sound(32050);
 
-   GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path);
+   GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
    if (!GameInfo)
       return false;
 

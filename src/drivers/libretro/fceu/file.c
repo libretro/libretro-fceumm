@@ -63,7 +63,22 @@ doret:
    return tmp;
 }
 
-FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext)
+static MEMWRAP *MakeMemWrapBuffer(void *tz, int type, uint8 *buffer, size_t bufsize)
+{
+   MEMWRAP *tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP));
+
+   if (!tmp)
+      return NULL;
+
+   tmp->location = 0;
+   tmp->size = bufsize;
+   tmp->data = buffer;
+
+   return tmp;
+}
+
+FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn,
+      char *mode, char *ext, uint8 *buffer, size_t bufsize)
 {
    FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
    void *t = fopen(path, mode);
@@ -76,7 +91,10 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext
 
    fseek((FILE*)t, 0, SEEK_SET);
    fceufp->type = 0;
-   fceufp->fp = MakeMemWrap(t, 0);
+   if (buffer)
+      fceufp->fp = MakeMemWrapBuffer(t, 0, buffer, bufsize);
+   else
+      fceufp->fp = MakeMemWrap(t, 0);
    return fceufp;
 }
 
