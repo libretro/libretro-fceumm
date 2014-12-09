@@ -117,7 +117,6 @@ uint64 FCEU_fread(void *ptr, size_t element_size, size_t nmemb, FCEUFILE *fp)
 
 int FCEU_fseek(FCEUFILE *fp, long offset, int whence)
 {
-	return fseek((FILE*)fp->fp, offset, whence);
    switch (whence)
    {
       case SEEK_SET:
