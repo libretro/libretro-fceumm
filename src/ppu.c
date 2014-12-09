@@ -1022,32 +1022,23 @@ static void CopySprites(uint8 *target) {
 					P[n + 3] = (sprlinebuf + 3)[n];
 			}
 			#else
-			/* TODO:  Simplify */
 			if (!(t & 0x80000000)) {
-				if (!(t & 0x40000000))	// Normal sprite
-					P[n] = sprlinebuf[n];
-				else if (P[n] & 64)		// behind bg sprite
+				if (!(t & 0x40000000) || (P[n] & 64))	// Normal sprite || behind bg sprite
 					P[n] = sprlinebuf[n];
 			}
 
 			if (!(t & 0x800000)) {
-				if (!(t & 0x400000))	// Normal sprite
-					P[n + 1] = (sprlinebuf + 1)[n];
-				else if (P[n + 1] & 64)	// behind bg sprite
+				if (!(t & 0x400000) || (P[n + 1] & 64))	// Normal sprite || behind bg sprite
 					P[n + 1] = (sprlinebuf + 1)[n];
 			}
 
 			if (!(t & 0x8000)) {
-				if (!(t & 0x4000))		// Normal sprite
-					P[n + 2] = (sprlinebuf + 2)[n];
-				else if (P[n + 2] & 64)	// behind bg sprite
+				if (!(t & 0x4000) || (P[n + 2] & 64))		// Normal sprite || behind bg sprite
 					P[n + 2] = (sprlinebuf + 2)[n];
 			}
 
 			if (!(t & 0x80)) {
-				if (!(t & 0x40))		// Normal sprite
-					P[n + 3] = (sprlinebuf + 3)[n];
-				else if (P[n + 3] & 64)	// behind bg sprite
+				if (!(t & 0x40) || (P[n + 3] & 64))		// Normal sprite || behind bg sprite
 					P[n + 3] = (sprlinebuf + 3)[n];
 			}
 			#endif
