@@ -81,7 +81,7 @@ SFORMAT SFCPUC[] = {
 	{ 0 }
 };
 
-static int SubWrite_Mem(memstream_t *mem, SFORMAT *sf)
+static int SubWrite(memstream_t *mem, SFORMAT *sf)
 {
    uint32 acc=0;
 
@@ -91,7 +91,7 @@ static int SubWrite_Mem(memstream_t *mem, SFORMAT *sf)
       {
          uint32 tmp;
 
-         if(!(tmp=SubWrite_Mem(mem, (SFORMAT *)sf->v)))
+         if(!(tmp=SubWrite(mem, (SFORMAT *)sf->v)))
             return(0);
          acc+=tmp;
          sf++;
@@ -124,69 +124,16 @@ static int SubWrite_Mem(memstream_t *mem, SFORMAT *sf)
    return acc;
 }
 
-static int SubWrite(MEM_TYPE *st, SFORMAT *sf) {
-	uint32 acc = 0;
-
-	while (sf->v) {
-		if (sf->s == ~0) {	// Link to another struct.
-			uint32 tmp;
-
-			if (!(tmp = SubWrite(st, (SFORMAT*)sf->v)))
-				return(0);
-			acc += tmp;
-			sf++;
-			continue;
-		}
-
-		acc += 8;		// Description + size
-		acc += sf->s & (~RLSB);
-
-		if (st) {	// Are we writing or calculating the size of this block? */
-			fwrite(sf->desc, 1, 4, st);
-			write32le(sf->s & (~RLSB), st);
-
-			#ifndef LSB_FIRST
-			if (sf->s & RLSB)
-				FlipByteOrder(sf->v, sf->s & (~RLSB));
-			#endif
-
-			fwrite((uint8*)sf->v, 1, sf->s & (~RLSB), st);
-			/* Now restore the original byte order. */
-			#ifndef LSB_FIRST
-			if (sf->s & RLSB)
-				FlipByteOrder(sf->v, sf->s & (~RLSB));
-			#endif
-		}
-		sf++;
-	}
-
-	return(acc);
-}
-
-static int WriteStateChunk(MEM_TYPE *st, int type, SFORMAT *sf)
-{
-   int bsize;
-
-   fputc(type, st);
-
-   bsize = SubWrite(0, sf);
-   write32le(bsize, st);
-
-   if (!SubWrite(st, sf))
-      return(0);
-   return(bsize + 5);
-}
-
-static int WriteStateChunk_Mem(memstream_t *mem, int type, SFORMAT *sf)
+static int WriteStateChunk(memstream_t *mem, int type, SFORMAT *sf)
 {
    int bsize;
 
    memstream_putc(mem, type);
 
-   bsize = SubWrite_Mem(0,sf);
+   bsize = SubWrite(0,sf);
    write32le_mem(bsize, mem);
 
-   if (!SubWrite_Mem(mem, sf))
+   if (!SubWrite(mem, sf))
       return 0;
    return bsize + 5;
 }
@@ -214,7 +161,7 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
    return(0);
 }
 
-static int ReadStateChunk_Mem(memstream_t *mem, SFORMAT *sf, int size)
+static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 {
    SFORMAT *tmp;
    int temp;
@@ -244,36 +191,7 @@ static int ReadStateChunk_Mem(memstream_t *mem, SFORMAT *sf, int size)
    return 1;
 }
 
-static int ReadStateChunk(MEM_TYPE *st, SFORMAT *sf, int size)
-{
-	SFORMAT *tmp;
-	int temp;
-	temp = ftell(st);
-
-	while (ftell(st) < temp + size)
-   {
-      uint32 tsize;
-      char toa[4];
-      if (fread(toa, 1, 4, st) <= 0)
-         return 0;
-
-      read32le(&tsize, st);
-
-      if ((tmp = CheckS(sf, tsize, toa))) {
-         fread((uint8*)tmp->v, 1, tmp->s & (~RLSB), st);
-
-#ifndef LSB_FIRST
-         if (tmp->s & RLSB)
-            FlipByteOrder(tmp->v, tmp->s & (~RLSB));
-#endif
-      }
-      else
-         fseek(st, tsize, SEEK_CUR);
-   }
-	return 1;
-}
-
-static int ReadStateChunks_Mem(memstream_t *st, int32 totalsize)
+static int ReadStateChunks(memstream_t *st, int32 totalsize)
 {
    int t;
    uint32 size;
@@ -291,59 +209,6 @@ static int ReadStateChunks_Mem(memstream_t *st, int32 totalsize)
       switch(t)
       {
          case 1:
-            if (!ReadStateChunk_Mem(st, SFCPU, size))
-               ret = 0;
-            break;
-         case 2:
-            if (!ReadStateChunk_Mem(st, SFCPUC, size))
-               ret = 0;
-            else
-               X.mooPI = X.P; // Quick and dirty hack.
-            break;
-         case 3:
-            if (!ReadStateChunk_Mem(st, FCEUPPU_STATEINFO, size))
-               ret = 0;
-            break;
-         case 4:
-            if (!ReadStateChunk_Mem(st, FCEUCTRL_STATEINFO, size))
-               ret = 0;
-            break;
-         case 5:
-            if (!ReadStateChunk_Mem(st, FCEUSND_STATEINFO, size))
-               ret = 0;
-            break;
-         case 0x10:
-            if (!ReadStateChunk_Mem(st, SFMDATA, size))
-               ret = 0;
-            break;
-         default:
-            if (memstream_seek(st, size, SEEK_CUR) < 0)
-               goto endo;
-            break;
-      }
-   }
-endo:
-   return ret;
-}
-
-static int ReadStateChunks(MEM_TYPE *st, int32 totalsize)
-{
-   int t;
-   uint32 size;
-   int ret = 1;
-
-   while (totalsize > 0)
-   {
-      t = fgetc(st);
-      if (t == EOF)
-         break;
-      if (!read32le(&size, st))
-         break;
-      totalsize -= size + 5;
-
-      switch (t)
-      {
-         case 1:
             if (!ReadStateChunk(st, SFCPU, size))
                ret = 0;
             break;
@@ -351,7 +216,7 @@ static int ReadStateChunks(MEM_TYPE *st, int32 totalsize)
             if (!ReadStateChunk(st, SFCPUC, size))
                ret = 0;
             else
-               X.mooPI = X.P;	// Quick and dirty hack.
+               X.mooPI = X.P; // Quick and dirty hack.
             break;
          case 3:
             if (!ReadStateChunk(st, FCEUPPU_STATEINFO, size))
@@ -370,7 +235,7 @@ static int ReadStateChunks(MEM_TYPE *st, int32 totalsize)
                ret = 0;
             break;
          default:
-            if (fseek(st, size, SEEK_CUR) < 0)
+            if (memstream_seek(st, size, SEEK_CUR) < 0)
                goto endo;
             break;
       }
@@ -378,7 +243,6 @@ static int ReadStateChunks(MEM_TYPE *st, int32 totalsize)
 endo:
    return ret;
 }
-
 
 int CurrentState = 0;
 extern int geniestage;
@@ -399,16 +263,16 @@ void FCEUSS_Save_Mem(void)
    memstream_write(mem, header, 16);
 
    FCEUPPU_SaveState();
-   totalsize = WriteStateChunk_Mem(mem, 1, SFCPU);
-   totalsize += WriteStateChunk_Mem(mem, 2, SFCPUC);
-   totalsize += WriteStateChunk_Mem(mem, 3, FCEUPPU_STATEINFO);
-   totalsize += WriteStateChunk_Mem(mem, 4, FCEUCTRL_STATEINFO);
-   totalsize += WriteStateChunk_Mem(mem, 5, FCEUSND_STATEINFO);
+   totalsize = WriteStateChunk(mem, 1, SFCPU);
+   totalsize += WriteStateChunk(mem, 2, SFCPUC);
+   totalsize += WriteStateChunk(mem, 3, FCEUPPU_STATEINFO);
+   totalsize += WriteStateChunk(mem, 4, FCEUCTRL_STATEINFO);
+   totalsize += WriteStateChunk(mem, 5, FCEUSND_STATEINFO);
 
    if (SPreSave)
       SPreSave();
 
-   totalsize += WriteStateChunk_Mem(mem, 0x10, SFMDATA);
+   totalsize += WriteStateChunk(mem, 0x10, SFMDATA);
 
    if (SPreSave)
       SPostSave();
@@ -436,7 +300,7 @@ void FCEUSS_Load_Mem(void)
    else
       stateversion = header[3] * 100;
 
-   int x = ReadStateChunks_Mem(mem, *(uint32*)(header + 4));
+   int x = ReadStateChunks(mem, *(uint32*)(header + 4));
 
    if (stateversion < 9500)
       X.IRQlow=0;
