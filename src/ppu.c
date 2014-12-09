@@ -996,7 +996,7 @@ static void CopySprites(uint8 *target) {
 
 	if (rendis & 1) return;	//User asked to not display sprites.
 
- loopskie:
+   do
 	{
 		uint32 t = *(uint32*)(sprlinebuf + n);
 
@@ -1052,9 +1052,8 @@ static void CopySprites(uint8 *target) {
 			}
 			#endif
 		}
-	}
-	n += 4;
-	if (n) goto loopskie;
+      n += 4;
+	} while(n);
 }
 
 void FCEUPPU_SetVideoSystem(int w) {
