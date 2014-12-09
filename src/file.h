@@ -1,8 +1,20 @@
 #ifndef _FCEU_FILE_H
 #define _FCEU_FILE_H
 
+#ifdef __LIBRETRO__
 typedef struct {
+	uint8 *data;
+	uint32 size;
+	uint32 location;
+} MEMWRAP;
+#endif
+
+typedef struct {
+#ifdef __LIBRETRO__
+   MEMWRAP *fp;
+#else
 	void *fp;		// FILE* or ptr to ZIPWRAP
+#endif
 	uint32 type;	// 0=normal file, 1=gzip, 2=zip
 } FCEUFILE;
 

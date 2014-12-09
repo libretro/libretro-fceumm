@@ -34,72 +34,145 @@
 #include "driver.h"
 #include "general.h"
 
-typedef struct {
-	uint8 *data;
-	uint32 size;
-	uint32 location;
-} MEMWRAP;
-
 #ifndef __GNUC__
  #define strcasecmp strcmp
 #endif
 
+static MEMWRAP *MakeMemWrap(void *tz, int type)
+{
+   MEMWRAP *tmp;
+
+   if (!(tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP))))
+      goto doret;
+   tmp->location = 0;
+
+   fseek((FILE*)tz, 0, SEEK_END);
+   tmp->size = ftell((FILE*)tz);
+   fseek((FILE*)tz, 0, SEEK_SET);
+   if (!(tmp->data = (uint8*)FCEU_malloc(tmp->size)))
+   {
+      free(tmp);
+      tmp = 0;
+      goto doret;
+   }
+   fread(tmp->data, 1, tmp->size, (FILE*)tz);
+
+doret:
+   if (type == 0)
+      fclose((FILE*)tz);
+   return tmp;
+}
+
 FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn, char *mode, char *ext)
 {
-	void *t;
-	FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
+   FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
+   void *t = fopen(path, mode);
 
-	if ((t = fopen(path, mode)))
+   if (!t)
    {
-		fseek((FILE*)t, 0, SEEK_SET);
-		fceufp->type = 0;
-		fceufp->fp = t;
-		return fceufp;
-	}
+      free(fceufp);
+      return 0;
+   }
 
-	free(fceufp);
-	return 0;
+   fseek((FILE*)t, 0, SEEK_SET);
+   fceufp->type = 0;
+   fceufp->fp = MakeMemWrap(t, 0);
+   return fceufp;
 }
 
 int FCEU_fclose(FCEUFILE *fp)
 {
-   fclose((FILE*)fp->fp);
+   if (fp->fp)
+      free(fp->fp);
+   fp->fp = NULL;
 	free(fp);
 	fp = 0;
 	return 1;
 }
 
-uint64 FCEU_fread(void *ptr, size_t size, size_t nmemb, FCEUFILE *fp)
+uint64 FCEU_fread(void *ptr, size_t element_size, size_t nmemb, FCEUFILE *fp)
 {
-   return fread(ptr, size, nmemb, (FILE*)fp->fp);
-}
+   uint32_t total = nmemb * element_size;
 
-uint64 FCEU_fwrite(void *ptr, size_t size, size_t nmemb, FCEUFILE *fp)
-{
-	return fwrite(ptr, size, nmemb, (FILE*)fp->fp);
+   if (fp->fp->location >= fp->fp->size)
+      return 0;
+
+   if((fp->fp->location + total) > fp->fp->size)
+   {
+      int64_t ak = fp->fp->size - fp->fp->location;
+
+      memcpy((uint8_t*)ptr, fp->fp->data + fp->fp->location, ak);
+
+      fp->fp->location = fp->fp->size;
+
+      return (ak / element_size);
+   }
+   
+   memcpy((uint8_t*)ptr, fp->fp->data + fp->fp->location, total);
+
+   fp->fp->location += total;
+
+   return nmemb;
 }
 
 int FCEU_fseek(FCEUFILE *fp, long offset, int whence)
 {
 	return fseek((FILE*)fp->fp, offset, whence);
+   switch (whence)
+   {
+      case SEEK_SET:
+         if (offset >= fp->fp->size)
+            return -1;
+
+         fp->fp->location = offset;
+         break;
+      case SEEK_CUR:
+         if ((offset + fp->fp->location) > fp->fp->size)
+            return -1;
+
+         fp->fp->location += offset;
+         break;
+   }
+
+   return 0;
+}
+
+static uint16 FCEU_de16lsb(const uint8 *morp)
+{
+   return (morp[0] | (morp[1] << 8));
 }
 
 int FCEU_read32le(uint32 *Bufo, FCEUFILE *fp)
 {
-   return read32le(Bufo, (FILE*)fp->fp);
+   if ((fp->fp->location + 2) > fp->fp->size)
+      return 0;
+
+   *Bufo = FCEU_de16lsb(fp->fp->data + fp->fp->location);
+
+   fp->fp->location += 2;
+
+   return 1;
 }
 
 int FCEU_fgetc(FCEUFILE *fp)
 {
-	return fgetc((FILE*)fp->fp);
+   if (fp->fp->location < fp->fp->size)
+      return fp->fp->data[fp->fp->location++];
+
+   return EOF;
 }
 
 uint64 FCEU_fgetsize(FCEUFILE *fp)
 {
+   /* TODO */
+#if 0
    long t, r;
    t = ftell((FILE*)fp->fp);
    fseek((FILE*)fp->fp, 0, SEEK_END);
    r = ftell((FILE*)fp->fp);
    fseek((FILE*)fp->fp, t, SEEK_SET);
    return r;
+#else
+   return 0;
+#endif
 }
