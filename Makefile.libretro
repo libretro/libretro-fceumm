@@ -53,15 +53,6 @@ endif
 ifeq ($(OSX_LT_MAVERICKS),"YES")
    fpic += -mmacosx-version-min=10.5
 endif
-else ifeq ($(platform), qnx)
-   TARGET := $(TARGET_NAME)_libretro_qnx.so
-   fpic := -fPIC
-   SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
-   ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
-
-	CC = qcc -Vgcc_ntoarmv7le
-	AR = qcc -Vgcc_ntoarmv7le
-	PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 else ifeq ($(platform), ios)
    TARGET := $(TARGET_NAME)_libretro_ios.dylib
    fpic := -fPIC
@@ -81,6 +72,27 @@ ifeq ($(OSX_LT_MAVERICKS),"YES")
    CC +=  -miphoneos-version-min=5.0
    CFLAGS += -miphoneos-version-min=5.0
 endif
+else ifeq ($(platform), theos_ios)
+	# Theos iOS
+DEPLOYMENT_IOSVERSION = 5.0
+TARGET = iphone:latest:$(DEPLOYMENT_IOSVERSION)
+ARCHS = armv7 armv7s
+TARGET_IPHONEOS_DEPLOYMENT_VERSION=$(DEPLOYMENT_IOSVERSION)
+THEOS_BUILD_DIR := objs
+include $(THEOS)/makefiles/common.mk
+
+LIBRARY_NAME = $(TARGET_NAME)_libretro_ios
+
+CFLAGS += -DHAVE_ASPRINTF
+else ifeq ($(platform), qnx)
+   TARGET := $(TARGET_NAME)_libretro_qnx.so
+   fpic := -fPIC
+   SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+   ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+
+	CC = qcc -Vgcc_ntoarmv7le
+	AR = qcc -Vgcc_ntoarmv7le
+	PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 else ifeq ($(platform), ps3)
    TARGET := $(TARGET_NAME)_libretro_ps3.a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
@@ -198,8 +210,13 @@ ifeq ($(platform), psp1)
 	INCFLAGS += -I$(shell psp-config --pspsdk-path)/include
 endif
 
+ifeq ($(platform), theos_ios)
+COMMON_FLAGS := -DIOS $(COMMON_DEFINES) $(INCFLAGS) -I$(THEOS_INCLUDE_PATH) -Wno-error
+$(LIBRARY_NAME)_CFLAGS += $(COMMON_FLAGS) $(CFLAGS)
+${LIBRARY_NAME}_FILES = $(SOURCES_C)
+include $(THEOS_MAKE_PATH)/library.mk
+else
 all: $(TARGET)
-
 $(TARGET): $(OBJECTS)
 ifeq ($(STATIC_LINKING), 1)
 	$(AR) rcs $@ $(OBJECTS)
@@ -218,3 +235,4 @@ clean:
 	rm -f $(TARGET)
 
 .PHONY: clean clean-objs
+endif
