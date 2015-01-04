@@ -37,8 +37,14 @@ static void COOLBOYPW(uint32 A, uint8 V) {
 	uint32 base = ((EXPREGS[0] & 0x07) >> 0) | ((EXPREGS[1] & 0x10) >> 1) | ((EXPREGS[1] & 0x0C) << 2) | ((EXPREGS[0] & 0x30) << 2);
 	switch(EXPREGS[0]&0xC0) {
 	case 0x00:
+      base >>= 2;
 		mask = 0x3F;
 		shift = 6;
+      break;
+   case 0x80:
+      base >>= 1;
+      mask = 0x1F;
+      shift = 5;
 		break;
 	case 0xC0:
 		shift = 4;
