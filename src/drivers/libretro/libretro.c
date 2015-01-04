@@ -804,11 +804,11 @@ void retro_cheat_reset(void)
 void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
    char name[256];
-   sprintf(name, "N/A");
    uint16 a;
    uint8  v;
    int    c;
    int    type = 1;
+   sprintf(name, "N/A");
 
    if (FCEUI_DecodeGG(code, &a, &v, &c))
       goto input_cheat;
