@@ -654,6 +654,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release_LTCG|Win32'">CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\coolboy.c" />
     <ClCompile Include="..\..\..\..\boards\copyfami_emu.c">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='CodeAnalysis|Win32'">CompileAsC</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>

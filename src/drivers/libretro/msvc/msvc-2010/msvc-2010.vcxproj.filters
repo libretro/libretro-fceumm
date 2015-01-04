@@ -545,6 +545,9 @@
     <ClCompile Include="..\..\griffin.c">
       <Filter>Source Files\libretro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\coolboy.c">
+      <Filter>Source Files\boards</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-fceumm\input\suborkb.h">

@@ -545,6 +545,9 @@
     <ClCompile Include="..\..\..\..\boards\vrc5.c">
       <Filter>Source Files\boards</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\coolboy.c">
+      <Filter>Source Files\boards</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src-fceumm\input\suborkb.h">
