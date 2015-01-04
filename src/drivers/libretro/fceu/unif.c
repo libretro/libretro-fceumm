@@ -312,7 +312,8 @@ static int LoadCHR(FCEUFILE *fp) {
 #define BMCFLAG_FORCE4 1
 #define BMCFLAG_16KCHRR  2
 #define BMCFLAG_32KCHRR  4
-#define BMCFLAG_EXPCHRR  8
+#define BMCFLAG_128KCHRR 8
+#define BMCFLAG_EXPCHRR  10
 
 static BMAPPING bmap[] = {
 	{ "11160", BMC11160_Init, 0 },
@@ -448,6 +449,7 @@ static BMAPPING bmap[] = {
 	{ "UOROM", UNROM_Init, 0 },
 	{ "VRC7", UNLVRC7_Init, 0 },
 	{ "YOKO", UNLYOKO_Init, 0 },
+   { "COOLBOY", COOLBOY_Init, BMCFLAG_128KCHRR },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
@@ -508,13 +510,16 @@ static int InitializeBoard(void) {
 		if (!strcmp((char*)sboardname, (char*)bmap[x].name)) {
 			if (!malloced[16]) {
 				if (bmap[x].flags & BMCFLAG_16KCHRR)
-					CHRRAMSize = 16384;
+					CHRRAMSize = 16;
 				else if (bmap[x].flags & BMCFLAG_32KCHRR)
-					CHRRAMSize = 32768;
+					CHRRAMSize = 32;
+				else if (bmap[x].flags & BMCFLAG_128KCHRR)
+               CHRRAMSize = 128;
 				else if (bmap[x].flags & BMCFLAG_EXPCHRR)
-					CHRRAMSize = 256 * 1024;
+					CHRRAMSize = 256;
 				else
-					CHRRAMSize = 8192;
+					CHRRAMSize = 8;
+            CHRRAMSize <<= 10;
 				if ((UNIFchrrama = (uint8*)FCEU_malloc(CHRRAMSize))) {
 					SetupCartCHRMapping(0, UNIFchrrama, CHRRAMSize, 1);
 					AddExState(UNIFchrrama, CHRRAMSize, 0, "CHRR");
