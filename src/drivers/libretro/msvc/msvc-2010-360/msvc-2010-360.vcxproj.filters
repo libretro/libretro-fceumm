@@ -533,14 +533,17 @@
     <ClCompile Include="..\..\griffin.c">
       <Filter>Source Files\libretro</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\ines.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\unif.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\x6502.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fceu\ines.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\fceu\unif.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\boards\vrc5.c">
+      <Filter>Source Files\boards</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
