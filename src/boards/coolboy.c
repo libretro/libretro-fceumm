@@ -62,11 +62,16 @@ static void COOLBOYPW(uint32 A, uint8 V) {
 }
 
 static DECLFW(COOLBOYWrite) {
+#ifdef _MSC_VER
+	uint32_t base;
+#else
+	uint32 base;
+#endif
 	if((EXPREGS[3] & 0x80) == 0) {
 		EXPREGS[A & 3] = V;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
-		uint32 base = ((EXPREGS[0] & 0x07) >> 0) | ((EXPREGS[1] & 0x10) >> 1) | ((EXPREGS[1] & 0x0C) << 2) | ((EXPREGS[0] & 0x30) << 2);
+		base = ((EXPREGS[0] & 0x07) >> 0) | ((EXPREGS[1] & 0x10) >> 1) | ((EXPREGS[1] & 0x0C) << 2) | ((EXPREGS[0] & 0x30) << 2);
 		FCEU_printf("exp %02x %02x (base %03d)\n",A,V,base);
 	}
 }
