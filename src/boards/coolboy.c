@@ -62,12 +62,10 @@ static void COOLBOYPW(uint32 A, uint8 V) {
 }
 
 static DECLFW(COOLBOYWrite) {
-#ifdef _MSC_VER
 	uint32_t base;
-#else
-	uint32 base;
-#endif
-	if((EXPREGS[3] & 0x80) == 0) {
+
+	if((EXPREGS[3] & 0x80) == 0)
+   {
 		EXPREGS[A & 3] = V;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
