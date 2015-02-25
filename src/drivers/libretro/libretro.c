@@ -83,7 +83,7 @@ int FCEUD_SendData(void *data, uint32 len)
    return 1;
 }
 
-#define BUILD_PIXEL_RGB565(R,G,B) (((int) ((R)&0x1f) << RED_SHIFT) | ((int) ((G)&0x3f) << GREEN_SHIFT) | (int) ((B) & 0x1f))
+#define BUILD_PIXEL_RGB565(R,G,B) (((int) ((R)&0x1f) << RED_SHIFT) | ((int) ((G)&0x3f) << GREEN_SHIFT) | ((int) ((B)&0x1f) << BLUE_SHIFT))
 
 #if defined (PSP)
 #define RED_SHIFT 0
