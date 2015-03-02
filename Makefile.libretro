@@ -34,6 +34,7 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
 endif
 
 TARGET_NAME := fceumm
+LIBM := -lm
 
 # Unix
 ifeq ($(platform), unix)
@@ -41,6 +42,14 @@ ifeq ($(platform), unix)
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
 	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+
+else ifeq ($(platform), linux-portable)
+	TARGET := $(TARGET_NAME)_libretro.so
+	fpic := -fPIC -nostdlib
+	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+	LIBM :=
+	LDFLAGS += -L. -lmusl
 
 # OS X
 else ifeq ($(platform), osx)
@@ -231,7 +240,7 @@ WARNING_DEFINES = -Wno-write-strings
 endif
 
 CFLAGS += $(CODE_DEFINES) $(fpic) $(WARNING_DEFINES) $(FCEU_DEFINES) $(ENDIANNESS_DEFINES)
-LDFLAGS += -lm
+LDFLAGS += $(LIBM)
 
 LIBS :=
 
