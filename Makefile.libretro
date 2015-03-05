@@ -46,11 +46,9 @@ ifeq ($(platform), unix)
 else ifeq ($(platform), linux-portable)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC -nostdlib
-	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T
 	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
 	LIBM :=
-	LDFLAGS += -L. -lmusl
-
 # OS X
 else ifeq ($(platform), osx)
 	TARGET := $(TARGET_NAME)_libretro.dylib
