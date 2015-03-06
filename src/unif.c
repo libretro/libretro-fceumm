@@ -513,7 +513,7 @@ static int InitializeBoard(void) {
 					CHRRAMSize = 16384;
 				else if (bmap[x].flags & BMCFLAG_32KCHRR)
 					CHRRAMSize = 32768;
-				else if (bmap[x].flags & BMCFLAG_EXPCHRR)
+				else if (bmap[x].flags & BMCFLAG_256KCHRR)
 					CHRRAMSize = 256 * 1024;
 				else
 					CHRRAMSize = 8192;
