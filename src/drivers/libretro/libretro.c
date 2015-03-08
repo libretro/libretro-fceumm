@@ -476,7 +476,7 @@ void retro_set_environment(retro_environment_t cb)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   info->need_fullpath = false;
+   info->need_fullpath = true;
    info->valid_extensions = "fds|nes|unif";
    info->library_version = "(SVN)";
    info->library_name = "FCEUmm";
