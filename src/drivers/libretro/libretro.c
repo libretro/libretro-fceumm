@@ -37,6 +37,7 @@ static retro_input_state_t input_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
 static retro_environment_t environ_cb = NULL;
 static bool use_overscan;
+static bool use_raw_palette;
 
 /* emulator-specific variables */
 
@@ -466,7 +467,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "nes_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc" },
+      { "nes_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|raw" },
       { NULL, NULL },
    };
 
@@ -531,11 +532,26 @@ static void emulator_set_custom_palette (void)
 {
    uint8 i,r,g,b;
 
+   use_raw_palette = false;
+
    if (current_palette == 0)
    {
       FCEU_ResetPalette();	/* Do palette reset*/
       return;
    }
+
+   if (current_palette == 15) /* raw palette */
+   {
+      use_raw_palette = true;
+      for (i = 0; i < 64; i++)
+      {
+         r = (((i >> 0) & 0xF) * 255) / 15;
+         g = (((i >> 4) & 0x3) * 255) / 3;
+         FCEUD_SetPalette( i, r, g, 0);
+      }
+      return;
+   }
+
 
    /* Setup this palette*/
 
@@ -643,6 +659,8 @@ static void check_variables(void)
          current_palette = 13;
       else if (strcmp(var.value, "nintendo-vc") == 0)
          current_palette = 14;
+      else if (strcmp(var.value, "raw") == 0)
+         current_palette = 15;
 
       if (current_palette != orig_value)
          emulator_set_custom_palette();
@@ -728,9 +746,21 @@ void retro_run(void)
 #ifndef PSP
       pitch = 512;
       gfx = XBuf;
-      for (y = 0; y < height; y++)
-         for ( x = 0; x < width; x++, gfx++)
-            video_out[y * width + x] = retro_palette[*gfx];
+      if (use_raw_palette)
+      {
+         extern uint8 PPU[4];
+         int deemp = (PPU[1] >> 5) << 2;
+         for (y = 0; y < height; y++)
+            for ( x = 0; x < width; x++, gfx++)
+               video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+
+      }
+      else
+      {
+         for (y = 0; y < height; y++)
+            for ( x = 0; x < width; x++, gfx++)
+               video_out[y * width + x] = retro_palette[*gfx];
+      }
 #endif
    }
    else
@@ -741,9 +771,22 @@ void retro_run(void)
 #ifndef PSP
       pitch = 512 - 32;
       gfx = XBuf + 8 + 256 * 8;
-      for (y = 0; y < height; y++, gfx += 16)
-         for ( x = 0; x < width; x++, gfx++)
-            video_out[y * width + x] = retro_palette[*gfx];
+
+      if (use_raw_palette)
+      {
+         extern uint8 PPU[4];
+         int deemp = (PPU[1] >> 5) << 2;
+         for (y = 0; y < height; y++, gfx += 16)
+            for ( x = 0; x < width; x++, gfx++)
+               video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+
+      }
+      else
+      {
+         for (y = 0; y < height; y++, gfx += 16)
+            for ( x = 0; x < width; x++, gfx++)
+               video_out[y * width + x] = retro_palette[*gfx];
+      }
 #endif
    }
    
