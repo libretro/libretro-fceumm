@@ -59,21 +59,21 @@ void FASTAPASS(2) setprg8(uint32 A, uint32 V);
 void FASTAPASS(2) setprg16(uint32 A, uint32 V);
 void FASTAPASS(2) setprg32(uint32 A, uint32 V);
 
-void FASTAPASS(3) setprg2r(int r, unsigned int A, unsigned int V);
-void FASTAPASS(3) setprg4r(int r, unsigned int A, unsigned int V);
-void FASTAPASS(3) setprg8r(int r, unsigned int A, unsigned int V);
-void FASTAPASS(3) setprg16r(int r, unsigned int A, unsigned int V);
-void FASTAPASS(3) setprg32r(int r, unsigned int A, unsigned int V);
+void FASTAPASS(3) setprg2r(int r, uint32 A, uint32 V);
+void FASTAPASS(3) setprg4r(int r, uint32 A, uint32 V);
+void FASTAPASS(3) setprg8r(int r, uint32 A, uint32 V);
+void FASTAPASS(3) setprg16r(int r, uint32 A, uint32 V);
+void FASTAPASS(3) setprg32r(int r, uint32 A, uint32 V);
 
-void FASTAPASS(3) setchr1r(int r, unsigned int A, unsigned int V);
-void FASTAPASS(3) setchr2r(int r, unsigned int A, unsigned int V);
-void FASTAPASS(3) setchr4r(int r, unsigned int A, unsigned int V);
-void FASTAPASS(2) setchr8r(int r, unsigned int V);
+void FASTAPASS(3) setchr1r(int r, uint32 A, uint32 V);
+void FASTAPASS(3) setchr2r(int r, uint32 A, uint32 V);
+void FASTAPASS(3) setchr4r(int r, uint32 A, uint32 V);
+void FASTAPASS(2) setchr8r(int r, uint32 V);
 
-void FASTAPASS(2) setchr1(unsigned int A, unsigned int V);
-void FASTAPASS(2) setchr2(unsigned int A, unsigned int V);
-void FASTAPASS(2) setchr4(unsigned int A, unsigned int V);
-void FASTAPASS(2) setchr8(unsigned int V);
+void FASTAPASS(2) setchr1(uint32 A, uint32 V);
+void FASTAPASS(2) setchr2(uint32 A, uint32 V);
+void FASTAPASS(2) setchr4(uint32 A, uint32 V);
+void FASTAPASS(2) setchr8(uint32 V);
 
 void FASTAPASS(1) setmirror(int t);
 void setmirrorw(int a, int b, int c, int d);
