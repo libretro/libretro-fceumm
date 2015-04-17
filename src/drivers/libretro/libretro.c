@@ -29,7 +29,10 @@
 #include <string.h>
 #include "memstream.h"
 
-
+#if defined(_3DS)
+void* linearMemAlign(size_t size, size_t alignment);
+void linearFree(void* mem);
+#endif
 
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
@@ -47,7 +50,9 @@ int FCEUnetplay;
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
 static uint16_t retro_palette[256];
+static uint16_t* fceu_video_out;
 #endif
+
 
 /* Some timing-related variables. */
 static int maxconbskip = 9;			/* Maximum consecutive blit skips. */
@@ -520,6 +525,11 @@ void retro_init(void)
 #endif
    PowerNES();
    check_system_specs();
+#if defined(_3DS)
+   fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
+#elif !defined(PSP)
+   fceu_video_out = (uint16_t*)malloc(256 * 240 * sizeof(uint16_t));
+#endif
 }
 
 static void emulator_set_input(void)
@@ -594,6 +604,11 @@ void retro_deinit (void)
    FCEUI_CloseGame();
    FCEUI_Sound(0);
    FCEUI_Kill();
+#if defined(_3DS)
+   linearFree(fceu_video_out);
+#elif !defined(PSP)
+   free(fceu_video_out);
+#endif
 }
 
 void retro_reset(void)
@@ -694,9 +709,6 @@ void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
 void retro_run(void)
 {
    unsigned width, height, pitch, x, y;
-#ifndef PSP
-   static uint16_t video_out[256 * 240];
-#endif
    uint8_t *gfx;
    int32 ssize;
    bool updated;
@@ -752,14 +764,14 @@ void retro_run(void)
          int deemp = (PPU[1] >> 5) << 2;
          for (y = 0; y < height; y++)
             for ( x = 0; x < width; x++, gfx++)
-               video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+               fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
 
       }
       else
       {
          for (y = 0; y < height; y++)
             for ( x = 0; x < width; x++, gfx++)
-               video_out[y * width + x] = retro_palette[*gfx];
+               fceu_video_out[y * width + x] = retro_palette[*gfx];
       }
 #endif
    }
@@ -778,14 +790,14 @@ void retro_run(void)
          int deemp = (PPU[1] >> 5) << 2;
          for (y = 0; y < height; y++, gfx += 16)
             for ( x = 0; x < width; x++, gfx++)
-               video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+               fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
 
       }
       else
       {
          for (y = 0; y < height; y++, gfx += 16)
             for ( x = 0; x < width; x++, gfx++)
-               video_out[y * width + x] = retro_palette[*gfx];
+               fceu_video_out[y * width + x] = retro_palette[*gfx];
       }
 #endif
    }
@@ -793,7 +805,7 @@ void retro_run(void)
 #ifdef PSP
    video_cb(texture_vram_p, width, height, pitch);
 #else
-   video_cb(video_out, width, height, pitch);
+   video_cb(fceu_video_out, width, height, pitch);
 #endif
 	FCEUD_UpdateInput();
 
