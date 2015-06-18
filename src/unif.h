@@ -146,6 +146,7 @@ void UNLVRC7_Init(CartInfo *info);
 void UNLYOKO_Init(CartInfo *info);
 void UNROM_Init(CartInfo *info);
 void COOLBOY_Init(CartInfo *info);
+void UNL158B_Init(CartInfo *info);
 
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);
