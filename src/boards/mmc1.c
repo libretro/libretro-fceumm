@@ -191,6 +191,10 @@ static int DetectMMC1WRAMSize(uint32 crc32) {
 		FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
 		return(16);
 		break;
+	case 0xd1e50064:            /* Dezaemon */
+		FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
+		return(32);
+		break;
 	default: return(8);
 	}
 }
