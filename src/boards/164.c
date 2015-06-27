@@ -351,7 +351,7 @@ static DECLFR(ReadLow) {
 	case 0x5100: return reg[2] | reg[0] | reg[1] | reg[3] ^ 0xff; break;
 	case 0x5500:
 		if (trigger)
-			return reg[2] | reg[1];	// Lei Dian Huang Bi Ka Qiu Chuan Shuo (NJ046) may broke other games
+			return reg[2] | reg[1];   // Lei Dian Huang Bi Ka Qiu Chuan Shuo (NJ046) may broke other games
 		else
 			return 0;
 	}
@@ -368,7 +368,7 @@ static void M163HB(void) {
 			setchr4(0x1000, 1);
 		}
 /*
-			if(scanline>=127)	// Hu Lu Jin Gang (NJ039) (Ch) [!] don't like it
+			if(scanline>=127)     // Hu Lu Jin Gang (NJ039) (Ch) [!] don't like it
 			{
 				setchr4(0x0000,1);
 				setchr4(0x1000,1);
@@ -397,6 +397,7 @@ static void Power(void) {
 	SetWriteHandler(0x5000, 0x5FFF, Write);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	WSync();
 }
 
@@ -431,7 +432,7 @@ static DECLFW(Write2) {
 			trigger ^= 1;
 		}
 		laststrobe = V;
-	} else if (A == 0x5100 && V == 6)	//damn thoose protected games
+	} else if (A == 0x5100 && V == 6) //damn thoose protected games
 		setprg32(0x8000, 3);
 	else
 		switch (A & 0x7300) {
@@ -450,6 +451,7 @@ static void Power2(void) {
 	SetWriteHandler(0x5000, 0x5FFF, Write2);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	WSync();
 }
 
@@ -503,6 +505,7 @@ static void Power3(void) {
 	SetWriteHandler(0x5000, 0x5FFF, Write3);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	WSync();
 }
 

@@ -133,6 +133,7 @@ static void M178Power(void) {
 	SetReadHandler(0x6000, 0x7fff, CartBR);
 	SetWriteHandler(0x6000, 0x7fff, CartBW);
 	SetReadHandler(0x8000, 0xffff, CartBR);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M178SndClk(int a) {

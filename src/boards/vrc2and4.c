@@ -19,6 +19,7 @@
  *
  * VRC-2/VRC-4 Konami
  * VRC-4 Pirate
+ *
  */
 
 #include "mapinc.h"
@@ -136,8 +137,8 @@ static DECLFW(M21Write) {
 }
 
 static DECLFW(M22Write) {
-	if (A == 0xC007) {											// Ganbare Goemon Gaiden does strange things!!! at the end credits
-		weirdo = 8;												// quick dirty hack, seems there is no other games with such PCB, so
+	if ((A >= 0xC004) && (A <= 0xC007)) {						// Ganbare Goemon Gaiden does strange things!!! at the end credits
+		weirdo = 1;												// quick dirty hack, seems there is no other games with such PCB, so
 																// we never know if it will not work for something else lol
 	}
 	A |= ((A >> 2) & 0x3);										// It's just swapped lines from 21 mapper
@@ -172,6 +173,7 @@ static void M23Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M23Write);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M25Power(void) {
@@ -182,6 +184,7 @@ static void M25Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M22Write);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 void FP_FASTAPASS(1) VRC24IRQHook(int a) {

@@ -74,7 +74,7 @@ static DECLFW(M73Write) {
 }
 
 static void M73IRQHook(int a) {
-	uint32 i;
+	int32 i;
 	if (!IRQa) return;
 	for (i = 0; i < a; i++) {
 		if (IRQm) {
@@ -106,6 +106,7 @@ static void M73Power(void) {
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x8000, 0xFFFF, M73Write);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M73Close(void) {

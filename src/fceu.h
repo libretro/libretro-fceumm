@@ -32,6 +32,7 @@ extern int MMC5Hack, PEC586Hack;
 extern uint8 *MMC5HackVROMPTR;
 extern uint8 MMC5HackCHRMode;
 extern uint8 MMC5HackSPMode;
+extern uint8 MMC50x5130;
 extern uint8 MMC5HackSPScroll;
 extern uint8 MMC5HackSPPage;
 
