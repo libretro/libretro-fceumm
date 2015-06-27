@@ -78,7 +78,7 @@ static uint8 PRGBanks[4];
 static uint8 WRAMPage;
 static uint16 CHRBanksA[8], CHRBanksB[4];
 static uint8 WRAMMaskEnable[2];
-uint8 mmc5ABMode;	/* A=0, B=1 */
+uint8 mmc5ABMode;                /* A=0, B=1 */
 
 static uint8 IRQScanline, IRQEnable;
 static uint8 CHRMode, NTAMirroring, NTFill, ATFill;
@@ -88,12 +88,13 @@ static uint8 MMC5LineCounter;
 static uint8 mmc5psize, mmc5vsize;
 static uint8 mul[2];
 
+static uint32 WRAMSIZE = 0;
 static uint8 *WRAM = NULL;
 static uint8 *MMC5fill = NULL;
 static uint8 *ExRAM = NULL;
 
-static uint8 MMC5WRAMsize;
-static uint8 MMC5WRAMIndex[8];
+static uint8 MMC5WRAMsize; //configuration, not state
+static uint8 MMC5WRAMIndex[8]; //configuration, not state
 
 static uint8 MMC5ROMWrProtect[4];
 static uint8 MMC5MemIn[5];
@@ -108,32 +109,32 @@ typedef struct __cartdata {
 
 cartdata MMC5CartList[] =
 {
-	{ 0x6f4e4312, 4 },	/* Aoki Ookami to Shiroki Mejika - Genchou Hishi */
-	{ 0x15fe6d0f, 2 },	/* Bandit Kings of Ancient China */
-	{ 0x671f23a8, 0 },	/* Castlevania III - Dracula's Curse (E) */
-	{ 0xcd4e7430, 0 },	/* Castlevania III - Dracula's Curse (KC) */
-	{ 0xed2465be, 0 },	/* Castlevania III - Dracula's Curse (U) */
-	{ 0xfe3488d1, 2 },	/* Daikoukai Jidai */
-	{ 0x0ec6c023, 1 },	/* Gemfire */
-	{ 0x0afb395e, 0 },	/* Gun Sight */
-	{ 0x1ced086f, 2 },	/* Ishin no Arashi */
-	{ 0x9cbadc25, 1 },	/* Just Breed */
-	{ 0x6396b988, 2 },	/* L'Empereur (J) */
-	{ 0x9c18762b, 2 },	/* L'Empereur (U) */
-	{ 0xb0480ae9, 0 },	/* Laser Invasion */
-	{ 0xb4735fac, 0 },	/* Metal Slader Glory */
-	{ 0xf540677b, 4 },	/* Nobunaga no Yabou - Bushou Fuuun Roku */
-	{ 0xeee9a682, 2 },	/* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG0) */
-	{ 0xf9b4240f, 2 },	/* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG1) */
-	{ 0x8ce478db, 2 },	/* Nobunaga's Ambition 2 */
-	{ 0xf011e490, 4 },	/* Romance of The Three Kingdoms II */
-	{ 0xbc80fb52, 1 },	/* Royal Blood */
-	{ 0x184c2124, 4 },	/* Sangokushi II (J) (PRG0) */
-	{ 0xee8e6553, 4 },	/* Sangokushi II (J) (PRG1) */
-	{ 0xd532e98f, 1 },	/* Shin 4 Nin Uchi Mahjong - Yakuman Tengoku */
-	{ 0x39f2ce4b, 2 },	/* Suikoden - Tenmei no Chikai */
-	{ 0xbb7f829a, 0 },	/* Uchuu Keibitai SDF */
-	{ 0xaca15643, 2 },	/* Uncharted Waters */
+	{ 0x6f4e4312, 4 }, /* Aoki Ookami to Shiroki Mejika - Genchou Hishi */
+	{ 0x15fe6d0f, 2 }, /* Bandit Kings of Ancient China */
+	{ 0x671f23a8, 0 }, /* Castlevania III - Dracula's Curse (E) */
+	{ 0xcd4e7430, 0 }, /* Castlevania III - Dracula's Curse (KC) */
+	{ 0xed2465be, 0 }, /* Castlevania III - Dracula's Curse (U) */
+	{ 0xfe3488d1, 2 }, /* Daikoukai Jidai */
+	{ 0x0ec6c023, 1 }, /* Gemfire */
+	{ 0x0afb395e, 0 }, /* Gun Sight */
+	{ 0x1ced086f, 2 }, /* Ishin no Arashi */
+	{ 0x9cbadc25, 1 }, /* Just Breed */
+	{ 0x6396b988, 2 }, /* L'Empereur (J) */
+	{ 0x9c18762b, 2 }, /* L'Empereur (U) */
+	{ 0xb0480ae9, 0 }, /* Laser Invasion */
+	{ 0xb4735fac, 0 }, /* Metal Slader Glory */
+	{ 0xf540677b, 4 }, /* Nobunaga no Yabou - Bushou Fuuun Roku */
+	{ 0xeee9a682, 2 }, /* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG0) */
+	{ 0xf9b4240f, 2 }, /* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG1) */
+	{ 0x8ce478db, 2 }, /* Nobunaga's Ambition 2 */
+	{ 0xf011e490, 4 }, /* Romance of The Three Kingdoms II */
+	{ 0xbc80fb52, 1 }, /* Royal Blood */
+	{ 0x184c2124, 4 }, /* Sangokushi II (J) (PRG0) */
+	{ 0xee8e6553, 4 }, /* Sangokushi II (J) (PRG1) */
+	{ 0xd532e98f, 1 }, /* Shin 4 Nin Uchi Mahjong - Yakuman Tengoku */
+	{ 0x39f2ce4b, 2 }, /* Suikoden - Tenmei no Chikai */
+	{ 0xbb7f829a, 0 }, /* Uchuu Keibitai SDF */
+	{ 0xaca15643, 2 }, /* Uncharted Waters */
 };
 
 #define MMC5_NOCARTS (sizeof(MMC5CartList) / sizeof(MMC5CartList[0]))
@@ -141,7 +142,7 @@ int DetectMMC5WRAMSize(uint32 crc32) {
 	int x;
 	for (x = 0; x < MMC5_NOCARTS; x++) {
 		if (crc32 == MMC5CartList[x].crc32) {
-			if (MMC5CartList[x].size > 1)
+			if(MMC5CartList[x].size > 1)
 				FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
 			return(MMC5CartList[x].size * 8);
 		}
@@ -153,11 +154,11 @@ static void BuildWRAMSizeTable(void) {
 	int x;
 	for (x = 0; x < 8; x++) {
 		switch (MMC5WRAMsize) {
-		case 0: MMC5WRAMIndex[x] = 255; break;						//X,X,X,X,X,X,X,X
-		case 1: MMC5WRAMIndex[x] = (x > 3) ? 255 : 0; break;		//0,0,0,0,X,X,X,X
-		case 2: MMC5WRAMIndex[x] = (x & 4) >> 2; break;				//0,0,0,0,1,1,1,1
-		case 4: MMC5WRAMIndex[x] = (x > 3) ? 255 : (x & 3); break;	//0,1,2,3,X,X,X,X
-		case 8: MMC5WRAMIndex[x] = x; break;						//0,1,2,3,4,5,6,7
+		case 0: MMC5WRAMIndex[x] = 255; break;                      //X,X,X,X,X,X,X,X
+		case 1: MMC5WRAMIndex[x] = (x > 3) ? 255 : 0; break;        //0,0,0,0,X,X,X,X
+		case 2: MMC5WRAMIndex[x] = (x & 4) >> 2; break;             //0,0,0,0,1,1,1,1
+		case 4: MMC5WRAMIndex[x] = (x > 3) ? 255 : (x & 3); break;  //0,1,2,3,X,X,X,X
+		case 8: MMC5WRAMIndex[x] = x; break; 						//0,1,2,3,4,5,6,7
 		}
 	}
 }
@@ -189,7 +190,7 @@ static void MMC5CHRA(void) {
 		for (x = 0; x < 8; x++) {
 			setchr1(x << 10, CHRBanksA[x]);
 			MMC5SPRVROM_BANK1(x << 10, CHRBanksA[x]);
-		}
+	}
 		break;
 	}
 }
@@ -221,7 +222,7 @@ static void MMC5CHRB(void) {
 		for (x = 0; x < 8; x++) {
 			setchr1(x << 10, CHRBanksB[x & 3]);
 			MMC5BGVROM_BANK1(x << 10, CHRBanksB[x & 3]);
-		}
+	}
 		break;
 	}
 }
@@ -230,6 +231,7 @@ static void FASTAPASS(2) MMC5WRAM(uint32 A, uint32 V) {
 	V = MMC5WRAMIndex[V & 7];
 	if (V != 255) {
 		setprg8r(0x10, A, V);
+		FCEU_CheatAddRAM(8, 0x6000, (WRAM + ((V * 8192) & (WRAMSIZE - 1))));
 		MMC5MemIn[(A - 0x6000) >> 13] = 1;
 	} else
 		MMC5MemIn[(A - 0x6000) >> 13] = 0;
@@ -299,95 +301,96 @@ static void MMC5PRG(void) {
 
 static DECLFW(Mapper5_write) {
 	switch (A) {
-	case 0x5100:
-		mmc5psize = V;
-		MMC5PRG();
-		break;
-	case 0x5101:
-		mmc5vsize = V;
-		if (!mmc5ABMode) {
-			MMC5CHRB();
-			MMC5CHRA();
-		} else {
-			MMC5CHRA();
-			MMC5CHRB();
-		}
-		break;
-	case 0x5102:
-		WRAMMaskEnable[0] = V;
-		break;
-	case 0x5103:
-		WRAMMaskEnable[1] = V;
-		break;
-	case 0x5104:
-		CHRMode = V;
-		MMC5HackCHRMode = V & 3;
-		break;
-	case 0x5105:
-	{
-		int x;
-		for (x = 0; x < 4; x++) {
-			switch ((V >> (x << 1)) & 3) {
-			case 0: PPUNTARAM |= 1 << x; vnapage[x] = NTARAM; break;
-			case 1: PPUNTARAM |= 1 << x; vnapage[x] = NTARAM + 0x400; break;
-			case 2: PPUNTARAM |= 1 << x; vnapage[x] = ExRAM; break;
-			case 3: PPUNTARAM &= ~(1 << x); vnapage[x] = MMC5fill; break;
+		case 0x5100:
+			mmc5psize = V;
+			MMC5PRG();
+			break;
+		case 0x5101:
+			mmc5vsize = V;
+			if (!mmc5ABMode) {
+				MMC5CHRB();
+				MMC5CHRA();
+			} else {
+				MMC5CHRA();
+				MMC5CHRB();
 			}
+			break;
+		case 0x5102:
+			WRAMMaskEnable[0] = V;
+			break;
+		case 0x5103:
+			WRAMMaskEnable[1] = V;
+			break;
+		case 0x5104:
+			CHRMode = V;
+			MMC5HackCHRMode = V & 3;
+			break;
+		case 0x5105:
+		{
+			int x;
+			for (x = 0; x < 4; x++) {
+				switch ((V >> (x << 1)) & 3) {
+				case 0: PPUNTARAM |= 1 << x; vnapage[x] = NTARAM; break;
+				case 1: PPUNTARAM |= 1 << x; vnapage[x] = NTARAM + 0x400; break;
+				case 2: PPUNTARAM |= 1 << x; vnapage[x] = ExRAM; break;
+				case 3: PPUNTARAM &= ~(1 << x); vnapage[x] = MMC5fill; break;
+				}
+			}
+			NTAMirroring = V;
+			break;
 		}
-		NTAMirroring = V;
-		break;
-	}
-	case 0x5106:
-		if (V != NTFill)
-			FCEU_dwmemset(MMC5fill, (V | (V << 8) | (V << 16) | (V << 24)), 0x3c0);
-		NTFill = V;
-		break;
-	case 0x5107:
-		if (V != ATFill) {
-			unsigned char moop = V | (V << 2) | (V << 4) | (V << 6);
-			FCEU_dwmemset(MMC5fill + 0x3c0, moop | (moop << 8) | (moop << 16) | (moop << 24), 0x40);
+		case 0x5106:
+			if (V != NTFill)
+				FCEU_dwmemset(MMC5fill, (V | (V << 8) | (V << 16) | (V << 24)), 0x3c0);
+			NTFill = V;
+			break;
+		case 0x5107:
+			if (V != ATFill) {
+				unsigned char moop = V | (V << 2) | (V << 4) | (V << 6);
+				FCEU_dwmemset(MMC5fill + 0x3c0, moop | (moop << 8) | (moop << 16) | (moop << 24), 0x40);
+			}
+			ATFill = V;
+			break;
+		case 0x5113:
+			WRAMPage = V;
+			MMC5WRAM(0x6000, V & 7);
+			break;
+		case 0x5114:
+		case 0x5115:
+		case 0x5116:
+		case 0x5117:
+			PRGBanks[A & 3] = V;
+			MMC5PRG();
+			break;
+		case 0x5120:
+		case 0x5121:
+		case 0x5122:
+		case 0x5123:
+		case 0x5124:
+		case 0x5125:
+		case 0x5126:
+		case 0x5127:
+			mmc5ABMode = 0;
+			CHRBanksA[A & 7] = V | ((MMC50x5130 & 0x3) << 8);
+			MMC5CHRA();
+			break;
+		case 0x5128:
+		case 0x5129:
+		case 0x512a:
+		case 0x512b:
+			mmc5ABMode = 1;
+			CHRBanksB[A & 3] = V | ((MMC50x5130 & 0x3) << 8);
+			MMC5CHRB();
+			break;
+		case 0x5130: MMC50x5130 = V; break;
+		case 0x5200: MMC5HackSPMode = V; break;
+		case 0x5201: MMC5HackSPScroll = (V >> 3) & 0x1F; break;
+		case 0x5202: MMC5HackSPPage = V & 0x3F; break;
+		case 0x5203: X6502_IRQEnd(FCEU_IQEXT); IRQScanline = V; break;
+		case 0x5204: X6502_IRQEnd(FCEU_IQEXT); IRQEnable = V & 0x80; break;
+		case 0x5205: mul[0] = V; break;
+		case 0x5206: mul[1] = V; break;
 		}
-		ATFill = V;
-		break;
-	case 0x5113:
-		WRAMPage = V;
-		MMC5WRAM(0x6000, V & 7);
-		break;
-	case 0x5114:
-	case 0x5115:
-	case 0x5116:
-	case 0x5117:
-		PRGBanks[A & 3] = V;
-		MMC5PRG();
-		break;
-	case 0x5120:
-	case 0x5121:
-	case 0x5122:
-	case 0x5123:
-	case 0x5124:
-	case 0x5125:
-	case 0x5126:
-	case 0x5127:
-		mmc5ABMode = 0;
-		CHRBanksA[A & 7] = V;
-		MMC5CHRA();
-		break;
-	case 0x5128:
-	case 0x5129:
-	case 0x512a:
-	case 0x512b:
-		mmc5ABMode = 1;
-		CHRBanksB[A & 3] = V;
-		MMC5CHRB();
-		break;
-	case 0x5200: MMC5HackSPMode = V; break;
-	case 0x5201: MMC5HackSPScroll = (V >> 3) & 0x1F; break;
-	case 0x5202: MMC5HackSPPage = V & 0x3F; break;
-	case 0x5203: X6502_IRQEnd(FCEU_IQEXT); IRQScanline = V; break;
-	case 0x5204: X6502_IRQEnd(FCEU_IQEXT); IRQEnable = V & 0x80; break;
-	case 0x5205: mul[0] = V; break;
-	case 0x5206: mul[1] = V; break;
-	}
 }
 
 static DECLFR(MMC5_ReadROMRAM) {
@@ -399,7 +402,7 @@ static DECLFR(MMC5_ReadROMRAM) {
 
 static DECLFW(MMC5_WriteROMRAM) {
 	if ((A >= 0x8000) && (MMC5ROMWrProtect[(A - 0x8000) >> 13]))
-		return;
+			return;
 	if (MMC5MemIn[(A - 0x6000) >> 13])
 		if (((WRAMMaskEnable[0] & 3) | ((WRAMMaskEnable[1] & 3) << 2)) == 6)
 			Page[A >> 11][A] = V;
@@ -425,7 +428,7 @@ static DECLFR(MMC5_read) {
 		#endif
 		MMC5IRQR &= 0x40;
 		return x;
-	}
+		}
 	case 0x5205:
 		return(mul[0] * mul[1]);
 	case 0x5206:
@@ -454,31 +457,56 @@ void MMC5Synco(void) {
 		MMC5CHRA();
 		MMC5CHRB();
 	}
+
+	//in case the fill register changed, we need to overwrite the fill buffer
 	FCEU_dwmemset(MMC5fill, NTFill | (NTFill << 8) | (NTFill << 16) | (NTFill << 24), 0x3c0);
 	{
 		unsigned char moop = ATFill | (ATFill << 2) | (ATFill << 4) | (ATFill << 6);
 		FCEU_dwmemset(MMC5fill + 0x3c0, moop | (moop << 8) | (moop << 16) | (moop << 24), 0x40);
 	}
-	X6502_IRQEnd(FCEU_IQEXT);
+
 	MMC5HackCHRMode = CHRMode & 3;
+
+	//zero 17-apr-2013 - why the heck should this happen here? anything in a `synco` should be depending on the state.
+	//im going to leave it commented out to see what happens
+	//X6502_IRQEnd(FCEU_IQEXT);
 }
 
 void MMC5_hb(int scanline) {
-	if (scanline == 240) {
+	//zero 24-jul-2014 - revised for newer understanding, to fix metal slader glory credits. see r7371 in bizhawk
+	
+	int sl = scanline + 1;
+	int ppuon = (PPU[1] & 0x18);
+
+	if (!ppuon || sl >= 241)
+	{
+		// whenever rendering is off for any reason (vblank or forced disable
+		// the irq counter resets, as well as the inframe flag (easily verifiable from software)
+		MMC5IRQR &= ~0x40;
+		MMC5IRQR &= ~0x80;
 		MMC5LineCounter = 0;
-		MMC5IRQR = 0x40;
+		X6502_IRQEnd(FCEU_IQEXT);
 		return;
 	}
-	if (MMC5LineCounter < 240) {
-		if (MMC5LineCounter == IRQScanline) {
+
+	if (!(MMC5IRQR&0x40))
+	{
+		MMC5IRQR |= 0x40;
+		MMC5IRQR &= ~0x80;
+		MMC5LineCounter = 0;
+		X6502_IRQEnd(FCEU_IQEXT);
+	}
+	else
+	{
+		MMC5LineCounter++;
+		if (MMC5LineCounter == IRQScanline)
+		{
 			MMC5IRQR |= 0x80;
 			if (IRQEnable & 0x80)
 				X6502_IRQBegin(FCEU_IQEXT);
 		}
-		MMC5LineCounter++;
 	}
-	if (MMC5LineCounter == 240)
-		MMC5IRQR = 0;
+
 }
 
 void MMC5_StateRestore(int version) {
@@ -616,7 +644,7 @@ static void Do5SQHQ(int P) {
 			if (dc < rthresh)
 				WaveHi[V] += amp;
 			vc--;
-			if (vc <= 0) {	/* Less than zero when first started. */
+			if (vc <= 0) { /* Less than zero when first started. */
 				vc = wl;
 				dc = (dc + 1) & 7;
 			}
@@ -681,8 +709,11 @@ void NSFMMC5_Init(void) {
 }
 
 void NSFMMC5_Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
 	FCEU_gfree(ExRAM);
-	ExRAM = 0;
+	ExRAM = NULL;
 }
 
 static void GenMMC5Reset(void) {
@@ -714,7 +745,7 @@ static void GenMMC5Reset(void) {
 	SetReadHandler(0x5205, 0x5206, MMC5_read);
 
 //	GameHBIRQHook=MMC5_hb;
-	FCEU_CheatAddRAM(8, 0x6000, WRAM);
+//	FCEU_CheatAddRAM(8, 0x6000, WRAM);
 	FCEU_CheatAddRAM(1, 0x5c00, ExRAM);
 }
 
@@ -732,6 +763,15 @@ static SFORMAT MMC5_StateRegs[] = {
 	{ &NTFill, 1, "NTFL" },
 	{ &ATFill, 1, "ATFL" },
 
+	//zero 17-apr-2013 - added
+	{ &MMC5IRQR, 1, "IRQR" },
+	{ &MMC5LineCounter, 1, "LCTR" },
+	{ &mmc5psize, 1, "PSIZ" },
+	{ &mmc5vsize, 1, "VSIZ" },
+	{ mul, 2, "MUL2" },
+	{ MMC5ROMWrProtect, 4, "WRPR" },
+	{ MMC5MemIn, 5, "MEMI" },
+
 	{ &MMC5Sound.wl[0], 2 | FCEUSTATE_RLSB, "SDW0" },
 	{ &MMC5Sound.wl[1], 2 | FCEUSTATE_RLSB, "SDW1" },
 	{ MMC5Sound.env, 2, "SDEV" },
@@ -739,6 +779,15 @@ static SFORMAT MMC5_StateRegs[] = {
 	{ &MMC5Sound.running, 1, "SDRU" },
 	{ &MMC5Sound.raw, 1, "SDRW" },
 	{ &MMC5Sound.rawcontrol, 1, "SDRC" },
+
+	//zero 17-apr-2013 - added
+	{ &MMC5Sound.dcount[0], 4 | FCEUSTATE_RLSB, "DCT0" },
+	{ &MMC5Sound.dcount[1], 4 | FCEUSTATE_RLSB, "DCT1" },
+	{ &MMC5Sound.BC[0], 4 | FCEUSTATE_RLSB, "BC00" },
+	{ &MMC5Sound.BC[1], 4 | FCEUSTATE_RLSB, "BC01" },
+	{ &MMC5Sound.BC[2], 4 | FCEUSTATE_RLSB, "BC02" },
+	{ &MMC5Sound.vcount[0], 4 | FCEUSTATE_RLSB, "VCT0" },
+	{ &MMC5Sound.vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
 	{ 0 }
 };
 
@@ -756,6 +805,7 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 	AddExState(&MMC5HackSPMode, 1, 0, "SPLM");
 	AddExState(&MMC5HackSPScroll, 1, 0, "SPLS");
 	AddExState(&MMC5HackSPPage, 1, 0, "SPLP");
+	AddExState(&MMC50x5130, 1, 0, "5130");
 	AddExState(MMC5_StateRegs, ~0, 0, 0);
 
 	MMC5WRAMsize = wsize / 8;
@@ -781,7 +831,8 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 }
 
 void Mapper5_Init(CartInfo *info) {
-	GenMMC5_Init(info, DetectMMC5WRAMSize(info->CRC32), info->battery);
+	WRAMSIZE = DetectMMC5WRAMSize(info->CRC32);
+	GenMMC5_Init(info, WRAMSIZE, info->battery);
 }
 
 // ELROM seems to have 0KB of WRAM

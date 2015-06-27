@@ -100,6 +100,7 @@ uint8 *MMC5HackExNTARAMPtr = 0;
 uint8 *MMC5HackVROMPTR = 0;
 uint8 MMC5HackCHRMode = 0;
 uint8 MMC5HackSPMode = 0;
+uint8 MMC50x5130 = 0;
 uint8 MMC5HackSPScroll = 0;
 uint8 MMC5HackSPPage = 0;
 

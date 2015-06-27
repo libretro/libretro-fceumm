@@ -15,6 +15,7 @@ N 004 mapper - "Long Zhu Ying Xiong (As) [p1].nes" не работает из-за повторного 
   016 mapper - as like 157, добавить EEPROM эмуляцию.
   126 mapper - "PowerJoy 84-in-1 (PJ-008) (Unl) [!]" не эмулируется (Nestopia)
   253 mapper - плохая синхронизация IRQ, проблема в вычислениях тайминга или в ядре?
+  015 mapper - вешается при загрузке-сейве Yuefei (Unl) [h1]
 
 Готово: 
 
