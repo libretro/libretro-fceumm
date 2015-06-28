@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2002 Xodnizel
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -166,7 +167,7 @@ static void DoAYSQ(int x) {
 }
 
 static void DoAYSQHQ(int x) {
-	int32 V;
+	uint32 V;
 	int32 freq = ((sreg[x << 1] | ((sreg[(x << 1) + 1] & 15) << 8)) + 1) << 4;
 	int32 amp = (sreg[0x8 + x] & 15) << 6;
 
@@ -231,6 +232,7 @@ static void M69Power(void) {
 	SetWriteHandler(0xA000, 0xBFFF, M69Write1);
 	SetWriteHandler(0xC000, 0xDFFF, M69SWrite0);
 	SetWriteHandler(0xE000, 0xFFFF, M69SWrite1);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M69Close(void) {

@@ -53,14 +53,14 @@ static DECLFW(SSSNROMWrite) {
 static DECLFR(SSSNROMRead) {
 //	FCEU_printf("read %04x\n",A);
 	switch (A & 7) {
-	case 0: return regs[0] = 0xff;	// clear all exceptions
+	case 0: return regs[0] = 0xff; // clear all exceptions
 	case 2: return 0xc0;	// DIP selftest + freeplay
 	case 3: return 0x00;	// 0, 1 - attract
-	// 2
-	// 4    - menu
-	// 8    - self check and game casette check
-	// 10   - lock?
-	// 20   - game title & count display
+							// 2
+							// 4    - menu
+							// 8    - self check and game casette check
+							// 10   - lock?
+							// 20   - game title & count display
 	case 7: return 0x22;	// TV type, key not turned, relay B
 	default: return 0;
 	}
@@ -79,6 +79,7 @@ static void SSSNROMPower(void) {
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void SSSNROMReset(void) {
@@ -109,7 +110,6 @@ void SSSNROM_Init(CartInfo *info) {
 	WRAMSIZE = 16384;
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	AddExState(&StateRegs, ~0, 0, 0);
 }

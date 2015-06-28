@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2011 FCEUX team
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -269,6 +270,7 @@ static void M153Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, BandaiWrite);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 

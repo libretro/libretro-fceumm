@@ -42,7 +42,7 @@ static void FP_FASTAPASS(1) TransformerIRQHook(int a) {
 				else
 					TransformerChar = i | 0x80;
 				X6502_IRQBegin(FCEU_IQEXT);
-				memcpy((void*)&oldkeys[0], (void*)TransformerKeys, 256);
+				memcpy((void*)&oldkeys[0], (void*)TransformerKeys, sizeof(oldkeys));
 				break;
 			}
 		}
@@ -71,6 +71,7 @@ static void TransformerPower(void) {
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 
 	MapIRQHook = TransformerIRQHook;
 }
