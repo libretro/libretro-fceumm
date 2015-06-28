@@ -19,6 +19,7 @@
  */
 
 #include "mapinc.h"
+#include "../ines.h"
 
 static uint8 latche, latcheinit, bus_conflict;
 static uint16 addrreg0, addrreg1;
@@ -41,6 +42,7 @@ static void LatchPower(void) {
 	if (WRAM) {
 		SetReadHandler(0x6000, 0xFFFF, CartBR);
 		SetWriteHandler(0x6000, 0x7FFF, CartBW);
+		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	} else {
 		SetReadHandler(0x8000, 0xFFFF, CartBR);
 	}
@@ -98,6 +100,8 @@ static void NROMPower(void) {
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
+
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 
 	#ifdef DEBUG_MAPPER
 	SetWriteHandler(0x4020, 0xFFFF, NROMWrite);

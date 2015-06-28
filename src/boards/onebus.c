@@ -79,7 +79,6 @@ static void PSync(void) {
 	uint8 bank2 = (cpu410x[0xb] & 0x40) ? (cpu410x[0x9]) : (~1);
 	uint8 bank3 = ~0;
 
-//	FCEU_printf(" PRG OFFSET: %08x\n", (block | (bank0 & mask)) * 8192);
 //	FCEU_printf(" PRG: %04x [%02x]",0x8000^pswap,block | (bank0 & mask));
 	setprg8(0x8000 ^ pswap, block | (bank0 & mask));
 //	FCEU_printf(" %04x [%02x]",0xa000^pswap,block | (bank1 & mask));
@@ -105,22 +104,13 @@ static void CSync(void) {
 	uint8 bank6 = ppu201x[0x4];
 	uint8 bank7 = ppu201x[0x5];
 
-//	FCEU_printf(" CHR OFFSET: %08x\n", (block | (bank0 & mask)) * 1024);
-//	FCEU_printf(" CHR: %04x [%02x]", 0x0000^cswap,block | (bank0 & mask));
 	setchr1(0x0000 ^ cswap, block | (bank0 & mask));
-//	FCEU_printf(" %04x [%02x]",0x0400^cswap,block | (bank1 & mask));
 	setchr1(0x0400 ^ cswap, block | (bank1 & mask));
-//	FCEU_printf(" %04x [%02x]",0x0800^cswap,block | (bank2 & mask));
 	setchr1(0x0800 ^ cswap, block | (bank2 & mask));
-//	FCEU_printf(" %04x [%02x]",0x0c00^cswap,block | (bank3 & mask));
 	setchr1(0x0c00 ^ cswap, block | (bank3 & mask));
-//	FCEU_printf(" %04x [%02x]",0x1000^cswap,block | (bank4 & mask));
 	setchr1(0x1000 ^ cswap, block | (bank4 & mask));
-//	FCEU_printf(" %04x [%02x]",0x1400^cswap,block | (bank5 & mask));
 	setchr1(0x1400 ^ cswap, block | (bank5 & mask));
-//	FCEU_printf(" %04x [%02x]",0x1800^cswap,block | (bank6 & mask));
 	setchr1(0x1800 ^ cswap, block | (bank6 & mask));
-//	FCEU_printf(" %04x [%02x]\n",0x1c00^cswap,block | (bank7 & mask));
 	setchr1(0x1c00 ^ cswap, block | (bank7 & mask));
 
 	setmirror(mirror & 1);
@@ -190,19 +180,19 @@ static void UNLOneBusIRQHook(void) {
 }
 
 static DECLFW(UNLOneBusWriteAPU40XX) {
-//	FCEU_printf("APU %04x:%04x\n",A,V);
+//	if(((A & 0x3f)!=0x16) && ((apu40xx[0x30] & 0x10) || ((A & 0x3f)>0x17)))FCEU_printf("APU %04x:%04x\n",A,V);
 	apu40xx[A & 0x3f] = V;
 	switch (A & 0x3f) {
 	case 0x12:
 		if (apu40xx[0x30] & 0x10) {
 			pcm_addr = V << 6;
 		}
-      break;
+		break;
 	case 0x13:
 		if (apu40xx[0x30] & 0x10) {
 			pcm_size = (V << 4) + 1;
 		}
-      break;
+		break;
 	case 0x15:
 		if (apu40xx[0x30] & 0x10) {
 			pcm_enable = V & 0x10;
@@ -214,7 +204,7 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 				pcm_latch = pcm_clock;
 			V &= 0xef;
 		}
-      break;
+		break;
 	}
 	defapuwrite[A & 0x3f](A, V);
 }
@@ -227,7 +217,7 @@ static DECLFR(UNLOneBusReadAPU40XX) {
 		if (apu40xx[0x30] & 0x10) {
 			result = (result & 0x7f) | pcm_irq;
 		}
-      break;
+		break;
 	}
 	return result;
 }
@@ -243,7 +233,7 @@ static void UNLOneBusCpuHook(int a) {
 				pcm_enable = 0;
 				X6502_IRQBegin(FCEU_IQEXT);
 			} else {
-            uint16 addr = pcm_addr | ((apu40xx[0x30]^3) << 14);
+				uint16 addr = pcm_addr | ((apu40xx[0x30]^3) << 14);
 				uint8 raw_pcm = ARead[addr](addr) >> 1;
 				defapuwrite[0x11](0x4011, raw_pcm);
 				pcm_addr++;
