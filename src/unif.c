@@ -451,6 +451,7 @@ static BMAPPING bmap[] = {
 	{ "YOKO", UNLYOKO_Init, 0 },
         { "COOLBOY", COOLBOY_Init, BMCFLAG_256KCHRR },
         { "158B", UNL158B_Init, 0 },
+        { "DRAGONFIGHTER", UNLBMW8544_Init, 0},
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
