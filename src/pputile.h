@@ -74,6 +74,7 @@ pshift[1] <<= 8;
 	#ifdef PPUT_MMC5CHR1
 		C = MMC5HackVROMPTR;
 		C += (((MMC5HackExNTARAMPtr[RefreshAddr & 0x3ff]) & 0x3f & MMC5HackVROMMask) << 12) + (vadr & 0xfff);
+		C += (MMC50x5130 & 0x3) << 18;
 	#elif defined(PPUT_MMC5)
 		C = MMC5BGVRAMADR(vadr);
 	#else

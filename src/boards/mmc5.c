@@ -369,7 +369,7 @@ static DECLFW(Mapper5_write) {
 	case 0x5126:
 	case 0x5127:
 		mmc5ABMode = 0;
-		CHRBanksA[A & 7] = V;
+		CHRBanksA[A & 7] = V | ((MMC50x5130 & 0x3) << 8);
 		MMC5CHRA();
 		break;
 	case 0x5128:
@@ -377,9 +377,10 @@ static DECLFW(Mapper5_write) {
 	case 0x512a:
 	case 0x512b:
 		mmc5ABMode = 1;
-		CHRBanksB[A & 3] = V;
+		CHRBanksB[A & 3] = V | ((MMC50x5130 & 0x3) << 8);
 		MMC5CHRB();
 		break;
+	case 0x5130: MMC50x5130 = V; break;		
 	case 0x5200: MMC5HackSPMode = V; break;
 	case 0x5201: MMC5HackSPScroll = (V >> 3) & 0x1F; break;
 	case 0x5202: MMC5HackSPPage = V & 0x3F; break;
@@ -756,6 +757,7 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 	AddExState(&MMC5HackSPMode, 1, 0, "SPLM");
 	AddExState(&MMC5HackSPScroll, 1, 0, "SPLS");
 	AddExState(&MMC5HackSPPage, 1, 0, "SPLP");
+	AddExState(&MMC50x5130, 1, 0, "5130");
 	AddExState(MMC5_StateRegs, ~0, 0, 0);
 
 	MMC5WRAMsize = wsize / 8;
