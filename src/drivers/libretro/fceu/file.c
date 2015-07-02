@@ -154,19 +154,14 @@ int FCEU_fseek(FCEUFILE *fp, long offset, int whence)
    return 0;
 }
 
-static uint16 FCEU_de16lsb(const uint8 *morp)
-{
-   return (morp[0] | (morp[1] << 8));
-}
-
 int FCEU_read32le(uint32 *Bufo, FCEUFILE *fp)
 {
-   if ((fp->fp->location + 2) > fp->fp->size)
+   if ((fp->fp->location + 4) > fp->fp->size)
       return 0;
 
-   *Bufo = FCEU_de16lsb(fp->fp->data + fp->fp->location);
+   *Bufo = FCEU_de32lsb(fp->fp->data + fp->fp->location);
 
-   fp->fp->location += 2;
+   fp->fp->location += 4;
 
    return 1;
 }
