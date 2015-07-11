@@ -1,7 +1,7 @@
 [Project]
 FileName=Fceuwin.dev
 Name=Fceu
-UnitCount=298
+UnitCount=299
 Type=0
 Ver=1
 ObjFiles=
@@ -2658,9 +2658,9 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit299]
-FileName=src\boards\addrlatch.c
+FileName=src\boards\et-100.c
 CompileCpp=0
-Folder=boards
+Folder=boards/mmc3 based
 Compile=1
 Link=1
 Priority=1000
