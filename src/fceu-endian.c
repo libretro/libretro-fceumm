@@ -63,22 +63,22 @@ int read32le(uint32 *Bufo, FILE *fp) {
 	uint32 buf;
 	if (fread(&buf, 1, 4, fp) < 4)
 		return 0;
- #ifdef LSB_FIRST
-	*(uint32*)Bufo = buf;
- #else
+ #ifdef MSB_FIRST
 	*(uint32*)Bufo = ((buf & 0xFF) << 24) | ((buf & 0xFF00) << 8) | ((buf & 0xFF0000) >> 8) | ((buf & 0xFF000000) >> 24);
+ #else
+	*(uint32*)Bufo = buf;
  #endif
 	return 1;
 }
 
 int read16le(char *d, FILE *fp) {
- #ifdef LSB_FIRST
-	return((fread(d, 1, 2, fp) < 2) ? 0 : 2);
- #else
+ #ifdef MSB_FIRST
 	int ret;
 	ret = fread(d + 1, 1, 1, fp);
 	ret += fread(d, 1, 1, fp);
 	return ret < 2 ? 0 : 2;
+ #else
+	return((fread(d, 1, 2, fp) < 2) ? 0 : 2);
  #endif
 }
 

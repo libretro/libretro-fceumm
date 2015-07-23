@@ -413,10 +413,11 @@ int FCEU_read16le(uint16 *val, FCEUFILE *fp) {
 	return(1);
 }
 
-int FCEU_read32le(uint32 *Bufo, FCEUFILE *fp) {
+int FCEU_read32le(uint32 *Bufo, FCEUFILE *fp)
+{
 	if (fp->type >= 1) {
 		uint8 t[4];
-	#ifndef LSB_FIRST
+	#ifdef MSB_FIRST
 		uint8 x[4];
 	#endif
 		if (fp->type >= 2) {
@@ -429,7 +430,7 @@ int FCEU_read32le(uint32 *Bufo, FCEUFILE *fp) {
 			wz->location += 4;
 		} else if (fp->type == 1)
 			gzread(fp->fp, &t, 4);
-	#ifndef LSB_FIRST
+	#ifdef MSB_FIRST
 		x[0] = t[3];
 		x[1] = t[2];
 		x[2] = t[1];

@@ -41,13 +41,13 @@ ifeq ($(platform), unix)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
-	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+	ENDIANNESS_DEFINES = -DLOCAL_LE=1
 
 else ifeq ($(platform), linux-portable)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC -nostdlib
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T
-	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+	ENDIANNESS_DEFINES = -DLOCAL_LE=1
 	LIBM :=
 # OS X
 else ifeq ($(platform), osx)
@@ -55,7 +55,7 @@ else ifeq ($(platform), osx)
 	fpic := -fPIC
 	SHARED := -dynamiclib
 	ifneq ($(arch),ppc)
-		ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+		ENDIANNESS_DEFINES = -DLOCAL_LE=1
 	endif
 	CFLAGS += -DHAVE_ASPRINTF
 	OSXVER = `sw_vers -productVersion | cut -d. -f 2`
@@ -73,7 +73,7 @@ else ifeq ($(platform), ios)
 	TARGET := $(TARGET_NAME)_libretro_ios.dylib
 	fpic := -fPIC
 	SHARED := -dynamiclib
-	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+	ENDIANNESS_DEFINES = -DLOCAL_LE=1
 	CFLAGS += -DHAVE_ASPRINTF -DIOS
 	ifeq ($(IOSSDK),)
 		IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
@@ -103,7 +103,7 @@ else ifeq ($(platform), qnx)
 	TARGET := $(TARGET_NAME)_libretro_qnx.so
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
-	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+	ENDIANNESS_DEFINES = -DLOCAL_LE=1
 	CC = qcc -Vgcc_ntoarmv7le
 	AR = qcc -Vgcc_ntoarmv7le
 	PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
@@ -132,7 +132,7 @@ else ifeq ($(platform), psp1)
 	CC = psp-gcc$(EXE_EXT)
 	CXX = psp-g++$(EXE_EXT)
 	AR = psp-ar$(EXE_EXT)
-	PLATFORM_DEFINES := -DPSP -G0 -DLSB_FIRST -DHAVE_ASPRINTF
+	PLATFORM_DEFINES := -DPSP -G0 -DHAVE_ASPRINTF
 	PLATFORM_DEFINES += -march=allegrex -mfp32 -mgp32 -mlong32 -mabi=eabi
 	PLATFORM_DEFINES += -fomit-frame-pointer -fstrict-aliasing
 	PLATFORM_DEFINES += -falign-functions=32 -falign-loops -falign-labels -falign-jumps
@@ -145,7 +145,7 @@ else ifeq ($(platform), ctr)
 	CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
 	CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
 	AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
-	PLATFORM_DEFINES := -DARM11 -D_3DS -DLSB_FIRST -DHAVE_ASPRINTF
+	PLATFORM_DEFINES := -DARM11 -D_3DS -DHAVE_ASPRINTF
 	CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
 	CFLAGS += -Wall -mword-relocations
 	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
@@ -195,7 +195,7 @@ else ifeq ($(platform), wii)
 else ifneq (,$(findstring armv,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro.so
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
-	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+	ENDIANNESS_DEFINES = -DLOCAL_LE=1
 	fpic := -fPIC
 	ifneq (,$(findstring cortexa5,$(platform)))
 		PLATFORM_DEFINES += -marm -mcpu=cortex-a5
@@ -220,7 +220,7 @@ else
 	TARGET := $(TARGET_NAME)_libretro.dll
 	CC = gcc
 	SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=src/drivers/libretro/link.T
-	ENDIANNESS_DEFINES = -DLSB_FIRST -DLOCAL_LE=1
+	ENDIANNESS_DEFINES = -DLOCAL_LE=1
 
 endif
 

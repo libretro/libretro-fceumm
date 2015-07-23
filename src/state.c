@@ -108,14 +108,14 @@ static int SubWrite(MEM_TYPE *st, SFORMAT *sf) {
 			fwrite(sf->desc, 1, 4, st);
 			write32le(sf->s & (~RLSB), st);
 
-			#ifndef LSB_FIRST
+			#ifdef MSB_FIRST
 			if (sf->s & RLSB)
 				FlipByteOrder(sf->v, sf->s & (~RLSB));
 			#endif
 
 			fwrite((uint8*)sf->v, 1, sf->s & (~RLSB), st);
 			/* Now restore the original byte order. */
-			#ifndef LSB_FIRST
+			#ifdef MSB_FIRST
 			if (sf->s & RLSB)
 				FlipByteOrder(sf->v, sf->s & (~RLSB));
 			#endif
@@ -173,7 +173,7 @@ static int ReadStateChunk(MEM_TYPE *st, SFORMAT *sf, int size) {
 		if ((tmp = CheckS(sf, tsize, toa))) {
 			fread((uint8*)tmp->v, 1, tmp->s & (~RLSB), st);
 
-		#ifndef LSB_FIRST
+		#ifdef MSB_FIRST
 			if (tmp->s & RLSB)
 				FlipByteOrder(tmp->v, tmp->s & (~RLSB));
 		#endif

@@ -1002,27 +1002,7 @@ static void CopySprites(uint8 *target) {
 		uint32 t = *(uint32*)(sprlinebuf + n);
 
 		if (t != 0x80808080) {
-			#ifdef LSB_FIRST
-			if (!(t & 0x80)) {
-				if (!(t & 0x40) || (P[n] & 0x40))		// Normal sprite || behind bg sprite
-					P[n] = sprlinebuf[n];
-			}
-
-			if (!(t & 0x8000)) {
-				if (!(t & 0x4000) || (P[n + 1] & 0x40))		// Normal sprite || behind bg sprite
-					P[n + 1] = (sprlinebuf + 1)[n];
-			}
-
-			if (!(t & 0x800000)) {
-				if (!(t & 0x400000) || (P[n + 2] & 0x40))	// Normal sprite || behind bg sprite
-					P[n + 2] = (sprlinebuf + 2)[n];
-			}
-
-			if (!(t & 0x80000000)) {
-				if (!(t & 0x40000000) || (P[n + 3] & 0x40))	// Normal sprite || behind bg sprite
-					P[n + 3] = (sprlinebuf + 3)[n];
-			}
-			#else
+			#ifdef MSB_FIRST
 			if (!(t & 0x80000000)) {
 				if (!(t & 0x40000000) || (P[n] & 64))	// Normal sprite || behind bg sprite
 					P[n] = sprlinebuf[n];
@@ -1040,6 +1020,27 @@ static void CopySprites(uint8 *target) {
 
 			if (!(t & 0x80)) {
 				if (!(t & 0x40) || (P[n + 3] & 64))		// Normal sprite || behind bg sprite
+					P[n + 3] = (sprlinebuf + 3)[n];
+			}
+			#else
+
+			if (!(t & 0x80)) {
+				if (!(t & 0x40) || (P[n] & 0x40))		// Normal sprite || behind bg sprite
+					P[n] = sprlinebuf[n];
+			}
+
+			if (!(t & 0x8000)) {
+				if (!(t & 0x4000) || (P[n + 1] & 0x40))		// Normal sprite || behind bg sprite
+					P[n + 1] = (sprlinebuf + 1)[n];
+			}
+
+			if (!(t & 0x800000)) {
+				if (!(t & 0x400000) || (P[n + 2] & 0x40))	// Normal sprite || behind bg sprite
+					P[n + 2] = (sprlinebuf + 2)[n];
+			}
+
+			if (!(t & 0x80000000)) {
+				if (!(t & 0x40000000) || (P[n + 3] & 0x40))	// Normal sprite || behind bg sprite
 					P[n + 3] = (sprlinebuf + 3)[n];
 			}
 			#endif
