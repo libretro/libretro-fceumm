@@ -21,7 +21,7 @@
 #include "md5.c"
 //#include "movie.c"
 //#include "netplay.c"
-#include "drivers/libretro/fceu/nsf.c"
+#include "nsf.c"
 #include "palette.c"
 #include "ppu.c"
 #include "sound.c"
