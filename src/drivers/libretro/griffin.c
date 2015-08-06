@@ -7,7 +7,10 @@
 #include "cart.c"
 #include "cheat.c"
 #include "crc32.c"
+
+#ifdef DEBUG
 #include "debug.c"
+#endif
 #include "fceu-endian.c"
 #include "fceu-memory.c"
 #include "misc.c"

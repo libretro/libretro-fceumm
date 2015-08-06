@@ -13,7 +13,6 @@ SOURCES_C += \
 				 $(CORE_DIR)/cart.c \
 				 $(CORE_DIR)/cheat.c \
 				 $(CORE_DIR)/crc32.c \
-				 $(CORE_DIR)/debug.c \
 				 $(CORE_DIR)/fceu-endian.c \
 				 $(CORE_DIR)/fceu-memory.c \
 				 $(CORE_DIR)/misc.c \
@@ -31,6 +30,10 @@ SOURCES_C += \
 				 $(CORE_DIR)/state.c \
 				 $(CORE_DIR)/video.c \
 				 $(CORE_DIR)/vsuni.c
+
+ifeq ($(DEBUG),1)
+SOURCES_C += $(CORE_DIR)/debug.c
+endif
 endif
 
 SOURCES_C += \
