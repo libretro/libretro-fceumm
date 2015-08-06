@@ -9,7 +9,7 @@
 #include "crc32.c"
 #include "debug.c"
 #include "fceu-endian.c"
-#include "drivers/libretro/fceu/fceu-memory.c"
+#include "fceu-memory.c"
 #include "misc.c"
 #include "fceu.c"
 //#include "fceustr.c"
