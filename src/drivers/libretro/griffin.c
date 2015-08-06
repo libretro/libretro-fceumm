@@ -11,7 +11,7 @@
 #include "drivers/libretro/fceu/fceu-endian.c"
 #include "drivers/libretro/fceu/fceu-memory.c"
 #include "drivers/libretro/fceu/misc.c"
-#include "drivers/libretro/fceu/fceu.c"
+#include "fceu.c"
 //#include "fceustr.c"
 #include "drivers/libretro/fceu/fds.c"
 #include "drivers/libretro/fceu/file.c"

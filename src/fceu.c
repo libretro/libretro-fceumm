@@ -41,7 +41,6 @@
 #include  "cheat.h"
 #include  "palette.h"
 #include  "state.h"
-#include  "movie.h"
 #include  "video.h"
 #include  "input.h"
 #include  "file.h"
@@ -62,14 +61,17 @@ static readfunc *AReadG;
 static writefunc *BWriteG;
 static int RWWrap = 0;
 
-static DECLFW(BNull) {
+static DECLFW(BNull)
+{
 }
 
-static DECLFR(ANull) {
+static DECLFR(ANull)
+{
 	return(X.DB);
 }
 
-int AllocGenieRW(void) {
+int AllocGenieRW(void)
+{
 	if (!(AReadG = (readfunc*)FCEU_malloc(0x8000 * sizeof(readfunc))))
 		return 0;
 	if (!(BWriteG = (writefunc*)FCEU_malloc(0x8000 * sizeof(writefunc))))
@@ -78,62 +80,71 @@ int AllocGenieRW(void) {
 	return 1;
 }
 
-void FlushGenieRW(void) {
-	int32 x;
+void FlushGenieRW(void)
+{
+   int32 x;
 
-	if (RWWrap) {
-		for (x = 0; x < 0x8000; x++) {
-			ARead[x + 0x8000] = AReadG[x];
-			BWrite[x + 0x8000] = BWriteG[x];
-		}
-		free(AReadG);
-		free(BWriteG);
-		AReadG = 0;
-		BWriteG = 0;
-		RWWrap = 0;
-	}
+   if (RWWrap)
+   {
+      for (x = 0; x < 0x8000; x++)
+      {
+         ARead[x + 0x8000] = AReadG[x];
+         BWrite[x + 0x8000] = BWriteG[x];
+      }
+      free(AReadG);
+      free(BWriteG);
+      AReadG = 0;
+      BWriteG = 0;
+   }
+   RWWrap = 0;
 }
 
-readfunc FASTAPASS(1) GetReadHandler(int32 a) {
+readfunc FASTAPASS(1) GetReadHandler(int32 a)
+{
 	if (a >= 0x8000 && RWWrap)
 		return AReadG[a - 0x8000];
 	else
 		return ARead[a];
 }
 
-void FASTAPASS(3) SetReadHandler(int32 start, int32 end, readfunc func) {
+void FASTAPASS(3) SetReadHandler(int32 start, int32 end, readfunc func)
+{
 	int32 x;
 
 	if (!func)
 		func = ANull;
 
 	if (RWWrap)
-		for (x = end; x >= start; x--) {
-			if (x >= 0x8000)
-				AReadG[x - 0x8000] = func;
-			else
-				ARead[x] = func;
-		}
+		for (x = end; x >= start; x--)
+      {
+         if (x >= 0x8000)
+            AReadG[x - 0x8000] = func;
+         else
+            ARead[x] = func;
+      }
 	else
 		for (x = end; x >= start; x--)
 			ARead[x] = func;
 }
 
-writefunc FASTAPASS(1) GetWriteHandler(int32 a) {
+writefunc FASTAPASS(1) GetWriteHandler(int32 a)
+{
 	if (RWWrap && a >= 0x8000)
 		return BWriteG[a - 0x8000];
 	else
 		return BWrite[a];
 }
 
-void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func) {
+void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func)
+{
 	int32 x;
 
 	if (!func)
 		func = BNull;
 
 	if (RWWrap)
-		for (x = end; x >= start; x--) {
+		for (x = end; x >= start; x--)
+      {
 			if (x >= 0x8000)
 				BWriteG[x - 0x8000] = func;
 			else
@@ -152,50 +163,58 @@ uint8 RAM[0x800];
 
 uint8 PAL = 0;
 
-static DECLFW(BRAML) {
+static DECLFW(BRAML)
+{
 	RAM[A] = V;
 }
 
-static DECLFR(ARAML) {
+static DECLFR(ARAML)
+{
 	return RAM[A];
 }
 
 #ifndef COPYFAMI
-static DECLFW(BRAMH) {
+static DECLFW(BRAMH)
+{
 	RAM[A & 0x7FF] = V;
 }
 
-static DECLFR(ARAMH) {
+static DECLFR(ARAMH)
+{
 	return RAM[A & 0x7FF];
 }
 #endif
 
-static void CloseGame(void) {
-	if (GameInfo) {
-		if (FCEUnetplay)
-			FCEUD_NetworkClose();
-		if (GameInfo->name) {
-			free(GameInfo->name);
-			GameInfo->name = 0;
-		}
-		if (GameInfo->type != GIT_NSF)
-			FCEU_FlushGameCheats(0, 0);
-		GameInterface(GI_CLOSE);
-		ResetExState(0, 0);
-		FCEU_CloseGenie();
-		free(GameInfo);
-		GameInfo = 0;
-	}
+void FCEUI_CloseGame(void)
+{
+	if (!GameInfo)
+      return;
+
+   if (GameInfo->name)
+      free(GameInfo->name);
+   GameInfo->name = 0;
+   if (GameInfo->type != GIT_NSF)
+      FCEU_FlushGameCheats(0, 0);
+   GameInterface(GI_CLOSE);
+   ResetExState(0, 0);
+   FCEU_CloseGenie();
+   free(GameInfo);
+   GameInfo = 0;
 }
 
-void ResetGameLoaded(void) {
-	if (GameInfo) CloseGame();
+void ResetGameLoaded(void)
+{
+	if (GameInfo)
+      FCEUI_CloseGame();
+
 	GameStateRestore = NULL;
 	PPU_hook = NULL;
 	GameHBIRQHook = NULL;
+
 	if (GameExpSound.Kill)
 		GameExpSound.Kill();
 	memset(&GameExpSound, 0, sizeof(GameExpSound));
+
 	MapIRQHook = NULL;
 	MMC5Hack = 0;
 	PEC586Hack = 0;
@@ -208,79 +227,77 @@ int iNESLoad(const char *name, FCEUFILE *fp);
 int FDSLoad(const char *name, FCEUFILE *fp);
 int NSFLoad(FCEUFILE *fp);
 
-FCEUGI *FCEUI_LoadGame(const char *name) {
-	FCEUFILE *fp;
-	char *ipsfn;
+FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
+{
+   FCEUFILE *fp;
 
-	ResetGameLoaded();
+   ResetGameLoaded();
 
-	GameInfo = malloc(sizeof(FCEUGI));
-	memset(GameInfo, 0, sizeof(FCEUGI));
+   GameInfo = malloc(sizeof(FCEUGI));
+   memset(GameInfo, 0, sizeof(FCEUGI));
 
-	GameInfo->soundchan = 0;
-	GameInfo->soundrate = 0;
-	GameInfo->name = 0;
-	GameInfo->type = GIT_CART;
-	GameInfo->vidsys = GIV_USER;
-	GameInfo->input[0] = GameInfo->input[1] = -1;
-	GameInfo->inputfc = -1;
-	GameInfo->cspecial = 0;
+   GameInfo->soundchan = 0;
+   GameInfo->soundrate = 0;
+   GameInfo->name = 0;
+   GameInfo->type = GIT_CART;
+   GameInfo->vidsys = GIV_USER;
+   GameInfo->input[0] = GameInfo->input[1] = -1;
+   GameInfo->inputfc = -1;
+   GameInfo->cspecial = 0;
 
-	FCEU_printf("Loading %s...\n\n", name);
+   FCEU_printf("Loading %s...\n\n", name);
 
-	GetFileBase(name);
+   GetFileBase(name);
 
-	ipsfn = FCEU_MakeFName(FCEUMKF_IPS, 0, 0);
-	fp = FCEU_fopen(name, ipsfn, "rb", 0);
-	free(ipsfn);
+   fp = FCEU_fopen(name, NULL, "rb", 0, databuf, databufsize);
 
-	if (!fp) {
-		FCEU_PrintError("Error opening \"%s\"!", name);
-		return 0;
-	}
+   if (!fp) {
+      FCEU_PrintError("Error opening \"%s\"!", name);
+      return 0;
+   }
 
-	if (iNESLoad(name, fp))
-		goto endlseq;
-	if (NSFLoad(fp))
-		goto endlseq;
-	if (UNIFLoad(name, fp))
-		goto endlseq;
-	if (FDSLoad(name, fp))
-		goto endlseq;
+   if (iNESLoad(name, fp))
+      goto endlseq;
+   if (NSFLoad(fp))
+      goto endlseq;
+   if (UNIFLoad(name, fp))
+      goto endlseq;
+   if (FDSLoad(name, fp))
+      goto endlseq;
 
-	FCEU_PrintError("An error occurred while loading the file.");
-	FCEU_fclose(fp);
-	return 0;
+   FCEU_PrintError("An error occurred while loading the file.");
+   FCEU_fclose(fp);
+   return 0;
 
- endlseq:
-	FCEU_fclose(fp);
+endlseq:
+   FCEU_fclose(fp);
 
-	FCEU_ResetVidSys();
-	if (GameInfo->type != GIT_NSF)
-		if (FSettings.GameGenie)
-			FCEU_OpenGenie();
+   FCEU_ResetVidSys();
+   if (GameInfo->type != GIT_NSF)
+      if (FSettings.GameGenie)
+         FCEU_OpenGenie();
 
-	PowerNES();
-	FCEUSS_CheckStates();
-	FCEUMOV_CheckMovies();
+   PowerNES();
+   FCEUSS_CheckStates();
 
-	if (GameInfo->type != GIT_NSF) {
-		FCEU_LoadGamePalette();
-		FCEU_LoadGameCheats(0);
-	}
+   if (GameInfo->type != GIT_NSF) {
+      FCEU_LoadGamePalette();
+      FCEU_LoadGameCheats(0);
+   }
 
-	FCEU_ResetPalette();
-	FCEU_ResetMessages();	// Save state, status messages, etc.
+   FCEU_ResetPalette();
+   FCEU_ResetMessages();	// Save state, status messages, etc.
 
-	return(GameInfo);
+   return(GameInfo);
 }
 
 int CopyFamiLoad(void);
 
-FCEUGI *FCEUI_CopyFamiStart(void) {
+FCEUGI *FCEUI_CopyFamiStart(void)
+{
 	ResetGameLoaded();
 
-	GameInfo = malloc(sizeof(FCEUGI));
+	GameInfo = (FCEUGI*)malloc(sizeof(FCEUGI));
 	memset(GameInfo, 0, sizeof(FCEUGI));
 
 	GameInfo->soundchan = 0;
@@ -306,7 +323,6 @@ FCEUGI *FCEUI_CopyFamiStart(void) {
 
 	PowerNES();
 	FCEUSS_CheckStates();
-	FCEUMOV_CheckMovies();
 
 	if (GameInfo->type != GIT_NSF) {
 		FCEU_LoadGamePalette();
@@ -356,20 +372,19 @@ void FCEUI_Emulate(uint8 **pXBuf, int32 **SoundBuf, int32 *SoundBufSize, int ski
 	*SoundBufSize = ssize;
 }
 
-void FCEUI_CloseGame(void) {
-	CloseGame();
-}
 
-void ResetNES(void) {
-	FCEUMOV_AddCommand(FCEUNPCMD_RESET);
-	if (!GameInfo) return;
+void ResetNES(void)
+{
+	if (!GameInfo)
+      return;
 	GameInterface(GI_RESETM2);
 	FCEUSND_Reset();
 	FCEUPPU_Reset();
 	X6502_Reset();
 }
 
-void FCEU_MemoryRand(uint8 *ptr, uint32 size) {
+void FCEU_MemoryRand(uint8 *ptr, uint32 size)
+{
 	int x = 0;
 	while (size) {
 //		*ptr = (x & 4) ? 0xFF : 0x00;	// Huang Di DEBUG MODE enabled by default
@@ -386,12 +401,14 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size) {
 	}
 }
 
-void hand(X6502 *X, int type, uint32 A) {
+void hand(X6502 *X, int type, uint32 A)
+{
 }
 
-void PowerNES(void) {
-	FCEUMOV_AddCommand(FCEUNPCMD_POWER);
-	if (!GameInfo) return;
+void PowerNES(void)
+{
+	if (!GameInfo)
+      return;
 
 	FCEU_CheatResetRAM();
 	FCEU_CheatAddRAM(2, 0, RAM);
@@ -426,13 +443,13 @@ void PowerNES(void) {
 	if (GameInfo->type == GIT_VSUNI)
 		FCEU_VSUniPower();
 
-
 	timestampbase = 0;
 	X6502_Power();
 	FCEU_PowerCheats();
 }
 
-void FCEU_ResetVidSys(void) {
+void FCEU_ResetVidSys(void)
+{
 	int w;
 
 	if (GameInfo->vidsys == GIV_NTSC)
@@ -450,8 +467,8 @@ void FCEU_ResetVidSys(void) {
 
 FCEUS FSettings;
 
-void FCEU_printf(char *format, ...) {
-	FILE *ofile;
+void FCEU_printf(char *format, ...)
+{
 	char temp[2048];
 
 	va_list ap;
@@ -460,14 +477,11 @@ void FCEU_printf(char *format, ...) {
 	vsprintf(temp, format, ap);
 	FCEUD_Message(temp);
 
-	ofile = fopen("stdout.txt", "ab");
-	fwrite(temp, 1, strlen(temp), ofile);
-	fclose(ofile);
-
 	va_end(ap);
 }
 
-void FCEU_PrintError(char *format, ...) {
+void FCEU_PrintError(char *format, ...)
+{
 	char temp[2048];
 
 	va_list ap;
@@ -479,29 +493,37 @@ void FCEU_PrintError(char *format, ...) {
 	va_end(ap);
 }
 
-void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall) {
+void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall)
+{
 	FSettings.UsrFirstSLine[0] = ntscf;
 	FSettings.UsrLastSLine[0] = ntscl;
 	FSettings.UsrFirstSLine[1] = palf;
 	FSettings.UsrLastSLine[1] = pall;
-	if (PAL) {
+	if (PAL)
+   {
 		FSettings.FirstSLine = FSettings.UsrFirstSLine[1];
 		FSettings.LastSLine = FSettings.UsrLastSLine[1];
-	} else {
+	}
+   else
+   {
 		FSettings.FirstSLine = FSettings.UsrFirstSLine[0];
 		FSettings.LastSLine = FSettings.UsrLastSLine[0];
 	}
 }
 
-void FCEUI_SetVidSystem(int a) {
+void FCEUI_SetVidSystem(int a)
+{
 	FSettings.PAL = a ? 1 : 0;
-	if (GameInfo) {
-		FCEU_ResetVidSys();
-		FCEU_ResetPalette();
-	}
+
+	if (!GameInfo)
+      return;
+
+   FCEU_ResetVidSys();
+   FCEU_ResetPalette();
 }
 
-int FCEUI_GetCurrentVidSystem(int *slstart, int *slend) {
+int FCEUI_GetCurrentVidSystem(int *slstart, int *slend)
+{
 	if (slstart)
 		*slstart = FSettings.FirstSLine;
 	if (slend)
@@ -509,15 +531,18 @@ int FCEUI_GetCurrentVidSystem(int *slstart, int *slend) {
 	return(PAL);
 }
 
-void FCEUI_SetGameGenie(int a) {
+void FCEUI_SetGameGenie(int a)
+{
 	FSettings.GameGenie = a ? 1 : 0;
 }
 
-void FCEUI_SetSnapName(int a) {
+void FCEUI_SetSnapName(int a)
+{
 	FSettings.SnapName = a;
 }
 
-int32 FCEUI_GetDesiredFPS(void) {
+int32 FCEUI_GetDesiredFPS(void)
+{
 	if (PAL)
 		return(838977920);	// ~50.007
 	else
