@@ -1,5 +1,6 @@
 DEBUG = 0
 EXTERNAL_ZLIB = 0
+HAVE_GRIFFIN = 1
 
 ifeq ($(platform),)
 	platform = unix
