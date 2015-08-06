@@ -2,4 +2,4 @@ INCFLAGS := -I$(CORE_DIR)/drivers/libretro -I$(CORE_DIR) -I$(CORE_DIR)/input -I$
 
 FCEU_SRC_DIRS := $(CORE_DIR)/boards $(CORE_DIR)/input $(CORE_DIR)/mappers
 SOURCES_C := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
-SOURCES_C += $(CORE_DIR)/drivers/libretro/griffin.c $(CORE_DIR)/drivers/libretro/fceu/ines.c $(CORE_DIR)/unif.c $(CORE_DIR)/x6502.c
+SOURCES_C += $(CORE_DIR)/drivers/libretro/griffin.c $(CORE_DIR)/ines.c $(CORE_DIR)/unif.c $(CORE_DIR)/x6502.c
