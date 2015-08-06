@@ -1,6 +1,5 @@
 DEBUG = 0
 EXTERNAL_ZLIB = 0
-WANT_GRIFFIN = 0
 
 ifeq ($(platform),)
 	platform = unix
@@ -229,9 +228,7 @@ CORE_DIR := src
 
 include Makefile.common
 
-ifeq ($(WANT_GRIFFIN),1)
 CFLAGS += -DWANT_GRIFFIN
-endif
 
 OBJECTS := $(SOURCES_C:.c=.o)
 
