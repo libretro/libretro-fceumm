@@ -18,6 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/*  TODO: Add (better) file io error checking */
+/*  TODO: Change save state file format. */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,11 +48,14 @@ static void (*SPreSave)(void);
 static void (*SPostSave)(void);
 
 static int SaveStateStatus[10];
+static int StateShow;
+
 
 static SFORMAT SFMDATA[64];
 static int SFEXINDEX;
 
 #define RLSB     FCEUSTATE_RLSB	//0x80000000
+
 
 extern SFORMAT FCEUPPU_STATEINFO[];
 extern SFORMAT FCEUSND_STATEINFO[];
@@ -81,274 +87,281 @@ SFORMAT SFCPUC[] = {
 	{ 0 }
 };
 
-static int SubWrite(memstream_t *mem, SFORMAT *sf)
-{
-   uint32 acc=0;
+static int SubWrite(MEM_TYPE *st, SFORMAT *sf) {
+	uint32 acc = 0;
 
-   while(sf->v)
-   {
-      if(sf->s==~0) /* Link to another struct. */
-      {
-         uint32 tmp;
+	while (sf->v) {
+		if (sf->s == ~0) {	// Link to another struct.
+			uint32 tmp;
 
-         if(!(tmp=SubWrite(mem, (SFORMAT *)sf->v)))
-            return(0);
-         acc+=tmp;
-         sf++;
-         continue;
-      }
+			if (!(tmp = SubWrite(st, (SFORMAT*)sf->v)))
+				return(0);
+			acc += tmp;
+			sf++;
+			continue;
+		}
 
-      acc+=8; /* Description + size */
-      acc+=sf->s&(~RLSB);
+		acc += 8;		// Description + size
+		acc += sf->s & (~RLSB);
 
-      if(mem) /* Are we writing or calculating the size of this block? */
-      {
-         memstream_write(mem, sf->desc, 4);
-         write32le_mem(sf->s&(~RLSB), mem);
+		if (st) {	// Are we writing or calculating the size of this block? */
+			fwrite(sf->desc, 1, 4, st);
+			write32le(sf->s & (~RLSB), st);
 
-#ifdef MSB_FIRST
-         if(sf->s&RLSB)
-            FlipByteOrder(sf->v,sf->s&(~RLSB));
-#endif
+			#ifdef MSB_FIRST
+			if (sf->s & RLSB)
+				FlipByteOrder(sf->v, sf->s & (~RLSB));
+			#endif
 
-         memstream_write(mem, (uint8 *)sf->v, sf->s&(~RLSB));
-         /* Now restore the original byte order. */
-#ifdef MSB_FIRST
-         if(sf->s&RLSB)
-            FlipByteOrder(sf->v,sf->s&(~RLSB));
-#endif
-      }
-      sf++;
-   }
+			fwrite((uint8*)sf->v, 1, sf->s & (~RLSB), st);
+			/* Now restore the original byte order. */
+			#ifdef MSB_FIRST
+			if (sf->s & RLSB)
+				FlipByteOrder(sf->v, sf->s & (~RLSB));
+			#endif
+		}
+		sf++;
+	}
 
-   return acc;
+	return(acc);
 }
 
-static int WriteStateChunk(memstream_t *mem, int type, SFORMAT *sf)
-{
-   int bsize;
+static int WriteStateChunk(MEM_TYPE *st, int type, SFORMAT *sf) {
+	int bsize;
 
-   memstream_putc(mem, type);
+	fputc(type, st);
 
-   bsize = SubWrite(0,sf);
-   write32le_mem(bsize, mem);
+	bsize = SubWrite(0, sf);
+	write32le(bsize, st);
 
-   if (!SubWrite(mem, sf))
-      return 0;
-   return bsize + 5;
+	if (!SubWrite(st, sf)) return(0);
+	return(bsize + 5);
 }
 
-static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
-{
-   while (sf->v)
-   {
-      if (sf->s == ~0)
-      {	/* Link to another SFORMAT structure. */
-         SFORMAT *tmp;
-         if ((tmp = CheckS((SFORMAT*)sf->v, tsize, desc)))
-            return(tmp);
-         sf++;
-         continue;
-      }
-      if (!strncmp(desc, sf->desc, 4))
-      {
-         if (tsize != (sf->s & (~RLSB)))
-            return(0);
-         return(sf);
-      }
-      sf++;
-   }
-   return(0);
+static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc) {
+	while (sf->v) {
+		if (sf->s == ~0) {	/* Link to another SFORMAT structure. */
+			SFORMAT *tmp;
+			if ((tmp = CheckS((SFORMAT*)sf->v, tsize, desc)))
+				return(tmp);
+			sf++;
+			continue;
+		}
+		if (!strncmp(desc, sf->desc, 4)) {
+			if (tsize != (sf->s & (~RLSB)))
+				return(0);
+			return(sf);
+		}
+		sf++;
+	}
+	return(0);
 }
 
-static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
-{
-   SFORMAT *tmp;
-   int temp;
-   temp=memstream_pos(mem);
+static int ReadStateChunk(MEM_TYPE *st, SFORMAT *sf, int size) {
+	SFORMAT *tmp;
+	int temp;
+	temp = ftell(st);
 
-   while(memstream_pos(mem)<temp+size)
-   {
-      uint32 tsize;
-      char toa[4];
-      if(memstream_read(mem, toa, 4)<=0)
-         return 0;
+	while (ftell(st) < temp + size) {
+		uint32 tsize;
+		char toa[4];
+		if (fread(toa, 1, 4, st) <= 0)
+			return 0;
 
-      read32le_mem(&tsize,mem);
+		read32le(&tsize, st);
 
-      if((tmp=CheckS(sf,tsize,toa)))
-      {
-         memstream_read(mem, (uint8 *)tmp->v, tmp->s&(~RLSB));
+		if ((tmp = CheckS(sf, tsize, toa))) {
+			fread((uint8*)tmp->v, 1, tmp->s & (~RLSB), st);
 
-#ifdef MSB_FIRST
-         if(tmp->s&RLSB)
-            FlipByteOrder(tmp->v,tmp->s&(~RLSB));
-#endif
-      }
-      else
-         memstream_seek(mem,tsize,SEEK_CUR);
-   }
-   return 1;
+		#ifdef MSB_FIRST
+			if (tmp->s & RLSB)
+				FlipByteOrder(tmp->v, tmp->s & (~RLSB));
+		#endif
+		} else
+			fseek(st, tsize, SEEK_CUR);
+	}	// while(...)
+	return 1;
 }
 
-static int ReadStateChunks(memstream_t *st, int32 totalsize)
-{
-   int t;
-   uint32 size;
-   int ret = 1;
+static int ReadStateChunks(MEM_TYPE *st, int32 totalsize) {
+	int t;
+	uint32 size;
+	int ret = 1;
 
-   while (totalsize > 0)
-   {
-      t = memstream_getc(st);
-      if (t == EOF)
-         break;
-      if (!read32le_mem(&size,st))
-         break;
-      totalsize -= size + 5;
+	while (totalsize > 0) {
+		t = fgetc(st);
+		if (t == EOF) break;
+		if (!read32le(&size, st)) break;
+		totalsize -= size + 5;
 
-      switch(t)
-      {
-         case 1:
-            if (!ReadStateChunk(st, SFCPU, size))
-               ret = 0;
-            break;
-         case 2:
-            if (!ReadStateChunk(st, SFCPUC, size))
-               ret = 0;
-            else
-               X.mooPI = X.P; // Quick and dirty hack.
-            break;
-         case 3:
-            if (!ReadStateChunk(st, FCEUPPU_STATEINFO, size))
-               ret = 0;
-            break;
-         case 4:
-            if (!ReadStateChunk(st, FCEUCTRL_STATEINFO, size))
-               ret = 0;
-            break;
-         case 5:
-            if (!ReadStateChunk(st, FCEUSND_STATEINFO, size))
-               ret = 0;
-            break;
-         case 0x10:
-            if (!ReadStateChunk(st, SFMDATA, size))
-               ret = 0;
-            break;
-         default:
-            if (memstream_seek(st, size, SEEK_CUR) < 0)
-               goto endo;
-            break;
-      }
-   }
-endo:
-   return ret;
+		switch (t) {
+		case 1: if (!ReadStateChunk(st, SFCPU, size)) ret = 0; break;
+		case 2:
+			if (!ReadStateChunk(st, SFCPUC, size))
+				ret = 0;
+			else {
+				X.mooPI = X.P;	// Quick and dirty hack.
+			}
+			break;
+		case 3: if (!ReadStateChunk(st, FCEUPPU_STATEINFO, size)) ret = 0; break;
+		case 4: if (!ReadStateChunk(st, FCEUCTRL_STATEINFO, size)) ret = 0; break;
+		case 5: if (!ReadStateChunk(st, FCEUSND_STATEINFO, size)) ret = 0; break;
+		case 0x10: if (!ReadStateChunk(st, SFMDATA, size)) ret = 0;
+			break;
+		default: if (fseek(st, size, SEEK_CUR) < 0) goto endo; break;
+		}
+	}
+ endo:
+	return ret;
 }
+
 
 int CurrentState = 0;
 extern int geniestage;
 
-void FCEUSS_Save_Mem(void)
-{
-   memstream_t *mem = memstream_open(1);
+int FCEUSS_SaveFP(MEM_TYPE *st) {
+	static uint32 totalsize;
+	uint8 header[16] = { 0 };
 
-   uint32 totalsize;
-   uint8 header[16] = {0};
-   
-   header[0] = 'F';
-   header[1] = 'C';
-   header[2] = 'S';
-   header[3] = 0xFF;
+	header[0] = 'F';
+	header[1] = 'C';
+	header[2] = 'S';
+	header[3] = 0xFF;
 
-   FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
-   memstream_write(mem, header, 16);
+	header[3] = 0xFF;
+	FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
+	fwrite(header, 1, 16, st);
+	FCEUPPU_SaveState();
+	FCEUSND_SaveState();
+	totalsize = WriteStateChunk(st, 1, SFCPU);
+	totalsize += WriteStateChunk(st, 2, SFCPUC);
+	totalsize += WriteStateChunk(st, 3, FCEUPPU_STATEINFO);
+	totalsize += WriteStateChunk(st, 4, FCEUCTRL_STATEINFO);
+	totalsize += WriteStateChunk(st, 5, FCEUSND_STATEINFO);
+	if (SPreSave) SPreSave();
+	totalsize += WriteStateChunk(st, 0x10, SFMDATA);
+	if (SPreSave) SPostSave();
 
-   FCEUPPU_SaveState();
-   totalsize = WriteStateChunk(mem, 1, SFCPU);
-   totalsize += WriteStateChunk(mem, 2, SFCPUC);
-   totalsize += WriteStateChunk(mem, 3, FCEUPPU_STATEINFO);
-   totalsize += WriteStateChunk(mem, 4, FCEUCTRL_STATEINFO);
-   totalsize += WriteStateChunk(mem, 5, FCEUSND_STATEINFO);
-
-   if (SPreSave)
-      SPreSave();
-
-   totalsize += WriteStateChunk(mem, 0x10, SFMDATA);
-
-   if (SPreSave)
-      SPostSave();
-
-   memstream_seek(mem, 4, SEEK_SET);
-   write32le_mem(totalsize, mem);
-
-   memstream_close(mem);
+	fseek(st, 4, SEEK_SET);
+	write32le(totalsize, st);
+	return(1);
 }
 
-void FCEUSS_Load_Mem(void)
-{
-   memstream_t *mem = memstream_open(0);
+void FCEUSS_Save(char *fname) {
+	MEM_TYPE *st = NULL;
+	char *fn;
 
-   uint8 header[16];
-   int stateversion;
-   int x;
-   
-   memstream_read(mem, header, 16);
+	if (geniestage == 1) {
+		FCEU_DispMessage("Cannot save FCS in GG screen.");
+		return;
+	}
 
-   if (memcmp(header,"FCS",3) != 0)
-      return;
+	if (fname)
+		st = FCEUD_UTF8fopen(fname, "wb");
+	else {
+		st = FCEUD_UTF8fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, CurrentState, 0), "wb");
+		free(fn);
+	}
 
-   if (header[3] == 0xFF)
-      stateversion = FCEU_de32lsb(header + 8);
-   else
-      stateversion = header[3] * 100;
+	if (st == NULL) {
+		FCEU_DispMessage("State %d save error.", CurrentState);
+		return;
+	}
 
-   x = ReadStateChunks(mem, *(uint32*)(header + 4));
+	FCEUSS_SaveFP(st);
 
-   if (stateversion < 9500)
-      X.IRQlow=0;
-
-   if (GameStateRestore)
-      GameStateRestore(stateversion);
-
-   if (x)
-   {
-      FCEUPPU_LoadState(stateversion);
-      FCEUSND_LoadState(stateversion);
-   }
-
-   memstream_close(mem);
+	SaveStateStatus[CurrentState] = 1;
+	fclose(st);
+	FCEU_DispMessage("State %d saved.", CurrentState);
 }
 
-void FCEUSS_CheckStates(void)
-{
-   MEM_TYPE *st = NULL;
-   char *fn;
-   int ssel;
+int FCEUSS_LoadFP(MEM_TYPE *st) {
+	int x;
+	uint8 header[16];
+	int stateversion;
 
-   for (ssel = 0; ssel < 10; ssel++)
-   {
-      st = fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0), "rb");
-      free(fn);
-      if (st)
-      {
-         SaveStateStatus[ssel] = 1;
-         fclose(st);
-      }
-      else
-         SaveStateStatus[ssel] = 0;
-   }
+	fread(&header, 1, 16, st);
+	if (memcmp(header, "FCS", 3))
+		return(0);
 
-   CurrentState = 0;
+	if (header[3] == 0xFF)
+		stateversion = FCEU_de32lsb(header + 8);
+	else
+		stateversion = header[3] * 100;
+
+	x = ReadStateChunks(st, *(uint32*)(header + 4));
+	if (stateversion < 9500) X.IRQlow = 0;
+
+	if (GameStateRestore) GameStateRestore(stateversion);
+	if (x) {
+		FCEUPPU_LoadState(stateversion);
+		FCEUSND_LoadState(stateversion);
+	}
+	return(x);
 }
 
-void ResetExState(void (*PreSave)(void), void (*PostSave)(void))
-{
+int FCEUSS_Load(char *fname) {
+	MEM_TYPE *st;
+	char *fn;
+
+	if (geniestage == 1) {
+		FCEU_DispMessage("Cannot load FCS in GG screen.");
+		return(0);
+	}
+
+	if (fname)
+		st = FCEUD_UTF8fopen(fname, "rb");
+	else {
+		st = FCEUD_UTF8fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, CurrentState, fname), "rb");
+		free(fn);
+	}
+
+	if (st == NULL) {
+		FCEU_DispMessage("State %d load error.", CurrentState);
+		SaveStateStatus[CurrentState] = 0;
+		return(0);
+	}
+
+	if (FCEUSS_LoadFP(st)) {
+		SaveStateStatus[CurrentState] = 1;
+		FCEU_DispMessage("State %d loaded.", CurrentState);
+		SaveStateStatus[CurrentState] = 1;
+		fclose(st);
+		return(1);
+	} else {
+		SaveStateStatus[CurrentState] = 1;
+		FCEU_DispMessage("Error(s) reading state %d!", CurrentState);
+		fclose(st);
+		return(0);
+	}
+}
+
+void FCEUSS_CheckStates(void) {
+	MEM_TYPE *st = NULL;
+	char *fn;
+	int ssel;
+
+	for (ssel = 0; ssel < 10; ssel++) {
+		st = FCEUD_UTF8fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0), "rb");
+		free(fn);
+		if (st) {
+			SaveStateStatus[ssel] = 1;
+			fclose(st);
+		} else
+			SaveStateStatus[ssel] = 0;
+	}
+
+	CurrentState = 0;
+	StateShow = 0;
+}
+
+void ResetExState(void (*PreSave)(void), void (*PostSave)(void)) {
 	SPreSave = PreSave;
 	SPostSave = PostSave;
 	SFEXINDEX = 0;
 }
 
-void AddExState(void *v, uint32 s, int type, char *desc)
-{
+void AddExState(void *v, uint32 s, int type, char *desc) {
 	memset(SFMDATA[SFEXINDEX].desc, 0, sizeof(SFMDATA[SFEXINDEX].desc));
 	if (desc)
 		strncpy(SFMDATA[SFEXINDEX].desc, desc, sizeof(SFMDATA[SFEXINDEX].desc));
@@ -359,7 +372,52 @@ void AddExState(void *v, uint32 s, int type, char *desc)
 	SFMDATA[SFEXINDEX].v = 0;	// End marker.
 }
 
-void FCEU_DrawSaveStates(uint8 *XBuf)
-{
+void FCEUI_SelectState(int w) {
+	if (w == -1) {
+		StateShow = 0; return;
+	}
+	FCEUI_SelectMovie(-1);
+
+	CurrentState = w;
+	StateShow = 180;
+	FCEU_DispMessage("-select state-");
+}
+
+void FCEUI_SaveState(char *fname) {
+	StateShow = 0;
+	FCEUSS_Save(fname);
+}
+
+void FCEUI_LoadState(char *fname) {
+	StateShow = 0;
+
+	FCEUMOV_Stop();
+
+	/* For network play, be load the state locally, and then save the state to a temporary file,
+		and send that.  This insures that if an older state is loaded that is missing some
+		information expected in newer save states, desynchronization won't occur(at least not
+		from this ;)).
+	*/
+	if (FCEUSS_Load(fname))
+		if (FCEUnetplay) {
+			char *fn = FCEU_MakeFName(FCEUMKF_NPTEMP, 0, 0);
+			MEM_TYPE *fp;
+
+			if ((fp = fopen(fn, "wb"))) {
+				if (FCEUSS_SaveFP(fp)) {
+					fclose(fp);
+					FCEUNET_SendFile(FCEUNPCMD_LOADSTATE, fn);
+				} else fclose(fp);
+				unlink(fn);
+			}
+			free(fn);
+		}
+}
+
+void FCEU_DrawSaveStates(uint8 *XBuf) {
+	if (!StateShow) return;
+
+	FCEU_DrawNumberRow(XBuf, SaveStateStatus, CurrentState);
+	StateShow--;
 }
 
