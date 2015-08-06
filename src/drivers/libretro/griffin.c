@@ -16,7 +16,7 @@
 #include "fds.c"
 #include "file.c"
 #include "filter.c"
-#include "drivers/libretro/fceu/general.c"
+#include "general.c"
 #include "drivers/libretro/fceu/input.c"
 #include "md5.c"
 //#include "movie.c"
