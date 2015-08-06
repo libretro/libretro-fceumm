@@ -2,7 +2,7 @@ INCFLAGS := -I$(CORE_DIR)/drivers/libretro -I$(CORE_DIR) -I$(CORE_DIR)/input -I$
 
 FCEU_SRC_DIRS := $(CORE_DIR)/boards $(CORE_DIR)/input $(CORE_DIR)/mappers
 SOURCES_C := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
-SOURCES_C += $(CORE_DIR)/drivers/libretro/fceu/ines.c $(CORE_DIR)/drivers/libretro/fceu/unif.c $(CORE_DIR)/x6502.c
+SOURCES_C += $(CORE_DIR)/ines.c $(CORE_DIR)/unif.c $(CORE_DIR)/x6502.c
 
 ifeq ($(WANT_GRIFFIN),1)
 SOURCES_C += \
@@ -16,21 +16,21 @@ SOURCES_C += \
 				 $(CORE_DIR)/cheat.c \
 				 $(CORE_DIR)/crc32.c \
 				 $(CORE_DIR)/debug.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/fceu-endian.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/fceu-memory.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/misc.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/fceu.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/fds.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/file.c \
+				 $(CORE_DIR)/fceu-endian.c \
+				 $(CORE_DIR)/fceu-memory.c \
+				 $(CORE_DIR)/misc.c \
+				 $(CORE_DIR)/fceu.c \
+				 $(CORE_DIR)/fds.c \
+				 $(CORE_DIR)/file.c \
 				 $(CORE_DIR)/filter.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/general.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/input.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/nsf.c \
+				 $(CORE_DIR)/general.c \
+				 $(CORE_DIR)/input.c \
+				 $(CORE_DIR)/nsf.c \
 				 $(CORE_DIR)/md5.c \
 				 $(CORE_DIR)/palette.c \
 				 $(CORE_DIR)/ppu.c \
 				 $(CORE_DIR)/sound.c \
 				 $(CORE_DIR)/vsuni.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/state.c \
-				 $(CORE_DIR)/drivers/libretro/fceu/video.c
+				 $(CORE_DIR)/state.c \
+				 $(CORE_DIR)/video.c
 endif

@@ -26,11 +26,9 @@
 #define _FCEU_MEMORY_H_
 
 #include "fceu-types.h"
+#include <memstream.h>
 
 #define FCEU_dwmemset(d, c, n) { int _x; for (_x = n - 4; _x >= 0; _x -= 4) *(uint32*)& (d)[_x] = c; }
-
-#if defined(STATE_LIBRETRO) || defined(ENDIAN_LIBRETRO) || defined(GENERAL_LIBRETRO)
-#include "drivers/libretro/memstream.h"
 
 #define HAVE_MEMSTREAM
 #define MEM_TYPE memstream_t
@@ -42,9 +40,6 @@
 #define ftell(a) memstream_pos((a))
 #define fread(ptr, size, nmemb, stream) memstream_read((stream), (ptr), (nmemb))
 #define fseek(stream, offset, whence) memstream_seek((stream), (offset), (whence))
-#else
-#define MEM_TYPE FILE
-#endif
 
 void *FCEU_malloc(uint32 size);
 void *FCEU_gmalloc(uint32 size);

@@ -25,64 +25,39 @@
 #include "fceu-memory.h"
 #include "general.h"
 
-void *FCEU_gmalloc(uint32 size) {
-	void *ret;
-	ret = malloc(size);
-	if (!ret) {
-		FCEU_PrintError("Error allocating memory!  Doing a hard exit.");
-		exit(1);
-	}
-	return ret;
+void *FCEU_gmalloc(uint32 size)
+{
+   void *ret;
+   ret = malloc(size);
+   if (!ret)
+   {
+      FCEU_PrintError("Error allocating memory!  Doing a hard exit.");
+      exit(1);
+   }
+   return ret;
 }
 
-void *FCEU_malloc(uint32 size) {
-	void *ret;
-	ret = malloc(size);
-	if (!ret) {
-		FCEU_PrintError("Error allocating memory!");
-		return(0);
-	}
-	return ret;
+void *FCEU_malloc(uint32 size)
+{
+   int retval = 0;
+   void *ret;
+   ret = (void*)malloc(size);
+
+   if (!ret)
+   {
+      FCEU_PrintError("Error allocating memory!");
+      ret = 0;
+   }
+
+   return ret;
 }
 
-void FCEU_free(void *ptr) {		// Might do something with this and FCEU_malloc later...
+void FCEU_free(void *ptr)
+{
 	free(ptr);
 }
 
-void FCEU_gfree(void *ptr) {
+void FCEU_gfree(void *ptr)
+{
 	free(ptr);
-}
-
-void FASTAPASS(3) FCEU_memmove(void *d, void *s, uint32 l) {
-	uint32 x;
-	int t;
-
-	/* Type really doesn't matter. */
-	t = (int)d;
-	t |= (int)s;
-	t |= (int)l;
-
-	if (t & 3) {	// Not 4-byte aligned and/or length is not a multiple of 4.
-		uint8 *tmpd, *tmps;
-
-		tmpd = (uint8*)d;
-		tmps = (uint8*)s;
-
-		for (x = l; x; x--) {	// This could be optimized further, though(more tests could be performed).
-			*tmpd = *tmps;
-			tmpd++;
-			tmps++;
-		}
-	} else {
-		uint32 *tmpd, *tmps;
-
-		tmpd = (uint32*)d;
-		tmps = (uint32*)s;
-
-		for (x = l >> 2; x; x--) {
-			*tmpd = *tmps;
-			tmpd++;
-			tmps++;
-		}
-	}
 }
