@@ -614,7 +614,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	char *fn = FCEU_MakeFName(FCEUMKF_FDSROM, 0, 0);
 
-	if (!(zp = FCEUD_UTF8fopen(fn, "rb"))) {
+	if (!(zp = fopen(fn, "rb"))) {
 		FCEU_PrintError("FDS BIOS ROM image missing!");
 		free(fn);
 		return 0;
@@ -669,7 +669,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 			memcpy(diskdatao[x], diskdata[x], 65500);
 		}
 
-		if ((tp = FCEU_fopen(fn, 0, "rb", 0))) {
+		if ((tp = FCEU_fopen(fn, 0, "rb", 0, NULL, 0))) {
 			FCEU_printf("Disk was written. Auxillary FDS file open \"%s\".\n", fn);
 			FreeFDSMemory();
 			if (!SubLoad(tp)) {
@@ -737,7 +737,7 @@ void FDSClose(void) {
 
 	if (!DiskWritten) return;
 
-	if (!(fp = FCEUD_UTF8fopen(fn, "wb"))) {
+	if (!(fp = fopen(fn, "wb"))) {
 		free(fn);
 		return;
 	}

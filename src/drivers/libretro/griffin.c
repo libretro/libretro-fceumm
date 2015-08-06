@@ -13,7 +13,7 @@
 #include "drivers/libretro/fceu/misc.c"
 #include "fceu.c"
 //#include "fceustr.c"
-#include "drivers/libretro/fceu/fds.c"
+#include "fds.c"
 #include "file.c"
 #include "filter.c"
 #include "drivers/libretro/fceu/general.c"
