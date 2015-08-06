@@ -20,7 +20,6 @@
 
 #include <string.h>
 #include "share.h"
-#include "../movie.h"
 #include "../vsuni.h"
 
 static uint8 joy_readbit[2];

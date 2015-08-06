@@ -30,7 +30,6 @@
 #include "sound.h"
 #include "filter.h"
 #include "state.h"
-#include "wave.h"
 
 static uint32 wlookup1[32];
 static uint32 wlookup2[203];

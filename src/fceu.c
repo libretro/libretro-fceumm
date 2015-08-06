@@ -28,7 +28,6 @@
 #include  "fceu.h"
 #include  "ppu.h"
 #include  "sound.h"
-#include  "netplay.h"
 #include  "general.h"
 #include  "fceu-endian.h"
 #include  "fceu-memory.h"

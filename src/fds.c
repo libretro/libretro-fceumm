@@ -33,7 +33,6 @@
 #include "fceu-memory.h"
 #include "cart.h"
 #include "md5.h"
-#include "netplay.h"
 
 //	TODO:  Add code to put a delay in between the time a disk is inserted
 //	and the when it can be successfully read/written to.  This should

@@ -35,10 +35,8 @@
 #include "fds.h"
 #include "general.h"
 #include "state.h"
-#include "movie.h"
 #include "fceu-memory.h"
 #include "ppu.h"
-#include "netplay.h"
 #include "video.h"
 
 static void (*SPreSave)(void);
