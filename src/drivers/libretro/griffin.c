@@ -25,7 +25,7 @@
 #include "palette.c"
 #include "ppu.c"
 #include "sound.c"
-#include "drivers/libretro/fceu/state.c"
+#include "state.c"
 #include "video.c"
 #include "vsuni.c"
 //#include "wave.c"
