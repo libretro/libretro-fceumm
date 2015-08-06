@@ -8,7 +8,7 @@
 #include "cheat.c"
 #include "crc32.c"
 #include "debug.c"
-#include "drivers/libretro/fceu/fceu-endian.c"
+#include "fceu-endian.c"
 #include "drivers/libretro/fceu/fceu-memory.c"
 #include "misc.c"
 #include "fceu.c"
