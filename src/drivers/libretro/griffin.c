@@ -12,15 +12,12 @@
 #include "drivers/libretro/fceu/fceu-memory.c"
 #include "drivers/libretro/fceu/misc.c"
 #include "drivers/libretro/fceu/fceu.c"
-//#include "fceustr.c"
 #include "drivers/libretro/fceu/fds.c"
 #include "drivers/libretro/fceu/file.c"
 #include "filter.c"
 #include "drivers/libretro/fceu/general.c"
 #include "drivers/libretro/fceu/input.c"
 #include "md5.c"
-//#include "movie.c"
-//#include "netplay.c"
 #include "drivers/libretro/fceu/nsf.c"
 #include "palette.c"
 #include "ppu.c"
@@ -28,11 +25,5 @@
 #include "drivers/libretro/fceu/state.c"
 #include "drivers/libretro/fceu/video.c"
 #include "vsuni.c"
-//#include "wave.c"
-
-
-//#include "x6502.c"
-//#include "ines.c"
-//#include "unif.c"
 
 #endif
