@@ -14,7 +14,7 @@
 #include "fceu.c"
 //#include "fceustr.c"
 #include "drivers/libretro/fceu/fds.c"
-#include "drivers/libretro/fceu/file.c"
+#include "file.c"
 #include "filter.c"
 #include "drivers/libretro/fceu/general.c"
 #include "drivers/libretro/fceu/input.c"
