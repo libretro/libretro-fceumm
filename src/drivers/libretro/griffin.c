@@ -17,7 +17,7 @@
 #include "file.c"
 #include "filter.c"
 #include "general.c"
-#include "drivers/libretro/fceu/input.c"
+#include "input.c"
 #include "md5.c"
 //#include "movie.c"
 //#include "netplay.c"
