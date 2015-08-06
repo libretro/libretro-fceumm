@@ -10,7 +10,7 @@
 #include "debug.c"
 #include "drivers/libretro/fceu/fceu-endian.c"
 #include "drivers/libretro/fceu/fceu-memory.c"
-#include "drivers/libretro/fceu/misc.c"
+#include "misc.c"
 #include "fceu.c"
 //#include "fceustr.c"
 #include "fds.c"
