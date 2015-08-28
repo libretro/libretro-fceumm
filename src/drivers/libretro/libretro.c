@@ -4,10 +4,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-#ifdef _MSC_VER
-#define snprintf _snprintf
-#endif
-
 #include "libretro.h"
 
 #include "../../fceu.h"
@@ -123,10 +119,8 @@ void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, uns
 #ifdef FRONTEND_SUPPORTS_RGB565
    retro_palette[index] = BUILD_PIXEL_RGB565(r >> 3, g >> 2, b >> 3);
 #else
-   r >>= RED_EXPAND;
-   g >>= GREEN_EXPAND;
-   b >>= BLUE_EXPAND;
-   retro_palette[index] = (r << RED_SHIFT) | (g << GREEN_SHIFT) | (b << BLUE_SHIFT);
+   retro_palette[index] = 
+      ((r >> RED_EXPAND) << RED_SHIFT) | ((g >> GREEN_EXPAND) << GREEN_SHIFT) | ((b >> BLUE_EXPAND) << BLUE_SHIFT);
 #endif
 }
 
@@ -837,6 +831,8 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 input_cheat:
    FCEUI_AddCheat(name, a, v, c, type);
 }
+
+extern uint32_t iNESGameCRC32;
 
 bool retro_load_game(const struct retro_game_info *game)
 {
