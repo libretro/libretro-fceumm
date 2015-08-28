@@ -532,13 +532,7 @@ void retro_init(void)
 #endif
 }
 
-static void emulator_set_input(void)
-{
-   FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn[0], 0);
-   FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn[0], 0);
-}
-
-static void emulator_set_custom_palette (void)
+static void retro_set_custom_palette (void)
 {
    uint8_t i,r,g,b;
 
@@ -575,29 +569,6 @@ static void emulator_set_custom_palette (void)
       FCEUD_SetPalette( i+128, r, g, b);
       FCEUD_SetPalette( i+192, r, g, b);
    }
-}
-
-static bool fceu_init(const struct retro_game_info *game)
-{
-   char* dir=NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-      FCEUI_SetBaseDirectory(dir);
-
-   FCEUI_Initialize();
-
-   FCEUI_SetSoundVolume(256);
-   FCEUI_Sound(32050);
-
-   GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
-   if (!GameInfo)
-      return false;
-
-   emulator_set_input();
-   emulator_set_custom_palette();
-
-   FCEUD_SoundToggle();
-
-   return true;
 }
 
 void retro_deinit (void)
@@ -681,7 +652,7 @@ static void check_variables(void)
          current_palette = 15;
 
       if (current_palette != orig_value)
-         emulator_set_custom_palette();
+         retro_set_custom_palette();
    }
 }
 
@@ -882,6 +853,8 @@ input_cheat:
 
 bool retro_load_game(const struct retro_game_info *game)
 {
+   char* dir=NULL;
+
    struct retro_input_descriptor desc[] = {
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "D-Pad Left" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "D-Pad Up" },
@@ -924,8 +897,24 @@ bool retro_load_game(const struct retro_game_info *game)
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-   if (!fceu_init(game))
+   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
+      FCEUI_SetBaseDirectory(dir);
+
+   FCEUI_Initialize();
+
+   FCEUI_SetSoundVolume(256);
+   FCEUI_Sound(32050);
+
+   GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
+   if (!GameInfo)
       return false;
+
+   FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn[0], 0);
+   FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn[0], 0);
+
+   retro_set_custom_palette();
+
+   FCEUD_SoundToggle();
    check_variables();
 
    if (!environ_cb(RETRO_ENVIRONMENT_GET_OVERSCAN, &use_overscan))
