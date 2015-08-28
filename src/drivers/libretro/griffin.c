@@ -2,7 +2,6 @@
 
 #include "drivers/libretro/libretro.c"
 #include "drivers/libretro/memstream.c"
-#include "drivers/libretro/crc32-zlib.c"
 
 #include "cart.c"
 #include "cheat.c"
