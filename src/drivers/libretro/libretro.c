@@ -679,20 +679,26 @@ void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
 {
 }
 
-void retro_run(void)
+static void retro_run_blit(uint8_t *gfx)
 {
-   unsigned width, height, pitch, x, y;
-   uint8_t *gfx;
-   int32_t ssize = 0;
-   bool updated = false;
-   unsigned incr = 0;
+   unsigned x, y;
+   unsigned incr   = 0;
+   unsigned width  = 256;
+   unsigned height = 240;
+   unsigned pitch  = 512;
 
-   FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
+   if (!use_overscan)
+   {
+      incr    = 16;
+      width  -= 16;
+      height -= 16;
+#ifndef PSP
+      pitch  -= 32;
+      gfx     = gfx + 8 + 256 * 8;
 
-   for (y = 0; y < ssize; y++)
-      sound[y] = (sound[y] << 16) | (sound[y] & 0xffff);
+#endif
+   }
 
-   audio_batch_cb((const int16_t*)sound, ssize);
 #ifdef PSP
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* const texture_vram_p = (void*) (0x44200000 - (256 * 256)); // max VRAM address - frame size
@@ -720,26 +726,9 @@ void retro_run(void)
    sceGuClutLoad(32, retro_palette);
 
    sceGuFinish();
-#endif
 
-   width = 256;
-   height = 240;
-   pitch = 512;
-   gfx = XBuf;
-
-   if (!use_overscan)
-   {
-      incr    = 16;
-      width  -= 16;
-      height -= 16;
-#ifndef PSP
-      pitch  -= 32;
-      gfx     = gfx + 8 + 256 * 8;
-
-#endif
-   }
-
-#ifndef PSP
+   video_cb(texture_vram_p, width, height, 256);
+#else
    if (use_raw_palette)
    {
       extern uint8 PPU[4];
@@ -755,25 +744,31 @@ void retro_run(void)
          for ( x = 0; x < width; x++, gfx++)
             fceu_video_out[y * width + x] = retro_palette[*gfx];
    }
+
+   video_cb(fceu_video_out, width, height, pitch);
 #endif
-   
-   video_cb(
-#ifdef PSP
-         texture_vram_p,
-#else
-         fceu_video_out,
-#endif
-         width, height,
-#ifdef PSP
-         256
-#else
-         pitch
-#endif
-   );
-	FCEUD_UpdateInput();
+
+}
+
+void retro_run(void)
+{
+   unsigned i;
+   uint8_t *gfx;
+   int32_t ssize = 0;
+   bool updated = false;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
+
+   FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
+	FCEUD_UpdateInput();
+
+   for (i = 0; i < ssize; i++)
+      sound[i] = (sound[i] << 16) | (sound[i] & 0xffff);
+
+   audio_batch_cb((const int16_t*)sound, ssize);
+
+   retro_run_blit(gfx);
 }
 
 static unsigned serialize_size = 0;
