@@ -50,8 +50,8 @@ int FCEUnetplay;
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
 static uint16_t retro_palette[256];
-static uint16_t* fceu_video_out;
 #endif
+static uint16_t* fceu_video_out;
 
 
 /* Some timing-related variables. */
@@ -62,9 +62,9 @@ static int soundo = 1;
 
 static volatile int nofocus = 0;
 
-static int32 *sound = 0;
-static uint32 JSReturn[2];
-static uint32 current_palette = 0;
+static int32_t *sound = 0;
+static uint32_t JSReturn[2];
+static uint32_t current_palette = 0;
 
 int PPUViewScanline=0;
 int PPUViewer=0;
@@ -540,7 +540,7 @@ static void emulator_set_input(void)
 
 static void emulator_set_custom_palette (void)
 {
-   uint8 i,r,g,b;
+   uint8_t i,r,g,b;
 
    use_raw_palette = false;
 
@@ -596,6 +596,7 @@ static bool fceu_init(const struct retro_game_info *game)
    emulator_set_custom_palette();
 
    FCEUD_SoundToggle();
+
    return true;
 }
 
@@ -606,8 +607,10 @@ void retro_deinit (void)
    FCEUI_Kill();
 #if defined(_3DS)
    linearFree(fceu_video_out);
-#elif !defined(PSP)
-   free(fceu_video_out);
+#else
+   if (fceu_video_out)
+      free(fceu_video_out);
+   fceu_video_out = NULL;
 #endif
 }
 
@@ -705,16 +708,12 @@ void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
 {
 }
 
-
 void retro_run(void)
 {
    unsigned width, height, pitch, x, y;
    uint8_t *gfx;
-   int32 ssize;
-   bool updated;
-
-   ssize = 0;
-   updated = false;
+   int32_t ssize = 0;
+   bool updated = false;
 
    FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
 
@@ -731,9 +730,10 @@ void retro_run(void)
 
    sceGuStart(GU_DIRECT, d_list);
 
-   // sceGuCopyImage doesnt seem to work correctly with GU_PSM_T8
-   // so we use GU_PSM_4444 ( 2 Bytes per pixel ) instead
-   // with half the values for pitch / width / x offset
+   /* sceGuCopyImage doesnt seem to work correctly with GU_PSM_T8
+    * so we use GU_PSM_4444 ( 2 Bytes per pixel ) instead
+    * with half the values for pitch / width / x offset
+    */
    if (use_overscan)
       sceGuCopyImage(GU_PSM_4444, 0, 0, 128, 240, 128, XBuf, 0, 0, 128, texture_vram_p);
    else
