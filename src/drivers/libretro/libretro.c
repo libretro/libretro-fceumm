@@ -685,6 +685,7 @@ void retro_run(void)
    uint8_t *gfx;
    int32_t ssize = 0;
    bool updated = false;
+   unsigned incr = 0;
 
    FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
 
@@ -721,63 +722,54 @@ void retro_run(void)
    sceGuFinish();
 #endif
 
-   if (use_overscan)
-   {
-      width = 256;
-      height = 240;
-      pitch = 256;
-#ifndef PSP
-      pitch = 512;
-      gfx = XBuf;
-      if (use_raw_palette)
-      {
-         extern uint8 PPU[4];
-         int deemp = (PPU[1] >> 5) << 2;
-         for (y = 0; y < height; y++)
-            for ( x = 0; x < width; x++, gfx++)
-               fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+   width = 256;
+   height = 240;
+   pitch = 512;
+   gfx = XBuf;
 
-      }
-      else
-      {
-         for (y = 0; y < height; y++)
-            for ( x = 0; x < width; x++, gfx++)
-               fceu_video_out[y * width + x] = retro_palette[*gfx];
-      }
+   if (!use_overscan)
+   {
+      incr    = 16;
+      width  -= 16;
+      height -= 16;
+#ifndef PSP
+      pitch  -= 32;
+      gfx     = gfx + 8 + 256 * 8;
+
 #endif
+   }
+
+#ifndef PSP
+   if (use_raw_palette)
+   {
+      extern uint8 PPU[4];
+      int deemp = (PPU[1] >> 5) << 2;
+      for (y = 0; y < height; y++, gfx += incr)
+         for ( x = 0; x < width; x++, gfx++)
+            fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+
    }
    else
    {
-      width = 256 - 16;
-      height = 240 - 16;
-      pitch = 256;
-#ifndef PSP
-      pitch = 512 - 32;
-      gfx = XBuf + 8 + 256 * 8;
-
-      if (use_raw_palette)
-      {
-         extern uint8 PPU[4];
-         int deemp = (PPU[1] >> 5) << 2;
-         for (y = 0; y < height; y++, gfx += 16)
-            for ( x = 0; x < width; x++, gfx++)
-               fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
-
-      }
-      else
-      {
-         for (y = 0; y < height; y++, gfx += 16)
-            for ( x = 0; x < width; x++, gfx++)
-               fceu_video_out[y * width + x] = retro_palette[*gfx];
-      }
-#endif
+      for (y = 0; y < height; y++, gfx += incr) 
+         for ( x = 0; x < width; x++, gfx++)
+            fceu_video_out[y * width + x] = retro_palette[*gfx];
    }
-   
-#ifdef PSP
-   video_cb(texture_vram_p, width, height, pitch);
-#else
-   video_cb(fceu_video_out, width, height, pitch);
 #endif
+   
+   video_cb(
+#ifdef PSP
+         texture_vram_p,
+#else
+         fceu_video_out,
+#endif
+         width, height,
+#ifdef PSP
+         256
+#else
+         pitch
+#endif
+   );
 	FCEUD_UpdateInput();
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
