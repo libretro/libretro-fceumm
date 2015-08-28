@@ -117,7 +117,7 @@ int FCEUD_SendData(void *data, uint32 len)
 void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, unsigned char b)
 {
 #ifdef FRONTEND_SUPPORTS_RGB565
-   retro_palette[index] = BUILD_PIXEL_RGB565(r >> 3, g >> 2, b >> 3);
+   retro_palette[index] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
 #else
    retro_palette[index] = 
       ((r >> RED_EXPAND) << RED_SHIFT) | ((g >> GREEN_EXPAND) << GREEN_SHIFT) | ((b >> BLUE_EXPAND) << BLUE_SHIFT);
