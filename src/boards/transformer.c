@@ -16,6 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * All regs access only by READ
+ *
+ * 5000 - I/O - when read, 0 goes to tape output
+ *  ---m3210
+ *  3210 - lower scancode nibble
+ *  m         - tape input bit
+ * 5001 - I
+ *  ----7654
+ *  7654 - higher scancode nibble
+ * 5002 - I   - reset scancode buffer, ready to new input
+ * 5004 - O   - when read, 1 goes to tape output
+ *
  */
 
 #include "mapinc.h"
@@ -54,10 +67,9 @@ static DECLFR(TransformerRead) {
 	switch (A & 3) {
 	case 0: ret = TransformerChar & 15; break;
 	case 1: ret = (TransformerChar >> 4); break;
-	case 2: break;
+	case 2: X6502_IRQEnd(FCEU_IQEXT); break;
 	case 4: break;
 	}
-	X6502_IRQEnd(FCEU_IQEXT);
 	return ret;
 }
 
