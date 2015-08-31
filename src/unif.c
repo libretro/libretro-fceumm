@@ -450,9 +450,11 @@ static BMAPPING bmap[] = {
 	{ "UOROM", UNROM_Init, 0 },
 	{ "VRC7", UNLVRC7_Init, 0 },
 	{ "YOKO", UNLYOKO_Init, 0 },
-        { "COOLBOY", COOLBOY_Init, BMCFLAG_256KCHRR },
-        { "158B", UNL158B_Init, 0 },
-        { "DRAGONFIGHTER", UNLBMW8544_Init, 0},
+	{ "COOLBOY", COOLBOY_Init, BMCFLAG_256KCHRR },
+	{ "158B", UNL158B_Init, 0 },
+	{ "DRAGONFIGHTER", UNLBMW8544_Init, 0 },
+	{ "EH8813A", UNLEH8813A_Init, 0 },
+	{ "HP898F", BMCHP898F_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
