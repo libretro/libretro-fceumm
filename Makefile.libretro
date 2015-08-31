@@ -124,7 +124,6 @@ else ifeq ($(platform), sncps3)
 else ifeq ($(platform), psp1)
 	TARGET := $(TARGET_NAME)_libretro_psp1.a
 	CC = psp-gcc$(EXE_EXT)
-	CXX = psp-g++$(EXE_EXT)
 	AR = psp-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DPSP -G0 -DHAVE_ASPRINTF
 	PLATFORM_DEFINES += -march=allegrex -mfp32 -mgp32 -mlong32 -mabi=eabi
@@ -133,11 +132,20 @@ else ifeq ($(platform), psp1)
 	STATIC_LINKING = 1
 	EXTERNAL_ZLIB = 1
 
+# Vita
+else ifeq ($(platform), vita)
+	TARGET := $(TARGET_NAME)_libretro_vita.a
+	CC = arm-vita-eabi-gcc$(EXE_EXT)
+	AR = arm-vita-eabi-ar$(EXE_EXT)
+	PLATFORM_DEFINES := -DVITA -DHAVE_ASPRINTF
+	CFLAGS += -DHAVE_ASPRINTF
+	STATIC_LINKING = 1
+	EXTERNAL_ZLIB = 1
+
 # CTR(3DS)
 else ifeq ($(platform), ctr)
 	TARGET := $(TARGET_NAME)_libretro_ctr.a
 	CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
-	CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
 	AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DARM11 -D_3DS -DHAVE_ASPRINTF
 	CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
@@ -233,7 +241,7 @@ CFLAGS += -DWANT_GRIFFIN
 
 OBJECTS := $(SOURCES_C:.c=.o)
 
-FCEU_DEFINES := -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565 $(PLATFORM_DEFINES)
+DEFINES := -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565 $(PLATFORM_DEFINES)
 
 ifeq ($(platform), sncps3)
 WARNING_DEFINES =
@@ -241,7 +249,7 @@ else
 WARNING_DEFINES = -Wno-write-strings
 endif
 
-CFLAGS += $(CODE_DEFINES) $(fpic) $(WARNING_DEFINES) $(FCEU_DEFINES) $(ENDIANNESS_DEFINES)
+CFLAGS += $(CODE_DEFINES) $(fpic) $(WARNING_DEFINES) $(DEFINES) $(ENDIANNESS_DEFINES)
 LDFLAGS += $(LIBM)
 
 LIBS :=
