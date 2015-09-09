@@ -30,7 +30,7 @@
 #define FCEU_dwmemset(d, c, n) { int _x; for (_x = n - 4; _x >= 0; _x -= 4) *(uint32*)& (d)[_x] = c; }
 
 #if defined(STATE_LIBRETRO) || defined(ENDIAN_LIBRETRO) || defined(GENERAL_LIBRETRO)
-#include "drivers/libretro/memstream.h"
+#include "memstream.h"
 
 #define HAVE_MEMSTREAM
 #define MEM_TYPE memstream_t

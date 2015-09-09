@@ -8,7 +8,7 @@ SOURCES_C += $(CORE_DIR)/drivers/libretro/griffin.c
 else
 SOURCES_C += \
 				 $(CORE_DIR)/drivers/libretro/libretro.c \
-				 $(CORE_DIR)/drivers/libretro/memstream.c \
+				 $(CORE_DIR)/memstream.c \
 				 $(CORE_DIR)/cart.c \
 				 $(CORE_DIR)/cheat.c \
 				 $(CORE_DIR)/crc32.c \

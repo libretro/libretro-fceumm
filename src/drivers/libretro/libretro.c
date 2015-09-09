@@ -23,7 +23,7 @@
 #include "../../fds.h"
 
 #include <string.h>
-#include "memstream.h"
+#include "../../memstream.h"
 
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
