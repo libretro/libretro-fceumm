@@ -467,6 +467,7 @@ void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
       { "nes_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|raw" },
+      { "nes_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { NULL, NULL },
    };
 
@@ -647,6 +648,13 @@ static void check_variables(void)
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
+   }
+   var.key = "nes_nospritelimit";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      int no_sprite_limit = (strcmp(var.value, "enabled") == 0) ? 1 : 0;
+      FCEUI_DisableSpriteLimitation(no_sprite_limit);
    }
 }
 
