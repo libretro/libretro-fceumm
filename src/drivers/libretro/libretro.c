@@ -21,6 +21,7 @@
 #include "../../ines.h"
 #include "../../unif.h"
 #include "../../fds.h"
+#include "../../vsuni.h"
 
 #include <string.h>
 #include "../../memstream.h"
@@ -675,6 +676,30 @@ static void FCEUD_UpdateInput(void)
       pad[1] |= input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
+   
+   if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X))
+   {
+      FCEU_VSUniCoin(); /* Insert Coin VS System */
+   }
+   
+   if (GameInfo->type == GIT_FDS) /* Famicom Disk System */
+   {
+      bool curL = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L);
+      static bool prevL = false;
+      if (curL && !prevL)
+      {
+         FCEU_FDSSelect(); /* Swap FDisk side */
+      }
+      prevL = curL;
+      
+      bool curR = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R);
+      static bool prevR = false;
+      if (curR && !prevR)
+      {
+         FCEU_FDSInsert(-1); /* Insert or eject the disk */
+      }
+      prevR = curR;	   
+   }
 }
 
 void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
@@ -1116,6 +1141,9 @@ bool retro_load_game(const struct retro_game_info *game)
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "A" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,   "Select" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,    "Start" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "(VSSystem) Insert Coin" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,     "(FDS) Disk Side Change" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,     "(FDS) Insert/Eject Disk" },
 
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "D-Pad Left" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "D-Pad Up" },
