@@ -74,7 +74,10 @@ static int asprintf(char **strp, const char *fmt, ...) {
 
 	va_start(ap, fmt);
 	if (!(*strp = malloc(2048)))
+   {
+      va_end(ap);
 		return(0);
+   }
 	ret = vsnprintf(*strp, 2048, fmt, ap);
 	va_end(ap);
 	return(ret);
