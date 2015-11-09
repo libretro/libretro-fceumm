@@ -602,6 +602,8 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_DOWN, JOY_DOWN },
    { RETRO_DEVICE_ID_JOYPAD_LEFT, JOY_LEFT },
    { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
+   { RETRO_DEVICE_ID_JOYPAD_X, JOY_A },
+   { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
 };
 
 static void check_variables(void)
@@ -659,6 +661,18 @@ static void check_variables(void)
    }
 }
 
+/*
+ * Flags to keep track of whether turbo
+ * was toggled on or off
+ */
+unsigned char turbo_a_toggle = 0;
+unsigned char turbo_a_prescaler = 1;
+unsigned char turbo_a_counter = 0;
+
+unsigned char turbo_b_toggle = 0;
+unsigned char turbo_b_prescaler = 1;
+unsigned char turbo_b_counter = 0;
+
 static void FCEUD_UpdateInput(void)
 {
    unsigned i;
@@ -674,10 +688,55 @@ static void FCEUD_UpdateInput(void)
 
    for ( i = 0; i < 8; i++)
       pad[1] |= input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
+      
+   /*
+    * Check if turbo_a button is pressed.
+    * This is set to joypad button X
+    * in retroarch. If it is pressed 
+    * then toggle it on and off 
+    * everytime this function gets called.
+    * Note that this is currently only for pad 0.
+    */
+   if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[8].retro)) {
+      if(turbo_a_counter == turbo_a_prescaler) {
+         turbo_a_counter = 0;
+	 turbo_a_toggle ^= 1; //Toggle the value
+      }
+
+      if (turbo_a_toggle) {
+	 pad[0] |= bindmap[8].nes;
+      }
+
+      turbo_a_counter++; //Increment the counter
+   } else {
+      turbo_a_counter = 0;
+      turbo_a_toggle = 1;
+   }
+
+   /* Similar to turbo_a, check for
+    * turbo_b which is set to joypad
+    * button Y in retroarch
+    */
+   if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[9].retro)) {
+      if(turbo_b_counter == turbo_b_prescaler) {
+         turbo_b_counter = 0;
+	 turbo_b_toggle ^= 1; //Toggle the value
+      }
+
+      if (turbo_b_toggle) {
+	 pad[0] |= bindmap[9].nes;
+      }
+
+      turbo_b_counter++; //Increment the counter
+   } else {
+      turbo_b_counter = 0;
+      turbo_b_toggle = 1;
+   }
+
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
    
-   if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X))
+   if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
    {
       FCEU_VSUniCoin(); /* Insert Coin VS System */
    }
@@ -1141,9 +1200,11 @@ bool retro_load_game(const struct retro_game_info *game)
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "A" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,   "Select" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,    "Start" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "(VSSystem) Insert Coin" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     "(VSSystem) Insert Coin" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,     "(FDS) Disk Side Change" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,     "(FDS) Insert/Eject Disk" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Turbo A" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Turbo B" },
 
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "D-Pad Left" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "D-Pad Up" },
@@ -1153,6 +1214,8 @@ bool retro_load_game(const struct retro_game_info *game)
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "A" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,   "Select" },
       { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,    "Start" },
+      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Turbo A" },
+      { 1, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Turbo B" },
 
       { 2, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "D-Pad Left" },
       { 2, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "D-Pad Up" },
@@ -1162,6 +1225,8 @@ bool retro_load_game(const struct retro_game_info *game)
       { 2, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "A" },
       { 2, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,   "Select" },
       { 2, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,    "Start" },
+      { 2, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Turbo A" },
+      { 2, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Turbo B" },
 
       { 3, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "D-Pad Left" },
       { 3, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "D-Pad Up" },
@@ -1171,6 +1236,8 @@ bool retro_load_game(const struct retro_game_info *game)
       { 3, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "A" },
       { 3, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,   "Select" },
       { 3, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,    "Start" },
+      { 3, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Turbo A" },
+      { 3, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Turbo B" },
 
       { 0 },
    };
