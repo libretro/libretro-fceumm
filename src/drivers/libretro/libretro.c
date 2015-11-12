@@ -664,14 +664,23 @@ static void check_variables(void)
 /*
  * Flags to keep track of whether turbo
  * was toggled on or off
+ * p0 - Player 1
+ * p1 - Player 2
+ * There are two values in array
+ * for Turbo A and Turbo B for
+ * each player
  */
-unsigned char turbo_a_toggle = 0;
-unsigned char turbo_a_prescaler = 1;
-unsigned char turbo_a_counter = 0;
 
-unsigned char turbo_b_toggle = 0;
-unsigned char turbo_b_prescaler = 1;
-unsigned char turbo_b_counter = 0;
+unsigned char turbo_p0_toggle[] = {0,0};
+unsigned char turbo_p1_toggle[] = {0,0};
+
+/*
+ * This is the turbo delay, higher the value
+ * the slower the frequency i.e. wait time
+ * between turbo repeats increases
+ */
+
+#define TURBO_DELAY 3
 
 static void FCEUD_UpdateInput(void)
 {
@@ -688,51 +697,54 @@ static void FCEUD_UpdateInput(void)
 
    for ( i = 0; i < 8; i++)
       pad[1] |= input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
-      
+
    /*
-    * Check if turbo_a button is pressed.
-    * This is set to joypad button X
-    * in retroarch. If it is pressed 
-    * then toggle it on and off 
-    * everytime this function gets called.
-    * Note that this is currently only for pad 0.
+    * Turbo A and Turbo B buttons are
+    * mapped to Joypad X and Joypad Y
+    * in RetroArch joypad.
+    *
+    * We achieve this by keeping track of
+    * the number of times it increments
+    * the toggle counter and fire or not fire
+    * depending on whether the delay value has
+    * been reached.
     */
-   if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[8].retro)) {
-      if(turbo_a_counter == turbo_a_prescaler) {
-         turbo_a_counter = 0;
-	 turbo_a_toggle ^= 1; //Toggle the value
-      }
 
-      if (turbo_a_toggle) {
-	 pad[0] |= bindmap[8].nes;
+   // Handle turbo buttons - player 1
+   for ( i = 8; i < 10; i++) {
+      if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
+         if (turbo_p0_toggle[i-8] == 0) {
+            pad[0] |= bindmap[i].nes;
+	 }
+	 turbo_p0_toggle[i-8]++;
+	 if (turbo_p0_toggle[i-8] > TURBO_DELAY) {
+            // Reset the toggle if
+	    // delay value is reached
+            turbo_p0_toggle[i-8] = 0;
+	 }
+      } else {
+	 // If the button is not pressed, just reset the toggle
+         turbo_p0_toggle[i-8] = 0;
       }
-
-      turbo_a_counter++; //Increment the counter
-   } else {
-      turbo_a_counter = 0;
-      turbo_a_toggle = 1;
    }
 
-   /* Similar to turbo_a, check for
-    * turbo_b which is set to joypad
-    * button Y in retroarch
-    */
-   if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[9].retro)) {
-      if(turbo_b_counter == turbo_b_prescaler) {
-         turbo_b_counter = 0;
-	 turbo_b_toggle ^= 1; //Toggle the value
+   // Handle turbo buttons - player 2
+   for ( i = 8; i < 10; i++) {
+      if(input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
+         if (turbo_p1_toggle[i-8] == 0) {
+            pad[1] |= bindmap[i].nes;
+	 }
+	 turbo_p1_toggle[i-8]++;
+	 if (turbo_p1_toggle[i-8] > TURBO_DELAY) {
+            // Reset the toggle if
+	    // delay value is reached
+            turbo_p1_toggle[i-8] = 0;
+	 }
+      } else {
+	 // If the button is not pressed, just reset the toggle
+         turbo_p1_toggle[i-8] = 0;
       }
-
-      if (turbo_b_toggle) {
-	 pad[0] |= bindmap[9].nes;
-      }
-
-      turbo_b_counter++; //Increment the counter
-   } else {
-      turbo_b_counter = 0;
-      turbo_b_toggle = 1;
    }
-
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
    
