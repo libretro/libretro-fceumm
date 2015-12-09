@@ -756,15 +756,15 @@ static void FCEUD_UpdateInput(void)
    if (GameInfo->type == GIT_FDS) /* Famicom Disk System */
    {
       bool curL = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L);
-      static bool prevL = false;
+      bool curR = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R);
+      static bool prevL = false, prevR = false;
+
       if (curL && !prevL)
       {
          FCEU_FDSSelect(); /* Swap FDisk side */
       }
       prevL = curL;
-      
-      bool curR = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R);
-      static bool prevR = false;
+
       if (curR && !prevR)
       {
          FCEU_FDSInsert(-1); /* Insert or eject the disk */
