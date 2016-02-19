@@ -782,7 +782,7 @@ static void retro_run_blit(uint8_t *gfx)
    unsigned x, y;
 #ifdef PSP
    static unsigned int __attribute__((aligned(16))) d_list[32];
-   void* const texture_vram_p = NULL;
+   void* texture_vram_p = NULL;
 #endif
    uint16_t *fceu_video_out_ptr = NULL;
    struct retro_framebuffer fb = {0};
