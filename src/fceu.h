@@ -4,6 +4,14 @@
 #include "fceu-types.h"
 
 extern int fceuindbg;
+
+extern unsigned overclocked;
+extern unsigned skip_7bit_overclocking;
+extern unsigned DMC_7bit;
+
+extern unsigned normal_scanlines;
+extern unsigned extrascanlines;
+
 void ResetGameLoaded(void);
 
 #define DECLFR(x) uint8 FP_FASTAPASS(1) x(uint32 A)

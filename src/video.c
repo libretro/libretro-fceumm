@@ -48,7 +48,7 @@ int FCEU_InitVirtualVideo(void)
 {
    // 256 bytes per scanline, * 240 scanline maximum, +8 for alignment,
    if (!XBuf)
-      XBuf = (uint8*)(FCEU_malloc(256 * 256 + 8));
+      XBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
 
    if (!XBuf)
       return 0;
@@ -60,7 +60,7 @@ int FCEU_InitVirtualVideo(void)
       m = (4 - m) & 3;
       XBuf += m;
    }
-   memset(XBuf, 128, 256 * 256);
+   memset(XBuf, 128, 256 * (256 + extrascanlines));
    return 1;
 }
 

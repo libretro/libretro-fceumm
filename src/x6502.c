@@ -20,6 +20,7 @@
 
 #include <string.h>
 
+#include "fceu.h"
 #include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
@@ -51,7 +52,7 @@ void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 	int __x = x;									\
 	_tcount += __x;									\
 	_count -= __x * 48;								\
-	timestamp += __x;								\
+   if (scanline < normal_scanlines || scanline == totalscanlines) timestamp+= __x; \
 }
 
 static INLINE uint8 RdMemNorm(uint32 A) {
@@ -509,7 +510,8 @@ static void X6502_RunDebug(int32 cycles) {
 		_tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
 
-		FCEU_SoundCPUHook(temp);
+      if (scanline < normal_scanlines || scanline == totalscanlines)
+         FCEU_SoundCPUHook(temp);
 
 		_PC++;
 		switch (b1) {

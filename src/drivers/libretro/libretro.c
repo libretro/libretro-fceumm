@@ -22,8 +22,8 @@
 #include "../../unif.h"
 #include "../../fds.h"
 #include "../../vsuni.h"
+#include "../../video.h"
 
-#include <string.h>
 #include "../../memstream.h"
 
 #if defined(_3DS)
@@ -41,6 +41,15 @@ static bool use_raw_palette;
 
 /* emulator-specific variables */
 
+/* overclock the console by adding dummy scanlines to PPU loop
+ * disables DMC DMA and WaveHi filling for these dummies
+ * doesn't work with new PPU */
+unsigned overclocked = 0;
+/* 7-bit samples have priority over overclocking */
+unsigned skip_7bit_overclocking = 1;
+unsigned normal_scanlines = 240;
+unsigned extrascanlines = 0;
+
 int FCEUnetplay;
 #ifdef PSP
 #include "pspgu.h"
@@ -52,9 +61,6 @@ static uint16_t* fceu_video_out;
 
 
 /* Some timing-related variables. */
-static int maxconbskip = 9;			/* Maximum consecutive blit skips. */
-static int ffbskip = 9;				/* Blit skips per blit when FF-ing */
-
 static int soundo = 1;
 
 static volatile int nofocus = 0;
@@ -467,8 +473,9 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "nes_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|raw" },
-      { "nes_nospritelimit", "No Sprite Limit; disabled|enabled" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|raw" },
+      { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
+      { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { NULL, NULL },
    };
 
@@ -608,56 +615,90 @@ static const keymap bindmap[] = {
 
 static void check_variables(void)
 {
+   static int overclock_state = -1;
    struct retro_variable var = {0};
 
-   var.key = "nes_palette";
+   var.key = "fceumm_palette";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       unsigned orig_value = current_palette;
 
-      if (strcmp(var.value, "asqrealc") == 0)
+      if (!strcmp(var.value, "asqrealc"))
          current_palette = 0;
-      else if (strcmp(var.value, "loopy") == 0)
+      else if (!strcmp(var.value, "loopy"))
          current_palette = 1;
-      else if (strcmp(var.value, "quor") == 0)
+      else if (!strcmp(var.value, "quor"))
          current_palette = 2;
-      else if (strcmp(var.value, "chris") == 0)
+      else if (!strcmp(var.value, "chris"))
          current_palette = 3;
-      else if (strcmp(var.value, "matt") == 0)
+      else if (!strcmp(var.value, "matt"))
          current_palette = 4;
-      else if (strcmp(var.value, "matt") == 0)
+      else if (!strcmp(var.value, "matt"))
          current_palette = 5;
-      else if (strcmp(var.value, "pasofami") == 0)
+      else if (!strcmp(var.value, "pasofami"))
          current_palette = 6;
-      else if (strcmp(var.value, "crashman") == 0)
+      else if (!strcmp(var.value, "crashman"))
          current_palette = 7;
-      else if (strcmp(var.value, "mess") == 0)
+      else if (!strcmp(var.value, "mess"))
          current_palette = 8;
-      else if (strcmp(var.value, "zaphod-cv") == 0)
+      else if (!strcmp(var.value, "zaphod-cv"))
          current_palette = 9;
-      else if (strcmp(var.value, "zaphod-smb") == 0)
+      else if (!strcmp(var.value, "zaphod-smb"))
          current_palette = 10;
-      else if (strcmp(var.value, "vs-drmar") == 0)
+      else if (!strcmp(var.value, "vs-drmar"))
          current_palette = 11;
-      else if (strcmp(var.value, "vs-cv") == 0)
+      else if (!strcmp(var.value, "vs-cv"))
          current_palette = 12;
-      else if (strcmp(var.value, "vs-smb") == 0)
+      else if (!strcmp(var.value, "vs-smb"))
          current_palette = 13;
-      else if (strcmp(var.value, "nintendo-vc") == 0)
+      else if (!strcmp(var.value, "nintendo-vc"))
          current_palette = 14;
-      else if (strcmp(var.value, "raw") == 0)
+      else if (!strcmp(var.value, "raw"))
          current_palette = 15;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
    }
-   var.key = "nes_nospritelimit";
+
+   var.key = "fceumm_nospritelimit";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      int no_sprite_limit = (strcmp(var.value, "enabled") == 0) ? 1 : 0;
+      int no_sprite_limit = (!strcmp(var.value, "enabled")) ? 1 : 0;
       FCEUI_DisableSpriteLimitation(no_sprite_limit);
+   }
+
+   var.key = "fceumm_overclocking";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      bool do_reinit = false;
+
+      if (!strcmp(var.value, "disabled")
+            && overclock_state != 0)
+      {
+         overclocked            = 0;
+         skip_7bit_overclocking = 1;
+         extrascanlines         = 0;
+         overclock_state        = 0;
+         do_reinit              = true;
+      }
+      else if (!strcmp(var.value, "2x")
+            && overclock_state != 1)
+      {
+         overclocked            = 1;
+         skip_7bit_overclocking = 1;
+         extrascanlines         = 266;
+         overclock_state        = 1;
+         do_reinit              = true;
+      }
+
+      if (do_reinit)
+      {
+         FCEU_KillVirtualVideo();
+         FCEU_InitVirtualVideo();
+      }
    }
 }
 

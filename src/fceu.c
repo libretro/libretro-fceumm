@@ -23,6 +23,7 @@
 #include  <stdlib.h>
 #include  <stdarg.h>
 
+#include "fceu.h"
 #include  "fceu-types.h"
 #include  "x6502.h"
 #include  "fceu.h"
@@ -48,6 +49,7 @@
 
 uint64 timestampbase;
 
+extern int totalscanlines;
 
 FCEUGI *GameInfo = NULL;
 void (*GameInterface)(int h);
@@ -459,6 +461,8 @@ void FCEU_ResetVidSys(void)
 		w = FSettings.PAL;
 
 	PAL = w ? 1 : 0;
+
+   totalscanlines = normal_scanlines + (overclocked ? extrascanlines : 0);
 
 	FCEUPPU_SetVideoSystem(w);
 	SetSoundVariables();

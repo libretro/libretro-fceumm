@@ -23,6 +23,10 @@
 
 #include "x6502struct.h"
 
+extern int scanline;
+extern unsigned normal_scanlines;
+extern int totalscanlines;
+
 #ifdef FCEUDEF_DEBUGGER
 void X6502_Debug(void (*CPUHook)(X6502 *),
 				 uint8 (*ReadHook)(X6502 *, uint32),

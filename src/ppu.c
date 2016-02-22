@@ -127,6 +127,8 @@ static int maxsprites = 8;
 int scanline;
 static uint32 scanlines_per_frame;
 
+int totalscanlines;
+
 uint8 PPU[4];
 uint8 PPUSPL;
 uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], SPRBUF[0x100];
@@ -1180,7 +1182,7 @@ int FCEUPPU_Loop(int skip) {
 			kook ^= 1;
 		}
 		if (GameInfo->type == GIT_NSF)
-			X6502_Run((256 + 85) * 240);
+			X6502_Run((256 + 85) * normal_scanlines);
 		#ifdef FRAMESKIP
 		else if (skip) {
 			int y;
@@ -1209,11 +1211,20 @@ int FCEUPPU_Loop(int skip) {
 			int x, max, maxref;
 
 			deemp = PPU[1] >> 5;
-			for (scanline = 0; scanline < 240; ) {	//scanline is incremented in  DoLine.  Evil. :/
+
+         // manual samples can't play correctly with overclocking
+			if (DMC_7bit && skip_7bit_overclocking)
+				totalscanlines = normal_scanlines;
+			else
+				totalscanlines = normal_scanlines + (overclocked ? extrascanlines : 0);
+
+			for (scanline = 0; scanline < totalscanlines; ) {	//scanline is incremented in  DoLine.  Evil. :/
 				deempcnt[deemp]++;
 				if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
 				DoLine();
 			}
+         DMC_7bit = 0;
+
 			if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 			for (x = 1, max = 0, maxref = 0; x < 7; x++) {
 				if (deempcnt[x] > max) {

@@ -61,6 +61,7 @@ typedef struct {
 	int reloaddec;
 } ENVUNIT;
 
+unsigned DMC_7bit = 0; // used to skip overclocking
 static ENVUNIT EnvUnits[3];
 
 static const int RectDuties[4] = { 1, 2, 4, 6 };
@@ -276,9 +277,19 @@ static DECLFW(Write_DMCRegs) {
 		break;
 	case 0x01: DoPCM();
 		RawDALatch = V & 0x7F;
+      if (RawDALatch)
+         DMC_7bit = 1;
 		break;
-	case 0x02: DMCAddressLatch = V; break;
-	case 0x03: DMCSizeLatch = V; break;
+	case 0x02:
+      DMCAddressLatch = V;
+      if (V)
+			DMC_7bit = 0;
+      break;
+	case 0x03:
+      DMCSizeLatch = V;
+      if (V)
+			DMC_7bit = 0;
+      break;
 	}
 }
 
