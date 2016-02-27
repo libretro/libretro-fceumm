@@ -158,6 +158,15 @@ else ifeq ($(platform), ctr)
 	STATIC_LINKING = 1
 	EXTERNAL_ZLIB = 1
 
+# Raspberry Pi 1
+else ifeq ($(platform), rpi1)
+	TARGET := $(TARGET_NAME)_libretro.so
+	fpic := -fPIC
+	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+	CFLAGS += -DARM11
+	CFLAGS += -marm -march=armv6j -mfpu=vfp -mfloat-abi=hard -funsafe-math-optimizations
+	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
+
 # Raspberry Pi 2
 else ifeq ($(platform), rpi2)
 	TARGET := $(TARGET_NAME)_libretro.so
