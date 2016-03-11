@@ -1377,28 +1377,56 @@ unsigned retro_get_region(void)
    return FSettings.PAL ? RETRO_REGION_PAL : RETRO_REGION_NTSC;
 }
 
-void *retro_get_memory_data(unsigned id)
+
+void *retro_get_memory_data(unsigned type)
 {
-   if (id != RETRO_MEMORY_SAVE_RAM)
-      return NULL;
+   uint8_t* data;
 
-   if (iNESCart.battery)
-	   return iNESCart.SaveGame[0];
-   if (UNIFCart.battery)
-      return UNIFCart.SaveGame[0];
-
-   return 0;
+   switch(type)
+   {
+      case RETRO_MEMORY_SAVE_RAM:
+         if (iNESCart.battery)
+	         return iNESCart.SaveGame[0];
+         else if (UNIFCart.battery)
+            return UNIFCart.SaveGame[0];
+         else
+            data = NULL;
+         break;
+      case RETRO_MEMORY_SYSTEM_RAM:
+         // TODO: add ExWRAM(0x2000) support ?
+         data = RAM;
+         break;
+      default:
+         data = NULL;
+         break;
+   }
+   
+   return data;
 }
 
-size_t retro_get_memory_size(unsigned id)
+size_t retro_get_memory_size(unsigned type)
 {
-   if (id != RETRO_MEMORY_SAVE_RAM)
-      return 0;
+   unsigned size;
 
-   if (iNESCart.battery)
-      return iNESCart.SaveGameLen[0];
-   if (UNIFCart.battery)
-      return UNIFCart.SaveGameLen[0];
-
-   return 0;
+   switch(type)
+   {
+      case RETRO_MEMORY_SAVE_RAM:
+         if (iNESCart.battery)
+            size = iNESCart.SaveGameLen[0];
+         else if (UNIFCart.battery)
+            size = UNIFCart.SaveGameLen[0];
+         else
+            size = 0;
+         break;
+      case RETRO_MEMORY_SYSTEM_RAM:
+         // TODO: detect ExWRAM(0x2000) ?
+         // NES BASE RAM (0x800)
+         size = 0x800;
+         break;
+      default:
+         size = 0;
+         break;
+   }
+   
+   return size;
 }
