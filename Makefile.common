@@ -29,7 +29,8 @@ SOURCES_C += \
 				 $(CORE_DIR)/video.c \
 				 $(CORE_DIR)/vsuni.c
 
-ifneq ($(STATIC_LINKING),1)
+ifeq ($(STATIC_LINKING),1)
+else
 SOURCES_C += $(CORE_DIR)/memstream.c
 endif
 
