@@ -8,7 +8,6 @@ SOURCES_C += $(CORE_DIR)/drivers/libretro/griffin.c
 else
 SOURCES_C += \
 				 $(CORE_DIR)/drivers/libretro/libretro.c \
-				 $(CORE_DIR)/memstream.c \
 				 $(CORE_DIR)/cart.c \
 				 $(CORE_DIR)/cheat.c \
 				 $(CORE_DIR)/crc32.c \
@@ -29,6 +28,10 @@ SOURCES_C += \
 				 $(CORE_DIR)/state.c \
 				 $(CORE_DIR)/video.c \
 				 $(CORE_DIR)/vsuni.c
+
+ifneq ($(STATIC_LINKING),1)
+SOURCES_C += $(CORE_DIR)/memstream.c
+endif
 
 ifeq ($(DEBUG),1)
 SOURCES_C += $(CORE_DIR)/debug.c
