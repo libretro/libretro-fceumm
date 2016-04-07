@@ -111,8 +111,8 @@ else ifeq ($(platform), ps3)
 	AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
 	PLATFORM_DEFINES := -D__CELLOS_LV2
 	ENDIANNESS_DEFINES = -DMSB_FIRST
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # sncps3
 else ifeq ($(platform), sncps3)
@@ -121,8 +121,8 @@ else ifeq ($(platform), sncps3)
 	AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
 	PLATFORM_DEFINES := -D__CELLOS_LV2
 	ENDIANNESS_DEFINES = -DMSB_FIRST
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # PSP
 else ifeq ($(platform), psp1)
@@ -133,8 +133,8 @@ else ifeq ($(platform), psp1)
 	PLATFORM_DEFINES += -march=allegrex -mfp32 -mgp32 -mlong32 -mabi=eabi
 	PLATFORM_DEFINES += -fomit-frame-pointer -fstrict-aliasing
 	PLATFORM_DEFINES += -falign-functions=32 -falign-loops -falign-labels -falign-jumps
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # Vita
 else ifeq ($(platform), vita)
@@ -143,8 +143,8 @@ else ifeq ($(platform), vita)
 	AR = arm-vita-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DVITA -DHAVE_ASPRINTF
 	CFLAGS += -DHAVE_ASPRINTF
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # CTR(3DS)
 else ifeq ($(platform), ctr)
@@ -155,8 +155,8 @@ else ifeq ($(platform), ctr)
 	CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
 	CFLAGS += -Wall -mword-relocations
 	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # Raspberry Pi 1
 else ifeq ($(platform), rpi1)
@@ -183,8 +183,8 @@ else ifeq ($(platform), psl1ght)
 	AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -D__CELLOS_LV2 -DHAVE_ASPRINTF
 	ENDIANNESS_DEFINES = -DMSB_FIRST
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # Xbox 360
 else ifeq ($(platform), xenon)
@@ -194,8 +194,8 @@ else ifeq ($(platform), xenon)
 	PLATFORM_DEFINES := -D__LIBXENON__
 	ENDIANNESS_DEFINES = -DMSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # Nintendo Game Cube
 else ifeq ($(platform), ngc)
@@ -205,8 +205,8 @@ else ifeq ($(platform), ngc)
 	PLATFORM_DEFINES := -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
 	ENDIANNESS_DEFINES = -DMSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # Nintendo Wii
 else ifeq ($(platform), wii)
@@ -216,8 +216,8 @@ else ifeq ($(platform), wii)
 	PLATFORM_DEFINES := -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
 	ENDIANNESS_DEFINES = -DMSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
-	STATIC_LINKING = 1
-	EXTERNAL_ZLIB = 1
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
 
 # ARM
 else ifneq (,$(findstring armv,$(platform)))
@@ -303,7 +303,7 @@ include $(THEOS_MAKE_PATH)/library.mk
 else
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
-ifeq ($(STATIC_LINKING), 1)
+ifeq ($(STATIC_LINKING),1)
 	$(AR) rcs $@ $(OBJECTS)
 else
 	$(CC) -o $@ $(SHARED) $(OBJECTS) $(CFLAGS) $(LDFLAGS) $(LIBS)
