@@ -1,7 +1,9 @@
 #ifdef WANT_GRIFFIN
 
 #include "drivers/libretro/libretro.c"
+#ifdef STATIC_LINKING
 #include "../../memstream.c"
+#endif
 
 #include "cart.c"
 #include "cheat.c"
