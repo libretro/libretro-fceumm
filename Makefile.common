@@ -31,7 +31,7 @@ SOURCES_C += \
 
 ifeq ($(STATIC_LINKING),1)
 else
-SOURCES_C += $(CORE_DIR)/memstream.c
+SOURCES_C += $(CORE_DIR)/drivers/libretro/libretro-common/streams/memstream.c
 endif
 
 ifeq ($(DEBUG),1)

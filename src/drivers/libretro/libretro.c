@@ -24,7 +24,7 @@
 #include "../../vsuni.h"
 #include "../../video.h"
 
-#include "../../memstream.h"
+#include "libretro-common/include/streams/memory_stream.h"
 
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);

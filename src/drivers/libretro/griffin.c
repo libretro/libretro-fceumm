@@ -3,7 +3,7 @@
 #include "drivers/libretro/libretro.c"
 
 #ifndef STATIC_LINKING
-#include "../../memstream.c"
+#include "drivers/libretro/libretro-common/streams/memory_stream.c"
 #endif
 
 #include "cart.c"
