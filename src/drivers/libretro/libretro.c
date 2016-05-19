@@ -174,7 +174,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 15
+#define MAXPAL 16
 
 struct st_palettes {
 	char name[32];
@@ -453,6 +453,24 @@ struct st_palettes palettes[] = {
          0xFAC2FF, 0xFFC4EA, 0xFFCCC5, 0xF7D8A5,
          0xE4E594, 0xCFEF96, 0xBDF4AB, 0xB3F3CC, 
          0xB5EBF2, 0xB8B8B8, 0x000000, 0x000000 }
+   },
+   { "unsaturated-v5", "FirebrandX's Unsaturated-V5 palette",
+	   { 0x6B6B6B, 0x001E87, 0x1F0B96, 0x3B0C87,
+         0x590D61, 0x5E0528, 0x551100, 0x461B00,
+         0x303200, 0x0A4800, 0x004E00, 0x004619,
+         0x00395A, 0x000000, 0x000000, 0x000000,
+         0xB2B2B2, 0x1A53D1, 0x4835EE, 0x7123EC,
+         0x9A1EB7, 0xA51E62, 0xA52D19, 0x874B00,
+         0x676900, 0x298400, 0x038B00, 0x008240,
+         0x007096, 0x000000, 0x000000, 0x000000,
+         0xFFFFFF, 0x63ADFD, 0x908AFE, 0xB977FC,
+         0xE771FE, 0xF76FC9, 0xF5836A, 0xDD9C29,
+         0xBDB807, 0x84D107, 0x5BDC3B, 0x48D77D,
+         0x48C6D8, 0x555555, 0x000000, 0x000000,
+         0xFFFFFF, 0xC4E3FE, 0xD7D5FE, 0xE6CDFE,
+         0xF9CAFE, 0xFEC9F0, 0xFED1C7, 0xF7DCAC,
+         0xE8E89C, 0xD1F29D, 0xBFF4B1, 0xB7F5CD,
+         0xB7EBF2, 0xBEBEBE, 0x000000, 0x000000, }
    }
 };
 
@@ -491,7 +509,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v5|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { NULL, NULL },
@@ -565,7 +583,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 16) /* raw palette */
+   if (current_palette == 17) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -674,8 +692,10 @@ static void check_variables(void)
          current_palette = 14;
       else if (!strcmp(var.value, "yuv-v3"))
          current_palette = 15;
-      else if (!strcmp(var.value, "raw"))
+      else if (!strcmp(var.value, "unsaturated-v5"))
          current_palette = 16;
+      else if (!strcmp(var.value, "raw"))
+         current_palette = 17;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
