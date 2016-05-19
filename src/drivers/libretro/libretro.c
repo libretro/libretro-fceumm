@@ -174,7 +174,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 16
+#define MAXPAL 18
 
 struct st_palettes {
 	char name[32];
@@ -470,7 +470,43 @@ struct st_palettes palettes[] = {
          0xFFFFFF, 0xC4E3FE, 0xD7D5FE, 0xE6CDFE,
          0xF9CAFE, 0xFEC9F0, 0xFED1C7, 0xF7DCAC,
          0xE8E89C, 0xD1F29D, 0xBFF4B1, 0xB7F5CD,
-         0xB7EBF2, 0xBEBEBE, 0x000000, 0x000000, }
+         0xB7EBF2, 0xBEBEBE, 0x000000, 0x000000 }
+   },
+   { "sony-cxa2025as-us", "Sony CXA2025AS US palette",
+	   { 0x585858, 0x00238C, 0x00139B, 0x2D0585,
+         0x5D0052, 0x7A0017, 0x7A0800, 0x5F1800,
+         0x352A00, 0x093900, 0x003F00, 0x003C22,
+         0x00325D, 0x000000, 0x000000, 0x000000,
+         0xA1A1A1, 0x0053EE, 0x153CFE, 0x6028E4,
+         0xA91D98, 0xD41E41, 0xD22C00, 0xAA4400,
+         0x6C5E00, 0x2D7300, 0x007D06, 0x007852,
+         0x0069A9, 0x000000, 0x000000, 0x000000,
+         0xFFFFFF, 0x1FA5FE, 0x5E89FE, 0xB572FE,
+         0xFE65F6, 0xFE6790, 0xFE773C, 0xFE9308,
+         0xC4B200, 0x79CA10, 0x3AD54A, 0x11D1A4,
+         0x06BFFE, 0x424242, 0x000000, 0x000000,
+         0xFFFFFF, 0xA0D9FE, 0xBDCCFE, 0xE1C2FE,
+         0xFEBCFB, 0xFEBDD0, 0xFEC5A9, 0xFED18E,
+         0xE9DE86, 0xC7E992, 0xA8EEB0, 0x95ECD9,
+         0x91E4FE, 0xACACAC, 0x000000, 0x000000 }
+   },
+   { "pal", "PAL palette",
+	   { 0x808080, 0x0000BA, 0x3700BF, 0x8400A6,
+         0xBB006A, 0xB7001E, 0xB30000, 0x912600,
+         0x7B2B00, 0x003E00, 0x00480D, 0x003C22,
+         0x002F66, 0x000000, 0x050505, 0x050505,
+         0xC8C8C8, 0x0059FF, 0x443CFF, 0xB733CC,
+         0xFE33AA, 0xFE375E, 0xFE371A, 0xD54B00,
+         0xC46200, 0x3C7B00, 0x1D8415, 0x009566,
+         0x0084C4, 0x111111, 0x090909, 0x090909,
+         0xFEFEFE, 0x0095FF, 0x6F84FF, 0xD56FFF,
+         0xFE77CC, 0xFE6F99, 0xFE7B59, 0xFE915F,
+         0xFEA233, 0xA6BF00, 0x51D96A, 0x4DD5AE,
+         0x00D9FF, 0x666666, 0x0D0D0D, 0x0D0D0D,
+         0xFEFEFE, 0x84BFFF, 0xBBBBFF, 0xD0BBFF,
+         0xFEBFEA, 0xFEBFCC, 0xFEC4B7, 0xFECCAE,
+         0xFED9A2, 0xCCE199, 0xAEEEB7, 0xAAF8EE,
+         0xB3EEFF, 0xDDDDDD, 0x111111, 0x111111 }
    }
 };
 
@@ -509,7 +545,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v5|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v5|sony-cxa2025as-us|pal|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { NULL, NULL },
@@ -583,7 +619,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 17) /* raw palette */
+   if (current_palette == 19) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -694,8 +730,12 @@ static void check_variables(void)
          current_palette = 15;
       else if (!strcmp(var.value, "unsaturated-v5"))
          current_palette = 16;
-      else if (!strcmp(var.value, "raw"))
+      else if (!strcmp(var.value, "sony-cxa2025as-us"))
          current_palette = 17;
+      else if (!strcmp(var.value, "pal"))
+         current_palette = 18;
+      else if (!strcmp(var.value, "raw"))
+         current_palette = 19;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
