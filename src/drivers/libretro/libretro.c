@@ -26,6 +26,9 @@
 
 #include "libretro-common/include/streams/memory_stream.h"
 
+#define NES_8_7_PAR (width * (8.0 / 7.0)) / height
+#define NES_4_3 4.0 / 3.0
+
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
 void linearFree(void* mem);
@@ -38,6 +41,7 @@ static retro_audio_sample_batch_t audio_batch_cb = NULL;
 static retro_environment_t environ_cb = NULL;
 static bool use_overscan;
 static bool use_raw_palette;
+static bool use_par;
 
 /* emulator-specific variables */
 
@@ -549,6 +553,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
+      { "fceumm_aspect", "Core-provided aspect ratio; 8:7 PAR|4:3" },
       { NULL, NULL },
    };
 
@@ -573,7 +578,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.base_height = height;
    info->geometry.max_width = width;
    info->geometry.max_height = height;
-   info->geometry.aspect_ratio = (width * (8.0 / 7.0)) / height;
+   info->geometry.aspect_ratio = use_par ? NES_8_7_PAR : NES_4_3;
    info->timing.sample_rate = 32050.0;
    if (FSettings.PAL)
       info->timing.fps = 838977920.0/16777215.0;
@@ -791,6 +796,16 @@ static void check_variables(void)
          use_overscan = false;
       else if(!strcmp(var.value, "disabled"))
          use_overscan = true;
+   }
+
+   var.key = "fceumm_aspect";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "8:7 PAR"))
+         use_par = true;
+      else if(!strcmp(var.value, "4:3"))
+         use_par = false;
    }
 
    retro_get_system_av_info(&av_info);
