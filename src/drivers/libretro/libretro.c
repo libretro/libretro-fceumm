@@ -572,7 +572,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.base_height = height;
    info->geometry.max_width = width;
    info->geometry.max_height = height;
-   info->geometry.aspect_ratio = 4.0 / 3.0;
+   info->geometry.aspect_ratio = (width * (8.0 / 7.0)) / height;
    info->timing.sample_rate = 32050.0;
    if (FSettings.PAL)
       info->timing.fps = 838977920.0/16777215.0;
