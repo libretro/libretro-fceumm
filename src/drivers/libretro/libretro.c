@@ -548,6 +548,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v5|sony-cxa2025as-us|pal|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
+      { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
       { NULL, NULL },
    };
 
@@ -689,6 +690,7 @@ static void check_variables(void)
 {
    static int overclock_state = -1;
    struct retro_variable var = {0};
+   struct retro_system_av_info av_info;
 
    var.key = "fceumm_palette";
 
@@ -780,6 +782,19 @@ static void check_variables(void)
          FCEU_InitVirtualVideo();
       }
    }
+
+   var.key = "fceumm_overscan";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         use_overscan = false;
+      else if(!strcmp(var.value, "disabled"))
+         use_overscan = true;
+   }
+
+   retro_get_system_av_info(&av_info);
+   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
 
 /*
@@ -1412,9 +1427,6 @@ bool retro_load_game(const struct retro_game_info *game)
 
    FCEUD_SoundToggle();
    check_variables();
-
-   if (!environ_cb(RETRO_ENVIRONMENT_GET_OVERSCAN, &use_overscan))
-      use_overscan = true;
 
    FCEUI_DisableFourScore(1);
 
