@@ -36,8 +36,10 @@ static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
 static retro_environment_t environ_cb = NULL;
-static bool use_overscan;
+static bool crop_overscan;
 static bool use_raw_palette;
+static bool use_par;
+static bool turbo_buttons;
 
 /* emulator-specific variables */
 
@@ -548,6 +550,9 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v5|sony-cxa2025as-us|pal|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
+      { "fceumm_use_par", "Core-provided aspect ratio; 8:7 PAR|4:3" },
+      { "fceumm_crop_overscan", "Crop overscan; enabled|disabled" },
+      { "fceumm_turbo_buttons", "Turbo buttons; enabled|disabled" },
       { NULL, NULL },
    };
 
@@ -566,13 +571,13 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   unsigned width = use_overscan ? 256 : (256 - 16);
-   unsigned height = use_overscan ? 240 : (240 - 16);
+   unsigned width = crop_overscan ? 256 : (256 - 16);
+   unsigned height = crop_overscan ? 240 : (240 - 16);
    info->geometry.base_width = width;
    info->geometry.base_height = height;
    info->geometry.max_width = width;
    info->geometry.max_height = height;
-   info->geometry.aspect_ratio = 4.0 / 3.0;
+   info->geometry.aspect_ratio = use_par ? width * (8.0 / 7.0) / height : (4.0 / 3.0);
    info->timing.sample_rate = 32050.0;
    if (FSettings.PAL)
       info->timing.fps = 838977920.0/16777215.0;
@@ -689,6 +694,7 @@ static void check_variables(void)
 {
    static int overclock_state = -1;
    struct retro_variable var = {0};
+   struct retro_system_av_info av_info;
 
    var.key = "fceumm_palette";
 
@@ -749,6 +755,36 @@ static void check_variables(void)
       FCEUI_DisableSpriteLimitation(no_sprite_limit);
    }
 
+   var.key = "fceumm_use_par";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "8:7 PAR"))
+         use_par = true;
+      else if(!strcmp(var.value, "4:3"))
+         use_par = false;
+   }
+
+   var.key = "fceumm_crop_overscan";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         crop_overscan = true;
+      else if(!strcmp(var.value, "disabled"))
+         crop_overscan = false;
+   }
+
+   var.key = "fceumm_turbo_buttons";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled"))
+         turbo_buttons = true;
+      else if(!strcmp(var.value, "disabled"))
+         turbo_buttons = false;
+   }
+
    var.key = "fceumm_overclocking";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -780,6 +816,8 @@ static void check_variables(void)
          FCEU_InitVirtualVideo();
       }
    }
+   retro_get_system_av_info(&av_info);
+   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
 
 /*
@@ -819,6 +857,8 @@ static void FCEUD_UpdateInput(void)
    for ( i = 0; i < 8; i++)
       pad[1] |= input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
 
+if(turbo_buttons)
+    {
    /*
     * Turbo A and Turbo B buttons are
     * mapped to Joypad X and Joypad Y
@@ -865,6 +905,7 @@ static void FCEUD_UpdateInput(void)
 	 // If the button is not pressed, just reset the toggle
          turbo_p1_toggle[i-8] = 0;
       }
+    }
    }
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
@@ -912,7 +953,7 @@ static void retro_run_blit(uint8_t *gfx)
    unsigned height = 240;
    unsigned pitch  = 512;
 
-   if (!use_overscan)
+   if (crop_overscan)
    {
       incr    = 16;
       width  -= 16;
@@ -936,7 +977,7 @@ static void retro_run_blit(uint8_t *gfx)
     * so we use GU_PSM_4444 ( 2 Bytes per pixel ) instead
     * with half the values for pitch / width / x offset
     */
-   if (use_overscan)
+   if (!crop_overscan)
       sceGuCopyImage(GU_PSM_4444, 0, 0, 128, 240, 128, XBuf, 0, 0, 128, texture_vram_p);
    else
       sceGuCopyImage(GU_PSM_4444, 4, 4, 120, 224, 128, XBuf, 0, 0, 128, texture_vram_p);
@@ -1412,9 +1453,6 @@ bool retro_load_game(const struct retro_game_info *game)
 
    FCEUD_SoundToggle();
    check_variables();
-
-   if (!environ_cb(RETRO_ENVIRONMENT_GET_OVERSCAN, &use_overscan))
-      use_overscan = true;
 
    FCEUI_DisableFourScore(1);
 
