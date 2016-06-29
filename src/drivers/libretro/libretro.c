@@ -995,8 +995,8 @@ void retro_run(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables();
 
-   FCEUI_Emulate(&gfx, &sound, &ssize, 0);   
-	FCEUD_UpdateInput();
+   FCEUD_UpdateInput();
+   FCEUI_Emulate(&gfx, &sound, &ssize, 0);
 
    for (i = 0; i < ssize; i++)
       sound[i] = (sound[i] << 16) | (sound[i] & 0xffff);
