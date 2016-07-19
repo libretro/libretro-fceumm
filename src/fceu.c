@@ -266,7 +266,7 @@ FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
    if (FDSLoad(name, fp))
       goto endlseq;
 
-   FCEU_PrintError("An error occurred while loading the file.");
+   FCEU_PrintError("An error occurred while loading the file.\n");
    FCEU_fclose(fp);
    return 0;
 

@@ -1403,7 +1403,18 @@ bool retro_load_game(const struct retro_game_info *game)
 
    GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
    if (!GameInfo)
+   {
+      struct retro_message msg;
+      char msg_local[256];
+
+      snprintf(msg_local, sizeof(msg_local),
+            "ROM loading failed...");
+      msg.msg    = msg_local;
+      msg.frames = 360;
+      if (environ_cb)
+         environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
       return false;
+   }
 
    FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn[0], 0);
    FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn[0], 0);
