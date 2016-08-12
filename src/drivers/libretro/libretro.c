@@ -696,6 +696,7 @@ static void check_variables(void)
    static int overclock_state = -1;
    struct retro_variable var = {0};
    struct retro_system_av_info av_info;
+   bool geometry_update = false;
 
    var.key = "fceumm_palette";
 
@@ -792,24 +793,31 @@ static void check_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "enabled"))
-         use_overscan = false;
-      else if(!strcmp(var.value, "disabled"))
-         use_overscan = true;
+      bool newval = (!strcmp(var.value, "disabled"));
+      if (newval != use_overscan)
+      {
+         use_overscan = newval;
+         geometry_update = true;
+      }
    }
 
    var.key = "fceumm_aspect";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "8:7 PAR"))
-         use_par = true;
-      else if(!strcmp(var.value, "4:3"))
-         use_par = false;
+      bool newval = (!strcmp(var.value, "8:7 PAR"));
+      if (newval != use_par)
+      {
+         use_par = newval;
+         geometry_update = true;
+      }
    }
 
-   retro_get_system_av_info(&av_info);
-   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+   if (geometry_update)
+   {
+      retro_get_system_av_info(&av_info);
+      environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+   }
 }
 
 /*
