@@ -178,7 +178,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 18
+#define MAXPAL 20
 
 struct st_palettes {
 	char name[32];
@@ -440,7 +440,7 @@ struct st_palettes palettes[] = {
 		   0x9c9e72, 0x94a67c, 0x84a77b, 0x7c9d84,
 		   0x73968d, 0xdedede, 0x000000, 0x000000 }
    },
-   { "yuv-v3", "FirebrandX's YUV-V3 palette",
+   { "yuv-v3", "FBX's YUV-V3 palette",
 	   { 0x666666, 0x002A88, 0x1412A7, 0x3B00A4,
 		   0x5C007E, 0x6E0040, 0x6C0700, 0x561D00,
 		   0x333500, 0x0C4800, 0x005200, 0x004C18,
@@ -458,23 +458,23 @@ struct st_palettes palettes[] = {
 		   0xE4E594, 0xCFEF96, 0xBDF4AB, 0xB3F3CC,
 		   0xB5EBF2, 0xB8B8B8, 0x000000, 0x000000 }
    },
-   { "unsaturated-v5", "FirebrandX's Unsaturated-V5 palette",
+   { "unsaturated-v6", "FBX's Unsaturated-V6 palette",
 	   { 0x6B6B6B, 0x001E87, 0x1F0B96, 0x3B0C87,
 		   0x590D61, 0x5E0528, 0x551100, 0x461B00,
 		   0x303200, 0x0A4800, 0x004E00, 0x004619,
-		   0x00395A, 0x000000, 0x000000, 0x000000,
+		   0x003A58, 0x000000, 0x000000, 0x000000,
 		   0xB2B2B2, 0x1A53D1, 0x4835EE, 0x7123EC,
 		   0x9A1EB7, 0xA51E62, 0xA52D19, 0x874B00,
 		   0x676900, 0x298400, 0x038B00, 0x008240,
-		   0x007096, 0x000000, 0x000000, 0x000000,
+		   0x007891, 0x000000, 0x000000, 0x000000,
 		   0xFFFFFF, 0x63ADFD, 0x908AFE, 0xB977FC,
 		   0xE771FE, 0xF76FC9, 0xF5836A, 0xDD9C29,
 		   0xBDB807, 0x84D107, 0x5BDC3B, 0x48D77D,
-		   0x48C6D8, 0x555555, 0x000000, 0x000000,
+		   0x48CCCE, 0x555555, 0x000000, 0x000000,
 		   0xFFFFFF, 0xC4E3FE, 0xD7D5FE, 0xE6CDFE,
 		   0xF9CAFE, 0xFEC9F0, 0xFED1C7, 0xF7DCAC,
 		   0xE8E89C, 0xD1F29D, 0xBFF4B1, 0xB7F5CD,
-		   0xB7EBF2, 0xBEBEBE, 0x000000, 0x000000 }
+		   0xB7F0EE, 0xBEBEBE, 0x000000, 0x000000 }
    },
    { "sony-cxa2025as-us", "Sony CXA2025AS US palette",
 	   { 0x585858, 0x00238C, 0x00139B, 0x2D0585,
@@ -511,6 +511,42 @@ struct st_palettes palettes[] = {
 		   0xFEBFEA, 0xFEBFCC, 0xFEC4B7, 0xFECCAE,
 		   0xFED9A2, 0xCCE199, 0xAEEEB7, 0xAAF8EE,
 		   0xB3EEFF, 0xDDDDDD, 0x111111, 0x111111 }
+   },
+   { "bmf-final2", "BMF's Final 2 palette",
+	   { 0x525252, 0x000080, 0x08008A, 0x2C007E,
+		   0x4A004E, 0x500006, 0x440000, 0x260800,
+		   0x0A2000, 0x002E00, 0x003200, 0x00260A,
+		   0x001C48, 0x000000, 0x000000, 0x000000,
+		   0xA4A4A4, 0x0038CE, 0x3416EC, 0x5E04DC,
+		   0x8C00B0, 0x9A004C, 0x901800, 0x703600,
+		   0x4C5400, 0x0E6C00, 0x007400, 0x006C2C,
+		   0x005E84, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x4C9CFF, 0x7C78FF, 0xA664FF,
+		   0xDA5AFF, 0xF054C0, 0xF06A56, 0xD68610,
+		   0xBAA400, 0x76C000, 0x46CC1A, 0x2EC866,
+		   0x34C2BE, 0x3A3A3A, 0x000000, 0x000000,
+		   0xFFFFFF, 0xB6DAFF, 0xC8CAFF, 0xDAC2FF,
+		   0xF0BEFF, 0xFCBCEE, 0xFAC2C0, 0xF2CCA2,
+		   0xE6DA92, 0xCCE68E, 0xB8EEA2, 0xAEEABE,
+		   0xAEE8E2, 0xB0B0B0, 0x000000, 0x000000 }
+   },
+   { "bmf-final3", "BMF's Final 3 palette",
+	   { 0x686868, 0x001299, 0x1A08AA, 0x51029A,
+		   0x7E0069, 0x8E001C, 0x7E0301, 0x511800,
+		   0x1F3700, 0x014E00, 0x005A00, 0x00501C,
+		   0x004061, 0x000000, 0x000000, 0x000000,
+		   0xB9B9B9, 0x0C5CD7, 0x5035F0, 0x8919E0,
+		   0xBB0CB3, 0xCE0C61, 0xC02B0E, 0x954D01,
+		   0x616F00, 0x1F8B00, 0x01980C, 0x00934B,
+		   0x00819B, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x63B4FF, 0x9B91FF, 0xD377FF,
+		   0xEF6AFF, 0xF968C0, 0xF97D6C, 0xED9B2D,
+		   0xBDBD16, 0x7CDA1C, 0x4BE847, 0x35E591,
+		   0x3FD9DD, 0x606060, 0x000000, 0x000000,
+		   0xFFFFFF, 0xACE7FF, 0xD5CDFF, 0xEDBAFF,
+		   0xF8B0FF, 0xFEB0EC, 0xFDBDB5, 0xF9D28E,
+		   0xE8EB7C, 0xBBF382, 0x99F7A2, 0x8AF5D0,
+		   0x92F4F1, 0xBEBEBE, 0x000000, 0x000000 }
    }
 };
 
@@ -549,7 +585,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v5|sony-cxa2025as-us|pal|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v6|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -625,7 +661,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 19) /* raw palette */
+   if (current_palette == 21) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -736,14 +772,18 @@ static void check_variables(void)
          current_palette = 14;
       else if (!strcmp(var.value, "yuv-v3"))
          current_palette = 15;
-      else if (!strcmp(var.value, "unsaturated-v5"))
+      else if (!strcmp(var.value, "unsaturated-v6"))
          current_palette = 16;
       else if (!strcmp(var.value, "sony-cxa2025as-us"))
          current_palette = 17;
       else if (!strcmp(var.value, "pal"))
          current_palette = 18;
-      else if (!strcmp(var.value, "raw"))
+      else if (!strcmp(var.value, "bmf-final2"))
          current_palette = 19;
+      else if (!strcmp(var.value, "bmf-final3"))
+         current_palette = 20;
+      else if (!strcmp(var.value, "raw"))
+         current_palette = 21;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
