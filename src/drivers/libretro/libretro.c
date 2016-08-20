@@ -589,7 +589,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
-      { "fceumm_aspect", "Core-provided aspect ratio; 8:7 PAR|4:3" },
+      { "fceumm_aspect", "Preferred aspect ratio; 8:7|4:3" },
       { NULL, NULL },
    };
 
@@ -845,7 +845,7 @@ static void check_variables(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      bool newval = (!strcmp(var.value, "8:7 PAR"));
+      bool newval = (!strcmp(var.value, "8:7"));
       if (newval != use_par)
       {
          use_par = newval;
