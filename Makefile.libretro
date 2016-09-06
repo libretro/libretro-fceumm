@@ -248,6 +248,7 @@ else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).bc
 	ENDIANNESS_DEFINES := -DLSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
+	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
 # GCW0
