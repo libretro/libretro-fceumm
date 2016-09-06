@@ -2,6 +2,7 @@ DEBUG=0
 EXTERNAL_ZLIB=0
 HAVE_GRIFFIN=1
 STATIC_LINKING=0
+ENDIANNESS_DEFINES=
 
 ifeq ($(platform),)
 	platform = unix
@@ -54,7 +55,7 @@ else ifeq ($(platform), osx)
 	fpic := -fPIC
 	SHARED := -dynamiclib
 	ifeq ($(arch),ppc)
-		ENDIANNESS_DEFINES = -DMSB_FIRST
+		ENDIANNESS_DEFINES += -DMSB_FIRST
 	endif
 	CFLAGS += -DHAVE_ASPRINTF
 	OSXVER = `sw_vers -productVersion | cut -d. -f 2`
@@ -111,7 +112,7 @@ else ifeq ($(platform), ps3)
 	CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
 	AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
 	PLATFORM_DEFINES := -D__CELLOS_LV2
-	ENDIANNESS_DEFINES = -DMSB_FIRST
+	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -121,7 +122,7 @@ else ifeq ($(platform), sncps3)
 	CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
 	AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
 	PLATFORM_DEFINES := -D__CELLOS_LV2
-	ENDIANNESS_DEFINES = -DMSB_FIRST
+	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -183,7 +184,7 @@ else ifeq ($(platform), psl1ght)
 	CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
 	AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -D__CELLOS_LV2 -DHAVE_ASPRINTF
-	ENDIANNESS_DEFINES = -DMSB_FIRST
+	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -193,7 +194,7 @@ else ifeq ($(platform), xenon)
 	CC = xenon-gcc$(EXE_EXT)
 	AR = xenon-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -D__LIBXENON__
-	ENDIANNESS_DEFINES = -DMSB_FIRST
+	ENDIANNESS_DEFINES += -DMSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
@@ -204,7 +205,7 @@ else ifeq ($(platform), ngc)
 	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
-	ENDIANNESS_DEFINES = -DMSB_FIRST
+	ENDIANNESS_DEFINES += -DMSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
@@ -215,7 +216,7 @@ else ifeq ($(platform), wii)
 	CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
-	ENDIANNESS_DEFINES = -DMSB_FIRST
+	ENDIANNESS_DEFINES += -DMSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
@@ -246,7 +247,6 @@ else ifneq (,$(findstring armv,$(platform)))
 # emscripten
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).bc
-	ENDIANNESS_DEFINES := -DLSB_FIRST
 	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
