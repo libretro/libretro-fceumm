@@ -243,6 +243,13 @@ else ifneq (,$(findstring armv,$(platform)))
 	endif
 	PLATFORM_DEFINES += -DARM
 
+# emscripten
+else ifeq ($(platform), emscripten)
+	TARGET := $(TARGET_NAME)_libretro_$(platform).bc
+	ENDIANNESS_DEFINES := -DLSB_FIRST
+	CFLAGS += -DHAVE_ASPRINTF
+	EXTERNAL_ZLIB=1
+
 # GCW0
 else ifeq ($(platform), gcw0)
 	TARGET := $(TARGET_NAME)_libretro.so
