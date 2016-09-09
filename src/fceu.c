@@ -303,7 +303,7 @@ FCEUGI *FCEUI_CopyFamiStart(void)
 
 	GameInfo->soundchan = 0;
 	GameInfo->soundrate = 0;
-	GameInfo->name = "copyfami";
+	GameInfo->name = (uint8_t*)"copyfami";
 	GameInfo->type = GIT_CART;
 	GameInfo->vidsys = GIV_USER;
 	GameInfo->input[0] = GameInfo->input[1] = -1;

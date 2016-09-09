@@ -367,7 +367,7 @@ static void CheckHInfo(void) {
 		if (tofix & 1)
 			sprintf(gigastr + strlen(gigastr), "The mapper number should be set to %d.  ", MapperNo);
 		if (tofix & 2) {
-			uint8 *mstr[3] = { "Horizontal", "Vertical", "Four-screen" };
+			uint8 *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
 			sprintf(gigastr + strlen(gigastr), "Mirroring should be set to \"%s\".  ", mstr[Mirroring & 3]);
 		}
 		if (tofix & 4)
