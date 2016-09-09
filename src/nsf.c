@@ -514,6 +514,6 @@ int FCEUI_NSFChange(int amount) {
 int FCEUI_NSFGetInfo(uint8 *name, uint8 *artist, uint8 *copyright, int maxlen) {
 	strncpy(name, NSFHeader.SongName, maxlen);
 	strncpy(artist, NSFHeader.Artist, maxlen);
-	strncpy(copyright, NSFHeader.Copyright, maxlen);
+	strncpy((char*)copyright, NSFHeader.Copyright, maxlen);
 	return(NSFHeader.TotalSongs);
 }

@@ -474,7 +474,7 @@ static BMAPPINGLocal bmap[] = {
 	{"TAITO X1-005 Rev. A",	 80, Mapper80_Init},
 //	{"",					 81, Mapper81_Init},
 	{"TAITO X1-017",		 82, Mapper82_Init},
-	{"YOKO VRC Rev. B",		 83, Mapper83_Init},
+	{(uint8_t*)"YOKO VRC Rev. B",		 83, Mapper83_Init},
 //	{"",					 84, Mapper84_Init},
 	{"KONAMI VRC7",			 85, Mapper85_Init},
 	{"JALECO JF-13",		 86, Mapper86_Init},
@@ -634,20 +634,20 @@ static BMAPPINGLocal bmap[] = {
 	{"",					240, Mapper240_Init},
 	{"",					241, Mapper241_Init},
 	{"",					242, Mapper242_Init},
-	{"S74LS374NA",			243, S74LS374NA_Init},
-	{"DECATHLON",			244, Mapper244_Init},
-	{"",					245, Mapper245_Init},
-	{"FONG SHEN BANG",		246, Mapper246_Init},
-//	{"",					247, Mapper247_Init},
-//	{"",					248, Mapper248_Init},
-	{"",					249, Mapper249_Init},
-	{"",					250, Mapper250_Init},
-//	{"",					251, Mapper251_Init},	// No good dumps for this mapper, use UNIF version
-	{"SAN GUO ZHI PIRATE",	252, Mapper252_Init},
-	{"DRAGON BALL PIRATE",	253, Mapper253_Init},
-	{"",					254, Mapper254_Init},
-//	{"",					255, Mapper255_Init},	// No good dumps for this mapper
-	{"",					0, NULL}
+	{(uint8_t*)"S74LS374NA",			243, S74LS374NA_Init},
+	{(uint8_t*)"DECATHLON",			244, Mapper244_Init},
+	{(uint8_t*)"",					245, Mapper245_Init},
+	{(uint8_t*)"FONG SHEN BANG",		246, Mapper246_Init},
+//	{(uint8_t*)"",					247, Mapper247_Init},
+//	{(uint8_t*)"",					248, Mapper248_Init},
+	{(uint8_t*)"",					249, Mapper249_Init},
+	{(uint8_t*)"",					250, Mapper250_Init},
+//	{(uint8_t*)"",					251, Mapper251_Init},	// No good dumps for this mapper, use UNIF version
+	{(uint8_t*)"SAN GUO ZHI PIRATE",	252, Mapper252_Init},
+	{(uint8_t*)"DRAGON BALL PIRATE",	253, Mapper253_Init},
+	{(uint8_t*)"",					254, Mapper254_Init},
+//	{(uint8_t*)"",					255, Mapper255_Init},	// No good dumps for this mapper
+	{(uint8_t*)"",					0, NULL}
 };
 
 int iNESLoad(const char *name, FCEUFILE *fp) {
@@ -746,7 +746,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
 		if (bmap[mappertest].number == MapperNo) {
-			mappername = bmap[mappertest].name;
+			mappername = (char*)bmap[mappertest].name;
 			break;
 		}
 	}

@@ -163,7 +163,7 @@ static int NAME(FCEUFILE *fp) {
 
 	if (!GameInfo->name) {
 		GameInfo->name = malloc(strlen(namebuf) + 1);
-		strcpy(GameInfo->name, namebuf);
+		strcpy((char*)GameInfo->name, namebuf);
 	}
 	return(1);
 }
@@ -613,7 +613,7 @@ int CopyFamiLoad() {
 	ResetCartMapping();
 	ResetExState(0, 0);
 
-	sboardname = "COPYFAMI";
+	sboardname = (uint8_t*)"COPYFAMI";
 	if (!InitializeBoard())
 		goto aborto;
 
