@@ -67,46 +67,31 @@ void FCEUI_SetDirOverride(int which, char *n)
    }
 }
 
-#ifndef HAVE_ASPRINTF
-static int asprintf(char **strp, const char *fmt, ...) {
-	va_list ap;
-	int ret;
-
-	va_start(ap, fmt);
-	if (!(*strp = malloc(2048)))
-   {
-      va_end(ap);
-		return(0);
-   }
-	ret = vsnprintf(*strp, 2048, fmt, ap);
-	va_end(ap);
-	return(ret);
-}
-#endif
-
 char *FCEU_MakeFName(int type, int id1, char *cd1)
 {
-   char *ret = 0;
    struct stat tmpstat;
+   char tmp[2048] = {0};
+   char *ret      = 0;
 
    switch (type)
    {
       case FCEUMKF_GGROM:
-         asprintf(&ret, "%s"PSS "gg.rom", BaseDirectory);
+         sprintf(tmp, "%s"PSS "gg.rom", BaseDirectory);
          break;
       case FCEUMKF_FDSROM:
-         asprintf(&ret, "%s"PSS "disksys.rom", BaseDirectory);
+         sprintf(tmp, "%s"PSS "disksys.rom", BaseDirectory);
          break;
       case FCEUMKF_PALETTE:
          if (odirs[FCEUIOD_MISC])
-            asprintf(&ret, "%s"PSS "%s.pal", odirs[FCEUIOD_MISC], FileBase);
+            sprintf(tmp, "%s"PSS "%s.pal", odirs[FCEUIOD_MISC], FileBase);
          else
-            asprintf(&ret, "%s"PSS "gameinfo"PSS "%s.pal", BaseDirectory, FileBase);
+            sprintf(tmp, "%s"PSS "gameinfo"PSS "%s.pal", BaseDirectory, FileBase);
          break;
       default:
-         ret = malloc(1);
-         *ret = '\0';
+         break;
    }
+
+   ret = (char*)malloc(strlen(tmp) * sizeof(char));
    return(ret);
 }
 

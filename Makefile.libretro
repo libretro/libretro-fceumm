@@ -57,7 +57,6 @@ else ifeq ($(platform), osx)
 	ifeq ($(arch),ppc)
 		ENDIANNESS_DEFINES += -DMSB_FIRST
 	endif
-	CFLAGS += -DHAVE_ASPRINTF
 	OSXVER = `sw_vers -productVersion | cut -d. -f 2`
 	OSX_LT_MAVERICKS = `(( $(OSXVER) <= 9)) && echo "YES"`
 	fpic += -mmacosx-version-min=10.1
@@ -72,7 +71,7 @@ else ifneq (,$(findstring ios,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro_ios.dylib
 	fpic := -fPIC
 	SHARED := -dynamiclib
-	CFLAGS += -DHAVE_ASPRINTF -DIOS
+	CFLAGS += -DIOS
 	ifeq ($(IOSSDK),)
 		IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
 	endif
@@ -95,7 +94,6 @@ else ifeq ($(platform), theos_ios)
 	THEOS_BUILD_DIR := objs
 	include $(THEOS)/makefiles/common.mk
 	LIBRARY_NAME = $(TARGET_NAME)_libretro_ios
-	CFLAGS += -DHAVE_ASPRINTF
 
 # QNX
 else ifeq ($(platform), qnx)
@@ -131,7 +129,7 @@ else ifeq ($(platform), psp1)
 	TARGET := $(TARGET_NAME)_libretro_psp1.a
 	CC = psp-gcc$(EXE_EXT)
 	AR = psp-ar$(EXE_EXT)
-	PLATFORM_DEFINES := -DPSP -G0 -DHAVE_ASPRINTF
+	PLATFORM_DEFINES := -DPSP -G0
 	PLATFORM_DEFINES += -march=allegrex -mfp32 -mgp32 -mlong32 -mabi=eabi
 	PLATFORM_DEFINES += -fomit-frame-pointer -fstrict-aliasing
 	PLATFORM_DEFINES += -falign-functions=32 -falign-loops -falign-labels -falign-jumps
@@ -143,8 +141,7 @@ else ifeq ($(platform), vita)
 	TARGET := $(TARGET_NAME)_libretro_vita.a
 	CC = arm-vita-eabi-gcc$(EXE_EXT)
 	AR = arm-vita-eabi-ar$(EXE_EXT)
-	PLATFORM_DEFINES := -DVITA -DHAVE_ASPRINTF
-	CFLAGS += -DHAVE_ASPRINTF
+	PLATFORM_DEFINES := -DVITA
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -153,7 +150,7 @@ else ifeq ($(platform), ctr)
 	TARGET := $(TARGET_NAME)_libretro_ctr.a
 	CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
 	AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
-	PLATFORM_DEFINES := -DARM11 -D_3DS -DHAVE_ASPRINTF
+	PLATFORM_DEFINES := -DARM11 -D_3DS
 	CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
 	CFLAGS += -Wall -mword-relocations
 	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
@@ -183,7 +180,7 @@ else ifeq ($(platform), psl1ght)
 	TARGET := $(TARGET_NAME)_libretro_psl1ght.a
 	CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
 	AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
-	PLATFORM_DEFINES := -D__CELLOS_LV2 -DHAVE_ASPRINTF
+	PLATFORM_DEFINES := -D__CELLOS_LV2
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
@@ -195,7 +192,6 @@ else ifeq ($(platform), xenon)
 	AR = xenon-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -D__LIBXENON__
 	ENDIANNESS_DEFINES += -DMSB_FIRST
-	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -206,7 +202,6 @@ else ifeq ($(platform), ngc)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DGEKKO -DHW_DOL -mrvl -mcpu=750 -meabi -mhard-float
 	ENDIANNESS_DEFINES += -DMSB_FIRST
-	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -217,7 +212,6 @@ else ifeq ($(platform), wii)
 	AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
 	PLATFORM_DEFINES := -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float
 	ENDIANNESS_DEFINES += -DMSB_FIRST
-	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -247,7 +241,6 @@ else ifneq (,$(findstring armv,$(platform)))
 # emscripten
 else ifeq ($(platform), emscripten)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).bc
-	CFLAGS += -DHAVE_ASPRINTF
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
@@ -260,7 +253,6 @@ else ifeq ($(platform), gcw0)
 	fpic := -fPIC
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
 	PLATFORM_DEFINES += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
-	CFLAGS += -DHAVE_ASPRINTF
 	EXTERNAL_ZLIB = 1
 # Windows
 else
