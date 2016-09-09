@@ -174,7 +174,7 @@ static void CheckSLHook(void)
 {
    InputScanlineHook = 0;
 
-   if (JPorts[0] && JPorts[0]->SLHook || JPorts[1] && JPorts[1]->SLHook)
+   if ((JPorts[0] && JPorts[0]->SLHook) || (JPorts[1] && JPorts[1]->SLHook))
       InputScanlineHook = SLHLHook;
 
    if (FCExp && FCExp->SLHook)
