@@ -178,7 +178,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 20
+#define MAXPAL 22
 
 struct st_palettes {
 	char name[32];
@@ -547,6 +547,42 @@ struct st_palettes palettes[] = {
 		   0xF8B0FF, 0xFEB0EC, 0xFDBDB5, 0xF9D28E,
 		   0xE8EB7C, 0xBBF382, 0x99F7A2, 0x8AF5D0,
 		   0x92F4F1, 0xBEBEBE, 0x000000, 0x000000 }
+   },
+   { "nostalgia", "FBX's Nostalgia palette",
+	   { 0x656565, 0x00127D, 0x18008E, 0x360082,
+		   0x56005D, 0x5A0018, 0x4F0500, 0x381900,
+		   0x1D3100, 0x003D00, 0x004100, 0x003B17,
+		   0x002E55, 0x000000, 0x000000, 0x000000,
+		   0xAFAFAF, 0x194EC8, 0x472FE3, 0x6B1FD7,
+		   0x931BAE, 0x9E1A5E, 0x973200, 0x7B4B00,
+		   0x5B6700, 0x267A00, 0x008200, 0x007A3E,
+		   0x006E8A, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x64A9FF, 0x8E89FF, 0xB676FF,
+		   0xE06FFF, 0xEF6CC4, 0xF0806A, 0xD8982C,
+		   0xB9B40A, 0x83CB0C, 0x5BD63F, 0x4AD17E,
+		   0x4DC7CB, 0x4C4C4C, 0x000000, 0x000000,
+		   0xFFFFFF, 0xC7E5FF, 0xD9D9FF, 0xE9D1FF,
+		   0xF9CEFF, 0xFFCCF1, 0xFFD4CB, 0xF8DFB1,
+		   0xEDEAA4, 0xD6F4A4, 0xC5F8B8, 0xBEF6D3,
+		   0xBFF1F1, 0xB9B9B9, 0x000000, 0x000000 }
+   },
+   { "nes-classic", "FBX's NES-Classic palette",
+	   { 0x606060, 0x000083, 0x1F069E, 0x380F7C,
+		   0x560C62, 0x5B0010, 0x530C00, 0x3A2308,
+		   0x20350B, 0x0C410B, 0x194516, 0x023E1E,
+		   0x023154, 0x000000, 0x000000, 0x000000,
+		   0xA9A9A9, 0x104BBF, 0x4A1EE4, 0x690AD2,
+		   0x8E12B2, 0x9E0F4C, 0x8F3204, 0x735106,
+		   0x5C6A12, 0x187D10, 0x148109, 0x117547,
+		   0x1D668F, 0x000000, 0x000000, 0x000000,
+		   0xFBFBFB, 0x6699F8, 0x8978FE, 0xB262FF,
+		   0xDE63FF, 0xEB69B3, 0xE38758, 0xC89F22,
+		   0xA7B103, 0x73C203, 0x5DD04F, 0x36C58D,
+		   0x50C5CC, 0x404040, 0x000000, 0x000000,
+		   0xFBFBFB, 0xBFD4FA, 0xCDCBFE, 0xD9C2FF,
+		   0xECBEFF, 0xFAC2EB, 0xF7CAC3, 0xE3CDA7,
+		   0xD9DE9C, 0xC8E69E, 0xC0E6B8, 0xB5EDC7,
+		   0xB9E6EA, 0xB8B8B8, 0x000000, 0x000000}
    }
 };
 
@@ -585,7 +621,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|nostalgia|nes-classic|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -661,7 +697,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 21) /* raw palette */
+   if (current_palette == 23) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -782,8 +818,12 @@ static void check_variables(void)
          current_palette = 19;
       else if (!strcmp(var.value, "bmf-final3"))
          current_palette = 20;
-      else if (!strcmp(var.value, "raw"))
+      else if (!strcmp(var.value, "nostalgia"))
          current_palette = 21;
+      else if (!strcmp(var.value, "nes-classic"))
+         current_palette = 22;
+      else if (!strcmp(var.value, "raw"))
+         current_palette = 23;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
