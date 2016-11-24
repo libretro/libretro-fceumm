@@ -178,7 +178,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 22
+#define MAXPAL 23
 
 struct st_palettes {
 	char name[32];
@@ -582,7 +582,25 @@ struct st_palettes palettes[] = {
 		   0xFBFBFB, 0xBFD4FA, 0xCDCBFE, 0xD9C2FF,
 		   0xECBEFF, 0xFAC2EB, 0xF7CAC3, 0xE3CDA7,
 		   0xD9DE9C, 0xC8E69E, 0xC0E6B8, 0xB5EDC7,
-		   0xB9E6EA, 0xB8B8B8, 0x000000, 0x000000}
+		   0xB9E6EA, 0xB8B8B8, 0x000000, 0x000000 }
+   },
+   { "nescap", "RGBSource's NESCAP palette",
+	   { 0x646365, 0x001580, 0x1D0090, 0x380082,
+		   0x56005D, 0x5A001A, 0x4F0900, 0x381B00,
+		   0x1E3100, 0x003D00, 0x004100, 0x003A1B,
+		   0x002F55, 0x000000, 0x000000, 0x000000,
+		   0xAFADAF, 0x164BCA, 0x472AE7, 0x6B1BDB,
+		   0x9617B0, 0x9F185B, 0x963001, 0x7B4800,
+		   0x5A6600, 0x237800, 0x017F00, 0x00783D,
+		   0x006C8C, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x60A6FF, 0x8F84FF, 0xB473FF,
+		   0xE26CFF, 0xF268C3, 0xEF7E61, 0xD89527,
+		   0xBAB307, 0x81C807, 0x57D43D, 0x47CF7E,
+		   0x4BC5CD, 0x4C4B4D, 0x000000, 0x000000,
+		   0xFFFFFF, 0xC2E0FF, 0xD5D2FF, 0xE3CBFF,
+		   0xF7C8FF, 0xFEC6EE, 0xFECEC6, 0xF6D7AE,
+		   0xE9E49F, 0xD3ED9D, 0xC0F2B2, 0xB9F1CC,
+		   0xBAEDED, 0xBAB9BB, 0x000000, 0x000000 }
    }
 };
 
@@ -621,7 +639,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|nostalgia|nes-classic|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|nostalgia|nes-classic|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -697,7 +715,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 23) /* raw palette */
+   if (current_palette == 24) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -822,8 +840,10 @@ static void check_variables(void)
          current_palette = 21;
       else if (!strcmp(var.value, "nes-classic"))
          current_palette = 22;
-      else if (!strcmp(var.value, "raw"))
+      else if (!strcmp(var.value, "nescap"))
          current_palette = 23;
+      else if (!strcmp(var.value, "raw"))
+         current_palette = 24;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
