@@ -458,23 +458,23 @@ struct st_palettes palettes[] = {
 		   0xE4E594, 0xCFEF96, 0xBDF4AB, 0xB3F3CC,
 		   0xB5EBF2, 0xB8B8B8, 0x000000, 0x000000 }
    },
-   { "unsaturated-v6", "FBX's Unsaturated-V6 palette",
-	   { 0x6B6B6B, 0x001E87, 0x1F0B96, 0x3B0C87,
-		   0x590D61, 0x5E0528, 0x551100, 0x461B00,
-		   0x303200, 0x0A4800, 0x004E00, 0x004619,
-		   0x003A58, 0x000000, 0x000000, 0x000000,
-		   0xB2B2B2, 0x1A53D1, 0x4835EE, 0x7123EC,
-		   0x9A1EB7, 0xA51E62, 0xA52D19, 0x874B00,
-		   0x676900, 0x298400, 0x038B00, 0x008240,
-		   0x007891, 0x000000, 0x000000, 0x000000,
-		   0xFFFFFF, 0x63ADFD, 0x908AFE, 0xB977FC,
-		   0xE771FE, 0xF76FC9, 0xF5836A, 0xDD9C29,
-		   0xBDB807, 0x84D107, 0x5BDC3B, 0x48D77D,
-		   0x48CCCE, 0x555555, 0x000000, 0x000000,
-		   0xFFFFFF, 0xC4E3FE, 0xD7D5FE, 0xE6CDFE,
-		   0xF9CAFE, 0xFEC9F0, 0xFED1C7, 0xF7DCAC,
-		   0xE8E89C, 0xD1F29D, 0xBFF4B1, 0xB7F5CD,
-		   0xB7F0EE, 0xBEBEBE, 0x000000, 0x000000 }
+   { "unsaturated-final", "FBX's Unsaturated-Final palette",
+	   { 0x676767, 0x001F8E, 0x23069E, 0x40008E,
+		   0x600067, 0x67001C, 0x5B1000, 0x432500,
+		   0x313400, 0x074800, 0x004F00, 0x004622,
+		   0x003A61, 0x000000, 0x000000, 0x000000,
+		   0xB3B3B3, 0x205ADF, 0x5138FB, 0x7A27EE,
+		   0xA520C2, 0xB0226B, 0xAD3702, 0x8D5600,
+		   0x6E7000, 0x2E8A00, 0x069200, 0x008A47,
+		   0x037B9B, 0x101010, 0x000000, 0x000000,
+		   0xFFFFFF, 0x62AEFF, 0x918BFF, 0xBC78FF,
+		   0xE96EFF, 0xFC6CCD, 0xFA8267, 0xE29B26,
+		   0xC0B901, 0x84D200, 0x58DE38, 0x46D97D,
+		   0x49CED2, 0x494949, 0x000000, 0x000000,
+		   0xFFFFFF, 0xC1E3FF, 0xD5D4FF, 0xE7CCFF,
+		   0xFBC9FF, 0xFFC7F0, 0xFFD0C5, 0xF8DAAA,
+		   0xEBE69A, 0xD1F19A, 0xBEF7AF, 0xB6F4CD,
+		   0xB7F0EF, 0xB2B2B2, 0x000000, 0x000000 }
    },
    { "sony-cxa2025as-us", "Sony CXA2025AS US palette",
 	   { 0x585858, 0x00238C, 0x00139B, 0x2D0585,
@@ -585,7 +585,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-v6|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -772,7 +772,7 @@ static void check_variables(void)
          current_palette = 14;
       else if (!strcmp(var.value, "yuv-v3"))
          current_palette = 15;
-      else if (!strcmp(var.value, "unsaturated-v6"))
+      else if (!strcmp(var.value, "unsaturated-final"))
          current_palette = 16;
       else if (!strcmp(var.value, "sony-cxa2025as-us"))
          current_palette = 17;
