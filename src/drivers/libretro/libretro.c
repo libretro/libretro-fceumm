@@ -655,7 +655,11 @@ void retro_get_system_info(struct retro_system_info *info)
 {
    info->need_fullpath = true;
    info->valid_extensions = "fds|nes|unf|unif";
+#ifdef GIT_VERSION
+   info->library_version = "git" GIT_VERSION;
+#else
    info->library_version = "(SVN)";
+#endif
    info->library_name = "FCEUmm";
    info->block_extract = false;
 }
