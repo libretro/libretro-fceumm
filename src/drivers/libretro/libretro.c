@@ -172,7 +172,10 @@ void FCEUD_VideoChanged (void)
 
 FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 {
-   return fopen(n, m);
+   if (n)
+      return fopen(n, m);
+   else
+      return NULL;
 }
 
 #define MAX_PATH 1024
