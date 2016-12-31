@@ -91,8 +91,9 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
          break;
    }
 
-   ret = (char*)malloc(strlen(tmp) * sizeof(char));
-   strncpy(ret, tmp, strlen(tmp));
+   ret = (char*)malloc(strlen(tmp) * sizeof(char) + 1);
+   strncpy(ret, tmp, strlen(tmp) + 1);
+
    return(ret);
 }
 

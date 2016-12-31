@@ -324,8 +324,14 @@ void FCEUSS_CheckStates(void)
 
    for (ssel = 0; ssel < 10; ssel++)
    {
-      st = fopen(fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0), "rb");
-      free(fn);
+      fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0);
+
+      if (fn)
+      {
+         st = fopen(fn, "rb");
+         free(fn);
+      }
+
       if (st)
       {
          SaveStateStatus[ssel] = 1;
