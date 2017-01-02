@@ -46,8 +46,12 @@ void FCEU_KillVirtualVideo(void)
 
 int FCEU_InitVirtualVideo(void)
 {
-   // 256 bytes per scanline, * 240 scanline maximum, +8 for alignment,
-   XBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
+   /* 256 bytes per scanline, * 240 scanline maximum, +8 for alignment, */
+   if (!XBuf)
+      XBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
+
+   if (!XBuf)		
+      return 0;
 
    memset(XBuf, 128, 256 * (256 + extrascanlines));
    return 1;
