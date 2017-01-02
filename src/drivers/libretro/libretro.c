@@ -788,7 +788,7 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
 };
 
-static void check_variables(void)
+static void check_variables(bool startup)
 {
    static int overclock_state = -1;
    struct retro_variable var = {0};
@@ -889,7 +889,7 @@ static void check_variables(void)
          do_reinit              = true;
       }
 
-      if (do_reinit)
+      if (do_reinit && startup)
       {
          FCEU_KillVirtualVideo();
          FCEU_InitVirtualVideo();
@@ -1138,7 +1138,7 @@ void retro_run(void)
    bool updated = false;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-      check_variables();
+      check_variables(false);
 
    FCEUD_UpdateInput();
    FCEUI_Emulate(&gfx, &sound, &ssize, 0);
@@ -1567,7 +1567,7 @@ bool retro_load_game(const struct retro_game_info *game)
    retro_set_custom_palette();
 
    FCEUD_SoundToggle();
-   check_variables();
+   check_variables(true);
 
    FCEUI_DisableFourScore(1);
 
