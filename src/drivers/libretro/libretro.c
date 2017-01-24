@@ -701,13 +701,6 @@ void retro_init(void)
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
-   PowerNES();
-   check_system_specs();
-#if defined(_3DS)
-   fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
-#elif !defined(PSP)
-   fceu_video_out = (uint16_t*)malloc(256 * 240 * sizeof(uint16_t));
-#endif
 }
 
 static void retro_set_custom_palette (void)
@@ -1539,6 +1532,14 @@ bool retro_load_game(const struct retro_game_info *game)
    if (!game)
       return false;
 
+   PowerNES();
+   check_system_specs();
+#if defined(_3DS)
+   fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
+#elif !defined(PSP)
+   fceu_video_out = (uint16_t*)malloc(256 * 240 * sizeof(uint16_t));
+#endif
+
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
@@ -1606,6 +1607,14 @@ bool retro_load_game_special(
 void retro_unload_game(void)
 {
    FCEUI_CloseGame();
+#if defined(_3DS)
+   if (fceu_video_out)
+      linearFree(fceu_video_out);
+#else
+   if (fceu_video_out)
+      free(fceu_video_out);
+   fceu_video_out = NULL;
+#endif
 }
 
 unsigned retro_get_region(void)
