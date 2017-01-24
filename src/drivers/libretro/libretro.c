@@ -1536,6 +1536,9 @@ bool retro_load_game(const struct retro_game_info *game)
       { 0 },
    };
 
+   if (!game)
+      return false;
+
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
