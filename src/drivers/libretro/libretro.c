@@ -181,7 +181,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 23
+#define MAXPAL 25
 
 struct st_palettes {
 	char name[32];
@@ -551,13 +551,13 @@ struct st_palettes palettes[] = {
 		   0xE8EB7C, 0xBBF382, 0x99F7A2, 0x8AF5D0,
 		   0x92F4F1, 0xBEBEBE, 0x000000, 0x000000 }
    },
-   { "nostalgia", "FBX's Nostalgia palette",
+   { "composite-direct-fbx", "FBX's Composite Direct palette",
 	   { 0x656565, 0x00127D, 0x18008E, 0x360082,
 		   0x56005D, 0x5A0018, 0x4F0500, 0x381900,
 		   0x1D3100, 0x003D00, 0x004100, 0x003B17,
 		   0x002E55, 0x000000, 0x000000, 0x000000,
 		   0xAFAFAF, 0x194EC8, 0x472FE3, 0x6B1FD7,
-		   0x931BAE, 0x9E1A5E, 0x973200, 0x7B4B00,
+		   0x931BAE, 0x9E1A5E, 0x993200, 0x7B4B00,
 		   0x5B6700, 0x267A00, 0x008200, 0x007A3E,
 		   0x006E8A, 0x000000, 0x000000, 0x000000,
 		   0xFFFFFF, 0x64A9FF, 0x8E89FF, 0xB676FF,
@@ -569,23 +569,59 @@ struct st_palettes palettes[] = {
 		   0xEDEAA4, 0xD6F4A4, 0xC5F8B8, 0xBEF6D3,
 		   0xBFF1F1, 0xB9B9B9, 0x000000, 0x000000 }
    },
-   { "nes-classic", "FBX's NES-Classic palette",
-	   { 0x606060, 0x000083, 0x1F069E, 0x380F7C,
-		   0x560C62, 0x5B0010, 0x530C00, 0x3A2308,
-		   0x20350B, 0x0C410B, 0x194516, 0x023E1E,
+   { "pvm-style-fbx", "FBX's PVM Style palette",
+	   { 0x696964, 0x001774, 0x28007D, 0x3E006D,
+		   0x560057, 0x5E0013, 0x531A00, 0x3B2400,
+		   0x2A3000, 0x143A00, 0x003F00, 0x003B1E,
+		   0x003050, 0x000000, 0x000000, 0x000000,
+		   0xB9B9B4, 0x1453B9, 0x4D2CDA, 0x7A1EC8,
+		   0x98189C, 0x9D2344, 0xA03E00, 0x8D5500,
+		   0x656D00, 0x2C7900, 0x008100, 0x007D42,
+		   0x00788A, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x69A8FF, 0x9A96FF, 0xC28AFA,
+		   0xEA7DFA, 0xF387B4, 0xF1986C, 0xE6B327,
+		   0xD7C805, 0x90DF07, 0x64E53C, 0x45E27D,
+		   0x48D5D9, 0x4B4B46, 0x000000, 0x000000,
+		   0xFFFFFF, 0xD2EAFF, 0xE2E2FF, 0xF2D8FF,
+		   0xF8D2FF, 0xF8D9EA, 0xFADEB9, 0xF9E89B,
+		   0xF3F28C, 0xD3FA91, 0xB8FCA8, 0xAEFACA,
+		   0xCAF3F3, 0xBEBEB9, 0x000000, 0x000000 }
+   },
+   { "original-hardware-fbx", "FBX's Original Hardware palette",
+	   { 0x6A6D6A, 0x00127D, 0x180082, 0x3B007D,
+		   0x56005D, 0x5A0018, 0x4F0D00, 0x381E00,
+		   0x203100, 0x003D00, 0x004000, 0x003B1E,
+		   0x002E55, 0x000000, 0x000000, 0x000000,
+		   0xB9BCB9, 0x194EC8, 0x472FE3, 0x751FD7,
+		   0x931EAD, 0x9E245E, 0x963800, 0x7B5000,
+		   0x5B6700, 0x267A00, 0x007F00, 0x007842,
+		   0x006E8A, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x69AEFF, 0x9798FF, 0xB687FF,
+		   0xE278FF, 0xF279C7, 0xF58F6F, 0xDDA932,
+		   0xBCB70D, 0x88D015, 0x60DB49, 0x4FD687,
+		   0x50CACE, 0x515451, 0x000000, 0x000000,
+		   0xFFFFFF, 0xCCEAFF, 0xDEE2FF, 0xEEDAFF,
+		   0xFAD7FD, 0xFDD7F6, 0xFDDCD0, 0xFAE8B6,
+		   0xF2F1A9, 0xDBFBA9, 0xCAFFBD, 0xC3FBD8,
+		   0xC4F6F6, 0xBEC1BE, 0x000000, 0x000000 }
+   },
+   { "nes-classic-fbx-fs", "FBX's NES-Classic FS palette",
+	   { 0x60615F, 0x000083, 0x1D0195, 0x340875,
+		   0x51055E, 0x56000F, 0x4C0700, 0x372308,
+		   0x203A0B, 0x0F4B0E, 0x194C16, 0x02421E,
 		   0x023154, 0x000000, 0x000000, 0x000000,
-		   0xA9A9A9, 0x104BBF, 0x4A1EE4, 0x690AD2,
-		   0x8E12B2, 0x9E0F4C, 0x8F3204, 0x735106,
-		   0x5C6A12, 0x187D10, 0x148109, 0x117547,
-		   0x1D668F, 0x000000, 0x000000, 0x000000,
-		   0xFBFBFB, 0x6699F8, 0x8978FE, 0xB262FF,
-		   0xDE63FF, 0xEB69B3, 0xE38758, 0xC89F22,
-		   0xA7B103, 0x73C203, 0x5DD04F, 0x36C58D,
-		   0x50C5CC, 0x404040, 0x000000, 0x000000,
-		   0xFBFBFB, 0xBFD4FA, 0xCDCBFE, 0xD9C2FF,
-		   0xECBEFF, 0xFAC2EB, 0xF7CAC3, 0xE3CDA7,
-		   0xD9DE9C, 0xC8E69E, 0xC0E6B8, 0xB5EDC7,
-		   0xB9E6EA, 0xB8B8B8, 0x000000, 0x000000 }
+		   0xA9AAA8, 0x104BBF, 0x4712D8, 0x6300CA,
+		   0x8800A9, 0x930B46, 0x8A2D04, 0x6F5206,
+		   0x5C7114, 0x1B8D12, 0x199509, 0x178448,
+		   0x206B8E, 0x000000, 0x000000, 0x000000,
+		   0xFBFBFB, 0x6699F8, 0x8974F9, 0xAB58F8,
+		   0xD557EF, 0xDE5FA9, 0xDC7F59, 0xC7A224,
+		   0xA7BE03, 0x75D703, 0x60E34F, 0x3CD68D,
+		   0x56C9CC, 0x414240, 0x000000, 0x000000,
+		   0xFBFBFB, 0xBED4FA, 0xC9C7F9, 0xD7BEFA,
+		   0xE8B8F9, 0xF5BAE5, 0xF3CAC2, 0xDFCDA7,
+		   0xD9E09C, 0xC9EB9E, 0xC0EDB8, 0xB5F4C7,
+		   0xB9EAE9, 0xABABAB, 0x000000, 0x000000 }
    },
    { "nescap", "RGBSource's NESCAP palette",
 	   { 0x646365, 0x001580, 0x1D0090, 0x380082,
@@ -642,7 +678,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|nostalgia|nes-classic|nescap|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|pvm-style-fbx|original-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -715,7 +751,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 24) /* raw palette */
+   if (current_palette == 26) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -836,14 +872,18 @@ static void check_variables(bool startup)
          current_palette = 19;
       else if (!strcmp(var.value, "bmf-final3"))
          current_palette = 20;
-      else if (!strcmp(var.value, "nostalgia"))
+      else if (!strcmp(var.value, "composite-direct-fbx"))
          current_palette = 21;
-      else if (!strcmp(var.value, "nes-classic"))
+      else if (!strcmp(var.value, "pvm-style-fbx"))
          current_palette = 22;
-      else if (!strcmp(var.value, "nescap"))
+      else if (!strcmp(var.value, "original-hardware-fbx"))
          current_palette = 23;
-      else if (!strcmp(var.value, "raw"))
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
          current_palette = 24;
+      else if (!strcmp(var.value, "nescap"))
+         current_palette = 25;
+      else if (!strcmp(var.value, "raw"))
+         current_palette = 26;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
