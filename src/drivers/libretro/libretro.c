@@ -181,7 +181,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 23
+#define MAXPAL 25
 
 struct st_palettes {
 	char name[32];
@@ -569,6 +569,42 @@ struct st_palettes palettes[] = {
 		   0xEDEAA4, 0xD6F4A4, 0xC5F8B8, 0xBEF6D3,
 		   0xBFF1F1, 0xB9B9B9, 0x000000, 0x000000 }
    },
+   { "pvm-style-fbx", "FBX's PVM Style palette",
+	   { 0x696964, 0x001774, 0x28007D, 0x3E006D,
+		   0x560057, 0x5E0013, 0x531A00, 0x3B2400,
+		   0x2A3000, 0x143A00, 0x003F00, 0x003B1E,
+		   0x003050, 0x000000, 0x000000, 0x000000,
+		   0xB9B9B4, 0x1453B9, 0x4D2CDA, 0x7A1EC8,
+		   0x98189C, 0x9D2344, 0xA03E00, 0x8D5500,
+		   0x656D00, 0x2C7900, 0x008100, 0x007D42,
+		   0x00788A, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x69A8FF, 0x9A96FF, 0xC28AFA,
+		   0xEA7DFA, 0xF387B4, 0xF1986C, 0xE6B327,
+		   0xD7C805, 0x90DF07, 0x64E53C, 0x45E27D,
+		   0x48D5D9, 0x4B4B46, 0x000000, 0x000000,
+		   0xFFFFFF, 0xD2EAFF, 0xE2E2FF, 0xF2D8FF,
+		   0xF8D2FF, 0xF8D9EA, 0xFADEB9, 0xF9E89B,
+		   0xF3F28C, 0xD3FA91, 0xB8FCA8, 0xAEFACA,
+		   0xCAF3F3, 0xBEBEB9, 0x000000, 0x000000 }
+   },
+   { "original-hardware-fbx", "FBX's Original Hardware palette",
+	   { 0x6A6D6A, 0x00127D, 0x180082, 0x3B007D,
+		   0x56005D, 0x5A0018, 0x4F0D00, 0x381E00,
+		   0x203100, 0x003D00, 0x004000, 0x003B1E,
+		   0x002E55, 0x000000, 0x000000, 0x000000,
+		   0xB9BCB9, 0x194EC8, 0x472FE3, 0x751FD7,
+		   0x931EAD, 0x9E245E, 0x963800, 0x7B5000,
+		   0x5B6700, 0x267A00, 0x007F00, 0x007842,
+		   0x006E8A, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x69AEFF, 0x9798FF, 0xB687FF,
+		   0xE278FF, 0xF279C7, 0xF58F6F, 0xDDA932,
+		   0xBCB70D, 0x88D015, 0x60DB49, 0x4FD687,
+		   0x50CACE, 0x515451, 0x000000, 0x000000,
+		   0xFFFFFF, 0xCCEAFF, 0xDEE2FF, 0xEEDAFF,
+		   0xFAD7FD, 0xFDD7F6, 0xFDDCD0, 0xFAE8B6,
+		   0xF2F1A9, 0xDBFBA9, 0xCAFFBD, 0xC3FBD8,
+		   0xC4F6F6, 0xBEC1BE, 0x000000, 0x000000 }
+   },
    { "nes-classic-fbx-fs", "FBX's NES-Classic FS palette",
 	   { 0x60615F, 0x000083, 0x1D0195, 0x340875,
 		   0x51055E, 0x56000F, 0x4C0700, 0x372308,
@@ -642,7 +678,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|nes-classic-fbx-fs|nescap|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|pvm-style-fbx|original-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -715,7 +751,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 24) /* raw palette */
+   if (current_palette == 26) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -838,12 +874,16 @@ static void check_variables(bool startup)
          current_palette = 20;
       else if (!strcmp(var.value, "composite-direct-fbx"))
          current_palette = 21;
-      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
+      else if (!strcmp(var.value, "pvm-style-fbx"))
          current_palette = 22;
-      else if (!strcmp(var.value, "nescap"))
+      else if (!strcmp(var.value, "original-hardware-fbx"))
          current_palette = 23;
-      else if (!strcmp(var.value, "raw"))
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
          current_palette = 24;
+      else if (!strcmp(var.value, "nescap"))
+         current_palette = 25;
+      else if (!strcmp(var.value, "raw"))
+         current_palette = 26;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
