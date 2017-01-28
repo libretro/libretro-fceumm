@@ -569,23 +569,23 @@ struct st_palettes palettes[] = {
 		   0xEDEAA4, 0xD6F4A4, 0xC5F8B8, 0xBEF6D3,
 		   0xBFF1F1, 0xB9B9B9, 0x000000, 0x000000 }
    },
-   { "nes-classic", "FBX's NES-Classic palette",
-	   { 0x606060, 0x000083, 0x1F069E, 0x380F7C,
-		   0x560C62, 0x5B0010, 0x530C00, 0x3A2308,
-		   0x20350B, 0x0C410B, 0x194516, 0x023E1E,
+   { "nes-classic-fbx-fs", "FBX's NES-Classic FS palette",
+	   { 0x60615F, 0x000083, 0x1D0195, 0x340875,
+		   0x51055E, 0x56000F, 0x4C0700, 0x372308,
+		   0x203A0B, 0x0F4B0E, 0x194C16, 0x02421E,
 		   0x023154, 0x000000, 0x000000, 0x000000,
-		   0xA9A9A9, 0x104BBF, 0x4A1EE4, 0x690AD2,
-		   0x8E12B2, 0x9E0F4C, 0x8F3204, 0x735106,
-		   0x5C6A12, 0x187D10, 0x148109, 0x117547,
-		   0x1D668F, 0x000000, 0x000000, 0x000000,
-		   0xFBFBFB, 0x6699F8, 0x8978FE, 0xB262FF,
-		   0xDE63FF, 0xEB69B3, 0xE38758, 0xC89F22,
-		   0xA7B103, 0x73C203, 0x5DD04F, 0x36C58D,
-		   0x50C5CC, 0x404040, 0x000000, 0x000000,
-		   0xFBFBFB, 0xBFD4FA, 0xCDCBFE, 0xD9C2FF,
-		   0xECBEFF, 0xFAC2EB, 0xF7CAC3, 0xE3CDA7,
-		   0xD9DE9C, 0xC8E69E, 0xC0E6B8, 0xB5EDC7,
-		   0xB9E6EA, 0xB8B8B8, 0x000000, 0x000000 }
+		   0xA9AAA8, 0x104BBF, 0x4712D8, 0x6300CA,
+		   0x8800A9, 0x930B46, 0x8A2D04, 0x6F5206,
+		   0x5C7114, 0x1B8D12, 0x199509, 0x178448,
+		   0x206B8E, 0x000000, 0x000000, 0x000000,
+		   0xFBFBFB, 0x6699F8, 0x8974F9, 0xAB58F8,
+		   0xD557EF, 0xDE5FA9, 0xDC7F59, 0xC7A224,
+		   0xA7BE03, 0x75D703, 0x60E34F, 0x3CD68D,
+		   0x56C9CC, 0x414240, 0x000000, 0x000000,
+		   0xFBFBFB, 0xBED4FA, 0xC9C7F9, 0xD7BEFA,
+		   0xE8B8F9, 0xF5BAE5, 0xF3CAC2, 0xDFCDA7,
+		   0xD9E09C, 0xC9EB9E, 0xC0EDB8, 0xB5F4C7,
+		   0xB9EAE9, 0xABABAB, 0x000000, 0x000000 }
    },
    { "nescap", "RGBSource's NESCAP palette",
 	   { 0x646365, 0x001580, 0x1D0090, 0x380082,
@@ -642,7 +642,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|nes-classic|nescap|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|nes-classic-fbx-fs|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -838,7 +838,7 @@ static void check_variables(bool startup)
          current_palette = 20;
       else if (!strcmp(var.value, "composite-direct-fbx"))
          current_palette = 21;
-      else if (!strcmp(var.value, "nes-classic"))
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
          current_palette = 22;
       else if (!strcmp(var.value, "nescap"))
          current_palette = 23;
