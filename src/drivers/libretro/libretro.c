@@ -551,13 +551,13 @@ struct st_palettes palettes[] = {
 		   0xE8EB7C, 0xBBF382, 0x99F7A2, 0x8AF5D0,
 		   0x92F4F1, 0xBEBEBE, 0x000000, 0x000000 }
    },
-   { "nostalgia", "FBX's Nostalgia palette",
+   { "composite-direct-fbx", "FBX's Composite Direct palette",
 	   { 0x656565, 0x00127D, 0x18008E, 0x360082,
 		   0x56005D, 0x5A0018, 0x4F0500, 0x381900,
 		   0x1D3100, 0x003D00, 0x004100, 0x003B17,
 		   0x002E55, 0x000000, 0x000000, 0x000000,
 		   0xAFAFAF, 0x194EC8, 0x472FE3, 0x6B1FD7,
-		   0x931BAE, 0x9E1A5E, 0x973200, 0x7B4B00,
+		   0x931BAE, 0x9E1A5E, 0x993200, 0x7B4B00,
 		   0x5B6700, 0x267A00, 0x008200, 0x007A3E,
 		   0x006E8A, 0x000000, 0x000000, 0x000000,
 		   0xFFFFFF, 0x64A9FF, 0x8E89FF, 0xB676FF,
@@ -642,7 +642,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|nostalgia|nes-classic|nescap|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|nes-classic|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -836,7 +836,7 @@ static void check_variables(bool startup)
          current_palette = 19;
       else if (!strcmp(var.value, "bmf-final3"))
          current_palette = 20;
-      else if (!strcmp(var.value, "nostalgia"))
+      else if (!strcmp(var.value, "composite-direct-fbx"))
          current_palette = 21;
       else if (!strcmp(var.value, "nes-classic"))
          current_palette = 22;
