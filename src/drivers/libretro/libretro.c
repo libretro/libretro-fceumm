@@ -1033,13 +1033,6 @@ static void check_variables(bool startup)
 unsigned char turbo_p0_toggle[] = {0,0};
 unsigned char turbo_p1_toggle[] = {0,0};
 
-/*
- * This is the turbo delay, higher the value
- * the slower the frequency i.e. wait time
- * between turbo repeats increases
- */
-#define TURBO_DELAY 3
-
 static void FCEUD_UpdateInput(void)
 {
    unsigned i;
