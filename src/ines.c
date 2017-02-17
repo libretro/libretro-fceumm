@@ -581,7 +581,7 @@ static BMAPPINGLocal bmap[] = {
    {(uint8_t*)"",					187, Mapper187_Init},
    {(uint8_t*)"",					188, Mapper188_Init},
 	{(uint8_t*)"",					189, Mapper189_Init},
-//	{(uint8_t*)"",					190, Mapper190_Init},
+	{(uint8_t*)"",					190, Mapper190_Init},
 	{(uint8_t*)"",					191, Mapper191_Init},
 	{(uint8_t*)"TW MMC3+VRAM Rev. B",	192, Mapper192_Init},
 	{(uint8_t*)"NTDEC TC-112",		193, Mapper193_Init},	// War in the Gulf
