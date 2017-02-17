@@ -43,6 +43,7 @@ static bool use_overscan;
 static bool use_raw_palette;
 static bool use_par;
 int turbo_enabler;
+int turbo_delay;
 
 /* emulator-specific variables */
 
@@ -684,6 +685,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
+	  { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { NULL, NULL },
    };
@@ -964,6 +966,40 @@ static void check_variables(bool startup)
          turbo_enabler = 3;
       }
    }
+   
+   var.key = "fceumm_turbo_delay";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "1"))
+      {
+         turbo_delay = 1;
+      }
+      else if (!strcmp(var.value, "3"))
+      {
+         turbo_delay = 3;
+      }
+      else if (!strcmp(var.value, "5"))
+      {
+         turbo_delay = 5;
+      }
+      else if (!strcmp(var.value, "10"))
+      {
+         turbo_delay = 10;
+      }
+	  else if (!strcmp(var.value, "15"))
+      {
+         turbo_delay = 15;
+      }
+      else if (!strcmp(var.value, "30"))
+      {
+         turbo_delay = 30;
+      }
+      else if (!strcmp(var.value, "60"))
+      {
+         turbo_delay = 60;
+      }
+   }
 
    var.key = "fceumm_aspect";
 
@@ -1040,7 +1076,7 @@ static void FCEUD_UpdateInput(void)
                   pad[0] |= bindmap[i].nes;
           }
           turbo_p0_toggle[i-8]++;
-          if (turbo_p0_toggle[i-8] > TURBO_DELAY) {
+          if (turbo_p0_toggle[i-8] > turbo_delay) {
              // Reset the toggle if
              // delay value is reached
              turbo_p0_toggle[i-8] = 0;
@@ -1060,7 +1096,7 @@ static void FCEUD_UpdateInput(void)
                   pad[1] |= bindmap[i].nes;
           }
           turbo_p1_toggle[i-8]++;
-          if (turbo_p1_toggle[i-8] > TURBO_DELAY) {
+          if (turbo_p1_toggle[i-8] > turbo_delay) {
              // Reset the toggle if
              // delay value is reached
              turbo_p1_toggle[i-8] = 0;
