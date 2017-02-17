@@ -42,6 +42,7 @@ static retro_environment_t environ_cb = NULL;
 static bool use_overscan;
 static bool use_raw_palette;
 static bool use_par;
+int turbo_enabler;
 
 /* emulator-specific variables */
 
@@ -130,7 +131,7 @@ void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, uns
 #ifdef FRONTEND_SUPPORTS_RGB565
    retro_palette[index] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
 #else
-   retro_palette[index] = 
+   retro_palette[index] =
       ((r >> RED_EXPAND) << RED_SHIFT) | ((g >> GREEN_EXPAND) << GREEN_SHIFT) | ((b >> BLUE_EXPAND) << BLUE_SHIFT);
 #endif
 }
@@ -682,6 +683,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
+      { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { NULL, NULL },
    };
@@ -941,6 +943,28 @@ static void check_variables(bool startup)
       }
    }
 
+   var.key = "fceumm_turbo_enable";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "None"))
+      {
+         turbo_enabler = 0;
+      }
+      else if (!strcmp(var.value, "Player 1"))
+      {
+         turbo_enabler = 1;
+      }
+      else if (!strcmp(var.value, "Player 2"))
+      {
+         turbo_enabler = 2;
+      }
+      else if (!strcmp(var.value, "Both"))
+      {
+         turbo_enabler = 3;
+      }
+   }
+
    var.key = "fceumm_aspect";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -978,7 +1002,6 @@ unsigned char turbo_p1_toggle[] = {0,0};
  * the slower the frequency i.e. wait time
  * between turbo repeats increases
  */
-
 #define TURBO_DELAY 3
 
 static void FCEUD_UpdateInput(void)
@@ -1008,50 +1031,54 @@ static void FCEUD_UpdateInput(void)
     * depending on whether the delay value has
     * been reached.
     */
-
-   // Handle turbo buttons - player 1
-   for ( i = 8; i < 10; i++) {
-      if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
-         if (turbo_p0_toggle[i-8] == 0) {
-            pad[0] |= bindmap[i].nes;
-	 }
-	 turbo_p0_toggle[i-8]++;
-	 if (turbo_p0_toggle[i-8] > TURBO_DELAY) {
-            // Reset the toggle if
-	    // delay value is reached
-            turbo_p0_toggle[i-8] = 0;
-	 }
-      } else {
-	 // If the button is not pressed, just reset the toggle
-         turbo_p0_toggle[i-8] = 0;
+   if (turbo_enabler == 1 || turbo_enabler == 3)
+      {
+         // Handle turbo buttons - player 1
+         for ( i = 8; i < 10; i++) {
+            if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
+               if (turbo_p0_toggle[i-8] == 0) {
+                  pad[0] |= bindmap[i].nes;
+          }
+          turbo_p0_toggle[i-8]++;
+          if (turbo_p0_toggle[i-8] > TURBO_DELAY) {
+             // Reset the toggle if
+             // delay value is reached
+             turbo_p0_toggle[i-8] = 0;
+          }
+          } else {
+             // If the button is not pressed, just reset the toggle
+             turbo_p0_toggle[i-8] = 0;
+             }
+         }
       }
-   }
-
-   // Handle turbo buttons - player 2
-   for ( i = 8; i < 10; i++) {
-      if(input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
-         if (turbo_p1_toggle[i-8] == 0) {
-            pad[1] |= bindmap[i].nes;
-	 }
-	 turbo_p1_toggle[i-8]++;
-	 if (turbo_p1_toggle[i-8] > TURBO_DELAY) {
-            // Reset the toggle if
-	    // delay value is reached
-            turbo_p1_toggle[i-8] = 0;
-	 }
-      } else {
-	 // If the button is not pressed, just reset the toggle
-         turbo_p1_toggle[i-8] = 0;
+   if (turbo_enabler == 2 || turbo_enabler == 3)
+      {
+         // Handle turbo buttons - player 2
+         for ( i = 8; i < 10; i++) {
+            if(input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
+               if (turbo_p1_toggle[i-8] == 0) {
+                  pad[1] |= bindmap[i].nes;
+          }
+          turbo_p1_toggle[i-8]++;
+          if (turbo_p1_toggle[i-8] > TURBO_DELAY) {
+             // Reset the toggle if
+             // delay value is reached
+             turbo_p1_toggle[i-8] = 0;
+          }
+          } else {
+             // If the button is not pressed, just reset the toggle
+             turbo_p1_toggle[i-8] = 0;
+             }
+         }
       }
-   }
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
-   
+
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
    {
       FCEU_VSUniCoin(); /* Insert Coin VS System */
    }
-   
+
    if (GameInfo->type == GIT_FDS) /* Famicom Disk System */
    {
       bool curL = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L);
@@ -1068,7 +1095,7 @@ static void FCEUD_UpdateInput(void)
       {
          FCEU_FDSInsert(-1); /* Insert or eject the disk */
       }
-      prevR = curR;	   
+      prevR = curR;
    }
 }
 
@@ -1153,7 +1180,7 @@ static void retro_run_blit(uint8_t *gfx)
    }
    else
    {
-      for (y = 0; y < height; y++, gfx += incr) 
+      for (y = 0; y < height; y++, gfx += incr)
          for ( x = 0; x < width; x++, gfx++)
             fceu_video_out_ptr[y * width + x] = retro_palette[*gfx];
    }
@@ -1257,7 +1284,7 @@ typedef struct cartridge_db
    uint32_t crc;
 } cartridge_db_t;
 
-static const struct cartridge_db fourscore_db_list[] = 
+static const struct cartridge_db fourscore_db_list[] =
 {
    {
       "Bomberman II (USA)",
@@ -1274,16 +1301,16 @@ static const struct cartridge_db fourscore_db_list[] =
       0xf99e37eb
    },
 #if 0
-   { 
+   {
       "Crash 'n' the Boys - Street Challenge (USA)",
       0xc7f0c457
    },
 #endif
    {
       "Four Players' Tennis (Europe)",
-      0x48b8ee58 
+      0x48b8ee58
    },
-   { 
+   {
       "Danny Sullivan's Indy Heat (Europe)",
       0x27ca0679,
    },
@@ -1441,7 +1468,7 @@ static const struct cartridge_db fourscore_db_list[] =
    }
 };
 
-static const struct cartridge_db famicom_4p_db_list[] = 
+static const struct cartridge_db famicom_4p_db_list[] =
 {
    {
       "Bakutoushi Patton-Kun (Japan) (FDS)",
@@ -1685,7 +1712,7 @@ void *retro_get_memory_data(unsigned type)
          data = NULL;
          break;
    }
-   
+
    return data;
 }
 
@@ -1712,6 +1739,6 @@ size_t retro_get_memory_size(unsigned type)
          size = 0;
          break;
    }
-   
+
    return size;
 }
