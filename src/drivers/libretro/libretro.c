@@ -685,7 +685,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
-	  { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1" },
+      { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { NULL, NULL },
    };
@@ -966,7 +966,7 @@ static void check_variables(bool startup)
          turbo_enabler = 3;
       }
    }
-   
+
    var.key = "fceumm_turbo_delay";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -974,6 +974,10 @@ static void check_variables(bool startup)
       if (!strcmp(var.value, "1"))
       {
          turbo_delay = 1;
+      }
+      if (!strcmp(var.value, "2"))
+      {
+         turbo_delay = 2;
       }
       else if (!strcmp(var.value, "3"))
       {
