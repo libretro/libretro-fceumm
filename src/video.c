@@ -50,7 +50,7 @@ int FCEU_InitVirtualVideo(void)
    if (!XBuf)
       XBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
 
-   if (!XBuf)		
+   if (!XBuf)
       return 0;
 
    memset(XBuf, 128, 256 * (256 + extrascanlines));
@@ -82,13 +82,20 @@ void FCEU_PutImageDummy(void)
 
 void FCEU_DispMessage(char *format, ...)
 {
-	va_list ap;
+   va_list ap;
 
-	va_start(ap, format);
-	vsprintf(errmsg, format, ap);
-	va_end(ap);
+   va_start(ap, format);
+   vsprintf(errmsg, format, ap);
+   va_end(ap);
 
-	howlong = 180;
+   howlong = 180;
+#ifdef __LIBRETRO__
+   struct retro_message msg;
+
+   msg.msg = errmsg;
+   msg.frames = howlong;
+   environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+#endif
 }
 
 void FCEU_ResetMessages(void)
