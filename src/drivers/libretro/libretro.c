@@ -39,7 +39,12 @@ static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
 static retro_environment_t environ_cb = NULL;
+#ifdef PSP
 static bool use_overscan;
+#else
+static bool use_overscan_h;
+static bool use_overscan_v;
+#endif
 static bool use_raw_palette;
 static bool use_par;
 int turbo_enabler;
@@ -141,7 +146,6 @@ void FCEUD_GetPalette(unsigned char i, unsigned char *r, unsigned char *g, unsig
 {
 }
 
-
 bool FCEUD_ShouldDrawInputAids (void)
 {
    return 1;
@@ -190,7 +194,6 @@ struct st_palettes {
 	char desc[32];
 	unsigned int data[64];
 };
-
 
 struct st_palettes palettes[] = {
    { "asqrealc", "AspiringSquire's Real palette",
@@ -683,7 +686,12 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|pvm-style-fbx|original-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
+#ifdef PSP
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
+#else
+      { "fceumm_overscan_h", "Crop Overscan (Horizontal); disabled|enabled" },
+      { "fceumm_overscan_v", "Crop Overscan (Vertical); enabled|disabled" },
+#endif
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
@@ -709,8 +717,13 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
+#ifdef PSP
    unsigned width = use_overscan ? 256 : (256 - 16);
    unsigned height = use_overscan ? 240 : (240 - 16);
+#else
+   unsigned width = 256 - (use_overscan_h ? 16 : 0);
+   unsigned height = 240 - (use_overscan_v ? 16 : 0);
+#endif
    info->geometry.base_width = width;
    info->geometry.base_height = height;
    info->geometry.max_width = width;
@@ -766,7 +779,6 @@ static void retro_set_custom_palette (void)
       }
       return;
    }
-
 
    /* Setup this palette*/
 
@@ -933,6 +945,7 @@ static void check_variables(bool startup)
       }
    }
 
+#ifdef PSP
    var.key = "fceumm_overscan";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -944,6 +957,32 @@ static void check_variables(bool startup)
          geometry_update = true;
       }
    }
+
+#else
+   var.key = "fceumm_overscan_h";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      bool newval = (!strcmp(var.value, "enabled"));
+      if (newval != use_overscan_h)
+      {
+         use_overscan_h = newval;
+         geometry_update = true;
+      }
+   }
+
+   var.key = "fceumm_overscan_v";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      bool newval = (!strcmp(var.value, "enabled"));
+      if (newval != use_overscan_v)
+      {
+         use_overscan_v = newval;
+         geometry_update = true;
+      }
+   }
+#endif
 
    var.key = "fceumm_turbo_enable";
 
@@ -1150,19 +1189,12 @@ static void retro_run_blit(uint8_t *gfx)
    unsigned height = 240;
    unsigned pitch  = 512;
 
+#ifdef PSP
    if (!use_overscan)
    {
-      incr    = 16;
       width  -= 16;
       height -= 16;
-#ifndef PSP
-      pitch  -= 32;
-      gfx     = gfx + 8 + 256 * 8;
-
-#endif
    }
-
-#ifdef PSP
    texture_vram_p = (void*) (0x44200000 - (256 * 256)); // max VRAM address - frame size
 
    sceKernelDcacheWritebackRange(retro_palette,256 * 2);
@@ -1218,7 +1250,10 @@ static void retro_run_blit(uint8_t *gfx)
             fceu_video_out_ptr[y * width + x] = retro_palette[*gfx];
    }
 
-   video_cb(fceu_video_out_ptr, width, height, pitch);
+   video_cb(fceu_video_out_ptr + (use_overscan_v ? ((use_overscan_h ? 8 : 0) + 256 * 8) : (use_overscan_h ? 8 : 0) + 0),
+      width - (use_overscan_h ? 16 : 0),
+      height - (use_overscan_v ? 16 : 0),
+      pitch);
 #endif
 
 }
