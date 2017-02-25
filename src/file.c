@@ -73,6 +73,7 @@ static MEMWRAP *MakeMemWrapBuffer(void *tz, int type, uint8 *buffer, size_t bufs
    tmp->location = 0;
    tmp->size = bufsize;
    tmp->data = buffer;
+   fclose((FILE*)tz);
 
    return tmp;
 }
@@ -125,7 +126,7 @@ uint64 FCEU_fread(void *ptr, size_t element_size, size_t nmemb, FCEUFILE *fp)
 
       return (ak / element_size);
    }
-   
+
    memcpy((uint8_t*)ptr, fp->fp->data + fp->fp->location, total);
 
    fp->fp->location += total;
