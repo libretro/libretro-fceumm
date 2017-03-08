@@ -1223,7 +1223,6 @@ int FCEUPPU_Loop(int skip) {
 				if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
 				DoLine();
 			}
-         DMC_7bit = 0;
 
 			if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 			for (x = 1, max = 0, maxref = 0; x < 7; x++) {
