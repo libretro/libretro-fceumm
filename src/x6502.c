@@ -606,7 +606,8 @@ void X6502_Run(int32 cycles)
 		temp = _tcount;
 		_tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
-		FCEU_SoundCPUHook(temp);
+		if (!overclocked)
+			FCEU_SoundCPUHook(temp);
 		X.PC = pbackus;
 		_PC++;
 		switch (b1) {

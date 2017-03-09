@@ -462,7 +462,7 @@ void FCEU_ResetVidSys(void)
 
 	PAL = w ? 1 : 0;
 
-   totalscanlines = normal_scanlines + (overclocked ? extrascanlines : 0);
+   totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
 
 	FCEUPPU_SetVideoSystem(w);
 	SetSoundVariables();
