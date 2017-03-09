@@ -662,8 +662,15 @@ static void Fixit1(void) {
 
 void MMC5_hb(int);		//Ugh ugh ugh.
 static void DoLine(void) {
+   if (scanline >= 240 && scanline != totalscanlines) {
+		X6502_Run(256 + 69);
+		scanline++;
+		X6502_Run(16);
+		return;
+	}
+
 	int x;
-	uint8 *target = XBuf + (scanline << 8);
+	uint8 *target = XBuf + ((scanline < 240 ? scanline : 240) << 8);
 
 	if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 
@@ -1216,14 +1223,28 @@ int FCEUPPU_Loop(int skip) {
 			if (DMC_7bit && skip_7bit_overclocking)
 				totalscanlines = normal_scanlines;
 			else
-				totalscanlines = normal_scanlines + (overclocked ? extrascanlines : 0);
+				totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
 
 			for (scanline = 0; scanline < totalscanlines; ) {	//scanline is incremented in  DoLine.  Evil. :/
 				deempcnt[deemp]++;
 				if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
 				DoLine();
+				if (scanline < normal_scanlines || scanline == totalscanlines)
+					overclocked = 0;
+				else
+				{
+					if (DMC_7bit && skip_7bit_overclocking) /* 7bit sample started after 240th line */
+						break;
+					overclocked = 1;
+				}
 			}
-
+         /* For Debugging */
+         /*  FCEU_printf("Overclock State:%d DMC+7bit:%d Skip_7bit_OC:%d\n",
+                overclock_state,DMC_7bit,skip_7bit_overclocking);
+           FCEU_printf("SL:%d N_SL:%d, T_SL:%d Overclocked(for FCEU_SoundCPUHook):%d\n\n",
+                scanline,normal_scanlines,totalscanlines,overclocked);
+         */
+			DMC_7bit = 0;
 			if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 			for (x = 1, max = 0, maxref = 0; x < 7; x++) {
 				if (deempcnt[x] > max) {

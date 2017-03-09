@@ -55,6 +55,7 @@ unsigned overclocked = 0;
 unsigned skip_7bit_overclocking = 1;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
+unsigned overclock_state = -1;
 
 int FCEUnetplay;
 #ifdef PSP
@@ -823,7 +824,6 @@ static const keymap bindmap[] = {
 
 static void check_variables(bool startup)
 {
-   static int overclock_state = -1;
    struct retro_variable var = {0};
    struct retro_system_av_info av_info;
    bool geometry_update = false;
