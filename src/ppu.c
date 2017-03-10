@@ -1060,7 +1060,7 @@ static void CopySprites(uint8 *target) {
 
 void FCEUPPU_SetVideoSystem(int w) {
 	if (w) {
-		scanlines_per_frame = 312;
+		scanlines_per_frame = dendy ? 262 : 312;
 		FSettings.FirstSLine = FSettings.UsrFirstSLine[1];
 		FSettings.LastSLine = FSettings.UsrLastSLine[1];
 	} else {
