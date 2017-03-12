@@ -590,22 +590,22 @@ struct st_palettes palettes[] = {
 		   0xF3F28C, 0xD3FA91, 0xB8FCA8, 0xAEFACA,
 		   0xCAF3F3, 0xBEBEB9, 0x000000, 0x000000 }
    },
-   { "original-hardware-fbx", "FBX's Original Hardware palette",
-	   { 0x6A6D6A, 0x00127D, 0x1E008A, 0x3B007D,
-		   0x56005D, 0x5A0018, 0x4F0D00, 0x381E00,
-		   0x203100, 0x003D00, 0x004000, 0x003B1E,
+   { "ntsc-hardware-fbx", "FBX's NTSC Hardware palette",
+	   { 0x6A6D6A, 0x001380, 0x1E008A, 0x39007A,
+		   0x550056, 0x5A0018, 0x4F1000, 0x382100,
+		   0x213300, 0x003D00, 0x004000, 0x003924,
 		   0x002E55, 0x000000, 0x000000, 0x000000,
-		   0xB9BCB9, 0x194EC8, 0x472FE3, 0x751FD7,
-		   0x931EAD, 0x9E245E, 0x963800, 0x7B5000,
-		   0x5B6700, 0x267A00, 0x007F00, 0x007842,
+		   0xB9BCB9, 0x1850C7, 0x4B30E3, 0x7322D6,
+		   0x951FA9, 0x9D285C, 0x963C00, 0x7A5100,
+		   0x5B6700, 0x227700, 0x027E02, 0x007645,
 		   0x006E8A, 0x000000, 0x000000, 0x000000,
-		   0xFFFFFF, 0x69AEFF, 0x9798FF, 0xB687FF,
-		   0xE278FF, 0xF279C7, 0xF58F6F, 0xDDA932,
-		   0xBCB70D, 0x88D015, 0x60DB49, 0x4FD687,
-		   0x50CACE, 0x515451, 0x000000, 0x000000,
-		   0xFFFFFF, 0xCCEAFF, 0xDEE2FF, 0xEEDAFF,
-		   0xFAD7FD, 0xFDD7F6, 0xFDDCD0, 0xFAE8B6,
-		   0xF2F1A9, 0xDBFBA9, 0xCAFFBD, 0xC3FBD8,
+		   0xFFFFFF, 0x68A6FF, 0x9299FF, 0xB085FF,
+		   0xD975FD, 0xE377B9, 0xE58D68, 0xCFA22C,
+		   0xB3AF0C, 0x7BC211, 0x55CA47, 0x46CB81,
+		   0x47C1C5, 0x4A4D4A, 0x000000, 0x000000,
+		   0xFFFFFF, 0xCCEAFF, 0xDDDEFF, 0xECDAFF,
+		   0xF8D7FE, 0xFCD6F5, 0xFDDBCF, 0xF9E7B5,
+		   0xF1F0AA, 0xDAFAA9, 0xC9FFBC, 0xC3FBD7,
 		   0xC4F6F6, 0xBEC1BE, 0x000000, 0x000000 }
    },
    { "nes-classic-fbx-fs", "FBX's NES-Classic FS palette",
@@ -681,7 +681,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|pvm-style-fbx|original-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|pvm-style-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -880,7 +880,7 @@ static void check_variables(bool startup)
          current_palette = 21;
       else if (!strcmp(var.value, "pvm-style-fbx"))
          current_palette = 22;
-      else if (!strcmp(var.value, "original-hardware-fbx"))
+      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
          current_palette = 23;
       else if (!strcmp(var.value, "nes-classic-fbx-fs"))
          current_palette = 24;
