@@ -456,15 +456,22 @@ void FCEU_ResetVidSys(void)
 	if (GameInfo->vidsys == GIV_NTSC)
 		w = 0;
 	else if (GameInfo->vidsys == GIV_PAL)
-		w = 1;
+   {
+      w = 1;
+      dendy = 0;
+   }
 	else
 		w = FSettings.PAL;
 
 	PAL = w ? 1 : 0;
 
+   if (PAL)
+      dendy = 0;
+
+   normal_scanlines = dendy ? 290 : 240;
    totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
 
-	FCEUPPU_SetVideoSystem(w);
+	FCEUPPU_SetVideoSystem(w || dendy);
 	SetSoundVariables();
 }
 
@@ -502,7 +509,7 @@ void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall)
 	FSettings.UsrLastSLine[0] = ntscl;
 	FSettings.UsrFirstSLine[1] = palf;
 	FSettings.UsrLastSLine[1] = pall;
-	if (PAL)
+	if (PAL || dendy)
    {
 		FSettings.FirstSLine = FSettings.UsrFirstSLine[1];
 		FSettings.LastSLine = FSettings.UsrLastSLine[1];
@@ -546,7 +553,7 @@ void FCEUI_SetSnapName(int a)
 
 int32 FCEUI_GetDesiredFPS(void)
 {
-	if (PAL)
+	if (PAL || dendy)
 		return(838977920);	// ~50.007
 	else
 		return(1008307711);	// ~60.1

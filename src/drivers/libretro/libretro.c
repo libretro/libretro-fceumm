@@ -44,6 +44,7 @@ static bool use_raw_palette;
 static bool use_par;
 int turbo_enabler;
 int turbo_delay;
+static int regionoverride = -1;
 
 /* emulator-specific variables */
 
@@ -56,6 +57,8 @@ unsigned skip_7bit_overclocking = 1;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned overclock_state = -1;
+unsigned dendy = 0;
+
 
 int FCEUnetplay;
 #ifdef PSP
@@ -688,6 +691,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
+      { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
       { NULL, NULL },
    };
 
@@ -718,7 +722,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_height = height;
    info->geometry.aspect_ratio = use_par ? NES_8_7_PAR : NES_4_3;
    info->timing.sample_rate = 32050.0;
-   if (FSettings.PAL)
+   if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
    else
       info->timing.fps = 1008307711.0/16777215.0;
@@ -781,6 +785,49 @@ static void retro_set_custom_palette (void)
       FCEUD_SetPalette( i+128, r, g, b);
       FCEUD_SetPalette( i+192, r, g, b);
    }
+}
+
+/* Set variables for NTSC(1) / PAL(2) / Dendy(3)
+ * Dendy has PAL framerate and resolution, but ~NTSC timings,
+ * and has 50 dummy scanlines to force 50 fps. */
+void FCEUD_RegionOverride(int region)
+{
+   static int w = 0;
+   switch (region)
+   {
+      case 0: /* auto */
+         dendy = 0;
+         w = (GameInfo->vidsys == GIV_PAL) ? 1 : 0;
+         FCEU_DispMessage("Game loaded %s\n", w ? "PAL" : "NTSC");
+         break;
+      case 1: /* ntsc */
+         dendy = 0;
+         w = 0;
+         FCEU_DispMessage("Switched to NTSC");
+         break;
+      case 2: /* pal */
+         dendy = 0;
+         w = 1;
+         FCEU_DispMessage("Switched to PAL");
+         break;
+      case 3: /* dendy */
+         dendy = 1;
+         w = 0;
+         FCEU_DispMessage("Switched to Dendy");
+         break;
+   }
+
+   FSettings.PAL = w ;
+   PAL = w ? 1 : 0;
+   normal_scanlines = dendy ? 290 : 240;
+   totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
+	FCEUPPU_SetVideoSystem(w || dendy);
+	SetSoundVariables();
+
+   // Update the geometry
+   struct retro_system_av_info av_info;
+   retro_get_system_av_info(&av_info);
+   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
 
 void retro_deinit (void)
@@ -1004,6 +1051,21 @@ static void check_variables(bool startup)
          turbo_delay = 60;
       }
    }
+   unsigned old_regionoverride = regionoverride;
+   var.key = "fceumm_region";
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "Auto"))
+         regionoverride = 0;
+      else if (!strcmp(var.value, "NTSC"))
+         regionoverride = 1;
+      else if (!strcmp(var.value, "PAL"))
+         regionoverride = 2;
+      else if (!strcmp(var.value, "Dendy"))
+         regionoverride = 3;
+   }
+   if (regionoverride != old_regionoverride)
+      FCEUD_RegionOverride(regionoverride);
 
    var.key = "fceumm_aspect";
 
