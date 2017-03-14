@@ -95,7 +95,7 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
             sprintf(tmp, "%s"PSS "gameinfo"PSS "%s.pal", BaseDirectory, FileBase);
          break;
       case FCEUMKF_FDS:
-         sprintf(tmp, "%s"PSS "%s.fds", SaveDirectory, FileBase);
+            sprintf(tmp, "%s"PSS "%s.fds", SaveDirectory, FileBase);
          break;
       default:
          break;
