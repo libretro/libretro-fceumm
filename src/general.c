@@ -42,6 +42,7 @@
 #include "md5.h"
 
 static char BaseDirectory[2048];
+static char SaveDirectory[2048];
 static char FileBase[2048];
 static char FileExt[2048];	/* Includes the . character, as in ".nes" */
 
@@ -51,6 +52,12 @@ void FCEUI_SetBaseDirectory(char *dir)
 {
 	strncpy(BaseDirectory, dir, 2047);
 	BaseDirectory[2047] = 0;
+}
+
+void FCEUI_SetSaveDirectory(char *sav_dir)
+{
+	strncpy(SaveDirectory, sav_dir, 2047);
+	SaveDirectory[2047] = 0;
 }
 
 static char *odirs[FCEUIOD__COUNT] = { 0, 0, 0, 0, 0, 0 };		// odirs, odors. ^_^
@@ -86,6 +93,9 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
             sprintf(tmp, "%s"PSS "%s.pal", odirs[FCEUIOD_MISC], FileBase);
          else
             sprintf(tmp, "%s"PSS "gameinfo"PSS "%s.pal", BaseDirectory, FileBase);
+         break;
+      case FCEUMKF_FDS:
+         sprintf(tmp, "%s"PSS "%s.fds", SaveDirectory, FileBase);
          break;
       default:
          break;

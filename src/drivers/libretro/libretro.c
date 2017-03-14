@@ -1637,6 +1637,7 @@ bool retro_load_game(const struct retro_game_info *game)
 {
    unsigned i;
    char* dir=NULL;
+   char* sav_dir=NULL;
    size_t fourscore_len = sizeof(fourscore_db_list)   / sizeof(fourscore_db_list[0]);
    size_t famicom_4p_len = sizeof(famicom_4p_db_list) / sizeof(famicom_4p_db_list[0]);
 
@@ -1706,6 +1707,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
       FCEUI_SetBaseDirectory(dir);
+   if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &sav_dir) && sav_dir)
+      FCEUI_SetSaveDirectory(sav_dir);
 
    FCEUI_Initialize();
 

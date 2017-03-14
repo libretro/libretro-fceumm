@@ -179,6 +179,11 @@ void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall);
    below this directory. */
 void FCEUI_SetBaseDirectory(char *dir);
 
+#ifdef __LIBRETRO__
+void FCEUI_SetSaveDirectory(char *sav_dir);
+#endif
+
+
 /* Tells FCE Ultra to copy the palette data pointed to by pal and use it.
    Data pointed to by pal needs to be 64*3 bytes in length.
 */
