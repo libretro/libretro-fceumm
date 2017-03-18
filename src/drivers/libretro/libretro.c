@@ -165,6 +165,13 @@ void FCEUD_Message(char *s)
    log_cb.log(RETRO_LOG_INFO, "%s", s);
 }
 
+void FCEUD_DispMessage(char *m)
+{  struct retro_message msg;
+   msg.msg = m;
+   msg.frames = 180;
+   environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+}
+
 void FCEUD_NetworkClose(void)
 { }
 

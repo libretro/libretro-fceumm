@@ -89,13 +89,7 @@ void FCEU_DispMessage(char *format, ...)
    va_end(ap);
 
    howlong = 180;
-#ifdef __LIBRETRO__
-   struct retro_message msg;
-
-   msg.msg = errmsg;
-   msg.frames = howlong;
-   environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
-#endif
+   FCEUD_DispMessage(errmsg);
 }
 
 void FCEU_ResetMessages(void)
