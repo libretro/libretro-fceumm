@@ -708,7 +708,11 @@ void retro_set_environment(retro_environment_t cb)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
+#ifdef PSP
    info->need_fullpath = true;
+#else
+   info->need_fullpath = false;
+#endif
    info->valid_extensions = "fds|nes|unf|unif";
 #ifdef GIT_VERSION
    info->library_version = "git" GIT_VERSION;
