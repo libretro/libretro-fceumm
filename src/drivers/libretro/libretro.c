@@ -708,15 +708,15 @@ void retro_set_environment(retro_environment_t cb)
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   info->need_fullpath = true;
+   info->need_fullpath    = false;
    info->valid_extensions = "fds|nes|unf|unif";
 #ifdef GIT_VERSION
-   info->library_version = "git" GIT_VERSION;
+   info->library_version  = "git" GIT_VERSION;
 #else
-   info->library_version = "(SVN)";
+   info->library_version  = "(SVN)";
 #endif
-   info->library_name = "FCEUmm";
-   info->block_extract = false;
+   info->library_name     = "FCEUmm";
+   info->block_extract    = false;
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
