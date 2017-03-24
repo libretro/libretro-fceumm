@@ -31,9 +31,6 @@ int FCEUSS_LoadFP(MEM_TYPE *);
 void FCEUSS_Load_Mem(void);
 void FCEUSS_Save_Mem(void);
 
-extern int CurrentState;
-void FCEUSS_CheckStates(void);
-
 typedef struct {
 	void *v;
 	uint32 s;

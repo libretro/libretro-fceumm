@@ -279,7 +279,6 @@ endlseq:
          FCEU_OpenGenie();
 
    PowerNES();
-   FCEUSS_CheckStates();
 
    if (GameInfo->type != GIT_NSF) {
       FCEU_LoadGamePalette();
@@ -323,7 +322,6 @@ FCEUGI *FCEUI_CopyFamiStart(void)
 			FCEU_OpenGenie();
 
 	PowerNES();
-	FCEUSS_CheckStates();
 
 	if (GameInfo->type != GIT_NSF) {
 		FCEU_LoadGamePalette();

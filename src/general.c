@@ -65,13 +65,6 @@ static char *odirs[FCEUIOD__COUNT] = { 0, 0, 0, 0, 0, 0 };		// odirs, odors. ^_^
 void FCEUI_SetDirOverride(int which, char *n)
 {
 	odirs[which] = n;
-
-   /* Rebuild cache of present states/movies. */
-   if (GameInfo)
-   {
-      if (which == FCEUIOD_STATE)
-         FCEUSS_CheckStates();
-   }
 }
 
 char *FCEU_MakeFName(int type, int id1, char *cd1)

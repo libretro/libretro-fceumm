@@ -159,146 +159,18 @@ static int AddCheatEntry(char *name, uint32 addr, uint8 val, int compare, int st
 	return(1);
 }
 
-void FCEU_LoadGameCheats(FILE *override) {
-	FILE *fp;
-	uint32 addr;
-	uint32 val;
-	uint32 status;
-	uint32 type;
-	uint32 compare;
-	int x;
-
-	char linebuf[2048];
-	char *namebuf;
-	int tc = 0;
-	char *fn;
-
-	numsubcheats = savecheats = 0;
-
-	if (override)
-		fp = override;
-	else {
-		fn = FCEU_MakeFName(FCEUMKF_CHEAT, 0, 0);
-		fp = FCEUD_UTF8fopen(fn, "rb");
-		free(fn);
-		if (!fp) return;
-	}
-
-	while (fgets(linebuf, 2048, fp) > 0) {
-		char *tbuf = linebuf;
-		int doc = 0;
-
-		addr = val = compare = status = type = 0;
-
-		if (tbuf[0] == 'S') {
-			tbuf++;
-			type = 1;
-		} else type = 0;
-
-		if (tbuf[0] == 'C') {
-			tbuf++;
-			doc = 1;
-		}
-
-		if (tbuf[0] == ':') {
-			tbuf++;
-			status = 0;
-		} else status = 1;
-
-		if (doc) {
-			char *neo = &tbuf[4 + 2 + 2 + 1 + 1 + 1];
-			if (sscanf(tbuf, "%04x%*[:]%02x%*[:]%02x", &addr, &val, &compare) != 3)
-				continue;
-			namebuf = malloc(strlen(neo) + 1);
-			strcpy(namebuf, neo);
-		} else {
-			char *neo = &tbuf[4 + 2 + 1 + 1];
-			if (sscanf(tbuf, "%04x%*[:]%02x", &addr, &val) != 2)
-				continue;
-			namebuf = malloc(strlen(neo) + 1);
-			strcpy(namebuf, neo);
-		}
-
-		for (x = 0; x < strlen(namebuf); x++) {
-			if (namebuf[x] == 10 || namebuf[x] == 13) {
-				namebuf[x] = 0;
-				break;
-			} else if (namebuf[x] < 0x20) namebuf[x] = ' ';
-		}
-
-		AddCheatEntry(namebuf, addr, val, doc ? compare : -1, status, type);
-		tc++;
-	}
-	RebuildSubCheats();
-	if (!override)
-		fclose(fp);
+void FCEU_LoadGameCheats(FILE *override)
+{
+   numsubcheats = savecheats = 0;
+   RebuildSubCheats();
 }
 
 void FCEU_FlushGameCheats(FILE *override, int nosave) {
-	if (CheatComp) {
+	if (CheatComp)
+   {
 		free(CheatComp);
 		CheatComp = 0;
 	}
-	if ((!savecheats || nosave) && !override) {	/* Always save cheats if we're being overridden. */
-		if (cheats) {
-			struct CHEATF *next = cheats;
-			for (;; ) {
-				struct CHEATF *last = next;
-				next = next->next;
-				free(last->name);
-				free(last);
-				if (!next) break;
-			}
-			cheats = cheatsl = 0;
-		}
-	} else {
-		char *fn = 0;
-
-		if (!override)
-			fn = FCEU_MakeFName(FCEUMKF_CHEAT, 0, 0);
-
-		if (cheats) {
-			struct CHEATF *next = cheats;
-			FILE *fp;
-
-			if (override)
-				fp = override;
-			else
-				fp = FCEUD_UTF8fopen(fn, "wb");
-
-			if (fp) {
-				for (;; ) {
-					struct CHEATF *t;
-					if (next->type)
-						fputc('S', fp);
-					if (next->compare >= 0)
-						fputc('C', fp);
-
-					if (!next->status)
-						fputc(':', fp);
-
-					if (next->compare >= 0)
-						fprintf(fp, "%04x:%02x:%02x:%s\n", next->addr, next->val, next->compare, next->name);
-					else
-						fprintf(fp, "%04x:%02x:%s\n", next->addr, next->val, next->name);
-
-					free(next->name);
-					t = next;
-					next = next->next;
-					free(t);
-					if (!next) break;
-				}
-				if (!override)
-					fclose(fp);
-			} else
-				FCEUD_PrintError("Error saving cheats.");
-			cheats = cheatsl = 0;
-		} else if (!override)
-			remove(fn);
-		if (!override)
-			free(fn);
-	}
-
 	RebuildSubCheats();	/* Remove memory handlers. */
 }
 

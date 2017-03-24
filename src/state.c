@@ -242,7 +242,6 @@ endo:
    return ret;
 }
 
-int CurrentState = 0;
 extern int geniestage;
 
 void FCEUSS_Save_Mem(void)
@@ -314,34 +313,6 @@ void FCEUSS_Load_Mem(void)
    }
 
    memstream_close(mem);
-}
-
-void FCEUSS_CheckStates(void)
-{
-   MEM_TYPE *st = NULL;
-   char *fn;
-   int ssel;
-
-   for (ssel = 0; ssel < 10; ssel++)
-   {
-      fn = FCEU_MakeFName(FCEUMKF_STATE, ssel, 0);
-
-      if (fn)
-      {
-         st = fopen(fn, "rb");
-         free(fn);
-      }
-
-      if (st)
-      {
-         SaveStateStatus[ssel] = 1;
-         fclose(st);
-      }
-      else
-         SaveStateStatus[ssel] = 0;
-   }
-
-   CurrentState = 0;
 }
 
 void ResetExState(void (*PreSave)(void), void (*PostSave)(void))
