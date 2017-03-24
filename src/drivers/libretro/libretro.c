@@ -805,7 +805,6 @@ void FCEUD_RegionOverride(int region)
       case 0: /* auto */
          dendy = 0;
          w = (GameInfo->vidsys == GIV_PAL) ? 1 : 0;
-         FCEU_DispMessage("Game loaded %s\n", w ? "PAL" : "NTSC");
          break;
       case 1: /* ntsc */
          dendy = 0;
