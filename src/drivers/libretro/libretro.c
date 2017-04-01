@@ -1144,6 +1144,7 @@ static void FCEUD_UpdateInput(void)
           if (turbo_p0_toggle[i-8] > turbo_delay) {
              // Reset the toggle if
              // delay value is reached
+             pad[0] |= bindmap[i].nes;
              turbo_p0_toggle[i-8] = 0;
           }
           } else {
@@ -1164,6 +1165,7 @@ static void FCEUD_UpdateInput(void)
           if (turbo_p1_toggle[i-8] > turbo_delay) {
              // Reset the toggle if
              // delay value is reached
+             pad[1] |= bindmap[i].nes;
              turbo_p1_toggle[i-8] = 0;
           }
           } else {
