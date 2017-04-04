@@ -14,6 +14,7 @@
 	{0xfcdaca80,	  0,		0},	/* Elevator Action */
 	{0xc05a365b,	  0,		0},	/* Exed Exes (J) */
 	{0x32fa246f,	  0,		0},	/* Tag Team Pro Wrestling */
+	{0x43D30C2F,	  0,		0},	/* Ms. Pac-Man (USA) (Unl) Tengen */	
 	{0xb3c30bea,	  0,		0},	/* Xevious (J) */
 	{0xe492d45a,	  0,		0},	/* Zippy Race */
 	{0xe28f2596,	  0,		1},	/* Pac Land (J) */
