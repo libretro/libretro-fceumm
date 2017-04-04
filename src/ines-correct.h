@@ -196,7 +196,7 @@
 	{0xc68363f6,	180,		0},	/* Crazy Climber */
 	{0x0f05ff0a,	181,	   -1},	/* Seicross  (redump) */
 	{0x96ce586e,	189,		8},	/* Street Fighter 2 YOKO */
-   {0xa91a29b6,   190,      1},  /* Magic Kid Googoo */
+   	{0x0E76E4C1,   	190,        0},  /* Magic Kid Googoo */
 	{0x555a555e,	191,	   -1},
 	{0x2cc381f6,	191,	   -1},	/* Sugoro Quest - Dice no Senshitachi (As) */
 	{0xa145fae6,	192,	   -1},
