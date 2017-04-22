@@ -14,7 +14,7 @@
 	{0xfcdaca80,	  0,		0},	/* Elevator Action */
 	{0xc05a365b,	  0,		0},	/* Exed Exes (J) */
 	{0x32fa246f,	  0,		0},	/* Tag Team Pro Wrestling */
-	{0x43D30C2F,	  0,		0},	/* Ms. Pac-Man (USA) (Unl) Tengen */	
+	{0x43D30C2F,	  0,		0},	/* Ms. Pac-Man (USA) (Unl) Tengen */
 	{0xb3c30bea,	  0,		0},	/* Xevious (J) */
 	{0xe492d45a,	  0,		0},	/* Zippy Race */
 	{0xe28f2596,	  0,		1},	/* Pac Land (J) */
@@ -65,7 +65,7 @@
 	{0x02cc3973,	  3,		1},	/* Ninja Kid */
 	{0xbc065fc3,	  3,		1},	/* Pipe Dream */
 	{0xc9ee15a7,	  3,	   -1},	/* 3 is probably best.  41 WILL NOT WORK. */
-	{0x22d6d5bd,	  4,		1},
+	{0x22d6d5bd,	  4,		1},   /* Jikuu Yuuden - Debias (J) */
 	{0xd97c31b0,	  4,		1},	//Rasaaru Ishii no Childs Quest (J)
 	{0x404b2e8b,	  4,		2},	/* Rad Racer 2 */
 	{0x15141401,	  4,		8},	/* Asmik Kun Land */
@@ -82,7 +82,7 @@
 	{0x345d3a1a,	 11,		1},	/* Castle of Deceit */
 	{0x5e66eaea,	 13,		1},	/* Videomation */
 	{0xcd373baa,	 14,	   -1},	/* Samurai Spirits (Rex Soft) */
-	{0xbfc7a2e9,	 16,		8},
+	{0xbfc7a2e9,	 16,		8},   /* Gokuu Den (J) [a1] */
 	{0x6e68e31a,	 16,		8},	/* Dragon Ball 3*/
 	{0x33b899c9,	 16,	   -1},	/* Dragon Ball - Dai Maou Fukkatsu (J) [!] */
 	{0xa262a81f,	 16,	   -1},	/* Rokudenashi Blues (J) */
@@ -114,7 +114,7 @@
 	{0xa912b064,	 51|0x800,	8},	/* 11-in-1 Ball Games(has CHR ROM when it shouldn't) */
 	{0xb19a55dd,	 64,		8},	/* Road Runner */
 	{0xf92be3ec,	 64,	   -1},	/* Rolling Thunder */
-	{0xe84274c5,	 66,		1},
+	{0xe84274c5,	 66,		1},   /* Mississippi Satsujin Jiken (J) [h2] */
 	{0xbde3ae9b,	 66,		1},	/* Doraemon */
 	{0x9552e8df,	 66,		1},	/* Dragon Ball */
 	{0x811f06d9,	 66,		1},	/* Dragon Power */
@@ -127,21 +127,24 @@
 	{0x054bd3e9,	 74,	   -1},	/* Di 4 Ci - Ji Qi Ren Dai Zhan (As) */
 	{0x496ac8f7,	 74,	   -1},	/* Ji Jia Zhan Shi (As) */
 	{0xae854cef,	 74,	   -1},	/* Jia A Fung Yun (Chinese) */
-	{0xba51ac6f,	 78,		2},
+	{0xba51ac6f,	 78,		2},   /* Holy Diver (J) [!] */
 	{0x3d1c3137,	 78,		8},	/* Uchuusen - Cosmo Carrier */
-	{0xa4fbb438,	 79,		0},
+	{0xa4fbb438,	 79,		0},   /* F-15 City War (AVE) (REV1.x) [b1] */
 	{0xd4a76b07,	 79,		0},	/* F-15 City Wars*/
 	{0x1eb4a920,	 79,		1},	/* Double Strike */
 	{0x3e1271d5,	 79,		1},	/* Tiles of Fate */
 	{0xd2699893,	 88,		0},	/*  Dragon Spirit */
 	{0xbb7c5f7a,	 89,		8},	/* Mito Koumon or something similar */
+	{0x10119e6b,	 93,		8},	/* Fantasy Zone (Japan) */
 	{0x0da5e32e,	101,	   -1},	/* new Uruusey Yatsura */
 	{0x8eab381c,	113,		1},	/* Death Bots */
-	{0x6a03d3f3,	114,	   -1},
+	{0x3d3ff543,	113,		0},	/* Kazama Jun to Asama Yuuko no AV Dragon Mahjong (Japan) (Unl) */
+	{0x68379fdb,	113,		1},	/* Pipemania (Australia) (HES) (Unl) */
+	{0x6a03d3f3,	114,	   -1},  /* Lion King, The (Unl) (Mapper 114) */
 	{0x0d98db53,	114,	   -1},	/* Pocahontas */
 	{0x4e7729ff,	114,	   -1},	/* Super Donkey Kong */
 	{0xc5e5c5b2,	115,	   -1},	/* Bao Qing Tian (As).nes */
-	{0xa1dc16c0,	116,	   -1},
+	{0xa1dc16c0,	116,	   -1},  /* Street Heroes (Sachen) [b1] */
 	{0xe40dfb7e,	116,	   -1},	/* Somari (P conf.) */
 	{0xc9371ebb,	116,	   -1},	/* Somari (W conf.) */
 	{0xcbf4366f,	118,		8},	/* Alien Syndrome (U.S. unlicensed) */
@@ -162,11 +165,16 @@
 	{0xb6a727fa,	146,	   -1},	/* Papillion (As) [!] */
 	{0xa62b79e1,	146,	   -1},	/* Side Winder (HES) [!] */
 	{0xcc868d4e,	149,	   -1},	/* 16 Mahjong [p1][!] */
-	{0x29582ca1,	150,	   -1},
-	{0x40dbf7a2,	150,	   -1},
+	{0x29582ca1,	150,	   -1},  /* Mei Nu Quan (Honey Peach) (Sachen) [!] */
+	{0x40dbf7a2,	150,	   -1},  /* Olympic IQ (Sachen) [!] */
 	{0x73fb55ac,	150,	   -1},	/* 2-in-1 Cosmo Cop + Cyber Monster (Sachen) [!] */
 	{0xddcbda16,	150,	   -1},	/* 2-in-1 Tough Cop + Super Tough Cop (Sachen) [!] */
 	{0x47918d84,	150,	   -1},	/* auto-upturn */
+	{0x2394ae1c,	150,	   -1},	/* Happy Pairs (Asia) (PAL) (Unl) */
+	{0xcab40a6c,	150,	   -1},	/* Magic Cube (Asia) (PAL) (Unl) */
+	{0x34ddf806,	150,	   -1},	/* Strategist (Asia) (NTSC) (Unl) */
+	{0xc06facfc,	150,	   -1},	/* Strategist (Asia) (PAL) (Unl) */
+	{0x471173E7,	150,	   -1},	/* Chinese Checkers (Asia) (PAL) (Unl) */
 	{0x0f141525,	152,		8},	/* Arkanoid 2 (Japanese) */
 	{0xbda8f8e4,	152,		8},	/* Gegege no Kitarou 2 */
 	{0xb1a94b82,	152,		8},	/* Pocket Zaurus */
@@ -175,7 +183,8 @@
 	{0xd1691028,	154,		8},	/* Devil Man */
 	{0xcfd4a281,	155,		8},	/* Money Game.  Yay for money! */
 	{0x2f27cdef,	155,		8},	/* Tatakae!! Rahmen Man */
-	{0xccc03440,	156,	   -1},
+	{0xc1719664,	155,		8},	/* Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (Japan) */
+	{0xccc03440,	156,	   -1},  /* Buzz and Waldog (U) (Prototype) [!] */
 	{0x983d8175,	157,		8},	/* Datach Battle Rush */
 	{0x894efdbc,	157,		8},	/* Datach Crayon Shin Chan */
 	{0x19e81461,	157,		8},	/* Datach DBZ */
@@ -197,20 +206,20 @@
 	{0xc68363f6,	180,		0},	/* Crazy Climber */
 	{0x0f05ff0a,	181,	   -1},	/* Seicross  (redump) */
 	{0x96ce586e,	189,		8},	/* Street Fighter 2 YOKO */
-   	{0x0E76E4C1,   	190,        0},  /* Magic Kid Googoo */
-	{0x555a555e,	191,	   -1},
+	{0x0E76E4C1,	190,		0},	/* Magic Kid Googoo */
+	{0x555a555e,	191,	   -1},  /* Sugoro Quest - Dice no Senshitachi (Ch) */
 	{0x2cc381f6,	191,	   -1},	/* Sugoro Quest - Dice no Senshitachi (As) */
-	{0xa145fae6,	192,	   -1},
-	{0xa9115bc1,	192,	   -1},
-	{0x4c7bbb0e,	192,	   -1},
+	{0xa145fae6,	192,	   -1},  /* Young Chivalry (Ch) [b3] */
+	{0xa9115bc1,	192,	   -1},  /* Young Chivalry (Ch) [!] */
+	{0x4c7bbb0e,	192,	   -1},  /* Young Chivalry (Ch) [b2] */
 	{0x98c1cd4b,	192,	   -1},	/* Ying Lie Qun Xia Zhuan (Chinese) */
 	{0xee810d55,	192,	   -1},	/* You Ling Xing Dong (Ch) */
 	{0x442f1a29,	192,	   -1},	/* Young chivalry */
 	{0x637134e8,	193,		1},	/* Fighting Hero */
 	{0xa925226c,	194,	   -1},	/* Dai-2-Ji - Super Robot Taisen (As) */
-	{0x7f3dbf1b,	195,		0},
+	{0x7f3dbf1b,	195,		0},   /* Chaos World (Ch) */
 	{0xb616885c,	195,		0},	/* CHaos WOrld (Ch)*/
-	{0x33c5df92,	195,	   -1},
+	{0x33c5df92,	195,	   -1},  /* Captain Tsubasa Vol. II - Super Striker (Ch) [a1] */
 	{0x1bc0be6c,	195,	   -1},	/* Captain Tsubasa Vol 2 - Super Striker (C) */
 	{0xd5224fde,	195,	   -1},	/* Crystalis (c) */
 	{0xfdec419f,	196,	   -1},	/* Street Fighter VI 16 Peoples (Unl) [!] */
@@ -218,7 +227,7 @@
 	{0x9a2cf02c,	198,	   -1},
 	{0xd8b401a7,	198,	   -1},
 	{0x28192599,	198,	   -1},
-	{0x19b9e732,	198,	   -1},
+	{0x19b9e732,	198,	   -1},  /* Tenchi wo Kurau II - Shokatsu Koumei Den (J) (PRG0) [T-Chi] */
 	{0xdd431ba7,	198,	   -1},	/* Tenchi wo kurau 2 (c) */
 	{0xd871d3e6,	199,	   -1},	/* Dragon Ball Z 2 - Gekishin Freeza! (C) */
 	{0xed481b7c,	199,	   -1},	/* Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (C) */
