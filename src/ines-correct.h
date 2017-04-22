@@ -135,8 +135,11 @@
 	{0x3e1271d5,	 79,		1},	/* Tiles of Fate */
 	{0xd2699893,	 88,		0},	/*  Dragon Spirit */
 	{0xbb7c5f7a,	 89,		8},	/* Mito Koumon or something similar */
+	{0x10119e6b,	 93,		8},	/* Fantasy Zone (Japan) */
 	{0x0da5e32e,	101,	   -1},	/* new Uruusey Yatsura */
 	{0x8eab381c,	113,		1},	/* Death Bots */
+	{0x3d3ff543,	113,		0},	/* Kazama Jun to Asama Yuuko no AV Dragon Mahjong (Japan) (Unl) */
+	{0x68379fdb,	113,		1},	/* Pipemania (Australia) (HES) (Unl) */
 	{0x6a03d3f3,	114,	   -1},  /* Lion King, The (Unl) (Mapper 114) */
 	{0x0d98db53,	114,	   -1},	/* Pocahontas */
 	{0x4e7729ff,	114,	   -1},	/* Super Donkey Kong */
@@ -167,6 +170,11 @@
 	{0x73fb55ac,	150,	   -1},	/* 2-in-1 Cosmo Cop + Cyber Monster (Sachen) [!] */
 	{0xddcbda16,	150,	   -1},	/* 2-in-1 Tough Cop + Super Tough Cop (Sachen) [!] */
 	{0x47918d84,	150,	   -1},	/* auto-upturn */
+	{0x2394ae1c,	150,	   -1},	/* Happy Pairs (Asia) (PAL) (Unl) */
+	{0xcab40a6c,	150,	   -1},	/* Magic Cube (Asia) (PAL) (Unl) */
+	{0x34ddf806,	150,	   -1},	/* Strategist (Asia) (NTSC) (Unl) */
+	{0xc06facfc,	150,	   -1},	/* Strategist (Asia) (PAL) (Unl) */
+	{0x471173E7,	150,	   -1},	/* Chinese Checkers (Asia) (PAL) (Unl) */
 	{0x0f141525,	152,		8},	/* Arkanoid 2 (Japanese) */
 	{0xbda8f8e4,	152,		8},	/* Gegege no Kitarou 2 */
 	{0xb1a94b82,	152,		8},	/* Pocket Zaurus */
@@ -175,6 +183,7 @@
 	{0xd1691028,	154,		8},	/* Devil Man */
 	{0xcfd4a281,	155,		8},	/* Money Game.  Yay for money! */
 	{0x2f27cdef,	155,		8},	/* Tatakae!! Rahmen Man */
+	{0xc1719664,	155,		8},	/* Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (Japan) */
 	{0xccc03440,	156,	   -1},  /* Buzz and Waldog (U) (Prototype) [!] */
 	{0x983d8175,	157,		8},	/* Datach Battle Rush */
 	{0x894efdbc,	157,		8},	/* Datach Crayon Shin Chan */
@@ -197,7 +206,7 @@
 	{0xc68363f6,	180,		0},	/* Crazy Climber */
 	{0x0f05ff0a,	181,	   -1},	/* Seicross  (redump) */
 	{0x96ce586e,	189,		8},	/* Street Fighter 2 YOKO */
-   	{0x0E76E4C1,   	190,        0},  /* Magic Kid Googoo */
+	{0x0E76E4C1,	190,		0},	/* Magic Kid Googoo */
 	{0x555a555e,	191,	   -1},  /* Sugoro Quest - Dice no Senshitachi (Ch) */
 	{0x2cc381f6,	191,	   -1},	/* Sugoro Quest - Dice no Senshitachi (As) */
 	{0xa145fae6,	192,	   -1},  /* Young Chivalry (Ch) [b3] */
