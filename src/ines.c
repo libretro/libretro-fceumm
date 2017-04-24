@@ -525,7 +525,7 @@ static BMAPPINGLocal bmap[] = {
 //	{(uint8_t*)"",					131, Mapper131_Init},
 	{(uint8_t*)"TXC/MGENIUS 22111",	132, UNL22211_Init},
 	{(uint8_t*)"SA72008",				133, SA72008_Init},
-   {(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init},
+	{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init},
 //	{(uint8_t*)"",					135, Mapper135_Init},
 	{(uint8_t*)"TCU02",				136, TCU02_Init},
 	{(uint8_t*)"S8259D",				137, S8259D_Init},
@@ -574,12 +574,12 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					180, Mapper180_Init},
 	{(uint8_t*)"",					181, Mapper181_Init},
 //	{(uint8_t*)"",					182, Mapper182_Init},	// Deprecated, dupe
-   {(uint8_t*)"",					183, Mapper183_Init},
+	{(uint8_t*)"",					183, Mapper183_Init},
 	{(uint8_t*)"",					184, Mapper184_Init},
 	{(uint8_t*)"",					185, Mapper185_Init},
-   {(uint8_t*)"",					186, Mapper186_Init},
-   {(uint8_t*)"",					187, Mapper187_Init},
-   {(uint8_t*)"",					188, Mapper188_Init},
+	{(uint8_t*)"",					186, Mapper186_Init},
+	{(uint8_t*)"",					187, Mapper187_Init},
+	{(uint8_t*)"",					188, Mapper188_Init},
 	{(uint8_t*)"",					189, Mapper189_Init},
 	{(uint8_t*)"",					190, Mapper190_Init},
 	{(uint8_t*)"",					191, Mapper191_Init},
@@ -601,7 +601,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"TAITO X1-005 Rev. B",	207, Mapper207_Init},
 	{(uint8_t*)"",					208, Mapper208_Init},
 	{(uint8_t*)"",					209, Mapper209_Init},
-   {(uint8_t*)"",					210, Mapper210_Init},
+	{(uint8_t*)"",					210, Mapper210_Init},
 	{(uint8_t*)"",					211, Mapper211_Init},
 	{(uint8_t*)"",					212, Mapper212_Init},
 	{(uint8_t*)"",					213, Mapper213_Init},
@@ -652,8 +652,8 @@ static BMAPPINGLocal bmap[] = {
 
 int iNESLoad(const char *name, FCEUFILE *fp) {
 	struct md5_context md5;
-    char* mappername;
-    uint32 mappertest;
+	 char* mappername;
+	 uint32 mappertest;
 
 	if (FCEU_fread(&head, 1, 16, fp) != 16)
 		return 0;
@@ -802,8 +802,15 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		|| strstr(name, "(Europe)") || strstr(name, "(PAL)")
 		|| strstr(name, "(F)") || strstr(name, "(f)")
 		|| strstr(name, "(G)") || strstr(name, "(g)")
-		|| strstr(name, "(I)") || strstr(name, "(i)"))
+		|| strstr(name, "(I)") || strstr(name, "(i)")
+		|| strstr(name, "(S)") || strstr(name, "(s)")
+		|| strstr(name, "(France)") || strstr(name, "(Germany)")
+		|| strstr(name, "(Italy)") || strstr(name, "(Spain)")
+		|| strstr(name, "(Sweden)") || strstr(name, "(Sw)")
+		|| strstr(name, "(Australia)") || strstr(name, "(A)")
+		|| strstr(name, "(a)")) {
 		GameInfo->vidsys = GIV_PAL;
+	}
 
 	return 1;
 }
