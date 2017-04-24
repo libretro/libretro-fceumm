@@ -725,9 +725,13 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		FCEU_fread(VROM, 0x2000, VROM_size, fp);
 
 	md5_starts(&md5);
-	md5_update(&md5, ROM, ROM_size << 14);
-
-	iNESGameCRC32 = CalcCRC32(0, ROM, ROM_size << 14);
+	if (head.ROM_size) {
+		md5_update(&md5, ROM, head.ROM_size << 14);
+		iNESGameCRC32 = CalcCRC32(0, ROM, head.ROM_size << 14);
+	} else {
+		md5_update(&md5, ROM, ROM_size << 14);
+		iNESGameCRC32 = CalcCRC32(0, ROM, ROM_size << 14);
+	}
 
 	if (VROM_size) {
 		iNESGameCRC32 = CalcCRC32(iNESGameCRC32, VROM, VROM_size << 13);
@@ -738,7 +742,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	iNESCart.CRC32 = iNESGameCRC32;
 
-	FCEU_printf(" PRG ROM:  %3d x 16KiB\n", ROM_size);
+	FCEU_printf(" PRG ROM:  %3d x 16KiB\n", head.ROM_size ?  head.ROM_size : 256);
 	FCEU_printf(" CHR ROM:  %3d x  8KiB\n", head.VROM_size);
 	FCEU_printf(" ROM CRC32:  0x%08lx\n", iNESGameCRC32);
 	FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(iNESCart.MD5));
