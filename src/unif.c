@@ -151,7 +151,7 @@ static int NAME(FCEUFILE *fp) {
 	int index;
 	int t;
 
-	FCEU_printf(" Name: ");
+	//FCEU_printf(" Name: ");
 	index = 0;
 
 	while ((t = FCEU_fgetc(fp)) > 0)
@@ -159,7 +159,7 @@ static int NAME(FCEUFILE *fp) {
 			namebuf[index++] = t;
 
 	namebuf[index] = 0;
-	FCEU_printf("%s\n", namebuf);
+	FCEU_printf(" Name: %s\n", namebuf);
 
 	if (!GameInfo->name) {
 		GameInfo->name = malloc(strlen(namebuf) + 1);
@@ -256,7 +256,7 @@ static int LoadPRG(FCEUFILE *fp) {
 
 	if (z < 0 || z > 15)
 		return(0);
-	FCEU_printf(" PRG ROM %d size: %d", z, (int)uchead.info);
+	FCEU_printf(" PRG ROM %d size: %d\n", z, (int)uchead.info);
 	if (malloced[z])
 		free(malloced[z]);
 	t = FixRomSize(uchead.info, 2048);
@@ -267,8 +267,8 @@ static int LoadPRG(FCEUFILE *fp) {
 	if (FCEU_fread(malloced[z], 1, uchead.info, fp) != uchead.info) {
 		FCEU_printf("Read Error!\n");
 		return(0);
-	} else
-		FCEU_printf("\n");
+	} /* else
+		FCEU_printf("\n"); */
 
 	SetupCartPRGMapping(z, malloced[z], t, 0);
 	return(1);
@@ -291,7 +291,7 @@ static int LoadCHR(FCEUFILE *fp) {
 	z = uchead.ID[3] - '0';
 	if (z < 0 || z > 15)
 		return(0);
-	FCEU_printf(" CHR ROM %d size: %d", z, (int)uchead.info);
+	FCEU_printf(" CHR ROM %d size: %d\n", z, (int)uchead.info);
 	if (malloced[16 + z])
 		free(malloced[16 + z]);
 	t = FixRomSize(uchead.info, 8192);
@@ -302,8 +302,8 @@ static int LoadCHR(FCEUFILE *fp) {
 	if (FCEU_fread(malloced[16 + z], 1, uchead.info, fp) != uchead.info) {
 		FCEU_printf("Read Error!\n");
 		return(0);
-	} else
-		FCEU_printf("\n");
+	} /* else
+		FCEU_printf("\n"); */
 
 	SetupCartCHRMapping(z, malloced[16 + z], t, 0);
 	return(1);
@@ -342,7 +342,7 @@ static BMAPPING bmap[] = {
 	{ "BS-5", BMCBS5_Init, 0 },
 	{ "CC-21", UNLCC21_Init, 0 },
 	{ "CITYFIGHT", UNLCITYFIGHT_Init, 0 },
-        { "10-24-C-A1", BMC1024CA1_Init, 0 },
+	{ "10-24-C-A1", BMC1024CA1_Init, 0 },
 	{ "CNROM", CNROM_Init, 0 },
 	{ "CPROM", CPROM_Init, BMCFLAG_16KCHRR },
 	{ "D1038", BMCD1038_Init, 0 },
@@ -354,7 +354,7 @@ static BMAPPING bmap[] = {
 	{ "ELROM", ELROM_Init, 0 },
 	{ "ETROM", ETROM_Init, 0 },
 	{ "EWROM", EWROM_Init, 0 },
-        { "FK23C", BMCFK23C_Init, BMCFLAG_256KCHRR },
+	{ "FK23C", BMCFK23C_Init, BMCFLAG_256KCHRR },
 	{ "FK23CA", BMCFK23CA_Init, BMCFLAG_256KCHRR },
 	{ "FS304", UNLFS304_Init, 0 },
 	{ "G-146", BMCG146_Init, 0 },
@@ -368,6 +368,7 @@ static BMAPPING bmap[] = {
 	{ "KONAMI-QTAI", Mapper190_Init, 0 },
 	{ "KS7012", UNLKS7012_Init, 0 },
 	{ "KS7013B", UNLKS7013B_Init, 0 },
+	{ "KS7016", UNLKS7016_Init, 0 },
 	{ "KS7017", UNLKS7017_Init, 0 },
 	{ "KS7030", UNLKS7030_Init, 0 },
 	{ "KS7031", UNLKS7031_Init, 0 },
@@ -456,6 +457,8 @@ static BMAPPING bmap[] = {
 	{ "EH8813A", UNLEH8813A_Init, 0 },
 	{ "HP898F", BMCHP898F_Init, 0 },
 	{ "F-15", BMCF15_Init, 0 },
+	{ "81-01-31-C", BMC810131C_Init, 0 },
+	{ "8-IN-1", BMC8IN1_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
