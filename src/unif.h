@@ -126,6 +126,7 @@ void UNLH2288_Init(CartInfo *info);
 void UNLKOF97_Init(CartInfo *info);
 void UNLKS7012_Init(CartInfo *info);
 void UNLKS7013B_Init(CartInfo *info);
+void UNLKS7016_Init(CartInfo *info);
 void UNLKS7017_Init(CartInfo *info);
 void UNLKS7030_Init(CartInfo *info);
 void UNLKS7031_Init(CartInfo *info);
@@ -152,6 +153,8 @@ void UNLBMW8544_Init(CartInfo *info);
 void UNLEH8813A_Init(CartInfo *info);
 void BMCHP898F_Init(CartInfo *info);
 void BMCF15_Init(CartInfo *info);
+void BMC810131C_Init(CartInfo *info);
+void BMC8IN1_Init(CartInfo *info);
 
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);
