@@ -495,7 +495,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					101, Mapper101_Init},
 //	{(uint8_t*)"",					102, Mapper102_Init},
 	{(uint8_t*)"FDS DOKIDOKI FULL",	103, Mapper103_Init},
-//	{(uint8_t*)"",					104, Mapper104_Init},
+	{(uint8_t*)"CAMERICA GOLDENFIVE",	104, Mapper104_Init},
 	{(uint8_t*)"NES-EVENT NWC1990",	105, Mapper105_Init},
 	{(uint8_t*)"SMB3 PIRATE A",		106, Mapper106_Init},
 	{(uint8_t*)"MAGIC CORP A",		107, Mapper107_Init},
