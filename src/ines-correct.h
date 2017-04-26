@@ -137,6 +137,7 @@
 	{0xbb7c5f7a,	 89,		8},	/* Mito Koumon or something similar */
 	{0x10119e6b,	 93,		8},	/* Fantasy Zone (Japan) */
 	{0x0da5e32e,	101,	   -1},	/* new Uruusey Yatsura */
+	{0x6096f84e,	104,	   1},	/* Pegasus 5-in-1 (Golden Five) (Unl) */
 	{0x8eab381c,	113,		1},	/* Death Bots */
 	{0x3d3ff543,	113,		0},	/* Kazama Jun to Asama Yuuko no AV Dragon Mahjong (Japan) (Unl) */
 	{0x68379fdb,	113,		1},	/* Pipemania (Australia) (HES) (Unl) */
@@ -202,6 +203,19 @@
 	{0x1c098942,	162,	   -1},	/* Xi You Ji Hou Zhuan (Ch) */
 	{0x081caaff,	163,	   -1},	/* Commandos (Ch) */
 	{0x02c41438,	176,	   -1},	/* Xing He Zhan Shi (C) */
+	{0x409601a5,	176,	   -1},	/* 4-in-1 (BS-8088) [p1][!] */
+	{0xa391549d,	176,	   -1},	/* 4-in-1 (FK23C8021) [p1][!] */
+	{0x06d13d9e,	176,	   -1},	/* 4-in-1 (FK23C8026) [p1][!] */
+	{0x2ebd5fd6,	176,	   -1},	/* 4-in-1 (FK23C8033) [p1][!] */
+	{0x23e4906a,	176,	   -1},	/* 4-in-1 (FK23C8043) [p1][!] */
+	{0x10155a92,	176,	   -1},	/* 4-in-1 (FK23C8045) [p1][!] */
+	{0x8baeedc0,	176,	   -1},	/* 4-in-1 (FK23C8052) [p1][!] */
+	{0x39307391,	176,	   -1},	/* 4-in-1 (FK23C8056) [p1][!] */
+	{0x72ceab1e,	176,	   -1},	/* 4-in-1 (FK23C8078) (Ch) [p1] */
+	{0x07d3f6cb,	176,	   -1},	/* 4-in-1 (FK23C8079) [p1][!] */
+	{0xc6d97331,	176,	   -1},	/* 4-in-1 (FK23Cxxxx, S-0210A PCB)[p1][!] */
+	{0x17d43af9,	176,	   -1},	/* 5-in-1 (K5003) [p1][!]-1125) (Ch) */
+	{0x20379331,	176,	   -1},	/* Mortal Kombat 30 Peoples (DH1043) (Ch) */
 	{0x558c0dc3,	178,	   -1},	/* Super 2in1 (unl)[!] {mapper unsupported} */
 	{0xc68363f6,	180,		0},	/* Crazy Climber */
 	{0x0f05ff0a,	181,	   -1},	/* Seicross  (redump) */

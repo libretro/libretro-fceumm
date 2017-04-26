@@ -495,7 +495,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					101, Mapper101_Init},
 //	{(uint8_t*)"",					102, Mapper102_Init},
 	{(uint8_t*)"FDS DOKIDOKI FULL",	103, Mapper103_Init},
-//	{(uint8_t*)"",					104, Mapper104_Init},
+	{(uint8_t*)"CAMERICA GOLDENFIVE",	104, Mapper104_Init},
 	{(uint8_t*)"NES-EVENT NWC1990",	105, Mapper105_Init},
 	{(uint8_t*)"SMB3 PIRATE A",		106, Mapper106_Init},
 	{(uint8_t*)"MAGIC CORP A",		107, Mapper107_Init},
@@ -831,7 +831,7 @@ static int iNES_Init(int num) {
 				case 13:  CHRRAMSize = 16 * 1024; break;
 				case 6:
 				case 96:  CHRRAMSize = 32 * 1024; break;
-				case 176: CHRRAMSize = 256 * 1024; break;
+				case 176: CHRRAMSize = 128 * 1024; break;
 				default:  CHRRAMSize = 8 * 1024; break;
 				}
 				if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
