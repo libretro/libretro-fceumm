@@ -16,6 +16,7 @@ typedef struct {
 					// that are not really MMC3 but are
 					// set to mapper 4.
 	int battery;	// Presence of an actual battery.
+	int vram_size;
 	uint8 MD5[16];
 	uint32 CRC32;	// Should be set by the iNES/UNIF loading
 					// code, used by mapper/board code, maybe
