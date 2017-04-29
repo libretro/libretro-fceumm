@@ -421,7 +421,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"CC-21 MI HUN CHE",	 27, UNLCC21_Init},		// Former dupe for VRC2/VRC4 mapper, redefined with crc to mihunche boards
 //	{(uint8_t*)"",					 28, Mapper28_Init},	// Custom Multidiscrete mapper for PDs
 //	{(uint8_t*)"",					 29, Mapper29_Init},
-//	{(uint8_t*)"",					 30, Mapper30_Init},
+	{(uint8_t*)"UNROM 512",				 30, UNROM512_Init},
 //	{(uint8_t*)"",					 31, Mapper31_Init},
 	{(uint8_t*)"IREM G-101",			 32, Mapper32_Init},
 	{(uint8_t*)"TC0190FMC/TC0350FMR",	 33, Mapper33_Init},
@@ -611,7 +611,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					217, Mapper217_Init},	// Redefined to a new Discrete BMC mapper
 //	{(uint8_t*)"",					218, Mapper218_Init},
 	{(uint8_t*)"UNLA9746",			219, UNLA9746_Init},
-	{(uint8_t*)"Debug Mapper",		220, UNLPEC586Init}, // UNLKS7057_Init},
+	{(uint8_t*)"Debug Mapper",		220, UNLKS7057_Init},
 	{(uint8_t*)"UNLN625092",			221, UNLN625092_Init},
 	{(uint8_t*)"",					222, Mapper222_Init},
 //	{(uint8_t*)"",					223, Mapper223_Init},
@@ -830,11 +830,15 @@ static int iNES_Init(int num) {
 				switch (num) {	// FIXME, mapper or game data base with the board parameters and ROM/RAM sizes
 				case 13:  CHRRAMSize = 16 * 1024; break;
 				case 6:
+				case 30:
+				case 45:
 				case 96:  CHRRAMSize = 32 * 1024; break;
 				case 176: CHRRAMSize = 128 * 1024; break;
 				default:  CHRRAMSize = 8 * 1024; break;
 				}
+				iNESCart.vram_size = CHRRAMSize;
 				if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
+				FCEU_MemoryRand(VROM, CHRRAMSize);
 				UNIFchrrama = VROM;
 				SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
 				AddExState(VROM, CHRRAMSize, 0, "CHRR");
