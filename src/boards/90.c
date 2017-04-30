@@ -95,51 +95,49 @@ static void mira(void) {
 	}
 }
 
-static void tekprom(void) {	// TODO: verify for single, small multi and large multi
+static void tekprom(void) {
 	uint32 bankmode = ((tkcom[3] & 6) << 5);
 	switch (tkcom[0] & 7) {
-	case 00:
-		if (tkcom[0] & 0x80)
-			setprg8(0x6000, (((prgb[3] << 2) + 3) & 0x3F) | bankmode);
-		setprg32(0x8000, (prgb[3] & 7) | ((tkcom[3] & 7) << 3));
-		break;
-	case 01:
-		if (tkcom[0] & 0x80)
-			setprg8(0x6000, (((prgb[3] << 1) + 1) & 0x3F) | bankmode);
-		setprg16(0x8000, (prgb[1] & 0x0F) | ((tkcom[3] & 7) << 4));
-		setprg16(0xC000, 0x0F | ((tkcom[3] & 7) << 4));
-		break;
-	case 03:	// bit reversion
-	case 02:
-		if (tkcom[0] & 0x80)
-			setprg8(0x6000, (prgb[3] & 0x1F) | ((tkcom[3] & 7) << 5));	// 45in1 multy has different bits, seems board was hacked to support big data banks
-		setprg8(0x8000, (prgb[0] & 0x1F) | ((tkcom[3] & 7) << 5));
-		setprg8(0xa000, (prgb[1] & 0x1F) | ((tkcom[3] & 7) << 5));
-		setprg8(0xc000, (prgb[2] & 0x1F) | ((tkcom[3] & 7) << 5));
-		setprg8(0xe000, 0x1F | ((tkcom[3] & 7) << 5));
-//			setprg8(0xe000,(prgb[3]&0x0F)|((tkcom[3]&6)<<3));
-//			setprg32(0x8000,((prgb[0]&0x0F)>>2)|((tkcom[3]&6)<<3));
-		break;
-	case 04:
-		if (tkcom[0] & 0x80)
-			setprg8(0x6000, (((prgb[3] << 2) + 3) & 0x3F) | bankmode);
-		setprg32(0x8000, (prgb[3] & 0x0F) | ((tkcom[3] & 6) << 3));
-		break;
-	case 05:
-		if (tkcom[0] & 0x80)
-			setprg8(0x6000, (((prgb[3] << 1) + 1) & 0x3F) | bankmode);
-		setprg16(0x8000, (prgb[1] & 0x1F) | ((tkcom[3] & 6) << 4));
-		setprg16(0xC000, (prgb[3] & 0x1F) | ((tkcom[3] & 6) << 4));
-		break;
-	case 07:	// bit reversion
-	case 06:
-		if (tkcom[0] & 0x80)
-			setprg8(0x6000, (prgb[3] & 0x3F) | bankmode);
-		setprg8(0x8000, (prgb[0] & 0x3F) | bankmode);
-		setprg8(0xa000, (prgb[1] & 0x3F) | bankmode);
-		setprg8(0xc000, (prgb[2] & 0x3F) | bankmode);
-		setprg8(0xe000, (prgb[3] & 0x3F) | bankmode);
-		break;
+		case 00:
+			if (tkcom[0] & 0x80)
+				setprg8(0x6000, (((prgb[3] << 2) + 3) & 0x3F) | bankmode);
+			setprg32(0x8000, 0x0F | ((tkcom[3] & 6) << 3));
+			break;
+		case 01:
+			if (tkcom[0] & 0x80)
+				setprg8(0x6000, (((prgb[3] << 1) + 1) & 0x3F) | bankmode);
+			setprg16(0x8000, (prgb[1] & 0x1F) | ((tkcom[3] & 6) << 4));
+			setprg16(0xC000, 0x1F | ((tkcom[3] & 6) << 4));
+			break;
+		case 03: // bit reversion
+		case 02:
+			if (tkcom[0] & 0x80)
+				setprg8(0x6000, (prgb[3] & 0x3F) | bankmode);
+			setprg8(0x8000, (prgb[0] & 0x3F) | bankmode);
+			setprg8(0xa000, (prgb[1] & 0x3F) | bankmode);
+			setprg8(0xc000, (prgb[2] & 0x3F) | bankmode);
+			setprg8(0xe000, 0x3F | bankmode);
+			break;
+		case 04:
+			if (tkcom[0] & 0x80)
+				setprg8(0x6000, (((prgb[3] << 2) + 3) & 0x3F) | bankmode);
+			setprg32(0x8000, (prgb[3] & 0x0F) | ((tkcom[3] & 6) << 3));
+			break;
+		case 05:
+			if (tkcom[0] & 0x80)
+				setprg8(0x6000, (((prgb[3] << 1) + 1) & 0x3F) | bankmode);
+			setprg16(0x8000, (prgb[1] & 0x1F) | ((tkcom[3] & 6) << 4));
+			setprg16(0xC000, (prgb[3] & 0x1F) | ((tkcom[3] & 6) << 4));
+			break;
+		case 07: // bit reversion
+		case 06:
+			if (tkcom[0] & 0x80)
+				setprg8(0x6000, (prgb[3] & 0x3F) | bankmode);
+			setprg8(0x8000, (prgb[0] & 0x3F) | bankmode);
+			setprg8(0xa000, (prgb[1] & 0x3F) | bankmode);
+			setprg8(0xc000, (prgb[2] & 0x3F) | bankmode);
+			setprg8(0xe000, (prgb[3] & 0x3F) | bankmode);
+			break;
 	}
 }
 
@@ -436,7 +434,6 @@ static void M90Power(void) {
 	tekprom();
 	tekvrom();
 }
-
 
 void Mapper90_Init(CartInfo *info) {
 	is211 = 0;
