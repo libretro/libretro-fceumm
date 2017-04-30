@@ -57,6 +57,11 @@
 	{0x419461d0,	  2,		1},	/* Super Cars */
 	{0xdbf90772,	  3,		0},	/* Alpha Mission */
 	{0xd858033d,	  3,		0},	/* Armored Scrum Object */
+	{0xf283cf58,	  3,		0},	/* Colorful Dragon (Asia) (PAL) (Unl) */
+	{0xd858033d,	  3,		0},	/* Incantation (Asia) (Unl) */
+	{0x8f154a0d,	  3,		0},	/* Pu Ke Jing Ling (China) (Unl) */
+	{0xd04a40e6,	  3,		0},	/* Bingo 75 (Asia) (Unl) */
+	{0xebd0644d,	  3,		1},	/* Dao Shuai (Asia) (Unl) */
 	{0x9bde3267,	  3,		1},	/* Adventures of Dino Riki */
 	{0xd8eff0df,	  3,		1},	/* Gradius (J) */
 	{0x1d41cc8c,	  3,		1},	/* Gyruss */

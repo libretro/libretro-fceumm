@@ -150,7 +150,25 @@ static void CNROMSync(void) {
 }
 
 void CNROM_Init(CartInfo *info) {
-	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, 1);
+	//TODO: move these to extended database when implemented.
+	int _busc, x;
+	uint64 partialmd5 = 0;
+	_busc = 1;
+	for (x = 0; x < 8; x++)
+		partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
+	if (partialmd5 == 0x117181328eb1ad23LL) //75 Bingo (Sachen-English) [U].unf
+		_busc = 0;
+	else
+		switch (info->CRC32) {
+		case 0xf283cf58: // Colorful Dragon (Asia) (PAL) (Unl).nes
+		case 0x2915faf0: // Incantation (Asia) (Unl).nes
+		case 0xebd0644d: // Dao Shuai (Asia) (Unl).nes
+		case 0x8f154a0d: // Pu Ke Jing Ling (China) (Unl).nes
+		case 0xd04a40e6: // Bingo 75 (Asia) (Unl).nes
+			_busc = 0;
+			break;
+	}
+	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, _busc);
 }
 
 //------------------ Map 7 ---------------------------
