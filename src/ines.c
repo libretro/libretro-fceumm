@@ -600,9 +600,9 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"NAMCOT 108 Rev. C",	206, Mapper206_Init},	// Deprecated, Used to be "DEIROM" whatever it means, but actually simple version of MMC3
 	{(uint8_t*)"TAITO X1-005 Rev. B",	207, Mapper207_Init},
 	{(uint8_t*)"",					208, Mapper208_Init},
-	{(uint8_t*)"",					209, Mapper209_Init},
+	{(uint8_t*)"HUMMER/JY BOARD",	209, Mapper209_Init},
 	{(uint8_t*)"",					210, Mapper210_Init},
-	{(uint8_t*)"",					211, Mapper211_Init},
+	{(uint8_t*)"HUMMER/JY BOARD",	211, Mapper211_Init},
 	{(uint8_t*)"",					212, Mapper212_Init},
 	{(uint8_t*)"",					213, Mapper213_Init},
 	{(uint8_t*)"",					214, Mapper214_Init},
