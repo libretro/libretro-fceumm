@@ -96,16 +96,19 @@ static uint64 CartList[] =
 	0						/* Abandon all hope if the game has 0 in the lower 64-bits of its MD5 hash */
 };
 
-static void DetectPRGbonus(uint64 md5partial) {
-	int x;
-	x = 0;
-	while (CartList[x] != 0) {
-		if (CartList[x] == md5partial) {
-			prg_bonus = 0;
-			return;
+int DetectPRGbonus(CartInfo *tmp) {
+	int x, i = 0;
+	uint64 partialmd5;
+
+	for (x = 0; x < 8; x++)
+		partialmd5 |= (uint64)tmp->MD5[15 - x] << (x * 8);
+	while (CartList[i] != 0) {
+		if (CartList[i] == partialmd5) {
+			return (0);
 		}
-		x++;
+		i++;
 	}
+	return (1);
 }
 
 static void BMCFK23CPW(uint32 A, uint8 V) {
@@ -128,7 +131,7 @@ static void BMCFK23CPW(uint32 A, uint8 V) {
 			V |= (EXPREGS[1] << 1);
 			setprg8(A, V);
 		} else
-			setprg8(A, V & prg_mask);
+			setprg8(A, (block << 1) | (V & prg_mask));
 		if (EXPREGS[3] & 2) {
 			setprg8(0xC000, EXPREGS[4]);
 			setprg8(0xE000, EXPREGS[5]);
@@ -182,15 +185,13 @@ static DECLFW(BMCFK23CWrite) {
 		//this too.
 		remap |= (A & 3) == 2;
 
-		if(remap)
-		{
+		if (remap) {
 			FixMMC3PRG(MMC3_cmd);
 			FixMMC3CHR(MMC3_cmd);
 		}
 	}
 
-	if(is_BMCFK23CA)
-	{
+	if (is_BMCFK23CA) {
 		if(EXPREGS[3] & 2)
 			EXPREGS[0] &= ~7;   // hacky hacky! if someone wants extra banking, then for sure doesn't want mode 4 for it! (allow to run A version boards on normal mapper)
 	}
@@ -246,20 +247,16 @@ void BMCFK23C_Init(CartInfo *info) {
 	pwrap = BMCFK23CPW;
 	info->Power = BMCFK23CPower;
 	info->Reset = BMCFK23CReset;
+
 	AddExState(EXPREGS, 8, 0, "EXPR");
 	AddExState(&unromchr, 1, 0, "UCHR");
 	AddExState(&dipswitch, 1, 0, "DPSW");
 
-	int x;
-	uint64 partialmd5 = 0;
-	for (x = 0; x < 8; x++)
-		partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
-	DetectPRGbonus(partialmd5);
+	prg_bonus = DetectPRGbonus(info);
 	prg_mask = 0x7F >> (prg_bonus);
 }
 
-void BMCFK23CA_Init(CartInfo *info)
-{
+void BMCFK23CA_Init(CartInfo *info) {
 	is_BMCFK23CA = 1;
 
 	GenMMC3_Init(info, 512, 256, 8, 0);
@@ -278,10 +275,6 @@ void BMCFK23CA_Init(CartInfo *info)
 	AddExState(&unromchr, 1, 0, "UCHR");
 	AddExState(&dipswitch, 1, 0, "DPSW");
 
-	int x;
-	uint64 partialmd5 = 0;
-	for (x = 0; x < 8; x++)
-		partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
-	DetectPRGbonus(partialmd5);
+	prg_bonus = DetectPRGbonus(info);
 	prg_mask = 0x7F >> (prg_bonus);
 }
