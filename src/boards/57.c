@@ -34,14 +34,16 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	if (prg_reg & 0x80)
-		setprg32(0x8000, prg_reg >> 6);
+	if (prg_reg & 0x10)
+		setprg32(0x8000, (prg_reg >> 6) & 3);
 	else {
-		setprg16(0x8000, (prg_reg >> 5) & 3);
-		setprg16(0xC000, (prg_reg >> 5) & 3);
+		setprg16(0x8000, (prg_reg >> 5) & 7);
+		setprg16(0xC000, (prg_reg >> 5) & 7);
 	}
-	setmirror((prg_reg & 8) >> 3);
-	setchr8((chr_reg & 3) | (prg_reg & 7) | ((prg_reg & 0x10) >> 1));
+	// Mirroring (0=Vert, 1=Horz)
+	// https://wiki.nesdev.com/w/index.php/INES_Mapper_057
+	setmirror((prg_reg & 8) ? MI_H : MI_V);
+	setchr8((chr_reg & 7) | (prg_reg & 7) | ((chr_reg & 0x40) >> 3));
 }
 
 static DECLFR(M57Read) {
