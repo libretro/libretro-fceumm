@@ -562,7 +562,6 @@ static void UNIFGI(int h) {
 		if (UNIFchrrama) memset(UNIFchrrama, 0, 8192);
 		break;
 	case GI_CLOSE:
-		FCEU_SaveGameSave(&UNIFCart);
 		if (UNIFCart.Close)
 			UNIFCart.Close();
 		FreeUNIF();
@@ -604,7 +603,6 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (!InitializeBoard())
 		goto aborto;
 
-	FCEU_LoadGameSave(&UNIFCart);
 	GameInterface = UNIFGI;
 	return 1;
 
@@ -623,7 +621,6 @@ int CopyFamiLoad() {
 	if (!InitializeBoard())
 		goto aborto;
 
-	FCEU_LoadGameSave(&UNIFCart);
 	GameInterface = UNIFGI;
 	return 1;
 

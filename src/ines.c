@@ -80,38 +80,36 @@ static void iNES_ExecPower() {
 }
 
 static void iNESGI(int h) {
-	switch (h) {
-	case GI_RESETM2:
-		if (iNESCart.Reset)
-			iNESCart.Reset();
-		break;
-	case GI_POWER:
-		iNES_ExecPower();
-		break;
-	case GI_CLOSE:
-	{
-		/* FCEU_SaveGameSave(&iNESCart); */
-		if (iNESCart.Close)
-			iNESCart.Close();
-		if (ROM) {
-			free(ROM);
-			ROM = NULL;
-		}
-		if (VROM) {
-			free(VROM);
-			VROM = NULL;
-		}
-		if (trainerpoo) {
-			free(trainerpoo);
-			trainerpoo = NULL;
-		}
-		if (ExtraNTARAM) {
-			free(ExtraNTARAM);
-			ExtraNTARAM = NULL;
-		}
-	}
-	break;
-	}
+   switch (h)
+   {
+      case GI_RESETM2:
+         if (iNESCart.Reset)
+            iNESCart.Reset();
+         break;
+      case GI_POWER:
+         iNES_ExecPower();
+         break;
+      case GI_CLOSE:
+         if (iNESCart.Close)
+            iNESCart.Close();
+         if (ROM) {
+            free(ROM);
+            ROM = NULL;
+         }
+         if (VROM) {
+            free(VROM);
+            VROM = NULL;
+         }
+         if (trainerpoo) {
+            free(trainerpoo);
+            trainerpoo = NULL;
+         }
+         if (ExtraNTARAM) {
+            free(ExtraNTARAM);
+            ExtraNTARAM = NULL;
+         }
+         break;
+   }
 }
 
 uint32 iNESGameCRC32 = 0;
@@ -792,8 +790,6 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	if (!iNES_Init(MapperNo))
 		FCEU_PrintError("iNES mapper #%d is not supported at all.", MapperNo);
-
-	/* FCEU_LoadGameSave(&iNESCart); */
 
 	GameInterface = iNESGI;
 	FCEU_printf("\n");

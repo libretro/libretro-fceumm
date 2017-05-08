@@ -23,9 +23,6 @@ typedef struct {
 					// other code in the future.
 } CartInfo;
 
-void FCEU_SaveGameSave(CartInfo *LocalHWInfo);
-void FCEU_LoadGameSave(CartInfo *LocalHWInfo);
-
 extern uint8 *Page[32], *VPage[8], *MMC5SPRVPage[8], *MMC5BGVPage[8];
 
 void ResetCartMapping(void);
