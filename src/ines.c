@@ -90,7 +90,7 @@ static void iNESGI(int h) {
 		break;
 	case GI_CLOSE:
 	{
-		FCEU_SaveGameSave(&iNESCart);
+		/* FCEU_SaveGameSave(&iNESCart); */
 		if (iNESCart.Close)
 			iNESCart.Close();
 		if (ROM) {
@@ -793,7 +793,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	if (!iNES_Init(MapperNo))
 		FCEU_PrintError("iNES mapper #%d is not supported at all.", MapperNo);
 
-	FCEU_LoadGameSave(&iNESCart);
+	/* FCEU_LoadGameSave(&iNESCart); */
 
 	GameInterface = iNESGI;
 	FCEU_printf("\n");

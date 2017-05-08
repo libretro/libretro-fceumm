@@ -952,7 +952,7 @@ int FlushEmulateSound(void) {
 	}
 	inbuf = end;
 
-	FCEU_WriteWaveData(WaveFinal, end);	/* This function will just return
+	/* FCEU_WriteWaveData(WaveFinal, end);	 This function will just return
 										if sound recording is off. */
 	return(end);
 }

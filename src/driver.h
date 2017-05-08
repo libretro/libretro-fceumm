@@ -40,6 +40,7 @@ void FCEUD_GetPalette(uint8 i, uint8 *r, uint8 *g, uint8 *b);
 /* Displays an error.  Can block or not. */
 void FCEUD_PrintError(char *s);
 void FCEUD_Message(char *s);
+void FCEUD_DispMessage(char *m);
 
 #ifdef NETWORK
 /* Network interface */
