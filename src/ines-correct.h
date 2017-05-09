@@ -154,7 +154,6 @@
 	{0xa1dc16c0,	116,	   -1},	/* Street Heroes (Sachen) [b1] */
 	{0xe40dfb7e,	116,	   -1},	/* Somari (P conf.) */
 	{0xc9371ebb,	116,	   -1},	/* Somari (W conf.) */
-	{0xcbf4366f,	118,		8},	/* Alien Syndrome (U.S. unlicensed) */
 	{0x78b657ac,	118,	   -1},	/* Armadillo */
 	{0x90c773c1,	118,	   -1},	/* Goal! 2 */
 	{0xb9b4d9e0,	118,	   -1},	/* NES Play Action Football */
@@ -199,6 +198,7 @@
 	{0x0be0a328,	157,		8},	/* Datach SD Gundam Wars */
 	{0x5b457641,	157,		8},	/* Datach Ultraman Club */
 	{0xf51a7f46,	157,		8},	/* Datach Yuu Yuu Hakusho */
+	{0xcbf4366f,	158,		8},	/* Alien Syndrome (U.S. unlicensed) */
 	{0xe170404c,	159,	   -1},	/* SD Gundam Gaiden - Knight Gundam Monogatari (J) (V1.0) [!] */
 	{0x276ac722,	159,	   -1},	/* SD Gundam Gaiden - Knight Gundam Monogatari (J) (V1.1) [!] */
 	{0x0cf42e69,	159,	   -1},	/* Magical Taruruuto-kun - Fantastic World!! (J) (V1.0) [!] */
