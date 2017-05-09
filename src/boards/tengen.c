@@ -85,9 +85,9 @@ static void Sync(void) {
 	cwrap(0x1400, regs[3]);
 	cwrap(0x1800, regs[4]);
 	cwrap(0x1C00, regs[5]);
-	setprg8(0x8000,regs[6]);
-	setprg8(0xA000,regs[7]);
-	setprg8(0xC000,regs[10]);
+	setprg8(0x8000, regs[6]);
+	setprg8(0xA000, regs[7]);
+	setprg8(0xC000, regs[10]);
 	setprg8(0xE000, ~0);
 	if (mwrap) mwrap(mirr);
 }
