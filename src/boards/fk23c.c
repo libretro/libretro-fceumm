@@ -93,7 +93,8 @@ static uint64 CartList[] =
 	0x8fd9c235957a6df0LL, // 5-in-1 (K5003) [p1][!]-1125) (Ch).nes
 	0x0315924d00dd7807LL, // Mortal Kombat 30 Peoples (DH1043) (Ch).nes
 	0x4b99c39fdb66128aLL, // 4-in-1 (FK23C8078) (Ch) [p1][U][!].unf
-	0						/* Abandon all hope if the game has 0 in the lower 64-bits of its MD5 hash */
+	0x22a0ba5743191778LL, // Rockman 4 MI (Hack)
+	0	/* Abandon all hope if the game has 0 in the lower 64-bits of its MD5 hash */
 };
 
 int DetectPRGbonus(CartInfo *tmp) {
@@ -112,30 +113,37 @@ int DetectPRGbonus(CartInfo *tmp) {
 }
 
 static void BMCFK23CPW(uint32 A, uint8 V) {
+	/* Modified (c)May 2017 - Backport older implementations from FCEUmm
+	 * to support big sized FK23CA carts which broke in latest commits.
+	*/
 	uint32 bank = (EXPREGS[1] & 0x1F);
-	uint32 hiblock = ((EXPREGS[0] & 8) << 4) | ((EXPREGS[0] & 0x80) << 1) | (UNIFchrrama ? ((EXPREGS[2] & 0x40) << 3) : 0);
+	uint32 hiblock = ((EXPREGS[0] & 8) << 4) | ((EXPREGS[0] & 0x80) << 1) |  (UNIFchrrama ? ((EXPREGS[2] & 0x40) << 3) : 0);
 	uint32 block = (EXPREGS[1] & 0x60) | hiblock;
 	uint32 extra = (EXPREGS[3] & 2);
 
-	if ((EXPREGS[0] & 7) == 4)
-		setprg32(0x8000, EXPREGS[1] >> 1);
-	else if ((EXPREGS[0] & 7) == 3) {
-		setprg16(0x8000, EXPREGS[1]);
-		setprg16(0xC000, EXPREGS[1]);
-	} else {
+	switch (EXPREGS[0] & 7)	{
+	case 4:
+		setprg32(0x8000,(EXPREGS[1] | block) >> 1);
+		break;
+	case 3:
+		setprg16(0x8000,(EXPREGS[1] | block));
+		setprg16(0xC000,(EXPREGS[1] | block));
+		break;
+	default:
 		if (EXPREGS[0] & 3) {
 			uint32 blocksize = (6) - (EXPREGS[0] & 3);
 			uint32 mask = (1 << blocksize) - 1;
 			V &= mask;
 			//V &= 63; //? is this a good idea?
-			V |= (EXPREGS[1] << 1);
-			setprg8(A, V);
+			V |= EXPREGS[1] << 1;
+			setprg8(A, (V | (hiblock << 1)));
 		} else
-			setprg8(A, (block << 1) | (V & prg_mask));
-		if (EXPREGS[3] & 2) {
+			setprg8(A, ((V & prg_mask) | (block << 1)));
+		if (extra) {
 			setprg8(0xC000, EXPREGS[4]);
 			setprg8(0xE000, EXPREGS[5]);
 		}
+		break;
 	}
 	setprg8r(0x10, 0x6000, A001B & 3);
 }
@@ -191,10 +199,9 @@ static DECLFW(BMCFK23CWrite) {
 		}
 	}
 
-	if (is_BMCFK23CA) {
+	if (is_BMCFK23CA)
 		if(EXPREGS[3] & 2)
 			EXPREGS[0] &= ~7;   // hacky hacky! if someone wants extra banking, then for sure doesn't want mode 4 for it! (allow to run A version boards on normal mapper)
-	}
 }
 
 static void BMCFK23CReset(void) {
@@ -253,7 +260,7 @@ void BMCFK23C_Init(CartInfo *info) {
 	AddExState(&dipswitch, 1, 0, "DPSW");
 
 	prg_bonus = DetectPRGbonus(info);
-	prg_mask = 0x7F >> (prg_bonus);
+	prg_mask = (0x7F >> prg_bonus);
 }
 
 void BMCFK23CA_Init(CartInfo *info) {
@@ -276,5 +283,5 @@ void BMCFK23CA_Init(CartInfo *info) {
 	AddExState(&dipswitch, 1, 0, "DPSW");
 
 	prg_bonus = DetectPRGbonus(info);
-	prg_mask = 0x7F >> (prg_bonus);
+	prg_mask = (0x7F >> prg_bonus);
 }
