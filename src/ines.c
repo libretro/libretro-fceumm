@@ -547,7 +547,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					155, Mapper155_Init},
 	{(uint8_t*)"",					156, Mapper156_Init},
 	{(uint8_t*)"BANDAI BARCODE",		157, Mapper157_Init},
-//	{(uint8_t*)"",					158, Mapper158_Init},
+	{(uint8_t*)"TENGEN 800037",		158, Mapper158_Init},
 	{(uint8_t*)"BANDAI 24C01",		159, Mapper159_Init},	// Different type of EEPROM on the  bandai board
 	{(uint8_t*)"SA009",				160, SA009_Init},
 //	{(uint8_t*)"",					161, Mapper161_Init},
