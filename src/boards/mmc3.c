@@ -358,6 +358,9 @@ void Mapper4_Init(CartInfo *info) {
 		FCEU_printf("Low-G-Man can not work normally in the iNES format.\nThis game has been recognized by its CRC32 value, and the appropriate changes will be made so it will run.\nIf you wish to hack this game, you should use the UNIF format for your hack.\n\n");
 		ws = 0;
 	}
+	if (info->CRC32 == 0x97b6cb19)
+		isRevB = 0;
+
 	GenMMC3_Init(info, 512, 256, ws, info->battery);
 	info->Power = M4Power;
 	hackm4 = info->mirror;
