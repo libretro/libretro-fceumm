@@ -50,7 +50,7 @@ static void FP_FASTAPASS(1) RAMBO1IRQHook(int a) {
 		while (smallcount >= 4) {
 			smallcount -= 4;
 			IRQCount--;
-			if(IRQCount == 0xFF)
+			if (IRQCount == 0xFF)
 				if (IRQa) X6502_IRQBegin(FCEU_IQEXT);
 		}
 	}
@@ -85,9 +85,9 @@ static void Sync(void) {
 	cwrap(0x1400, regs[3]);
 	cwrap(0x1800, regs[4]);
 	cwrap(0x1C00, regs[5]);
-	setprg8(0x8000,regs[6]);
-	setprg8(0xA000,regs[7]);
-	setprg8(0xC000,regs[10]);
+	setprg8(0x8000, regs[6]);
+	setprg8(0xA000, regs[7]);
+	setprg8(0xC000, regs[10]);
 	setprg8(0xE000, ~0);
 	if (!_isM158)
 		setmirror(mirr);
@@ -141,7 +141,7 @@ static void RAMBO1Power(void) {
 	Sync();
 	if (!_isM158) setmirror(1);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000,0xFFFF, RAMBO1_Write);
+	SetWriteHandler(0x8000, 0xFFFF, RAMBO1_Write);
 }
 
 static void StateRestore(int version) {
