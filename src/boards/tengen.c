@@ -29,7 +29,7 @@ static uint8 rmode, IRQmode, IRQCount, IRQa, IRQLatch;
 
 static void (*cwrap)(uint32 A, uint8 V);
 static void (*mwrap)(uint8 V);
-static int nomirror;
+static int _isM158;
 
 static SFORMAT StateRegs[] = {
 	{ regs, 11, "REGS" },
@@ -89,13 +89,19 @@ static void Sync(void) {
 	setprg8(0xA000, regs[7]);
 	setprg8(0xC000, regs[10]);
 	setprg8(0xE000, ~0);
-	if (mwrap) mwrap(mirr);
+	if (!_isM158)
+		setmirror(mirr);
 }
 
 
 static DECLFW(RAMBO1_Write) {
 	switch (A & 0xF001) {
-	case 0xA000: if (mwrap) mwrap(V); break;
+	case 0xA000:
+		if (!_isM158) {
+			mirr = (V & 1) ^ 1;
+			Sync();
+		}
+		break;
 	case 0x8000: cmd = V; break;
 	case 0x8001:
 		if ((cmd & 0xF) < 10)
@@ -128,20 +134,12 @@ static DECLFW(RAMBO1_Write) {
 	}
 }
 
-static void GENMWRAP(uint8 V) {
-	mirr = V;
-	setmirror((V & 1) ^ 1);
-}
-
-static void GENNOMWRAP(uint8 V) {
-	mirr = V;
-}
-
 static void RAMBO1Power(void) {
 	cmd = mirr = 0;
 	regs[0] = regs[1] = regs[2] = regs[3] = regs[4] = regs[5] = ~0;
 	regs[6] = regs[7] = regs[8] = regs[9] = regs[10] = ~0;
 	Sync();
+	if (!_isM158) setmirror(1);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, RAMBO1_Write);
 }
@@ -163,8 +161,8 @@ static void M64CWRAP(uint32 A, uint8 V) {
 }
 
 void Mapper64_Init(CartInfo *info) {
+	_isM158 = 0;
 	cwrap = M64CWRAP;
-	mwrap = GENMWRAP;
 	RAMBO1_Init(info);
 }
 
@@ -180,14 +178,14 @@ static void FP_FASTAPASS(1) M158PPU(uint32 A) {
 
 static void M158CWRAP(uint32 A, uint8 V) {
 	M158MIR[A >> 10] = (V >> 7) & 1;
+	setchr1(A, V);
 	if (PPUCHRBus == (A >> 10))
 		setmirror(MI_0 + ((V >> 7) & 1));
-	setchr1(A, V);
 }
 
 void Mapper158_Init(CartInfo *info) {
+	_isM158 = 1;
 	cwrap = M158CWRAP;
-	mwrap = GENNOMWRAP;
 	PPU_hook = M158PPU;
 	RAMBO1_Init(info);
 	AddExState(&PPUCHRBus, 1, 0, "PPUC");
