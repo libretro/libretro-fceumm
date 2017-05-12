@@ -608,13 +608,13 @@ static void PostSave(void) {
 }
 
 int FDSLoad(const char *name, FCEUFILE *fp) {
-	FILE *zp;
+	FCEUFILE *zp;
 	int x;
 
 	char *fn = FCEU_MakeFName(FCEUMKF_FDSROM, 0, 0);
 
-	if (!(zp = fopen(fn, "rb"))) {
-		FCEU_PrintError("FDS BIOS ROM image missing!");
+	if (!(zp = FCEU_fopen(fn, 0, "rb", 0, NULL, 0))) {
+		FCEU_PrintError("FDS BIOS ROM image missing!\n");
 		free(fn);
 		return 0;
 	}
@@ -637,16 +637,16 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	FDSBIOS = (uint8*)FCEU_gmalloc(FDSBIOSsize);
 	SetupCartPRGMapping(0, FDSBIOS, FDSBIOSsize, 0);
 
-	if (fread(FDSBIOS, 1, FDSBIOSsize, zp) != FDSBIOSsize) {
+	if (FCEU_fread(FDSBIOS, 1, FDSBIOSsize, zp) != FDSBIOSsize) {
 		if (FDSBIOS)
 			free(FDSBIOS);
 		FDSBIOS = NULL;
-		fclose(zp);
-		FCEU_PrintError("Error reading FDS BIOS ROM image.");
+		FCEU_fclose(zp);
+		FCEU_PrintError("Error reading FDS BIOS ROM image.\n");
 		return 0;
 	}
 
-	fclose(zp);
+	FCEU_fclose(zp);
 
 	FCEU_fseek(fp, 0, SEEK_SET);
 
@@ -672,7 +672,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 			FCEU_printf("Disk was written. Auxillary FDS file open \"%s\".\n", fn);
 			FreeFDSMemory();
 			if (!SubLoad(tp)) {
-				FCEU_PrintError("Error reading auxillary FDS file.");
+				FCEU_PrintError("Error reading auxillary FDS file.\n");
 				if (FDSBIOS)
 					free(FDSBIOS);
 				FDSBIOS = NULL;
@@ -745,7 +745,7 @@ void FDSClose(void) {
 
 	for (x = 0; x < TotalSides; x++) {
 		if (fwrite(diskdata[x], 1, 65500, fp) != 65500) {
-			FCEU_PrintError("Error saving FDS image!");
+			FCEU_PrintError("Error saving FDS image!\n");
 			fclose(fp);
 			return;
 		}
