@@ -179,9 +179,8 @@ static DECLFW(BMCFK23CHiWrite) {
 
 static DECLFW(BMCFK23CWrite) {
 	if (A & (1 << (dipswitch + 4))) {
-		EXPREGS[A & 3] = V;
-
 		int remap = 0;
+		EXPREGS[A & 3] = V;
 
 		//sometimes writing to reg0 causes remappings to occur. we think the 2 signifies this.
 		//if not, 0x24 is a value that is known to work
