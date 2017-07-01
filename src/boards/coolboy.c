@@ -87,8 +87,8 @@ static void COOLBOYPW(uint32 A, uint8 V) {
 	if (!(EXPREGS[3] & 0x10))
 		setprg8(A, (((base << 4) & ~mask)) | (V & mask));
 	else { // NROM mode
-		mask &= 0xF0;
 		uint8 emask;
+		mask &= 0xF0;
 		if ((((EXPREGS[1] & 2) != 0))) // 32kb mode
 			emask = (EXPREGS[3] & 0x0C) | ((A & 0x4000) >> 13);
 		else // 16kb mode
