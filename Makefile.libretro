@@ -366,6 +366,7 @@ ifeq ($(platform), psp1)
 	INCFLAGS += -I$(shell psp-config --pspsdk-path)/include
 endif
 
+OBJOUT   = -o
 LINKOUT  = -o 
 
 ifneq (,$(findstring msvc,$(platform)))
@@ -391,7 +392,7 @@ else
 endif
 
 %.o: %.c
-	$(CC) -c -o $@ $< $(CFLAGS) $(INCFLAGS)
+	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 
 clean-objs:
 	rm -f $(OBJECTS)
