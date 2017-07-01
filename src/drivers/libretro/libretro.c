@@ -1730,8 +1730,7 @@ bool retro_load_game(const struct retro_game_info *game)
       struct retro_message msg;
       char msg_local[256];
 
-      snprintf(msg_local, sizeof(msg_local),
-            "ROM loading failed...");
+      sprintf(msg_local, "ROM loading failed...");
       msg.msg    = msg_local;
       msg.frames = 360;
       if (environ_cb)
