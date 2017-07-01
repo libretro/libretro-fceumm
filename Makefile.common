@@ -44,7 +44,8 @@ SOURCES_C += \
 
 ifeq ($(STATIC_LINKING),1)
 else
-SOURCES_C += $(CORE_DIR)/drivers/libretro/libretro-common/streams/memory_stream.c
+SOURCES_C += $(CORE_DIR)/drivers/libretro/libretro-common/streams/memory_stream.c \
+				 $(CORE_DIR)/drivers/libretro/libretro-common/compat/compat_snprintf.c
 endif
 
 ifeq ($(DEBUG),1)
