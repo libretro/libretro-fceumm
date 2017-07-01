@@ -800,6 +800,8 @@ static void retro_set_custom_palette (void)
 void FCEUD_RegionOverride(int region)
 {
    static int w = 0;
+   struct retro_system_av_info av_info;
+
    switch (region)
    {
       case 0: /* auto */
@@ -831,7 +833,6 @@ void FCEUD_RegionOverride(int region)
 	SetSoundVariables();
 
    // Update the geometry
-   struct retro_system_av_info av_info;
    retro_get_system_av_info(&av_info);
    environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
@@ -880,6 +881,7 @@ static void check_variables(bool startup)
    struct retro_variable var = {0};
    struct retro_system_av_info av_info;
    bool geometry_update = false;
+   unsigned old_regionoverride = regionoverride;
 
    var.key = "fceumm_palette";
 
@@ -1057,7 +1059,6 @@ static void check_variables(bool startup)
          turbo_delay = 60;
       }
    }
-   unsigned old_regionoverride = regionoverride;
    var.key = "fceumm_region";
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {

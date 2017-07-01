@@ -661,16 +661,19 @@ static void Fixit1(void) {
 }
 
 void MMC5_hb(int);		//Ugh ugh ugh.
-static void DoLine(void) {
-   if (scanline >= 240 && scanline != totalscanlines) {
+static void DoLine(void)
+{
+   int x;
+   uint8 *target = NULL;
+   if (scanline >= 240 && scanline != totalscanlines)
+   {
 		X6502_Run(256 + 69);
 		scanline++;
 		X6502_Run(16);
 		return;
 	}
 
-	int x;
-	uint8 *target = XBuf + ((scanline < 240 ? scanline : 240) << 8);
+	target = XBuf + ((scanline < 240 ? scanline : 240) << 8);
 
 	if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 
