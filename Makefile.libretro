@@ -351,11 +351,13 @@ endif
 
 ifeq ($(platform), sncps3)
 WARNING_DEFINES =
+else ifneq (,$(findstring msvc,$(platform)))
+WARNING_DEFINES =
 else
 WARNING_DEFINES = -Wno-write-strings
 endif
 
-CFLAGS += $(CODE_DEFINES) $(fpic) $(WARNING_DEFINES) $(DEFINES) $(ENDIANNESS_DEFINES)
+CFLAGS += $(COREDEFINES) $(fpic) $(WARNING_DEFINES) $(DEFINES) $(ENDIANNESS_DEFINES)
 LDFLAGS += $(LIBM)
 
 LIBS :=
