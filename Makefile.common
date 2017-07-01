@@ -1,7 +1,8 @@
-INCFLAGS := -I$(CORE_DIR)/drivers/libretro -I$(CORE_DIR) -I$(CORE_DIR)/input -I$(CORE_DIR)/boards -I$(CORE_DIR)/mappers
+INCFLAGS      := -I$(CORE_DIR)/drivers/libretro -I$(CORE_DIR) -I$(CORE_DIR)/input -I$(CORE_DIR)/boards -I$(CORE_DIR)/mappers
+COREDEFINES    = -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DINLINE=inline -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565 
 
 FCEU_SRC_DIRS := $(CORE_DIR)/boards $(CORE_DIR)/input $(CORE_DIR)/mappers
-SOURCES_C := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
+SOURCES_C     := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
 
 ifeq ($(HAVE_GRIFFIN),1)
 SOURCES_C += $(CORE_DIR)/drivers/libretro/griffin.c
