@@ -328,7 +328,7 @@ endif
 ifeq ($(DEBUG), 1)
 	CFLAGS += -O0 -g -DDEBUG
 else
-	CFLAGS += -O3 -DNDEBUG
+	CFLAGS += -O2 -DNDEBUG
 endif
 
 ifeq ($(EXTERNAL_ZLIB), 1)
