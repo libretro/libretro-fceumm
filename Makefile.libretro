@@ -353,6 +353,7 @@ ifeq ($(platform), sncps3)
 WARNING_DEFINES =
 else ifneq (,$(findstring msvc,$(platform)))
 WARNING_DEFINES =
+LIBM :=
 else
 WARNING_DEFINES = -Wno-write-strings
 endif
