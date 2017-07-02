@@ -367,14 +367,14 @@ ifeq ($(platform), psp1)
 	INCFLAGS += -I$(shell psp-config --pspsdk-path)/include
 endif
 
-OBJOUT   = -o
-LINKOUT  = -o 
 
 ifneq (,$(findstring msvc,$(platform)))
 	OBJOUT = -Fo
 	LINKOUT = -out:
 	LD = link.exe
 else
+	OBJOUT   = -o
+	LINKOUT  = -o 
 	LD = $(CC)
 endif
 
