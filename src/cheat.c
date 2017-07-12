@@ -32,6 +32,7 @@
 #include "fceu-memory.h"
 
 static uint8 *CheatRPtrs[64];
+uint8 *MMapPtrs[64];
 
 void FCEU_CheatResetRAM(void) {
 	int x;
@@ -44,8 +45,10 @@ void FCEU_CheatAddRAM(int s, uint32 A, uint8 *p) {
 	uint32 AB = A >> 10;
 	int x;
 
-	for (x = s - 1; x >= 0; x--)
+	for (x = s - 1; x >= 0; x--) {
 		CheatRPtrs[AB + x] = p - A;
+		MMapPtrs[AB + x] = p + 1024 * x;
+	}
 }
 
 
