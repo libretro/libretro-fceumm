@@ -1644,7 +1644,7 @@ extern uint32_t iNESGameCRC32;
 
 bool retro_load_game(const struct retro_game_info *game)
 {
-   unsigned i;
+   unsigned i, j;
    char* dir=NULL;
    char* sav_dir=NULL;
    size_t fourscore_len = sizeof(fourscore_db_list)   / sizeof(fourscore_db_list[0]);
@@ -1700,6 +1700,9 @@ bool retro_load_game(const struct retro_game_info *game)
 
       { 0 },
    };
+
+   struct retro_memory_descriptor descs[64];
+   struct retro_memory_map        mmaps;
 
    if (!game)
       return false;
@@ -1766,6 +1769,25 @@ bool retro_load_game(const struct retro_game_info *game)
       }
    }
 
+   memset(descs, 0, sizeof(descs));
+   i = 0;
+
+   for (j = 0; j < 64; j++)
+   {
+      if (MMapPtrs[j] != NULL)
+      {
+         descs[i].ptr    = MMapPtrs[j];
+         descs[i].start  = j * 1024;
+         descs[i].len    = 1024;
+         descs[i].select = 0;
+         i++;
+      }
+   }
+
+   mmaps.descriptors = descs;
+   mmaps.num_descriptors = i;
+   environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
+ 
    return true;
 }
 
