@@ -341,6 +341,7 @@ export LIB := $(LIB);$(WindowsSdkDir)
 TARGET := $(TARGET_NAME)_libretro.dll
 PSS_STYLE :=2
 LDFLAGS += -DLL
+CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 # Windows
 else
 	TARGET := $(TARGET_NAME)_libretro.dll
