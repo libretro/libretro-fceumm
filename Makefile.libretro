@@ -5,6 +5,13 @@ HAVE_GRIFFIN=1
 STATIC_LINKING=0
 ENDIANNESS_DEFINES=
 
+SPACE :=
+SPACE := $(SPACE) $(SPACE)
+BACKSLASH :=
+BACKSLASH := \$(BACKSLASH)
+filter_out1 = $(filter-out $(firstword $1),$1)
+filter_out2 = $(call filter_out1,$(call filter_out1,$1))
+
 ifeq ($(platform),)
 	platform = unix
 	ifeq ($(shell uname -a),)
@@ -286,37 +293,59 @@ else ifeq ($(platform), gcw0)
 	PLATFORM_DEFINES += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
 	EXTERNAL_ZLIB = 1
 	
-# Windows MSVC 2017x64
+# Windows MSVC 2017 x64
 else ifeq ($(platform), windows_msvc2017_x64)
 	CC  = cl.exe
 	CXX = cl.exe
 
-	VsInstallRoot := $(shell "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.VisualStudio.Workload.NativeDesktop -property installationPath)
-	VcCompilerToolsVer := $(shell cat "$(VsInstallRoot)\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt" | grep -o '[0-9\.]*')
-	VcCompilerToolsDir := $(VsInstallRoot)\VC\Tools\MSVC\$(VcCompilerToolsVer)
+	reg_query = $(call filter_out2,$(subst $2,,$(shell reg query "$2" -v "$1" 2>nul)))
+	fix_path = $(subst $(SPACE),\ ,$(subst \,/,$1))
+
+	ProgramFiles86w := $(shell cmd /c "echo %PROGRAMFILES(x86)%")
+	ProgramFiles86 := $(shell cygpath "$(ProgramFiles86w)")
+
+	WindowsSdkDir ?= $(call reg_query,InstallationFolder,HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0)
+	WindowsSdkDir ?= $(call reg_query,InstallationFolder,HKEY_CURRENT_USER\SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v10.0)
+	WindowsSdkDir ?= $(call reg_query,InstallationFolder,HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0)
+	WindowsSdkDir ?= $(call reg_query,InstallationFolder,HKEY_CURRENT_USER\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0)
+	WindowsSdkDir := $(WindowsSdkDir)
+
+	WindowsSDKVersion ?= $(firstword $(foreach folder,$(subst $(subst \,/,$(WindowsSdkDir)Include/),,$(wildcard $(call fix_path,$(WindowsSdkDir)Include\*))),$(if $(wildcard $(call fix_path,$(WindowsSdkDir)Include/$(folder)/um/Windows.h)),$(folder),)))$(BACKSLASH)
+	WindowsSDKVersion := $(WindowsSDKVersion)
+
+	VsInstallBuildTools = $(ProgramFiles86)/Microsoft Visual Studio/2017/BuildTools
+	VsInstallEnterprise = $(ProgramFiles86)/Microsoft Visual Studio/2017/Enterprise
+	VsInstallProfessional = $(ProgramFiles86)/Microsoft Visual Studio/2017/Professional
+	VsInstallCommunity = $(ProgramFiles86)/Microsoft Visual Studio/2017/Community
+
+	VsInstallRoot ?= $(shell if [ -d "$(VsInstallBuildTools)" ]; then echo "$(VsInstallBuildTools)"; fi)
+	VsInstallRoot ?= $(shell if [ -d "$(VsInstallEnterprise)" ]; then echo "$(VsInstallEnterprise)"; fi)
+	VsInstallRoot ?= $(shell if [ -d "$(VsInstallProfessional)" ]; then echo "$(VsInstallProfessional)"; fi)
+	VsInstallRoot ?= $(shell if [ -d "$(VsInstallCommunity)" ]; then echo "$(VsInstallCommunity)"; fi)
+	VsInstallRoot := $(VsInstallRoot)
+
+	VcCompilerToolsVer := $(shell cat "$(VsInstallRoot)/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt" | grep -o '[0-9\.]*')
+	VcCompilerToolsDir := $(VsInstallRoot)/VC/Tools/MSVC/$(VcCompilerToolsVer)
 
 	ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-	HostCPUArchDir := HostX64
-	WindowsSDKRegKey := HKLM\SOFTWARE\WOW6432Node\Microsoft\Microsoft SDKs\Windows\v10.0
+		HostCPUArchDir := HostX64
 	else
-	HostCPUArchDir := HostX86
-	WindowsSDKRegKey := HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v10.0
+		HostCPUArchDir := HostX86
 	endif
 
-	WindowsSDKRootDir := $(shell reg query "$(WindowsSDKRegKey)" -v "InstallationFolder" | grep -o '[A-Z]:\\.*')
-	WindowsSDKVer = $(shell reg query "$(WindowsSDKRegKey)" -v "ProductVersion" | grep -o '10\.[0-9]\.[0-9]*')
-	WindowsSDKUCRTIncludeDir := $(shell cygpath "$(WindowsSDKRootDir)\Include\$(WindowsSDKVer)\ucrt")
-	WindowsSDKUCRTLibDir := $(shell cygpath "$(WindowsSDKRootDir)\Lib\$(WindowsSDKVer)\ucrt\x64")
+	WindowsSDKUCRTIncludeDir := $(shell cygpath -w "$(WindowsSdkDir)\Include\$(WindowsSDKVersion)\ucrt")
+	WindowsSDKUCRTLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\ucrt\x64")
+	WindowsSDKUMLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\um\x64")
 
 	VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\$(HostCPUArchDir)
 
 	PATH := $(shell IFS=$$'\n'; cygpath "$(VCCompilerToolsBinDir)/x64"):$(PATH)
 	PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VsInstallRoot)/Common7/IDE")
-	INCLUDE := $(shell IFS=$$'\n'; cygpath "$(VcCompilerToolsDir)/include")
-	LIB := $(shell IFS=$$'\n'; cygpath "$(VcCompilerToolsDir)/lib/x64")
+	INCLUDE := $(shell IFS=$$'\n'; cygpath -w "$(VcCompilerToolsDir)/include")
+	LIB := $(shell IFS=$$'\n'; cygpath -w "$(VcCompilerToolsDir)/lib/x64")
 
 	export INCLUDE := $(INCLUDE);$(WindowsSDKUCRTIncludeDir)
-	export LIB := $(LIB);$(WindowsSDKUCRTLibDir)
+	export LIB := $(LIB);$(WindowsSDKUCRTLibDir);$(WindowsSDKUMLibDir)
 	TARGET := $(TARGET_NAME)_libretro.dll
 	PSS_STYLE :=2
 	LDFLAGS += -DLL
@@ -465,3 +494,6 @@ clean:
 
 .PHONY: clean clean-objs
 endif
+
+print-%:
+	@echo '$*=$($*)'
