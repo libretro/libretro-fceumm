@@ -333,12 +333,6 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 	VcCompilerToolsVer := $(shell cat "$(VsInstallRoot)/VC/Auxiliary/Build/Microsoft.VCToolsVersion.default.txt" | grep -o '[0-9\.]*')
 	VcCompilerToolsDir := $(VsInstallRoot)/VC/Tools/MSVC/$(VcCompilerToolsVer)
 
-	ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-		HostCPUArchDir := HostX64
-	else
-		HostCPUArchDir := HostX86
-	endif
-
 	TargetArchMoniker = $(subst windows_msvc2017_,,$(platform))
 
 	WindowsSDKUCRTIncludeDir := $(shell cygpath -w "$(WindowsSdkDir)\Include\$(WindowsSDKVersion)\ucrt")
@@ -346,7 +340,8 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 	WindowsSDKUCRTLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\ucrt\$(TargetArchMoniker)")
 	WindowsSDKUMLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\um\$(TargetArchMoniker)")
 
-	VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\$(HostCPUArchDir)
+	#Turns out only the x86 cl.exe can compile for everything, the x64 one only compiles x64
+	VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\HostX86
 
 	PATH := $(shell IFS=$$'\n'; cygpath "$(VCCompilerToolsBinDir)/$(TargetArchMoniker)"):$(PATH)
 	PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VsInstallRoot)/Common7/IDE")
