@@ -293,8 +293,8 @@ else ifeq ($(platform), gcw0)
 	PLATFORM_DEFINES += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
 	EXTERNAL_ZLIB = 1
 	
-# Windows MSVC 2017 x64
-else ifeq ($(platform), windows_msvc2017_x64)
+# Windows MSVC 2017 all architectures
+else ifneq (,$(findstring windows_msvc2017,$(platform)))
 	CC  = cl.exe
 	CXX = cl.exe
 
@@ -339,16 +339,18 @@ else ifeq ($(platform), windows_msvc2017_x64)
 		HostCPUArchDir := HostX86
 	endif
 
+	TargetArchMoniker = $(subst windows_msvc2017_,,$(platform))
+
 	WindowsSDKUCRTIncludeDir := $(shell cygpath -w "$(WindowsSdkDir)\Include\$(WindowsSDKVersion)\ucrt")
-	WindowsSDKUCRTLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\ucrt\x64")
-	WindowsSDKUMLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\um\x64")
+	WindowsSDKUCRTLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\ucrt\$(TargetArchMoniker)")
+	WindowsSDKUMLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib\$(WindowsSDKVersion)\um\$(TargetArchMoniker)")
 
 	VCCompilerToolsBinDir := $(VcCompilerToolsDir)\bin\$(HostCPUArchDir)
-
-	PATH := $(shell IFS=$$'\n'; cygpath "$(VCCompilerToolsBinDir)/x64"):$(PATH)
+	
+	PATH := $(shell IFS=$$'\n'; cygpath "$(VCCompilerToolsBinDir)/$(TargetArchMoniker)"):$(PATH)
 	PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VsInstallRoot)/Common7/IDE")
 	INCLUDE := $(shell IFS=$$'\n'; cygpath -w "$(VcCompilerToolsDir)/include")
-	LIB := $(shell IFS=$$'\n'; cygpath -w "$(VcCompilerToolsDir)/lib/x64")
+	LIB := $(shell IFS=$$'\n'; cygpath -w "$(VcCompilerToolsDir)/lib/$(TargetArchMoniker)")
 
 	export INCLUDE := $(INCLUDE);$(WindowsSDKUCRTIncludeDir)
 	export LIB := $(LIB);$(WindowsSDKUCRTLibDir);$(WindowsSDKUMLibDir)
