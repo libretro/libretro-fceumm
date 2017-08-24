@@ -973,8 +973,7 @@ static void check_variables(bool startup)
          overclock_state        = 0;
          do_reinit              = true;
       }
-      else if (!strcmp(var.value, "2x-Postrender")
-            && overclock_state != 1)
+      else if (!strcmp(var.value, "2x-Postrender"))
       {
          overclocked            = 1;
          skip_7bit_overclocking = 1;
@@ -983,8 +982,7 @@ static void check_variables(bool startup)
          overclock_state        = 1;
          do_reinit              = true;
       }
-      else if (!strcmp(var.value, "2x-VBlank")
-            && overclock_state != 1)
+      else if (!strcmp(var.value, "2x-VBlank"))
       {
          overclocked            = 1;
          skip_7bit_overclocking = 1;
