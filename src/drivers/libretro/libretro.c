@@ -733,7 +733,6 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
       info->timing.fps = 838977920.0/16777215.0;
    else
       info->timing.fps = 1008307711.0/16777215.0;
-   info->timing.sample_rate = 32040.5;
 }
 
 static void check_system_specs(void)
