@@ -154,6 +154,7 @@ void UNLBMW8544_Init(CartInfo *info);
 void UNLEH8813A_Init(CartInfo *info);
 void BMCHP898F_Init(CartInfo *info);
 void BMCF15_Init(CartInfo *info);
+void UNLRT01_Init(CartInfo *info);
 void BMC810131C_Init(CartInfo *info);
 void BMC8IN1_Init(CartInfo *info);
 
