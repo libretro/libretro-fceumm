@@ -99,7 +99,7 @@ static uint64 CartList[] =
 
 int DetectPRGbonus(CartInfo *tmp) {
 	int x, i = 0;
-	uint64 partialmd5;
+	uint64 partialmd5 = 0;
 
 	for (x = 0; x < 8; x++)
 		partialmd5 |= (uint64)tmp->MD5[15 - x] << (x * 8);

@@ -733,7 +733,6 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
       info->timing.fps = 838977920.0/16777215.0;
    else
       info->timing.fps = 1008307711.0/16777215.0;
-   info->timing.sample_rate = 32040.5;
 }
 
 static void check_system_specs(void)
@@ -1103,24 +1102,23 @@ static void check_variables(bool startup)
  * each player
  */
 
-unsigned char turbo_p0_toggle[] = {0,0};
-unsigned char turbo_p1_toggle[] = {0,0};
+unsigned char turbo_p0_toggle[] = { 0, 0 };
+unsigned char turbo_p1_toggle[] = { 0, 0 };
 
 static void FCEUD_UpdateInput(void)
 {
-   unsigned i;
+   unsigned p, i;
    unsigned char pad[2];
 
-   pad[0] = 0;
-   pad[1] = 0;
+   pad[0] = pad[1] = 0;
 
    poll_cb();
 
-   for ( i = 0; i < 8; i++)
-      pad[0] |= input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
-
-   for ( i = 0; i < 8; i++)
-      pad[1] |= input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
+   for (p = 0; p < 2; p++)
+   {
+      for ( i = 0; i < 8; i++)
+         pad[p] |= input_cb(p, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
+   }
 
    /*
     * Turbo A and Turbo B buttons are
@@ -1134,71 +1132,69 @@ static void FCEUD_UpdateInput(void)
     * been reached.
     */
    if (turbo_enabler == 1 || turbo_enabler == 3)
+   {
+      /* Handle turbo buttons - player 1 */
+      for ( i = 8; i < 10; i++)
       {
-         // Handle turbo buttons - player 1
-         for ( i = 8; i < 10; i++) {
-            if(input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
-               if (turbo_p0_toggle[i-8] == 0) {
-                  pad[0] |= bindmap[i].nes;
-          }
-          turbo_p0_toggle[i-8]++;
-          if (turbo_p0_toggle[i-8] > turbo_delay) {
-             // Reset the toggle if
-             // delay value is reached
-             pad[0] |= bindmap[i].nes;
-             turbo_p0_toggle[i-8] = 0;
-          }
-          } else {
-             // If the button is not pressed, just reset the toggle
-             turbo_p0_toggle[i-8] = 0;
-             }
+         if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
+         {
+            if (turbo_p0_toggle[i-8] == 0)
+               pad[0] |= bindmap[i].nes;
+            turbo_p0_toggle[i-8]++;
+            if (turbo_p0_toggle[i-8] > turbo_delay)
+            {
+               /* Reset the toggle if
+                * delay value is reached */
+               pad[0] |= bindmap[i].nes;
+               turbo_p0_toggle[i-8] = 0;
+            }
          }
+         else
+            /* If the button is not pressed, just reset the toggle */
+            turbo_p0_toggle[i-8] = 0;
       }
+   }
    if (turbo_enabler == 2 || turbo_enabler == 3)
+   {
+      /* Handle turbo buttons - player 2 */
+      for ( i = 8; i < 10; i++)
       {
-         // Handle turbo buttons - player 2
-         for ( i = 8; i < 10; i++) {
-            if(input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro)) {
-               if (turbo_p1_toggle[i-8] == 0) {
+         if (input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
+         {
+            if (turbo_p1_toggle[i-8] == 0)
                   pad[1] |= bindmap[i].nes;
-          }
-          turbo_p1_toggle[i-8]++;
-          if (turbo_p1_toggle[i-8] > turbo_delay) {
-             // Reset the toggle if
-             // delay value is reached
-             pad[1] |= bindmap[i].nes;
-             turbo_p1_toggle[i-8] = 0;
-          }
-          } else {
-             // If the button is not pressed, just reset the toggle
-             turbo_p1_toggle[i-8] = 0;
-             }
+            turbo_p1_toggle[i-8]++;
+            if (turbo_p1_toggle[i-8] > turbo_delay)
+            {
+               /* Reset the toggle if
+                * delay value is reached */
+               pad[1] |= bindmap[i].nes;
+               turbo_p1_toggle[i-8] = 0;
+            }
          }
+         else
+             /* If the button is not pressed, just reset the toggle */
+             turbo_p1_toggle[i-8] = 0;
       }
+   }
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
-   {
-      FCEU_VSUniCoin(); /* Insert Coin VS System */
-   }
+      FCEU_VSUniCoin();             /* Insert Coin VS System */
 
-   if (GameInfo->type == GIT_FDS) /* Famicom Disk System */
+   if (GameInfo->type == GIT_FDS)   /* Famicom Disk System */
    {
       bool curL = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L);
       bool curR = input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R);
       static bool prevL = false, prevR = false;
 
       if (curL && !prevL)
-      {
-         FCEU_FDSSelect(); /* Swap FDisk side */
-      }
+         FCEU_FDSSelect();          /* Swap FDisk side */
       prevL = curL;
 
       if (curR && !prevR)
-      {
-         FCEU_FDSInsert(-1); /* Insert or eject the disk */
-      }
+         FCEU_FDSInsert(-1);        /* Insert or eject the disk */
       prevR = curR;
    }
 }
@@ -1787,7 +1783,7 @@ bool retro_load_game(const struct retro_game_info *game)
    mmaps.descriptors = descs;
    mmaps.num_descriptors = i;
    environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
- 
+
    return true;
 }
 
