@@ -12,6 +12,7 @@ extern unsigned DMC_7bit;
 
 extern unsigned normal_scanlines;
 extern unsigned extrascanlines;
+extern unsigned vblankscanlines;
 extern unsigned dendy;
 
 void ResetGameLoaded(void);

@@ -33,6 +33,7 @@ void (*X6502_Run)(int32 cycles);
 #endif
 
 uint32 timestamp;
+uint32 sound_timestamp;
 void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 
 #define _PC        X.PC
@@ -52,7 +53,8 @@ void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 	int __x = x;									\
 	_tcount += __x;									\
 	_count -= __x * 48;								\
-   if (scanline < normal_scanlines || scanline == totalscanlines) timestamp+= __x; \
+	timestamp += __x;  \
+	if (!overclocked) sound_timestamp +=  __x; \
 }
 
 static INLINE uint8 RdMemNorm(uint32 A) {
@@ -413,7 +415,7 @@ void X6502_Init(void) {
 void X6502_Power(void) {
 	_count = _tcount = _IRQlow = _PC = _A = _X = _Y = _P = _PI = _DB = _jammed = 0;
 	_S = 0xFD;
-	timestamp = 0;
+	timestamp = sound_timestamp = 0;
 	X6502_Reset();
 }
 

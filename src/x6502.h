@@ -38,6 +38,7 @@ void X6502_Run(int32 cycles);
 #endif
 
 extern uint32 timestamp;
+extern uint32 sound_timestamp;
 extern X6502 X;
 
 #define N_FLAG  0x80

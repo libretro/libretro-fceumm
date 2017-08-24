@@ -56,6 +56,7 @@ unsigned overclocked = 0;
 unsigned skip_7bit_overclocking = 1;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
+unsigned vblankscanlines = 0;
 unsigned overclock_state = -1;
 unsigned dendy = 0;
 
@@ -693,7 +694,7 @@ void retro_set_environment(retro_environment_t cb)
    static const struct retro_variable vars[] = {
       { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
-      { "fceumm_overclocking", "Overclocking; disabled|2x" },
+      { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
@@ -968,15 +969,27 @@ static void check_variables(bool startup)
          overclocked            = 0;
          skip_7bit_overclocking = 1;
          extrascanlines         = 0;
+         vblankscanlines        = 0;
          overclock_state        = 0;
          do_reinit              = true;
       }
-      else if (!strcmp(var.value, "2x")
+      else if (!strcmp(var.value, "2x-Postrender")
             && overclock_state != 1)
       {
          overclocked            = 1;
          skip_7bit_overclocking = 1;
          extrascanlines         = 266;
+         vblankscanlines        = 0;
+         overclock_state        = 1;
+         do_reinit              = true;
+      }
+      else if (!strcmp(var.value, "2x-VBlank")
+            && overclock_state != 1)
+      {
+         overclocked            = 1;
+         skip_7bit_overclocking = 1;
+         extrascanlines         = 0;
+         vblankscanlines        = 266;
          overclock_state        = 1;
          do_reinit              = true;
       }
