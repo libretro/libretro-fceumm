@@ -351,15 +351,6 @@ static DECLFW(B4014) {
 
 	for (x = 0; x < 256; x++)
 		X6502_DMW(0x2004, X6502_DMR(t + x));
-#define ADDCYC(x) \
-	{	  \
-		int __x = x;	   \
-		X.tcount += __x;	\
-		X.count -= __x * 48;  \
-		timestamp += __x;  \
-	}
-	ADDCYC(1);
-#undef ADDCYC
 }
 
 #define PAL(c)  ((c) + cc)
