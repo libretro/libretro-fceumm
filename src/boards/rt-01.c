@@ -24,6 +24,7 @@
  * 
  */
 
+#include <stdlib.h>
 #include "mapinc.h"
 
 static DECLFR(UNLRT01Read) {
