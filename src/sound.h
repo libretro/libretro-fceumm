@@ -52,7 +52,7 @@ extern int32 WaveHi[];
 extern uint32 soundtsinc;
 
 extern uint32 soundtsoffs;
-#define SOUNDTS (timestamp + soundtsoffs)
+#define SOUNDTS (sound_timestamp + soundtsoffs)
 
 void SetNESSoundMap(void);
 void FrameSoundUpdate(void);

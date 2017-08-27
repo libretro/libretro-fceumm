@@ -351,15 +351,6 @@ static DECLFW(B4014) {
 
 	for (x = 0; x < 256; x++)
 		X6502_DMW(0x2004, X6502_DMR(t + x));
-#define ADDCYC(x) \
-	{	  \
-		int __x = x;	   \
-		X.tcount += __x;	\
-		X.count -= __x * 48;  \
-		timestamp += __x;  \
-	}
-	ADDCYC(1);
-#undef ADDCYC
 }
 
 #define PAL(c)  ((c) + cc)
@@ -1162,6 +1153,12 @@ int FCEUPPU_Loop(int skip) {
 				TriggerNMI();
 		}
 		X6502_Run((scanlines_per_frame - 242) * (256 + 85) - 12);
+		if (vblankscanlines)
+		{
+			overclocked = 1;
+			X6502_Run(vblankscanlines * (256 + 85) - 12);
+			overclocked = 0;
+		}
 		PPU_status &= 0x1f;
 		X6502_Run(256);
 
@@ -1246,6 +1243,7 @@ int FCEUPPU_Loop(int skip) {
                 overclock_state,DMC_7bit,skip_7bit_overclocking);
            FCEU_printf("SL:%d N_SL:%d, T_SL:%d Overclocked(for FCEU_SoundCPUHook):%d\n\n",
                 scanline,normal_scanlines,totalscanlines,overclocked);
+           FCEU_printf("extrascanlines:%d vblankscanlines:%d\n",extrascanlines,vblankscanlines);
          */
 			DMC_7bit = 0;
 			if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
