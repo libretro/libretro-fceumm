@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <streams/memory_stream.h>
+#include "../include/streams/memory_stream.h"
 
 static uint8_t* g_buffer     = NULL;
 static size_t g_size         = 0;
