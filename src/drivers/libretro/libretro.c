@@ -766,6 +766,10 @@ void retro_init(void)
    enum retro_pixel_format rgb565;
    log_cb.log=default_logger;
    environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_cb);
+
+   bool achievements = true;
+   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
+
 #ifdef FRONTEND_SUPPORTS_RGB565
    rgb565 = RETRO_PIXEL_FORMAT_RGB565;
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
@@ -1053,39 +1057,9 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "1"))
-      {
-         turbo_delay = 1;
-      }
-      if (!strcmp(var.value, "2"))
-      {
-         turbo_delay = 2;
-      }
-      else if (!strcmp(var.value, "3"))
-      {
-         turbo_delay = 3;
-      }
-      else if (!strcmp(var.value, "5"))
-      {
-         turbo_delay = 5;
-      }
-      else if (!strcmp(var.value, "10"))
-      {
-         turbo_delay = 10;
-      }
-	  else if (!strcmp(var.value, "15"))
-      {
-         turbo_delay = 15;
-      }
-      else if (!strcmp(var.value, "30"))
-      {
-         turbo_delay = 30;
-      }
-      else if (!strcmp(var.value, "60"))
-      {
-         turbo_delay = 60;
-      }
+      turbo_delay = atoi(var.value);
    }
+   
    var.key = "fceumm_region";
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {

@@ -30,7 +30,7 @@
 
 /* http://stackoverflow.com/questions/2915672/snprintf-and-visual-studio-2010 */
 
-int vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
+int c99_vsnprintf_retro__(char *outBuf, size_t size, const char *format, va_list ap)
 {
    int count = -1;
 
@@ -46,7 +46,7 @@ int vsnprintf(char *outBuf, size_t size, const char *format, va_list ap)
    return count;
 }
 
-int snprintf(char *outBuf, size_t size, const char *format, ...)
+int c99_snprintf_retro__(char *outBuf, size_t size, const char *format, ...)
 {
    int count;
    va_list ap;
