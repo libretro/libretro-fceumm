@@ -195,7 +195,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 25
+#define MAXPAL 26
 
 struct st_palettes {
 	char name[32];
@@ -565,6 +565,24 @@ struct st_palettes palettes[] = {
 		   0xE8EB7C, 0xBBF382, 0x99F7A2, 0x8AF5D0,
 		   0x92F4F1, 0xBEBEBE, 0x000000, 0x000000 }
    },
+   { "smooth-fbx", "FBX's Smooth palette",
+	   { 0x6A6D6A, 0x001380, 0x1E008A, 0x39007A,
+		   0x550056, 0x5A0018, 0x4F1000, 0x3D1C00,
+		   0x253200, 0x003D00, 0x004000, 0x003924,
+		   0x002E55, 0x000000, 0x000000, 0x000000,
+		   0xB9BCB9, 0x1850C7, 0x4B30E3, 0x7322D6,
+		   0x951FA9, 0x9D285C, 0x983700, 0x7F4C00,
+		   0x5E6400, 0x227700, 0x027E02, 0x007645,
+		   0x006E8A, 0x000000, 0x000000, 0x000000,
+		   0xFFFFFF, 0x68A6FF, 0x8C9CFF, 0xB586FF,
+		   0xD975FD, 0xE377B9, 0xE58D68, 0xD49D29,
+		   0xB3AF0C, 0x7BC211, 0x55CA47, 0x46CB81,
+		   0x47C1C5, 0x4A4D4A, 0x000000, 0x000000,
+		   0xFFFFFF, 0xCCEAFF, 0xDDDEFF, 0xECDAFF,
+		   0xF8D7FE, 0xFCD6F5, 0xFDDBCF, 0xF9E7B5,
+		   0xF1F0AA, 0xDAFAA9, 0xC9FFBC, 0xC3FBD7,
+		   0xC4F6F6, 0xBEC1BE, 0x000000, 0x000000 }
+   },
    { "composite-direct-fbx", "FBX's Composite Direct palette",
 	   { 0x656565, 0x00127D, 0x18008E, 0x360082,
 		   0x56005D, 0x5A0018, 0x4F0500, 0x381900,
@@ -692,7 +710,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -767,7 +785,7 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-   if (current_palette == 26) /* raw palette */
+   if (current_palette == MAXPAL) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -779,14 +797,13 @@ static void retro_set_custom_palette (void)
       return;
    }
 
-
    /* Setup this palette*/
 
    for ( i = 0; i < 64; i++ )
    {
-      r = palettes[current_palette-1].data[i] >> 16;
-      g = ( palettes[current_palette-1].data[i] & 0xff00 ) >> 8;
-      b = ( palettes[current_palette-1].data[i] & 0xff );
+      r = palettes[current_palette].data[i] >> 16;
+      g = ( palettes[current_palette].data[i] & 0xff00 ) >> 8;
+      b = ( palettes[current_palette].data[i] & 0xff );
       FCEUD_SetPalette( i, r, g, b);
       FCEUD_SetPalette( i+64, r, g, b);
       FCEUD_SetPalette( i+128, r, g, b);
@@ -899,37 +916,37 @@ static void check_variables(bool startup)
          current_palette = 3;
       else if (!strcmp(var.value, "matt"))
          current_palette = 4;
-      else if (!strcmp(var.value, "matt"))
-         current_palette = 5;
       else if (!strcmp(var.value, "pasofami"))
-         current_palette = 6;
+         current_palette = 5;
       else if (!strcmp(var.value, "crashman"))
-         current_palette = 7;
+         current_palette = 6;
       else if (!strcmp(var.value, "mess"))
-         current_palette = 8;
+         current_palette = 7;
       else if (!strcmp(var.value, "zaphod-cv"))
-         current_palette = 9;
+         current_palette = 8;
       else if (!strcmp(var.value, "zaphod-smb"))
-         current_palette = 10;
+         current_palette = 9;
       else if (!strcmp(var.value, "vs-drmar"))
-         current_palette = 11;
+         current_palette = 10;
       else if (!strcmp(var.value, "vs-cv"))
-         current_palette = 12;
+         current_palette = 11;
       else if (!strcmp(var.value, "vs-smb"))
-         current_palette = 13;
+         current_palette = 12;
       else if (!strcmp(var.value, "nintendo-vc"))
-         current_palette = 14;
+         current_palette = 13;
       else if (!strcmp(var.value, "yuv-v3"))
-         current_palette = 15;
+         current_palette = 14;
       else if (!strcmp(var.value, "unsaturated-final"))
-         current_palette = 16;
+         current_palette = 15;
       else if (!strcmp(var.value, "sony-cxa2025as-us"))
-         current_palette = 17;
+         current_palette = 16;
       else if (!strcmp(var.value, "pal"))
-         current_palette = 18;
+         current_palette = 17;
       else if (!strcmp(var.value, "bmf-final2"))
-         current_palette = 19;
+         current_palette = 18;
       else if (!strcmp(var.value, "bmf-final3"))
+         current_palette = 19;
+      else if (!strcmp(var.value, "smooth-fbx"))
          current_palette = 20;
       else if (!strcmp(var.value, "composite-direct-fbx"))
          current_palette = 21;
@@ -942,7 +959,7 @@ static void check_variables(bool startup)
       else if (!strcmp(var.value, "nescap"))
          current_palette = 25;
       else if (!strcmp(var.value, "raw"))
-         current_palette = 26;
+         current_palette = MAXPAL;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
