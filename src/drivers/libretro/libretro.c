@@ -766,6 +766,10 @@ void retro_init(void)
    enum retro_pixel_format rgb565;
    log_cb.log=default_logger;
    environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_cb);
+   
+   bool achievements = true;
+   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
+   
 #ifdef FRONTEND_SUPPORTS_RGB565
    rgb565 = RETRO_PIXEL_FORMAT_RGB565;
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
