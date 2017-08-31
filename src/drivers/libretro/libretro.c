@@ -929,7 +929,7 @@ static void check_variables(bool startup)
 
       if (!strcmp(var.value, "default"))
          current_palette = 0;
-      if (!strcmp(var.value, "asqrealc"))
+      else if (!strcmp(var.value, "asqrealc"))
          current_palette = 1;
       else if (!strcmp(var.value, "loopy"))
          current_palette = 2;
