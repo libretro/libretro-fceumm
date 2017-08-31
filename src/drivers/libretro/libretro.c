@@ -672,7 +672,7 @@ struct st_palettes palettes[] = {
 		   0xF7C8FF, 0xFEC6EE, 0xFECEC6, 0xF6D7AE,
 		   0xE9E49F, 0xD3ED9D, 0xC0F2B2, 0xB9F1CC,
 		   0xBAEDED, 0xBAB9BB, 0x000000, 0x000000 }
-   }
+   },
    { "wavebeam", "nakedarthur's Wavebeam palette",
          { 0X686868, 0X001B86, 0X0F049E, 0X41008C,
 		   0X6C006E, 0X740021, 0X6E0700, 0X531600,
