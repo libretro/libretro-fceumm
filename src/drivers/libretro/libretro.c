@@ -195,7 +195,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 26
+#define MAXPAL 27
 
 struct st_palettes {
 	char name[32];
@@ -672,6 +672,24 @@ struct st_palettes palettes[] = {
 		   0xF7C8FF, 0xFEC6EE, 0xFECEC6, 0xF6D7AE,
 		   0xE9E49F, 0xD3ED9D, 0xC0F2B2, 0xB9F1CC,
 		   0xBAEDED, 0xBAB9BB, 0x000000, 0x000000 }
+   },
+   { "wavebeam", "nakedarthur's Wavebeam palette",
+         { 0X686868, 0X001B86, 0X0F049E, 0X41008C,
+		   0X6C006E, 0X740021, 0X6E0700, 0X531600,
+		   0X2A3600, 0X004C00, 0X00520A, 0X004B23,
+		   0X00375B, 0X000000, 0X000000, 0X000000,
+		   0XB0B0B0, 0X1559D7, 0X3D2CE9, 0X6F21DF,
+		   0XA716C4, 0XB90F67, 0XB72E05, 0X924E00,
+		   0X676C00, 0X1E8700, 0X039103, 0X008E46,
+		   0X007993, 0X000000, 0X000000, 0X000000,
+		   0XFFFFFF, 0X63B2FF, 0X789DFF, 0XC37DFE,
+		   0XE975FF, 0XF572C5, 0XF08965, 0XE3A330,
+		   0XC1C104, 0X89D508, 0X5CDE3E, 0X4BD98C,
+		   0X4DCFD4, 0X4F4F4F, 0X000000, 0X000000,
+		   0XFFFFFF, 0XB6DEFF, 0XCECEFF, 0XDAC4FF,
+		   0XECC1FB, 0XFBC0DF, 0XFFCDC6, 0XF7DBAD,
+		   0XF0EB9F, 0XD4F6A2, 0XBCF7B0, 0XB5F6CE,
+		   0XB2EFF1, 0XBCBCBC, 0X000000, 0X000000 }
    }
 };
 
@@ -710,7 +728,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|raw" },
+      { "fceumm_palette", "Color Palette; asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -962,6 +980,8 @@ static void check_variables(bool startup)
          current_palette = 24;
       else if (!strcmp(var.value, "nescap"))
          current_palette = 25;
+      else if (!strcmp(var.value, "wavebeam"))
+         current_palette = 26;
       else if (!strcmp(var.value, "raw"))
          current_palette = MAXPAL;
 
