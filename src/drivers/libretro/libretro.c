@@ -65,7 +65,6 @@ unsigned vblankscanlines = 0;
 unsigned overclock_state = -1;
 unsigned dendy = 0;
 
-
 int FCEUnetplay;
 #ifdef PSP
 #include "pspgu.h"
@@ -74,7 +73,6 @@ static __attribute__((aligned(16))) uint16_t retro_palette[256];
 static uint16_t retro_palette[256];
 #endif
 static uint16_t* fceu_video_out;
-
 
 /* Some timing-related variables. */
 static int soundo = 1;
@@ -135,7 +133,6 @@ int FCEUD_SendData(void *data, uint32 len)
 #define GREEN_EXPAND 3
 #define BLUE_EXPAND 3
 #endif
-
 
 void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, unsigned char b)
 {
@@ -771,7 +768,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     unsigned height = use_overscan ? 240 : (240 - 16);
 #else
     unsigned width  = 256 - (overscan_h ? 16 : 0);
-    unsigned height = 240 - (overscan_v ? 16 : 0);0;
+    unsigned height = 240 - (overscan_v ? 16 : 0);
 #endif
    info->geometry.base_width = width;
    info->geometry.base_height = height;
@@ -848,7 +845,8 @@ static void retro_set_custom_palette (void)
 
 /* Set variables for NTSC(1) / PAL(2) / Dendy(3)
  * Dendy has PAL framerate and resolution, but ~NTSC timings,
- * and has 50 dummy scanlines to force 50 fps. */
+ * and has 50 dummy scanlines to force 50 fps.
+ */
 void FCEUD_RegionOverride(int region)
 {
    static int w = 0;
@@ -907,7 +905,6 @@ void retro_reset(void)
 {
    ResetNES();
 }
-
 
 typedef struct
 {
@@ -1349,7 +1346,6 @@ static void retro_run_blit(uint8_t *gfx)
 
    video_cb(fceu_video_out_ptr, width, height, pitch);
 #endif
-
 }
 
 void retro_run(void)
