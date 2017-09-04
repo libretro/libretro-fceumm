@@ -182,7 +182,7 @@ static void CalculatePalette(void) {
 	WritePalette();
 }
 
-static int ipalette = 0;
+int ipalette = 0;
 
 void FCEU_LoadGamePalette(void) {
 	uint8 ptmp[192];

@@ -82,13 +82,10 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
          sprintf(tmp, "%s"PSS "disksys.rom", BaseDirectory);
          break;
       case FCEUMKF_PALETTE:
-         if (odirs[FCEUIOD_MISC])
-            sprintf(tmp, "%s"PSS "%s.pal", odirs[FCEUIOD_MISC], FileBase);
-         else
-            sprintf(tmp, "%s"PSS "gameinfo"PSS "%s.pal", BaseDirectory, FileBase);
+         sprintf(tmp, "%s"PSS "nes.pal", BaseDirectory);
          break;
       case FCEUMKF_FDS:
-            sprintf(tmp, "%s"PSS "%s.sav", SaveDirectory, FileBase);
+         sprintf(tmp, "%s"PSS "%s.sav", SaveDirectory, FileBase);
          break;
       default:
          break;
