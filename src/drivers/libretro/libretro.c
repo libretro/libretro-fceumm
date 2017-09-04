@@ -196,7 +196,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 16 /* raw palette # */
+#define MAXPAL 17 /* raw palette # */
 int external_palette_exist = 0;
 
 struct st_palettes {
@@ -241,6 +241,24 @@ struct st_palettes palettes[] = {
 		   0xa687bc, 0xad8d9d, 0xae968c, 0x9c8f7c,
 		   0x9c9e72, 0x94a67c, 0x84a77b, 0x7c9d84,
 		   0x73968d, 0xdedede, 0x000000, 0x000000 }
+   },
+   { "rgb", "Nintendo RGB PPU palette",
+	   { 0x6D6D6D, 0x002492, 0x0000DB, 0x6D49DB,
+		   0x92006D, 0xB6006D, 0xB62400, 0x924900,
+		   0x6D4900, 0x244900, 0x006D24, 0x009200,
+		   0x004949, 0x000000, 0x000000, 0x000000,
+		   0xB6B6B6, 0x006DDB, 0x0049FF, 0x9200FF,
+		   0xB600FF, 0xFF0092, 0xFF0000, 0xDB6D00,
+		   0x926D00, 0x249200, 0x009200, 0x00B66D,
+		   0x009292, 0x242424, 0x000000, 0x000000,
+		   0xFFFFFF, 0x6DB6FF, 0x9292FF, 0xDB6DFF,
+		   0xFF00FF, 0xFF6DFF, 0xFF9200, 0xFFB600,
+		   0xDBDB00, 0x6DDB00, 0x00FF00, 0x49FFDB,
+		   0x00FFFF, 0x494949, 0x000000, 0x000000,
+		   0xFFFFFF, 0xB6DBFF, 0xDBB6FF, 0xFFB6FF,
+		   0xFF92FF, 0xFFB6B6, 0xFFDB92, 0xFFFF49,
+		   0xFFFF6D, 0xB6FF49, 0x92FF6D, 0x49FFDB,
+		   0x92DBFF, 0x929292, 0x000000, 0x000000 }
    },
    { "yuv-v3", "FBX's YUV-V3 palette",
 	   { 0x666666, 0x002A88, 0x1412A7, 0x3B00A4,
@@ -513,7 +531,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; default|asqrealc|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
+      { "fceumm_palette", "Color Palette; default|asqrealc|nintendo-vc|rgb|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
 #ifdef PSP
@@ -599,7 +617,7 @@ static void retro_set_custom_palette (void)
 
    if (current_palette == 0 || current_palette > MAXPAL || (GameInfo->type == GIT_VSUNI))
    {
-      if (current_palette > MAXPAL && !(GameInfo->type == GIT_VSUNI))
+      if (current_palette > MAXPAL && GameInfo->type != GIT_VSUNI)
       {
          if (external_palette_exist)
             ipalette = 1;
@@ -744,32 +762,34 @@ static void check_variables(bool startup)
          current_palette = 1;
       else if (!strcmp(var.value, "nintendo-vc"))
          current_palette = 2;
-      else if (!strcmp(var.value, "yuv-v3"))
+      else if (!strcmp(var.value, "rgb"))
          current_palette = 3;
-      else if (!strcmp(var.value, "unsaturated-final"))
+      else if (!strcmp(var.value, "yuv-v3"))
          current_palette = 4;
-      else if (!strcmp(var.value, "sony-cxa2025as-us"))
+      else if (!strcmp(var.value, "unsaturated-final"))
          current_palette = 5;
-      else if (!strcmp(var.value, "pal"))
+      else if (!strcmp(var.value, "sony-cxa2025as-us"))
          current_palette = 6;
-      else if (!strcmp(var.value, "bmf-final2"))
+      else if (!strcmp(var.value, "pal"))
          current_palette = 7;
-      else if (!strcmp(var.value, "bmf-final3"))
+      else if (!strcmp(var.value, "bmf-final2"))
          current_palette = 8;
-      else if (!strcmp(var.value, "smooth-fbx"))
+      else if (!strcmp(var.value, "bmf-final3"))
          current_palette = 9;
-      else if (!strcmp(var.value, "composite-direct-fbx"))
+      else if (!strcmp(var.value, "smooth-fbx"))
          current_palette = 10;
-      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
+      else if (!strcmp(var.value, "composite-direct-fbx"))
          current_palette = 11;
-      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
+      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
          current_palette = 12;
-      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
+      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
          current_palette = 13;
-      else if (!strcmp(var.value, "nescap"))
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
          current_palette = 14;
-      else if (!strcmp(var.value, "wavebeam"))
+      else if (!strcmp(var.value, "nescap"))
          current_palette = 15;
+      else if (!strcmp(var.value, "wavebeam"))
+         current_palette = 16;
       else if (!strcmp(var.value, "raw"))
          current_palette = MAXPAL;
       else if (!strcmp(var.value, "custom"))
