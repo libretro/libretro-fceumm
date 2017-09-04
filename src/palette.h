@@ -6,6 +6,7 @@ typedef struct {
 } pal;
 
 extern pal *palo;
+extern int ntsccol;
 extern int ipalette;
 void FCEU_ResetPalette(void);
 
