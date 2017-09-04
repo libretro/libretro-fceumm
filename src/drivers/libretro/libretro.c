@@ -196,7 +196,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAX_PATH 1024
 
 /*palette for FCEU*/
-#define MAXPAL 28 /* max # of palettes in array + 2 for "default" and "raw" */
+#define MAXPAL 23 /* raw palette # */
 int external_palette_exist = 0;
 
 struct st_palettes {
@@ -349,96 +349,6 @@ struct st_palettes palettes[] = {
 		   0xfcc4fc, 0xfcc4d8, 0xfcbcb0, 0xfcd8a8,
 		   0xfce4a0, 0xe0fca0, 0xa8f0bc, 0xb0fccc,
 		   0x9cfcf0, 0x000000, 0x000000, 0x000000 }
-   },
-   { "zaphod-cv", "Zaphod's VS Castlevania palette",
-	   { 0x7f7f7f, 0xffa347, 0x0000bf, 0x472bbf,
-		   0x970087, 0xf85898, 0xab1300, 0xf8b8f8,
-		   0xbf0000, 0x007800, 0x006b00, 0x005b00,
-		   0xffffff, 0x9878f8, 0x000000, 0x000000,
-		   0xbfbfbf, 0x0078f8, 0xab1300, 0x6b47ff,
-		   0x00ae00, 0xe7005b, 0xf83800, 0x7777ff,
-		   0xaf7f00, 0x00b800, 0x00ab00, 0x00ab47,
-		   0x008b8b, 0x000000, 0x000000, 0x472bbf,
-		   0xf8f8f8, 0xffe3ab, 0xf87858, 0x9878f8,
-		   0x0078f8, 0xf85898, 0xbfbfbf, 0xffa347,
-		   0xc800c8, 0xb8f818, 0x7f7f7f, 0x007800,
-		   0x00ebdb, 0x000000, 0x000000, 0xffffff,
-		   0xffffff, 0xa7e7ff, 0x5bdb57, 0xe75f13,
-		   0x004358, 0x0000ff, 0xe7005b, 0x00b800,
-		   0xfbdb7b, 0xd8f878, 0x8b1700, 0xffe3ab,
-		   0x00ffff, 0xab0023, 0x000000, 0x000000 }
-   },
-   { "zaphod-smb", "Zaphod's VS SMB palette",
-	   { 0x626a00, 0x0000ff, 0x006a77, 0x472bbf,
-		   0x970087, 0xab0023, 0xab1300, 0xb74800,
-		   0xa2a2a2, 0x007800, 0x006b00, 0x005b00,
-		   0xffd599, 0xffff00, 0x009900, 0x000000,
-		   0xff66ff, 0x0078f8, 0x0058f8, 0x6b47ff,
-		   0x000000, 0xe7005b, 0xf83800, 0xe75f13,
-		   0xaf7f00, 0x00b800, 0x5173ff, 0x00ab47,
-		   0x008b8b, 0x000000, 0x91ff88, 0x000088,
-		   0xf8f8f8, 0x3fbfff, 0x6b0000, 0x4855f8,
-		   0xf878f8, 0xf85898, 0x595958, 0xff009d,
-		   0x002f2f, 0xb8f818, 0x5bdb57, 0x58f898,
-		   0x00ebdb, 0x787878, 0x000000, 0x000000,
-		   0xffffff, 0xa7e7ff, 0x590400, 0xbb0000,
-		   0xf8b8f8, 0xfba7c3, 0xffffff, 0x00e3e1,
-		   0xfbdb7b, 0xffae00, 0xb8f8b8, 0xb8f8d8,
-		   0x00ff00, 0xf8d8f8, 0xffaaaa, 0x004000 }
-   },
-   { "vs-drmar", "VS Dr. Mario palette",
-	   { 0x5f97ff, 0x000000, 0x000000, 0x47009f,
-		   0x00ab00, 0xffffff, 0xabe7ff, 0x000000,
-		   0x000000, 0x000000, 0x000000, 0x000000,
-		   0xe7005b, 0x000000, 0x000000, 0x000000,
-		   0x5f97ff, 0x000000, 0x000000, 0x000000,
-		   0x000000, 0x8b7300, 0xcb4f0f, 0x000000,
-		   0xbcbcbc, 0x000000, 0x000000, 0x000000,
-		   0x000000, 0x000000, 0x000000, 0x000000,
-		   0x00ebdb, 0x000000, 0x000000, 0x000000,
-		   0x000000, 0xff9b3b, 0x000000, 0x000000,
-		   0x83d313, 0x000000, 0x3fbfff, 0x000000,
-		   0x0073ef, 0x000000, 0x000000, 0x000000,
-		   0x00ebdb, 0x000000, 0x000000, 0x000000,
-		   0x000000, 0x000000, 0xf3bf3f, 0x000000,
-		   0x005100, 0x000000, 0xc7d7ff, 0xffdbab,
-		   0x000000, 0x000000, 0x000000, 0x000000 }
-   },
-   { "vs-cv", "VS Castlevania palette",
-	   { 0xaf7f00, 0xffa347, 0x008b8b, 0x472bbf,
-		   0x970087, 0xf85898, 0xab1300, 0xf8b8f8,
-		   0xf83800, 0x007800, 0x006b00, 0x005b00,
-		   0xffffff, 0x9878f8, 0x00ab00, 0x000000,
-		   0xbfbfbf, 0x0078f8, 0xab1300, 0x6b47ff,
-		   0x000000, 0xe7005b, 0xf83800, 0x6b88ff,
-		   0xaf7f00, 0x00b800, 0x6b88ff, 0x00ab47,
-		   0x008b8b, 0x000000, 0x000000, 0x472bbf,
-		   0xf8f8f8, 0xffe3ab, 0xf87858, 0x9878f8,
-		   0x0078f8, 0xf85898, 0xbfbfbf, 0xffa347,
-		   0x004358, 0xb8f818, 0x7f7f7f, 0x007800,
-		   0x00ebdb, 0x000000, 0x000000, 0xffffff,
-		   0xffffff, 0xa7e7ff, 0x5bdb57, 0x6b88ff,
-		   0x004358, 0x0000ff, 0xe7005b, 0x00b800,
-		   0xfbdb7b, 0xffa347, 0x8b1700, 0xffe3ab,
-		   0xb8f818, 0xab0023, 0x000000, 0x007800 }
-   },
-   { "vs-smb", "VS SMB/VS Ice Climber palette",
-	   { 0xaf7f00, 0x0000ff, 0x008b8b, 0x472bbf,
-		   0x970087, 0xab0023, 0x0000ff, 0xe75f13,
-		   0xbfbfbf, 0x007800, 0x5bdb57, 0x005b00,
-		   0xf0d0b0, 0xffe3ab, 0x00ab00, 0x000000,
-		   0xbfbfbf, 0x0078f8, 0x0058f8, 0x6b47ff,
-		   0x000000, 0xe7005b, 0xf83800, 0xf87858,
-		   0xaf7f00, 0x00b800, 0x6b88ff, 0x00ab47,
-		   0x008b8b, 0x000000, 0x000000, 0x3fbfff,
-		   0xf8f8f8, 0x006b00, 0x8b1700, 0x9878f8,
-		   0x6b47ff, 0xf85898, 0x7f7f7f, 0xe7005b,
-		   0x004358, 0xb8f818, 0x0078f8, 0x58f898,
-		   0x00ebdb, 0xfbdb7b, 0x000000, 0x000000,
-		   0xffffff, 0xa7e7ff, 0xb8b8f8, 0xf83800,
-		   0xf8b8f8, 0xfba7c3, 0xffffff, 0x00ffff,
-		   0xfbdb7b, 0xffa347, 0xb8f8b8, 0xb8f8d8,
-		   0xb8f818, 0xf8d8f8, 0x000000, 0x007800 }
    },
    { "nintendo-vc", "Virtual Console palette",
 	   { 0x494949, 0x00006a, 0x090063, 0x290059,
@@ -729,7 +639,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; default|asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
+      { "fceumm_palette", "Color Palette; default|asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
 #ifdef PSP
@@ -968,44 +878,34 @@ static void check_variables(bool startup)
          current_palette = 7;
       else if (!strcmp(var.value, "mess"))
          current_palette = 8;
-      else if (!strcmp(var.value, "zaphod-cv"))
-         current_palette = 9;
-      else if (!strcmp(var.value, "zaphod-smb"))
-         current_palette = 10;
-      else if (!strcmp(var.value, "vs-drmar"))
-         current_palette = 11;
-      else if (!strcmp(var.value, "vs-cv"))
-         current_palette = 12;
-      else if (!strcmp(var.value, "vs-smb"))
-         current_palette = 13;
       else if (!strcmp(var.value, "nintendo-vc"))
-         current_palette = 14;
+         current_palette = 9;
       else if (!strcmp(var.value, "yuv-v3"))
-         current_palette = 15;
+         current_palette = 10;
       else if (!strcmp(var.value, "unsaturated-final"))
-         current_palette = 16;
+         current_palette = 11;
       else if (!strcmp(var.value, "sony-cxa2025as-us"))
-         current_palette = 17;
+         current_palette = 12;
       else if (!strcmp(var.value, "pal"))
-         current_palette = 18;
+         current_palette = 13;
       else if (!strcmp(var.value, "bmf-final2"))
-         current_palette = 19;
+         current_palette = 14;
       else if (!strcmp(var.value, "bmf-final3"))
-         current_palette = 20;
+         current_palette = 15;
       else if (!strcmp(var.value, "smooth-fbx"))
-         current_palette = 21;
+         current_palette = 16;
       else if (!strcmp(var.value, "composite-direct-fbx"))
-         current_palette = 22;
+         current_palette = 17;
       else if (!strcmp(var.value, "pvm-style-d93-fbx"))
-         current_palette = 23;
+         current_palette = 18;
       else if (!strcmp(var.value, "ntsc-hardware-fbx"))
-         current_palette = 24;
+         current_palette = 19;
       else if (!strcmp(var.value, "nes-classic-fbx-fs"))
-         current_palette = 25;
+         current_palette = 20;
       else if (!strcmp(var.value, "nescap"))
-         current_palette = 26;
+         current_palette = 21;
       else if (!strcmp(var.value, "wavebeam"))
-         current_palette = 27;
+         current_palette = 22;
       else if (!strcmp(var.value, "raw"))
          current_palette = MAXPAL;
       else if (!strcmp(var.value, "custom"))
