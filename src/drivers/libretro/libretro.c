@@ -597,9 +597,9 @@ static void retro_set_custom_palette (void)
    ipalette = 0;
    use_raw_palette = false;
 
-   if (current_palette == 0 || current_palette > MAXPAL)
+   if (current_palette == 0 || current_palette > MAXPAL || (GameInfo->type == GIT_VSUNI))
    {
-      if (current_palette > MAXPAL)
+      if (current_palette > MAXPAL && !(GameInfo->type == GIT_VSUNI))
       {
          if (external_palette_exist)
             ipalette = 1;
@@ -609,6 +609,10 @@ static void retro_set_custom_palette (void)
             FCEU_PrintError("Using default palette instead.\n");
          }
       }
+
+      if (GameInfo->type == GIT_VSUNI)
+         FCEU_PrintError("Cannot use custom palette with VS. System.\n");
+
       FCEU_ResetPalette();	/* Do palette reset*/
       return;
    }
