@@ -197,6 +197,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 
 /*palette for FCEU*/
 #define MAXPAL 28 /* max # of palettes in array + 2 for "default" and "raw" */
+int external_palette_exist = 0;
 
 struct st_palettes {
 	char name[32];
@@ -728,7 +729,7 @@ void retro_set_controller_port_device(unsigned a, unsigned b)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
-      { "fceumm_palette", "Color Palette; default|asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw" },
+      { "fceumm_palette", "Color Palette; default|asqrealc|loopy|quor|chris|matt|pasofami|crashman|mess|zaphod-cv|zaphod-smb|vs-drmar|vs-cv|vs-smb|nintendo-vc|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
       { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
 #ifdef PSP
@@ -809,10 +810,21 @@ static void retro_set_custom_palette (void)
 {
    uint8_t i,r,g,b;
 
+   ipalette = 0;
    use_raw_palette = false;
 
-   if (current_palette == 0) /* default palette */
+   if (current_palette == 0 || current_palette > MAXPAL)
    {
+      if (current_palette > MAXPAL)
+      {
+         if (external_palette_exist)
+            ipalette = 1;
+         else
+         {
+            FCEU_PrintError("nes.pal not found in system directory.\n");
+            FCEU_PrintError("Using default palette instead.\n");
+         }
+      }
       FCEU_ResetPalette();	/* Do palette reset*/
       return;
    }
@@ -996,6 +1008,8 @@ static void check_variables(bool startup)
          current_palette = 27;
       else if (!strcmp(var.value, "raw"))
          current_palette = MAXPAL;
+      else if (!strcmp(var.value, "custom"))
+         current_palette = MAXPAL+1;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
@@ -1797,6 +1811,9 @@ bool retro_load_game(const struct retro_game_info *game)
 
    FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn[0], 0);
    FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn[0], 0);
+
+   FCEU_LoadGamePalette(); /* check and load external palette nes.pal... */
+   external_palette_exist = ipalette; /* save status if found or not */
 
    retro_set_custom_palette();
 
