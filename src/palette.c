@@ -34,7 +34,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-static int ntsccol = 0;
+int ntsccol = 0;
 static int ntsctint = 46 + 10;
 static int ntschue = 72;
 
