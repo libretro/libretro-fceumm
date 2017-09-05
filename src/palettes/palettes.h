@@ -1,16 +1,16 @@
-pal rp2c04001[64] = {
- #include "rp2c04001.h"
+pal rp2c04_0001[64] = {
+ #include "rp2c04-0001.h"
 };
 
-pal rp2c04002[64] = {
- #include "rp2c04002.h"
+pal rp2c04_0002[64] = {
+ #include "rp2c04-0002.h"
 };
 
-pal rp2c04003[64] = {
- #include "rp2c04003.h"
+pal rp2c04_0003[64] = {
+ #include "rp2c04-0003.h"
 };
-pal rp2c05004[64] = {
- #include "rp2c05004.h"
+pal rp2c04_0004[64] = {
+ #include "rp2c04-0004.h"
 };
 
 pal unvpalette[7] = {
