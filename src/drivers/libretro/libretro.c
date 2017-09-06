@@ -598,11 +598,11 @@ static void check_system_specs(void)
 
 void retro_init(void)
 {
+   bool achievements = true;
    enum retro_pixel_format rgb565;
    log_cb.log=default_logger;
    environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_cb);
 
-   bool achievements = true;
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
 
 #ifdef FRONTEND_SUPPORTS_RGB565
