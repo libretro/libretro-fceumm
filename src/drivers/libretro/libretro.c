@@ -1053,7 +1053,10 @@ static void FCEUD_UpdateInput(void)
    }
 
    if (GameInfo->type == GIT_VSUNI)
-      FCEU_VSUniSwap(&pad[0], &pad[1]);
+      FCEU_VSUniSwap(&pad[0], &pad[1]);   /* TODO: Incomplete! Some
+                                           * non-zapper/gun game
+                                           * still has no input.
+                                           */
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
 
