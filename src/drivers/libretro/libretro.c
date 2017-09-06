@@ -199,6 +199,8 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define MAXPAL 17 /* raw palette # */
 static int use_ntsc = 0;
 static int external_palette_exist = 0;
+extern int ipalette;
+extern int ntsccol;
 
 struct st_palettes {
 	char name[32];
@@ -618,26 +620,25 @@ static void retro_set_custom_palette(void)
    ntsccol = 0;
    use_raw_palette = false;
 
-   if (current_palette == 0 || current_palette > MAXPAL || (GameInfo->type == GIT_VSUNI))
+   if (current_palette == 0 || current_palette > MAXPAL
+   || (GameInfo->type == GIT_VSUNI))
    {
       if (current_palette > MAXPAL && GameInfo->type != GIT_VSUNI)
       {
          if (external_palette_exist)
             ipalette = 1;
-         else
-         {
-            FCEU_PrintError("nes.pal not found in system directory.\n");
-            FCEU_PrintError("Using default palette instead.\n");
-         }
       }
 
-      if (GameInfo->type == GIT_VSUNI)
-         FCEU_PrintError("Cannot use custom palette with VS. System.\n");
+      if (current_palette == 0)
+         ntsccol = use_ntsc;
 
-      if (current_palette == 0 && use_ntsc)
-         ntsccol = 1;
-
-      FCEU_ResetPalette();	/* Do palette reset*/
+      FCEU_ResetPalette(); /* Do palette reset. Priority will be:
+                            * -ipalette   : sets external palette
+                            * -ntsccol    : sets ntsc to default palette.
+                            * If none of the above are true, then
+                            * default palette will be used.
+                            * VS.System should always use default palette.
+                            */
       return;
    }
 
@@ -1050,6 +1051,12 @@ static void FCEUD_UpdateInput(void)
              turbo_p1_toggle[i-8] = 0;
       }
    }
+
+   if (GameInfo->type == GIT_VSUNI)
+      FCEU_VSUniSwap(&pad[0], &pad[1]);   /* TODO: Incomplete! Some
+                                           * non-zapper/gun game
+                                           * still has no input.
+                                           */
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
 
@@ -1610,8 +1617,14 @@ bool retro_load_game(const struct retro_game_info *game)
    FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn[0], 0);
    FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn[0], 0);
 
-   FCEU_LoadGamePalette(); /* check and load external palette nes.pal... */
-   external_palette_exist = ipalette; /* save status if found or not */
+   external_palette_exist = ipalette;
+   if (external_palette_exist)
+      FCEU_printf("nes.pal loaded from system directory.\n");
+   else
+      FCEU_PrintError("Cannot find nes.pal from system directory.\n");
+
+   if (GameInfo->type == GIT_VSUNI)
+      FCEU_PrintError("VS.System rom loaded, will use default palette.\n");
 
    retro_set_custom_palette();
 
