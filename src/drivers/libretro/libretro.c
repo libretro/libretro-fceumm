@@ -591,7 +591,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
 static void check_system_specs(void)
 {
-   // TODO - when we get it running at fullspeed on PSP, set to 4
+   /* TODO - when we get it running at fullspeed on PSP, set to 4 */
    unsigned level = 5;
    environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
 }
@@ -707,7 +707,7 @@ void FCEUD_RegionOverride(int region)
    FCEUPPU_SetVideoSystem(w || dendy);
    SetSoundVariables();
 
-   // Update the geometry
+   /* Update the geometry */
    retro_get_system_av_info(&av_info);
    environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
@@ -1100,7 +1100,7 @@ static void retro_run_blit(uint8_t *gfx)
       width  -= 16;
       height -= 16;
    }
-   texture_vram_p = (void*) (0x44200000 - (256 * 256)); // max VRAM address - frame size
+   texture_vram_p = (void*) (0x44200000 - (256 * 256)); /* max VRAM address - frame size */
 
    sceKernelDcacheWritebackRange(retro_palette,256 * 2);
    sceKernelDcacheWritebackRange(XBuf, 256*240 );
@@ -1712,7 +1712,6 @@ void *retro_get_memory_data(unsigned type)
             data = NULL;
          break;
       case RETRO_MEMORY_SYSTEM_RAM:
-         // TODO: add ExWRAM(0x2000) support ?
          data = RAM;
          break;
       default:
@@ -1738,8 +1737,6 @@ size_t retro_get_memory_size(unsigned type)
             size = 0;
          break;
       case RETRO_MEMORY_SYSTEM_RAM:
-         // TODO: detect ExWRAM(0x2000) ?
-         // NES BASE RAM (0x800)
          size = 0x800;
          break;
       default:
