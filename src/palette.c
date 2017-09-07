@@ -56,6 +56,7 @@ static pal *palpoint[8] =
 	rp2c04_0002,
 	rp2c04_0003,
 	rp2c04_0004,
+	rp2c03,
 };
 
 void FCEUI_SetPaletteArray(uint8 *pal) {
