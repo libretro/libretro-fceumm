@@ -98,8 +98,11 @@ static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
 	if (FCEUnetplay) NetplayUpdate(joy);
 #endif
 	FCEUMOV_AddJoy(joy);
-	if (GameInfo->type == GIT_VSUNI)
+#ifdef __LIBRETRO__
+#else 
+	if (GameInfo->type == GIT_VSUNI) 		/* moved to libretro.c */
 		FCEU_VSUniSwap(&joy[0], &joy[1]);
+#endif
 }
 
 static INPUTC GPC = { ReadGP, 0, StrobeGP, UpdateGP, 0, 0 };

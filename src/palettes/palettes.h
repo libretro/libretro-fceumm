@@ -13,6 +13,10 @@ pal rp2c04_0004[64] = {
  #include "rp2c04-0004.h"
 };
 
+pal rp2c03[64] = {
+ #include "rp2c03.h"
+};
+
 pal unvpalette[7] = {
 	{ 0x00 << 2, 0x00 << 2, 0x00 << 2 }, // Black
 	{ 0x3F << 2, 0x3F << 2, 0x34 << 2 }, // White
