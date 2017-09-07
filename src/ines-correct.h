@@ -85,6 +85,7 @@
 	{0xf518dd58,	  7,		8},	/* Captain Skyhawk */
 	{0x84382231,	  9,		0},	/* Punch Out (J) */
 	{0xbe939fce,	  9,		1},	/* Punchout*/
+	{0x7b837fde,	  9,		1},	/* Mike Tyson's Punch-Out!! (PC10)*/
 	{0x345d3a1a,	 11,		1},	/* Castle of Deceit */
 	{0x5e66eaea,	 13,		1},	/* Videomation */
 	{0xcd373baa,	 14,	   -1},	/* Samurai Spirits (Rex Soft) */
