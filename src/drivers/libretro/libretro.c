@@ -76,6 +76,9 @@ static uint16_t* fceu_video_out;
 
 /* Some timing-related variables. */
 static int soundo = 1;
+unsigned sndsamplerate = 48000;
+unsigned sndquality = 0;
+unsigned sndvolume = 150;
 
 static volatile int nofocus = 0;
 
@@ -179,7 +182,7 @@ void FCEUD_NetworkClose(void)
 
 void FCEUD_SoundToggle (void)
 {
-   FCEUI_SetSoundVolume(100);
+   FCEUI_SetSoundVolume(sndvolume);
 }
 
 void FCEUD_VideoChanged (void)
@@ -548,6 +551,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
+      { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
       { NULL, NULL },
    };
 
@@ -582,7 +586,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_width = width;
    info->geometry.max_height = height;
    info->geometry.aspect_ratio = use_par ? NES_8_7_PAR : NES_4_3;
-   info->timing.sample_rate = 48000.0;
+   info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
    else
@@ -957,6 +961,21 @@ static void check_variables(bool startup)
          use_par = newval;
          geometry_update = true;
       }
+   }
+
+   var.key = "fceumm_sndquality";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      unsigned oldval = sndquality;
+      if (!strcmp(var.value, "Low"))
+         sndquality = 0;
+      else if (!strcmp(var.value, "High"))
+         sndquality = 1;
+      else if (!strcmp(var.value, "Very High"))
+         sndquality = 2;
+      if (sndquality != oldval)
+         FCEUI_SetSoundQuality(sndquality);
    }
 
    if (geometry_update)
@@ -1594,8 +1613,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    FCEUI_Initialize();
 
-   FCEUI_SetSoundVolume(256);
-   FCEUI_Sound(48000);
+   FCEUI_SetSoundVolume(sndvolume);
+   FCEUI_Sound(sndsamplerate);
 
    GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
    if (!GameInfo)
