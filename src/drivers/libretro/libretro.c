@@ -582,7 +582,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_width = width;
    info->geometry.max_height = height;
    info->geometry.aspect_ratio = use_par ? NES_8_7_PAR : NES_4_3;
-   info->timing.sample_rate = 32050.0;
+   info->timing.sample_rate = 48000.0;
    if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
    else
@@ -637,7 +637,7 @@ static void retro_set_custom_palette(void)
                             * -ntsccol    : sets ntsc to default palette.
                             * If none of the above are true, then
                             * default palette will be used.
-                            * VS.System should always use default palette.
+                            * VS Uniystem should always use default palette.
                             */
       return;
    }
@@ -1595,7 +1595,7 @@ bool retro_load_game(const struct retro_game_info *game)
    FCEUI_Initialize();
 
    FCEUI_SetSoundVolume(256);
-   FCEUI_Sound(32050);
+   FCEUI_Sound(48000);
 
    GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
    if (!GameInfo)
@@ -1621,7 +1621,7 @@ bool retro_load_game(const struct retro_game_info *game)
       FCEU_PrintError("Cannot find nes.pal from system directory.\n");
 
    if (GameInfo->type == GIT_VSUNI)
-      FCEU_PrintError("VS.System rom loaded, will use default palette.\n");
+      FCEU_PrintError("VS Unisystem rom loaded, will use default palette.\n");
 
    retro_set_custom_palette();
 
