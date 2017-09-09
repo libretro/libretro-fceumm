@@ -1069,13 +1069,13 @@ unsigned char turbo_p1_toggle[] = { 0, 0 };
 static void FCEUD_UpdateInput(void)
 {
    unsigned p, i;
-   unsigned char pad[2];
+   unsigned char pad[4];
 
-   pad[0] = pad[1] = 0;
+   pad[0] = pad[1] = pad[2] = pad[3] = 0;
 
    poll_cb();
 
-   for (p = 0; p < 2; p++)
+   for (p = 0; p < 4; p++)
    {
       for ( i = 0; i < 8; i++)
          pad[p] |= input_cb(p, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
@@ -1142,7 +1142,7 @@ static void FCEUD_UpdateInput(void)
    if (GameInfo->type == GIT_VSUNI)
       FCEU_VSUniSwap(&pad[0], &pad[1]);
 
-   JSReturn[0] = pad[0] | (pad[1] << 8);
+   JSReturn[0] = pad[0] | (pad[1] << 8) | (pad[1] << 16 | (pad[1] << 24);
 
    GetMouseData(&MouseData[0]);
 
