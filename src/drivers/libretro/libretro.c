@@ -84,6 +84,7 @@ static volatile int nofocus = 0;
 
 static int32_t *sound = 0;
 static uint32_t JSReturn[2];
+static uint32_t MouseData[2];
 static uint32_t current_palette = 0;
 
 int PPUViewScanline=0;
@@ -530,8 +531,18 @@ void retro_set_input_state(retro_input_state_t cb)
    input_cb = cb;
 }
 
-void retro_set_controller_port_device(unsigned a, unsigned b)
-{}
+void retro_set_controller_port_device(unsigned port, unsigned device)
+{
+   switch(device)
+   {
+      case RETRO_DEVICE_JOYPAD:
+         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn[0], 0);
+         break;
+      case RETRO_DEVICE_MOUSE:
+         FCEUI_SetInput(port, SI_ZAPPER, &MouseData[0], 1);
+         break;
+   }
+}
 
 
 void retro_set_environment(retro_environment_t cb)
@@ -555,8 +566,20 @@ void retro_set_environment(retro_environment_t cb)
       { NULL, NULL },
    };
 
+   static const struct retro_controller_description pads[] = {
+      { "NES Gamepad", RETRO_DEVICE_JOYPAD },
+      { "Zapper", RETRO_DEVICE_MOUSE },
+   };
+
+   static const struct retro_controller_info ports[] = {
+      { pads, 2 },
+      { pads, 2 },
+      { 0 },
+   };
+
    environ_cb = cb;
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
+   cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 }
 
 void retro_get_system_info(struct retro_system_info *info)
@@ -564,7 +587,7 @@ void retro_get_system_info(struct retro_system_info *info)
    info->need_fullpath    = false;
    info->valid_extensions = "fds|nes|unf|unif";
 #ifdef GIT_VERSION
-   info->library_version  = "git" GIT_VERSION;
+   info->library_version  = "(SVN)" GIT_VERSION;
 #else
    info->library_version  = "(SVN)";
 #endif
@@ -711,9 +734,10 @@ void FCEUD_RegionOverride(int region)
    FCEUPPU_SetVideoSystem(w || dendy);
    SetSoundVariables();
 
-   /* Update the geometry */
+   /* Update the timing(fps) in frontend */
    retro_get_system_av_info(&av_info);
-   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+   /* not needed in current implementation to update fps */
+   /* environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info); */
 }
 
 void retro_deinit (void)
@@ -985,6 +1009,50 @@ static void check_variables(bool startup)
    }
 }
 
+static int mouse_x, mouse_y, mzx, mzy;
+void GetMouseData(uint32_t *zapdata)
+{
+   static int right, bottom, adjx, adjy, offscreen, port;
+   right       = 256;
+   bottom      = 240;
+   offscreen   = 0;
+#ifdef PSP
+   adjx        = use_overscan ? 8:0;
+   adjy        = use_overscan ? 8:0;
+#else
+   adjx        = overscan_h ? 8:0;
+   adjy        = overscan_v ? 8:0;
+#endif
+
+   if (GameInfo->input[0] != SI_ZAPPER && GameInfo->input[1] != SI_ZAPPER)
+      return;
+
+   port = (GameInfo->type == GIT_VSUNI) ? 1 : 0;
+
+   /* TODO: Add some sort of mouse sensitivity */
+   mouse_x = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+   mouse_y = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+
+   mzx += mouse_x;
+   mzy += mouse_y;
+
+   /* Set crosshair within the limits of game's resolution */
+   if (mzx > right - adjx + offscreen)
+      mzx = right - adjx + offscreen;
+   else if (mzx <= 1 + adjx)
+      mzx = 1 + adjx;
+
+   if (mzy > bottom - adjy + offscreen)
+      mzy = bottom - adjy + offscreen;
+   else if (mzy <= 1 + adjy)
+      mzy = 1 + adjy;
+
+   zapdata[0] = mzx;
+   zapdata[1] = mzy;
+   zapdata[2] = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT) ? 1 : 0
+                | input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT) ? 2 : 0;
+}
+
 /*
  * Flags to keep track of whether turbo
  * was toggled on or off
@@ -1075,6 +1143,8 @@ static void FCEUD_UpdateInput(void)
       FCEU_VSUniSwap(&pad[0], &pad[1]);
 
    JSReturn[0] = pad[0] | (pad[1] << 8);
+
+   GetMouseData(&MouseData[0]);
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
       FCEU_VSUniCoin();             /* Insert Coin VS System */
