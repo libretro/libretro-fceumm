@@ -76,11 +76,15 @@ static uint16_t* fceu_video_out;
 
 /* Some timing-related variables. */
 static int soundo = 1;
+unsigned sndsamplerate = 48000;
+unsigned sndquality = 0;
+unsigned sndvolume = 150;
 
 static volatile int nofocus = 0;
 
 static int32_t *sound = 0;
 static uint32_t JSReturn[2];
+static uint32_t MouseData[3];
 static uint32_t current_palette = 0;
 
 int PPUViewScanline=0;
@@ -179,7 +183,7 @@ void FCEUD_NetworkClose(void)
 
 void FCEUD_SoundToggle (void)
 {
-   FCEUI_SetSoundVolume(100);
+   FCEUI_SetSoundVolume(sndvolume);
 }
 
 void FCEUD_VideoChanged (void)
@@ -527,8 +531,18 @@ void retro_set_input_state(retro_input_state_t cb)
    input_cb = cb;
 }
 
-void retro_set_controller_port_device(unsigned a, unsigned b)
-{}
+void retro_set_controller_port_device(unsigned port, unsigned device)
+{
+   switch(device)
+   {
+      case RETRO_DEVICE_JOYPAD:
+         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn[0], 0);
+         break;
+      case RETRO_DEVICE_MOUSE:
+         FCEUI_SetInput(port, SI_ZAPPER, &MouseData[0], 1);
+         break;
+   }
+}
 
 
 void retro_set_environment(retro_environment_t cb)
@@ -548,11 +562,24 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
+      { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
       { NULL, NULL },
+   };
+
+   static const struct retro_controller_description pads[] = {
+      { "NES Gamepad", RETRO_DEVICE_JOYPAD },
+      { "Zapper", RETRO_DEVICE_MOUSE },
+   };
+
+   static const struct retro_controller_info ports[] = {
+      { pads, 2 },
+      { pads, 2 },
+      { 0 },
    };
 
    environ_cb = cb;
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
+   cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 }
 
 void retro_get_system_info(struct retro_system_info *info)
@@ -560,7 +587,7 @@ void retro_get_system_info(struct retro_system_info *info)
    info->need_fullpath    = false;
    info->valid_extensions = "fds|nes|unf|unif";
 #ifdef GIT_VERSION
-   info->library_version  = "git" GIT_VERSION;
+   info->library_version  = "(SVN)" GIT_VERSION;
 #else
    info->library_version  = "(SVN)";
 #endif
@@ -582,7 +609,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_width = width;
    info->geometry.max_height = height;
    info->geometry.aspect_ratio = use_par ? NES_8_7_PAR : NES_4_3;
-   info->timing.sample_rate = 32050.0;
+   info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
    else
@@ -637,7 +664,7 @@ static void retro_set_custom_palette(void)
                             * -ntsccol    : sets ntsc to default palette.
                             * If none of the above are true, then
                             * default palette will be used.
-                            * VS.System should always use default palette.
+                            * VS Uniystem should always use default palette.
                             */
       return;
    }
@@ -707,9 +734,10 @@ void FCEUD_RegionOverride(int region)
    FCEUPPU_SetVideoSystem(w || dendy);
    SetSoundVariables();
 
-   /* Update the geometry */
+   /* Update the timing(fps) in frontend */
    retro_get_system_av_info(&av_info);
-   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+   /* not needed in current implementation to update fps */
+   /* environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info); */
 }
 
 void retro_deinit (void)
@@ -959,11 +987,69 @@ static void check_variables(bool startup)
       }
    }
 
+   var.key = "fceumm_sndquality";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      unsigned oldval = sndquality;
+      if (!strcmp(var.value, "Low"))
+         sndquality = 0;
+      else if (!strcmp(var.value, "High"))
+         sndquality = 1;
+      else if (!strcmp(var.value, "Very High"))
+         sndquality = 2;
+      if (sndquality != oldval)
+         FCEUI_SetSoundQuality(sndquality);
+   }
+
    if (geometry_update)
    {
       retro_get_system_av_info(&av_info);
       environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
    }
+}
+
+static int mouse_x, mouse_y, mzx, mzy;
+void GetMouseData(uint32_t *zapdata)
+{
+   static int right, bottom, adjx, adjy, offscreen, port;
+   right       = 256;
+   bottom      = 240;
+   offscreen   = 0;
+#ifdef PSP
+   adjx = adjy = use_overscan ? 8:0;
+#else
+   adjx        = overscan_h ? 8:0;
+   adjy        = overscan_v ? 8:0;
+#endif
+
+   if (GameInfo->input[0] != SI_ZAPPER && GameInfo->input[1] != SI_ZAPPER)
+      return;
+
+   port = (GameInfo->type == GIT_VSUNI) ? 1 : 0;
+
+   /* TODO: Add some sort of mouse sensitivity */
+   mouse_x = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+   mouse_y = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+
+   mzx += mouse_x;
+   mzy += mouse_y;
+
+   /* Set crosshair within the limits of game's resolution */
+   if (mzx > right - adjx + offscreen)
+      mzx = right - adjx + offscreen;
+   else if (mzx <= 1 + adjx)
+      mzx = 1 + adjx;
+
+   if (mzy > bottom - adjy + offscreen)
+      mzy = bottom - adjy + offscreen;
+   else if (mzy <= 1 + adjy)
+      mzy = 1 + adjy;
+
+   zapdata[0] = mzx;
+   zapdata[1] = mzy;
+   zapdata[2] = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT) ? 1 : 0
+                | input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT) ? 2 : 0;
 }
 
 /*
@@ -982,13 +1068,13 @@ unsigned char turbo_p1_toggle[] = { 0, 0 };
 static void FCEUD_UpdateInput(void)
 {
    unsigned p, i;
-   unsigned char pad[2];
+   unsigned char pad[4];
 
-   pad[0] = pad[1] = 0;
+   pad[0] = pad[1] = pad[2] = pad[3] = 0;
 
    poll_cb();
 
-   for (p = 0; p < 2; p++)
+   for (p = 0; p < 4; p++)
    {
       for ( i = 0; i < 8; i++)
          pad[p] |= input_cb(p, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
@@ -1055,7 +1141,9 @@ static void FCEUD_UpdateInput(void)
    if (GameInfo->type == GIT_VSUNI)
       FCEU_VSUniSwap(&pad[0], &pad[1]);
 
-   JSReturn[0] = pad[0] | (pad[1] << 8);
+   JSReturn[0] = pad[0] | (pad[1] << 8) | (pad[2] << 16) | (pad[3] << 24);
+
+   GetMouseData(&MouseData[0]);
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
       FCEU_VSUniCoin();             /* Insert Coin VS System */
@@ -1594,8 +1682,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    FCEUI_Initialize();
 
-   FCEUI_SetSoundVolume(256);
-   FCEUI_Sound(32050);
+   FCEUI_SetSoundVolume(sndvolume);
+   FCEUI_Sound(sndsamplerate);
 
    GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
    if (!GameInfo)
@@ -1621,7 +1709,7 @@ bool retro_load_game(const struct retro_game_info *game)
       FCEU_PrintError("Cannot find nes.pal from system directory.\n");
 
    if (GameInfo->type == GIT_VSUNI)
-      FCEU_PrintError("VS.System rom loaded, will use default palette.\n");
+      FCEU_PrintError("VS Unisystem rom loaded, will use default palette.\n");
 
    retro_set_custom_palette();
 
