@@ -1017,8 +1017,7 @@ void GetMouseData(uint32_t *zapdata)
    bottom      = 240;
    offscreen   = 0;
 #ifdef PSP
-   adjx        = use_overscan ? 8:0;
-   adjy        = use_overscan ? 8:0;
+   adjx = adjy = use_overscan ? 8:0;
 #else
    adjx        = overscan_h ? 8:0;
    adjy        = overscan_v ? 8:0;
@@ -1142,7 +1141,7 @@ static void FCEUD_UpdateInput(void)
    if (GameInfo->type == GIT_VSUNI)
       FCEU_VSUniSwap(&pad[0], &pad[1]);
 
-   JSReturn[0] = pad[0] | (pad[1] << 8) | (pad[1] << 16 | (pad[1] << 24);
+   JSReturn[0] = pad[0] | (pad[1] << 8) | (pad[2] << 16) | (pad[3] << 24);
 
    GetMouseData(&MouseData[0]);
 
