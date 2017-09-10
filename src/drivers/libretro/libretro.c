@@ -533,17 +533,19 @@ void retro_set_input_state(retro_input_state_t cb)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-   switch(device)
+   if (port < 2)  /* port #0 = player1/player3, port #1 = player2/player4 */
    {
-      case RETRO_DEVICE_JOYPAD:
-         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn[0], 0);
-         break;
-      case RETRO_DEVICE_MOUSE:
-         FCEUI_SetInput(port, SI_ZAPPER, &MouseData[0], 1);
-         break;
+       switch(device)
+       {
+          case RETRO_DEVICE_JOYPAD:
+             FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn[0], 0);
+             break;
+          case RETRO_DEVICE_MOUSE:
+             FCEUI_SetInput(port, SI_ZAPPER, &MouseData[0], 1);
+             break;
+       }
    }
 }
-
 
 void retro_set_environment(retro_environment_t cb)
 {
