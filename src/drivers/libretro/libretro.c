@@ -563,6 +563,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
       { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
+      { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
       { NULL, NULL },
    };
 
@@ -1000,6 +1001,14 @@ static void check_variables(bool startup)
          sndquality = 2;
       if (sndquality != oldval)
          FCEUI_SetSoundQuality(sndquality);
+   }
+
+   var.key = "fceumm_sndvolume";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      sndvolume = atoi(var.value);
+      FCEUD_SoundToggle();
    }
 
    if (geometry_update)
