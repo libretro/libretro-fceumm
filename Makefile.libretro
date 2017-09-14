@@ -420,6 +420,7 @@ PSS_STYLE :=2
 LDFLAGS += -DLL
 # Windows MSVC 2010 Xbox 360
 else ifeq ($(platform), xbox360_msvc2010)
+TARGET := $(TARGET_NAME)_libretro_xdk360.lib
 MSVCBINDIRPREFIX = $(XEDK)/bin/win32
 CC  = "$(MSVCBINDIRPREFIX)/cl.exe"
 CXX = "$(MSVCBINDIRPREFIX)/cl.exe"
@@ -435,7 +436,6 @@ WindowsSdkDir ?= $(shell reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windo
 
 export INCLUDE := $(INCLUDE)
 export LIB := $(LIB);$(WindowsSdkDir);$(XEDK)/lib/xbox
-TARGET := $(TARGET_NAME)_libretro.dll
 PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX360 -MT
 CXXFLAGS += -D_XBOX -D_XBOX360 -MT
