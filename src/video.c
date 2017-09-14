@@ -74,6 +74,7 @@ void FCEU_PutImage(void)
 			FCEU_VSUniDraw(XBuf);
 	}
 	if (howlong) howlong--;
+	FCEU_DrawInput(XBuf);
 }
 
 void FCEU_PutImageDummy(void)
