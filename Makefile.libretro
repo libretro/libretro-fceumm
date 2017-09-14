@@ -425,8 +425,6 @@ MSVCBINDIRPREFIX = $(XEDK)/bin/win32
 CC  = "$(MSVCBINDIRPREFIX)/cl.exe"
 CXX = "$(MSVCBINDIRPREFIX)/cl.exe"
 
-PATH := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin"):$(PATH)
-PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../IDE")
 INCLUDE := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/include")
 
 export INCLUDE := $(INCLUDE)
