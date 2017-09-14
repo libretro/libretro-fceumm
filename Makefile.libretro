@@ -418,7 +418,7 @@ export LIB := $(LIB);$(WindowsSdkDir)
 TARGET := $(TARGET_NAME)_libretro.dll
 PSS_STYLE :=2
 LDFLAGS += -DLL
-# Windows MSVC 2010 Xbox 1
+# Windows MSVC 2003 Xbox 1
 else ifeq ($(platform), xbox1_msvc2003)
 TARGET := $(TARGET_NAME)_libretro_xdk1.lib
 MSVCBINDIRPREFIX = $(XDK)/xbox/bin/vc71
