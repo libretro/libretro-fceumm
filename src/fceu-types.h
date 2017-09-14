@@ -38,12 +38,10 @@ typedef uint32_t uint32;
 #ifdef __GNUC__
 typedef unsigned long long uint64;
 typedef long long int64;
-	#define INLINE inline
 	#define GINLINE inline
 #elif MSVC
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
-	#define INLINE __inline
 	#define GINLINE		// Can't declare a function INLINE
 						// and global in MSVC.  Bummer.
 	#define PSS_STYLE 2	// Does MSVC compile for anything

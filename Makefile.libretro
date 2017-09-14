@@ -418,6 +418,27 @@ export LIB := $(LIB);$(WindowsSdkDir)
 TARGET := $(TARGET_NAME)_libretro.dll
 PSS_STYLE :=2
 LDFLAGS += -DLL
+# Windows MSVC 2010 Xbox 360
+else ifeq ($(platform), xbox360_msvc2010)
+	CC  = "$(XEDK)/bin/win32/cl.exe"
+CXX = "$(XEXDK)/bin/win32/cl.exe"
+
+PATH := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin"):$(PATH)
+PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../IDE")
+INCLUDE := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/include")
+LIB := $(shell IFS=$$'\n'; cygpath -w "$(VS100COMNTOOLS)../../VC/lib")
+BIN := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin")
+
+WindowsSdkDir := $(shell reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A" -v "InstallationFolder" | grep -o '[A-Z]:\\.*')lib
+WindowsSdkDir ?= $(shell reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1A" -v "InstallationFolder" | grep -o '[A-Z]:\\.*')lib
+
+export INCLUDE := $(INCLUDE)
+export LIB := $(LIB);$(WindowsSdkDir);$(XEDK)/lib/xbox
+TARGET := $(TARGET_NAME)_libretro.dll
+PSS_STYLE :=2
+LDFLAGS += -D_LIB
+CFLAGS   += -D_XBOX -D_XBOX360
+CXXFLAGS += -D_XBOX -D_XBOX360
 # Windows MSVC 2005 x86
 else ifeq ($(platform), windows_msvc2005_x86)
 	CC  = cl.exe
@@ -508,7 +529,11 @@ endif
 ifneq (,$(findstring msvc,$(platform)))
 	OBJOUT = -Fo
 	LINKOUT = -out:
+ifeq ($(platform), xbox360_msvc2010)
+	LD = "$(XEDK)/bin/win32/link.exe"
+else
 	LD = link.exe
+endif
 else
 	OBJOUT   = -o
 	LINKOUT  = -o 
