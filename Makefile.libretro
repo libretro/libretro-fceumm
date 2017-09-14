@@ -420,8 +420,9 @@ PSS_STYLE :=2
 LDFLAGS += -DLL
 # Windows MSVC 2010 Xbox 360
 else ifeq ($(platform), xbox360_msvc2010)
-	CC  = "$(XEDK)/bin/win32/cl.exe"
-CXX = "$(XEXDK)/bin/win32/cl.exe"
+MSVCBINDIRPREFIX = $(XEDK)/bin/win32
+CC  = "$(MSVCBINDIRPREFIX)/cl.exe"
+CXX = "$(MSVCBINDIRPREFIX)/cl.exe"
 
 PATH := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin"):$(PATH)
 PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../IDE")
@@ -436,9 +437,9 @@ export INCLUDE := $(INCLUDE)
 export LIB := $(LIB);$(WindowsSdkDir);$(XEDK)/lib/xbox
 TARGET := $(TARGET_NAME)_libretro.dll
 PSS_STYLE :=2
-LDFLAGS += -D_LIB
-CFLAGS   += -D_XBOX -D_XBOX360
-CXXFLAGS += -D_XBOX -D_XBOX360
+CFLAGS   += -D_XBOX -D_XBOX360 -MT
+CXXFLAGS += -D_XBOX -D_XBOX360 -MT
+STATIC_LINKING=1
 # Windows MSVC 2005 x86
 else ifeq ($(platform), windows_msvc2005_x86)
 	CC  = cl.exe
@@ -529,10 +530,11 @@ endif
 ifneq (,$(findstring msvc,$(platform)))
 	OBJOUT = -Fo
 	LINKOUT = -out:
-ifeq ($(platform), xbox360_msvc2010)
-	LD = "$(XEDK)/bin/win32/link.exe"
+ifeq ($(STATIC_LINKING),1)
+	LD = "$(MSVCBINDIRPREFIX)/lib.exe"
+	STATIC_LINKING=0
 else
-	LD = link.exe
+	LD = "$(MSVCBINDIRPREFIX)/link.exe"
 endif
 else
 	OBJOUT   = -o
