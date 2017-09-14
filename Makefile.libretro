@@ -428,14 +428,9 @@ CXX = "$(MSVCBINDIRPREFIX)/cl.exe"
 PATH := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin"):$(PATH)
 PATH := $(PATH):$(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../IDE")
 INCLUDE := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/include")
-LIB := $(shell IFS=$$'\n'; cygpath -w "$(VS100COMNTOOLS)../../VC/lib")
-BIN := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/bin")
-
-WindowsSdkDir := $(shell reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A" -v "InstallationFolder" | grep -o '[A-Z]:\\.*')lib
-WindowsSdkDir ?= $(shell reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1A" -v "InstallationFolder" | grep -o '[A-Z]:\\.*')lib
 
 export INCLUDE := $(INCLUDE)
-export LIB := $(LIB);$(WindowsSdkDir);$(XEDK)/lib/xbox
+export LIB := $(XEDK)/lib/xbox
 PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX360 -MT
 CXXFLAGS += -D_XBOX -D_XBOX360 -MT
