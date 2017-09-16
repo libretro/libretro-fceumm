@@ -1090,7 +1090,6 @@ void GetMouseData(uint32_t *zapdata)
    zapdata[0] = mzx;
    zapdata[1] = mzy;
    zapdata[2] = mzb;
-   FCEU_printf("%d %d %x %x\n", mzx, mzy, mzx, mzy);
 }
 
 /*
