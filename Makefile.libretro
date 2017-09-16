@@ -436,13 +436,11 @@ STATIC_LINKING=1
 else ifeq ($(platform), xbox360_msvc2010)
 TARGET := $(TARGET_NAME)_libretro_xdk360.lib
 MSVCBINDIRPREFIX = $(XEDK)/bin/win32
-CC  = cl.exe
-CXX = cl.exe
+CC  = "$(MSVCBINDIRPREFIX)/cl.exe"
+CXX  = "$(MSVCBINDIRPREFIX)/cl.exe"
+LD   = "$(MSVCBINDIRPREFIX)/lib.exe"
 
-PATH := $(shell IFS=$$'\n'; cygpath "$(MSVCBINDIRPREFIX)"):$(PATH)
-INCLUDE := $(shell IFS=$$'\n'; cygpath "$(VS100COMNTOOLS)../../VC/include")
-
-export INCLUDE := $(INCLUDE)
+export INCLUDE := $(XEDK)/include/xbox
 export LIB := $(XEDK)/lib/xbox
 PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX360
