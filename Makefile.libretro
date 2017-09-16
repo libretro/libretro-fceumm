@@ -426,7 +426,7 @@ CC  = "$(MSVCBINDIRPREFIX)/CL.exe"
 CXX  = "$(MSVCBINDIRPREFIX)/CL.exe"
 LD   = "$(MSVCBINDIRPREFIX)/lib.exe"
 
-export INCLUDE := $(XDK)/xbox/include
+export INCLUDE := $(XDK)/xbox/include;src/drivers/libretro/libretro-common/include/compat/msvc
 export LIB := $(XDK)/xbox/lib
 PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX1
