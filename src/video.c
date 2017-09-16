@@ -36,6 +36,7 @@
 #include "vsuni.h"
 
 uint8 *XBuf = NULL;
+int show_crosshair = 0;
 
 void FCEU_KillVirtualVideo(void)
 {
@@ -74,7 +75,8 @@ void FCEU_PutImage(void)
 			FCEU_VSUniDraw(XBuf);
 	}
 	if (howlong) howlong--;
-	FCEU_DrawInput(XBuf);
+	if (show_crosshair)
+		FCEU_DrawInput(XBuf);
 }
 
 void FCEU_PutImageDummy(void)

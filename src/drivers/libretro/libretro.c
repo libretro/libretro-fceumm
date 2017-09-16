@@ -50,7 +50,8 @@ static bool use_par;
 int turbo_enabler;
 int turbo_delay;
 static int regionoverride = -1;
-static int t[2] = {0.0};
+static int t[2] = { 0, 0 };
+static int zapper_mode = 0; /* 0=absolute 1=relative */
 
 /* emulator-specific variables */
 
@@ -96,6 +97,7 @@ extern FCEUGI *GameInfo;
 extern uint8 *XBuf;
 extern CartInfo iNESCart;
 extern CartInfo UNIFCart;
+extern int show_crosshair;
 
 /* emulator-specific callback functions */
 
@@ -569,6 +571,8 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
       { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
       { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
+      { "fceumm_zapper_mode", "Zapper Mode; absolute|relative" },
+      { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { NULL, NULL },
    };
 
@@ -898,6 +902,22 @@ static void check_variables(bool startup)
       }
    }
 
+   var.key = "fceumm_zapper_mode";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "relative")) zapper_mode = 1;
+      else if (!strcmp(var.value, "absolute")) zapper_mode = 0;
+   }
+
+   var.key = "fceumm_show_crosshair";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled")) show_crosshair = 1;
+      else if (!strcmp(var.value, "disabled")) show_crosshair = 0;
+   }
+
 #ifdef PSP
    var.key = "fceumm_overscan";
 
@@ -1027,37 +1047,50 @@ static int mzx = 0, mzy = 0, mzb = 0;
 
 void GetMouseData(uint32_t *zapdata)
 {
-   int right, bottom, port, adjx, adjy;
+   bool adjx = false, adjy = false;
+   int right, bottom, port;
 
 #ifdef PSP
-   adjx = adjy = use_overscan ? 8 : 0;
+   adjx = adjy = use_overscan ? 1 : 0;
 #else
-   adjx        = overscan_h ? 8 : 0;
-   adjy        = overscan_v ? 8 : 0;
+   adjx        = overscan_h ? 1 : 0;
+   adjy        = overscan_v ? 1 : 0;
 #endif
    port        = (GameInfo->type == GIT_VSUNI) ? 0 : 1;
    right       = 256;
    bottom      = 240;
    mzb         = 0;
 
-   /* TODO: Add some sort of mouse sensitivity */
-   mzx += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-   mzy += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+   if (zapper_mode) /* relative */
+   {
+      /* TODO: Add some sort of mouse sensitivity */
+      mzx += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+      mzy += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
 
-   /* Set crosshair within the limits of game's resolution */
-   if (mzx > right - adjx)  mzx = right - adjx;
-   else if (mzx < 1 + adjx) mzx = 1 + adjx;
-   if (mzy > bottom - adjy) mzy = bottom - adjy;
-   else if (mzy < 1 + adjy) mzy = 1 + adjy;
+      /* Set crosshair within the limits of game's resolution */
+      if (mzx > right - (adjx ? 8 : 0))  mzx = right - (adjx ? 8 : 0);
+      else if (mzx < 1 + (adjx ? 8 : 0)) mzx = 1 + (adjx ? 8 : 0);
+      if (mzy > bottom - (adjy ? 8 : 0)) mzy = bottom - (adjy ? 8 : 0);
+      else if (mzy < 1 + (adjy ? 8 : 0)) mzy = 1 + (adjy ? 8 : 0);
 
-   if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT))
-      mzb |= 0x1;
-   if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT))
-      mzb |= 0x2;
+      if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT))
+         mzb |= 0x1;
+      if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT))
+         mzb |= 0x2;
+   }
+   else /* absolute */
+   {
+      mzx = ((input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X) + (0x7FFF + (adjx ? 0X8FF : 0))) * right)  / (0XFFFE + (adjx ? 0X11FE : 0));
+      mzy = ((input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y) + (0x7FFF + (adjy ? 0X999 : 0))) * bottom) / (0XFFFE + (adjy ? 0X1332 : 0));
+
+      if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
+         mzb |= 0x1;
+   }
 
    zapdata[0] = mzx;
    zapdata[1] = mzy;
    zapdata[2] = mzb;
+   FCEU_printf("%d %d %x %x\n", mzx, mzy, mzx, mzy);
 }
 
 /*
