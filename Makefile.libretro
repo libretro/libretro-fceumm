@@ -445,6 +445,7 @@ export LIB := $(XEDK)/lib/xbox
 PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX360
 CXXFLAGS += -D_XBOX -D_XBOX360
+ENDIANNESS_DEFINES += -DMSB_FIRST
 STATIC_LINKING=1
 # Windows MSVC 2005 x86
 else ifeq ($(platform), windows_msvc2005_x86)
