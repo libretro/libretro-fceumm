@@ -12,7 +12,7 @@ BACKSLASH := \$(BACKSLASH)
 filter_out1 = $(filter-out $(firstword $1),$1)
 filter_out2 = $(call filter_out1,$(call filter_out1,$1))
 unixpath = $(subst \,/,$1)
-unixcygpath = $(subst C:,/c,$(subst c:,/c,$(call unixpath,$1)))
+unixcygpath = /$(subst :,,$(call unixpath,$1))
 
 ifeq ($(platform),)
 	platform = unix
