@@ -656,8 +656,10 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	if (FCEU_fread(&head, 1, 16, fp) != 16)
 		return 0;
 
-	if (memcmp(&head, "NES\x1a", 4))
-		return 0;
+	if (memcmp(&head, "NES\x1a", 4)) {
+		FCEU_PrintError("Missing header or invalid iNES format file!\n");
+ 		return 0;
+	}
 
 	memset(&iNESCart, 0, sizeof(iNESCart));
 
