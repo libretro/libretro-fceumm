@@ -48,6 +48,7 @@
 	{0xe1b260da,	  2,		1},	/* Argos no Senshi */
 	{0x1d0f4d6b,	  2,		1},	/* Black Bass thinging */
 	{0x266ce198,	  2,		1},	/* City Adventure Touch */
+	{0x86be4746,	  2,		1},	/* Dooly Bravo Land (Korea) (Unl) */
 	{0x804f898a,	  2,		1},	/* Dragon Unit */
 	{0x55773880,	  2,		1},	/* Gilligan's Island */
 	{0x6e0eb43e,	  2,		1},	/* Puss n Boots */
