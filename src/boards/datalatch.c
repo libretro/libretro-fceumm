@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "../ines.h"
 
-static uint8 latche, latcheinit, bus_conflict;
+static uint8 latche, latcheinit, bus_conflict, _busc;
 static uint16 addrreg0, addrreg1;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
@@ -138,7 +138,12 @@ static void UNROMSync(void) {
 }
 
 void UNROM_Init(CartInfo *info) {
-	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 0, 1);
+	_busc = 1;
+
+	if (info->CRC32 == 0x86be4746) /*  Dooly Bravo Land (Korea) (Unl) */
+		_busc = 0;
+
+	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 0, _busc);
 }
 
 //------------------ Map 3 ---------------------------
@@ -151,7 +156,7 @@ static void CNROMSync(void) {
 
 void CNROM_Init(CartInfo *info) {
 	//TODO: move these to extended database when implemented.
-	int _busc, x;
+	int x;
 	uint64 partialmd5 = 0;
 	_busc = 1;
 	for (x = 0; x < 8; x++)
