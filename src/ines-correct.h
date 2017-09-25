@@ -129,6 +129,7 @@
 	{0xdd8ed0f7,	 70,		1},	/* Kamen Rider Club */
 	{0xbba58be5,	 70,	   -1},	/* Family Trainer - Manhattan Police */
 	{0x370ceb65,	 70,	   -1},	/* Family Trainer - Meiro Dai Sakusen */
+	{0x86be4746,	 71,	        1},	/* Dooly Bravo Land (Korea) (Unl) */
 	{0xe62e3382,	 71,	   -1},	/* Mig-29 Soviet Fighter */
 	{0xac7b0742,	 71,	   -1},	/* Golden KTV (Ch) [!], not actually 71, but UNROM without BUS conflict */
 	{0x054bd3e9,	 74,	   -1},	/* Di 4 Ci - Ji Qi Ren Dai Zhan (As) */
