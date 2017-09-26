@@ -142,6 +142,7 @@
 	{0xdd8ed0f7,	 70,		1},	/* Kamen Rider Club */
 	{0xbba58be5,	 70,	   -1},	/* Family Trainer - Manhattan Police */
 	{0x370ceb65,	 70,	   -1},	/* Family Trainer - Meiro Dai Sakusen */
+	{0x86be4746,	 71,	   -1},	/* Dooly Bravo Land (Korea) (Unl) */
 	{0xe62e3382,	 71,	   -1},	/* Mig-29 Soviet Fighter */
 	{0xac7b0742,	 71,	   -1},	/* Golden KTV (Ch) [!], not actually 71, but UNROM without BUS conflict */
 	{0x054bd3e9,	 74,	   -1},	/* Di 4 Ci - Ji Qi Ren Dai Zhan (As) */
@@ -197,6 +198,7 @@
 	{0xcab40a6c,	150,	   -1},	/* Magic Cube (Asia) (PAL) (Unl) */
 	{0xbe17e27b,	150,	   -1},	/* Poker III (Asia) (Unl) */
 	{0x34ddf806,	150,	   -1},	/* Strategist (Asia) (NTSC) (Unl) */
+	{0xc06facfc,	150,	   -1},	/* Strategist (Asia) (PAL) (Unl) */
 	{0xa95a915a,	150,	   -1},	/* Tasac (Asia) (Unl) */
 	{0x0f141525,	152,		8},	/* Arkanoid 2 (Japanese) */
 	{0xbda8f8e4,	152,		8},	/* Gegege no Kitarou 2 */
