@@ -3,21 +3,25 @@
 
 	{0xaf5d7aa2,	 -1,		0},	/* Clu Clu Land */
 	{0xcfb224e6,	 -1,		1},	/* Dragon Ninja (J) [p1][!].nes */
-	{0x4f2f1846,	 -1,		1},	/* Famista '89 - Kaimaku Han!! (J) */
 	{0x82f204ae,	 -1,		1},	/* Liang Shan Ying Xiong (NJ023) (Ch) [!] */
 	{0x684afccd,	 -1,		1},	/* Space Hunter (J) */
 	{0xad9c63e2,	 -1,		1},	/* Space Shadow (J) */
 	{0xe1526228,	 -1,		1},	/* Quest of Ki */
 	{0xaf5d7aa2,	 -1,		0},	/* Clu Clu Land */
 	{0xcfb224e6,	 -1,		1},	/* Dragon Ninja (J) [p1][!].nes */
-	{0x4f2f1846,	 -1,		1},	/* Famista '89 - Kaimaku Han!! (J) */
 	{0xfcdaca80,	  0,		0},	/* Elevator Action */
 	{0xc05a365b,	  0,		0},	/* Exed Exes (J) */
+	{0xc4c3949a,	  0,		0},	/* Mario Bros. (World) */
 	{0x32fa246f,	  0,		0},	/* Tag Team Pro Wrestling */
 	{0x43D30C2F,	  0,		0},	/* Ms. Pac-Man (USA) (Unl) Tengen */
 	{0xb3c30bea,	  0,		0},	/* Xevious (J) */
 	{0xe492d45a,	  0,		0},	/* Zippy Race */
+	{0x24598791,	  0,		1},	/* Duck Hunt (World) */
+	{0x49aeb3a6,	  0,		1},	/* Excitebike (Japan, USA) */
+	{0xb8535ca3,	  0,		1},	/* Mahjong (Japan) */
+	{0x330de468,	  0,		1},	/* Obake no Q Tarou - Wanwan Panic (Japan) */
 	{0xe28f2596,	  0,		1},	/* Pac Land (J) */
+	{0x5112dc21,	  0,		1},	/* Wild Gunman (World) (Rev A) */
 	{0xd8ee7669,	  1,		8},	/* Adventures of Rad Gravity */
 	{0x5b837e8d,	  1,		8},	/* Alien Syndrome */
 	{0x37ba3261,	  1,		8},	/* Back to the Future 2 and 3 */
@@ -38,11 +42,14 @@
 	{0xe94d5181,	  1,		8},	/* Mirai Senshi - Lios */
 	{0x7156cb4d,	  1,		8},	/* Muppet Adventure Carnival thingy */
 	{0x70f67ab7,	  1,		8},	/* Musashi no Bouken */
+	{0x958e4bae,	  1,		8},	/* Orb 3D (USA) */
 	{0x291bcd7d,	  1,		8},	/* Pachio Kun 2 */
 	{0xa9a4ea4c,	  1,		8},	/* Satomi Hakkenden */
 	{0xcc3544b0,	  1,		8},	/* Triathron */
-	{0x934db14a,	  1,		-1},	/* All-Pro Basketball */
-	{0xf74dfc91,	  1,		-1},	/* Win,	Lose,	or Draw */
+	{0x52ab2d17,	  1,		8},	/* Toukyou Pachi-Slot Adventure (Japan) (Rev 0) */
+	{0x934db14a,	  1,		-1},/* All-Pro Basketball */
+	{0xf74dfc91,	  1,		-1},/* Win,	Lose,	or Draw */
+	{0xe6a477b2,	  2,		0},	/* 3-D WorldRunner (USA) */
 	{0x9ea1dc76,	  2,		0},	/* Rainbow Islands */
 	{0x6d65cac6,	  2,		0},	/* Terra Cresta */
 	{0xe1b260da,	  2,		1},	/* Argos no Senshi */
@@ -61,6 +68,7 @@
 	{0xd858033d,	  3,		0},	/* Incantation (Asia) (Unl) */
 	{0x8f154a0d,	  3,		0},	/* Pu Ke Jing Ling (China) (Unl) */
 	{0xd04a40e6,	  3,		0},	/* Bingo 75 (Asia) (Unl) */
+	{0x637ba508,	  3,		1},	/* Adan y Eva (Spain) (Gluk Video) (Unl) */
 	{0xebd0644d,	  3,		1},	/* Dao Shuai (Asia) (Unl) */
 	{0x9bde3267,	  3,		1},	/* Adventures of Dino Riki */
 	{0xd8eff0df,	  3,		1},	/* Gradius (J) */
@@ -70,23 +78,27 @@
 	{0x02cc3973,	  3,		1},	/* Ninja Kid */
 	{0xbc065fc3,	  3,		1},	/* Pipe Dream */
 	{0xc9ee15a7,	  3,	   -1},	/* 3 is probably best.  41 WILL NOT WORK. */
-	{0x97b6cb19,	  4,		-1},	/* Aladdin (SuperGame) (Mapper 4) [!] */
-	{0x22d6d5bd,	  4,		1},	/* Jikuu Yuuden - Debias (J) */
-	{0xd97c31b0,	  4,		1},	//Rasaaru Ishii no Childs Quest (J)
+	{0x97b6cb19,	  4,		-1},/* Aladdin (SuperGame) (Mapper 4) [!] */
+	{0xd97c31b0,	  4,		1},	/* Rasaaru Ishii no Childs Quest (J) */
 	{0x404b2e8b,	  4,		2},	/* Rad Racer 2 */
 	{0x15141401,	  4,		8},	/* Asmik Kun Land */
 	{0x4cccd878,	  4,		8},	/* Cat Ninden Teyandee */
 	{0x59280bec,	  4,		8},	/* Jackie Chan */
 	{0x7474ac92,	  4,		8},	/* Kabuki: Quantum Fighter */
+	{0xf2594374,	  4,		8},	/* Matendouji (Japan) */
 	{0x5337f73c,	  4,		8},	/* Niji no Silk Road */
 	{0x9eefb4b4,	  4,		8},	/* Pachi Slot Adventure 2 */
+	{0xafe03802,	  4,		8},	/* Pachio-kun 3 (Japan) (Rev A) */
 	{0x21a653c7,	  4,	   -1},	/* Super Sky Kid */
+	{0xdb7f07be,	  4,	   -1},	/* Toki (USA) (Beta) */
 	{0x9cbadc25,	  5,		8},	/* JustBreed */
 	{0xf518dd58,	  7,		8},	/* Captain Skyhawk */
+	{0x6c4a9735,	  7,		8},	/* WWF Wrestlemania (Europe) */
 	{0x84382231,	  9,		0},	/* Punch Out (J) */
 	{0xbe939fce,	  9,		1},	/* Punchout*/
 	{0x7b837fde,	  9,		1},	/* Mike Tyson's Punch-Out!! (PC10)*/
 	{0x345d3a1a,	 11,		1},	/* Castle of Deceit */
+	{0xb79f2651,	 11,		1},	/* Chiller (USA) (Unl) */
 	{0x5e66eaea,	 13,		1},	/* Videomation */
 	{0xcd373baa,	 14,	   -1},	/* Samurai Spirits (Rex Soft) */
 	{0xbfc7a2e9,	 16,		8},	/* Gokuu Den (J) [a1] */
@@ -105,7 +117,6 @@
 	{0x283ad224,	 32,		8},	/* Ai Sensei no Oshiete */
 	{0x243a8735,	 32,   0x10|4},	/* Major League */
 	{0xbc7b1d0f,	 33,	   -1},	/* Bakushou!! Jinsei Gekijou 2 (J) [!] */
-	{0xc2730c30,	 34,		0},	/* Deadly Towers */
 	{0x4c7c1af3,	 34,		1},	/* Caesar's Palace */
 	{0x932ff06e,	 34,		1},	/* Classic Concentration */
 	{0xf46ef39a,	 37,	   -1},	/* Super Mario Bros. + Tetris + Nintendo World Cup (E) [!] */
@@ -119,9 +130,11 @@
 	{0x40c0ad47,	 48,		8},	/* Flintstones 2 */
 	{0x1500e835,	 48,		8},	/* Jetsons (J) */
 	{0xa912b064,	 51|0x800,	8},	/* 11-in-1 Ball Games(has CHR ROM when it shouldn't) */
+	{0x39ab0fc7,	 64,		8},	/* Hard Drivin' (USA) (Proto) (Unl) */
 	{0xb19a55dd,	 64,		8},	/* Road Runner */
 	{0xf92be3ec,	 64,	   -1},	/* Rolling Thunder */
-	{0xe84274c5,	 66,		1},   /* Mississippi Satsujin Jiken (J) [h2] */
+	{0xd114f544,	 66,		1},	/* AV Super Real Pachinko (Japan) (Unl) */
+	{0xe84274c5,	 66,		1},	/* Mississippi Satsujin Jiken (J) [h2] */
 	{0xbde3ae9b,	 66,		1},	/* Doraemon */
 	{0x9552e8df,	 66,		1},	/* Dragon Ball */
 	{0x811f06d9,	 66,		1},	/* Dragon Power */
@@ -139,14 +152,15 @@
 	{0x3d1c3137,	 78,		8},	/* Uchuusen - Cosmo Carrier */
 	{0xa4fbb438,	 79,		0},	/* F-15 City War (AVE) (REV1.x) [b1] */
 	{0xd4a76b07,	 79,		0},	/* F-15 City Wars*/
+	{0x8eab381c,	 79,		1},	/* Death Bots --changed 2017-29-26 */
 	{0x1eb4a920,	 79,		1},	/* Double Strike */
 	{0x3e1271d5,	 79,		1},	/* Tiles of Fate */
+	{0x2deb12b8,	 79,		1},	/* Venice Beach Volleyball (Asia) (Unl) */
 	{0xd2699893,	 88,		0},	/*  Dragon Spirit */
 	{0xbb7c5f7a,	 89,		8},	/* Mito Koumon or something similar */
 	{0x10119e6b,	 93,		8},	/* Fantasy Zone (Japan) */
-	{0x0da5e32e,	101,	   -1},	/* new Uruusey Yatsura */
-	{0x6096f84e,	104,	   1},	/* Pegasus 5-in-1 (Golden Five) (Unl) */
-	{0x8eab381c,	113,		1},	/* Death Bots */
+	{0x0da5e32e,	101,	   -1},	/* Uruusey Yatsura */
+	{0x6096f84e,	104,		1},	/* Pegasus 5-in-1 (Golden Five) (Unl) */
 	{0x3d3ff543,	113,		0},	/* Kazama Jun to Asama Yuuko no AV Dragon Mahjong (Japan) (Unl) */
 	{0x68379fdb,	113,		1},	/* Pipemania (Australia) (HES) (Unl) */
 	{0x6a03d3f3,	114,	   -1},	/* Lion King, The (Unl) (Mapper 114) */
@@ -163,6 +177,7 @@
 	{0x37b62d04,	118,	   -1},	/* Ys 3 */
 	{0x318e5502,	121,	   -1},	/* Sonic 3D Blast 6 (Unl) */
 	{0xddcfb058,	121,	   -1},	/* Street Fighter Zero 2 '97 (Unl) [!] */
+	{0xd2674b0a,	132,		0},	/* Qi Wang - Chinese Chess (Asia) (Unl) */
 	{0x5aefbc94,	133,	   -1},	/* Jovial Race (Sachen) [a1][!] */
 	{0xc2df0a00,	140,		1},	/* Bio Senshi Dan(hacked) */
 	{0xe46b1c5d,	140,		1},	/* Mississippi Satsujin Jiken */
@@ -177,12 +192,14 @@
 	{0x40dbf7a2,	150,	   -1},	/* Olympic IQ (Sachen) [!] */
 	{0x73fb55ac,	150,	   -1},	/* 2-in-1 Cosmo Cop + Cyber Monster (Sachen) [!] */
 	{0xddcbda16,	150,	   -1},	/* 2-in-1 Tough Cop + Super Tough Cop (Sachen) [!] */
-	{0x47918d84,	150,	   -1},	/* auto-upturn */
+	{0x47918d84,	150,	   -1},	/* Auto-Upturn */
+	{0x471173E7,	150,	   -1},	/* Chinese Checkers (Asia) (PAL) (Unl) */
 	{0x2394ae1c,	150,	   -1},	/* Happy Pairs (Asia) (PAL) (Unl) */
 	{0xcab40a6c,	150,	   -1},	/* Magic Cube (Asia) (PAL) (Unl) */
+	{0xbe17e27b,	150,	   -1},	/* Poker III (Asia) (Unl) */
 	{0x34ddf806,	150,	   -1},	/* Strategist (Asia) (NTSC) (Unl) */
 	{0xc06facfc,	150,	   -1},	/* Strategist (Asia) (PAL) (Unl) */
-	{0x471173E7,	150,	   -1},	/* Chinese Checkers (Asia) (PAL) (Unl) */
+	{0xa95a915a,	150,	   -1},	/* Tasac (Asia) (Unl) */
 	{0x0f141525,	152,		8},	/* Arkanoid 2 (Japanese) */
 	{0xbda8f8e4,	152,		8},	/* Gegege no Kitarou 2 */
 	{0xb1a94b82,	152,		8},	/* Pocket Zaurus */
@@ -257,7 +274,11 @@
 	{0x4e1c1e3c,	206,		0},	/* Karnov */
 	{0x276237b3,	206,		0},	/* Karnov */
 	{0xa5e6baf9,	206,		1},	/* Dragon Slayer 4 - Drasle Family (Japan) */
+	{0x4f2f1846,	206,		1},	/* Famista '89 - Kaimaku Han!! (J) */
+	{0x22d6d5bd,	206,		1},	/* Jikuu Yuuden - Debias (J) */	
 	{0x9d21fe96,	206,		1},	/* Lupin Sansei - Pandora no Isan (Japan) */
+	{0x96dfc776,	206,		1},	/* R.B.I. Baseball 2 (USA) (Unl) */
+	{0xfd63e7ac,	206,		1},	/* R.B.I. Baseball 3 (USA) (Unl) */
 	{0x2a01f9d1,	206,		1},	/* Wagyan Land (Japan) */
 	{0x7678f1d5,	207,		8},	/* Fudou Myouou Den */
 	{0x07eb2c12,	208,	   -1},	/* Street Fighter IV */
@@ -266,6 +287,7 @@
 	{0xdd4d9a62,	209,	   -1},	/* Shin Samurai Spirits 2 */
 	{0x0c47946d,	210,		1},	/* Chibi Maruko Chan */
 	{0xc247cc80,	210,		1},	/* Family Circuit '91 */
+	{0x808606f0,	210,		1},	/* Famista '91 */
 	{0x6ec51de5,	210,		1},	/* Famista '92 */
 	{0xadffd64f,	210,		1},	/* Famista '93 */
 	{0x429103c9,	210,		1},	/* Famista '94 */
@@ -288,8 +310,8 @@
 	{0x11611e89,	241,	   -1},	/* Darkseed (Unl) [p1] */
 	{0x81a37827,	241,	   -1},	/* Darkseed (Unl) [p1][b1] */
 	{0xc2730c30,	241,	   -1},	/* Deadly Towers (U) [!] */
-	{0x368c19a8,	241,	   -1},	/* LIKO Study Cartridge 3-in-1 (Unl) [!] */
 	{0xa21e675c,	241,	   -1},	/* Mashou (J) [!] */
+	{0x368c19a8,	241,	   -1},	/* LIKO Study Cartridge 3-in-1 (Unl) [!] */
 	{0x54d98b79,	241,	   -1},	/* Titanic 1912 (Unl) */
 	{0x6bea1235,	245,	   -1},	/* MMC3 cart, but with nobanking applied to CHR-RAM, so let it be there */
 	{0x345ee51a,	245,	   -1},	/* DQ4c */
