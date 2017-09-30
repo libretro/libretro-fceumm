@@ -18,24 +18,27 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
+
+ /* merged pad.c 2017-9-30 */
+
 #include <string.h>
 
 #include "fceu-types.h"
 #include "x6502.h"
 
 #include "fceu.h"
+#include "state.h"
+
 #include "input.h"
 #include "vsuni.h"
 #include "fds.h"
 
-extern INPUTC *FCEU_InitJoyPad(int w);
 extern INPUTC *FCEU_InitZapper(int w);
 extern INPUTC *FCEU_InitMouse(int w);
 extern INPUTC *FCEU_InitPowerpadA(int w);
 extern INPUTC *FCEU_InitPowerpadB(int w);
 extern INPUTC *FCEU_InitArkanoid(int w);
 
-extern INPUTCFC *FCEU_InitFami4(void);
 extern INPUTCFC *FCEU_InitArkanoidFC(void);
 extern INPUTCFC *FCEU_InitSpaceShadow(void);
 extern INPUTCFC *FCEU_InitFKB(void);
@@ -50,19 +53,23 @@ extern INPUTCFC *FCEU_InitOekaKids(void);
 extern INPUTCFC *FCEU_InitTopRider(void);
 extern INPUTCFC *FCEU_InitBarcodeWorld(void);
 
+static uint8 joy_readbit[2];
+static uint8 joy[4] = { 0, 0, 0, 0 };
+static uint8 LastStrobe;
+
 extern uint8 coinon;
 
-static void *InputDataPtr[2];
-uint8 LastStrobe;
-
+static int FSDisable = 0; /* Set to 1 if NES-style four-player adapter is disabled. */
 static int JPAttrib[2] = { 0, 0 };
 static int JPType[2] = { 0, 0 };
-static INPUTC DummyJPort = { 0, 0, 0, 0, 0 };
-static INPUTC *JPorts[2] = { &DummyJPort, &DummyJPort };
+static void *InputDataPtr[2];
 
 static int JPAttribFC = 0;
 static int JPTypeFC = 0;
 static void *InputDataPtrFC;
+
+static INPUTC DummyJPort = { 0, 0, 0, 0, 0 };
+static INPUTC *JPorts[2] = { &DummyJPort, &DummyJPort };
 static INPUTCFC *FCExp = 0;
 
 void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
@@ -110,6 +117,7 @@ static DECLFW(B4016)
 void FCEU_DrawInput(uint8 *buf)
 {
    int x;
+
    for (x = 0; x < 2; x++)
       if (JPorts[x]->Draw)
          JPorts[x]->Draw(x, buf, JPAttrib[x]);
@@ -117,6 +125,96 @@ void FCEU_DrawInput(uint8 *buf)
       if (FCExp->Draw)
          FCExp->Draw(buf, JPAttribFC);
 }
+
+/**********************************************************************/
+/* This function is a quick hack to get the NSF player to use emulated gamepad
+   input.
+*/
+uint8 FCEU_GetJoyJoy(void) {
+	return(joy[0] | joy[1] | joy[2] | joy[3]);
+}
+
+/* 4-player support for famicom expansion */
+static uint8 F4ReadBit[2];
+
+static void StrobeFami4(void) {
+	F4ReadBit[0] = F4ReadBit[1] = 0;
+}
+
+static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret) {
+	ret &= 1;
+	ret |= ((joy[2 + w] >> (F4ReadBit[w])) & 1) << 1;
+	if (F4ReadBit[w] >= 8) ret |= 2;
+	else F4ReadBit[w]++;
+	return(ret);
+}
+
+/* VS. Unisystem inputs */
+static uint8 FP_FASTAPASS(1) ReadGPVS(int w) {
+	uint8 ret = 0;
+	if (joy_readbit[w] >= 8)
+		ret = 1;
+	else {
+		ret = ((joy[w] >> (joy_readbit[w])) & 1);
+	#ifdef FCEUDEF_DEBUGGER
+		if (!fceuindbg)
+	#endif
+		joy_readbit[w]++;
+	}
+	return ret;
+}
+
+/* standard gamepad inputs */
+static uint8 FP_FASTAPASS(1) ReadGP(int w) {
+	uint8 ret;
+	if (joy_readbit[w] >= 8)
+		ret = ((joy[2 + w] >> (joy_readbit[w] & 7)) & 1);
+	else
+		ret = ((joy[w] >> (joy_readbit[w])) & 1);
+	if (joy_readbit[w] >= 16) ret = 0;
+	if (FSDisable) {
+		if (joy_readbit[w] >= 8)
+			ret |= 1;
+	} else {
+		if (joy_readbit[w] == 19 - w)
+			ret |= 1;
+	}
+	#ifdef FCEUDEF_DEBUGGER
+	if (!fceuindbg)
+	#endif
+	joy_readbit[w]++;
+	return ret;
+}
+
+static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
+	uint32 *ptr = (uint32*)data;
+	if (!w) {
+		joy[0] = *(uint32*)ptr;
+		joy[2] = *(uint32*)ptr >> 16;
+	} else {
+		joy[1] = *(uint32*)ptr >> 8;
+		joy[3] = *(uint32*)ptr >> 24;
+	}
+#ifdef NETWORK
+	if (FCEUnetplay) NetplayUpdate(joy);
+#endif
+	FCEUMOV_AddJoy(joy);
+#ifdef __LIBRETRO__
+#else
+	if (GameInfo->type == GIT_VSUNI) 		/* moved to libretro.c */
+		FCEU_VSUniSwap(&joy[0], &joy[1]);
+#endif
+}
+
+static void FP_FASTAPASS(1) StrobeGP(int w) {
+	joy_readbit[w] = 0;
+}
+
+static INPUTC GPC = { ReadGP, 0, StrobeGP, UpdateGP, 0, 0 };
+static INPUTC GPCVS = { ReadGPVS, 0, StrobeGP, UpdateGP, 0, 0 };
+static INPUTCFC FAMI4C = { ReadFami4, 0, StrobeFami4, 0, 0, 0 };
+
+/**********************************************************************/
 
 void FCEU_UpdateInput(void)
 {
@@ -189,7 +287,10 @@ static void FASTAPASS(1) SetInputStuff(int x)
          JPorts[x] = &DummyJPort;
          break;
       case SI_GAMEPAD:
-         JPorts[x] = FCEU_InitJoyPad(x);
+         if (GameInfo->type == GIT_VSUNI)
+            JPorts[x] = &GPCVS;
+         else
+            JPorts[x] = &GPC;
          break;
       case SI_ARKANOID:
          JPorts[x] = FCEU_InitArkanoid(x);
@@ -227,7 +328,8 @@ static void SetInputStuffFC(void)
          FCExp = FCEU_InitOekaKids();
          break;
       case SIFC_4PLAYER:
-         FCExp = FCEU_InitFami4();
+         FCExp = &FAMI4C;
+         memset(&F4ReadBit, 0, sizeof(F4ReadBit));
          break;
       case SIFC_FKB:
          FCExp = FCEU_InitFKB();
@@ -265,6 +367,8 @@ static void SetInputStuffFC(void)
 
 void InitializeInput(void)
 {
+   memset(joy_readbit,0,sizeof(joy_readbit));
+   memset(joy,0,sizeof(joy));
    LastStrobe = 0;
 
    if (GameInfo && GameInfo->type == GIT_VSUNI)
@@ -297,6 +401,17 @@ void FCEUI_SetInputFC(int type, void *ptr, int attrib)
 	InputDataPtrFC = ptr;
 	SetInputStuffFC();
 }
+
+void FCEUI_DisableFourScore(int s) {
+	FSDisable = s;
+}
+
+SFORMAT FCEUCTRL_STATEINFO[] = {
+	{ joy_readbit, 2, "JYRB" },
+	{ joy, 4, "JOYS" },
+	{ &LastStrobe, 1, "LSTS" },
+	{ 0 }
+};
 
 void FCEU_DoSimpleCommand(int cmd)
 {
