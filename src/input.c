@@ -227,7 +227,7 @@ void FCEU_UpdateInput(void)
    if (GameInfo && GameInfo->type == GIT_VSUNI)
       if (coinon) coinon--;
 
-   if (GameInfo->type == GIT_VSUNI) 		/* moved to libretro.c */
+   if (GameInfo->type == GIT_VSUNI)
       FCEU_VSUniSwap(&joy[0], &joy[1]);
 }
 
