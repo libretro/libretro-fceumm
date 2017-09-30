@@ -1178,9 +1178,6 @@ static void FCEUD_UpdateInput(void)
       }
    }
 
-   if (GameInfo->type == GIT_VSUNI)
-      FCEU_VSUniSwap(&pad[0], &pad[1]);
-
    JSReturn[0] = pad[0] | (pad[1] << 8) | (pad[2] << 16) | (pad[3] << 24);
 
    if (t[0] == RETRO_DEVICE_MOUSE || t[1] == RETRO_DEVICE_MOUSE)
