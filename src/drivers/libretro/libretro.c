@@ -85,7 +85,7 @@ unsigned sndvolume = 150;
 static volatile int nofocus = 0;
 
 static int32_t *sound = 0;
-static uint32_t JSReturn[4];
+static uint32_t JSReturn = 0;
 static uint32_t MouseData[3];
 static uint32_t current_palette = 0;
 
@@ -542,7 +542,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       {
          case RETRO_DEVICE_JOYPAD:
             t[port] = RETRO_DEVICE_JOYPAD;
-            FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn[0], 0);
+            FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
             break;
          case RETRO_DEVICE_MOUSE:
             t[port] = RETRO_DEVICE_MOUSE;
@@ -1178,10 +1178,7 @@ static void FCEUD_UpdateInput(void)
       }
    }
 
-   if (GameInfo->type == GIT_VSUNI)
-      FCEU_VSUniSwap(&pad[0], &pad[1]);
-
-   JSReturn[0] = pad[0] | (pad[1] << 8) | (pad[2] << 16) | (pad[3] << 24);
+   JSReturn = pad[0] | (pad[1] << 8) | (pad[2] << 16) | (pad[3] << 24);
 
    if (t[0] == RETRO_DEVICE_MOUSE || t[1] == RETRO_DEVICE_MOUSE)
       GetMouseData(&MouseData[0]);
@@ -1740,8 +1737,8 @@ bool retro_load_game(const struct retro_game_info *game)
       return false;
    }
 
-   FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn[0], 0);
-   FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn[0], 0);
+   FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn, 0);
+   FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn, 0);
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
@@ -1772,7 +1769,7 @@ bool retro_load_game(const struct retro_game_info *game)
    {
       if (famicom_4p_db_list[i].crc == iNESGameCRC32)
       {
-         FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn[0], 0);
+         FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
          break;
       }
    }
