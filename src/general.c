@@ -69,7 +69,6 @@ void FCEUI_SetDirOverride(int which, char *n)
 
 char *FCEU_MakeFName(int type, int id1, char *cd1)
 {
-   struct stat tmpstat;
    char tmp[2048] = {0};
    char *ret      = 0;
 
