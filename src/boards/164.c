@@ -56,7 +56,7 @@ static DECLFR(ReadLow) {
 	case 0x5100: return reg[2] | reg[0] | reg[1] | (reg[3] ^ 0xff); break;
 	case 0x5500:
 		if (trigger)
-			return reg[2] | reg[1];   // Lei Dian Huang Bi Ka Qiu Chuan Shuo (NJ046) may broke other games
+			return reg[2] | reg[1];   /* Lei Dian Huang Bi Ka Qiu Chuan Shuo (NJ046) may broke other games */
 		else
 			return 0;
 	}
@@ -72,8 +72,8 @@ static void M163HB(void) {
 			setchr4(0x0000, 1);
 			setchr4(0x1000, 1);
 		}
-/*
-			if(scanline>=127)     // Hu Lu Jin Gang (NJ039) (Ch) [!] don't like it
+#if 0
+			if(scanline>=127)     /* Hu Lu Jin Gang (NJ039) (Ch) [!] don't like it */
 			{
 				setchr4(0x0000,1);
 				setchr4(0x1000,1);
@@ -83,7 +83,7 @@ static void M163HB(void) {
 				setchr4(0x0000,0);
 				setchr4(0x1000,0);
 			}
-*/
+#endif
 	}
 }
 
@@ -137,7 +137,7 @@ static DECLFW(Write2) {
 			trigger ^= 1;
 		}
 		laststrobe = V;
-	} else if (A == 0x5100 && V == 6) //damn thoose protected games
+	} else if (A == 0x5100 && V == 6) /* damn thoose protected games */
 		setprg32(0x8000, 3);
 	else
 		switch (A & 0x7300) {
@@ -195,7 +195,7 @@ static void Sync3(void) {
 }
 
 static DECLFW(Write3) {
-//	FCEU_printf("bs %04x %02x\n",A,V);
+/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	reg[(A >> 8) & 3] = V;
 	WSync();
 }

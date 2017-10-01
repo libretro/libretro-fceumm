@@ -25,7 +25,7 @@
  * The UNIF names are UNROM-512-8K, UNROM-512-16K and UNROM-512-32K
  *
  * The battery flag in the NES header enables flash,  Mirrror mode 2 Enables MI_0 and MI_1 mode.
- * Known games to use this board are: 
+ * Known games to use this board are:
  *    Battle Kid 2: Mountain of Torment (512K PRG, 8K CHR RAM, Horizontal Mirroring, Flash disabled)
  *    Study Hall (128K PRG (in 512K flash chip), 8K CHR RAM, Horizontal Mirroring, Flash enabled)
  * Although Xmas 2013 uses a different board, where LEDs can be controlled (with writes to the $8000-BFFF space),
@@ -41,8 +41,8 @@ static uint16 latcha;
 static uint8 *flashdata;
 static uint32 *flash_write_count;
 static uint8 *FlashPage[32];
-static uint32 *FlashWriteCountPage[32];
-static uint8 flashloaded = 0;
+/* static uint32 *FlashWriteCountPage[32]; */
+/* static uint8 flashloaded = 0; */
 
 static uint8 flash_save=0, flash_state=0, flash_mode=0, flash_bank;
 static void (*WLSync)(void);
@@ -184,7 +184,7 @@ static void UNROM512LSync() {
 			flash_state=0;
 		}
 	}
-	else if(flash_mode==1)	//Chip Erase or Sector Erase
+	else if(flash_mode==1)	/* Chip Erase or Sector Erase */
 	{
 		if(latche==0x30)
 		{
@@ -196,12 +196,12 @@ static void UNROM512LSync() {
          uint32 i;
 			for(i=0;i<(ROM_size*4);i++)
 				inc_flash_write_count(i>>2,i<<12);
-			memset(flashdata,0xFF,ROM_size*0x4000);	//Erasing the rom chip as instructed. Crash rate calulated to be 99.9% :)
+			memset(flashdata,0xFF,ROM_size*0x4000);	/* Erasing the rom chip as instructed. Crash rate calulated to be 99.9% :) */
 		}
 		flash_state=0;
 		flash_mode=0;
 	}
-	else if(flash_mode==2)	//Byte Program
+	else if(flash_mode==2)	/* Byte Program */
 	{
 		if(!GetFlashWriteCount(flash_bank,latcha))
 		{
@@ -216,7 +216,7 @@ static void UNROM512LSync() {
 
 static void UNROM512HSync() {
 	flash_bank=latche&(ROM_size-1);
-	
+
 	setprg16(0x8000, flash_bank);
 	setprg16(0xc000, ~0);
 	setfprg16(0x8000, flash_bank);
@@ -236,7 +236,7 @@ void UNROM512_Init(CartInfo *info) {
 		chrram_mask = 0x20;
 	else
 		chrram_mask = 0x60;
-	
+
 	SetupCartMirroring(info->mirror, (info->mirror >= MI_0) ? 0 : 1, 0);
 	bus_conflict = !info->battery;
 	latcheinit = 0;

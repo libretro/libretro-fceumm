@@ -28,7 +28,6 @@ static uint8 cmd, mirr, regs[11];
 static uint8 rmode, IRQmode, IRQCount, IRQa, IRQLatch;
 
 static void (*cwrap)(uint32 A, uint8 V);
-static void (*mwrap)(uint8 V);
 static int _isM158;
 
 static SFORMAT StateRegs[] = {

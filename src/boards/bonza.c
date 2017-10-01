@@ -31,7 +31,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-/*
+#if 0
 
 cmd[0] = response on/off
 				0x00 - on
@@ -82,7 +82,8 @@ _MANAGE_CHANNEL:     .BYTE   0,$70,  0,  0,  8
 byte_8CE5:           .BYTE   0,$74,  0,  0,$12
 byte_8C29:           .BYTE   0,$76,  0,  0,  8
 byte_8CC6:           .BYTE   0,$78,  0,  0,$12
-*/
+
+
 
 static uint8 sim0reset[0x1F] = {
 	0x3B, 0xE9, 0x00, 0xFF, 0xC1, 0x10, 0x31, 0xFE,
@@ -90,6 +91,8 @@ static uint8 sim0reset[0x1F] = {
 	0x56, 0x53, 0x43, 0xAD, 0x10, 0x10, 0x10, 0x10,
 	0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10
 };
+
+#endif
 
 static void Sync(void) {
 	setprg32(0x8000, prg_reg);
@@ -107,11 +110,11 @@ static DECLFW(M216WriteHi) {
 }
 
 static DECLFW(M216Write5000) {
-//	FCEU_printf("WRITE: %04x:%04x (PC=%02x cnt=%02x)\n",A,V,X.PC,sim0bcnt);
+/*	FCEU_printf("WRITE: %04x:%04x (PC=%02x cnt=%02x)\n",A,V,X.PC,sim0bcnt); */
 }
 
 static DECLFR(M216Read5000) {
-//	FCEU_printf("READ: %04x PC=%04x out=%02x byte=%02x cnt=%02x bit=%02x\n",A,X.PC,sim0out,sim0byte,sim0bcnt,sim0bit);
+/*	FCEU_printf("READ: %04x PC=%04x out=%02x byte=%02x cnt=%02x bit=%02x\n",A,X.PC,sim0out,sim0byte,sim0bcnt,sim0bit); */
 	return 0;
 }
 
