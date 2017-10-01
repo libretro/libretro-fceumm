@@ -87,13 +87,13 @@ static DECLFW(VRC24Write) {
 	A &= 0xF003;
 	if ((A >= 0xB000) && (A <= 0xE003)) {
 		if (UNIFchrrama)
-			big_bank = (V & 8) << 2;							// my personally many-in-one feature ;) just for support pirate cart 2-in-1
+			big_bank = (V & 8) << 2;							/* my personally many-in-one feature ;) just for support pirate cart 2-in-1 */
 		else {
 			uint16 i = ((A >> 1) & 1) | ((A - 0xB000) >> 11);
 			uint16 nibble = ((A & 1) << 2);
 			chrreg[i] = (chrreg[i] & (0xF0 >> nibble)) | ((V & 0xF) << nibble);
 			if (nibble)
-				chrhi[i] = (V & 0x10) << 4;						// another one many in one feature from pirate carts
+				chrhi[i] = (V & 0x10) << 4;						/* another one many in one feature from pirate carts */
 		}
 		Sync();
 	} else
@@ -131,24 +131,32 @@ static DECLFW(VRC24Write) {
 }
 
 static DECLFW(M21Write) {
-	A = (A & 0xF000) | ((A >> 1) & 0x3);						// Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] isn't mapper 21 actually,
-																// it's mapper 23 by wirings
+	A = (A & 0xF000) | ((A >> 1) & 0x3);						/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] isn't mapper 21 actually,
+																 * it's mapper 23 by wirings
+																 */
 	VRC24Write(A, V);
 }
 
 static DECLFW(M22Write) {
-	if ((A >= 0xC004) && (A <= 0xC007)) {						// Ganbare Goemon Gaiden does strange things!!! at the end credits
-		weirdo = 1;												// quick dirty hack, seems there is no other games with such PCB, so
-																// we never know if it will not work for something else lol
+#if 0
+	/* Removed this hack, which was a bug in actual game cart.
+	 * http://forums.nesdev.com/viewtopic.php?f=3&t=6584
+	 */
+	if ((A >= 0xC004) && (A <= 0xC007)) {						/* Ganbare Goemon Gaiden does strange things!!! at the end credits
+		weirdo = 1;												 * quick dirty hack, seems there is no other games with such PCB, so
+																 * we never know if it will not work for something else lol
+																 */
 	}
-	A |= ((A >> 2) & 0x3);										// It's just swapped lines from 21 mapper
-																//
+#endif
+	A |= ((A >> 2) & 0x3);										/* It's just swapped lines from 21 mapper
+																 */
 	VRC24Write((A & 0xF000) | ((A >> 1) & 1) | ((A << 1) & 2), V);
 }
 
 static DECLFW(M23Write) {
-	A |= ((A >> 2) & 0x3) | ((A >> 4) & 0x3) | ((A >> 6) & 0x3);// actually there is many-in-one mapper source, some pirate or
-																// licensed games use various address bits for registers
+	A |= ((A >> 2) & 0x3) | ((A >> 4) & 0x3) | ((A >> 6) & 0x3);/* actually there is many-in-one mapper source, some pirate or
+																 * licensed games use various address bits for registers
+																 */
 	VRC24Write(A, V);
 }
 
@@ -167,8 +175,9 @@ static void M22Power(void) {
 static void M23Power(void) {
 	big_bank = 0x20;
 	Sync();
-	setprg8r(0x10, 0x6000, 0);	// Only two Goemon games are have battery backed RAM, three more shooters
-								// (Parodius Da!, Gradius 2 and Crisis Force uses 2k or SRAM at 6000-67FF only
+	setprg8r(0x10, 0x6000, 0);	/* Only two Goemon games are have battery backed RAM, three more shooters
+								 * (Parodius Da!, Gradius 2 and Crisis Force uses 2k or SRAM at 6000-67FF only
+								 */
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
