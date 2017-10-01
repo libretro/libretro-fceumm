@@ -26,6 +26,9 @@
 
 #include "libretro-common/include/streams/memory_stream.h"
 
+#define RETRO_DEVICE_GAMEPAD  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
+#define RETRO_DEVICE_ZAPPER   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
+
 #define NES_8_7_PAR (width * (8.0 / 7.0)) / height
 #define NES_4_3 4.0 / 3.0
 
@@ -536,19 +539,45 @@ void retro_set_input_state(retro_input_state_t cb)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
+   unsigned i, arg = 0;
+   void *InputDPtr;
+
    if (port < 2)  /* port #0 = player1/player3, port #1 = player2/player4 */
    {
       switch(device)
       {
-         case RETRO_DEVICE_JOYPAD:
-            t[port] = RETRO_DEVICE_JOYPAD;
-            FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
+         case RETRO_DEVICE_NONE:
+            t[port] = SI_NONE;
+            InputDPtr = NULL;
             break;
-         case RETRO_DEVICE_MOUSE:
-            t[port] = RETRO_DEVICE_MOUSE;
-            FCEUI_SetInput(port, SI_ZAPPER, &MouseData[0], 1);
+         case RETRO_DEVICE_GAMEPAD:
+            t[port] = SI_GAMEPAD;
+            InputDPtr = &JSReturn;
+            break;
+         case RETRO_DEVICE_ZAPPER:
+            arg = 1;
+            t[port] = SI_ZAPPER;
+            InputDPtr = &MouseData[0];
+            break;
+         case RETRO_DEVICE_JOYPAD:
+         default:
+            if (GameInfo->input[port] == SI_ZAPPER)
+            {
+               arg = 1;
+               t[port] = SI_ZAPPER;
+               InputDPtr = &MouseData[0];
+            }
+            else
+            {
+               t[port] = SI_GAMEPAD;
+               InputDPtr = &JSReturn;
+            }
             break;
        }
+      FCEUI_SetInput(port, t[port], InputDPtr, arg);
+      FCEU_printf("Player %d: %s\n", port + 1,
+         t[port] == SI_GAMEPAD ? "Gamepad" :
+         t[port] == SI_ZAPPER ? "Zapper" : "None");
    }
 }
 
@@ -577,13 +606,14 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    static const struct retro_controller_description pads[] = {
-      { "Gamepad", RETRO_DEVICE_JOYPAD },
-      { "Zapper", RETRO_DEVICE_MOUSE },
+      { "Auto", RETRO_DEVICE_JOYPAD },
+      { "Gamepad", RETRO_DEVICE_GAMEPAD },
+      { "Zapper", RETRO_DEVICE_ZAPPER },
    };
 
    static const struct retro_controller_info ports[] = {
-      { pads, 2 },
-      { pads, 2 },
+      { pads, 3 },
+      { pads, 3 },
       { 0 },
    };
 
@@ -1180,7 +1210,7 @@ static void FCEUD_UpdateInput(void)
 
    JSReturn = pad[0] | (pad[1] << 8) | (pad[2] << 16) | (pad[3] << 24);
 
-   if (t[0] == RETRO_DEVICE_MOUSE || t[1] == RETRO_DEVICE_MOUSE)
+   if (t[0] == SI_ZAPPER || t[1] == SI_ZAPPER)
       GetMouseData(&MouseData[0]);
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
