@@ -39,7 +39,6 @@ void *FCEU_gmalloc(uint32 size)
 
 void *FCEU_malloc(uint32 size)
 {
-   int retval = 0;
    void *ret;
    ret = (void*)malloc(size);
 
