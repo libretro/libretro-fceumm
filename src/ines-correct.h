@@ -105,7 +105,7 @@
 	{0x6e68e31a,	 16,		8},	/* Dragon Ball 3*/
 	{0x33b899c9,	 16,	   -1},	/* Dragon Ball - Dai Maou Fukkatsu (J) [!] */
 	{0xa262a81f,	 16,	   -1},	/* Rokudenashi Blues (J) */
-	{0x286fcd20,	 23,	   -1},	/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] */
+	{0x286fcd20,	 21,	   -1},	/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] */
 	{0xe4a291ce,	 23,	   -1},	/* World Hero (Unl) [!] */
 	{0x51e9cd33,	 23,	   -1},	/* World Hero (Unl) [b1] */
 	{0x105dd586,	 27,	   -1},	/* Mi Hun Che variations... */
@@ -275,7 +275,7 @@
 	{0x276237b3,	206,		0},	/* Karnov */
 	{0xa5e6baf9,	206,		1},	/* Dragon Slayer 4 - Drasle Family (Japan) */
 	{0x4f2f1846,	206,		1},	/* Famista '89 - Kaimaku Han!! (J) */
-	{0x22d6d5bd,	206,		1},	/* Jikuu Yuuden - Debias (J) */	
+	{0x22d6d5bd,	206,		1},	/* Jikuu Yuuden - Debias (J) */
 	{0x9d21fe96,	206,		1},	/* Lupin Sansei - Pandora no Isan (Japan) */
 	{0x96dfc776,	206,		1},	/* R.B.I. Baseball 2 (USA) (Unl) */
 	{0xfd63e7ac,	206,		1},	/* R.B.I. Baseball 3 (USA) (Unl) */

@@ -131,9 +131,7 @@ static DECLFW(VRC24Write) {
 }
 
 static DECLFW(M21Write) {
-	A = (A & 0xF000) | ((A >> 1) & 0x3);						/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] isn't mapper 21 actually,
-																 * it's mapper 23 by wirings
-																 */
+	A = (A & 0xF000) | ((A >> 1) & 0x3) | ((A >> 6) & 0x3);		/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] is Mapper 21*/
 	VRC24Write(A, V);
 }
 
@@ -154,14 +152,18 @@ static DECLFW(M22Write) {
 }
 
 static DECLFW(M23Write) {
-	A |= ((A >> 2) & 0x3) | ((A >> 4) & 0x3) | ((A >> 6) & 0x3);/* actually there is many-in-one mapper source, some pirate or
-																 * licensed games use various address bits for registers
-																 */
+	A |= ((A >> 2) & 0x3) | ((A >> 4) & 0x3);	/* actually there is many-in-one mapper source, some pirate or
+												 * licensed games use various address bits for registers
+												 */
 	VRC24Write(A, V);
 }
 
 static void M21Power(void) {
 	Sync();
+	setprg8r(0x10, 0x6000, 0);
+	SetReadHandler(0x6000, 0x7FFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M21Write);
 }
@@ -223,16 +225,6 @@ static void VRC24Close(void) {
 	WRAM = NULL;
 }
 
-void Mapper21_Init(CartInfo *info) {
-	isPirate = 0;
-	is22 = 0;
-	info->Power = M21Power;
-	MapIRQHook = VRC24IRQHook;
-	GameStateRestore = StateRestore;
-
-	AddExState(&StateRegs, ~0, 0, 0);
-}
-
 void Mapper22_Init(CartInfo *info) {
 	isPirate = 0;
 	is22 = 1;
@@ -258,6 +250,13 @@ void VRC24_Init(CartInfo *info) {
 	}
 
 	AddExState(&StateRegs, ~0, 0, 0);
+}
+
+void Mapper21_Init(CartInfo *info) {
+	isPirate = 0;
+	is22 = 0;
+	info->Power = M21Power;
+	VRC24_Init(info);
 }
 
 void Mapper23_Init(CartInfo *info) {
