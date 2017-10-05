@@ -5,15 +5,22 @@
 
 extern int fceuindbg;
 
+/* Overclocking-related */
 extern unsigned overclock_state;
 extern unsigned overclocked;
 extern unsigned skip_7bit_overclocking;
 extern unsigned DMC_7bit;
-
 extern unsigned normal_scanlines;
 extern unsigned extrascanlines;
 extern unsigned vblankscanlines;
+
+/* Region selection */
 extern unsigned dendy;
+
+/* Audio mods*/
+extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
+                           * found on some famiclones/Dendy models.
+                           */
 
 void ResetGameLoaded(void);
 
