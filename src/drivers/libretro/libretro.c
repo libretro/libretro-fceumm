@@ -84,6 +84,7 @@ static int soundo = 1;
 unsigned sndsamplerate = 48000;
 unsigned sndquality = 0;
 unsigned sndvolume = 150;
+unsigned swapDuty = 0;
 
 static volatile int nofocus = 0;
 
@@ -600,6 +601,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
       { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
       { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
+      { "fceumm_swapduty", "Swap Duty Cyles; disabled|enabled" },
       { "fceumm_zapper_mode", "Zapper Mode; absolute|relative" },
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { NULL, NULL },
@@ -1070,6 +1072,17 @@ static void check_variables(bool startup)
    {
       retro_get_system_av_info(&av_info);
       environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+   }
+
+   var.key = "fceumm_swapduty";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      bool newval = (!strcmp(var.value, "enabled"));
+      if (newval != swapDuty)
+      {
+         swapDuty = newval;
+      }
    }
 }
 

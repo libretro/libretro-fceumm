@@ -195,9 +195,12 @@ static DECLFW(Write_PSG) {
 // FCEU_printf("APU1 %04x:%04x\n",A,V);
 	A &= 0x1F;
 	switch (A) {
-	case 0x0: DoSQ1();
+	case 0x0:
+		DoSQ1();
 		EnvUnits[0].Mode = (V & 0x30) >> 4;
 		EnvUnits[0].Speed = (V & 0xF);
+		if (swapDuty)
+			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x1:
 		sweepon[0] = V & 0x80;
@@ -214,30 +217,36 @@ static DECLFW(Write_PSG) {
 		DoSQ2();
 		EnvUnits[1].Mode = (V & 0x30) >> 4;
 		EnvUnits[1].Speed = (V & 0xF);
+		if (swapDuty)
+			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x5:
 		sweepon[1] = V & 0x80;
 		break;
-	case 0x6: DoSQ2();
+	case 0x6:
+		DoSQ2();
 		curfreq[1] &= 0xFF00;
 		curfreq[1] |= V;
 		break;
 	case 0x7:
 		SQReload(1, V);
 		break;
-	case 0xa: DoTriangle();
+	case 0xa:
+		DoTriangle();
 		break;
 	case 0xb:
 		DoTriangle();
 		if (EnabledChannels & 0x4)
 			lengthcount[2] = lengthtable[(V >> 3) & 0x1f];
-		TriMode = 1;	// Load mode
+		TriMode = 1;	/* Load mode */
 		break;
-	case 0xC: DoNoise();
+	case 0xC:
+		DoNoise();
 		EnvUnits[2].Mode = (V & 0x30) >> 4;
 		EnvUnits[2].Speed = (V & 0xF);
 		break;
-	case 0xE: DoNoise();
+	case 0xE:
+		DoNoise();
 		break;
 	case 0xF:
 		DoNoise();
@@ -245,7 +254,8 @@ static DECLFW(Write_PSG) {
 			lengthcount[3] = lengthtable[(V >> 3) & 0x1f];
 		EnvUnits[2].reloaddec = 1;
 		break;
-	case 0x10: DoPCM();
+	case 0x10:
+		DoPCM();
 		LoadDMCPeriod(V & 0xF);
 
 		if (SIRQStat & 0x80) {
