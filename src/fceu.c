@@ -49,8 +49,6 @@
 
 uint64 timestampbase;
 
-extern int totalscanlines;
-
 FCEUGI *GameInfo = NULL;
 void (*GameInterface)(int h);
 

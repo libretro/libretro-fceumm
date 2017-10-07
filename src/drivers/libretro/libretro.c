@@ -61,13 +61,14 @@ static int zapper_mode = 0; /* 0=absolute 1=relative */
 /* overclock the console by adding dummy scanlines to PPU loop
  * disables DMC DMA and WaveHi filling for these dummies
  * doesn't work with new PPU */
+unsigned overclock_state = -1;
 unsigned overclocked = 0;
-/* 7-bit samples have priority over overclocking */
-unsigned skip_7bit_overclocking = 1;
+unsigned skip_7bit_overclocking = 1; /* 7-bit samples have priority over overclocking */
+unsigned totalscanlines = 0;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
-unsigned overclock_state = -1;
+
 unsigned dendy = 0;
 
 int FCEUnetplay;
@@ -80,7 +81,6 @@ static uint16_t retro_palette[256];
 static uint16_t* fceu_video_out;
 
 /* Some timing-related variables. */
-static int soundo = 1;
 unsigned sndsamplerate = 48000;
 unsigned sndquality = 0;
 unsigned sndvolume = 150;
@@ -540,7 +540,7 @@ void retro_set_input_state(retro_input_state_t cb)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-   unsigned i, arg = 0;
+   unsigned arg = 0;
    void *InputDPtr;
 
    if (port < 2)  /* port #0 = player1/player3, port #1 = player2/player4 */
