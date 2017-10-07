@@ -726,6 +726,9 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	SetupCartMirroring(0, 0, 0);
 
 	FCEU_printf(" Sides: %d\n\n", TotalSides);
+
+	FCEUI_SetVidSystem(0);
+
 	return 1;
 }
 

@@ -52,7 +52,6 @@ static bool use_raw_palette;
 static bool use_par;
 int turbo_enabler;
 int turbo_delay;
-static int regionoverride = -1;
 static int t[2] = { 0, 0 };
 static int zapper_mode = 0; /* 0=absolute 1=relative */
 
@@ -69,6 +68,8 @@ unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
 
+static unsigned is_PAL = 0;
+static unsigned setregion = 0;
 unsigned dendy = 0;
 
 int FCEUnetplay;
@@ -741,45 +742,36 @@ static void retro_set_custom_palette(void)
  * Dendy has PAL framerate and resolution, but ~NTSC timings,
  * and has 50 dummy scanlines to force 50 fps.
  */
-void FCEUD_RegionOverride(int region)
+void FCEUD_RegionOverride(unsigned region)
 {
-   static int w = 0;
    struct retro_system_av_info av_info;
+   unsigned pal = 0;
 
    switch (region)
    {
       case 0: /* auto */
          dendy = 0;
-         w = (GameInfo->vidsys == GIV_PAL) ? 1 : 0;
+         pal = is_PAL;
          break;
       case 1: /* ntsc */
          dendy = 0;
-         w = 0;
+         pal = 0;
          FCEU_DispMessage("Switched to NTSC");
          break;
       case 2: /* pal */
          dendy = 0;
-         w = 1;
+         pal = 1;
          FCEU_DispMessage("Switched to PAL");
          break;
       case 3: /* dendy */
          dendy = 1;
-         w = 0;
+         pal = 0;
          FCEU_DispMessage("Switched to Dendy");
          break;
    }
 
-   FSettings.PAL = w ;
-   PAL = w ? 1 : 0;
-   normal_scanlines = dendy ? 290 : 240;
-   totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
-   FCEUPPU_SetVideoSystem(w || dendy);
-   SetSoundVariables();
-
-   /* Update the timing(fps) in frontend */
-   retro_get_system_av_info(&av_info);
-   /* not needed in current implementation to update fps */
-   /* environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info); */
+   normal_scanlines = dendy ? (240 + 50) : 240;
+   FCEUI_SetVidSystem(pal);
 }
 
 void retro_deinit (void)
@@ -825,7 +817,6 @@ static void check_variables(bool startup)
    struct retro_variable var = {0};
    struct retro_system_av_info av_info;
    bool geometry_update = false;
-   unsigned old_regionoverride = regionoverride;
 
    var.key = "fceumm_palette";
 
@@ -1021,17 +1012,19 @@ static void check_variables(bool startup)
    var.key = "fceumm_region";
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
+      unsigned oldval = setregion;
       if (!strcmp(var.value, "Auto"))
-         regionoverride = 0;
+         setregion = 0;
       else if (!strcmp(var.value, "NTSC"))
-         regionoverride = 1;
+         setregion = 1;
       else if (!strcmp(var.value, "PAL"))
-         regionoverride = 2;
+         setregion = 2;
       else if (!strcmp(var.value, "Dendy"))
-         regionoverride = 3;
+         setregion = 3;
+      if (setregion != oldval)
+         FCEUD_RegionOverride(setregion);
    }
-   if (regionoverride != old_regionoverride)
-      FCEUD_RegionOverride(regionoverride);
+
 
    var.key = "fceumm_aspect";
 
@@ -1791,6 +1784,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    if (GameInfo->type == GIT_VSUNI)
       FCEU_PrintError("VS Unisystem rom loaded, will use default palette.\n");
+
+   is_PAL = retro_get_region(); /* Save current loaded region info */
 
    retro_set_custom_palette();
 

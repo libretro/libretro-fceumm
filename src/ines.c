@@ -807,8 +807,10 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		|| strstr(name, "(Sweden)") || strstr(name, "(Sw)")
 		|| strstr(name, "(Australia)") || strstr(name, "(A)")
 		|| strstr(name, "(a)")) {
-		GameInfo->vidsys = GIV_PAL;
+			FCEUI_SetVidSystem(1);
 	}
+	else
+		FCEUI_SetVidSystem(0);
 
 	return 1;
 }
