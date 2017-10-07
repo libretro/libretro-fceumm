@@ -60,9 +60,10 @@ static int zapper_mode = 0; /* 0=absolute 1=relative */
 /* overclock the console by adding dummy scanlines to PPU loop
  * disables DMC DMA and WaveHi filling for these dummies
  * doesn't work with new PPU */
+unsigned overclock_state = -1;
 unsigned overclocked = 0;
-/* 7-bit samples have priority over overclocking */
-unsigned skip_7bit_overclocking = 1;
+unsigned skip_7bit_overclocking = 1; /* 7-bit samples have priority over overclocking */
+unsigned totalscanlines = 0;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
