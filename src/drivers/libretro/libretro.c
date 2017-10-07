@@ -52,7 +52,6 @@ static bool use_raw_palette;
 static bool use_par;
 int turbo_enabler;
 int turbo_delay;
-static int regionoverride = -1;
 static int t[2] = { 0, 0 };
 static int zapper_mode = 0; /* 0=absolute 1=relative */
 
@@ -68,7 +67,10 @@ unsigned totalscanlines = 0;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
+unsigned overclock_state = -1;
 
+static int regionoverride = 0;
+static int is_PAL = 0;
 unsigned dendy = 0;
 
 int FCEUnetplay;
@@ -741,40 +743,39 @@ static void retro_set_custom_palette(void)
  * Dendy has PAL framerate and resolution, but ~NTSC timings,
  * and has 50 dummy scanlines to force 50 fps.
  */
-void FCEUD_RegionOverride(int region)
+void FCEUD_RegionOverride(unsigned region)
 {
-   static int w = 0;
    struct retro_system_av_info av_info;
+   unsigned w = 0;
 
    switch (region)
    {
       case 0: /* auto */
+         normal_scanlines = 240;
          dendy = 0;
-         w = (GameInfo->vidsys == GIV_PAL) ? 1 : 0;
+         w = is_PAL;
          break;
       case 1: /* ntsc */
+         normal_scanlines = 240;
          dendy = 0;
          w = 0;
          FCEU_DispMessage("Switched to NTSC");
          break;
       case 2: /* pal */
+         normal_scanlines = 240;
          dendy = 0;
          w = 1;
          FCEU_DispMessage("Switched to PAL");
          break;
       case 3: /* dendy */
+         normal_scanlines = 240 + 50;
          dendy = 1;
          w = 0;
          FCEU_DispMessage("Switched to Dendy");
          break;
    }
 
-   FSettings.PAL = w ;
-   PAL = w ? 1 : 0;
-   normal_scanlines = dendy ? 290 : 240;
-   totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
-   FCEUPPU_SetVideoSystem(w || dendy);
-   SetSoundVariables();
+   FCEUI_SetVidSystem(w);
 
    /* Update the timing(fps) in frontend */
    retro_get_system_av_info(&av_info);
@@ -1791,6 +1792,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    if (GameInfo->type == GIT_VSUNI)
       FCEU_PrintError("VS Unisystem rom loaded, will use default palette.\n");
+
+   is_PAL = retro_get_region(); /* Save current region for auto-switching later */
 
    retro_set_custom_palette();
 
