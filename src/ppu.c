@@ -127,8 +127,6 @@ static int maxsprites = 8;
 int scanline;
 static uint32 scanlines_per_frame;
 
-int totalscanlines;
-
 uint8 PPU[4];
 uint8 PPUSPL;
 uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], SPRBUF[0x100];

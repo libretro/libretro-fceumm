@@ -512,7 +512,7 @@ static void X6502_RunDebug(int32 cycles) {
 		_tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
 
-      if (scanline < normal_scanlines || scanline == totalscanlines)
+      if (!overclocked)
          FCEU_SoundCPUHook(temp);
 
 		_PC++;
