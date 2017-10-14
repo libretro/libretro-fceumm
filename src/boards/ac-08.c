@@ -45,10 +45,10 @@ static DECLFW(AC08Mirr) {
 }
 
 static DECLFW(AC08Write) {
-	if (A == 0x8001)			// Green Berret bank switching is only 100x xxxx xxxx xxx1 mask
+	if (A == 0x8001)			/* Green Berret bank switching is only 100x xxxx xxxx xxx1 mask */
 		reg = (V >> 1) & 0xf;
 	else
-		reg = V & 0xf;			// Sad But True, 2-in-1 mapper, Green Berret need value shifted left one byte, Castlevania doesn't
+		reg = V & 0xf;			/* Sad But True, 2-in-1 mapper, Green Berret need value shifted left one byte, Castlevania doesn't */
 	Sync();
 }
 

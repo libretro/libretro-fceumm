@@ -38,12 +38,12 @@ static int is155, is171;
 
 static DECLFW(MBWRAM) {
 	if (!(DRegs[3] & 0x10) || is155)
-		Page[A >> 11][A] = V;	// WRAM is enabled.
+		Page[A >> 11][A] = V;	/* WRAM is enabled. */
 }
 
 static DECLFR(MAWRAM) {
 	if ((DRegs[3] & 0x10) && !is155)
-		return X.DB;			// WRAM is disabled
+		return X.DB;			/* WRAM is disabled */
 	return(Page[A >> 11][A]);
 }
 
@@ -131,7 +131,7 @@ static DECLFW(MMC1_write) {
 	*/
 	if ((timestampbase + timestamp) < (lreset + 2))
 		return;
-//	FCEU_printf("Write %04x:%02x\n",A,V);
+/*	FCEU_printf("Write %04x:%02x\n",A,V); */
 	if (V & 0x80) {
 		DRegs[0] |= 0xC;
 		BufferShift = Buffer = 0;
@@ -143,7 +143,7 @@ static DECLFW(MMC1_write) {
 	Buffer |= (V & 1) << (BufferShift++);
 
 	if (BufferShift == 5) {
-//		FCEU_printf("REG[%d]=%02x\n",n,Buffer);
+/*		FCEU_printf("REG[%d]=%02x\n",n,Buffer); */
 		DRegs[n] = Buffer;
 		BufferShift = Buffer = 0;
 		switch (n) {
@@ -159,7 +159,7 @@ static void MMC1_Restore(int version) {
 	MMC1MIRROR();
 	MMC1CHR();
 	MMC1PRG();
-	lreset = 0;			// timestamp(base) is not stored in save states.
+	lreset = 0;			/* timestamp(base) is not stored in save states. */
 }
 
 static void MMC1CMReset(void) {
@@ -171,7 +171,7 @@ static void MMC1CMReset(void) {
 	DRegs[0] = 0x1F;
 
 	DRegs[1] = 0;
-	DRegs[2] = 0;		// Should this be something other than 0?
+	DRegs[2] = 0;		/* Should this be something other than 0? */
 	DRegs[3] = 0;
 
 	MMC1MIRROR();
@@ -214,7 +214,7 @@ static void NWCIRQHook(int a) {
 }
 
 static void NWCCHRHook(uint32 A, uint8 V) {
-	if ((V & 0x10)) {	// && !(NWCRec&0x10))
+	if ((V & 0x10)) {	/* && !(NWCRec&0x10)) */
 		NWCIRQCount = 0;
 		X6502_IRQEnd(FCEU_IQEXT);
 	}

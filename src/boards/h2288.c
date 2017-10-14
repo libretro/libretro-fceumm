@@ -56,7 +56,7 @@ static DECLFW(H2288WriteLo) {
 static void H2288Power(void) {
 	EXPREGS[0] = EXPREGS[1] = 0;
 	GenMMC3Power();
-//	SetReadHandler(0x5000,0x5FFF,H2288Read);
+/*	SetReadHandler(0x5000,0x5FFF,H2288Read); */
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x5000, 0x5FFF, H2288WriteLo);
 	SetWriteHandler(0x8000, 0x9FFF, H2288WriteHi);

@@ -31,24 +31,24 @@ static uint8 regperm[8][8] =
 {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 0, 2, 6, 1, 7, 3, 4, 5 },
-	{ 0, 5, 4, 1, 7, 2, 6, 3 },		// unused
+	{ 0, 5, 4, 1, 7, 2, 6, 3 },		/* unused */
 	{ 0, 6, 3, 7, 5, 2, 4, 1 },
 	{ 0, 2, 5, 3, 6, 1, 7, 4 },
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },		// empty
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },		// empty
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },		// empty
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
 };
 
 static uint8 adrperm[8][8] =
 {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 3, 2, 0, 4, 1, 5, 6, 7 },
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },		// unused
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* unused */
 	{ 5, 0, 1, 2, 3, 7, 6, 4 },
 	{ 3, 1, 0, 5, 2, 4, 6, 7 },
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },		// empty
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },		// empty
-	{ 0, 1, 2, 3, 4, 5, 6, 7 },		// empty
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
 };
 
 static void UNL8237CW(uint32 A, uint8 V) {
@@ -98,30 +98,30 @@ static void UNL8237APW(uint32 A, uint8 V) {
 		if (EXPREGS[0] & 0x80) {
 			uint8 bank = ((EXPREGS[1] & 3) << 4) | ((EXPREGS[1] & 8) << 3) | (EXPREGS[0] & 0x7) | (sbank >> 1);
 			if (EXPREGS[0] & 0x20) {
-//				FCEU_printf("8000:%02X\n",bank>>1);
+/*				FCEU_printf("8000:%02X\n",bank>>1); */
 				setprg32(0x8000, bank >> 1);
 			} else {
-//				FCEU_printf("8000-C000:%02X\n",bank);
+/*				FCEU_printf("8000-C000:%02X\n",bank); */
 				setprg16(0x8000, bank);
 				setprg16(0xC000, bank);
 			}
 		} else {
-//			FCEU_printf("%04x:%02X\n",A,((EXPREGS[1]&3)<<5)|((EXPREGS[1]&8)<<4)|(V&0x0F)|sbank);
+/*			FCEU_printf("%04x:%02X\n",A,((EXPREGS[1]&3)<<5)|((EXPREGS[1]&8)<<4)|(V&0x0F)|sbank); */
 			setprg8(A, ((EXPREGS[1] & 3) << 5) | ((EXPREGS[1] & 8) << 4) | (V & 0x0F) | sbank);
 		}
 	} else {
 		if (EXPREGS[0] & 0x80) {
 			uint8 bank = ((EXPREGS[1] & 3) << 4) | ((EXPREGS[1] & 8) << 3) | (EXPREGS[0] & 0xF);
 			if (EXPREGS[0] & 0x20) {
-//				FCEU_printf("8000:%02X\n",(bank>>1)&0x07);
+/*				FCEU_printf("8000:%02X\n",(bank>>1)&0x07); */
 				setprg32(0x8000, bank >> 1);
 			} else {
-//				FCEU_printf("8000-C000:%02X\n",bank&0x0F);
+/*				FCEU_printf("8000-C000:%02X\n",bank&0x0F); */
 				setprg16(0x8000, bank);
 				setprg16(0xC000, bank);
 			}
 		} else {
-//			FCEU_printf("%04X:%02X\n",A,(((EXPREGS[1]&3)<<5)|((EXPREGS[1]&8)<<4)|(V&0x1F))&0x1F);
+/*			FCEU_printf("%04X:%02X\n",A,(((EXPREGS[1]&3)<<5)|((EXPREGS[1]&8)<<4)|(V&0x1F))&0x1F); */
 			setprg8(A, ((EXPREGS[1] & 3) << 5) | ((EXPREGS[1] & 8) << 4) | (V & 0x1F));
 		}
 	}

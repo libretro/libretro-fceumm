@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-// M-022 MMC3 based 830118C T-106 4M + 4M
+/* M-022 MMC3 based 830118C T-106 4M + 4M */
 
 #include "mapinc.h"
 #include "mmc3.h"

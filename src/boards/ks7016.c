@@ -48,16 +48,16 @@ static DECLFW(UNLKS7016Write) {
 	switch(A & 0xD943) {
 	case 0xD943: {
 		if(mask == 0x30) {
-			preg = 8 | 3;				// or A, or no bus (all FF)
+			preg = 8 | 3;				/* or A, or no bus (all FF) */
 		} else {
-			preg = (A >> 2) & 0xF;		// can be anything but C-F
+			preg = (A >> 2) & 0xF;		/* can be anything but C-F */
 		}
 		Sync();
 		break;
 	}
-	case 0xD903: {						// this case isn't usedby the game, but addressing does this as a side effect
+	case 0xD903: {						/* this case isn't usedby the game, but addressing does this as a side effect */
 		if(mask == 0x30) {
-			preg = 8 | ((A >> 2) & 3);	// also masked C-F from output
+			preg = 8 | ((A >> 2) & 3);	/* also masked C-F from output */
 		} else {
 			preg = 8 | 3;
 		}

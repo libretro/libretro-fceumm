@@ -46,29 +46,31 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	setprg32(0x8000, (reg[2] >> 2) & 1);
 	if (is172)
-		setchr8((((cmd ^ reg[2]) >> 3) & 2) | (((cmd ^ reg[2]) >> 5) & 1));	// 1991 DU MA Racing probably CHR bank sequence is WRONG, so it is possible to
-																			// rearrange CHR banks for normal UNIF board and mapper 172 is unneccessary
+		setchr8((((cmd ^ reg[2]) >> 3) & 2) | (((cmd ^ reg[2]) >> 5) & 1));	/* 1991 DU MA Racing probably CHR bank sequence is WRONG, so it is possible to
+																			 * rearrange CHR banks for normal UNIF board and mapper 172 is unneccessary */
 	else
 		setchr8(reg[2] & 3);
 }
 
 static DECLFW(UNL22211WriteLo) {
-//	FCEU_printf("bs %04x %02x\n",A,V);
+/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	reg[A & 3] = V;
 }
 
 static DECLFW(UNL22211WriteHi) {
-//	FCEU_printf("bs %04x %02x\n",A,V);
+/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	cmd = V;
 	Sync();
 }
 
 static DECLFR(UNL22211ReadLo) {
 	return (reg[1] ^ reg[2]) | (is173 ? 0x01 : 0x40);
-//	if(reg[3])
-//		return reg[2];
-//	else
-//		return X.DB;
+#if 0
+	if(reg[3])
+		return reg[2];
+	else
+		return X.DB;
+#endif
 }
 
 static void UNL22211Power(void) {

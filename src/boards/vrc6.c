@@ -154,7 +154,7 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-// VRC6 Sound
+/* VRC6 Sound */
 
 static void DoSQV1(void);
 static void DoSQV2(void);
@@ -340,7 +340,7 @@ static void VRC6_ESI(void) {
 	AddExState(&SStateRegs, ~0, 0, 0);
 }
 
-// VRC6 Sound
+/* VRC6 Sound */
 
 void Mapper24_Init(CartInfo *info) {
 	is26 = 0;

@@ -93,8 +93,8 @@ static uint8 *WRAM = NULL;
 static uint8 *MMC5fill = NULL;
 static uint8 *ExRAM = NULL;
 
-static uint8 MMC5WRAMsize; //configuration, not state
-static uint8 MMC5WRAMIndex[8]; //configuration, not state
+static uint8 MMC5WRAMsize; /* configuration, not state */
+static uint8 MMC5WRAMIndex[8]; /* configuration, not state */
 
 static uint8 MMC5ROMWrProtect[4];
 static uint8 MMC5MemIn[5];
@@ -154,11 +154,11 @@ static void BuildWRAMSizeTable(void) {
 	int x;
 	for (x = 0; x < 8; x++) {
 		switch (MMC5WRAMsize) {
-		case 0: MMC5WRAMIndex[x] = 255; break;                      //X,X,X,X,X,X,X,X
-		case 1: MMC5WRAMIndex[x] = (x > 3) ? 255 : 0; break;        //0,0,0,0,X,X,X,X
-		case 2: MMC5WRAMIndex[x] = (x & 4) >> 2; break;             //0,0,0,0,1,1,1,1
-		case 4: MMC5WRAMIndex[x] = (x > 3) ? 255 : (x & 3); break;  //0,1,2,3,X,X,X,X
-		case 8: MMC5WRAMIndex[x] = x; break; 						//0,1,2,3,4,5,6,7
+		case 0: MMC5WRAMIndex[x] = 255; break;                      /* X,X,X,X,X,X,X,X */
+		case 1: MMC5WRAMIndex[x] = (x > 3) ? 255 : 0; break;        /* 0,0,0,0,X,X,X,X */
+		case 2: MMC5WRAMIndex[x] = (x & 4) >> 2; break;             /* 0,0,0,0,1,1,1,1 */
+		case 4: MMC5WRAMIndex[x] = (x > 3) ? 255 : (x & 3); break;  /* 0,1,2,3,X,X,X,X */
+		case 8: MMC5WRAMIndex[x] = x; break; 						/* 0,1,2,3,4,5,6,7 */
 		}
 	}
 }
@@ -458,7 +458,7 @@ void MMC5Synco(void) {
 		MMC5CHRB();
 	}
 
-	//in case the fill register changed, we need to overwrite the fill buffer
+	/* in case the fill register changed, we need to overwrite the fill buffer */
 	FCEU_dwmemset(MMC5fill, NTFill | (NTFill << 8) | (NTFill << 16) | (NTFill << 24), 0x3c0);
 	{
 		unsigned char moop = ATFill | (ATFill << 2) | (ATFill << 4) | (ATFill << 6);
@@ -467,21 +467,23 @@ void MMC5Synco(void) {
 
 	MMC5HackCHRMode = CHRMode & 3;
 
-	//zero 17-apr-2013 - why the heck should this happen here? anything in a `synco` should be depending on the state.
-	//im going to leave it commented out to see what happens
-	//X6502_IRQEnd(FCEU_IQEXT);
+	/* zero 17-apr-2013 - why the heck should this happen here? anything in a `synco` should be depending on the state.
+	 * im going to leave it commented out to see what happens
+	 */
+	 /* X6502_IRQEnd(FCEU_IQEXT); */
 }
 
 void MMC5_hb(int scanline) {
-	//zero 24-jul-2014 - revised for newer understanding, to fix metal slader glory credits. see r7371 in bizhawk
+	/* zero 24-jul-2014 - revised for newer understanding, to fix metal slader glory credits. see r7371 in bizhawk */
 	
 	int sl = scanline + 1;
 	int ppuon = (PPU[1] & 0x18);
 
 	if (!ppuon || sl >= 241)
 	{
-		// whenever rendering is off for any reason (vblank or forced disable
-		// the irq counter resets, as well as the inframe flag (easily verifiable from software)
+		/* whenever rendering is off for any reason (vblank or forced disable
+		 * the irq counter resets, as well as the inframe flag (easily verifiable from software)
+		 */
 		MMC5IRQR &= ~0x40;
 		MMC5IRQR &= ~0x80;
 		MMC5LineCounter = 0;
@@ -744,8 +746,8 @@ static void GenMMC5Reset(void) {
 	SetWriteHandler(0x5205, 0x5206, Mapper5_write);
 	SetReadHandler(0x5205, 0x5206, MMC5_read);
 
-//	GameHBIRQHook=MMC5_hb;
-//	FCEU_CheatAddRAM(8, 0x6000, WRAM);
+/*	GameHBIRQHook=MMC5_hb; */
+/*	FCEU_CheatAddRAM(8, 0x6000, WRAM); */
 	FCEU_CheatAddRAM(1, 0x5c00, ExRAM);
 }
 
@@ -763,7 +765,7 @@ static SFORMAT MMC5_StateRegs[] = {
 	{ &NTFill, 1, "NTFL" },
 	{ &ATFill, 1, "ATFL" },
 
-	//zero 17-apr-2013 - added
+	/* zero 17-apr-2013 - added */
 	{ &MMC5IRQR, 1, "IRQR" },
 	{ &MMC5LineCounter, 1, "LCTR" },
 	{ &mmc5psize, 1, "PSIZ" },
@@ -780,7 +782,7 @@ static SFORMAT MMC5_StateRegs[] = {
 	{ &MMC5Sound.raw, 1, "SDRW" },
 	{ &MMC5Sound.rawcontrol, 1, "SDRC" },
 
-	//zero 17-apr-2013 - added
+	/* zero 17-apr-2013 - added */
 	{ &MMC5Sound.dcount[0], 4 | FCEUSTATE_RLSB, "DCT0" },
 	{ &MMC5Sound.dcount[1], 4 | FCEUSTATE_RLSB, "DCT1" },
 	{ &MMC5Sound.BC[0], 4 | FCEUSTATE_RLSB, "BC00" },
@@ -835,10 +837,11 @@ void Mapper5_Init(CartInfo *info) {
 	GenMMC5_Init(info, WRAMSIZE, info->battery);
 }
 
-// ELROM seems to have 0KB of WRAM
-// EKROM seems to have 8KB of WRAM, battery-backed
-// ETROM seems to have 16KB of WRAM, battery-backed
-// EWROM seems to have 32KB of WRAM, battery-backed
+/* ELROM seems to have 0KB of WRAM
+ * EKROM seems to have 8KB of WRAM, battery-backed
+ * ETROM seems to have 16KB of WRAM, battery-backed
+ * EWROM seems to have 32KB of WRAM, battery-backed
+ */
 
 void ELROM_Init(CartInfo *info) {
 	GenMMC5_Init(info, 0, 0);

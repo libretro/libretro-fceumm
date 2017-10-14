@@ -44,7 +44,7 @@ static DECLFW(UNLBBWrite) {
 	if ((A & 0x9000) == 0x8000)
 		reg = chr = V;
 	else
-		chr = V & 1;	// hacky hacky, ProWres simplified FDS conversion 2-in-1 mapper
+		chr = V & 1;	/* hacky hacky, ProWres simplified FDS conversion 2-in-1 mapper */
 	Sync();
 }
 

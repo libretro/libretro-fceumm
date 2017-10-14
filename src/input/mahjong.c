@@ -25,9 +25,9 @@ static uint32 MReal, MRet;
 
 static uint8 FP_FASTAPASS(2) MJ_Read(int w, uint8 ret) {
 	if (w) {
-//  ret|=(MRet&1)<<1;
+/*  ret|=(MRet&1)<<1; */
 		ret |= ((MRet & 0x80) >> 6) & 2;
-//  MRet>>=1;
+/*  MRet>>=1; */
   #ifdef FCEUDEF_DEBUGGER
 		if (!fceuindbg)
   #endif
@@ -48,19 +48,19 @@ static void FP_FASTAPASS(1) MJ_Write(uint8 v) {
 
 	if (v == 3) {
 		MRet = (MReal >> 14) & 0x7F;
-		//MRet=((MRet&0x1F) |((MRet&0x40)>>1)|((MRet&0x20)<<1)) <<1; //(MReal>>13)&0x7F;
+		/* MRet=((MRet&0x1F) |((MRet&0x40)>>1)|((MRet&0x20)<<1)) <<1; */ /* (MReal>>13)&0x7F; */
 	} else if (v == 2) {
 		MRet = MReal & 0xFF;
 	} else if (v == 1) {
 		MRet = (MReal >> 8) & 0x3F;
 	}
-// HSValR=HSVal<<1;
+/* HSValR=HSVal<<1; */
 }
 
 static void FP_FASTAPASS(2) MJ_Update(void *data, int arg) {
 	MReal = *(uint32*)data;
-	//printf("%08x\n",MReal>>13);
-	//HSVal=*(uint8*)data;
+	/* printf("%08x\n",MReal>>13); */
+	/* HSVal=*(uint8*)data; */
 }
 
 static INPUTCFC Mahjong = { MJ_Read, MJ_Write, 0, MJ_Update, 0, 0 };

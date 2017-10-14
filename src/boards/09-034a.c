@@ -76,7 +76,7 @@ static void UNLSMB2JPower(void) {
 static void FP_FASTAPASS(1) UNLSMB2JIRQHook(int a) {
 	if (IRQa)
 	{
-		if (IRQCount < 5750)    // completely by guess
+		if (IRQCount < 5750)    /* completely by guess */
 			IRQCount += a;
 		else {
 			IRQa = 0;

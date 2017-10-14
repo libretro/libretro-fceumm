@@ -27,20 +27,21 @@
 
 #include "mapinc.h"
 
-// General Purpose Registers
+/* General Purpose Registers */
 static uint8 cpu410x[16], ppu201x[16], apu40xx[64];
 
-// IRQ Registers
+/* IRQ Registers */
 static uint8 IRQCount, IRQa, IRQReload;
 #define IRQLatch cpu410x[0x1]	// accc cccc, a = 0, AD12 switching, a = 1, HSYNC switching
 
-// MMC3 Registers
-static uint8 inv_hack = 0;		// some OneBus Systems have swapped PRG reg commans in MMC3 inplementation,
-								// trying to autodetect unusual behavior, due not to add a new mapper.
+/* MMC3 Registers */
+static uint8 inv_hack = 0;		/* some OneBus Systems have swapped PRG reg commans in MMC3 inplementation,
+								 * trying to autodetect unusual behavior, due not to add a new mapper.
+								 */
 #define mmc3cmd  cpu410x[0x5]	// pcv- ----, p - program swap, c - video swap, v - internal VRAM enable
 #define mirror   cpu410x[0x6]	// ---- ---m, m = 0 - H, m = 1 - V
 
-// APU Registers
+/* APU Registers */
 static uint8 pcm_enable = 0, pcm_irq = 0;
 static int16 pcm_addr, pcm_size, pcm_latch, pcm_clock = 0xE1;
 
@@ -70,22 +71,24 @@ static void PSync(void) {
 	uint32 block = ((cpu410x[0x0] & 0xf0) << 4) + (cpu410x[0xa] & (~mask));
 	uint32 pswap = (mmc3cmd & 0x40) << 8;
 
-//	uint8 bank0  = (cpu410x[0xb] & 0x40)?(~1):(cpu410x[0x7]);
-//	uint8 bank1  = cpu410x[0x8];
-//	uint8 bank2  = (cpu410x[0xb] & 0x40)?(cpu410x[0x9]):(~1);
-//	uint8 bank3  = ~0;
+#if 0
+	uint8 bank0  = (cpu410x[0xb] & 0x40)?(~1):(cpu410x[0x7]);
+	uint8 bank1  = cpu410x[0x8];
+	uint8 bank2  = (cpu410x[0xb] & 0x40)?(cpu410x[0x9]):(~1);
+	uint8 bank3  = ~0;
+#endif
 	uint8 bank0 = cpu410x[0x7 ^ inv_hack];
 	uint8 bank1 = cpu410x[0x8 ^ inv_hack];
 	uint8 bank2 = (cpu410x[0xb] & 0x40) ? (cpu410x[0x9]) : (~1);
 	uint8 bank3 = ~0;
 
-//	FCEU_printf(" PRG: %04x [%02x]",0x8000^pswap,block | (bank0 & mask));
+/*	FCEU_printf(" PRG: %04x [%02x]",0x8000^pswap,block | (bank0 & mask)); */
 	setprg8(0x8000 ^ pswap, block | (bank0 & mask));
-//	FCEU_printf(" %04x [%02x]",0xa000^pswap,block | (bank1 & mask));
+/*	FCEU_printf(" %04x [%02x]",0xa000^pswap,block | (bank1 & mask)); */
 	setprg8(0xa000, block | (bank1 & mask));
-//	FCEU_printf(" %04x [%02x]",0xc000^pswap,block | (bank2 & mask));
+/*	FCEU_printf(" %04x [%02x]",0xc000^pswap,block | (bank2 & mask)); */
 	setprg8(0xc000 ^ pswap, block | (bank2 & mask));
-//	FCEU_printf(" %04x [%02x]\n",0xe000^pswap,block | (bank3 & mask));
+/*	FCEU_printf(" %04x [%02x]\n",0xe000^pswap,block | (bank3 & mask)); */
 	setprg8(0xe000, block | (bank3 & mask));
 }
 
@@ -122,9 +125,9 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLOneBusWriteCPU410X) {
-//	FCEU_printf("CPU %04x:%04x\n",A,V);
+/*	FCEU_printf("CPU %04x:%04x\n",A,V); */
 	switch (A & 0xf) {
-	case 0x1: IRQLatch = V & 0xfe; break;	// не по даташиту
+	case 0x1: IRQLatch = V & 0xfe; break;	/* не по даташиту */
 	case 0x2: IRQReload = 1; break;
 	case 0x3: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; break;
 	case 0x4: IRQa = 1; break;
@@ -135,13 +138,13 @@ static DECLFW(UNLOneBusWriteCPU410X) {
 }
 
 static DECLFW(UNLOneBusWritePPU201X) {
-//	FCEU_printf("PPU %04x:%04x\n",A,V);
+/*	FCEU_printf("PPU %04x:%04x\n",A,V); */
 	ppu201x[A & 0x0f] = V;
 	Sync();
 }
 
 static DECLFW(UNLOneBusWriteMMC3) {
-//	FCEU_printf("MMC %04x:%04x\n",A,V);
+/*	FCEU_printf("MMC %04x:%04x\n",A,V); */
 	switch (A & 0xe001) {
 	case 0x8000: mmc3cmd = (mmc3cmd & 0x38) | (V & 0xc7); Sync(); break;
 	case 0x8001:
@@ -180,7 +183,7 @@ static void UNLOneBusIRQHook(void) {
 }
 
 static DECLFW(UNLOneBusWriteAPU40XX) {
-//	if(((A & 0x3f)!=0x16) && ((apu40xx[0x30] & 0x10) || ((A & 0x3f)>0x17)))FCEU_printf("APU %04x:%04x\n",A,V);
+/*	if(((A & 0x3f)!=0x16) && ((apu40xx[0x30] & 0x10) || ((A & 0x3f)>0x17)))FCEU_printf("APU %04x:%04x\n",A,V); */
 	apu40xx[A & 0x3f] = V;
 	switch (A & 0x3f) {
 	case 0x12:
@@ -211,7 +214,7 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 
 static DECLFR(UNLOneBusReadAPU40XX) {
 	uint8 result = defapuread[A & 0x3f](A);
-//	FCEU_printf("read %04x, %02x\n",A,result);
+/*	FCEU_printf("read %04x, %02x\n",A,result); */
 	switch (A & 0x3f) {
 	case 0x15:
 		if (apu40xx[0x30] & 0x10) {
@@ -286,7 +289,7 @@ void UNLOneBus_Init(CartInfo *info) {
 	info->Power = UNLOneBusPower;
 	info->Reset = UNLOneBusReset;
 
-	if (((*(uint32*)&(info->MD5)) == 0x305fcdc3) ||	// PowerJoy Supermax Carts
+	if (((*(uint32*)&(info->MD5)) == 0x305fcdc3) ||	/* PowerJoy Supermax Carts */
 		((*(uint32*)&(info->MD5)) == 0x6abfce8e))
 		inv_hack = 0xf;
 

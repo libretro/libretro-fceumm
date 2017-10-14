@@ -95,7 +95,7 @@ static DECLFW(M69Write1) {
 	}
 }
 
-// SUNSOFT-5/FME-7 Sound
+/* SUNSOFT-5/FME-7 Sound */
 
 static void AYSound(int Count);
 static void AYSoundHQ(void);
@@ -218,7 +218,7 @@ void Mapper69_ESI(void) {
 	AddExState(&SStateRegs, ~0, 0, 0);
 }
 
-// SUNSOFT-5/FME-7 Sound
+/* SUNSOFT-5/FME-7 Sound */
 
 static void M69Power(void) {
 	cmdreg = sndcmd = 0;

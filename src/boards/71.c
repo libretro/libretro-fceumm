@@ -39,7 +39,7 @@ static void Sync(void) {
 
 static DECLFW(M71Write) {
 	if ((A & 0xF000) == 0x9000)
-		mirr = MI_0 + ((V >> 4) & 1);	// 2-in-1, some carts are normal hardwire V/H mirror, some uses mapper selectable 0/1 mirror
+		mirr = MI_0 + ((V >> 4) & 1);	/* 2-in-1, some carts are normal hardwire V/H mirror, some uses mapper selectable 0/1 mirror */
 	else
 		preg = V;
 	Sync();

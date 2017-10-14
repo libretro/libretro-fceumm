@@ -59,10 +59,12 @@ static void Sync(void) {
 
 static DECLFR(BMC70in1Read) {
 	if (bank_mode == 0x10)
-//	if(is_large_banks)
+/*	if(is_large_banks) */
 		return CartBR((A & 0xFFF0) | hw_switch);
-//	else
-//		return CartBR((A&0xFFF0)|hw_switch);
+#if 0
+	else
+		return CartBR((A&0xFFF0)|hw_switch);
+#endif
 	else
 		return CartBR(A);
 }

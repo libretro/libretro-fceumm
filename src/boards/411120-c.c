@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-// actually cart ID is 811120-C, sorry ;) K-3094 - another ID
+/* actually cart ID is 811120-C, sorry ;) K-3094 - another ID */
 
 #include "mapinc.h"
 #include "mmc3.h"

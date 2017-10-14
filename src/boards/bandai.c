@@ -36,11 +36,11 @@ static SFORMAT StateRegs[] =
 	{ reg, 16, "REGS" },
 	{ &IRQa, 1, "IRQA" },
 	{ &IRQCount, 2, "IRQC" },
-	{ &IRQLatch, 2, "IRQL" },	// need for Famicom Jump II - Saikyou no 7 Nin (J) [!]
+	{ &IRQLatch, 2, "IRQL" },	/* need for Famicom Jump II - Saikyou no 7 Nin (J) [!] */
 	{ 0 }
 };
 
-// x24C0x interface
+/* x24C0x interface */
 
 #define X24C0X_STANDBY		0
 #define X24C0X_ADDRESS		1
@@ -77,26 +77,26 @@ static void x24c0x_write(uint8 data) {
 	x24c0x_oe = (data >> 7);
 
 	if(x24c0x_scl && scl) {
-		if(x24c0x_sda && !sda) {		// START
+		if(x24c0x_sda && !sda) {		/* START */
 			x24c0x_state = X24C0X_ADDRESS;
 			x24c0x_bitcount = 0;
 			x24c0x_addr = 0;
-		} else if(!x24c0x_sda && sda) { //STOP
+		} else if(!x24c0x_sda && sda) { /* STOP */
 			x24c0x_state = X24C0X_STANDBY;
 		}
-	} else if(!x24c0x_scl && scl) {		// RISING EDGE
+	} else if(!x24c0x_scl && scl) {		/* RISING EDGE */
 		switch(x24c0x_state) {
 		case X24C0X_ADDRESS:
 			if(x24c0x_bitcount < 7) {
 				x24c0x_addr <<= 1;
 				x24c0x_addr |= sda;
 			} else {
-				if(!x24c02)				// X24C01 mode
+				if(!x24c02)				/* X24C01 mode */
 					x24c0x_word = x24c0x_addr;
-				if(sda) {				// READ COMMAND
+				if(sda) {				/* READ COMMAND */
 					x24c0x_state = X24C0X_READ;
-				} else {				// WRITE COMMAND
-					if(x24c02)			// X24C02 mode
+				} else {				/* WRITE COMMAND */
+					if(x24c02)			/* X24C02 mode */
 						x24c0x_state = X24C0X_WORD;
 					else
 						x24c0x_state = X24C0X_WRITE;
@@ -105,13 +105,13 @@ static void x24c0x_write(uint8 data) {
 			x24c0x_bitcount++;
 			break;
 		case X24C0X_WORD:
-			if(x24c0x_bitcount == 8) {	// ACK
+			if(x24c0x_bitcount == 8) {	/* ACK */
 				x24c0x_word = 0;
 				x24c0x_out = 0;
-			} else {					// WORD ADDRESS INPUT
+			} else {					/* WORD ADDRESS INPUT */
 				x24c0x_word <<= 1;
 				x24c0x_word |= sda;
-				if(x24c0x_bitcount == 16) {	// END OF ADDRESS INPUT
+				if(x24c0x_bitcount == 16) {	/* END OF ADDRESS INPUT */
 					x24c0x_bitcount = 7;
 					x24c0x_state = X24C0X_WRITE;
 				}
@@ -119,11 +119,11 @@ static void x24c0x_write(uint8 data) {
 			x24c0x_bitcount++;
 			break;
 		case X24C0X_READ:
-			if (x24c0x_bitcount == 8) {	// ACK
+			if (x24c0x_bitcount == 8) {	/* ACK */
 				x24c0x_out = 0;
 				x24c0x_latch = x24c0x_data[x24c0x_word];
 				x24c0x_bitcount = 0;
-			} else {					// REAL OUTPUT
+			} else {					/* REAL OUTPUT */
 				x24c0x_out = x24c0x_latch >> 7;
 				x24c0x_latch <<= 1;
 				x24c0x_bitcount++;
@@ -134,11 +134,11 @@ static void x24c0x_write(uint8 data) {
 			}
 			break;
 		case X24C0X_WRITE:
-			if (x24c0x_bitcount == 8) {	// ACK
+			if (x24c0x_bitcount == 8) {	/* ACK */
 				x24c0x_out = 0;
 				x24c0x_latch = 0;
 				x24c0x_bitcount = 0;
-			} else {					// REAL INPUT
+			} else {					/* REAL INPUT */
 				x24c0x_latch <<= 1;
 				x24c0x_latch |= sda;
 				x24c0x_bitcount++;
@@ -159,8 +159,6 @@ static void x24c0x_write(uint8 data) {
 static uint8 x24c0x_read() {
 	return x24c0x_out << 4;
 }
-
-//
 
 static void Sync(void) {
 	if (is153) {
@@ -256,12 +254,13 @@ void Mapper159_Init(CartInfo *info) {
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
-// Famicom jump 2:
-// 0-7: Lower bit of data selects which 256KB PRG block is in use.
-// This seems to be a hack on the developers' part, so I'll make emulation
-// of it a hack(I think the current PRG block would depend on whatever the
-// lowest bit of the CHR bank switching register that corresponds to the
-// last CHR address read).
+/* Famicom jump 2:
+ * 0-7: Lower bit of data selects which 256KB PRG block is in use.
+ * This seems to be a hack on the developers' part, so I'll make emulation
+ * of it a hack(I think the current PRG block would depend on whatever the
+ * lowest bit of the CHR bank switching register that corresponds to the
+ * last CHR address read).
+ */
 
 static void M153Power(void) {
 	Sync();
@@ -300,7 +299,7 @@ void Mapper153_Init(CartInfo *info) {
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
-// Datach Barcode Battler
+/* Datach Barcode Battler */
 
 static uint8 BarcodeData[256];
 static int BarcodeReadPos;

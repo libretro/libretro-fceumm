@@ -163,15 +163,16 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLSL12ModeWrite) {
-//  FCEU_printf("%04X:%02X\n",A,V);
+/*  FCEU_printf("%04X:%02X\n",A,V); */
 	if ((A & 0x4100) == 0x4100) {
 		mode = V;
-		if (A & 1) {	// hacky hacky, there are two configuration modes on SOMARI HUANG-1 PCBs
-						// Solder pads with P1/P2 shorted called SOMARI P,
-						// Solder pads with W1/W2 shorted called SOMARI W
-						// Both identical 3-in-1 but W wanted MMC1 registers
-						// to be reset when switch to MMC1 mode P one - doesn't
-						// There is issue with W version of Somari at starting copyrights
+		if (A & 1) {	/* hacky hacky, there are two configuration modes on SOMARI HUANG-1 PCBs
+						 * Solder pads with P1/P2 shorted called SOMARI P,
+						 * Solder pads with W1/W2 shorted called SOMARI W
+						 * Both identical 3-in-1 but W wanted MMC1 registers
+						 * to be reset when switch to MMC1 mode P one - doesn't
+						 * There is issue with W version of Somari at starting copyrights
+						 */
 			mmc1_regs[0] = 0xc;
 			mmc1_regs[3] = 0;
 			mmc1_buffer = 0;
@@ -182,7 +183,7 @@ static DECLFW(UNLSL12ModeWrite) {
 }
 
 static DECLFW(UNLSL12Write) {
-//  FCEU_printf("%04X:%02X\n",A,V);
+/*  FCEU_printf("%04X:%02X\n",A,V); */
 	switch (mode & 3) {
 	case 0: {
 		if ((A >= 0xB000) && (A <= 0xE003)) {
@@ -285,7 +286,7 @@ static void UNLSL12Power(void) {
 	vrc2_chr[0] = ~0;
 	vrc2_chr[1] = ~0;
 	vrc2_chr[2] = ~0;
-	vrc2_chr[3] = ~0;	// W conf. of Somari wanted CHR3 has to be set to BB bank (or similar), but doesn't do that directly
+	vrc2_chr[3] = ~0;	/* W conf. of Somari wanted CHR3 has to be set to BB bank (or similar), but doesn't do that directly */
 	vrc2_chr[4] = 4;
 	vrc2_chr[5] = 5;
 	vrc2_chr[6] = 6;
