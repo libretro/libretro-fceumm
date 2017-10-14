@@ -744,33 +744,35 @@ static void retro_set_custom_palette(void)
  */
 void FCEUD_RegionOverride(unsigned region)
 {
-   struct retro_system_av_info av_info;
    unsigned pal = 0;
 
    switch (region)
    {
       case 0: /* auto */
+         normal_scanlines = 240;
          dendy = 0;
          pal = is_PAL;
          break;
       case 1: /* ntsc */
+         normal_scanlines = 240;
          dendy = 0;
          pal = 0;
          FCEU_DispMessage("Switched to NTSC");
          break;
       case 2: /* pal */
+         normal_scanlines = 240;
          dendy = 0;
          pal = 1;
          FCEU_DispMessage("Switched to PAL");
          break;
       case 3: /* dendy */
+         normal_scanlines = 290;
          dendy = 1;
          pal = 0;
          FCEU_DispMessage("Switched to Dendy");
          break;
    }
 
-   normal_scanlines = dendy ? (240 + 50) : 240;
    FCEUI_SetVidSystem(pal);
 }
 
