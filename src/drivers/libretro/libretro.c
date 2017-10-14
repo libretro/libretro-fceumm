@@ -87,8 +87,6 @@ unsigned sndquality = 0;
 unsigned sndvolume = 150;
 unsigned swapDuty = 0;
 
-static volatile int nofocus = 0;
-
 static int32_t *sound = 0;
 static uint32_t JSReturn = 0;
 static uint32_t MouseData[3];

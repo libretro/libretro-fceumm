@@ -39,9 +39,9 @@ static int ntsctint = 46 + 10;
 static int ntschue = 72;
 
 /* These are dynamically filled/generated palettes: */
-pal palettei[64];		// Custom palette for an individual game.
-pal palettec[64];		// Custom "global" palette.
-pal paletten[64];		// Mathematically generated palette.
+pal palettei[64];		/* Custom palette for an individual game. */
+pal palettec[64];		/* Custom "global" palette. */
+pal paletten[64];		/* Mathematically generated palette. */
 
 static void CalculatePalette(void);
 static void ChoosePalette(void);

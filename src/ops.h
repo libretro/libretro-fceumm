@@ -322,8 +322,8 @@ case 0x50: JR(!(_P&V_FLAG)); break;
 /* BVS */
 case 0x70: JR(_P&V_FLAG); break;
 
-//default: printf("Bad %02x at $%04x\n",b1,X.PC);break;
-//ifdef moo
+/* default: printf("Bad %02x at $%04x\n",b1,X.PC);break; */
+/* ifdef moo */
 /* Here comes the undocumented instructions block.  Note that this implementation
 		may be "wrong".  If so, please tell me.
 */
@@ -485,6 +485,5 @@ case 0xFC: LD_ABX(;);
 
 /* XAA - BIG QUESTION MARK HERE */
 case 0x8B: _A|=0xEE; _A&=_X; LD_IM(AND);
-//endif
-//
+/* endif */
 #endif

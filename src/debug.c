@@ -70,17 +70,17 @@ void FCEUI_LoadMem(const char *fname, uint32 start, int hl) {
 
 static char *fstrings[12] =
 {
-	"#$%02X",		// immediate
-	"$%04X",		// RELATIVE(jump)
-	"$%02X",		// Z
-	"$%02X,X",		// Z,x
-	"$%02X,Y",		// Z,y
-	"$%04X",		//ABS
-	"$%04X,X",		// ABS,x
-	"$%04X,Y",		// ABS,y
-	"($%04X)",		// IND
-	"($%02X,X)",	// INX
-	"($%02X),Y",	// INY
+	"#$%02X",		/* immediate */
+	"$%04X",		/* RELATIVE(jump) */
+	"$%02X",		/* Z */
+	"$%02X,X",		/* Z,x */
+	"$%02X,Y",		/* Z,y */
+	"$%04X",		/*ABS */
+	"$%04X,X",		/* ABS,x */
+	"$%04X,Y",		/* ABS,y */
+	"($%04X)",		/* IND */
+	"($%02X,X)",	/* INX */
+	"($%02X),Y",	/* INY */
 	""
 };
 static int flengths[12] = { 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 0 };

@@ -42,12 +42,12 @@
 static void (*SPreSave)(void);
 static void (*SPostSave)(void);
 
-static int SaveStateStatus[10];
+/* static int SaveStateStatus[10]; */
 
 static SFORMAT SFMDATA[64];
 static int SFEXINDEX;
 
-#define RLSB     FCEUSTATE_RLSB	//0x80000000
+#define RLSB     FCEUSTATE_RLSB	/* 0x80000000 */
 
 extern SFORMAT FCEUPPU_STATEINFO[];
 extern SFORMAT FCEUSND_STATEINFO[];
@@ -214,7 +214,7 @@ static int ReadStateChunks(memstream_t *st, int32 totalsize)
             if (!ReadStateChunk(st, SFCPUC, size))
                ret = 0;
             else
-               X.mooPI = X.P; // Quick and dirty hack.
+               X.mooPI = X.P; /* Quick and dirty hack. */
             break;
          case 3:
             if (!ReadStateChunk(st, FCEUPPU_STATEINFO, size))
@@ -331,7 +331,7 @@ void AddExState(void *v, uint32 s, int type, char *desc)
 	SFMDATA[SFEXINDEX].s = s;
 	if (type) SFMDATA[SFEXINDEX].s |= RLSB;
 	if (SFEXINDEX < 63) SFEXINDEX++;
-	SFMDATA[SFEXINDEX].v = 0;	// End marker.
+	SFMDATA[SFEXINDEX].v = 0;	/* End marker. */
 }
 
 void FCEU_DrawSaveStates(uint8 *XBuf)

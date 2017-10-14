@@ -40,15 +40,15 @@
 #include        "video.h"
 #include        "input.h"
 
-#define VBlankON        (PPU[0] & 0x80)		//Generate VBlank NMI
-#define Sprite16        (PPU[0] & 0x20)		//Sprites 8x16/8x8
-#define BGAdrHI         (PPU[0] & 0x10)		//BG pattern adr $0000/$1000
-#define SpAdrHI         (PPU[0] & 0x08)		//Sprite pattern adr $0000/$1000
-#define INC32           (PPU[0] & 0x04)		//auto increment 1/32
+#define VBlankON        (PPU[0] & 0x80)		/* Generate VBlank NMI */
+#define Sprite16        (PPU[0] & 0x20)		/* Sprites 8x16/8x8 */
+#define BGAdrHI         (PPU[0] & 0x10)		/* BG pattern adr $0000/$1000 */
+#define SpAdrHI         (PPU[0] & 0x08)		/* Sprite pattern adr $0000/$1000 */
+#define INC32           (PPU[0] & 0x04)		/* auto increment 1/32 */
 
-#define SpriteON        (PPU[1] & 0x10)		//Show Sprite
-#define ScreenON        (PPU[1] & 0x08)		//Show screen
-#define GRAYSCALE       (PPU[1] & 0x01)		//Grayscale (AND palette entries with 0x30)
+#define SpriteON        (PPU[1] & 0x10)		/* Show Sprite */
+#define ScreenON        (PPU[1] & 0x08)		/* Show screen */
+#define GRAYSCALE       (PPU[1] & 0x01)		/* Grayscale (AND palette entries with 0x30) */
 
 #define PPU_status      (PPU[2])
 
@@ -109,7 +109,7 @@ uint8 *vnapage[4];
 uint8 PPUNTARAM = 0;
 uint8 PPUCHRRAM = 0;
 
-//Color deemphasis emulation.  Joy...
+/* Color deemphasis emulation.  Joy... */
 static uint8 deemp = 0;
 static int deempcnt[8];
 
@@ -123,15 +123,16 @@ uint32 TempAddr = 0, RefreshAddr = 0;
 
 static int maxsprites = 8;
 
-//scanline is equal to the current visible scanline we're on.
+/* scanline is equal to the current visible scanline we're on. */
 int scanline;
 static uint32 scanlines_per_frame;
 
 uint8 PPU[4];
 uint8 PPUSPL;
 uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], SPRBUF[0x100];
-uint8 UPALRAM[0x03];//for 0x4/0x8/0xC addresses in palette, the ones in
-					//0x20 are 0 to not break fceu rendering.
+uint8 UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
+					 * 0x20 are 0 to not break fceu rendering.
+					 */
 
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
 #define VRAMADR(V)          &VPage[(V) >> 10][(V)]
@@ -176,7 +177,7 @@ static DECLFR(A2007) {
 
 	FCEUPPU_LineUpdate();
 
-	if (tmp >= 0x3F00) {	// Palette RAM tied directly to the output data, without VRAM buffer
+	if (tmp >= 0x3F00) {	/* Palette RAM tied directly to the output data, without VRAM buffer */
 		if (!(tmp & 3)) {
 			if (!(tmp & 0xC))
 				ret = PALRAM[0x00];
@@ -431,11 +432,12 @@ static void CheckSpriteHit(int p) {
 	}
 }
 
-//spork the world.  Any sprites on this line? Then this will be set to 1.
-//Needed for zapper emulation and *gasp* sprite emulation.
+/* spork the world.  Any sprites on this line? Then this will be set to 1.
+ * Needed for zapper emulation and *gasp* sprite emulation.
+ */
 static int spork = 0;
 
-// lasttile is really "second to last tile."
+/* lasttile is really "second to last tile." */
 static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	static uint32 pshift[2];
 	static uint32 atlatch;
@@ -448,11 +450,12 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	register uint8 *P = Pline;
 	int lasttile = lastpixel >> 3;
 	int numtiles;
-	static int norecurse = 0;	// Yeah, recursion would be bad.
-								// PPU_hook() functions can call
-								// mirroring/chr bank switching functions,
-								// which call FCEUPPU_LineUpdate, which call this
-								// function.
+	static int norecurse = 0;	/* Yeah, recursion would be bad.
+								 * PPU_hook() functions can call
+								 * mirroring/chr bank switching functions,
+								 * which call FCEUPPU_LineUpdate, which call this
+								 * function.
+								 */
 	if (norecurse) return;
 
 	if (sphitx != 0x100 && !(PPU_status & 0x40)) {
@@ -496,14 +499,15 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 		return;
 	}
 
-	//Priority bits, needed for sprite emulation.
+	/* Priority bits, needed for sprite emulation. */
 	Pal[0] |= 64;
 	Pal[4] |= 64;
 	Pal[8] |= 64;
 	Pal[0xC] |= 64;
 
-	//This high-level graphics MMC5 emulation code was written for MMC5 carts in "CL" mode.
-	//It's probably not totally correct for carts in "SL" mode.
+	/* This high-level graphics MMC5 emulation code was written for MMC5 carts in "CL" mode.
+	 * It's probably not totally correct for carts in "SL" mode.
+	 */
 
 #define PPUT_MMC5
 	if (MMC5Hack && geniestage != 1) {
@@ -577,7 +581,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 #undef vofs
 #undef RefreshAddr
 
-	//Reverse changes made before.
+	/* Reverse changes made before. */
 	Pal[0] &= 63;
 	Pal[4] &= 63;
 	Pal[8] &= 63;
@@ -612,7 +616,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 		tofix = 0;
 	}
 
-	//This only works right because of a hack earlier in this function.
+	/* This only works right because of a hack earlier in this function. */
 	CheckSpriteHit(lastpixel);
 
 	if (InputScanlineHook && (lastpixel - 16) >= 0) {
@@ -649,7 +653,7 @@ static void Fixit1(void) {
 	}
 }
 
-void MMC5_hb(int);		//Ugh ugh ugh.
+void MMC5_hb(int);		/* Ugh ugh ugh. */
 static void DoLine(void)
 {
    int x;
@@ -669,7 +673,7 @@ static void DoLine(void)
 	X6502_Run(256);
 	EndRL();
 
-	if (rendis & 2) {// User asked to not display background data.
+	if (rendis & 2) {/* User asked to not display background data. */
 		uint32 tem;
 		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
 		tem |= 0x40404040;
@@ -679,7 +683,7 @@ static void DoLine(void)
 	if (SpriteON)
 		CopySprites(target);
 
-	if (ScreenON || SpriteON) {	// Yes, very el-cheapo.
+	if (ScreenON || SpriteON) {	/* Yes, very el-cheapo. */
 		if (PPU[1] & 0x01) {
 			for (x = 63; x >= 0; x--)
 				*(uint32*)&target[x << 2] = (*(uint32*)&target[x << 2]) & 0x30303030;
@@ -709,7 +713,7 @@ static void DoLine(void)
 	} else {
 		X6502_Run(85 - 6 - 16);
 
-		// A semi-hack for Star Trek: 25th Anniversary
+		/* A semi-hack for Star Trek: 25th Anniversary */
 		if (GameHBIRQHook && (ScreenON || SpriteON) && ((PPU[0] & 0x38) != 0x18))
 			GameHBIRQHook();
 	}
@@ -861,7 +865,7 @@ static void FetchSpriteData(void) {
 			}
 		}
 
-	//Handle case when >8 sprites per scanline option is enabled.
+	/* Handle case when >8 sprites per scanline option is enabled. */
 	if (ns > 8) PPU_status |= 0x20;
 	else if (PPU_hook) {
 		for (n = 0; n < (8 - ns); n++) {
@@ -996,7 +1000,7 @@ static void CopySprites(uint8 *target) {
 	if (!spork) return;
 	spork = 0;
 
-	if (rendis & 1) return;	//User asked to not display sprites.
+	if (rendis & 1) return;	/* User asked to not display sprites. */
 
    do
 	{
@@ -1005,43 +1009,43 @@ static void CopySprites(uint8 *target) {
 		if (t != 0x80808080) {
 			#ifdef MSB_FIRST
 			if (!(t & 0x80000000)) {
-				if (!(t & 0x40000000) || (P[n] & 64))	// Normal sprite || behind bg sprite
+				if (!(t & 0x40000000) || (P[n] & 64))	/* Normal sprite || behind bg sprite */
 					P[n] = sprlinebuf[n];
 			}
 
 			if (!(t & 0x800000)) {
-				if (!(t & 0x400000) || (P[n + 1] & 64))	// Normal sprite || behind bg sprite
+				if (!(t & 0x400000) || (P[n + 1] & 64))	/* Normal sprite || behind bg sprite */
 					P[n + 1] = (sprlinebuf + 1)[n];
 			}
 
 			if (!(t & 0x8000)) {
-				if (!(t & 0x4000) || (P[n + 2] & 64))		// Normal sprite || behind bg sprite
+				if (!(t & 0x4000) || (P[n + 2] & 64))		/* Normal sprite || behind bg sprite */
 					P[n + 2] = (sprlinebuf + 2)[n];
 			}
 
 			if (!(t & 0x80)) {
-				if (!(t & 0x40) || (P[n + 3] & 64))		// Normal sprite || behind bg sprite
+				if (!(t & 0x40) || (P[n + 3] & 64))		/* Normal sprite || behind bg sprite */
 					P[n + 3] = (sprlinebuf + 3)[n];
 			}
 			#else
 
 			if (!(t & 0x80)) {
-				if (!(t & 0x40) || (P[n] & 0x40))		// Normal sprite || behind bg sprite
+				if (!(t & 0x40) || (P[n] & 0x40))		/* Normal sprite || behind bg sprite */
 					P[n] = sprlinebuf[n];
 			}
 
 			if (!(t & 0x8000)) {
-				if (!(t & 0x4000) || (P[n + 1] & 0x40))		// Normal sprite || behind bg sprite
+				if (!(t & 0x4000) || (P[n + 1] & 0x40))		/* Normal sprite || behind bg sprite */
 					P[n + 1] = (sprlinebuf + 1)[n];
 			}
 
 			if (!(t & 0x800000)) {
-				if (!(t & 0x400000) || (P[n + 2] & 0x40))	// Normal sprite || behind bg sprite
+				if (!(t & 0x400000) || (P[n + 2] & 0x40))	/* Normal sprite || behind bg sprite */
 					P[n + 2] = (sprlinebuf + 2)[n];
 			}
 
 			if (!(t & 0x80000000)) {
-				if (!(t & 0x40000000) || (P[n + 3] & 0x40))	// Normal sprite || behind bg sprite
+				if (!(t & 0x40000000) || (P[n + 3] & 0x40))	/* Normal sprite || behind bg sprite */
 					P[n + 3] = (sprlinebuf + 3)[n];
 			}
 			#endif
@@ -1094,7 +1098,7 @@ void FCEUPPU_Power(void) {
 		BWrite[x + 2] = B2002;
 		ARead[x + 3] = A200x;
 		BWrite[x + 3] = B2003;
-		ARead[x + 4] = A200x;			//A2004;
+		ARead[x + 4] = A200x;			/* A2004; */
 		BWrite[x + 4] = B2004;
 		ARead[x + 5] = A200x;
 		BWrite[x + 5] = B2005;
@@ -1113,7 +1117,7 @@ void FCEUPPU_Power(void) {
 		BWrite[x + 2] = B2002;
 		ARead[x + 3] = A200x;
 		BWrite[x + 3] = B2003;
-		ARead[x + 4] = A200x;	//A2004;
+		ARead[x + 4] = A200x;	/* A2004; */
 		BWrite[x + 4] = B2004;
 		ARead[x + 5] = A200x;
 		BWrite[x + 5] = B2005;
@@ -1128,7 +1132,7 @@ void FCEUPPU_Power(void) {
 
 
 int FCEUPPU_Loop(int skip) {
-	//Needed for Knight Rider, possibly others.
+	/* Needed for Knight Rider, possibly others. */
 	if (ppudead) {
 		memset(XBuf, 0x80, 256 * 240);
 		X6502_Run(scanlines_per_frame * (256 + 85));
@@ -1137,12 +1141,13 @@ int FCEUPPU_Loop(int skip) {
 		X6502_Run(256 + 85);
 		PPU_status |= 0x80;
 
-		//Not sure if this is correct.  According to Matt Conte and my own tests, it is.
-		//Timing is probably off, though.
-		//NOTE:  Not having this here breaks a Super Donkey Kong game.
+		/* Not sure if this is correct.  According to Matt Conte and my own tests, it is.
+		 * Timing is probably off, though.
+		 * NOTE:  Not having this here breaks a Super Donkey Kong game.
+		 */
 		PPU[3] = PPUSPL = 0;
 
-		//I need to figure out the true nature and length of this delay.
+		/* I need to figure out the true nature and length of this delay. */
 		X6502_Run(12);
 		if (GameInfo->type == GIT_NSF)
 			DoNSFFrame();
@@ -1180,7 +1185,7 @@ int FCEUPPU_Loop(int skip) {
 				if (PPU_hook) PPU_hook(RefreshAddr & 0x3fff);
 			}
 
-			//Clean this stuff up later.
+			/* Clean this stuff up later. */
 			spork = numsprites = 0;
 			ResetRL(XBuf);
 
@@ -1196,7 +1201,7 @@ int FCEUPPU_Loop(int skip) {
 			y = SPRAM[0];
 			y++;
 
-			PPU_status |= 0x20;	// Fixes "Bee 52".  Does it break anything?
+			PPU_status |= 0x20;	/* Fixes "Bee 52".  Does it break anything? */
 			if (GameHBIRQHook) {
 				X6502_Run(256);
 				for (scanline = 0; scanline < 240; scanline++) {
@@ -1207,7 +1212,7 @@ int FCEUPPU_Loop(int skip) {
 				}
 			} else if (y < 240) {
 				X6502_Run((256 + 85) * y);
-				if (SpriteON) PPU_status |= 0x40;	// Quick and very dirty hack.
+				if (SpriteON) PPU_status |= 0x40;	/* Quick and very dirty hack. */
 				X6502_Run((256 + 85) * (240 - y));
 			} else
 				X6502_Run((256 + 85) * 240);
@@ -1218,13 +1223,13 @@ int FCEUPPU_Loop(int skip) {
 
 			deemp = PPU[1] >> 5;
 
-         // manual samples can't play correctly with overclocking
+         /* manual samples can't play correctly with overclocking */
 			if (DMC_7bit && skip_7bit_overclocking)
 				totalscanlines = normal_scanlines;
 			else
 				totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
 
-			for (scanline = 0; scanline < totalscanlines; ) {	//scanline is incremented in  DoLine.  Evil. :/
+			for (scanline = 0; scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;
 				if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
 				DoLine();

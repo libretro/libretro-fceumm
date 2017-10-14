@@ -114,7 +114,7 @@ void RebuildSubCheats(void) {
 		if (c->type == 1 && c->status) {
 			if (GetReadHandler(c->addr) == SubCheatsRead) {
 				/* Prevent a catastrophe by this check. */
-				//FCEU_DispMessage("oops");
+				/* FCEU_DispMessage("oops"); */
 			} else {
 				SubCheats[numsubcheats].PrevRead = GetReadHandler(c->addr);
 				SubCheats[numsubcheats].addr = c->addr;
@@ -224,27 +224,27 @@ int FCEUI_DelCheat(uint32 which) {
 	uint32 x = 0;
 
 	for (prev = 0, cur = cheats;; ) {
-		if (x == which) {	// Remove this cheat.
-			if (prev) {	// Update pointer to this cheat.
-				if (cur->next)	// More cheats.
+		if (x == which) {	/* Remove this cheat. */
+			if (prev) {	/* Update pointer to this cheat. */
+				if (cur->next)	/* More cheats. */
 					prev->next = cur->next;
-				else {	// No more.
+				else {	/* No more. */
 					prev->next = 0;
-					cheatsl = prev;	// Set the previous cheat as the last cheat.
+					cheatsl = prev;	/* Set the previous cheat as the last cheat. */
 				}
-			} else {// This is the first cheat.
-				if (cur->next)	// More cheats
+			} else {/* This is the first cheat. */
+				if (cur->next)	/* More cheats */
 					cheats = cur->next;
 				else
-					cheats = cheatsl = 0;	// No (more) cheats.
+					cheats = cheatsl = 0;	/* No (more) cheats. */
 			}
-			free(cur->name);// Now that all references to this cheat are removed,
-			free(cur);	// free the memory.
+			free(cur->name);/* Now that all references to this cheat are removed, */
+			free(cur);	/* free the memory. */
 			break;
-		}		// *END REMOVE THIS CHEAT*
+		}		/* *END REMOVE THIS CHEAT* */
 
 
-		if (!cur->next)	// No more cheats to go through(this shouldn't ever happen...)
+		if (!cur->next)	/* No more cheats to go through(this shouldn't ever happen...) */
 			return(0);
 		prev = cur;
 		cur = prev->next;
@@ -341,7 +341,7 @@ int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
 
 	t = GGtobin(*str++);
 	A |= (t & 0x07) << 4;
-	//if(t&0x08) return(0);  /* 8-character code?! */
+	/* if(t&0x08) return(0); */  /* 8-character code?! */
 
 	t = GGtobin(*str++);
 	A |= (t & 0x07) << 12;
@@ -579,41 +579,41 @@ void FCEUI_CheatSearchEnd(int type, uint8 v1, uint8 v2) {
 	}
 
 
-	if (!type) {// Change to a specific value.
+	if (!type) {/* Change to a specific value. */
 		for (x = 0; x < 0x10000; x++)
 			if (!(CheatComp[x] & CHEATC_NOSHOW)) {
 				if (CheatComp[x] == v1 && CheatRPtrs[x >> 10][x] == v2) {
 				} else
 					CheatComp[x] |= CHEATC_EXCLUDED;
 			}
-	} else if (type == 1) {	// Search for relative change(between values).
+	} else if (type == 1) {	/* Search for relative change(between values). */
 		for (x = 0; x < 0x10000; x++)
 			if (!(CheatComp[x] & CHEATC_NOSHOW)) {
 				if (CheatComp[x] == v1 && CAbs(CheatComp[x] - CheatRPtrs[x >> 10][x]) == v2) {
 				} else
 					CheatComp[x] |= CHEATC_EXCLUDED;
 			}
-	} else if (type == 2) {	// Purely relative change.
+	} else if (type == 2) {	/* Purely relative change. */
 		for (x = 0x000; x < 0x10000; x++)
 			if (!(CheatComp[x] & CHEATC_NOSHOW)) {
 				if (CAbs(CheatComp[x] - CheatRPtrs[x >> 10][x]) == v2) {
 				} else
 					CheatComp[x] |= CHEATC_EXCLUDED;
 			}
-	} else if (type == 3) {	// Any change.
+	} else if (type == 3) {	/* Any change. */
 		for (x = 0; x < 0x10000; x++)
 			if (!(CheatComp[x] & CHEATC_NOSHOW)) {
 				if (CheatComp[x] != CheatRPtrs[x >> 10][x]) {
 				} else
 					CheatComp[x] |= CHEATC_EXCLUDED;
 			}
-	} else if (type == 4) {	// Value decreased.
+	} else if (type == 4) {	/* Value decreased. */
 		for (x = 0; x < 0x10000; x++)
 			if (!(CheatComp[x] & CHEATC_NOSHOW)) {
 				if (!(CheatRPtrs[x >> 10][x] < CheatComp[x]))
 					CheatComp[x] |= CHEATC_EXCLUDED;
 			}
-	} else if (type == 5) {	// Value increased.
+	} else if (type == 5) {	/* Value increased. */
 		for (x = 0; x < 0x10000; x++)
 			if (!(CheatComp[x] & CHEATC_NOSHOW)) {
 				if (!(CheatRPtrs[x >> 10][x] > CheatComp[x]))

@@ -31,8 +31,8 @@
 #include "video.c"
 #include "vsuni.c"
 
-//#include "x6502.c"
-//#include "ines.c"
-//#include "unif.c"
+/* #include "x6502.c" */
+/* #include "ines.c" */
+/* #include "unif.c" */
 
 #endif

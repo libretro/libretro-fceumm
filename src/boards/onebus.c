@@ -32,14 +32,14 @@ static uint8 cpu410x[16], ppu201x[16], apu40xx[64];
 
 /* IRQ Registers */
 static uint8 IRQCount, IRQa, IRQReload;
-#define IRQLatch cpu410x[0x1]	// accc cccc, a = 0, AD12 switching, a = 1, HSYNC switching
+#define IRQLatch cpu410x[0x1]	/* accc cccc, a = 0, AD12 switching, a = 1, HSYNC switching */
 
 /* MMC3 Registers */
 static uint8 inv_hack = 0;		/* some OneBus Systems have swapped PRG reg commans in MMC3 inplementation,
 								 * trying to autodetect unusual behavior, due not to add a new mapper.
 								 */
-#define mmc3cmd  cpu410x[0x5]	// pcv- ----, p - program swap, c - video swap, v - internal VRAM enable
-#define mirror   cpu410x[0x6]	// ---- ---m, m = 0 - H, m = 1 - V
+#define mmc3cmd  cpu410x[0x5]	/* pcv- ----, p - program swap, c - video swap, v - internal VRAM enable */
+#define mirror   cpu410x[0x6]	/* ---- ---m, m = 0 - H, m = 1 - V */
 
 /* APU Registers */
 static uint8 pcm_enable = 0, pcm_irq = 0;

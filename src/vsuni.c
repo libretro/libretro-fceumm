@@ -116,7 +116,7 @@ static DECLFR(A2002_Topgun) {
 	return((OldReadPPU(A) & ~0x3F) | 0x1B);
 }
 
-static DECLFR(A2002_MBJ) {	// Mighty Bomb Jack
+static DECLFR(A2002_MBJ) {	/* Mighty Bomb Jack */
 	return((OldReadPPU(A) & ~0x3F) | 0x3D);
 }
 

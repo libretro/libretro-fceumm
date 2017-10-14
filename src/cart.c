@@ -136,7 +136,7 @@ DECLFR(CartBR) {
 }
 
 DECLFW(CartBW) {
-	//printf("Ok: %04x:%02x, %d\n",A,V,PRGIsRAM[A>>11]);
+	/* printf("Ok: %04x:%02x, %d\n",A,V,PRGIsRAM[A>>11]); */
 	if (PRGIsRAM[A >> 11] && Page[A >> 11])
 		Page[A >> 11][A] = V;
 }
@@ -439,7 +439,7 @@ static readfunc GenieBackup[3];
 static DECLFR(GenieFix1) {
 	uint8 r = GenieBackup[0](A);
 
-	if ((modcon >> 1) & 1)	// No check
+	if ((modcon >> 1) & 1)	/* No check */
 		return genieval[0];
 	else if (r == geniech[0])
 		return genieval[0];
@@ -450,7 +450,7 @@ static DECLFR(GenieFix1) {
 static DECLFR(GenieFix2) {
 	uint8 r = GenieBackup[1](A);
 
-	if ((modcon >> 2) & 1)	// No check
+	if ((modcon >> 2) & 1)	/* No check */
 		return genieval[1];
 	else if (r == geniech[1])
 		return genieval[1];
@@ -461,7 +461,7 @@ static DECLFR(GenieFix2) {
 static DECLFR(GenieFix3) {
 	uint8 r = GenieBackup[2](A);
 
-	if ((modcon >> 3) & 1)	// No check
+	if ((modcon >> 3) & 1)	/* No check */
 		return genieval[2];
 	else if (r == geniech[2])
 		return genieval[2];
@@ -480,7 +480,7 @@ void FixGenieMap(void) {
 
 	VPageR = VPage;
 	FlushGenieRW();
-	//printf("Rightyo\n");
+	/* printf("Rightyo\n"); */
 	for (x = 0; x < 3; x++)
 		if ((modcon >> (4 + x)) & 1) {
 			readfunc tmp[3] = { GenieFix1, GenieFix2, GenieFix3 };

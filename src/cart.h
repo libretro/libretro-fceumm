@@ -2,25 +2,27 @@
 #define _FCEU_CART_H
 
 typedef struct {
-	// Set by mapper/board code:
+	/* Set by mapper/board code: */
 	void (*Power)(void);
 	void (*Reset)(void);
 	void (*Close)(void);
-	uint8 *SaveGame[4];		// Pointers to memory to save/load.
-	uint32 SaveGameLen[4];	// How much memory to save/load.
+	uint8 *SaveGame[4];		/* Pointers to memory to save/load. */
+	uint32 SaveGameLen[4];	/* How much memory to save/load. */
 
-	// Set by iNES/UNIF loading code.
-	int mirror;		// As set in the header or chunk.
-					// iNES/UNIF specific.  Intended
-					// to help support games like "Karnov"
-					// that are not really MMC3 but are
-					// set to mapper 4.
-	int battery;	// Presence of an actual battery.
+	/* Set by iNES/UNIF loading code. */
+	int mirror;		/* As set in the header or chunk.
+					 * iNES/UNIF specific.  Intended
+					 * to help support games like "Karnov"
+					 * that are not really MMC3 but are
+					 * set to mapper 4.
+					 */
+	int battery;	/* Presence of an actual battery. */
 	int vram_size;
 	uint8 MD5[16];
-	uint32 CRC32;	// Should be set by the iNES/UNIF loading
-					// code, used by mapper/board code, maybe
-					// other code in the future.
+	uint32 CRC32;	/* Should be set by the iNES/UNIF loading
+					 * code, used by mapper/board code, maybe
+					 * other code in the future.
+					 */
 } CartInfo;
 
 extern uint8 *Page[32], *VPage[8], *MMC5SPRVPage[8], *MMC5BGVPage[8];

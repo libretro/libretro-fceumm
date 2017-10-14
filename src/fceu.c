@@ -284,7 +284,7 @@ endlseq:
    }
 
    FCEU_ResetPalette();
-   FCEU_ResetMessages();	// Save state, status messages, etc.
+   FCEU_ResetMessages();	/* Save state, status messages, etc. */
 
    return(GameInfo);
 }
@@ -327,7 +327,7 @@ FCEUGI *FCEUI_CopyFamiStart(void)
 	}
 
 	FCEU_ResetPalette();
-	FCEU_ResetMessages();	// Save state, status messages, etc.
+	FCEU_ResetMessages();	/* Save state, status messages, etc. */
 
 	return(GameInfo);
 }
@@ -385,13 +385,15 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 {
 	int x = 0;
 	while (size) {
-//		*ptr = (x & 4) ? 0xFF : 0x00;	// Huang Di DEBUG MODE enabled by default
-										// Cybernoid NO MUSIC by default
-//		*ptr = (x & 4) ? 0x7F : 0x00;	// Huang Di DEBUG MODE enabled by default
-										// Minna no Taabou no Nakayoshi Daisakusen DOESN'T BOOT
-										// Cybernoid NO MUSIC by default
-//		*ptr = (x & 1) ? 0x55 : 0xAA;	// F-15 Sity War HISCORE is screwed...
-										// 1942 SCORE/HISCORE is screwed...
+#if 0
+		*ptr = (x & 4) ? 0xFF : 0x00;	/* Huang Di DEBUG MODE enabled by default */
+										/* Cybernoid NO MUSIC by default */
+		*ptr = (x & 4) ? 0x7F : 0x00;	/* Huang Di DEBUG MODE enabled by default */
+										/* Minna no Taabou no Nakayoshi Daisakusen DOESN'T BOOT */
+										/* Cybernoid NO MUSIC by default */
+		*ptr = (x & 1) ? 0x55 : 0xAA;	/* F-15 Sity War HISCORE is screwed... */
+										/* 1942 SCORE/HISCORE is screwed... */
+#endif
 		*ptr = 0xFF;
 		x++;
 		size--;
@@ -551,7 +553,7 @@ void FCEUI_SetSnapName(int a)
 int32 FCEUI_GetDesiredFPS(void)
 {
 	if (PAL || dendy)
-		return(838977920);	// ~50.007
+		return(838977920);	/* ~50.007 */
 	else
-		return(1008307711);	// ~60.1
+		return(1008307711);	/* ~60.1 */
 }

@@ -151,7 +151,7 @@ static int NAME(FCEUFILE *fp) {
 	int index;
 	int t;
 
-	//FCEU_printf(" Name: ");
+	/* FCEU_printf(" Name: "); */
 	index = 0;
 
 	while ((t = FCEU_fgetc(fp)) > 0)
@@ -346,7 +346,7 @@ static BMAPPING bmap[] = {
 	{ "CNROM", CNROM_Init, 0 },
 	{ "CPROM", CPROM_Init, BMCFLAG_16KCHRR },
 	{ "D1038", BMCD1038_Init, 0 },
-	{ "DANCE", UNLOneBus_Init, 0 },	// redundant
+	{ "DANCE", UNLOneBus_Init, 0 },	/* redundant */
 	{ "DANCE2000", UNLD2000_Init, 0 },
 	{ "DREAMTECH01", DreamTech01_Init, 0 },
 	{ "EDU2000", UNLEDU2000_Init, 0 },
@@ -418,9 +418,9 @@ static BMAPPING bmap[] = {
 	{ "SNROM", SNROM_Init, 0 },
 	{ "SOROM", SOROM_Init, 0 },
 	{ "SSS-NROM-256", SSSNROM_Init, 0 },
-	{ "SUNSOFT_UNROM", SUNSOFT_UNROM_Init, 0 },	// fix me, real pcb name, real pcb type
+	{ "SUNSOFT_UNROM", SUNSOFT_UNROM_Init, 0 },	/* fix me, real pcb name, real pcb type */
 	{ "Sachen-74LS374N", S74LS374N_Init, 0 },
-	{ "Sachen-74LS374NA", S74LS374NA_Init, 0 },	//seems to be custom mapper
+	{ "Sachen-74LS374NA", S74LS374NA_Init, 0 },	/* seems to be custom mapper */
 	{ "Sachen-8259A", S8259A_Init, 0 },
 	{ "Sachen-8259B", S8259B_Init, 0 },
 	{ "Sachen-8259C", S8259C_Init, 0 },

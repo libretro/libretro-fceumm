@@ -42,7 +42,7 @@ if (X1 >= 2) {
 #else
 	zz = RefreshAddr & 0x1F;
 	C = vnapage[(RefreshAddr >> 10) & 3];
-	vadr = (C[RefreshAddr & 0x3ff] << 4) + vofs;	// Fetch name table byte.
+	vadr = (C[RefreshAddr & 0x3ff] << 4) + vofs;	/* Fetch name table byte. */
 #endif
 
 #ifdef PPUT_HOOK
@@ -56,7 +56,7 @@ if (X1 >= 2) {
 	#ifdef PPUT_MMC5CHR1
 		cc = (MMC5HackExNTARAMPtr[RefreshAddr & 0x3ff] & 0xC0) >> 6;
 	#else
-		cc = C[0x3c0 + (zz >> 2) + ((RefreshAddr & 0x380) >> 4)];	// Fetch attribute table byte.
+		cc = C[0x3c0 + (zz >> 2) + ((RefreshAddr & 0x380) >> 4)];	/* Fetch attribute table byte. */
 		cc = ((cc >> ((zz & 2) + ((RefreshAddr & 0x40) >> 4))) & 3);
 	#endif
 #endif

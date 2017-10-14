@@ -104,17 +104,17 @@ void NSFGI(int h) {
 			free(ExWRAM); ExWRAM = 0;
 		}
 		if (NSFHeader.SoundChip & 1) {
-//   NSFVRC6_Init();
+/*   NSFVRC6_Init(); */
 		} else if (NSFHeader.SoundChip & 2) {
-//   NSFVRC7_Init();
+/*   NSFVRC7_Init(); */
 		} else if (NSFHeader.SoundChip & 4) {
-//   FDSSoundReset();
+/*   FDSSoundReset(); */
 		} else if (NSFHeader.SoundChip & 8) {
 			NSFMMC5_Close();
 		} else if (NSFHeader.SoundChip & 0x10) {
-//   NSFN106_Init();
+/*   NSFN106_Init(); */
 		} else if (NSFHeader.SoundChip & 0x20) {
-//   NSFAY_Init();
+/*   NSFAY_Init(); */
 		}
 		break;
 	case GI_RESETM2:
@@ -122,7 +122,7 @@ void NSFGI(int h) {
 	}
 }
 
-// First 32KB is reserved for sound chip emulation in the iNES mapper code.
+/* First 32KB is reserved for sound chip emulation in the iNES mapper code. */
 
 static INLINE void BANKSET(uint32 A, uint32 bank) {
 	bank &= NSFMaxBank;

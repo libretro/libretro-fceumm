@@ -85,12 +85,13 @@ typedef struct {
 	int SoundVolume;
 	int GameGenie;
 
-	// Current first and last rendered scanlines.
+	/* Current first and last rendered scanlines. */
 	int FirstSLine;
 	int LastSLine;
 
-	// Driver code(user)-specified first and last rendered scanlines.
-	// Usr*SLine[0] is for NTSC, Usr*SLine[1] is for PAL.
+	/* Driver code(user)-specified first and last rendered scanlines.
+	 * Usr*SLine[0] is for NTSC, Usr*SLine[1] is for PAL.
+	 */
 	int UsrFirstSLine[2];
 	int UsrLastSLine[2];
 	int SnapName;
