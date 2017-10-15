@@ -34,10 +34,11 @@
 #include "cart.h"
 #include "md5.h"
 
-//	TODO:  Add code to put a delay in between the time a disk is inserted
-//	and the when it can be successfully read/written to.  This should
-//	prevent writes to wrong places OR add code to prevent disk ejects
-//	when the virtual motor is on(mmm...virtual motor).
+/*	TODO:  Add code to put a delay in between the time a disk is inserted
+ *	and the when it can be successfully read/written to.  This should
+ *	prevent writes to wrong places OR add code to prevent disk ejects
+ *	when the virtual motor is on(mmm...virtual motor).
+ */
 
 static DECLFR(FDSRead4030);
 static DECLFR(FDSRead4031);
@@ -115,9 +116,9 @@ static void FDSInit(void) {
 	lastDiskPtrRead = lastDiskPtrWrite = writeskip = DiskPtr = DiskSeekIRQ = 0;
 
 	setmirror(1);
-	setprg8(0xE000, 0);			// BIOS
-	setprg32r(1, 0x6000, 0);	// 32KB RAM
-	setchr8(0);					// 8KB CHR RAM
+	setprg8(0xE000, 0);			/* BIOS */
+	setprg32r(1, 0x6000, 0);	/* 32KB RAM */
+	setchr8(0);					/* 8KB CHR RAM */
 
 	MapIRQHook = FDSFix;
 	GameStateRestore = FDSStateRestore;
@@ -230,7 +231,7 @@ static DECLFR(FDSRead4032) {
 }
 
 static DECLFR(FDSRead4033) {
-	return 0x80;		// battery
+	return 0x80;		/* battery */
 }
 
 /* Begin FDS sound */
@@ -238,21 +239,21 @@ static DECLFR(FDSRead4033) {
 #define FDSClock (1789772.7272727272727272 / 2)
 
 typedef struct {
-	int64 cycles;		// Cycles per PCM sample
-	int64 count;		// Cycle counter
-	int64 envcount;		// Envelope cycle counter
+	int64 cycles;		/* Cycles per PCM sample */
+	int64 count;		/* Cycle counter */
+	int64 envcount;		/* Envelope cycle counter */
 	uint32 b19shiftreg60;
 	uint32 b24adder66;
 	uint32 b24latch68;
 	uint32 b17latch76;
-	int32 clockcount;	// Counter to divide frequency by 8.
-	uint8 b8shiftreg88;	// Modulation register.
-	uint8 amplitude[2];	// Current amplitudes.
+	int32 clockcount;	/* Counter to divide frequency by 8. */
+	uint8 b8shiftreg88;	/* Modulation register. */
+	uint8 amplitude[2];	/* Current amplitudes. */
 	uint8 speedo[2];
 	uint8 mwcount;
 	uint8 mwstart;
-	uint8 mwave[0x20];	// Modulation waveform
-	uint8 cwave[0x40];	// Game-defined waveform(carrier)
+	uint8 mwave[0x20];	/* Modulation waveform */
+	uint8 cwave[0x40];	/* Game-defined waveform(carrier) */
 	uint8 SPSG[0xB];
 } FDSSOUND;
 
@@ -318,13 +319,14 @@ static DECLFW(FDSSWrite) {
 	SPSG[A] = V;
 }
 
-// $4080 - Fundamental wave amplitude data register 92
-// $4082 - Fundamental wave frequency data register 58
-// $4083 - Same as $4082($4083 is the upper 4 bits).
-
-// $4084 - Modulation amplitude data register 78
-// $4086 - Modulation frequency data register 72
-// $4087 - Same as $4086($4087 is the upper 4 bits)
+/* $4080 - Fundamental wave amplitude data register 92
+ * $4082 - Fundamental wave frequency data register 58
+ * $4083 - Same as $4082($4083 is the upper 4 bits).
+ *
+ * $4084 - Modulation amplitude data register 78
+ * $4086 - Modulation frequency data register 72
+ * $4087 - Same as $4086($4087 is the upper 4 bits)
+ */
 
 
 static void DoEnv() {
@@ -413,7 +415,7 @@ static INLINE int32 FDSDoSound(void) {
 	}
 	if (fdso.count >= 32768) goto dogk;
 
-	// Might need to emulate applying the amplitude to the waveform a bit better...
+	/* Might need to emulate applying the amplitude to the waveform a bit better... */
 	{
 		int k = amplitude[0];
 		if (k > 0x20) k = 0x20;
@@ -438,7 +440,7 @@ static void RenderSound(void) {
 			uint32 t = FDSDoSound();
 			t += t >> 1;
 			t >>= 4;
-			Wave[x >> 4] += t;	//(t>>2)-(t>>3); //>>3;
+			Wave[x >> 4] += t;	/* (t>>2)-(t>>3); */ /* >>3; */
 		}
 }
 
@@ -449,7 +451,7 @@ static void RenderSoundHQ(void) {
 		for (x = FBC; x < SOUNDTS; x++) {
 			uint32 t = FDSDoSound();
 			t += t >> 1;
-			WaveHi[x] += t;	//(t<<2)-(t<<1);
+			WaveHi[x] += t;	/* (t<<2)-(t<<1); */
 		}
 	FBC = SOUNDTS;
 }

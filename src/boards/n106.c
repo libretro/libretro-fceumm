@@ -73,7 +73,7 @@ static void FP_FASTAPASS(1) NamcoIRQHook(int a) {
 		if (IRQCount >= 0x7FFF) {
 			X6502_IRQBegin(FCEU_IQEXT);
 			IRQa = 0;
-			IRQCount = 0x7FFF;	//7FFF;
+			IRQCount = 0x7FFF;
 		}
 	}
 }
@@ -116,8 +116,8 @@ static void FixNTAR(void) {
 static void FASTAPASS(2) DoCHRRAMROM(int x, uint8 V) {
 	CHR[x] = V;
 	if (!is210 && !((gorfus >> ((x >> 2) + 6)) & 1) && (V >= 0xE0)) {
-//		printf("BLAHAHA: %d, %02x\n",x,V);
-//		setchr1r(0x10,x<<10,V&7);
+/*		printf("BLAHAHA: %d, %02x\n",x,V); */
+/*		setchr1r(0x10,x<<10,V&7); */
 	} else
 		setchr1(x << 10, V);
 }
@@ -224,7 +224,7 @@ static int32 CVBC;
 
 #define TOINDEX        (16 + 1)
 
-// 16:15
+/* 16:15 */
 static void SyncHQ(int32 ts) {
 	CVBC = ts;
 }
@@ -264,7 +264,7 @@ static void DoNamcoSoundHQ(void) {
 			lengo = LengthCache[P];
 
 			duff2 = FetchDuff(P, envelope);
-			for (V = CVBC << 1; V < SOUNDTS << 1; V++) {
+			for (V = CVBC << 1; V < (int)SOUNDTS << 1; V++) {
 				WaveHi[V >> 1] += duff2;
 				if (!vco) {
 					PlayIndex[P] += freq;

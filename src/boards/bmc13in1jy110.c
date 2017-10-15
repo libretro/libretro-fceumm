@@ -34,7 +34,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-//	FCEU_printf("%02x: %02x %02x\n", bank_mode, bank_value, prgb[0]);
+/*	FCEU_printf("%02x: %02x %02x\n", bank_mode, bank_value, prgb[0]); */
 	switch (bank_mode & 7) {
 	case 0:
 		setprg32(0x8000, bank_value & 7); break;
@@ -62,7 +62,7 @@ static void Sync(void) {
 }
 
 static DECLFW(BMC13in1JY110Write) {
-//	FCEU_printf("%04x:%04x\n",A,V);
+/*	FCEU_printf("%04x:%04x\n",A,V); */
 	switch (A) {
 	case 0x8000:
 	case 0x8001:

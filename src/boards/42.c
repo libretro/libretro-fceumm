@@ -54,7 +54,7 @@ static DECLFW(M42Write) {
 
 static void M42Power(void) {
 	preg = 0;
-	mirr = 1;	// Ai Senshi Nicol actually has fixed mirroring, but mapper forcing it's default value now
+	mirr = 1;	/* Ai Senshi Nicol actually has fixed mirroring, but mapper forcing it's default value now */
 	Sync();
 	SetReadHandler(0x6000, 0xffff, CartBR);
 	SetWriteHandler(0x6000, 0xffff, M42Write);

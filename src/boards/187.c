@@ -39,7 +39,7 @@ static void M187PW(uint32 A, uint8 V) {
 			if (EXPREGS[0] & 0x40)
 				setprg32(0x8000, bank >> 2);
 			else
-				setprg32(0x8000, bank >> 1);	// hacky hacky! two mappers in one! need real hw carts to test
+				setprg32(0x8000, bank >> 1);	/* hacky hacky! two mappers in one! need real hw carts to test */
 		} else {
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);

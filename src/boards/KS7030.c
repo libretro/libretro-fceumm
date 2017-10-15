@@ -45,9 +45,10 @@ static void Sync(void) {
 	setprg4(0xc800, 8 + reg1);
 }
 
-// 6000 - 6BFF - RAM
-// 6C00 - 6FFF - BANK 1K REG1
-// 7000 - 7FFF - BANK 4K REG0
+/* 6000 - 6BFF - RAM
+ * 6C00 - 6FFF - BANK 1K REG1
+ * 7000 - 7FFF - BANK 4K REG0
+ */
 
 static DECLFW(UNLKS7030RamWrite0) {
 	if ((A >= 0x6000) && A <= 0x6BFF) {
@@ -70,9 +71,10 @@ static DECLFR(UNLKS7030RamRead0) {
 	return 0;
 }
 
-// B800 - BFFF - RAM
-// C000 - CBFF - BANK 3K
-// CC00 - D7FF - RAM
+/* B800 - BFFF - RAM
+ * C000 - CBFF - BANK 3K
+ * CC00 - D7FF - RAM
+ */
 
 static DECLFW(UNLKS7030RamWrite1) {
 	if ((A >= 0xB800) && A <= 0xBFFF) {

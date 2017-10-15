@@ -66,7 +66,7 @@ static INLINE void WrMemNorm(uint32 A, uint8 V) {
 }
 
 #ifdef FCEUDEF_DEBUGGER
-X6502 XSave;	// This is getting ugly.
+X6502 XSave;	/* This is getting ugly. */
 
 static INLINE uint8 RdMemHook(uint32 A) {
 	if (X.ReadHook)
@@ -110,7 +110,7 @@ void FASTAPASS(2) X6502_DMW(uint32 A, uint8 V) {
 #define POP() RdRAM(0x100 + (++_S))
 
 static uint8 ZNTable[256];
-// Some of these operations will only make sense if you know what the flag constants are.
+/* Some of these operations will only make sense if you know what the flag constants are. */
 
 #define X_ZN(zort)  _P &= ~(Z_FLAG | N_FLAG); _P |= ZNTable[zort]
 #define X_ZNT(zort) _P |= ZNTable[zort]
@@ -134,7 +134,7 @@ static uint8 ZNTable[256];
 #define LDX     _X = x; X_ZN(_X)
 #define LDY     _Y = x; X_ZN(_Y)
 
-// All of the freaky arithmetic operations.
+/* All of the freaky arithmetic operations. */
 #define AND     _A &= x; X_ZN(_A)
 #define BIT     _P &= ~(Z_FLAG | V_FLAG | N_FLAG); _P |= ZNTable[x & _A] & Z_FLAG; _P |= x & (V_FLAG | N_FLAG)
 #define EOR     _A ^= x; X_ZN(_A)
@@ -165,7 +165,7 @@ static uint8 ZNTable[256];
 	_P |= ((t >> 8) & C_FLAG) ^ C_FLAG;				\
 }
 
-// Special undocumented operation.  Very similar to CMP.
+/* Special undocumented operation.  Very similar to CMP. */
 #define AXS {										\
 	uint32 t = (_A & _X) - x;						\
 	X_ZN(t & 0xFF);									\
@@ -178,14 +178,14 @@ static uint8 ZNTable[256];
 #define CPX     CMPL(_X, x)
 #define CPY     CMPL(_Y, x)
 
-// The following operations modify the byte being worked on.
+/* The following operations modify the byte being worked on. */
 #define DEC     x--; X_ZN(x)
 #define INC     x++; X_ZN(x)
 
 #define ASL     _P &= ~C_FLAG; _P |= x >> 7; x <<= 1; X_ZN(x)
 #define LSR     _P &= ~(C_FLAG | N_FLAG | Z_FLAG); _P |= x & 1; x >>= 1; X_ZNT(x)
 
-// For undocumented instructions, maybe for other things later...
+/* For undocumented instructions, maybe for other things later... */
 #define LSRA    _P &= ~(C_FLAG | N_FLAG | Z_FLAG); _P |= _A & 1; _A >>= 1; X_ZNT(_A)
 
 #define ROL {										\
@@ -206,10 +206,11 @@ static uint8 ZNTable[256];
 	X_ZNT(x);										\
 }
 
-// Icky icky thing for some undocumented instructions.  Can easily be
-// broken if names of local variables are changed.
+/* Icky icky thing for some undocumented instructions.  Can easily be
+ * broken if names of local variables are changed.
+ */
 
-// Absolute
+/* Absolute */
 #define GetAB(target) {								\
 	target = RdMem(_PC);							\
 	_PC++;											\
@@ -217,7 +218,7 @@ static uint8 ZNTable[256];
 	_PC++;											\
 }
 
-// Absolute Indexed(for reads)
+/* Absolute Indexed(for reads) */
 #define GetABIRD(target, i) {						\
 	uint32 tmp;										\
 	GetAB(tmp);										\
@@ -230,7 +231,7 @@ static uint8 ZNTable[256];
 	}												\
 }
 
-// Absolute Indexed(for writes and rmws)
+/* Absolute Indexed(for writes and rmws) */
 #define GetABIWR(target, i) {						\
 	uint32 rt;										\
 	GetAB(rt);										\
@@ -240,19 +241,19 @@ static uint8 ZNTable[256];
 	RdMem((target & 0x00FF) | (rt & 0xFF00));		\
 }
 
-// Zero Page
+/* Zero Page */
 #define GetZP(target) {								\
 	target = RdMem(_PC);							\
 	_PC++;											\
 }
 
-// Zero Page Indexed
+/* Zero Page Indexed */
 #define GetZPI(target, i) {							\
 	target = i + RdMem(_PC);						\
 	_PC++;											\
 }
 
-// Indexed Indirect
+/* Indexed Indirect */
 #define GetIX(target) {								\
 	uint8 tmp;										\
 	tmp = RdMem(_PC);								\
@@ -263,7 +264,7 @@ static uint8 ZNTable[256];
 	target |= RdRAM(tmp) << 8;						\
 }
 
-// Indirect Indexed(for reads)
+/* Indirect Indexed(for reads) */
 #define GetIYRD(target) {							\
 	uint32 rt;										\
 	uint8 tmp;										\
@@ -281,7 +282,7 @@ static uint8 ZNTable[256];
 	}												\
 }
 
-// Indirect Indexed(for writes and rmws)
+/* Indirect Indexed(for writes and rmws) */
 #define GetIYWR(target) {							\
 	uint32 rt;										\
 	uint8 tmp;										\
@@ -369,7 +370,7 @@ void TriggerNMI2(void) {
 }
 
 #ifdef FCEUDEF_DEBUGGER
-// Called from debugger.
+/* Called from debugger. */
 void FCEUI_NMI(void) {
 	_IRQlow |= FCEU_IQNMI;
 }
@@ -427,9 +428,9 @@ static void X6502_RunDebug(int32 cycles) {
 	#define WrMem WrMemHook
 
 	if (PAL)
-		cycles *= 15;	// 15*4=60
+		cycles *= 15;	/* 15*4=60 */
 	else
-		cycles *= 16;	// 16*4=64
+		cycles *= 16;	/* 16*4=64 */
 
 	_count += cycles;
 
@@ -473,13 +474,15 @@ static void X6502_RunDebug(int32 cycles) {
 			if (_count <= 0) {
 				_PI = _P;
 				return;
-			}	// Should increase accuracy without a
-				// major speed hit.
+			}	/* Should increase accuracy without a
+				 * major speed hit.
+				 */
 		}
 
 		if (X.CPUHook) X.CPUHook(&X);
-		// Ok, now the real fun starts.
-		// Do the pre-exec voodoo.
+		/* Ok, now the real fun starts.
+		 * Do the pre-exec voodoo.
+		 */
 		if (X.ReadHook || X.WriteHook) {
 			uint32 tsave = timestamp;
 			XSave = X;
@@ -494,8 +497,9 @@ static void X6502_RunDebug(int32 cycles) {
 
 			timestamp = tsave;
 
-			// In case an NMI/IRQ/RESET was triggered by the debugger.
-			// Should we also copy over the other hook variables?
+			/* In case an NMI/IRQ/RESET was triggered by the debugger.
+			 * Should we also copy over the other hook variables?
+			 */
 			XSave.IRQlow = X.IRQlow;
 			XSave.ReadHook = X.ReadHook;
 			XSave.WriteHook = X.WriteHook;
@@ -537,7 +541,7 @@ void X6502_Run(int32 cycles)
 	#define WrMem WrMemNorm
 
 	#if (defined(C80x86) && defined(__GNUC__))
-	// Gives a nice little speed boost.
+	/* Gives a nice little speed boost. */
 	register uint16 pbackus asm ("edi");
 	#else
 	uint16 pbackus;
@@ -549,9 +553,9 @@ void X6502_Run(int32 cycles)
 	#define _PC pbackus
 
 	if (PAL)
-		cycles *= 15;	// 15*4=60
+		cycles *= 15;	/* 15*4=60 */
 	else
-		cycles *= 16;	// 16*4=64
+		cycles *= 16;	/* 16*4=64 */
 
 	_count += cycles;
 
@@ -596,8 +600,9 @@ void X6502_Run(int32 cycles)
 				_PI = _P;
 				X.PC = pbackus;
 				return;
-			}	// Should increase accuracy without a
-				// major speed hit.
+			}	/* Should increase accuracy without a
+				 * major speed hit.
+				 */
 		}
 
 		_PI = _P;

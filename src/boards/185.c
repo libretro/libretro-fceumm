@@ -32,25 +32,26 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-//   on    off
-//1  0x0F, 0xF0 - Bird Week
-//2  0x33, 0x00 - B-Wings
-//3  0x11, 0x00 - Mighty Bomb Jack
-//4  0x22, 0x20 - Sansuu 1 Nen, Sansuu 2 Nen
-//5  0xFF, 0x00 - Sansuu 3 Nen
-//6  0x21, 0x13 - Spy vs Spy
-//7  0x20, 0x21 - Seicross
+/*   on    off
+1  0x0F, 0xF0 - Bird Week
+2  0x33, 0x00 - B-Wings
+3  0x11, 0x00 - Mighty Bomb Jack
+4  0x22, 0x20 - Sansuu 1 Nen, Sansuu 2 Nen
+5  0xFF, 0x00 - Sansuu 3 Nen
+6  0x21, 0x13 - Spy vs Spy
+7  0x20, 0x21 - Seicross
+*/
 
 static void Sync185(void) {
-	// little dirty eh? ;_)
-	if ((datareg & 3) && (datareg != 0x13))	// 1, 2, 3, 4, 5, 6
+	/* little dirty eh? ;_) */
+	if ((datareg & 3) && (datareg != 0x13))	/* 1, 2, 3, 4, 5, 6 */
 		setchr8(0);
 	else
 		setchr8r(0x10, 0);
 }
 
 static void Sync181(void) {
-	if (!(datareg & 1))	// 7
+	if (!(datareg & 1))	/* 7 */
 		setchr8(0);
 	else
 		setchr8r(0x10, 0);

@@ -86,7 +86,7 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16
 	AddExState(&latche, 2, 0, "LATC");
 }
 
-//------------------ BMCD1038 ---------------------------
+/*------------------ BMCD1038 ---------------------------*/
 
 static void BMCD1038Sync(void) {
 	if (latche & 0x80) {
@@ -116,8 +116,8 @@ void BMCD1038_Init(CartInfo *info) {
 	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
-//------------------ UNL43272 ---------------------------
-// mapper much complex, including 16K bankswitching
+/*------------------ UNL43272 ---------------------------*/
+/* mapper much complex, including 16K bankswitching */
 static void UNL43272Sync(void) {
 	if ((latche & 0x81) == 0x81) {
 		setprg32(0x8000, (latche & 0x38) >> 3);
@@ -145,7 +145,7 @@ void UNL43272_Init(CartInfo *info) {
 	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
-//------------------ Map 058 ---------------------------
+/*------------------ Map 058 ---------------------------*/
 
 static void BMCGK192Sync(void) {
 	if (latche & 0x40) {
@@ -161,8 +161,8 @@ void BMCGK192_Init(CartInfo *info) {
 	Latch_Init(info, BMCGK192Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 059 ---------------------------
-// One more forgotten mapper
+/*------------------ Map 059 ---------------------------*/
+/* One more forgotten mapper */
 static void M59Sync(void) {
 	setprg32(0x8000, (latche >> 4) & 7);
 	setchr8(latche & 0x7);
@@ -180,7 +180,7 @@ void Mapper59_Init(CartInfo *info) {
 	Latch_Init(info, M59Sync, M59Read, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 061 ---------------------------
+/*------------------ Map 061 ---------------------------*/
 static void M61Sync(void) {
 	if (((latche & 0x10) << 1) ^ (latche & 0x20)) {
 		setprg16(0x8000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
@@ -195,11 +195,12 @@ void Mapper61_Init(CartInfo *info) {
 	Latch_Init(info, M61Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 092 ---------------------------
-// Another two-in-one mapper, two Jaleco carts uses similar
-// hardware, but with different wiring.
-// Original code provided by LULU
-// Additionally, PCB contains DSP extra sound chip, used for voice samples (unemulated)
+/*------------------ Map 092 ---------------------------*/
+/* Another two-in-one mapper, two Jaleco carts uses similar
+ * hardware, but with different wiring.
+ * Original code provided by LULU
+ * Additionally, PCB contains DSP extra sound chip, used for voice samples (unemulated)
+ */
 
 static void M92Sync(void) {
 	uint8 reg = latche & 0xF0;
@@ -221,7 +222,7 @@ void Mapper92_Init(CartInfo *info) {
 	Latch_Init(info, M92Sync, NULL, 0x80B0, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 200 ---------------------------
+/*------------------ Map 200 ---------------------------*/
 
 static void M200Sync(void) {
 	setprg16(0x8000, latche & 7);
@@ -234,7 +235,7 @@ void Mapper200_Init(CartInfo *info) {
 	Latch_Init(info, M200Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 201 ---------------------------
+/*------------------ Map 201 ---------------------------*/
 
 static void M201Sync(void) {
 	if (latche & 8) {
@@ -250,10 +251,10 @@ void Mapper201_Init(CartInfo *info) {
 	Latch_Init(info, M201Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 202 ---------------------------
+/*------------------ Map 202 ---------------------------*/
 
 static void M202Sync(void) {
-	// According to more carefull hardware tests and PCB study
+	/* According to more carefull hardware tests and PCB study */
 	int32 mirror = latche & 1;
 	int32 bank = (latche >> 1) & 0x7;
 	int32 select = (mirror & (bank >> 2));
@@ -267,7 +268,7 @@ void Mapper202_Init(CartInfo *info) {
 	Latch_Init(info, M202Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 204 ---------------------------
+/*------------------ Map 204 ---------------------------*/
 
 static void M204Sync(void) {
 	int32 tmp2 = latche & 0x6;
@@ -282,7 +283,7 @@ void Mapper204_Init(CartInfo *info) {
 	Latch_Init(info, M204Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 212 ---------------------------
+/*------------------ Map 212 ---------------------------*/
 
 static DECLFR(M212Read) {
 	uint8 ret = CartBROB(A);
@@ -306,7 +307,7 @@ void Mapper212_Init(CartInfo *info) {
 	Latch_Init(info, M212Sync, M212Read, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 213 ---------------------------
+/*------------------ Map 213 ---------------------------*/
 
 static void M213Sync(void) {
 	setprg32(0x8000, (latche >> 1) & 3);
@@ -317,7 +318,7 @@ void Mapper213_Init(CartInfo *info) {
 	Latch_Init(info, M213Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 214 ---------------------------
+/*------------------ Map 214 ---------------------------*/
 
 static void M214Sync(void) {
 	setprg16(0x8000, (latche >> 2) & 3);
@@ -329,7 +330,7 @@ void Mapper214_Init(CartInfo *info) {
 	Latch_Init(info, M214Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 217 ---------------------------
+/*------------------ Map 217 ---------------------------*/
 
 static void M217Sync(void) {
 	setprg32(0x8000, (latche >> 2) & 3);
@@ -340,7 +341,7 @@ void Mapper217_Init(CartInfo *info) {
 	Latch_Init(info, M217Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 227 ---------------------------
+/*------------------ Map 227 ---------------------------*/
 
 static void M227Sync(void) {
 	uint32 S = latche & 1;
@@ -383,7 +384,7 @@ void Mapper227_Init(CartInfo *info) {
 	Latch_Init(info, M227Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
 
-//------------------ Map 229 ---------------------------
+/*------------------ Map 229 ---------------------------*/
 
 static void M229Sync(void) {
 	setchr8(latche);
@@ -400,7 +401,7 @@ void Mapper229_Init(CartInfo *info) {
 	Latch_Init(info, M229Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 231 ---------------------------
+/*------------------ Map 231 ---------------------------*/
 
 static void M231Sync(void) {
 	setchr8(0);
@@ -417,7 +418,7 @@ void Mapper231_Init(CartInfo *info) {
 	Latch_Init(info, M231Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//------------------ Map 242 ---------------------------
+/*------------------ Map 242 ---------------------------*/
 
 static void M242Sync(void) {
 	setchr8(0);
@@ -430,7 +431,7 @@ void Mapper242_Init(CartInfo *info) {
 	Latch_Init(info, M242Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
 
-//------------------ 190in1 ---------------------------
+/*------------------ 190in1 ---------------------------*/
 
 static void BMC190in1Sync(void) {
 	setprg16(0x8000, (latche >> 2) & 7);
@@ -443,7 +444,7 @@ void BMC190in1_Init(CartInfo *info) {
 	Latch_Init(info, BMC190in1Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//-------------- BMC810544-C-A1 ------------------------
+/*-------------- BMC810544-C-A1 ------------------------*/
 
 static void BMC810544CA1Sync(void) {
 	uint32 bank = latche >> 7;
@@ -461,13 +462,14 @@ void BMC810544CA1_Init(CartInfo *info) {
 	Latch_Init(info, BMC810544CA1Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//-------------- BMCNTD-03 ------------------------
+/*-------------- BMCNTD-03 ------------------------*/
 
 static void BMCNTD03Sync(void) {
-	// 1PPP Pmcc spxx xccc
-	// 1000 0000 0000 0000 v
-	// 1001 1100 0000 0100 h
-	// 1011 1010 1100 0100
+	/* 1PPP Pmcc spxx xccc
+	 * 1000 0000 0000 0000 v
+	 * 1001 1100 0000 0100 h
+	 * 1011 1010 1100 0100
+	 */
 	uint32 prg = ((latche >> 10) & 0x1e);
 	uint32 chr = ((latche & 0x0300) >> 5) | (latche & 7);
 	if (latche & 0x80) {
@@ -483,15 +485,15 @@ void BMCNTD03_Init(CartInfo *info) {
 	Latch_Init(info, BMCNTD03Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-//-------------- BMCG-146 ------------------------
+/*-------------- BMCG-146 ------------------------*/
 
 static void BMCG146Sync(void) {
 	setchr8(0);
-	if (latche & 0x800) {		// UNROM mode
+	if (latche & 0x800) {		/* UNROM mode */
 		setprg16(0x8000, (latche & 0x1F) | (latche & ((latche & 0x40) >> 6)));
 		setprg16(0xC000, (latche & 0x18) | 7);
 	} else {
-		if (latche & 0x40) {	// 16K mode
+		if (latche & 0x40) {	/* 16K mode */
 			setprg16(0x8000, latche & 0x1F);
 			setprg16(0xC000, latche & 0x1F);
 		} else {

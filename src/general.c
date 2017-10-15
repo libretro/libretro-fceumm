@@ -60,7 +60,7 @@ void FCEUI_SetSaveDirectory(char *sav_dir)
 	SaveDirectory[2047] = 0;
 }
 
-static char *odirs[FCEUIOD__COUNT] = { 0, 0, 0, 0, 0, 0 };		// odirs, odors. ^_^
+static char *odirs[FCEUIOD__COUNT] = { 0, 0, 0, 0, 0, 0 };		/* odirs, odors. ^_^ */
 
 void FCEUI_SetDirOverride(int which, char *n)
 {

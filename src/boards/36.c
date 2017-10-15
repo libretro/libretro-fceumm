@@ -41,7 +41,7 @@ static DECLFW(M36Write) {
 }
 
 static DECLFR(M36Read) {
-	return latche;	// Need by Strike Wolf, being simplified mapper, this cart still uses some TCX mapper features andrely on it
+	return latche;	/* Need by Strike Wolf, being simplified mapper, this cart still uses some TCX mapper features andrely on it */
 }
 
 static void M36Power(void) {
@@ -49,7 +49,7 @@ static void M36Power(void) {
 	Sync();
 	SetReadHandler(0x4100, 0x4100, M36Read);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFE, M36Write);	// Actually, BUS conflict there preventing from triggering the wrong banks
+	SetWriteHandler(0x8000, 0xFFFE, M36Write);	/* Actually, BUS conflict there preventing from triggering the wrong banks */
 }
 
 static void M36Restore(int version) {

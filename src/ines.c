@@ -129,73 +129,73 @@ struct INPSEL {
 static void SetInput(void) {
 	static struct INPSEL moo[] =
 	{
-		{0x19b0a9f1,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// 6-in-1 (MGC-023)(Unl)[!]
-		{0x29de87af,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Aerobics Studio
-		{0xd89e5a67,	SI_UNSET,		SI_UNSET,		SIFC_ARKANOID	},	// Arkanoid (J)
-		{0x0f141525,	SI_UNSET,		SI_UNSET,		SIFC_ARKANOID	},	// Arkanoid 2(J)
-		{0x32fb0583,	SI_UNSET,		SI_ARKANOID,	SIFC_NONE		},	// Arkanoid(NES)
-		{0x60ad090a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Athletic World
-		{0x48ca0ee1,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_BWORLD		},	// Barcode World
-		{0x4318a2f8,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Barker Bill's Trick Shooting
-		{0x6cca1c1f,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Dai Undoukai
-		{0x24598791,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Duck Hunt
-		{0xd5d6eac4,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Edu (As)
-		{0xe9a7fe9e,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	// Educational Computer 2000
-		{0x8f7b1669,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// FP BASIC 3.3 by maxzhou88
-		{0xf7606810,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Family BASIC 2.0A
-		{0x895037bc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Family BASIC 2.1a
-		{0xb2530afc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Family BASIC 3.0
-		{0xea90f3e2,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Family Trainer:  Running Stadium
-		{0xbba58be5,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Family Trainer: Manhattan Police
-		{0x3e58a87e,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Freedom Force
-		{0xd9f45be9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_QUIZKING	},	// Gimme a Break ...
-		{0x1545bd13,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_QUIZKING	},	// Gimme a Break ... 2
-		{0x4e959173,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Gotcha! - The Sport!
-		{0xbeb8ab01,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Gumshoe
-		{0xff24d794,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Hogan's Alley
-		{0x21f85681,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	// Hyper Olympic (Gentei Ban)
-		{0x980be936,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	// Hyper Olympic
-		{0x915a53a7,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	// Hyper Sports
-		{0x9fae4d46,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_MAHJONG	},	// Ide Yousuke Meijin no Jissen Mahjong
-		{0x7b44fb2a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_MAHJONG	},	// Ide Yousuke Meijin no Jissen Mahjong 2
-		{0x2f128512,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Jogging Race
-		{0xbb33196f,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Keyboard Transformer
-		{0x8587ee00,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Keyboard Transformer
-		{0x543ab532,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// LIKO Color Lines
-		{0x368c19a8,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// LIKO Study Cartridge
-		{0x5ee6008e,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Mechanized Attack
-		{0x370ceb65,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Meiro Dai Sakusen
-		{0x3a1694f9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_4PLAYER	},	// Nekketsu Kakutou Densetsu
-		{0x9d048ea4,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_OEKAKIDS	},	// Oeka Kids
-		{0x2a6559a1,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Operation Wolf (J)
-		{0xedc3662b,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Operation Wolf
-		{0x912989dc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	// Playbox BASIC
-		{0x9044550e,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Rairai Kyonshizu
-		{0xea90f3e2,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Running Stadium
-		{0x851eb9be,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// Shooting Range
-		{0x6435c095,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// Short Order/Eggsplode
-		{0xc043a8df,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	// Shu Qi Yu - Shu Xue Xiao Zhuan Yuan (Ch)
-		{0x2cf5db05,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	// Shu Qi Yu - Zhi Li Xiao Zhuan Yuan (Ch)
-		{0xad9c63e2,	SI_GAMEPAD,		SI_UNSET,		SIFC_SHADOW		},	// Space Shadow
-		{0x61d86167,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// Street Cop
-		{0xabb2f974,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Study and Game 32-in-1
-		{0x41ef9ac4,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Subor
-		{0x8b265862,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Subor
-		{0x82f1fb96,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Subor 1.0 Russian
-		{0x9f8f200a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	// Super Mogura Tataki!! - Pokkun Moguraa
-		{0xd74b2719,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// Super Team Games
-		{0x74bea652,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// Supergun 3-in-1
-		{0x5e073a1b,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// Supor English (Chinese)
-		{0x589b6b0d,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// SuporV20
-		{0x41401c6d,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	// SuporV40
-		{0x23d17f5e,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	// The Lone Ranger
-		{0xc3c0811d,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_OEKAKIDS	},	// The two "Oeka Kids" games
-		{0xde8fd935,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// To the Earth
-		{0x47232739,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_TOPRIDER	},	// Top Rider
-		{0x8a12a7d9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	// Totsugeki Fuuun Takeshi Jou
-		{0xb8b9aca3,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Wild Gunman
-		{0x5112dc21,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	// Wild Gunman
-		{0xaf4010ea,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	// World Class Track Meet
+		{0x19b0a9f1,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	/* 6-in-1 (MGC-023)(Unl)[!] */
+		{0x29de87af,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	/* Aerobics Studio */
+		{0xd89e5a67,	SI_UNSET,		SI_UNSET,		SIFC_ARKANOID	},	/* Arkanoid (J) */
+		{0x0f141525,	SI_UNSET,		SI_UNSET,		SIFC_ARKANOID	},	/* Arkanoid 2(J) */
+		{0x32fb0583,	SI_UNSET,		SI_ARKANOID,	SIFC_NONE		},	/* Arkanoid(NES) */
+		{0x60ad090a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	/* Athletic World */
+		{0x48ca0ee1,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_BWORLD		},	/* Barcode World */
+		{0x4318a2f8,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Barker Bill's Trick Shooting */
+		{0x6cca1c1f,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	/* Dai Undoukai */
+		{0x24598791,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Duck Hunt */
+		{0xd5d6eac4,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* Edu (As) */
+		{0xe9a7fe9e,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	/* Educational Computer 2000 */
+		{0x8f7b1669,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* FP BASIC 3.3 by maxzhou88 */
+		{0xf7606810,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	/* Family BASIC 2.0A */
+		{0x895037bc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	/* Family BASIC 2.1a */
+		{0xb2530afc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	/* Family BASIC 3.0 */
+		{0xea90f3e2,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	/* Family Trainer:  Running Stadium */
+		{0xbba58be5,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	/* Family Trainer: Manhattan Police */
+		{0x3e58a87e,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Freedom Force */
+		{0xd9f45be9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_QUIZKING	},	/* Gimme a Break ... */
+		{0x1545bd13,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_QUIZKING	},	/* Gimme a Break ... 2 */
+		{0x4e959173,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Gotcha! - The Sport! */
+		{0xbeb8ab01,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Gumshoe */
+		{0xff24d794,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Hogan's Alley */
+		{0x21f85681,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	/* Hyper Olympic (Gentei Ban) */
+		{0x980be936,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	/* Hyper Olympic */
+		{0x915a53a7,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_HYPERSHOT	},	/* Hyper Sports */
+		{0x9fae4d46,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_MAHJONG	},	/* Ide Yousuke Meijin no Jissen Mahjong */
+		{0x7b44fb2a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_MAHJONG	},	/* Ide Yousuke Meijin no Jissen Mahjong 2 */
+		{0x2f128512,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	/* Jogging Race */
+		{0xbb33196f,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	/* Keyboard Transformer */
+		{0x8587ee00,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	/* Keyboard Transformer */
+		{0x543ab532,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* LIKO Color Lines */
+		{0x368c19a8,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* LIKO Study Cartridge */
+		{0x5ee6008e,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Mechanized Attack */
+		{0x370ceb65,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	/* Meiro Dai Sakusen */
+		{0x3a1694f9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_4PLAYER	},	/* Nekketsu Kakutou Densetsu */
+		{0x9d048ea4,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_OEKAKIDS	},	/* Oeka Kids */
+		{0x2a6559a1,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Operation Wolf (J) */
+		{0xedc3662b,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Operation Wolf */
+		{0x912989dc,	SI_UNSET,		SI_UNSET,		SIFC_FKB		},	/* Playbox BASIC */
+		{0x9044550e,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	/* Rairai Kyonshizu */
+		{0xea90f3e2,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	/* Running Stadium */
+		{0x851eb9be,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	/* Shooting Range */
+		{0x6435c095,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	/* Short Order/Eggsplode */
+		{0xc043a8df,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	/* Shu Qi Yu - Shu Xue Xiao Zhuan Yuan (Ch) */
+		{0x2cf5db05,	SI_UNSET,		SI_MOUSE,		SIFC_NONE		},	/* Shu Qi Yu - Zhi Li Xiao Zhuan Yuan (Ch) */
+		{0xad9c63e2,	SI_GAMEPAD,		SI_UNSET,		SIFC_SHADOW		},	/* Space Shadow */
+		{0x61d86167,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	/* Street Cop */
+		{0xabb2f974,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* Study and Game 32-in-1 */
+		{0x41ef9ac4,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* Subor */
+		{0x8b265862,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* Subor */
+		{0x82f1fb96,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* Subor 1.0 Russian */
+		{0x9f8f200a,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERA	},	/* Super Mogura Tataki!! - Pokkun Moguraa */
+		{0xd74b2719,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	/* Super Team Games */
+		{0x74bea652,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	/* Supergun 3-in-1 */
+		{0x5e073a1b,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* Supor English (Chinese) */
+		{0x589b6b0d,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* SuporV20 */
+		{0x41401c6d,	SI_UNSET,		SI_UNSET,		SIFC_SUBORKB	},	/* SuporV40 */
+		{0x23d17f5e,	SI_GAMEPAD,		SI_ZAPPER,		SIFC_NONE		},	/* The Lone Ranger */
+		{0xc3c0811d,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_OEKAKIDS	},	/* The two "Oeka Kids" games */
+		{0xde8fd935,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* To the Earth */
+		{0x47232739,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_TOPRIDER	},	/* Top Rider */
+		{0x8a12a7d9,	SI_GAMEPAD,		SI_GAMEPAD,		SIFC_FTRAINERB	},	/* Totsugeki Fuuun Takeshi Jou */
+		{0xb8b9aca3,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Wild Gunman */
+		{0x5112dc21,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Wild Gunman */
+		{0xaf4010ea,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	/* World Class Track Meet */
 		{0x00000000,	SI_UNSET,		SI_UNSET,		SIFC_UNSET		}
 	};
 	int x = 0;
@@ -397,7 +397,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"MMC5",				  5, Mapper5_Init},
 	{(uint8_t*)"FFE Rev. A",			  6, Mapper6_Init},
 	{(uint8_t*)"ANROM",				  7, ANROM_Init},
-	{(uint8_t*)"",					  8, Mapper8_Init},		// Nogaems, it's worthless
+	{(uint8_t*)"",					  8, Mapper8_Init},		/* Nogaems, it's worthless */
 	{(uint8_t*)"MMC2",				  9, Mapper9_Init},
 	{(uint8_t*)"MMC4",				 10, Mapper10_Init},
 	{(uint8_t*)"Color Dreams",		 11, Mapper11_Init},
@@ -407,28 +407,28 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"100-in-1",			 15, Mapper15_Init},
 	{(uint8_t*)"BANDAI 24C02",		 16, Mapper16_Init},
 	{(uint8_t*)"FFE Rev. B",			 17, Mapper17_Init},
-	{(uint8_t*)"JALECO SS880006",		 18, Mapper18_Init},	// JF-NNX (EB89018-30007) boards
+	{(uint8_t*)"JALECO SS880006",		 18, Mapper18_Init},	/* JF-NNX (EB89018-30007) boards */
 	{(uint8_t*)"Namcot 106",			 19, Mapper19_Init},
-//	{(uint8_t*)"",					 20, Mapper20_Init},
+/*	{(uint8_t*)"",					 20, Mapper20_Init}, */
 	{(uint8_t*)"Konami VRC2/VRC4 A",	 21, Mapper21_Init},
 	{(uint8_t*)"Konami VRC2/VRC4 B",	 22, Mapper22_Init},
 	{(uint8_t*)"Konami VRC2/VRC4 C",	 23, Mapper23_Init},
 	{(uint8_t*)"Konami VRC6 Rev. A",	 24, Mapper24_Init},
 	{(uint8_t*)"Konami VRC2/VRC4 D",	 25, Mapper25_Init},
 	{(uint8_t*)"Konami VRC6 Rev. B",	 26, Mapper26_Init},
-	{(uint8_t*)"CC-21 MI HUN CHE",	 27, UNLCC21_Init},		// Former dupe for VRC2/VRC4 mapper, redefined with crc to mihunche boards
-//	{(uint8_t*)"",					 28, Mapper28_Init},	// Custom Multidiscrete mapper for PDs
-//	{(uint8_t*)"",					 29, Mapper29_Init},
+	{(uint8_t*)"CC-21 MI HUN CHE",	 27, UNLCC21_Init},		/* Former dupe for VRC2/VRC4 mapper, redefined with crc to mihunche boards */
+/*	{(uint8_t*)"",					 28, Mapper28_Init}, */	/* Custom Multidiscrete mapper for PDs */
+/*	{(uint8_t*)"",					 29, Mapper29_Init}, */
 	{(uint8_t*)"UNROM 512",				 30, UNROM512_Init},
-//	{(uint8_t*)"",					 31, Mapper31_Init},
+/*	{(uint8_t*)"",					 31, Mapper31_Init}, */
 	{(uint8_t*)"IREM G-101",			 32, Mapper32_Init},
 	{(uint8_t*)"TC0190FMC/TC0350FMR",	 33, Mapper33_Init},
 	{(uint8_t*)"IREM I-IM/BNROM",		 34, Mapper34_Init},
 	{(uint8_t*)"Wario Land 2",		 35, UNLSC127_Init},
 	{(uint8_t*)"TXC Policeman",		 36, Mapper36_Init},
 	{(uint8_t*)"PAL-ZZ SMB/TETRIS/NWC",37, Mapper37_Init},
-	{(uint8_t*)"Bit Corp.",			 38, Mapper38_Init},	// Crime Busters
-//	{(uint8_t*)"",					 39, Mapper39_Init},
+	{(uint8_t*)"Bit Corp.",			 38, Mapper38_Init},	/* Crime Busters */
+/*	{(uint8_t*)"",					 39, Mapper39_Init}, */
 	{(uint8_t*)"SMB2j FDS",			 40, Mapper40_Init},
 	{(uint8_t*)"CALTRON 6-in-1",		 41, Mapper41_Init},
 	{(uint8_t*)"BIO MIRACLE FDS",		 42, Mapper42_Init},
@@ -440,19 +440,19 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"TAITO TCxxx",			 48, Mapper48_Init},
 	{(uint8_t*)"MMC3 BMC PIRATE C",	 49, Mapper49_Init},
 	{(uint8_t*)"SMB2j FDS Rev. A",	 50, Mapper50_Init},
-	{(uint8_t*)"11-in-1 BALL SERIES",	 51, Mapper51_Init},	// 1993 year version
+	{(uint8_t*)"11-in-1 BALL SERIES",	 51, Mapper51_Init},	/* 1993 year version */
 	{(uint8_t*)"MMC3 BMC PIRATE D",	 52, Mapper52_Init},
 	{(uint8_t*)"SUPERVISION 16-in-1",	 53, Supervision16_Init},
-//	{(uint8_t*)"",					 54, Mapper54_Init},
-//	{(uint8_t*)"",					 55, Mapper55_Init},
-//	{(uint8_t*)"",					 56, Mapper56_Init},
+/*	{(uint8_t*)"",					 54, Mapper54_Init}, */
+/*	{(uint8_t*)"",					 55, Mapper55_Init}, */
+/*	{(uint8_t*)"",					 56, Mapper56_Init}, */
 	{(uint8_t*)"SIMBPLE BMC PIRATE A", 57, Mapper57_Init},
 	{(uint8_t*)"SIMBPLE BMC PIRATE B", 58, BMCGK192_Init},
-	{(uint8_t*)"",					 59, Mapper59_Init},	// Check this out
+	{(uint8_t*)"",					 59, Mapper59_Init},	/* Check this out */
 	{(uint8_t*)"SIMBPLE BMC PIRATE C", 60, BMCD1038_Init},
 	{(uint8_t*)"20-in-1 KAISER Rev. A",61, Mapper61_Init},
 	{(uint8_t*)"700-in-1",			 62, Mapper62_Init},
-//	{(uint8_t*)"",					 63, Mapper63_Init},
+/*	{(uint8_t*)"",					 63, Mapper63_Init}, */
 	{(uint8_t*)"TENGEN RAMBO1",		 64, Mapper64_Init},
 	{(uint8_t*)"IREM-H3001",			 65, Mapper65_Init},
 	{(uint8_t*)"MHROM",				 66, MHROM_Init},
@@ -470,37 +470,37 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"Irem 74HC161/32",		 78, Mapper78_Init},
 	{(uint8_t*)"AVE/C&E/TXC BOARD",	 79, Mapper79_Init},
 	{(uint8_t*)"TAITO X1-005 Rev. A",	 80, Mapper80_Init},
-//	{(uint8_t*)"",					 81, Mapper81_Init},
+/*	{(uint8_t*)"",					 81, Mapper81_Init}, */
 	{(uint8_t*)"TAITO X1-017",		 82, Mapper82_Init},
 	{(uint8_t*)"YOKO VRC Rev. B",		 83, Mapper83_Init},
-//	{(uint8_t*)"",					 84, Mapper84_Init},
+/*	{(uint8_t*)"",					 84, Mapper84_Init}, */
 	{(uint8_t*)"KONAMI VRC7",			 85, Mapper85_Init},
 	{(uint8_t*)"JALECO JF-13",		 86, Mapper86_Init},
 	{(uint8_t*)"74*139/74 DISCRETE",	 87, Mapper87_Init},
 	{(uint8_t*)"NAMCO 3433",			 88, Mapper88_Init},
-	{(uint8_t*)"SUNSOFT-3",			 89, Mapper89_Init},	// SUNSOFT-2 mapper
+	{(uint8_t*)"SUNSOFT-3",			 89, Mapper89_Init},	/* SUNSOFT-2 mapper */
 	{(uint8_t*)"HUMMER/JY BOARD",		 90, Mapper90_Init},
 	{(uint8_t*)"EARLY HUMMER/JY BOARD",91, Mapper91_Init},
 	{(uint8_t*)"JALECO JF-19",		 92, Mapper92_Init},
-	{(uint8_t*)"SUNSOFT-3R",			 93, SUNSOFT_UNROM_Init},// SUNSOFT-2 mapper with VRAM, different wiring
+	{(uint8_t*)"SUNSOFT-3R",			 93, SUNSOFT_UNROM_Init},/* SUNSOFT-2 mapper with VRAM, different wiring */
 	{(uint8_t*)"HVC-UN1ROM",			 94, Mapper94_Init},
 	{(uint8_t*)"NAMCOT 108 Rev. B",	 95, Mapper95_Init},
 	{(uint8_t*)"BANDAI OEKAKIDS",		 96, Mapper96_Init},
 	{(uint8_t*)"IREM TAM-S1",			 97, Mapper97_Init},
-//	{(uint8_t*)"",					 98, Mapper98_Init},
+/*	{(uint8_t*)"",					 98, Mapper98_Init}, */
 	{(uint8_t*)"VS Uni/Dual- system",	 99, Mapper99_Init},
-//	{(uint8_t*)"",					100, Mapper100_Init},
+/*	{(uint8_t*)"",					100, Mapper100_Init}, */
 	{(uint8_t*)"",					101, Mapper101_Init},
-//	{(uint8_t*)"",					102, Mapper102_Init},
+/*	{(uint8_t*)"",					102, Mapper102_Init}, */
 	{(uint8_t*)"FDS DOKIDOKI FULL",	103, Mapper103_Init},
 	{(uint8_t*)"CAMERICA GOLDENFIVE",	104, Mapper104_Init},
 	{(uint8_t*)"NES-EVENT NWC1990",	105, Mapper105_Init},
 	{(uint8_t*)"SMB3 PIRATE A",		106, Mapper106_Init},
 	{(uint8_t*)"MAGIC CORP A",		107, Mapper107_Init},
 	{(uint8_t*)"FDS UNROM BOARD",		108, Mapper108_Init},
-//	{(uint8_t*)"",					109, Mapper109_Init},
-//	{(uint8_t*)"",					110, Mapper110_Init},
-//	{(uint8_t*)"",					111, Mapper111_Init},
+/*	{(uint8_t*)"",					109, Mapper109_Init}, */
+/*	{(uint8_t*)"",					110, Mapper110_Init}, */
+/*	{(uint8_t*)"",					111, Mapper111_Init}, */
 	{(uint8_t*)"ASDER/NTDEC BOARD",	112, Mapper112_Init},
 	{(uint8_t*)"HACKER/SACHEN BOARD",	113, Mapper113_Init},
 	{(uint8_t*)"MMC3 SG PROT. A",		114, Mapper114_Init},
@@ -511,20 +511,20 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"NES-TQROM",			119, Mapper119_Init},
 	{(uint8_t*)"FDS TOBIDASE",		120, Mapper120_Init},
 	{(uint8_t*)"MMC3 PIRATE PROT. A",	121, Mapper121_Init},
-//	{(uint8_t*)"",					122, Mapper122_Init},
+/*	{(uint8_t*)"",					122, Mapper122_Init}, */
 	{(uint8_t*)"MMC3 PIRATE H2288",	123, UNLH2288_Init},
-//	{(uint8_t*)"",					124, Mapper124_Init},
+/*	{(uint8_t*)"",					124, Mapper124_Init}, */
 	{(uint8_t*)"FDS LH32",			125, LH32_Init},
-//	{(uint8_t*)"",					126, Mapper126_Init},
-//	{(uint8_t*)"",					127, Mapper127_Init},
-//	{(uint8_t*)"",					128, Mapper128_Init},
-//	{(uint8_t*)"",					129, Mapper129_Init},
-//	{(uint8_t*)"",					130, Mapper130_Init},
-//	{(uint8_t*)"",					131, Mapper131_Init},
+/*	{(uint8_t*)"",					126, Mapper126_Init}, */
+/*	{(uint8_t*)"",					127, Mapper127_Init}, */
+/*	{(uint8_t*)"",					128, Mapper128_Init}, */
+/*	{(uint8_t*)"",					129, Mapper129_Init}, */
+/*	{(uint8_t*)"",					130, Mapper130_Init}, */
+/*	{(uint8_t*)"",					131, Mapper131_Init}, */
 	{(uint8_t*)"TXC/MGENIUS 22111",	132, UNL22211_Init},
 	{(uint8_t*)"SA72008",				133, SA72008_Init},
 	{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init},
-//	{(uint8_t*)"",					135, Mapper135_Init},
+/*	{(uint8_t*)"",					135, Mapper135_Init}, */
 	{(uint8_t*)"TCU02",				136, TCU02_Init},
 	{(uint8_t*)"S8259D",				137, S8259D_Init},
 	{(uint8_t*)"S8259B",				138, S8259B_Init},
@@ -542,15 +542,15 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"S74LS374N",			150, S74LS374N_Init},
 	{(uint8_t*)"",					151, Mapper151_Init},
 	{(uint8_t*)"",					152, Mapper152_Init},
-	{(uint8_t*)"BANDAI SRAM",			153, Mapper153_Init},	// Bandai board 16 with SRAM instead of EEPROM
+	{(uint8_t*)"BANDAI SRAM",			153, Mapper153_Init},	/* Bandai board 16 with SRAM instead of EEPROM */
 	{(uint8_t*)"",					154, Mapper154_Init},
 	{(uint8_t*)"",					155, Mapper155_Init},
 	{(uint8_t*)"",					156, Mapper156_Init},
 	{(uint8_t*)"BANDAI BARCODE",		157, Mapper157_Init},
 	{(uint8_t*)"TENGEN 800037",		158, Mapper158_Init},
-	{(uint8_t*)"BANDAI 24C01",		159, Mapper159_Init},	// Different type of EEPROM on the  bandai board
+	{(uint8_t*)"BANDAI 24C01",		159, Mapper159_Init},	/* Different type of EEPROM on the  bandai board */
 	{(uint8_t*)"SA009",				160, SA009_Init},
-//	{(uint8_t*)"",					161, Mapper161_Init},
+/*	{(uint8_t*)"",					161, Mapper161_Init}, */
 	{(uint8_t*)"",					162, UNLFS304_Init},
 	{(uint8_t*)"",					163, Mapper163_Init},
 	{(uint8_t*)"",					164, Mapper164_Init},
@@ -558,20 +558,20 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"SUBOR Rev. A",		166, Mapper166_Init},
 	{(uint8_t*)"SUBOR Rev. B",		167, Mapper167_Init},
 	{(uint8_t*)"",					168, Mapper168_Init},
-//	{(uint8_t*)"",					169, Mapper169_Init},
+/*	{(uint8_t*)"",					169, Mapper169_Init}, */
 	{(uint8_t*)"",					170, Mapper170_Init},
 	{(uint8_t*)"",					171, Mapper171_Init},
 	{(uint8_t*)"",					172, Mapper172_Init},
 	{(uint8_t*)"",					173, Mapper173_Init},
-//	{(uint8_t*)"",					174, Mapper174_Init},
+/*	{(uint8_t*)"",					174, Mapper174_Init}, */
 	{(uint8_t*)"",					175, Mapper175_Init},
-	{(uint8_t*)"BMCFK23C",			176, BMCFK23C_Init},	// zero 26-may-2012 - well, i have some WXN junk games that use 176 for instance ????. i dont know what game uses this BMCFK23C as mapper 176. we'll have to make a note when we find it.
+	{(uint8_t*)"BMCFK23C",			176, BMCFK23C_Init},	/* zero 26-may-2012 - well, i have some WXN junk games that use 176 for instance ????. i dont know what game uses this BMCFK23C as mapper 176. we'll have to make a note when we find it. */
 	{(uint8_t*)"",					177, Mapper177_Init},
 	{(uint8_t*)"",					178, Mapper178_Init},
-//	{(uint8_t*)"",					179, Mapper179_Init},
+/*	{(uint8_t*)"",					179, Mapper179_Init}, */
 	{(uint8_t*)"",					180, Mapper180_Init},
 	{(uint8_t*)"",					181, Mapper181_Init},
-//	{(uint8_t*)"",					182, Mapper182_Init},	// Deprecated, dupe
+/*	{(uint8_t*)"",					182, Mapper182_Init}, */	/* Deprecated, dupe */
 	{(uint8_t*)"",					183, Mapper183_Init},
 	{(uint8_t*)"",					184, Mapper184_Init},
 	{(uint8_t*)"",					185, Mapper185_Init},
@@ -582,7 +582,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					190, Mapper190_Init},
 	{(uint8_t*)"",					191, Mapper191_Init},
 	{(uint8_t*)"TW MMC3+VRAM Rev. B",	192, Mapper192_Init},
-	{(uint8_t*)"NTDEC TC-112",		193, Mapper193_Init},	// War in the Gulf
+	{(uint8_t*)"NTDEC TC-112",		193, Mapper193_Init},	/* War in the Gulf */
 	{(uint8_t*)"TW MMC3+VRAM Rev. C",	194, Mapper194_Init},
 	{(uint8_t*)"TW MMC3+VRAM Rev. D",	195, Mapper195_Init},
 	{(uint8_t*)"",					196, Mapper196_Init},
@@ -595,7 +595,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					203, Mapper203_Init},
 	{(uint8_t*)"",					204, Mapper204_Init},
 	{(uint8_t*)"",					205, Mapper205_Init},
-	{(uint8_t*)"NAMCOT 108 Rev. C",	206, Mapper206_Init},	// Deprecated, Used to be "DEIROM" whatever it means, but actually simple version of MMC3
+	{(uint8_t*)"NAMCOT 108 Rev. C",	206, Mapper206_Init},	/* Deprecated, Used to be "DEIROM" whatever it means, but actually simple version of MMC3 */
 	{(uint8_t*)"TAITO X1-005 Rev. B",	207, Mapper207_Init},
 	{(uint8_t*)"",					208, Mapper208_Init},
 	{(uint8_t*)"HUMMER/JY BOARD",	209, Mapper209_Init},
@@ -606,14 +606,14 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					214, Mapper214_Init},
 	{(uint8_t*)"",					215, UNL8237_Init},
 	{(uint8_t*)"",					216, Mapper216_Init},
-	{(uint8_t*)"",					217, Mapper217_Init},	// Redefined to a new Discrete BMC mapper
-//	{(uint8_t*)"",					218, Mapper218_Init},
+	{(uint8_t*)"",					217, Mapper217_Init},	/* Redefined to a new Discrete BMC mapper */
+/*	{(uint8_t*)"",					218, Mapper218_Init}, */
 	{(uint8_t*)"UNLA9746",			219, UNLA9746_Init},
 	{(uint8_t*)"Debug Mapper",		220, UNLKS7057_Init},
 	{(uint8_t*)"UNLN625092",			221, UNLN625092_Init},
 	{(uint8_t*)"",					222, Mapper222_Init},
-//	{(uint8_t*)"",					223, Mapper223_Init},
-//	{(uint8_t*)"",					224, Mapper224_Init},
+/*	{(uint8_t*)"",					223, Mapper223_Init}, */
+/*	{(uint8_t*)"",					224, Mapper224_Init}, */
 	{(uint8_t*)"",					225, Mapper225_Init},
 	{(uint8_t*)"BMC 22+20-in-1",		226, Mapper226_Init},
 	{(uint8_t*)"",					227, Mapper227_Init},
@@ -625,10 +625,10 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"BMC 22+20-in-1 RST",	233, Mapper233_Init},
 	{(uint8_t*)"BMC MAXI",			234, Mapper234_Init},
 	{(uint8_t*)"",					235, Mapper235_Init},
-//	{(uint8_t*)"",					236, Mapper236_Init},
-//	{(uint8_t*)"",					237, Mapper237_Init},
+/*	{(uint8_t*)"",					236, Mapper236_Init}, */
+/*	{(uint8_t*)"",					237, Mapper237_Init}, */
 	{(uint8_t*)"UNL6035052",			238, UNL6035052_Init},
-//	{(uint8_t*)"",					239, Mapper239_Init},
+/*	{(uint8_t*)"",					239, Mapper239_Init}, */
 	{(uint8_t*)"",					240, Mapper240_Init},
 	{(uint8_t*)"",					241, Mapper241_Init},
 	{(uint8_t*)"",					242, Mapper242_Init},
@@ -636,15 +636,15 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"DECATHLON",			244, Mapper244_Init},
 	{(uint8_t*)"",					245, Mapper245_Init},
 	{(uint8_t*)"FONG SHEN BANG",		246, Mapper246_Init},
-//	{(uint8_t*)"",					247, Mapper247_Init},
-//	{(uint8_t*)"",					248, Mapper248_Init},
+/*	{(uint8_t*)"",					247, Mapper247_Init}, */
+/*	{(uint8_t*)"",					248, Mapper248_Init}, */
 	{(uint8_t*)"",					249, Mapper249_Init},
 	{(uint8_t*)"",					250, Mapper250_Init},
-//	{(uint8_t*)"",					251, Mapper251_Init},	// No good dumps for this mapper, use UNIF version
+/*	{(uint8_t*)"",					251, Mapper251_Init}, */	/* No good dumps for this mapper, use UNIF version */
 	{(uint8_t*)"SAN GUO ZHI PIRATE",	252, Mapper252_Init},
 	{(uint8_t*)"DRAGON BALL PIRATE",	253, Mapper253_Init},
 	{(uint8_t*)"",					254, Mapper254_Init},
-//	{(uint8_t*)"",					255, Mapper255_Init},	// No good dumps for this mapper
+/*	{(uint8_t*)"",					255, Mapper255_Init}, */	/* No good dumps for this mapper */
 	{(uint8_t*)"",					0, NULL}
 };
 
@@ -774,7 +774,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		FCEU_VSUniCheck(partialmd5, &MapperNo, &Mirroring);
 	}
 	/* Must remain here because above functions might change value of
-	VROM_size and free(VROM).
+	 * VROM_size and free(VROM).
 	*/
 	if (VROM_size)
 		SetupCartCHRMapping(0, VROM, VROM_size * 0x2000, 0);
@@ -825,9 +825,9 @@ static int iNES_Init(int num) {
 
 	while (tmp->init) {
 		if (num == tmp->number) {
-			UNIFchrrama = 0;	// need here for compatibility with UNIF mapper code
+			UNIFchrrama = 0;	/* need here for compatibility with UNIF mapper code */
 			if (!VROM_size) {
-				switch (num) {	// FIXME, mapper or game data base with the board parameters and ROM/RAM sizes
+				switch (num) {	/* FIXME, mapper or game data base with the board parameters and ROM/RAM sizes */
 				case 13:  CHRRAMSize = 16 * 1024; break;
 				case 6:
 				case 30:

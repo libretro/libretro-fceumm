@@ -22,7 +22,7 @@
 #define _FCEU_NSF_H
 
 typedef struct {
-	char ID[5];				// NESM^Z
+	char ID[5];				/* NESM^Z */
 	uint8 Version;
 	uint8 TotalSongs;
 	uint8 StartingSong;
@@ -35,9 +35,9 @@ typedef struct {
 	uint8 SongName[32];
 	uint8 Artist[32];
 	uint8 Copyright[32];
-	uint8 NTSCspeed[2];		// Unused
+	uint8 NTSCspeed[2];		/* Unused */
 	uint8 BankSwitch[8];
-	uint8 PALspeed[2];		// Unused
+	uint8 PALspeed[2];		/* Unused */
 	uint8 VideoSystem;
 	uint8 SoundChip;
 	uint8 Expansion[4];

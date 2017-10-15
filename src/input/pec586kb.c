@@ -28,7 +28,7 @@ static uint8 bufit[0x66];
 static uint8 kspos, kstrobe;
 static uint8 ksindex;
 
-//TODO: check all keys, some of the are wrong
+/* TODO: check all keys, some of the are wrong */
 
 static uint16 matrix[13][8] =
 {
@@ -79,8 +79,9 @@ static uint8 FP_FASTAPASS(2) PEC586KB_Read(int w, uint8 ret) {
 }
 
 static void PEC586KB_Strobe(void) {
-//	kstrobe = 0;
-//	ksindex = 0;
+/*	kstrobe = 0; 
+	ksindex = 0;
+*/
 }
 
 static void FP_FASTAPASS(2) PEC586KB_Update(void *data, int arg) {

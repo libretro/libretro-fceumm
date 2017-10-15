@@ -137,7 +137,7 @@ static DECLFW(Write2) {
 			trigger ^= 1;
 		}
 		laststrobe = V;
-	} else if (A == 0x5100 && V == 6) /* damn thoose protected games */
+	} else if (A == 0x5100 && V == 6) /* damn those protected games */
 		setprg32(0x8000, 3);
 	else
 		switch (A & 0x7300) {

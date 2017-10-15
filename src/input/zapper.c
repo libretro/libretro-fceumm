@@ -37,7 +37,7 @@ static void FP_FASTAPASS(3) ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32
 	int xs, xe;
 	int zx, zy;
 
-	if (!bg) {	// New line, so reset stuff.
+	if (!bg) {	/* New line, so reset stuff. */
 		ZD[w].zappo = 0;
 		return;
 	}

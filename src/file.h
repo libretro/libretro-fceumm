@@ -13,9 +13,9 @@ typedef struct {
 #ifdef __LIBRETRO__
    MEMWRAP *fp;
 #else
-	void *fp;		// FILE* or ptr to ZIPWRAP
+	void *fp;		/* FILE* or ptr to ZIPWRAP */
 #endif
-	uint32 type;	// 0=normal file, 1=gzip, 2=zip
+	uint32 type;	/* 0=normal file, 1=gzip, 2=zip */
 } FCEUFILE;
 
 #ifdef __LIBRETRO__

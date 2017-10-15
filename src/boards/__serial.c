@@ -2,7 +2,7 @@
 
 #if defined(_WIN32) && !defined(_XBOX) && !defined(__LIBRETRO__)
 
-HANDLE SerialPort = NULL;	// Handle of SerialPort itself.
+HANDLE SerialPort = NULL;	/* Handle of SerialPort itself. */
 
 BOOL SerialOpen(int port, int baud) {
 	HANDLE Comport;
@@ -15,24 +15,24 @@ BOOL SerialOpen(int port, int baud) {
 	else
 		sprintf(str, "COM%d", port);
 
-	// Open the serial port
+	/* Open the serial port */
 	if ((Comport = CreateFile(str, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
 		return FALSE;
 
-	// Configure Serial port (Setup Comm)
+	/* Configure Serial port (Setup Comm) */
 
-	// Buffer sizes
+	/* Buffer sizes */
 	if (!SetupComm(Comport, 128, 128))
 		return FALSE;
 
-	// Setup DCB using current values
+	/* Setup DCB using current values */
 	if (!GetCommState(Comport, &myDCB))
 		return FALSE;
 
-	myDCB.fInX = FALSE;		// Turn off xon/xoff handler
+	myDCB.fInX = FALSE;		/* Turn off xon/xoff handler */
 	myDCB.fOutX = FALSE;
 	myDCB.fOutxDsrFlow = FALSE;
-	myDCB.fOutxCtsFlow = FALSE;		// no hardware flow control.
+	myDCB.fOutxCtsFlow = FALSE;		/* no hardware flow control. */
 	myDCB.BaudRate = baud;
 	myDCB.DCBlength = sizeof(DCB);
 	myDCB.fBinary = 1;
@@ -52,12 +52,12 @@ BOOL SerialOpen(int port, int baud) {
 	if (!SetCommState(Comport, &myDCB))
 		return FALSE;
 
-	// Set timeouts
+	/* Set timeouts */
 	CTout.ReadIntervalTimeout = 0xffffffff;
 	CTout.ReadTotalTimeoutMultiplier = 0;
 	CTout.ReadTotalTimeoutConstant = 0;
 	CTout.WriteTotalTimeoutMultiplier = 0;
-	CTout.WriteTotalTimeoutConstant = 5000;			// don't hang if CTS is locked, for example
+	CTout.WriteTotalTimeoutConstant = 5000;			/* don't hang if CTS is locked, for example */
 
 	SetCommTimeouts(Comport, &CTout);
 	EscapeCommFunction(Comport, SETDTR);

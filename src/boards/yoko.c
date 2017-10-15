@@ -71,7 +71,7 @@ static void UNLYOKOSync(void) {
 }
 
 static void M83Sync(void) {
-	switch (mode & 3) {	// check if it is truth
+	switch (mode & 3) {	/* check if it is true */
 	case 0: setmirror(MI_V); break;
 	case 1: setmirror(MI_H); break;
 	case 2: setmirror(MI_0); break;
@@ -89,7 +89,7 @@ static void M83Sync(void) {
 	}
 	setprg8r(0x10, 0x6000, 0);
 	if (mode & 0x40) {
-		setprg16(0x8000, (bank & 0x3F));	// DBZ Party [p1]
+		setprg16(0x8000, (bank & 0x3F));	/* DBZ Party [p1] */
 		setprg16(0xC000, (bank & 0x30) | 0xF);
 	} else {
 		setprg8(0x8000, reg[8]);
@@ -118,9 +118,9 @@ static DECLFW(UNLYOKOWrite) {
 static DECLFW(M83Write) {
 	switch (A) {
 	case 0x8000: is2kbank = 1;
-	case 0xB000:												// Dragon Ball Z Party [p1] BMC
-	case 0xB0FF:												// Dragon Ball Z Party [p1] BMC
-	case 0xB1FF: bank = V; mode |= 0x40; M83Sync(); break;		// Dragon Ball Z Party [p1] BMC
+	case 0xB000:												/* Dragon Ball Z Party [p1] BMC */
+	case 0xB0FF:												/* Dragon Ball Z Party [p1] BMC */
+	case 0xB1FF: bank = V; mode |= 0x40; M83Sync(); break;		/* Dragon Ball Z Party [p1] BMC */
 	case 0x8100: mode = V | (mode & 0x40); M83Sync(); break;
 	case 0x8200: IRQCount &= 0xFF00; IRQCount |= V; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0x8201: IRQa = mode & 0x80; IRQCount &= 0xFF; IRQCount |= V << 8; break;
@@ -171,7 +171,7 @@ static void M83Power(void) {
 	SetReadHandler(0x5100, 0x5103, UNLYOKOReadLow);
 	SetWriteHandler(0x5100, 0x5103, UNLYOKOWriteLow);
 	SetReadHandler(0x6000, 0x7fff, CartBR);
-	SetWriteHandler(0x6000, 0x7fff, CartBW);// Pirate Dragon Ball Z Party [p1] used if for saves instead of seraial EEPROM
+	SetWriteHandler(0x6000, 0x7fff, CartBW);/* Pirate Dragon Ball Z Party [p1] used if for saves instead of seraial EEPROM */
 	SetReadHandler(0x8000, 0xffff, CartBR);
 	SetWriteHandler(0x8000, 0xffff, M83Write);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);

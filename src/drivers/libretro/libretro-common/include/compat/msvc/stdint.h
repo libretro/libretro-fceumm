@@ -216,7 +216,7 @@ typedef uint64_t  uintmax_t;
 #ifndef WCHAR_MIN /* [ */
 #  define WCHAR_MIN  0
 #endif  /* WCHAR_MIN ] */
-#ifndef WCHAR_MAX // [
+#ifndef WCHAR_MAX /* [ */
 #  define WCHAR_MAX  _UI16_MAX
 #endif  /* WCHAR_MAX ] */
 

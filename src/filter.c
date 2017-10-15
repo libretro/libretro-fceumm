@@ -22,7 +22,7 @@ void SexyFilter2(int32 *in, int32 count) {
 	p = ((double)2 - cos(x)) - sqrt(pow((double)2 - cos(x), 2) - 1);
 
 	c = p * 0x100000;
-	//printf("%f\n",(double)c/0x100000);
+	/* printf("%f\n",(double)c/0x100000); */
  #endif
 	static int64 acc = 0;
 
@@ -33,9 +33,11 @@ void SexyFilter2(int32 *in, int32 count) {
 		acc += dropcurrent;
 		*in = acc >> 16;
 		in++;
-		//acc=((int64)0x100000-c)* *in + ((c*acc)>>20);
-		//*in=acc>>20;
-		//in++;
+#if 0
+		 acc=((int64)0x100000-c)* *in + ((c*acc)>>20);
+		*in=acc>>20;
+		in++;
+#endif
 	}
 }
 
@@ -56,11 +58,11 @@ void SexyFilter(int32 *in, int32 *out, int32 count) {
 		int64 ino = (int64) * in * vmul;
 		acc1 += ((ino - acc1) * mul1) >> 16;
 		acc2 += ((ino - acc1 - acc2) * mul2) >> 16;
-		//printf("%d ",*in);
+		/* printf("%d ",*in); */
 		*in = 0;
 		{
 			int32 t = (acc1 - ino + acc2) >> 16;
-			//if(t>32767 || t<-32768) printf("Flow: %d\n",t);
+			/* if(t>32767 || t<-32768) printf("Flow: %d\n",t); */
 			if (t > 32767) t = 32767;
 			if (t < -32768) t = -32768;
 			*out = t;
@@ -76,7 +78,7 @@ void SexyFilter(int32 *in, int32 *out, int32 count) {
 	from the end of in to the beginning of in.
 */
 
-//static uint32 mva=1000;
+/* static uint32 mva=1000; */
 
 /* This filtering code assumes that almost all input values stay below 32767.
 	Do not adjust the volume in the wlookup tables and the expansion sound
@@ -89,10 +91,12 @@ int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 	int32 *outsave = out;
 	int32 count = 0;
 
-//  for(x=0;x<inlen;x++)
-//  {
-//   if(in[x]>mva) { mva=in[x]; printf("%ld\n",in[x]);}
-//  }
+#if 0
+  for(x=0;x<inlen;x++)
+  {
+   if(in[x]>mva) { mva=in[x]; printf("%ld\n",in[x]);}
+  }
+#endif
 	max = (inlen - 1) << 16;
 
 	if (FSettings.soundq == 2)

@@ -49,7 +49,7 @@ static void Sync(void) {
 static DECLFW(BMCGhostbusters63in1Write) {
 	reg[A & 1] = V;
 	bank = ((reg[0] & 0x80) >> 7) | ((reg[1] & 1) << 1);
-//	FCEU_printf("reg[0]=%02x, reg[1]=%02x, bank=%02x\n",reg[0],reg[1],bank);
+/*	FCEU_printf("reg[0]=%02x, reg[1]=%02x, bank=%02x\n",reg[0],reg[1],bank); */
 	Sync();
 }
 
@@ -86,7 +86,7 @@ void BMCGhostbusters63in1_Init(CartInfo *info) {
 	info->Power = BMCGhostbusters63in1Power;
 	info->Close = BMCGhostbusters63in1Close;
 
-	CHRROMSIZE = 8192;	// dummy CHRROM, VRAM disable
+	CHRROMSIZE = 8192;	/* dummy CHRROM, VRAM disable */
 	CHRROM = (uint8*)FCEU_gmalloc(CHRROMSIZE);
 	SetupCartPRGMapping(0x10, CHRROM, CHRROMSIZE, 0);
 	AddExState(CHRROM, CHRROMSIZE, 0, "CROM");

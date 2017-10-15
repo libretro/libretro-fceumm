@@ -22,7 +22,7 @@
 #include "mmc3.h"
 
 static DECLFW(UNLA9746Write) {
-//   FCEU_printf("write raw %04x:%02x\n",A,V);
+/*   FCEU_printf("write raw %04x:%02x\n",A,V); */
 	switch (A & 0xE003) {
 	case 0x8000: EXPREGS[1] = V; EXPREGS[0] = 0; break;
 	case 0x8002: EXPREGS[0] = V; EXPREGS[1] = 0; break;

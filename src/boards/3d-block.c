@@ -38,15 +38,15 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-//#define Count 0x1800
+/* #define Count 0x1800 */
 #define Pause 0x010
 
 static DECLFW(UNL3DBlockWrite) {
 	switch (A) {
-//4800 32
-//4900 37
-//4a00 01
-//4e00 18
+/* 4800 32 */
+/* 4900 37 */
+/* 4a00 01 */
+/* 4e00 18 */
 	case 0x4800: reg[0] = V; break;
 	case 0x4900: reg[1] = V; break;
 	case 0x4a00: reg[2] = V; break;

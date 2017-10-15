@@ -63,8 +63,10 @@ static uint8 rp2c05004_colortable[] =
 main() {
 	int x;
 	for (x = 0; x < 64; x++) {
-		// if(x <= 0x20)
-//  if(rp2c04002_colortable[x] == 0xFF) rp2c04002_colortable[x]= 0x30;
+#if 0
+		 if(x <= 0x20)
+  if(rp2c04002_colortable[x] == 0xFF) rp2c04002_colortable[x]= 0x30;
+#endif
 		printf("{0x%02x, 0x%02x, 0x%02x},\n", palette[rp2c04001_colortable[x] & 0x3F].r,
 			   palette[rp2c04001_colortable[x] & 0x3F].g,
 			   palette[rp2c04001_colortable[x] & 0x3F].b);

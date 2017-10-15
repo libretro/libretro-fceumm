@@ -26,7 +26,7 @@ static void M189PW(uint32 A, uint8 V) {
 }
 
 static DECLFW(M189Write) {
-	EXPREGS[0] = V | (V >> 4);	//actually, there is a two versions of 189 mapper with hi or lo bits bankswitching.
+	EXPREGS[0] = V | (V >> 4);	/* actually, there is a two versions of 189 mapper with hi or lo bits bankswitching. */
 	FixMMC3PRG(MMC3_cmd);
 }
 

@@ -29,7 +29,7 @@ static uint8 reg[4];
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
-// SND Registers
+/* SND Registers */
 static uint8 pcm_enable = 0;
 static int16 pcm_latch = 0x3F6, pcm_clock = 0x3F6;
 static writefunc pcmwrite;
@@ -46,13 +46,13 @@ static int16 step_size[49] = {
 	107, 118, 130, 143, 157, 173, 190, 209, 230, 253,
 	279, 307, 337, 371, 408, 449, 494, 544, 598, 658,
 	724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552
-};	//49 items
+};	/* 49 items */
 static int32 step_adj[16] = { -1, -1, -1, -1, 2, 5, 7, 9, -1, -1, -1, -1, 2, 5, 7, 9 };
 
-//decode stuff
+/* decode stuff */
 static int32 jedi_table[16 * 49];
-static int32 acc = 0;	//ADPCM accumulator, initial condition must be 0
-static int32 decstep = 0;	//ADPCM decoding step, initial condition must be 0
+static int32 acc = 0;	/* ADPCM accumulator, initial condition must be 0 */
+static int32 decstep = 0;	/* ADPCM decoding step, initial condition must be 0 */
 
 static void jedi_table_init() {
 	int step, nib;
@@ -67,7 +67,7 @@ static void jedi_table_init() {
 
 static uint8 decode(uint8 code) {
 	acc += jedi_table[decstep + code];
-	if ((acc & ~0x7ff) != 0)	// acc is > 2047
+	if ((acc & ~0x7ff) != 0)	/* acc is > 2047 */
 		acc |= ~0xfff;
 	else acc &= 0xfff;
 	decstep += step_adj[code & 7] * 16;
@@ -81,13 +81,13 @@ static void Sync(void) {
 	uint32 bbank = reg[2];
 	setchr8(0);
 	setprg8r(0x10, 0x6000, reg[3] & 3);
-	if (reg[0] & 2) {	// UNROM mode
+	if (reg[0] & 2) {	/* UNROM mode */
 		setprg16(0x8000, (bbank << 3) | sbank);
 		if (reg[0] & 4)
 			setprg16(0xC000, (bbank << 3) | 6 | (reg[1] & 1));
 		else
 			setprg16(0xC000, (bbank << 3) | 7);
-	} else {			// NROM mode
+	} else {			/* NROM mode */
 		uint32 bank = (bbank << 3) | sbank;
 		if (reg[0] & 4) {
 			setprg16(0x8000, bank);
@@ -100,7 +100,7 @@ static void Sync(void) {
 
 static DECLFW(M178Write) {
 	reg[A & 3] = V;
-//	FCEU_printf("cmd %04x:%02x\n", A, V);
+/*	FCEU_printf("cmd %04x:%02x\n", A, V); */
 	Sync();
 }
 
@@ -108,7 +108,7 @@ static DECLFW(M178WriteSnd) {
 	if (A == 0x5800) {
 		if (V & 0xF0) {
 			pcm_enable = 1;
-//			pcmwrite(0x4011, (V & 0xF) << 3);
+/*			pcmwrite(0x4011, (V & 0xF) << 3); */
 			pcmwrite(0x4011, decode(V & 0xf));
 		} else
 			pcm_enable = 0;

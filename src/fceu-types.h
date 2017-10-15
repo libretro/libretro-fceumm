@@ -42,10 +42,12 @@ typedef long long int64;
 #elif MSVC
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
-	#define GINLINE		// Can't declare a function INLINE
-						// and global in MSVC.  Bummer.
-	#define PSS_STYLE 2	// Does MSVC compile for anything
-						// other than Windows/DOS targets?
+	#define GINLINE		/* Can't declare a function INLINE
+						 * and global in MSVC.  Bummer.
+						 */
+	#define PSS_STYLE 2	/* Does MSVC compile for anything
+						 * other than Windows/DOS targets?
+						 */
 #else
 typedef unsigned long long uint64;
 typedef long long int64;
