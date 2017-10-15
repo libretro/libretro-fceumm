@@ -71,7 +71,7 @@ static void UNLYOKOSync(void) {
 }
 
 static void M83Sync(void) {
-	switch (mode & 3) {	/* check if it is truth */
+	switch (mode & 3) {	/* check if it is true */
 	case 0: setmirror(MI_V); break;
 	case 1: setmirror(MI_H); break;
 	case 2: setmirror(MI_0); break;

@@ -100,7 +100,7 @@ static uint64 CartList[] =
 	0
 };
 
-int DetectPRGbonus(CartInfo *tmp) {
+static int DetectPRGbonus(CartInfo *tmp) {
 	int x, i = 0;
 	uint64 partialmd5 = 0;
 

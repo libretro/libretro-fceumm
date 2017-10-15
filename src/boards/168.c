@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * RacerMate Chalenge II
+ * RacerMate Challenge II
  *
  */
 
@@ -58,7 +58,7 @@ static void M168Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void MNNNClose(void) {
+static void M168Close(void) {
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;
@@ -70,7 +70,7 @@ static void StateRestore(int version) {
 
 void Mapper168_Init(CartInfo *info) {
 	info->Power = M168Power;
-	info->Close = MNNNClose;
+	info->Close = M168Close;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 

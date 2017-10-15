@@ -19,7 +19,10 @@
  */
 
 #include "mapinc.h"
+#include "emu2413.h"
 
+static int32 dwave = 0;
+static OPLL *VRC7Sound = NULL;
 static uint8 vrc7idx, preg[3], creg[8], mirr;
 static uint8 IRQLatch, IRQa, IRQd;
 static int32 IRQCount, CycleCount;
@@ -41,11 +44,6 @@ static SFORMAT StateRegs[] =
 };
 
 /* VRC7 Sound */
-
-#include "emu2413.h"
-
-static int32 dwave = 0;
-static OPLL *VRC7Sound = NULL;
 
 void DoVRC7Sound(void) {
 	int32 z, a;
