@@ -89,6 +89,9 @@ static DECLFW(M69Write1) {
 	case 0xA: preg[1] = V; Sync(); break;
 	case 0xB: preg[2] = V; Sync(); break;
 	case 0xC: mirr = V & 3; Sync();break;
+	/* 17/10/17- reg $0D should awknowledge IRQ and no other
+	 * http://forums.nesdev.com/viewtopic.php?f=2&t=12436&start=15
+	 */
 	case 0xD: IRQa = V; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0xE: IRQCount &= 0xFF00; IRQCount |= V; break;
 	case 0xF: IRQCount &= 0x00FF; IRQCount |= V << 8; break;

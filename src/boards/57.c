@@ -42,11 +42,9 @@ static void Sync(void) {
 	setchr8((regs[0] & 7) | (regs[1] & 7) | ((regs[0] & 0x40) >> 3));
 }
 
-#if 0
 static DECLFR(M57Read) {
 	return hrd_flag;
 }
-#endif
 
 static DECLFW(M57Write) {
 	switch (A & 0x8800) {
