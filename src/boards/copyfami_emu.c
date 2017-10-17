@@ -24,81 +24,81 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-//#define DEBUG_SERIAL
+/* #define DEBUG_SERIAL */
 
-// *** COPY FAMICOM EMULATION ***
+/* *** COPY FAMICOM EMULATION *** */
 
 /*
-
-
-	$0000-$1FFF
-	$2000-$200F  PPU
-	$2010-$3FFB
-	$3FFC-$3FFF
-	$4000-$7FFF APU /
-	$8000-$FFF9 CART/ROM
-	$FFFA-$FFFB CART/ NMI
-	$FFFE-$FFFF CART/ IRQ
-
-
-
-	CTRL		R/W	$3FFC	---aenic	($00 at reset)
-
-		c -
-			0 -
-			1 -
-		i -  IRQ
-			0 -
-			1 -
-		n -  NMI
-			0 -
-			1 -
-		e -  NMI
-			0 -
-			1 -
-		a -  AROM
-			0 -
-			1 -
-
-	BANK		R/W	$3FFD	---mbbbb
-
-		b -
-		m -    ROM
-
-	USBDATA		R/W	$3FFE	dddddddd
-
-		d -   /
-
-	STATUS		R	$3FFF	vmnicptr
-
-			r -      USB
-			0 -
-			1 -
-		t -      USB
-			0 -
-			1 -
-		p -   USB
-			0 -
-			1 -
-		c -
-			0 -
-			1 -
-		i -   IRQ
-			0 -
-			1 -
-		n -   NMI
-			0 -
-			1 -
-		m -    10 VRAM ()
-		v -  VRAM
-			0 -
-			1 -
-
- AROM
-
-	  VRAM
-		 8000-FFFF
-*/
+ *
+ *
+ *	$0000-$1FFF
+ *	$2000-$200F  PPU
+ *	$2010-$3FFB
+ *	$3FFC-$3FFF
+ *	$4000-$7FFF APU /
+ *	$8000-$FFF9 CART/ROM
+ *	$FFFA-$FFFB CART/ NMI
+ *	$FFFE-$FFFF CART/ IRQ
+ *
+ *
+ *
+ *	CTRL		R/W	$3FFC	---aenic	($00 at reset)
+ *
+ *		c -
+ *			0 -
+ *			1 -
+ *		i -  IRQ
+ *			0 -
+ *			1 -
+ *		n -  NMI
+ *			0 -
+ *			1 -
+ *		e -  NMI
+ *			0 -
+ *			1 -
+ *		a -  AROM
+ *			0 -
+ *			1 -
+ *
+ *	BANK		R/W	$3FFD	---mbbbb
+ *
+ *		b -
+ *		m -    ROM
+ *
+ *	USBDATA		R/W	$3FFE	dddddddd
+ *
+ *		d -   /
+ *
+ *	STATUS		R	$3FFF	vmnicptr
+ *
+ *			r -      USB
+ *			0 -
+ *			1 -
+ *		t -      USB
+ *			0 -
+ *			1 -
+ *		p -   USB
+ *			0 -
+ *			1 -
+ *		c -
+ *			0 -
+ *			1 -
+ *		i -   IRQ
+ *			0 -
+ *			1 -
+ *		n -   NMI
+ *			0 -
+ *			1 -
+ *		m -    10 VRAM ()
+ *		v -  VRAM
+ *			0 -
+ *			1 -
+ *
+ * AROM
+ *
+ *	  VRAM
+ *		 8000-FFFF
+ */
 
 #define CTRL     0x00
 #define  CCART   0x01
@@ -196,7 +196,7 @@ static DECLFW(MCopyFamiWriteReg) {
 		;
 #endif
 		bytes_count++;
-//    FCEU_printf(" %02X",V);
+/*     FCEU_printf(" %02X",V); */
 	} else {
 		regs[A & 3] = V;
 		Sync();

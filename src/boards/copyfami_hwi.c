@@ -18,9 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-// *** COPY FAMICOM HARDWARE INTERFACE ***
-
 #ifdef COPYFAMI
+
+/* *** COPY FAMICOM HARDWARE INTERFACE *** */
 
 #define MESSAGE_LOG
 #define NO_CACHE
@@ -42,45 +42,45 @@
 
 static uint8 *WRAM = NULL;
 
-uint8 InitVector[] = { 0xDE, 0xAD, 0xBE, 0xEF };// args none,               return DE AD BE EF
-uint8 ResetCmd[] = { 0x00 };					// args none,				return none
-uint8 StateCmd[] = { 0x01 };					// args none,               return 7 bytes status
-uint8 StatusCmd[] = { 0x02 };					// args none,               return 32 bytes status
-uint8 LoadPlugCmd[] = { 0x03, 0x00, 0x00 };		// args 2b size, Nb data    return none
-uint8 RunPlugCmd[] = { 0x04 };					// args none,               return none
-uint8 RunGameCmd[] = { 0x05 };					// args none,               return none
-uint8 NROMSave[] = { 0x06 };					// args none,               return 16b + 32kb + 8kb
+uint8 InitVector[] = { 0xDE, 0xAD, 0xBE, 0xEF };/* args none,               return DE AD BE EF		*/
+uint8 ResetCmd[] = { 0x00 };					/* args none,               return none				*/
+uint8 StateCmd[] = { 0x01 };					/* args none,               return 7 bytes status	*/
+uint8 StatusCmd[] = { 0x02 };					/* args none,               return 32 bytes status	*/
+uint8 LoadPlugCmd[] = { 0x03, 0x00, 0x00 };		/* args 2b size, Nb data    return none				*/
+uint8 RunPlugCmd[] = { 0x04 };					/* args none,               return none				*/
+uint8 RunGameCmd[] = { 0x05 };					/* args none,               return none				*/
+uint8 NROMSave[] = { 0x06 };					/* args none,               return 16b + 32kb + 8kb	*/
 
-uint8 PRGWBCmd[] = { 0x08, 0x00, 0x00, 0x00 };	// args 2b addr, 1b data    return none
-uint8 PRGRBCmd[] = { 0x09, 0x00, 0x00 };		// args 2b addr             return 1b data
-uint8 CHRWBCmd[] = { 0x0A, 0x00, 0x00, 0x00 };	// args 2b addr, 1b data    return none
-uint8 CHRRBCmd[] = { 0x0B, 0x00, 0x00 };		// args 2b addr,            return 1b data
+uint8 PRGWBCmd[] = { 0x08, 0x00, 0x00, 0x00 };	/* args 2b addr, 1b data    return none				*/
+uint8 PRGRBCmd[] = { 0x09, 0x00, 0x00 };		/* args 2b addr             return 1b data			*/
+uint8 CHRWBCmd[] = { 0x0A, 0x00, 0x00, 0x00 };	/* args 2b addr, 1b data    return none				*/
+uint8 CHRRBCmd[] = { 0x0B, 0x00, 0x00 };		/* args 2b addr,            return 1b data			*/
 
-uint8 PRGSUMCmd[] = { 0x10, 0x00, 0x00 };		// args 1b addr, 1b size    return (256 * N)b
-uint8 PRG32KSUMCmd[] = { 0x10, 0x80, 0x80 };	// args 1b addr, 1b size    return 32kb
-uint8 PRG16KSUMCmd[] = { 0x10, 0x00, 0x40 };	// args 1b addr, 1b size    return 16kb
-uint8 PRG8KSUMCmd[] = { 0x10, 0x00, 0x20 };		// args 1b addr, 1b size    return 8kb
-uint8 PRG4KSUMCmd[] = { 0x10, 0x00, 0x10 };		// args 1b addr, 1b size    return 4kb
+uint8 PRGSUMCmd[] = { 0x10, 0x00, 0x00 };		/* args 1b addr, 1b size    return (256 * N)b		*/
+uint8 PRG32KSUMCmd[] = { 0x10, 0x80, 0x80 };	/* args 1b addr, 1b size    return 32kb				*/
+uint8 PRG16KSUMCmd[] = { 0x10, 0x00, 0x40 };	/* args 1b addr, 1b size    return 16kb				*/
+uint8 PRG8KSUMCmd[] = { 0x10, 0x00, 0x20 };		/* args 1b addr, 1b size    return 8kb				*/
+uint8 PRG4KSUMCmd[] = { 0x10, 0x00, 0x10 };		/* args 1b addr, 1b size    return 4kb				*/
 
-uint8 CHRSUMCmd[] = { 0x11, 0x00, 0x00 };		// args 1b addr, 1b size    return (256 * N)b
-uint8 CHR8KSUMCmd[] = { 0x11, 0x00, 0x20 };		// args 1b addr, 1b size    return 8kb
-uint8 CHR4KSUMCmd[] = { 0x11, 0x00, 0x10 };		// args 1b addr, 1b size    return 4kb
-uint8 CHR2KSUMCmd[] = { 0x11, 0x00, 0x08 };		// args 1b addr, 1b size    return 2kb
-uint8 CHR1KSUMCmd[] = { 0x11, 0x00, 0x04 };		// args 1b addr, 1b size    return 1kb
+uint8 CHRSUMCmd[] = { 0x11, 0x00, 0x00 };		/* args 1b addr, 1b size    return (256 * N)b		*/
+uint8 CHR8KSUMCmd[] = { 0x11, 0x00, 0x20 };		/* args 1b addr, 1b size    return 8kb				*/
+uint8 CHR4KSUMCmd[] = { 0x11, 0x00, 0x10 };		/* args 1b addr, 1b size    return 4kb				*/
+uint8 CHR2KSUMCmd[] = { 0x11, 0x00, 0x08 };		/* args 1b addr, 1b size    return 2kb				*/
+uint8 CHR1KSUMCmd[] = { 0x11, 0x00, 0x04 };		/* args 1b addr, 1b size    return 1kb				*/
 
-uint8 PRGGetCmd[] = { 0x12, 0x00, 0x00 };		// args 1b addr, 1b size    return (256 * N)b
-uint8 PRG32KGetCmd[] = { 0x12, 0x80, 0x80 };	// args 1b addr, 1b size    return 32kb
-uint8 PRG16KGetCmd[] = { 0x12, 0x00, 0x40 };	// args 1b addr, 1b size    return 16kb
-uint8 PRG8KGetCmd[] = { 0x12, 0x00, 0x20 };		// args 1b addr, 1b size    return 8kb
-uint8 PRG4KGetCmd[] = { 0x12, 0x00, 0x10 };		// args 1b addr, 1b size    return 4kb
+uint8 PRGGetCmd[] = { 0x12, 0x00, 0x00 };		/* args 1b addr, 1b size    return (256 * N)b		*/
+uint8 PRG32KGetCmd[] = { 0x12, 0x80, 0x80 };	/* args 1b addr, 1b size    return 32kb				*/
+uint8 PRG16KGetCmd[] = { 0x12, 0x00, 0x40 };	/* args 1b addr, 1b size    return 16kb				*/
+uint8 PRG8KGetCmd[] = { 0x12, 0x00, 0x20 };		/* args 1b addr, 1b size    return 8kb				*/
+uint8 PRG4KGetCmd[] = { 0x12, 0x00, 0x10 };		/* args 1b addr, 1b size    return 4kb				*/
 
-uint8 CHRGetCmd[] = { 0x13, 0x00, 0x00 };		// args 1b addr, 1b size    return (256 * N)b
-uint8 CHR8KGetCmd[] = { 0x13, 0x00, 0x20 };		// args 1b addr, 1b size    return 8kb
-uint8 CHR4KGetCmd[] = { 0x13, 0x00, 0x10 };		// args 1b addr, 1b size    return 4kb
-uint8 CHR2KGetCmd[] = { 0x13, 0x00, 0x08 };		// args 1b addr, 1b size    return 2kb
-uint8 CHR1KGetCmd[] = { 0x13, 0x00, 0x04 };		// args 1b addr, 1b size    return 1kb
+uint8 CHRGetCmd[] = { 0x13, 0x00, 0x00 };		/* args 1b addr, 1b size    return (256 * N)b		*/
+uint8 CHR8KGetCmd[] = { 0x13, 0x00, 0x20 };		/* args 1b addr, 1b size    return 8kb				*/
+uint8 CHR4KGetCmd[] = { 0x13, 0x00, 0x10 };		/* args 1b addr, 1b size    return 4kb				*/
+uint8 CHR2KGetCmd[] = { 0x13, 0x00, 0x08 };		/* args 1b addr, 1b size    return 2kb				*/
+uint8 CHR1KGetCmd[] = { 0x13, 0x00, 0x04 };		/* args 1b addr, 1b size    return 1kb				*/
 
-uint8 CPUTestCmd[] = { 0x14, 0x00, 0x00 };		// args 1b addr, 1b size    return (2b + 1b) * N + 3b
+uint8 CPUTestCmd[] = { 0x14, 0x00, 0x00 };		/* args 1b addr, 1b size    return (2b + 1b) * N + 3b	*/
 
 typedef struct {
 	int32 mirror;
@@ -326,8 +326,9 @@ static void UpdateCmd(uint32 val) {
 	if (cmd.size < CMD_MAX_SIZE) {
 		index = cmd.size++;
 	} else {
-		// если достигнут максимум для команды, выбросить последнуюю, добавить новую,
-		// продолжать до банксвичинга
+		/* если достигнут максимум для команды, выбросить последнуюю, добавить новую,
+		 * продолжать до банксвичинга
+		 */
 		cmd.hash = 0;
 		for (index = 0; index < (CMD_MAX_SIZE - 1); index++) {
 			cmd.seq[index] = cmd.seq[index + 1];
@@ -361,10 +362,11 @@ static DECLFW(MCopyFamiWrite) {
 	Sync();
 #else
 	UpdateCmd((A << 8) | V);
-	// ищем команду в кеше
+	/* ищем команду в кеше */
 	if (cmd.found == -1) {
-		// не найдена, проверяем, изменилось ли состояние банков
-		// либо не предельной ли она длины для команды
+		/* не найдена, проверяем, изменилось ли состояние банков
+		 * либо не предельной ли она длины для команды
+		 */
 		cmd_cache[cmd.hashf].index = cmd.found = cmds.count++;
 		cmd_cache[cmd.hashf].retest = 0;
 		cmd_cache[cmd.hashf].verify = 0;
@@ -378,15 +380,15 @@ static DECLFW(MCopyFamiWrite) {
 			cmd.hash = 0;
 			Sync();
 		} else {
-			// если добавлена полная команда без банксвитчинга
+			/* если добавлена полная команда без банксвитчинга */
 			cmd_cache[cmd.hashf].index = -2;
 		}
 	} else if (cmd.found == -2) {
-		// частичное совпадение, если число проверок не превысило лимит
+		/* частичное совпадение, если число проверок не превысило лимит */
 		if (cmd_cache[cmd.hashf].retest < CMD_MAX_RETEST) {
-			// то проверим состояние банков
+			/* то проверим состояние банков */
 			if (CheckStatus()) {
-				// изменилось, запишем новую команду
+				/* изменилось, запишем новую команду */
 				cmd_cache[cmd.hashf].index = cmd.found = cmds.count++;
 				cmd_cache[cmd.hashf].retest = 0;
 				cmd_cache[cmd.hashf].verify = 0;
@@ -399,17 +401,16 @@ static DECLFW(MCopyFamiWrite) {
 				cmd.hash = 0;
 				Sync();
 			} else {
-				// не изменилось, отметим увеличим счетчик проверок
+				/* не изменилось, отметим увеличим счетчик проверок */
 				cmd_cache[cmd.hashf].retest++;
 			}
 		}
 	} else {
-		// найдена, последний рубеж обороны от говна
-/*
+		/* найдена, последний рубеж обороны от говна */
+#if 0
 		if(cmd_cache[cmd.hashf].verify < CMD_MAX_VERIFY) {
 			if(CheckStatus()) {
 				int32 changed = 0;
-			//   ,
 				if(cmds.states[cmd.found].mirror != state_new.mirror)
 					changed = 1;
 				for(i=0; i<8; i++)
@@ -426,8 +427,10 @@ static DECLFW(MCopyFamiWrite) {
 				}
 			} else
 				cmd_cache[cmd.hashf].verify++;
-		} else */{
-			// применяем без малейшего зазрения совести
+		} else
+#endif
+		{
+			/* применяем без малейшего зазрения совести */
 			ApplyStatus();
 			cmd.size = 0;
 			cmd.hash = 0;
@@ -453,7 +456,7 @@ static void MCopyFamiReset(void) {
 }
 
 static void MCopyFamiPower(void) {
-//  uint32 resp, presp;
+/*  uint32 resp, presp; */
 
 	FCEU_printf("NOW POWERING... ");
 
@@ -466,7 +469,7 @@ static void MCopyFamiPower(void) {
 	SetReadHandler(0x6000, 0x7fff, CartBR);
 #endif
 
-/*
+#if 0
 	FCEU_printf("READING MEMORY MAP...\n");
 	CPUTestCmd[1] = 0x50;
 	CPUTestCmd[2] = 0x30;
@@ -477,10 +480,10 @@ static void MCopyFamiPower(void) {
 		GET(resp, 3);
 		if(presp != 0xffffffff) {
 			switch(presp & 0x00FF0000) {
-				case 0x00000000: // BUS
+				case 0x00000000: /* BUS */
 					FCEU_printf("  %04X-%04X OPEN BUS\n",presp & 0x7fff, (resp - 1) & 0x7fff);
 					break;
-				case 0x00010000: // RAM
+				case 0x00010000: /* RAM */
 					FCEU_printf("  %04X-%04X RAM\n",presp & 0x7fff, (resp - 1) & 0x7fff);
 					SetWriteHandler(presp & 0x7fff, (resp - 1) & 0x7fff, CartBW);
 					SetReadHandler(presp & 0x7fff, (resp - 1) & 0x7fff, CartBR);
@@ -489,7 +492,7 @@ static void MCopyFamiPower(void) {
 		}
 		presp = resp;
 	}
-*/
+#endif
 	SetWriteHandler(0x8000, 0xffff, MCopyFamiWrite);
 	SetReadHandler(0x8000, 0xffff, CartBR);
 
@@ -528,17 +531,17 @@ void MapperCopyFami_Init(CartInfo *info) {
 	info->Close = MCopyFamiClose;
 	GameStateRestore = StateRestore;
 
-	size = 1024 * CHR_CACHE_SIZE;	// размер страницы 1кб
+	size = 1024 * CHR_CACHE_SIZE;	/* размер страницы 1кб */
 	chr_data.buf = (uint8*)FCEU_gmalloc(size);
-	SetupCartCHRMapping(1, chr_data.buf, size, 1);	// проверять ппу рам, иначе игра может портить данные
+	SetupCartCHRMapping(1, chr_data.buf, size, 1);	/* проверять ппу рам, иначе игра может портить данные */
 	AddExState(chr_data.buf, size, 0, "CCHR");
 
-	size = 8192;	// размер страницы 8кб
+	size = 8192;	/* размер страницы 8кб */
 	WRAM = (uint8*)FCEU_gmalloc(size);
 	SetupCartPRGMapping(1, WRAM, size, 1);
 	AddExState(WRAM, size, 0, "CPRM");
 
-	size = 8192 * PRG_CACHE_SIZE;	// размер страницы 8кб
+	size = 8192 * PRG_CACHE_SIZE;	/* размер страницы 8кб */
 	prg_data.buf = (uint8*)FCEU_gmalloc(size);
 	SetupCartPRGMapping(2, prg_data.buf, size, 0);
 	AddExState(prg_data.buf, size, 0, "CPPR");
