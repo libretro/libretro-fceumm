@@ -94,9 +94,9 @@
 	{0x9cbadc25,	  5,		8},	/* JustBreed */
 	{0xf518dd58,	  7,		8},	/* Captain Skyhawk */
 	{0x6c4a9735,	  7,		8},	/* WWF Wrestlemania (Europe) */
-	{0x84382231,	  9,		0},	/* Punch Out (J) */
-	{0xbe939fce,	  9,		1},	/* Punchout*/
-	{0x7b837fde,	  9,		1},	/* Mike Tyson's Punch-Out!! (PC10)*/
+	{0x84382231,	  9,		-1},	/* Punch Out (J) */
+	{0xbe939fce,	  9,		-1},	/* Punchout*/
+	{0x7b837fde,	  9,		-1},	/* Mike Tyson's Punch-Out!! (PC10)*/
 	{0x345d3a1a,	 11,		1},	/* Castle of Deceit */
 	{0xb79f2651,	 11,		1},	/* Chiller (USA) (Unl) */
 	{0x5e66eaea,	 13,		1},	/* Videomation */
