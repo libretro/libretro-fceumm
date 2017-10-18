@@ -22,7 +22,7 @@
 
 #include "mapinc.h"
 
-static uint8 is10, battery;
+static uint8 is10, isPC10;
 static uint8 creg[4], latch0, latch1, preg, mirr;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
@@ -47,7 +47,7 @@ static void Sync(void) {
 		setprg8(0xC000, ~1);
 		setprg8(0xE000, ~0);
 	}
-	if (battery)
+	if (is10 || isPC10)
 		setprg8r(0x10, 0x6000, 0);
 	setchr4(0x0000, creg[latch0]);
 	setchr4(0x1000, creg[latch1 + 2]);
@@ -93,7 +93,7 @@ static void MMC2and4Power(void) {
 	preg = 0;
 	latch0 = latch1 = 1;
 	Sync();
-	if (battery) {
+	if (is10 || isPC10) {
 		SetReadHandler(0x6000, 0x7FFF, CartBR);
 		SetWriteHandler(0x6000, 0x7FFF, CartBW);
 		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
@@ -114,18 +114,20 @@ static void MMC2and4Close(void) {
 
 void Mapper9_Init(CartInfo *info) {
 	is10 = 0;
-	battery = 0;
+	isPC10 = 0;
 	info->Power = MMC2and4Power;
 	info->Close = MMC2and4Close;
 	PPU_hook = MMC2and4PPUHook;
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-	if (info->battery) {
-		battery = 1;
-		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
+	if (info->CRC32 == 0x7b837fde) { /* Mike Tyson's Punch-Out!! (PC10) supports save ram */
+		isPC10 = 1;
+		WRAMSIZE = 8192;
+		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+		if (info->battery) {
+			info->SaveGame[0] = WRAM;
+			info->SaveGameLen[0] = WRAMSIZE;
+		}
 	}
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
@@ -133,7 +135,7 @@ void Mapper9_Init(CartInfo *info) {
 
 void Mapper10_Init(CartInfo *info) {
 	is10 = 1;
-	battery = 0;
+	isPC10 = 0;
 	info->Power = MMC2and4Power;
 	info->Close = MMC2and4Close;
 	PPU_hook = MMC2and4PPUHook;
@@ -142,7 +144,6 @@ void Mapper10_Init(CartInfo *info) {
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	if (info->battery) {
-		battery = 1;
 		info->SaveGame[0] = WRAM;
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
