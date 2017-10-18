@@ -953,7 +953,7 @@ int FlushEmulateSound(void) {
 
 		SexyFilter(Wave, WaveFinal, end >> 4);
 
-#if o
+#if 0
 		if (FSettings.lowpass)
 			SexyFilter2(WaveFinal, end >> 4);
 #endif
