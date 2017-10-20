@@ -584,25 +584,25 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_set_environment(retro_environment_t cb)
 {
    static const struct retro_variable vars[] = {
+      { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
+      { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { "fceumm_palette", "Color Palette; default|asqrealc|nintendo-vc|rgb|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
       { "fceumm_use_ntsc", "Use NTSC Palette; disabled|enabled" },
-      { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
-      { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
 #ifdef PSP
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
 #else
       { "fceumm_overscan_h", "Crop Overscan (Horizontal); disabled|enabled" },
       { "fceumm_overscan_v", "Crop Overscan (Vertical); enabled|disabled" },
 #endif
+      { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
+      { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
+      { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
+      { "fceumm_swapduty", "Swap Duty Cycles; disabled|enabled" },
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
-      { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
-      { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
-      { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
-      { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
-      { "fceumm_swapduty", "Swap Duty Cyles; disabled|enabled" },
-      { "fceumm_zapper_mode", "Zapper Mode; absolute|relative" },
+      { "fceumm_zapper_mode", "Zapper Mode; pointer|mouse" },
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
+      { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { NULL, NULL },
    };
 
@@ -929,8 +929,8 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "relative")) zapper_mode = 1;
-      else if (!strcmp(var.value, "absolute")) zapper_mode = 0;
+      if (!strcmp(var.value, "mouse")) zapper_mode = 1;
+      else if (!strcmp(var.value, "pointer")) zapper_mode = 0;
    }
 
    var.key = "fceumm_show_crosshair";
