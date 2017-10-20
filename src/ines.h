@@ -22,6 +22,9 @@
 #ifndef _FCEU_INES_H
 #define _FCEU_INES_H
 
+extern uint32 ROM_size;
+extern uint32 VROM_size;
+
 typedef struct {
 	char ID[4];		/*NES^Z*/
 	uint8 ROM_size;
