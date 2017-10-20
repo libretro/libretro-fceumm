@@ -134,13 +134,14 @@ static void UNROMSync(void) {
 			setmirror(((latche >> 3) & 1) ^ 1);	/* Higway Star Hacked mapper to be redefined to another mapper */
 	} else
 #endif
+	setprg8r(0x10, 0x6000, 0);
 	setprg16(0x8000, latche);
 	setprg16(0xc000, ~0);
 	setchr8(0);
 }
 
 void UNROM_Init(CartInfo *info) {
-	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 0, 1);
+	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 1, 0);
 }
 
 /*------------------ Map 3 ---------------------------*/
