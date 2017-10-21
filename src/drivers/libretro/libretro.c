@@ -772,6 +772,7 @@ void FCEUD_RegionOverride(unsigned region)
    }
 
    FCEUI_SetVidSystem(pal);
+   retro_set_custom_palette();
 }
 
 void retro_deinit (void)
