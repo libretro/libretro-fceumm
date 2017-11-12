@@ -26,6 +26,9 @@
 
 #include "libretro-common/include/streams/memory_stream.h"
 
+#define MAX_PLAYERS 4
+#define MAX_PORTS 2
+
 #define RETRO_DEVICE_GAMEPAD  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
 #define RETRO_DEVICE_ZAPPER   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
 
@@ -50,8 +53,8 @@ static bool overscan_v;
 #endif
 static bool use_raw_palette;
 static bool use_par;
-int turbo_enabler;
-int turbo_delay;
+static unsigned turbo_enabler[MAX_PLAYERS] = {0};
+static unsigned turbo_delay = 0;
 static int t[2] = { 0, 0 };
 static int zapper_mode = 0; /* 0=absolute 1=relative */
 
@@ -985,21 +988,19 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "None"))
-      {
-         turbo_enabler = 0;
-      }
-      else if (!strcmp(var.value, "Player 1"))
-      {
-         turbo_enabler = 1;
-      }
+      unsigned i;
+
+      for (i = 0; i < MAX_PLAYERS; i++)
+         turbo_enabler[i] = 0;
+
+      if (!strcmp(var.value, "Player 1"))
+         turbo_enabler[0] = 1;
       else if (!strcmp(var.value, "Player 2"))
-      {
-         turbo_enabler = 2;
-      }
+         turbo_enabler[1] = 1;
       else if (!strcmp(var.value, "Both"))
       {
-         turbo_enabler = 3;
+         turbo_enabler[0] = 1;
+         turbo_enabler[1] = 1;
       }
    }
 
@@ -1131,87 +1132,60 @@ void GetMouseData(uint32_t *zapdata)
 
 /*
  * Flags to keep track of whether turbo
- * was toggled on or off
- * p0 - Player 1
- * p1 - Player 2
+ * buttons toggled on or off.
+ *
  * There are two values in array
  * for Turbo A and Turbo B for
  * each player
  */
 
-unsigned char turbo_p0_toggle[] = { 0, 0 };
-unsigned char turbo_p1_toggle[] = { 0, 0 };
+#define TURBO_BUTTONS 2
+unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
 
 static void FCEUD_UpdateInput(void)
 {
    unsigned p, i;
    unsigned char pad[4];
 
-   pad[0] = pad[1] = pad[2] = pad[3] = 0;
+   for (p = 0; p < MAX_PLAYERS; p++)
+      pad[p] = 0; /* reset pads */
 
    poll_cb();
 
-   for (p = 0; p < 4; p++)
+   for (p = 0; p < MAX_PLAYERS; p++)
    {
       for ( i = 0; i < 8; i++)
          pad[p] |= input_cb(p, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
-   }
 
-   /*
-    * Turbo A and Turbo B buttons are
-    * mapped to Joypad X and Joypad Y
-    * in RetroArch joypad.
-    *
-    * We achieve this by keeping track of
-    * the number of times it increments
-    * the toggle counter and fire or not fire
-    * depending on whether the delay value has
-    * been reached.
-    */
-   if (turbo_enabler == 1 || turbo_enabler == 3)
-   {
-      /* Handle turbo buttons - player 1 */
-      for ( i = 8; i < 10; i++)
+      /* Turbo A and Turbo B buttons are
+       * mapped to Joypad X and Joypad Y
+       * in RetroArch joypad.
+       *
+       * We achieve this by keeping track of
+       * the number of times it increments
+       * the toggle counter and fire or not fire
+       * depending on whether the delay value has
+       * been reached.
+       */
+
+      if (turbo_enabler[p] == 1)
       {
-         if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
+         /* Handle Turbo A & B buttons */
+         for ( i = 8; i < 10; i++)
          {
-            if (turbo_p0_toggle[i-8] == 0)
-               pad[0] |= bindmap[i].nes;
-            turbo_p0_toggle[i-8]++;
-            if (turbo_p0_toggle[i-8] > turbo_delay)
+            if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
             {
-               /* Reset the toggle if
-                * delay value is reached */
-               pad[0] |= bindmap[i].nes;
-               turbo_p0_toggle[i-8] = 0;
+               if (turbo_button_toggle[p][i-8] == 0)
+                  pad[p] |= bindmap[i].nes;
+               turbo_button_toggle[p][i-8]++;
+               if (turbo_button_toggle[p][i-8] > turbo_delay)
+                  /* Reset the toggle if delay value is reached */
+                  turbo_button_toggle[p][i-8] = 0;
             }
+            else
+               /* If the button is not pressed, just reset the toggle */
+               turbo_button_toggle[p][i-8] = 0;
          }
-         else
-            /* If the button is not pressed, just reset the toggle */
-            turbo_p0_toggle[i-8] = 0;
-      }
-   }
-   if (turbo_enabler == 2 || turbo_enabler == 3)
-   {
-      /* Handle turbo buttons - player 2 */
-      for ( i = 8; i < 10; i++)
-      {
-         if (input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
-         {
-            if (turbo_p1_toggle[i-8] == 0)
-                  pad[1] |= bindmap[i].nes;
-            turbo_p1_toggle[i-8]++;
-            if (turbo_p1_toggle[i-8] > turbo_delay)
-            {
-               /* Reset the toggle if
-                * delay value is reached */
-               pad[1] |= bindmap[i].nes;
-               turbo_p1_toggle[i-8] = 0;
-            }
-         }
-         else
-             /* If the button is not pressed, just reset the toggle */
-             turbo_p1_toggle[i-8] = 0;
       }
    }
 
