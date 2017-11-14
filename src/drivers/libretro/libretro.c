@@ -26,6 +26,10 @@
 
 #include "libretro-common/include/streams/memory_stream.h"
 
+#define MAX_PLAYERS 4 /* max supported players */
+#define MAX_PORTS 2   /* max controller ports,
+                       * port 0 for player 1/3, port 1 for player 2/4 */
+
 #define RETRO_DEVICE_GAMEPAD  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
 #define RETRO_DEVICE_ZAPPER   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
 
@@ -50,10 +54,10 @@ static bool overscan_v;
 #endif
 static bool use_raw_palette;
 static bool use_par;
-int turbo_enabler;
-int turbo_delay;
-static int t[2] = { 0, 0 };
-static int zapper_mode = 0; /* 0=absolute 1=relative */
+static unsigned turbo_enabler[MAX_PLAYERS] = {0};
+static unsigned turbo_delay = 0;
+static unsigned nes_device[MAX_PLAYERS] = {0};
+static unsigned zapper_mode = 0; /* 0=absolute 1=relative */
 
 /* emulator-specific variables */
 
@@ -539,45 +543,41 @@ void retro_set_input_state(retro_input_state_t cb)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-   unsigned arg = 0;
-   void *InputDPtr;
-
-   if (port < 2)  /* port #0 = player1/player3, port #1 = player2/player4 */
+   if (port < MAX_PORTS)  /* port #0 = player1/player3, port #1 = player2/player4 */
    {
       switch(device)
       {
          case RETRO_DEVICE_NONE:
-            t[port] = SI_NONE;
-            InputDPtr = NULL;
+            nes_device[port] = RETRO_DEVICE_NONE;
+            FCEUI_SetInput(port, SI_NONE, NULL, 0);
+            FCEU_printf(" Player %u: None\n", port + 1);
             break;
          case RETRO_DEVICE_GAMEPAD:
-            t[port] = SI_GAMEPAD;
-            InputDPtr = &JSReturn;
+            nes_device[port] = RETRO_DEVICE_GAMEPAD;
+            FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
+            FCEU_printf(" Player %u: Gamepad\n", port + 1);
             break;
          case RETRO_DEVICE_ZAPPER:
-            arg = 1;
-            t[port] = SI_ZAPPER;
-            InputDPtr = &MouseData[0];
+            nes_device[port] = RETRO_DEVICE_ZAPPER;
+            FCEUI_SetInput(port, SI_ZAPPER, MouseData, 1);
+            FCEU_printf(" Player %u: Zapper\n", port + 1);
             break;
-         case RETRO_DEVICE_JOYPAD:
-         default:
+         case RETRO_DEVICE_JOYPAD: /* Assigned to auto configure devices */
+         default:                  /* based on database */
             if (GameInfo->input[port] == SI_ZAPPER)
             {
-               arg = 1;
-               t[port] = SI_ZAPPER;
-               InputDPtr = &MouseData[0];
+               nes_device[port] = RETRO_DEVICE_ZAPPER;
+               FCEUI_SetInput(port, SI_ZAPPER, MouseData, 1);
+               FCEU_printf(" Player %u: Zapper\n", port + 1);
             }
             else
             {
-               t[port] = SI_GAMEPAD;
-               InputDPtr = &JSReturn;
+               nes_device[port] = RETRO_DEVICE_GAMEPAD;
+               FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
+               FCEU_printf(" Player %u: Gamepad\n", port + 1);
             }
             break;
        }
-      FCEUI_SetInput(port, t[port], InputDPtr, arg);
-      FCEU_printf("Player %d: %s\n", port + 1,
-         t[port] == SI_GAMEPAD ? "Gamepad" :
-         t[port] == SI_ZAPPER ? "Zapper" : "None");
    }
 }
 
@@ -607,9 +607,10 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    static const struct retro_controller_description pads[] = {
-      { "Auto", RETRO_DEVICE_JOYPAD },
+      { "Auto (Gamepad/Zapper)", RETRO_DEVICE_JOYPAD },
       { "Gamepad", RETRO_DEVICE_GAMEPAD },
       { "Zapper", RETRO_DEVICE_ZAPPER },
+      { NULL, 0 },
    };
 
    static const struct retro_controller_info ports[] = {
@@ -985,21 +986,19 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "None"))
-      {
-         turbo_enabler = 0;
-      }
-      else if (!strcmp(var.value, "Player 1"))
-      {
-         turbo_enabler = 1;
-      }
+      unsigned i;
+
+      for (i = 0; i < MAX_PLAYERS; i++)
+         turbo_enabler[i] = 0;
+
+      if (!strcmp(var.value, "Player 1"))
+         turbo_enabler[0] = 1;
       else if (!strcmp(var.value, "Player 2"))
-      {
-         turbo_enabler = 2;
-      }
+         turbo_enabler[1] = 1;
       else if (!strcmp(var.value, "Both"))
       {
-         turbo_enabler = 3;
+         turbo_enabler[0] = 1;
+         turbo_enabler[1] = 1;
       }
    }
 
@@ -1082,10 +1081,10 @@ static void check_variables(bool startup)
 
 static int mzx = 0, mzy = 0, mzb = 0;
 
-void GetMouseData(uint32_t *zapdata)
+void GetMouseData(unsigned port, uint32_t *zapdata)
 {
    bool adjx = false, adjy = false;
-   int right, bottom, port;
+   int right, bottom;
 
 #ifdef PSP
    adjx = adjy = use_overscan ? 1 : 0;
@@ -1093,7 +1092,6 @@ void GetMouseData(uint32_t *zapdata)
    adjx        = overscan_h ? 1 : 0;
    adjy        = overscan_v ? 1 : 0;
 #endif
-   port        = (GameInfo->type == GIT_VSUNI) ? 0 : 1;
    right       = 256;
    bottom      = 240;
    mzb         = 0;
@@ -1131,94 +1129,75 @@ void GetMouseData(uint32_t *zapdata)
 
 /*
  * Flags to keep track of whether turbo
- * was toggled on or off
- * p0 - Player 1
- * p1 - Player 2
+ * buttons toggled on or off.
+ *
  * There are two values in array
  * for Turbo A and Turbo B for
  * each player
  */
 
-unsigned char turbo_p0_toggle[] = { 0, 0 };
-unsigned char turbo_p1_toggle[] = { 0, 0 };
+#define TURBO_BUTTONS 2
+unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
 
 static void FCEUD_UpdateInput(void)
 {
-   unsigned p, i;
+   unsigned player, i;
    unsigned char pad[4];
 
-   pad[0] = pad[1] = pad[2] = pad[3] = 0;
+   for (player = 0; player < MAX_PLAYERS; player++)
+      pad[player] = 0; /* reset pads */
 
    poll_cb();
 
-   for (p = 0; p < 4; p++)
+   for (player = 0; player < MAX_PLAYERS; player++)
    {
-      for ( i = 0; i < 8; i++)
-         pad[p] |= input_cb(p, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro) ? bindmap[i].nes : 0;
-   }
-
-   /*
-    * Turbo A and Turbo B buttons are
-    * mapped to Joypad X and Joypad Y
-    * in RetroArch joypad.
-    *
-    * We achieve this by keeping track of
-    * the number of times it increments
-    * the toggle counter and fire or not fire
-    * depending on whether the delay value has
-    * been reached.
-    */
-   if (turbo_enabler == 1 || turbo_enabler == 3)
-   {
-      /* Handle turbo buttons - player 1 */
-      for ( i = 8; i < 10; i++)
+      switch (nes_device[player])
       {
-         if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
-         {
-            if (turbo_p0_toggle[i-8] == 0)
-               pad[0] |= bindmap[i].nes;
-            turbo_p0_toggle[i-8]++;
-            if (turbo_p0_toggle[i-8] > turbo_delay)
+         case RETRO_DEVICE_GAMEPAD:
+            for (i = 0; i < 8; i++)
+               pad[player] |= input_cb(player, RETRO_DEVICE_JOYPAD, 0, 
+                              bindmap[i].retro) ? bindmap[i].nes : 0;
+
+            /* Turbo A and Turbo B buttons are
+             * mapped to Joypad X and Joypad Y
+            * in RetroArch joypad.
+            *
+            * We achieve this by keeping track of
+            * the number of times it increments
+            * the toggle counter and fire or not fire
+            * depending on whether the delay value has
+            * been reached.
+            */
+
+            if (turbo_enabler[player] == 1)
             {
-               /* Reset the toggle if
-                * delay value is reached */
-               pad[0] |= bindmap[i].nes;
-               turbo_p0_toggle[i-8] = 0;
+               /* Handle Turbo A & B buttons */
+               for (i = 8; i < 10; i++)
+               {
+                  if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
+                  {
+                     if (turbo_button_toggle[player][i-8] == 0)
+                        pad[player] |= bindmap[i].nes;
+                     turbo_button_toggle[player][i-8]++;
+                     if (turbo_button_toggle[player][i-8] > turbo_delay)
+                        /* Reset the toggle if delay value is reached */
+                        turbo_button_toggle[player][i-8] = 0;
+                  }
+                  else
+                     /* If the button is not pressed, just reset the toggle */
+                     turbo_button_toggle[player][i-8] = 0;
+               }
             }
-         }
-         else
-            /* If the button is not pressed, just reset the toggle */
-            turbo_p0_toggle[i-8] = 0;
+
+            JSReturn =  (pad[0] & 0xff) | ((pad[1] & 0xff) << 8) |
+                        ((pad[2] & 0xff) << 16) | ((pad[3] & 0xff) << 24);
+            break; /* RETRO_DEVICE_GAMEPAD */
+
+         case RETRO_DEVICE_ZAPPER:
+            GetMouseData(player, MouseData);
+            break; /* RETRO_DEVICE_ZAPPER */
       }
    }
-   if (turbo_enabler == 2 || turbo_enabler == 3)
-   {
-      /* Handle turbo buttons - player 2 */
-      for ( i = 8; i < 10; i++)
-      {
-         if (input_cb(1, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
-         {
-            if (turbo_p1_toggle[i-8] == 0)
-                  pad[1] |= bindmap[i].nes;
-            turbo_p1_toggle[i-8]++;
-            if (turbo_p1_toggle[i-8] > turbo_delay)
-            {
-               /* Reset the toggle if
-                * delay value is reached */
-               pad[1] |= bindmap[i].nes;
-               turbo_p1_toggle[i-8] = 0;
-            }
-         }
-         else
-             /* If the button is not pressed, just reset the toggle */
-             turbo_p1_toggle[i-8] = 0;
-      }
-   }
-
-   JSReturn = pad[0] | (pad[1] << 8) | (pad[2] << 16) | (pad[3] << 24);
-
-   if (t[0] == SI_ZAPPER || t[1] == SI_ZAPPER)
-      GetMouseData(&MouseData[0]);
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
       FCEU_VSUniCoin();             /* Insert Coin VS System */
@@ -1774,6 +1753,10 @@ bool retro_load_game(const struct retro_game_info *game)
       return false;
    }
 
+   nes_device[0] = RETRO_DEVICE_GAMEPAD;
+   nes_device[1] = RETRO_DEVICE_GAMEPAD;
+   nes_device[2] = RETRO_DEVICE_NONE;
+   nes_device[3] = RETRO_DEVICE_NONE;
    FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn, 0);
    FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn, 0);
 
@@ -1800,6 +1783,8 @@ bool retro_load_game(const struct retro_game_info *game)
       if (fourscore_db_list[i].crc == iNESGameCRC32)
       {
          FCEUI_DisableFourScore(0);
+         nes_device[2] = RETRO_DEVICE_GAMEPAD;
+         nes_device[3] = RETRO_DEVICE_GAMEPAD;
          break;
       }
    }
@@ -1809,6 +1794,8 @@ bool retro_load_game(const struct retro_game_info *game)
       if (famicom_4p_db_list[i].crc == iNESGameCRC32)
       {
          FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
+         nes_device[2] = RETRO_DEVICE_GAMEPAD;
+         nes_device[3] = RETRO_DEVICE_GAMEPAD;
          break;
       }
    }
@@ -1911,3 +1898,4 @@ size_t retro_get_memory_size(unsigned type)
 
    return size;
 }
+
