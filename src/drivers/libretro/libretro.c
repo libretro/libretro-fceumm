@@ -30,8 +30,12 @@
 #define MAX_PORTS 2   /* max controller ports,
                        * port 0 for player 1/3, port 1 for player 2/4 */
 
-#define RETRO_DEVICE_GAMEPAD  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
-#define RETRO_DEVICE_ZAPPER   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
+#define RETRO_DEVICE_GAMEPAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
+#define RETRO_DEVICE_ZAPPER      RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  0)
+#define RETRO_DEVICE_ARKANOID    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  1)
+#define RETRO_DEVICE_FC_ARKANOID RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  2)
+#define RETRO_DEVICE_FC_OEKAKIDS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  3)
+#define RETRO_DEVICE_FC_SHADOW   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
 
 #define NES_8_7_PAR (width * (8.0 / 7.0)) / height
 #define NES_4_3 4.0 / 3.0
@@ -56,8 +60,8 @@ static bool use_raw_palette;
 static bool use_par;
 static unsigned turbo_enabler[MAX_PLAYERS] = {0};
 static unsigned turbo_delay = 0;
-static unsigned nes_device[MAX_PLAYERS] = {0};
-static unsigned zapper_mode = 0; /* 0=absolute 1=relative */
+static unsigned input_type[MAX_PLAYERS + 1] = {0}; /* 4-players + famicom expansion */
+static unsigned pointer_enabled = 0; /* 0=mouse 1=pointer */
 
 /* emulator-specific variables */
 
@@ -93,7 +97,8 @@ unsigned swapDuty = 0;
 
 static int32_t *sound = 0;
 static uint32_t JSReturn = 0;
-static uint32_t MouseData[3];
+static uint32_t MouseData[MAX_PORTS][3] = { {0} };
+static uint32_t fc_MouseData[3] = {0};
 static uint32_t current_palette = 0;
 
 int PPUViewScanline=0;
@@ -541,6 +546,9 @@ void retro_set_input_state(retro_input_state_t cb)
    input_cb = cb;
 }
 
+void set_input_nes_controller(unsigned port, int x);
+void set_input_famicom_controller(int x);
+
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
    if (port < MAX_PORTS)  /* port #0 = player1/player3, port #1 = player2/player4 */
@@ -548,36 +556,22 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       switch(device)
       {
          case RETRO_DEVICE_NONE:
-            nes_device[port] = RETRO_DEVICE_NONE;
-            FCEUI_SetInput(port, SI_NONE, NULL, 0);
-            FCEU_printf(" Player %u: None\n", port + 1);
+            set_input_nes_controller(port, SI_NONE);
             break;
          case RETRO_DEVICE_GAMEPAD:
-            nes_device[port] = RETRO_DEVICE_GAMEPAD;
-            FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
-            FCEU_printf(" Player %u: Gamepad\n", port + 1);
+            set_input_nes_controller(port, SI_GAMEPAD);
             break;
          case RETRO_DEVICE_ZAPPER:
-            nes_device[port] = RETRO_DEVICE_ZAPPER;
-            FCEUI_SetInput(port, SI_ZAPPER, MouseData, 1);
-            FCEU_printf(" Player %u: Zapper\n", port + 1);
+            set_input_nes_controller(port, SI_ZAPPER);
+            break;
+         case RETRO_DEVICE_ARKANOID:
+            set_input_nes_controller(port, SI_ARKANOID);
             break;
          case RETRO_DEVICE_JOYPAD: /* Assigned to auto configure devices */
          default:                  /* based on database */
-            if (GameInfo->input[port] == SI_ZAPPER)
-            {
-               nes_device[port] = RETRO_DEVICE_ZAPPER;
-               FCEUI_SetInput(port, SI_ZAPPER, MouseData, 1);
-               FCEU_printf(" Player %u: Zapper\n", port + 1);
-            }
-            else
-            {
-               nes_device[port] = RETRO_DEVICE_GAMEPAD;
-               FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
-               FCEU_printf(" Player %u: Gamepad\n", port + 1);
-            }
+            set_input_nes_controller(port, GameInfo->input[port]);
             break;
-       }
+      }
    }
 }
 
@@ -606,16 +600,24 @@ void retro_set_environment(retro_environment_t cb)
       { NULL, NULL },
    };
 
-   static const struct retro_controller_description pads[] = {
-      { "Auto (Gamepad/Zapper)", RETRO_DEVICE_JOYPAD },
+   static const struct retro_controller_description pads1[] = {
+      { "Auto",    RETRO_DEVICE_JOYPAD },
       { "Gamepad", RETRO_DEVICE_GAMEPAD },
-      { "Zapper", RETRO_DEVICE_ZAPPER },
+      { "Zapper",  RETRO_DEVICE_ZAPPER },
+      { NULL, 0 },
+   };
+
+   static const struct retro_controller_description pads2[] = {
+      { "Auto",     RETRO_DEVICE_JOYPAD },
+      { "Gamepad",  RETRO_DEVICE_GAMEPAD },
+      { "Arkanoid", RETRO_DEVICE_ARKANOID },
+      { "Zapper",   RETRO_DEVICE_ZAPPER },
       { NULL, 0 },
    };
 
    static const struct retro_controller_info ports[] = {
-      { pads, 3 },
-      { pads, 3 },
+      { pads1, 3 },
+      { pads2, 4 },
       { 0 },
    };
 
@@ -814,6 +816,66 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
 };
 
+/* Set NES controllers */
+void set_input_nes_controller(unsigned port, int x)
+{
+   switch (x)
+   {
+      case SI_NONE:
+         input_type[port] = RETRO_DEVICE_NONE;
+         FCEUI_SetInput(port, SI_NONE, NULL, 0);
+         FCEU_printf(" Player %u: None\n", port + 1);
+         break;
+      case SI_ZAPPER:
+         input_type[port] = RETRO_DEVICE_ZAPPER;
+         FCEUI_SetInput(port, SI_ZAPPER, MouseData[port], 1);
+         FCEU_printf(" Player %u: Zapper\n", port + 1);
+            break;
+      case SI_ARKANOID:
+         input_type[port] = RETRO_DEVICE_ARKANOID;
+         FCEUI_SetInput(port, SI_ARKANOID, MouseData[port], 0);
+         FCEU_printf(" Player %u: Arkanoid\n", port + 1);
+         break;
+      case SI_GAMEPAD: /* Set gamepad as default when an unsupported device */
+      default:         /* is used */
+         input_type[port] = RETRO_DEVICE_GAMEPAD;
+         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
+         FCEU_printf(" Player %u: Gamepad\n", port + 1);
+         break;
+   }
+}
+
+/* Set Famicom controllers */
+void set_input_famicom_controller(int x)
+{
+   switch (x)
+   {
+      case SIFC_ARKANOID:
+         input_type[4] = RETRO_DEVICE_FC_ARKANOID;
+         FCEUI_SetInputFC(SIFC_ARKANOID, fc_MouseData, 0);
+         FCEU_printf("Famicom Expansion: Arkanoid\n");
+         break;
+      case SIFC_SHADOW:
+         input_type[4] = RETRO_DEVICE_FC_SHADOW;
+         FCEUI_SetInputFC(SIFC_SHADOW, fc_MouseData, 1);
+         FCEU_printf("Famicom Expansion: (Bandai) Hyper Shot\n");
+         break;
+      case SIFC_OEKAKIDS:
+         input_type[4] = RETRO_DEVICE_FC_OEKAKIDS;
+         FCEUI_SetInputFC(SIFC_OEKAKIDS, fc_MouseData, 1);
+         FCEU_printf("Famicom Expansion: Oeka Kids Tablet\n");
+         break;
+      default:
+         /* Do not disable port if a 4-player adaptor is used */
+         if (input_type[2] != RETRO_DEVICE_GAMEPAD || input_type[3] != RETRO_DEVICE_GAMEPAD)
+         {
+            input_type[4] = 0;
+            FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
+            break;
+         }
+   }
+}
+
 static void check_variables(bool startup)
 {
    struct retro_variable var = {0};
@@ -931,8 +993,8 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "mouse")) zapper_mode = 1;
-      else if (!strcmp(var.value, "pointer")) zapper_mode = 0;
+      if (!strcmp(var.value, "mouse")) pointer_enabled = 0;
+      else if (!strcmp(var.value, "pointer")) pointer_enabled = 1;
    }
 
    var.key = "fceumm_show_crosshair";
@@ -1079,12 +1141,13 @@ static void check_variables(bool startup)
    }
 }
 
-static int mzx = 0, mzy = 0, mzb = 0;
+static int mzx = 0, mzy = 0;
 
-void GetMouseData(unsigned port, uint32_t *zapdata)
+void get_mouse_input(unsigned port, uint32_t *zapdata)
 {
-   bool adjx = false, adjy = false;
-   int right, bottom;
+   bool adjx = false;
+   bool adjy = false;
+   int min_width, min_height, max_width, max_height;
 
 #ifdef PSP
    adjx = adjy = use_overscan ? 1 : 0;
@@ -1092,39 +1155,58 @@ void GetMouseData(unsigned port, uint32_t *zapdata)
    adjx        = overscan_h ? 1 : 0;
    adjy        = overscan_v ? 1 : 0;
 #endif
-   right       = 256;
-   bottom      = 240;
-   mzb         = 0;
+   max_width   = 256;
+   max_height  = 240;
+   zapdata[2]  = 0; /* reset click state */
 
-   if (zapper_mode) /* relative */
+   if (!pointer_enabled) /* mouse device */
    {
+      min_width   = (adjx ? 8 : 0) + 1;
+      min_height  = (adjy ? 8 : 0) + 1;
+      max_width  -= (adjx ? 8 : 0);
+      max_height -= (adjy ? 8 : 0);
+
       /* TODO: Add some sort of mouse sensitivity */
       mzx += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
       mzy += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
 
-      /* Set crosshair within the limits of game's resolution */
-      if (mzx > right - (adjx ? 8 : 0))  mzx = right - (adjx ? 8 : 0);
-      else if (mzx < 1 + (adjx ? 8 : 0)) mzx = 1 + (adjx ? 8 : 0);
-      if (mzy > bottom - (adjy ? 8 : 0)) mzy = bottom - (adjy ? 8 : 0);
-      else if (mzy < 1 + (adjy ? 8 : 0)) mzy = 1 + (adjy ? 8 : 0);
+      /* Set crosshair within the limits of current screen resolution */
+      if (mzx < min_width) mzx = min_width;
+      else if (mzx > max_width) mzx = max_width;
+
+      if (mzy < min_height) mzy = min_height;
+      else if (mzy > max_height) mzy = max_height;
+
+      zapdata[0] = mzx;
+      zapdata[1] = mzy;
 
       if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT))
-         mzb |= 0x1;
+         zapdata[2] |= 0x1;
       if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT))
-         mzb |= 0x2;
+         zapdata[2] |= 0x2;
    }
-   else /* absolute */
+   else /* pointer device */
    {
-      mzx = ((input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X) + (0x7FFF + (adjx ? 0X8FF : 0))) * right)  / (0XFFFE + (adjx ? 0X11FE : 0));
-      mzy = ((input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y) + (0x7FFF + (adjy ? 0X999 : 0))) * bottom) / (0XFFFE + (adjy ? 0X1332 : 0));
+      int offset_x = (adjx ? 0X8FF : 0);
+      int offset_y = (adjy ? 0X999 : 0);
+
+      int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+      int _y = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+
+      if (_x == 0 && _y == 0)
+      {
+         zapdata[0] = 0;
+         zapdata[1] = 0;
+      }
+      else
+      {
+         zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
+      }
 
       if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
-         mzb |= 0x1;
+         zapdata[2] |= 0x1;
    }
-
-   zapdata[0] = mzx;
-   zapdata[1] = mzy;
-   zapdata[2] = mzb;
 }
 
 /*
@@ -1149,13 +1231,14 @@ static void FCEUD_UpdateInput(void)
 
    poll_cb();
 
+   /* process nes inputs */
    for (player = 0; player < MAX_PLAYERS; player++)
    {
-      switch (nes_device[player])
+      switch (input_type[player])
       {
          case RETRO_DEVICE_GAMEPAD:
             for (i = 0; i < 8; i++)
-               pad[player] |= input_cb(player, RETRO_DEVICE_JOYPAD, 0, 
+               pad[player] |= input_cb(player, RETRO_DEVICE_JOYPAD, 0,
                               bindmap[i].retro) ? bindmap[i].nes : 0;
 
             /* Turbo A and Turbo B buttons are
@@ -1193,10 +1276,22 @@ static void FCEUD_UpdateInput(void)
                         ((pad[2] & 0xff) << 16) | ((pad[3] & 0xff) << 24);
             break; /* RETRO_DEVICE_GAMEPAD */
 
+         case RETRO_DEVICE_ARKANOID:
          case RETRO_DEVICE_ZAPPER:
-            GetMouseData(player, MouseData);
+            if (player < MAX_PORTS)
+               get_mouse_input(player, MouseData[player]);
             break; /* RETRO_DEVICE_ZAPPER */
       }
+   }
+
+   /* process famicom inputs */
+   switch (input_type[4])
+   {
+      case RETRO_DEVICE_FC_ARKANOID:
+      case RETRO_DEVICE_FC_OEKAKIDS:
+      case RETRO_DEVICE_FC_SHADOW:
+         get_mouse_input(0, fc_MouseData);
+         break;
    }
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
@@ -1306,12 +1401,21 @@ static void retro_run_blit(uint8_t *gfx)
 #endif
 }
 
+static bool firstrun = true;
+
 void retro_run(void)
 {
    unsigned i;
    uint8_t *gfx;
    int32_t ssize = 0;
    bool updated = false;
+
+   if (firstrun)
+   {
+      /* setup famicom expansion devices */
+      set_input_famicom_controller(GameInfo->inputfc);
+      firstrun = false;
+   }
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables(false);
@@ -1753,10 +1857,10 @@ bool retro_load_game(const struct retro_game_info *game)
       return false;
    }
 
-   nes_device[0] = RETRO_DEVICE_GAMEPAD;
-   nes_device[1] = RETRO_DEVICE_GAMEPAD;
-   nes_device[2] = RETRO_DEVICE_NONE;
-   nes_device[3] = RETRO_DEVICE_NONE;
+   input_type[0] = RETRO_DEVICE_GAMEPAD;
+   input_type[1] = RETRO_DEVICE_GAMEPAD;
+   input_type[2] = RETRO_DEVICE_NONE;
+   input_type[3] = RETRO_DEVICE_NONE;
    FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn, 0);
    FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn, 0);
 
@@ -1783,8 +1887,8 @@ bool retro_load_game(const struct retro_game_info *game)
       if (fourscore_db_list[i].crc == iNESGameCRC32)
       {
          FCEUI_DisableFourScore(0);
-         nes_device[2] = RETRO_DEVICE_GAMEPAD;
-         nes_device[3] = RETRO_DEVICE_GAMEPAD;
+         input_type[2] = RETRO_DEVICE_GAMEPAD;
+         input_type[3] = RETRO_DEVICE_GAMEPAD;
          break;
       }
    }
@@ -1794,8 +1898,8 @@ bool retro_load_game(const struct retro_game_info *game)
       if (famicom_4p_db_list[i].crc == iNESGameCRC32)
       {
          FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
-         nes_device[2] = RETRO_DEVICE_GAMEPAD;
-         nes_device[3] = RETRO_DEVICE_GAMEPAD;
+         input_type[2] = RETRO_DEVICE_GAMEPAD;
+         input_type[3] = RETRO_DEVICE_GAMEPAD;
          break;
       }
    }
