@@ -1193,7 +1193,7 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
       int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
       int _y = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
-      if (_x == 0 || _y == 0)
+      if (_x == 0 && _y == 0)
       {
          zapdata[0] = 0;
          zapdata[1] = 0;
