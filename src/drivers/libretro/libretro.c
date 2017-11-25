@@ -866,10 +866,13 @@ void set_input_famicom_controller(int x)
          FCEU_printf("Famicom Expansion: Oeka Kids Tablet\n");
          break;
       default:
-         input_type[4] = 0;
-         FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
-         FCEU_printf("Famicom Expansion: None\n");
-         break;
+         /* Do not disable port if a 4-player adaptor is used */
+         if (input_type[2] != RETRO_DEVICE_GAMEPAD || input_type[3] != RETRO_DEVICE_GAMEPAD)
+         {
+            input_type[4] = 0;
+            FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
+            break;
+         }
    }
 }
 
