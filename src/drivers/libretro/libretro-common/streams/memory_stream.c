@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/streams/memory_stream.h"
+#include <streams/memory_stream.h>
 
 static uint8_t* g_buffer     = NULL;
 static size_t g_size         = 0;
@@ -98,7 +98,7 @@ size_t memstream_read(memstream_t *stream, void *data, size_t bytes)
 
    if (!stream)
       return 0;
-   
+
    avail = stream->size - stream->ptr;
    if (bytes > avail)
       bytes = avail;
@@ -115,7 +115,7 @@ size_t memstream_write(memstream_t *stream, const void *data, size_t bytes)
 
    if (!stream)
       return 0;
-   
+
    avail = stream->size - stream->ptr;
    if (bytes > avail)
       bytes = avail;
