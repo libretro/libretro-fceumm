@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "libretro.h"
+#include <libretro.h>
 
 #include "../../fceu.h"
 #include "../../fceu-endian.h"
