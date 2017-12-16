@@ -126,16 +126,23 @@ extern "C" {
  */
 #define RETRO_DEVICE_KEYBOARD     3
 
-/* Lightgun X/Y coordinates are reported relatively to last poll,
- * similar to mouse. */
+/* LIGHTGUN device is similar to Guncon-2 for PlayStation 2.
+ * It reports X/Y coordinates in screen space (similar to the pointer)
+ * in the range [-0x8000, 0x7fff] in both axes, with zero being center.
+ * As well as reporting on/off screen state. It features a trigger,
+ * start/select buttons, auxiliary action buttons and a
+ * directional pad. A forced off-screen shot can be requested for
+ * auto-reloading function in some games.
+ */
 #define RETRO_DEVICE_LIGHTGUN     4
 
 /* The ANALOG device is an extension to JOYPAD (RetroPad).
- * Similar to DualShock it adds two analog sticks.
- * This is treated as a separate device type as it returns values in the
- * full analog range of [-0x8000, 0x7fff]. Positive X axis is right.
- * Positive Y axis is down.
- * Only use ANALOG type when polling for analog values of the axes.
+ * Similar to DualShock2 it adds two analog sticks and all buttons can
+ * be analog. This is treated as a separate device type as it returns
+ * axis values in the full analog range of [-0x8000, 0x7fff].
+ * Positive X axis is right. Positive Y axis is down.
+ * Buttons are returned in the range [0, 0x7fff].
+ * Only use ANALOG type when polling for analog values.
  */
 #define RETRO_DEVICE_ANALOG       5
 
@@ -174,7 +181,8 @@ extern "C" {
 /* Buttons for the RetroPad (JOYPAD).
  * The placement of these is equivalent to placements on the
  * Super Nintendo controller.
- * L2/R2/L3/R3 buttons correspond to the PS1 DualShock. */
+ * L2/R2/L3/R3 buttons correspond to the PS1 DualShock.
+ * Also used as id values for RETRO_DEVICE_INDEX_ANALOG_BUTTON */
 #define RETRO_DEVICE_ID_JOYPAD_B        0
 #define RETRO_DEVICE_ID_JOYPAD_Y        1
 #define RETRO_DEVICE_ID_JOYPAD_SELECT   2
@@ -193,10 +201,11 @@ extern "C" {
 #define RETRO_DEVICE_ID_JOYPAD_R3      15
 
 /* Index / Id values for ANALOG device. */
-#define RETRO_DEVICE_INDEX_ANALOG_LEFT   0
-#define RETRO_DEVICE_INDEX_ANALOG_RIGHT  1
-#define RETRO_DEVICE_ID_ANALOG_X         0
-#define RETRO_DEVICE_ID_ANALOG_Y         1
+#define RETRO_DEVICE_INDEX_ANALOG_LEFT       0
+#define RETRO_DEVICE_INDEX_ANALOG_RIGHT      1
+#define RETRO_DEVICE_INDEX_ANALOG_BUTTON     2
+#define RETRO_DEVICE_ID_ANALOG_X             0
+#define RETRO_DEVICE_ID_ANALOG_Y             1
 
 /* Id values for MOUSE. */
 #define RETRO_DEVICE_ID_MOUSE_X                0
@@ -208,15 +217,30 @@ extern "C" {
 #define RETRO_DEVICE_ID_MOUSE_MIDDLE           6
 #define RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP    7
 #define RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN  8
+#define RETRO_DEVICE_ID_MOUSE_BUTTON_4         9
+#define RETRO_DEVICE_ID_MOUSE_BUTTON_5         10
 
-/* Id values for LIGHTGUN types. */
-#define RETRO_DEVICE_ID_LIGHTGUN_X        0
-#define RETRO_DEVICE_ID_LIGHTGUN_Y        1
-#define RETRO_DEVICE_ID_LIGHTGUN_TRIGGER  2
-#define RETRO_DEVICE_ID_LIGHTGUN_CURSOR   3
-#define RETRO_DEVICE_ID_LIGHTGUN_TURBO    4
-#define RETRO_DEVICE_ID_LIGHTGUN_PAUSE    5
-#define RETRO_DEVICE_ID_LIGHTGUN_START    6
+/* Id values for LIGHTGUN. */
+#define RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X        13 /*Absolute Position*/
+#define RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y        14 /*Absolute*/
+#define RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN    15 /*Status Check*/
+#define RETRO_DEVICE_ID_LIGHTGUN_TRIGGER          2
+#define RETRO_DEVICE_ID_LIGHTGUN_RELOAD          16 /*Forced off-screen shot*/
+#define RETRO_DEVICE_ID_LIGHTGUN_AUX_A            3
+#define RETRO_DEVICE_ID_LIGHTGUN_AUX_B            4
+#define RETRO_DEVICE_ID_LIGHTGUN_START            6
+#define RETRO_DEVICE_ID_LIGHTGUN_SELECT           7
+#define RETRO_DEVICE_ID_LIGHTGUN_AUX_C            8
+#define RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP          9
+#define RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN       10
+#define RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT       11
+#define RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT      12
+/* deprecated */
+#define RETRO_DEVICE_ID_LIGHTGUN_X                0 /*Relative Position*/
+#define RETRO_DEVICE_ID_LIGHTGUN_Y                1 /*Relative*/
+#define RETRO_DEVICE_ID_LIGHTGUN_CURSOR           3 /*Use Aux:A*/
+#define RETRO_DEVICE_ID_LIGHTGUN_TURBO            4 /*Use Aux:B*/
+#define RETRO_DEVICE_ID_LIGHTGUN_PAUSE            5 /*Use Start*/
 
 /* Id values for POINTER. */
 #define RETRO_DEVICE_ID_POINTER_X         0
@@ -935,6 +959,128 @@ enum retro_mod
                                             * being used.
                                             */
 
+#define RETRO_ENVIRONMENT_GET_VFS_INTERFACE (45 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* struct retro_vfs_interface_info * --
+                                            * Gets access to the VFS interface.
+                                            * VFS presence needs to be queried prior to load_game or any
+                                            * get_system/save/other_directory being called to let front end know
+                                            * core supports VFS before it starts handing out paths.
+                                            * It is recomended to do so in retro_set_environment */
+
+/* VFS functionality */
+
+/* File paths:
+ * File paths passed as parameters when using this api shall be well formed unix-style,
+ * using "/" (unquoted forward slash) as directory separator regardless of the platform's native separator.
+ * Paths shall also include at least one forward slash ("game.bin" is an invalid path, use "./game.bin" instead).
+ * Other than the directory separator, cores shall not make assumptions about path format:
+ * "C:/path/game.bin", "http://example.com/game.bin", "#game/game.bin", "./game.bin" (without quotes) are all valid paths.
+ * Cores may replace the basename or remove path components from the end, and/or add new components;
+ * however, cores shall not append "./", "../" or multiple consecutive forward slashes ("//") to paths they request to front end.
+ * The frontend is encouraged to make such paths work as well as it can, but is allowed to give up if the core alters paths too much.
+ * Frontends are encouraged, but not required, to support native file system paths (modulo replacing the directory separator, if applicable).
+ * Cores are allowed to try using them, but must remain functional if the front rejects such requests.
+ * Cores are encouraged to use the libretro-common filestream functions for file I/O,
+ * as they seamlessly integrate with VFS, deal with directory separator replacement as appropriate
+ * and provide platform-specific fallbacks in cases where front ends do not support VFS. */
+
+/* Opaque file handle
+ * Introduced in VFS API v1 */
+struct retro_vfs_file_handle;
+
+/* File open flags
+ * Introduced in VFS API v1 */
+#define RETRO_VFS_FILE_ACCESS_READ            (1 << 0) /* Read only mode */
+#define RETRO_VFS_FILE_ACCESS_WRITE           (1 << 1) /* Write only mode, discard contents and overwrites existing file unless RETRO_VFS_FILE_ACCESS_UPDATE is also specified */
+#define RETRO_VFS_FILE_ACCESS_READ_WRITE      (RETRO_VFS_FILE_ACCESS_READ | RETRO_VFS_FILE_ACCESS_WRITE) /* Read-write mode, discard contents and overwrites existing file unless RETRO_VFS_FILE_ACCESS_UPDATE is also specified*/
+#define RETRO_VFS_FILE_ACCESS_UPDATE_EXISTING (1 << 2) /* Prevents discarding content of existing files opened for writing */
+
+/* These are only hints. The frontend may choose to ignore them. Other than RAM/CPU/etc use,
+   and how they react to unlikely external interference (for example someone else writing to that file,
+   or the file's server going down), behavior will not change. */
+#define RETRO_VFS_FILE_ACCESS_HINT_NONE              (0)
+/* Indicate that the file will be accessed many times. The frontend should aggressively cache everything. */
+#define RETRO_VFS_FILE_ACCESS_HINT_FREQUENT_ACCESS   (1 << 0)
+
+/* Seek positions */
+#define RETRO_VFS_SEEK_POSITION_START    0
+#define RETRO_VFS_SEEK_POSITION_CURRENT  1
+#define RETRO_VFS_SEEK_POSITION_END      2
+
+/* Get path from opaque handle. Returns the exact same path passed to file_open when getting the handle
+ * Introduced in VFS API v1 */
+typedef const char *(RETRO_CALLCONV *retro_vfs_get_path_t)(struct retro_vfs_file_handle *stream);
+
+/* Open a file for reading or writing. If path points to a directory, this will
+ * fail. Returns the opaque file handle, or NULL for error.
+ * Introduced in VFS API v1 */
+typedef struct retro_vfs_file_handle *(RETRO_CALLCONV *retro_vfs_open_t)(const char *path, unsigned mode, unsigned hints);
+
+/* Close the file and release its resources. Must be called if open_file returns non-NULL. Returns 0 on succes, -1 on failure.
+ * Whether the call succeeds ot not, the handle passed as parameter becomes invalid and should no longer be used.
+ * Introduced in VFS API v1 */
+typedef int (RETRO_CALLCONV *retro_vfs_close_t)(struct retro_vfs_file_handle *stream);
+
+/* Return the size of the file in bytes, or -1 for error.
+ * Introduced in VFS API v1 */
+typedef int64_t (RETRO_CALLCONV *retro_vfs_size_t)(struct retro_vfs_file_handle *stream);
+
+/* Get the current read / write position for the file. Returns - 1 for error.
+ * Introduced in VFS API v1 */
+typedef int64_t (RETRO_CALLCONV *retro_vfs_tell_t)(struct retro_vfs_file_handle *stream);
+
+/* Set the current read/write position for the file. Returns the new position, -1 for error.
+ * Introduced in VFS API v1 */
+typedef int64_t (RETRO_CALLCONV *retro_vfs_seek_t)(struct retro_vfs_file_handle *stream, int64_t offset, int seek_position);
+
+/* Read data from a file. Returns the number of bytes read, or -1 for error.
+ * Introduced in VFS API v1 */
+typedef int64_t (RETRO_CALLCONV *retro_vfs_read_t)(struct retro_vfs_file_handle *stream, void *s, uint64_t len);
+
+/* Write data to a file. Returns the number of bytes written, or -1 for error.
+ * Introduced in VFS API v1 */
+typedef int64_t (RETRO_CALLCONV *retro_vfs_write_t)(struct retro_vfs_file_handle *stream, const void *s, uint64_t len);
+
+/* Flush pending writes to file, if using buffered IO. Returns 0 on sucess, or -1 on failure.
+ * Introduced in VFS API v1 */
+typedef int (RETRO_CALLCONV *retro_vfs_flush_t)(struct retro_vfs_file_handle *stream);
+
+/* Delete the specified file. Returns 0 on success, -1 on failure
+ * Introduced in VFS API v1 */
+typedef int (RETRO_CALLCONV *retro_vfs_remove_t)(const char *path);
+
+/* Rename the specified file. Returns 0 on success, -1 on failure
+ * Introduced in VFS API v1 */
+typedef int (RETRO_CALLCONV *retro_vfs_rename_t)(const char *old_path, const char *new_path);
+
+struct retro_vfs_interface
+{
+	retro_vfs_get_path_t get_path;
+	retro_vfs_open_t open;
+	retro_vfs_close_t close;
+	retro_vfs_size_t size;
+	retro_vfs_tell_t tell;
+	retro_vfs_seek_t seek;
+	retro_vfs_read_t read;
+	retro_vfs_write_t write;
+	retro_vfs_flush_t flush;
+	retro_vfs_remove_t remove;
+	retro_vfs_rename_t rename;
+};
+
+struct retro_vfs_interface_info
+{
+   /* Set by core: should this be higher than the version the front end supports,
+    * front end will return false in the RETRO_ENVIRONMENT_GET_VFS_INTERFACE call
+    * Introduced in VFS API v1 */
+   uint32_t required_interface_version;
+
+   /* Frontend writes interface pointer here. The frontend also sets the actual
+    * version, must be at least required_interface_version.
+    * Introduced in VFS API v1 */
+   struct retro_vfs_interface *iface;
+};
+
 enum retro_hw_render_interface_type
 {
    RETRO_HW_RENDER_INTERFACE_VULKAN = 0,
@@ -1019,7 +1165,6 @@ struct retro_hw_render_context_negotiation_interface
                                             * Sets quirk flags associated with serialization. The frontend will zero any flags it doesn't
                                             * recognize or support. Should be set in either retro_init or retro_load_game, but not both.
                                             */
-
 
 #define RETRO_MEMDESC_CONST     (1 << 0)   /* The frontend will never change this memory area once retro_load_game has returned. */
 #define RETRO_MEMDESC_BIGENDIAN (1 << 1)   /* The memory area contains big endian data. Default is little endian. */
