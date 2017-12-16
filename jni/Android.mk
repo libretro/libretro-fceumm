@@ -28,6 +28,7 @@ LOCAL_SRC_FILES  = $(SOURCES_C)
 
 LOCAL_CFLAGS += -DWANT_GRIFFIN $(COREDEFINES) -DPSS_STYLE=1
 LOCAL_C_INCLUDES = $(LOCAL_PATH)/$(CORE_DIR)
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(CORE_DIR)/drivers/libretro
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/$(CORE_DIR)/drivers/libretro \
+						  $(LOCAL_PATH)/$(CORE_DIR)/drivers/libretro/libretro-common/include
 
 include $(BUILD_SHARED_LIBRARY)
