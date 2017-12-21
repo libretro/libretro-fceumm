@@ -31,3 +31,4 @@ artifacts:
   - path: '%makefile_location%\%target_name%*.lib'
   - path: '%makefile_location%\%target_name%*.pdb'
   - path: '**\libretro.h'
+  
