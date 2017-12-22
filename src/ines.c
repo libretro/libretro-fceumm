@@ -389,7 +389,7 @@ typedef struct {
 } BMAPPINGLocal;
 
 static BMAPPINGLocal bmap[] = {
-	{(uint8_t*)"NROM",				  0, NROM_Init},
+	{(uint8_t*)"NROM",				  0, Mapper0_Init},
 	{(uint8_t*)"MMC1",				  1, Mapper1_Init},
 	{(uint8_t*)"UNROM",				  2, UNROM_Init},
 	{(uint8_t*)"CNROM",				  3, CNROM_Init},
