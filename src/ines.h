@@ -40,6 +40,7 @@ void NSFAY_Init(void);
 void NSFN106_Init(void);
 void NSFVRC7_Init(void);
 
+void Mapper0_Init(CartInfo *);
 void Mapper1_Init(CartInfo *);
 void Mapper4_Init(CartInfo *);
 void Mapper5_Init(CartInfo *);
