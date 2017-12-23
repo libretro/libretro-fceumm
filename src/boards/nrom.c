@@ -40,7 +40,7 @@ static void M0Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
-   Sync();
+	Sync();
 }
 
 static void M0Close(void) {
@@ -52,7 +52,7 @@ static void M0Close(void) {
 void Mapper0_Init(CartInfo *info) {
 	info->Power = M0Power;
 	info->Close = M0Close;
-
+	GameStateRestore = StateRestore;
 	WRAMSIZE = 8192;
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
