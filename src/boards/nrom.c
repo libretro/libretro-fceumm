@@ -21,13 +21,14 @@
 
 #include "mapinc.h"
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+/*static uint8 *WRAM = NULL;
+static uint32 WRAMSIZE;*/
 
 static void Sync(void) {
-	setprg8r(0x10, 0x6000, 0);	/* Famili BASIC (v3.0) need it (uses only 4KB), FP-BASIC uses 8KB */
+	/* Famili BASIC (v3.0) need it (uses only 4KB), FP-BASIC uses 8KB */
+	/*setprg8r(0x10, 0x6000, 0);*/
 	setprg16(0x8000, 0);
-	setprg16(0xC000, ~0);
+	setprg16(0xC000, 1);
 	setchr8(0);
 }
 
@@ -36,29 +37,29 @@ static void StateRestore(int version) {
 }
 
 static void M0Power(void) {
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
-	SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	/*SetReadHandler(0x6000, 0x7FFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);*/
 }
 
-static void M0Close(void) {
+/*static void M0Close(void) {
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;
-}
+}*/
 
 void Mapper0_Init(CartInfo *info) {
 	info->Power = M0Power;
-	info->Close = M0Close;
+	/*info->Close = M0Close;*/
 	GameStateRestore = StateRestore;
-	WRAMSIZE = 8192;
+	/*WRAMSIZE = 8192;
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	AddExState(WRAM, WRAMSIZE, 0, "WRAM");*/
 }
