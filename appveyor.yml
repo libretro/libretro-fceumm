@@ -2,9 +2,16 @@ version: 0.1.{build}
 
 shallow_clone: true
 
+pull_requests:
+  do_not_increment_build_number: true
+
 image: Visual Studio 2017
 
 environment:
+  nuget_job_platform_id: nuget
+  appveyor_api_key:
+    secure:
+      JCVa4YmZI+ct0f0LSYPOBFzK1rw/UM2xEgka3UgvXhI=
   makefile_location: "."
   makefile_name: makefile.libretro
   target_name: fceumm
@@ -18,16 +25,124 @@ platform:
   - windows_msvc2017_uwp_arm
   - windows_msvc2017_desktop_x64
   - windows_msvc2017_desktop_x86
+  - nuget
 
 init:
   - set Path=C:\msys64\usr\bin;%Path%
 
 build_script:
-  - cd %makefile_location%
-  - make -f %makefile_name% platform=%platform%
+  - cmd: |
+      IF %PLATFORM% NEQ %nuget_job_platform_id% cd %makefile_location%
+      IF %PLATFORM% NEQ %nuget_job_platform_id% make -f %makefile_name% platform=%PLATFORM%
+  - ps: |
+      if($env:PLATFORM -ne $env:nuget_job_platform_id)
+      {
+        $artifacts = Get-ChildItem -Include @("libretro.h", "*.nuspec", "*.targets", "$env:target_name*.dll", "$env:target_name*.lib", "$env:target_name*.pdb", "$env:target_name*.exp") -Recurse
+        foreach($i in $artifacts)
+        {
+          Push-AppveyorArtifact $i.FullName
+        }
+      }
 
-artifacts:
-  - path: '**\%target_name%*.dll'
-  - path: '**\%target_name%*.lib'
-  - path: '**\%target_name%*.pdb'
-  - path: '**\libretro.h'
+after_build:
+  - ps: |
+      if($env:PLATFORM -eq $env:nuget_job_platform_id)
+      {
+        $apiUrl = "https://ci.appveyor.com/api"
+        $token = $env:appveyor_api_key
+        $headers = @{
+          "Authorization" = "Bearer $token"
+          "Content-type" = "application/json"
+        }
+        $accountName = $env:APPVEYOR_ACCOUNT_NAME
+        $projectSlug = $env:APPVEYOR_PROJECT_SLUG
+
+        $downloadLocation = "$projectSlug-nugetstaging"
+        $downloadLocation = New-Item -ItemType Directory -Force -Path $downloadLocation
+        $downloadLocation = $downloadLocation.FullName
+
+        # platform monikers neded for package creation
+        $expectedPlatformsMonikers = @("uwp_x64", "uwp_x86", "uwp_arm", "desktop_x64", "desktop_x86")
+
+        Write-Output "Determining build jobs"
+        # get project with last build details
+        echo "uri: $apiUrl/projects/$accountName/$projectSlug"
+        $project = Invoke-RestMethod -Method Get -Uri "$apiUrl/projects/$accountName/$projectSlug" -Headers $headers
+        $jobs = $project.build.jobs | Where-Object {$_.status -eq "success"}
+
+        $expectedPlatformsFound = $true
+        foreach($i in $expectedPlatformsMonikers)
+        {
+            $matchingJob = $jobs | Where-Object {$_.name -like "*$i*"}
+            if($matchingJob -eq $null)
+            {
+                $expectedPlatformsFound = $false
+                break;
+            }
+        }
+
+        if(!$expectedPlatformsFound)
+        {
+          throw "Some required jobs missing. Terminating"
+        }
+
+        $commonArtifactsDownloaded = $false
+        foreach($job in $jobs)
+        {
+            $jobId = $job.jobId
+            $jobName = $job.name -replace "Platform: ", ""
+
+            Write-Output "Downloading artifacts for job: $jobName"
+
+            # create job subdir
+            $jobDir = "$downloadLocation\$jobName"
+            $jobDir = New-Item -ItemType Directory -Force -Path $jobDir
+            $jobDir =$jobDir.FullName
+            
+            # get job artifacts
+            $artifacts = Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobId/artifacts" -Headers $headers
+
+            # common artifacts
+            if(!$commonArtifactsDownloaded)
+            {
+                $commonArtifacts = $artifacts | Where-Object {$_.fileName -like "*.h" -or $_.fileName -like "*.nuspec"-or $_.fileName -like "*.targets"}
+                foreach($artifact in $commonArtifacts)
+                {
+                    $artifactFullName = $artifact.fileName
+                    $artifactName = Split-Path -Path $artifactFullName -Leaf
+                    $localArtifactPath = "$downloadLocation\$artifactName"
+            
+                    Write-Output "Downloading: $artifactName"
+                    Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobId/artifacts/$artifactFullName" `
+                    -OutFile $localArtifactPath -Headers @{ "Authorization" = "Bearer $token" }
+                }
+
+                $commonArtifactsDownloaded = $true
+            }
+
+
+            # platform specific artifacts
+            $artifacts = $artifacts | Where-Object {$_.fileName -like "*.dll" -or $_.fileName -like "*.lib" -or $_.fileName -like "*.pdb" -or $_.fileName -like "*.exp"}
+            foreach($artifact in $artifacts)
+            {
+                $artifactFullName = $artifact.fileName
+                $artifactName = Split-Path -Path $artifactFullName -Leaf
+                $localArtifactPath = "$jobDir\$artifactName"
+
+                Write-Output "Downloading: $artifactName"
+                Invoke-RestMethod -Method Get -Uri "$apiUrl/buildjobs/$jobId/artifacts/$artifactFullName" `
+                -OutFile $localArtifactPath -Headers @{ "Authorization" = "Bearer $token" }
+            }
+        }
+
+        # get nuspec file
+        $nuspecFile = Get-ChildItem -Path $downloadLocation -Filter "*.nuspec"
+        if($nuspecFile -eq $null)
+        {
+            throw "No nuspec file found. Terminating"
+        }
+
+        &nuget pack $nuspecFile.FullName -version $env:APPVEYOR_BUILD_VERSION
+        $nugetFile = Get-ChildItem -Filter *.nupkg -Recurse | Select-Object -First 1
+        Push-AppveyorArtifact $nugetFile.FullName
+      }
