@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<package>
+  <metadata minClientVersion="3.5">
+    <id>Libretro.FCEUMM</id>
+    <title>FCEUMM Libretro</title>
+    <version>$version$</version>
+    <authors>Libretro</authors>
+    <owners>Libretro</owners>
+    <projectUrl>https://github.com/libretro/libretro-fceumm</projectUrl>
+    <licenseUrl>https://raw.githubusercontent.com/libretro/libretro-fceumm/master/Copying</licenseUrl>
+    <iconUrl>https://github.com/Aftnet/RetroCoresNuget/raw/master/Icon.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>FCEUMM NES Emulator</description>
+    <releaseNotes>Experimental nuget package</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>Native Libretro NES core</tags>
+  </metadata>
+  <files>
+    <file src="*uwp_arm\*.dll" target="runtimes\win10-arm\nativeassets\uap10.0" />
+    <file src="*uwp_arm\*.lib" target="runtimes\win10-arm\nativeassets\uap10.0" />
+    <file src="*uwp_x86\*.dll" target="runtimes\win10-x86\nativeassets\uap10.0" />
+    <file src="*uwp_x86\*.lib" target="runtimes\win10-x86\nativeassets\uap10.0" />
+    <file src="*uwp_x64\*.dll" target="runtimes\win10-x64\nativeassets\uap10.0" />
+    <file src="*uwp_x64\*.lib" target="runtimes\win10-x64\nativeassets\uap10.0" />
+    
+    <file src="*desktop_x64\*.dll" target="runtimes\win-x64\nativeassets\native" />
+    <file src="*desktop_x64\*.lib" target="runtimes\win-x64\nativeassets\native" />
+    <file src="*desktop_x86\*.dll" target="runtimes\win-x86\nativeassets\native" />
+    <file src="*desktop_x86\*.lib" target="runtimes\win-x86\nativeassets\native" />
+    
+    <file src="libretro.h" target="build\native\include" />
+    <file src="package.targets" target="build\native\Libretro.FCEUMM.targets"/>
+  </files>
+</package>

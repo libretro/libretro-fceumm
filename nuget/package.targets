@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <LibretroRetroCorePlatform Condition="'$(Platform)' == 'Win32'">x86</LibretroRetroCorePlatform>
+    <LibretroRetroCorePlatform Condition="'$(Platform)' != 'Win32'">$(Platform)</LibretroRetroCorePlatform>
+    <LibretroRetroCoreBinPath Condition="'$(TargetPlatformIdentifier)' == 'UAP'">$(MSBuildThisFileDirectory)..\..\runtimes\win10-$(LibretroRetroCorePlatform)\nativeassets\uap10.0</LibretroRetroCoreBinPath>
+    <LibretroRetroCoreBinPath Condition="'$(TargetPlatformIdentifier)' != 'UAP'">$(MSBuildThisFileDirectory)..\..\runtimes\win-$(LibretroRetroCorePlatform)\nativeassets\native</LibretroRetroCoreBinPath>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>RETRO_IMPORT_SYMBOLS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(MSBuildThisFileDirectory)..\..\build\native\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalLibraryDirectories>$(LibretroRetroCoreBinPath);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>fceumm_libretro.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  
+  <Choose>
+    <When Condition="'$(TargetPlatformIdentifier)' == 'UAP'">
+      <ItemGroup Label="LibretroRetroCoreItemGroup">
+        <PackagingOutputs Include="$(LibretroRetroCoreBinPath)\fceumm_libretro.dll">
+          <OutputGroup>LibretroRetroCoreBinaries</OutputGroup>
+          <ProjectName>$(ProjectName)</ProjectName>
+          <TargetPath>%(Filename)%(Extension)</TargetPath>
+        </PackagingOutputs>
+      </ItemGroup>
+    </When>
+    <When Condition="'$(TargetPlatformIdentifier)' != 'UAP'">
+      <ItemGroup Label="LibretroRetroCoreItemGroup">
+        <Content Include="$(LibretroRetroCoreBinPath)\*.dll">
+          <Link>%(FileName)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+      </ItemGroup>
+    </When>
+  </Choose>
+</Project>

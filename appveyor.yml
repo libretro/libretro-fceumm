@@ -55,7 +55,8 @@ after_build:
         $downloadLocation = $downloadLocation.FullName
 
         # platform monikers neded for package creation
-        $expectedPlatformsMonikers = @("uwp_x64", "uwp_x86", "uwp_arm", "desktop_x64", "desktop_x86")
+        $expectedPlatformsMonikers = @("uwp_x64")
+        #$expectedPlatformsMonikers = @("uwp_x64", "uwp_x86", "uwp_arm", "desktop_x64", "desktop_x86")
 
         Write-Output "Determining build jobs"
         # get project with last build details
