@@ -27,13 +27,16 @@ init:
   - set Path=C:\msys64\usr\bin;%Path%
 
 build_script:
-  - ps: |
-      if($env:PLATFORM -ne "nuget")
-      {
-        cd $env:makefile_location
-        &make -f $env:makefile_name platform=$env:platform
-      }
-      else
+  - cmd: |
+      IF %PLATFORM% NEQ "nuget"
+      (
+        cd %makefile_location%
+        make -f %makefile_name% %platform%
+      )
+
+after_build:
+  -ps : |
+      if($env:PLATFORM -eq "nuget")
       {
         $apiUrl = $env:APPVEYOR_API_URL
         $token = $env:appveyor_api_key
