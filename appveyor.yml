@@ -28,7 +28,6 @@ init:
 
 build_script:
   - cmd: |
-      echo Current platform %platform%
       cd %makefile_location%
       IF %PLATFORM% NEQ nuget make -f %makefile_name% platform=%platform%
 
@@ -129,7 +128,7 @@ after_build:
             throw "No nuspec file found. Terminating"
         }
 
-        &nuget pack $nuspecFile.FullName -version $env:APPVEYOR_BUILD_NUMBER
+        &nuget pack $nuspecFile.FullName -version $env:APPVEYOR_BUILD_NUMBER        
       }
 
 artifacts:
