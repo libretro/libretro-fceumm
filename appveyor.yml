@@ -33,14 +33,15 @@ build_script:
   - ps: |
       if($env:PLATFORM -ne "nuget")
       {
-        echo lool
+        $artifacts = Get-ChildItem -Include @("$env:target_name.dll", "$env:target_name.lib", "$env:target_name.pdb") -Recurse
+        echo $artifacts
       }
 
 after_build:
   - ps: |
       if($env:PLATFORM -eq "nuget")
       {
-        $apiUrl = https://ci.appveyor.com/api
+        $apiUrl = "https://ci.appveyor.com/api"
         $token = $env:appveyor_api_key
         $headers = @{
           "Authorization" = "Bearer $token"
@@ -58,7 +59,7 @@ after_build:
 
         Write-Output "Determining build jobs"
         # get project with last build details
-        echo "$apiUrl/projects/$accountName/$projectSlug"
+        echo "uri: $apiUrl/projects/$accountName/$projectSlug"
         $project = Invoke-RestMethod -Method Get -Uri "$apiUrl/projects/$accountName/$projectSlug" -Headers $headers
         $jobs = $project.build.jobs
 
