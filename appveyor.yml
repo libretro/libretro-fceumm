@@ -16,7 +16,7 @@ configuration:
   - release
 
 platform:
-   - windows_msvc2017_uwp_x64
+  - windows_msvc2017_uwp_x64
 #  - windows_msvc2017_uwp_x86
 #  - windows_msvc2017_uwp_arm
 #  - windows_msvc2017_desktop_x64
