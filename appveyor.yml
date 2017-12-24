@@ -34,10 +34,10 @@ build_script:
   - ps: |
       if($env:PLATFORM -ne $env:nuget_job_platform_id)
       {
-        $artifacts = Get-ChildItem -Include @("$env:target_name*.dll", "$env:target_name*.lib", "$env:target_name*.pdb", "$env:target_name*.exp") -Recurse
+        $artifacts = Get-ChildItem -Include @("libretro.h", "*.nuspec", "*.targets" "$env:target_name*.dll", "$env:target_name*.lib", "$env:target_name*.pdb", "$env:target_name*.exp") -Recurse
         foreach($i in $artifacts)
         {
-          echo $i.Name
+          Push-AppveyorArtifact $i.FullName
         }
       }
 
@@ -142,14 +142,5 @@ after_build:
 
         &nuget pack $nuspecFile.FullName -version $env:APPVEYOR_BUILD_NUMBER
         $nugetFile = Get-ChildItem -Filter *.nupkg -Recurse | Select-Object -First 1
-        echo $nugetFile
         Push-AppveyorArtifact $nugetFile.FullName
       }
-
-artifacts:
-  - path: '**\%target_name%*.dll'
-  - path: '**\%target_name%*.lib'
-  - path: '**\%target_name%*.pdb'
-  - path: '**\libretro.h'
-  - path: '**\package.nuspec'
-  - path: '**\package.targets'
