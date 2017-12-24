@@ -34,8 +34,11 @@ build_script:
   - ps: |
       if($env:PLATFORM -ne $env:nuget_job_platform_id)
       {
-        $artifacts = Get-ChildItem -Include @("$env:target_name.dll", "$env:target_name.lib", "$env:target_name.pdb") -Recurse
-        echo $artifacts
+        $artifacts = Get-ChildItem -Include @("$env:target_name*.dll", "$env:target_name*.lib", "$env:target_name*.pdb", "$env:target_name*.exp") -Recurse
+        foreach($i in $artifacts)
+        {
+          echo $i.Name
+        }
       }
 
 after_build:
@@ -137,7 +140,10 @@ after_build:
             throw "No nuspec file found. Terminating"
         }
 
-        &nuget pack $nuspecFile.FullName -version $env:APPVEYOR_BUILD_NUMBER        
+        &nuget pack $nuspecFile.FullName -version $env:APPVEYOR_BUILD_NUMBER
+        $nugetFile = Get-ChildItem -Filter *.nupkg -Recurse | Select-Object -First 1
+        echo $nugetFile
+        Push-AppveyorArtifact $nugetFile.FullName
       }
 
 artifacts:
