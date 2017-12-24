@@ -27,9 +27,10 @@ init:
   - set Path=C:\msys64\usr\bin;%Path%
 
 build_script:
-  - echo Current platform %platform%
-  - cd %makefile_location%
-  - IF %PLATFORM% NEQ nuget make -f %makefile_name% platform=%platform%
+  - cmd: |
+      echo Current platform %platform%
+      cd %makefile_location%
+      IF %PLATFORM% NEQ nuget make -f %makefile_name% platform=%platform%
 
 after_build:
   - ps: |
