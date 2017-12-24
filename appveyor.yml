@@ -58,6 +58,7 @@ after_build:
 
         Write-Output "Determining build jobs"
         # get project with last build details
+        echo "$apiUrl/projects/$accountName/$projectSlug"
         $project = Invoke-RestMethod -Method Get -Uri "$apiUrl/projects/$accountName/$projectSlug" -Headers $headers
         $jobs = $project.build.jobs
 
