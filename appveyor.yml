@@ -28,7 +28,7 @@ init:
 
 build_script:
   - ps: |
-      if($env:PLATFORM -neq "nuget")
+      if($env:PLATFORM -ne "nuget")
       {
         cd %makefile_location%
         &make -f %makefile_name% platform=%platform%
