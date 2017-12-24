@@ -40,7 +40,7 @@ after_build:
   - ps: |
       if($env:PLATFORM -eq "nuget")
       {
-        $apiUrl = $env:APPVEYOR_API_URL
+        $apiUrl = https://ci.appveyor.com/api
         $token = $env:appveyor_api_key
         $headers = @{
           "Authorization" = "Bearer $token"
