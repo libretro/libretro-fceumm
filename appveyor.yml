@@ -27,7 +27,7 @@ init:
   - set Path=C:\msys64\usr\bin;%Path%
 
 build_script:
--cmd: |
+  -cmd: |
     echo Platform: %PLATFORM%
     IF %PLATFORM% NEQ "nuget" (
       cd %makefile_location%
