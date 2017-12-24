@@ -139,7 +139,7 @@ after_build:
             throw "No nuspec file found. Terminating"
         }
 
-        &nuget pack $nuspecFile.FullName -version $env:version
+        &nuget pack $nuspecFile.FullName -version $env:APPVEYOR_BUILD_VERSION
         $nugetFile = Get-ChildItem -Filter *.nupkg -Recurse | Select-Object -First 1
         Push-AppveyorArtifact $nugetFile.FullName
       }
