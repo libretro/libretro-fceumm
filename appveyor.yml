@@ -29,9 +29,9 @@ init:
 build_script:
   - cmd: |
       IF %PLATFORM% NEQ "nuget" (
-        echo lolololo
         cd %makefile_location%
-        make -f %makefile_name% platform=%platform% )
+        make -f %makefile_name% platform=%platform%
+      )
 
 after_build:
   -ps : |
