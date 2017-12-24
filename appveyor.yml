@@ -28,8 +28,15 @@ init:
 
 build_script:
   - cmd: |
-      cd %makefile_location%
-      IF %PLATFORM% NEQ nuget make -f %makefile_name% platform=%platform%
+      IF %PLATFORM% NEQ nuget (
+        cd %makefile_location%
+        make -f %makefile_name% platform=%platform%
+      )
+  - ps: |
+      if($env:PLATFORM -ne "nuget")
+      {
+        echo arti
+      }
 
 after_build:
   - ps: |
@@ -136,4 +143,3 @@ artifacts:
   - path: '**\%target_name%*.lib'
   - path: '**\%target_name%*.pdb'
   - path: '**\libretro.h'
-  - path: '**\*.nupkg'
