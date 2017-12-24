@@ -30,8 +30,8 @@ build_script:
   - ps: |
       if($env:PLATFORM -ne "nuget")
       {
-        cd %makefile_location%
-        &make -f %makefile_name% platform=%platform%
+        cd $env:makefile_location
+        &make -f $env:makefile_name platform=$env:platform
       }
       else
       {
