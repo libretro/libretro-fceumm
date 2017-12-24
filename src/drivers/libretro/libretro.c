@@ -1324,8 +1324,6 @@ static void retro_run_blit(uint8_t *gfx)
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* texture_vram_p = NULL;
 #endif
-   uint16_t *fceu_video_out_ptr = NULL;
-   struct retro_framebuffer fb = {0};
    unsigned incr   = 0;
    unsigned width  = 256;
    unsigned height = 240;
@@ -1370,17 +1368,6 @@ static void retro_run_blit(uint8_t *gfx)
    height -= (overscan_v ? 16 : 0);
    pitch  -= (overscan_h ? 32 : 0);
    gfx    += (overscan_v ? ((overscan_h ? 8 : 0) + 256 * 8) : (overscan_h ? 8 : 0));
-   fb.width           = width;
-   fb.height          = height;
-   fb.access_flags    = RETRO_MEMORY_ACCESS_WRITE;
-
-   fceu_video_out_ptr = fceu_video_out;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER, &fb) && fb.format == RETRO_PIXEL_FORMAT_RGB565)
-   {
-      fceu_video_out_ptr = (uint16_t*)fb.data;
-      pitch = fb.pitch >> 1;
-   }
 
    if (use_raw_palette)
    {
@@ -1388,16 +1375,16 @@ static void retro_run_blit(uint8_t *gfx)
       int deemp = (PPU[1] >> 5) << 2;
       for (y = 0; y < height; y++, gfx += incr)
          for ( x = 0; x < width; x++, gfx++)
-            fceu_video_out_ptr[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+            fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
    }
    else
    {
       for (y = 0; y < height; y++, gfx += incr)
          for ( x = 0; x < width; x++, gfx++)
-            fceu_video_out_ptr[y * width + x] = retro_palette[*gfx];
+            fceu_video_out[y * width + x] = retro_palette[*gfx];
    }
 
-   video_cb(fceu_video_out_ptr, width, height, pitch);
+   video_cb(fceu_video_out, width, height, pitch);
 #endif
 }
 
