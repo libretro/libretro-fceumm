@@ -17,18 +17,19 @@ configuration:
 
 platform:
   - windows_msvc2017_uwp_x64
-  - windows_msvc2017_uwp_x86
-  - windows_msvc2017_uwp_arm
-  - windows_msvc2017_desktop_x64
-  - windows_msvc2017_desktop_x86
+#  - windows_msvc2017_uwp_x86
+#  - windows_msvc2017_uwp_arm
+#  - windows_msvc2017_desktop_x64
+#  - windows_msvc2017_desktop_x86
   - nuget
 
 init:
   - set Path=C:\msys64\usr\bin;%Path%
 
 build_script:
+  - echo Current platform %platform%
   - cd %makefile_location%
-  - IF %PLATFORM% NEQ "nuget" make -f %makefile_name% platform=%platform%
+  - IF %PLATFORM% NEQ nuget make -f %makefile_name% platform=%platform%
 
 after_build:
   -ps : |
