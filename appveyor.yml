@@ -5,6 +5,7 @@ shallow_clone: true
 image: Visual Studio 2017
 
 environment:
+  nuget_job_platform_id: nuget
   appveyor_api_key:
     secure:
       JCVa4YmZI+ct0f0LSYPOBFzK1rw/UM2xEgka3UgvXhI=
@@ -28,10 +29,10 @@ init:
 
 build_script:
   - cmd: |
-      IF %PLATFORM% NEQ nuget cd %makefile_location%
-      IF %PLATFORM% NEQ nuget make -f %makefile_name% platform=%PLATFORM%
+      IF %PLATFORM% NEQ %nuget_job_platform_id% cd %makefile_location%
+      IF %PLATFORM% NEQ %nuget_job_platform_id% make -f %makefile_name% platform=%PLATFORM%
   - ps: |
-      if($env:PLATFORM -ne "nuget")
+      if($env:PLATFORM -ne $env:nuget_job_platform_id)
       {
         $artifacts = Get-ChildItem -Include @("$env:target_name.dll", "$env:target_name.lib", "$env:target_name.pdb") -Recurse
         echo $artifacts
@@ -39,7 +40,7 @@ build_script:
 
 after_build:
   - ps: |
-      if($env:PLATFORM -eq "nuget")
+      if($env:PLATFORM -eq $env:nuget_job_platform_id)
       {
         $apiUrl = "https://ci.appveyor.com/api"
         $token = $env:appveyor_api_key
@@ -50,7 +51,7 @@ after_build:
         $accountName = $env:APPVEYOR_ACCOUNT_NAME
         $projectSlug = $env:APPVEYOR_PROJECT_SLUG
 
-        $downloadLocation = $projectSlug
+        $downloadLocation = "$projectSlug_nugetstaging"
         $downloadLocation = New-Item -ItemType Directory -Force -Path $downloadLocation
         $downloadLocation = $downloadLocation.FullName
 
@@ -62,12 +63,12 @@ after_build:
         # get project with last build details
         echo "uri: $apiUrl/projects/$accountName/$projectSlug"
         $project = Invoke-RestMethod -Method Get -Uri "$apiUrl/projects/$accountName/$projectSlug" -Headers $headers
-        $jobs = $project.build.jobs
+        $jobs = $project.build.jobs | Where-Object {$_.status -eq "success"}
 
         $expectedPlatformsFound = $true
         foreach($i in $expectedPlatformsMonikers)
         {
-            $matchingJob = $jobs | Where-Object {$_.name -like "*$i*" -and $_.status -eq "success"}
+            $matchingJob = $jobs | Where-Object {$_.name -like "*$i*"}
             if($matchingJob -eq $null)
             {
                 $expectedPlatformsFound = $false
@@ -81,7 +82,7 @@ after_build:
         }
 
         $commonArtifactsDownloaded = $false
-        foreach($job in $project.build.jobs)
+        foreach($job in $jobs)
         {
             $jobId = $job.jobId
             $jobName = $job.name -replace "Platform: ", ""
@@ -144,3 +145,5 @@ artifacts:
   - path: '**\%target_name%*.lib'
   - path: '**\%target_name%*.pdb'
   - path: '**\libretro.h'
+  - path: '**\package.nuspec'
+  - path: '**\package.targets'
