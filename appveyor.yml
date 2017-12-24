@@ -51,7 +51,7 @@ after_build:
         $accountName = $env:APPVEYOR_ACCOUNT_NAME
         $projectSlug = $env:APPVEYOR_PROJECT_SLUG
 
-        $downloadLocation = "$projectSlug_nugetstaging"
+        $downloadLocation = "$projectSlug-nugetstaging"
         $downloadLocation = New-Item -ItemType Directory -Force -Path $downloadLocation
         $downloadLocation = $downloadLocation.FullName
 
