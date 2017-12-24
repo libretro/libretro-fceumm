@@ -27,11 +27,15 @@ init:
   - set Path=C:\msys64\usr\bin;%Path%
 
 build_script:
-  - cmd : |
-      echo mgoiweoso;p;g;
+  -cmd : |
+      IF %PLATFORM% NEQ "nuget" (
+        cd %makefile_location%
+        make -f %makefile_name% platform=%platform%
+      )
+
 
 after_build:
-  - ps: |
+  -ps : |
       if($env:PLATFORM -eq "nuget")
       {
         $apiUrl = $env:APPVEYOR_API_URL
