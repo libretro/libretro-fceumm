@@ -58,6 +58,7 @@ static bool overscan_v;
 #endif
 static bool use_raw_palette;
 static bool use_par;
+static bool enable_4player = false;
 static unsigned turbo_enabler[MAX_PLAYERS] = {0};
 static unsigned turbo_delay = 0;
 static unsigned input_type[MAX_PLAYERS + 1] = {0}; /* 4-players + famicom expansion */
@@ -843,6 +844,9 @@ void set_input_nes_controller(unsigned port, int x)
          FCEU_printf(" Player %u: Gamepad\n", port + 1);
          break;
    }
+
+   if (enable_4player) // check if 4-player mode is enabled
+      input_type[2] = input_type[3] = RETRO_DEVICE_GAMEPAD;
 }
 
 /* Set Famicom controllers */
@@ -867,7 +871,7 @@ void set_input_famicom_controller(int x)
          break;
       default:
          /* Do not disable port if a 4-player adaptor is used */
-         if (input_type[2] != RETRO_DEVICE_GAMEPAD || input_type[3] != RETRO_DEVICE_GAMEPAD)
+         if (!enable_4player)
          {
             input_type[4] = 0;
             FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
@@ -1223,68 +1227,68 @@ unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
 
 static void FCEUD_UpdateInput(void)
 {
-   unsigned player, i;
-   unsigned char pad[4];
-
-   for (player = 0; player < MAX_PLAYERS; player++)
-      pad[player] = 0; /* reset pads */
+   unsigned player, port, i;
 
    poll_cb();
 
-   /* process nes inputs */
+   JSReturn = 0;
+
+   // nes gamepad
    for (player = 0; player < MAX_PLAYERS; player++)
    {
-      switch (input_type[player])
+      uint8_t input_buf   = 0;
+      bool player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD);
+
+      for (i = 0; i < 8; i++)
+         input_buf |= (player_enabled && input_cb(player, RETRO_DEVICE_JOYPAD, 0,
+            bindmap[i].retro)) ? bindmap[i].nes : 0;
+
+      /* Turbo A and Turbo B buttons are
+      * mapped to Joypad X and Joypad Y
+      * in RetroArch joypad.
+      *
+      * We achieve this by keeping track of
+      * the number of times it increments
+      * the toggle counter and fire or not fire
+      * depending on whether the delay value has
+      * been reached.
+      */
+
+      if (turbo_enabler[player] == 1 && player_enabled)
       {
-         case RETRO_DEVICE_GAMEPAD:
-            for (i = 0; i < 8; i++)
-               pad[player] |= input_cb(player, RETRO_DEVICE_JOYPAD, 0,
-                              bindmap[i].retro) ? bindmap[i].nes : 0;
-
-            /* Turbo A and Turbo B buttons are
-             * mapped to Joypad X and Joypad Y
-            * in RetroArch joypad.
-            *
-            * We achieve this by keeping track of
-            * the number of times it increments
-            * the toggle counter and fire or not fire
-            * depending on whether the delay value has
-            * been reached.
-            */
-
-            if (turbo_enabler[player] == 1)
+         /* Handle Turbo A & B buttons */
+         for (i = 8; i < 10; i++)
+         {
+            if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
             {
-               /* Handle Turbo A & B buttons */
-               for (i = 8; i < 10; i++)
-               {
-                  if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
-                  {
-                     if (turbo_button_toggle[player][i-8] == 0)
-                        pad[player] |= bindmap[i].nes;
-                     turbo_button_toggle[player][i-8]++;
-                     if (turbo_button_toggle[player][i-8] > turbo_delay)
-                        /* Reset the toggle if delay value is reached */
-                        turbo_button_toggle[player][i-8] = 0;
-                  }
-                  else
-                     /* If the button is not pressed, just reset the toggle */
-                     turbo_button_toggle[player][i-8] = 0;
-               }
+               if (turbo_button_toggle[player][i-8] == 0)
+                  input_buf |= bindmap[i].nes;
+               turbo_button_toggle[player][i-8]++;
+               if (turbo_button_toggle[player][i-8] > turbo_delay)
+                  /* Reset the toggle if delay value is reached */
+                  turbo_button_toggle[player][i-8] = 0;
             }
+            else
+               /* If the button is not pressed, just reset the toggle */
+               turbo_button_toggle[player][i-8] = 0;
+         }
+      }
+      JSReturn |= (input_buf & 0xff) << (player << 3);
+   }
 
-            JSReturn =  (pad[0] & 0xff) | ((pad[1] & 0xff) << 8) |
-                        ((pad[2] & 0xff) << 16) | ((pad[3] & 0xff) << 24);
-            break; /* RETRO_DEVICE_GAMEPAD */
-
+   /* other inputs*/
+   for (port = 0; port < MAX_PORTS; port++)
+   {
+      switch (input_type[port])
+      {
          case RETRO_DEVICE_ARKANOID:
          case RETRO_DEVICE_ZAPPER:
-            if (player < MAX_PORTS)
-               get_mouse_input(player, MouseData[player]);
-            break; /* RETRO_DEVICE_ZAPPER */
+            get_mouse_input(port, MouseData[port]);
+            break;
       }
    }
 
-   /* process famicom inputs */
+   /* famicom inputs */
    switch (input_type[4])
    {
       case RETRO_DEVICE_FC_ARKANOID:
@@ -1844,12 +1848,8 @@ bool retro_load_game(const struct retro_game_info *game)
       return false;
    }
 
-   input_type[0] = RETRO_DEVICE_GAMEPAD;
-   input_type[1] = RETRO_DEVICE_GAMEPAD;
-   input_type[2] = RETRO_DEVICE_NONE;
-   input_type[3] = RETRO_DEVICE_NONE;
-   FCEUI_SetInput(0, SI_GAMEPAD, &JSReturn, 0);
-   FCEUI_SetInput(1, SI_GAMEPAD, &JSReturn, 0);
+   for (i = 0; i < MAX_PORTS; i++)
+      FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
@@ -1874,8 +1874,7 @@ bool retro_load_game(const struct retro_game_info *game)
       if (fourscore_db_list[i].crc == iNESGameCRC32)
       {
          FCEUI_DisableFourScore(0);
-         input_type[2] = RETRO_DEVICE_GAMEPAD;
-         input_type[3] = RETRO_DEVICE_GAMEPAD;
+         enable_4player = true;
          break;
       }
    }
@@ -1885,8 +1884,7 @@ bool retro_load_game(const struct retro_game_info *game)
       if (famicom_4p_db_list[i].crc == iNESGameCRC32)
       {
          FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
-         input_type[2] = RETRO_DEVICE_GAMEPAD;
-         input_type[3] = RETRO_DEVICE_GAMEPAD;
+         enable_4player = true;
          break;
       }
    }
