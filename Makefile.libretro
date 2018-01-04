@@ -256,6 +256,15 @@ else ifeq ($(platform), wiiu)
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
+# Nintendo Switch (libtransistor)
+else ifeq ($(platform), switch)
+	EXT=a
+        TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
+        include $(LIBTRANSISTOR_HOME)/libtransistor.mk
+        STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
+
+
 # ARM
 else ifneq (,$(findstring armv,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro.so
