@@ -37,8 +37,8 @@
 #define RETRO_DEVICE_FC_OEKAKIDS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  3)
 #define RETRO_DEVICE_FC_SHADOW   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
 
-#define NES_8_7_PAR (width * (8.0 / 7.0)) / height
-#define NES_4_3 4.0 / 3.0
+#define NES_8_7_PAR  ((width * (8.0 / 7.0)) / height)
+#define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
 
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
@@ -653,7 +653,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.base_height = height;
    info->geometry.max_width = width;
    info->geometry.max_height = height;
-   info->geometry.aspect_ratio = use_par ? NES_8_7_PAR : NES_4_3;
+   info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
