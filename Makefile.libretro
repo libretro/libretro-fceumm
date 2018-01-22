@@ -58,7 +58,13 @@ LIBS :=
 ifeq ($(platform), unix)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
+ifneq ($(findstring SunOS,$(shell uname -a)),)
+	CC = gcc
+	SHARED := -shared -z defs
+else
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+endif
+
 else ifeq ($(platform), linux-portable)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC -nostdlib
