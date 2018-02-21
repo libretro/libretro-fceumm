@@ -37,10 +37,17 @@
 #include "mapinc.h"
 #include "../ines.h"
 
+/* Workaround for libretro api compatibility */
+#define ROM_size_max                32
+#define flashdata_size          (ROM_size_max * 0x4000)
+#define flash_write_count_size  (ROM_size_max * 4 * sizeof(uint32))
+static uint8 fceumm_flash_buf[flashdata_size + flash_write_count_size];
+static uint32 fceumm_flash_buf_size = sizeof(fceumm_flash_buf);
+
 static uint8 latche, latcheinit, bus_conflict, chrram_mask, software_id=0;
 static uint16 latcha;
-static uint8 *flashdata;
-static uint32 *flash_write_count;
+static uint8 *flashdata = fceumm_flash_buf + flash_write_count_size;
+static uint32 *flash_write_count = (uint32*)fceumm_flash_buf;
 static uint8 *FlashPage[32];
 /* static uint32 *FlashWriteCountPage[32]; */
 /* static uint8 flashloaded = 0; */
@@ -139,14 +146,7 @@ static void UNROM512LatchPower(void) {
 }
 
 static void UNROM512LatchClose(void) {
-	if (flash_write_count)
-		FCEU_gfree(flash_write_count);
-	if (flashdata)
-		FCEU_gfree(flashdata);
-	flash_write_count = NULL;
-	flashdata = NULL;
 }
-
 
 static void UNROM512LSync() {
 	int erase_a[5] = { 0x9555, 0xAAAA, 0x9555, 0x9555, 0xAAAA };
@@ -210,6 +210,7 @@ static void UNROM512HSync() {
 }
 
 void UNROM512_Init(CartInfo *info) {
+	memset(fceumm_flash_buf, 0x00, fceumm_flash_buf_size);
 	flash_state = 0;
 	flash_bank = 0;
 	flash_save = info->battery;
@@ -231,12 +232,8 @@ void UNROM512_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 	if (flash_save)
 	{
-		flashdata = (uint8*)FCEU_gmalloc(ROM_size * 0x4000);
-		flash_write_count = (uint32*)FCEU_gmalloc(ROM_size * 4 * sizeof(uint32));
-		info->SaveGame[0] = (uint8*)flash_write_count;
-		info->SaveGame[1] = flashdata;
-		info->SaveGameLen[0] = ROM_size * 4 * sizeof(uint32);
-		info->SaveGameLen[1] = ROM_size * 0x4000;
+		info->SaveGame[0] = fceumm_flash_buf;
+		info->SaveGameLen[0] = fceumm_flash_buf_size;
 		AddExState(flash_write_count,ROM_size * 4 * sizeof(uint32), 0, "FLASH_WRITE_COUNT");
 		AddExState(flashdata,ROM_size * 0x4000, 0, "FLASH_DATA");
 		AddExState(&flash_state, 1, 0, "FLASH_STATE");
