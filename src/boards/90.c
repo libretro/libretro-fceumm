@@ -396,7 +396,7 @@ static void FP_FASTAPASS(1) M90PPU(uint32 A) {
 	}
 }
 
-static void togglie() {
+static void togglie(void) {
 	tekker += 0x40;
 	tekker &= 0xC0;
 	FCEU_printf("tekker=%02x\n", tekker);

@@ -51,7 +51,12 @@ GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
 	CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
+
+ifneq (,$(findstring msvc,$(platform)))
+LIBM :=
+else
 LIBM := -lm
+endif
 LIBS :=
 
 # Unix

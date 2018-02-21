@@ -530,7 +530,7 @@ typedef struct {
 static MMC5APU MMC5Sound;
 
 
-static void Do5PCM() {
+static void Do5PCM(void) {
 	int32 V;
 	int32 start, end;
 
@@ -544,7 +544,7 @@ static void Do5PCM() {
 			Wave[V >> 4] += MMC5Sound.raw << 1;
 }
 
-static void Do5PCMHQ() {
+static void Do5PCMHQ(void) {
 	uint32 V;
 	if (!(MMC5Sound.rawcontrol & 0x40) && MMC5Sound.raw)
 		for (V = MMC5Sound.BC[2]; V < SOUNDTS; V++)

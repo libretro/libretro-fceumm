@@ -65,7 +65,7 @@ static void MNNNClose(void) {
 }
 */
 
-static void MNNNIRQHook() {
+static void MNNNIRQHook(void) {
 	X6502_IRQBegin(FCEU_IQEXT);
 }
 

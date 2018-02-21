@@ -176,7 +176,7 @@ void CNROM_Init(CartInfo *info) {
 
 /*------------------ Map 7 ---------------------------*/
 
-static void ANROMSync() {
+static void ANROMSync(void) {
 	setprg32(0x8000, latche & 0xF);
 	setmirror(MI_0 + ((latche >> 4) & 1));
 	setchr8(0);
@@ -188,7 +188,7 @@ void ANROM_Init(CartInfo *info) {
 
 /*------------------ Map 8 ---------------------------*/
 
-static void M8Sync() {
+static void M8Sync(void) {
 	setprg16(0x8000, latche >> 3);
 	setprg16(0xc000, 1);
 	setchr8(latche & 3);
@@ -249,7 +249,7 @@ void MHROM_Init(CartInfo *info) {
 
 /*------------------ Map 70 ---------------------------*/
 
-static void M70Sync() {
+static void M70Sync(void) {
 	setprg16(0x8000, latche >> 4);
 	setprg16(0xc000, ~0);
 	setchr8(latche & 0xf);
@@ -261,7 +261,7 @@ void Mapper70_Init(CartInfo *info) {
 
 /*------------------ Map 78 ---------------------------*/
 /* Should be two separate emulation functions for this "mapper".  Sigh.  URGE TO KILL RISING. */
-static void M78Sync() {
+static void M78Sync(void) {
 	setprg16(0x8000, (latche & 7));
 	setprg16(0xc000, ~0);
 	setchr8(latche >> 4);
@@ -392,7 +392,7 @@ void Mapper140_Init(CartInfo *info) {
 
 /*------------------ Map 152 ---------------------------*/
 
-static void M152Sync() {
+static void M152Sync(void) {
 	setprg16(0x8000, (latche >> 4) & 7);
 	setprg16(0xc000, ~0);
 	setchr8(latche & 0xf);

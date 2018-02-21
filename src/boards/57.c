@@ -62,7 +62,7 @@ static void M57Power(void) {
 	Sync();
 }
 
-static void M57Reset() {
+static void M57Reset(void) {
 	hrd_flag++;
 	hrd_flag &= 3;
 	FCEU_printf("Select Register = %02x\n", hrd_flag);

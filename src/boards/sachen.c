@@ -255,22 +255,22 @@ static void SADPower(void) {
 	SetWriteHandler(0x8000, 0xFFFF, SADWrite);
 }
 
-static void SA0161MSynco() {
+static void SA0161MSynco(void) {
 	setprg32(0x8000, (latch[0] >> 3) & 1);
 	setchr8(latch[0] & 7);
 }
 
-static void SA72007Synco() {
+static void SA72007Synco(void) {
 	setprg32(0x8000, 0);
 	setchr8(latch[0] >> 7);
 }
 
-static void SA009Synco() {
+static void SA009Synco(void) {
 	setprg32(0x8000, 0);
 	setchr8(latch[0] & 1);
 }
 
-static void SA72008Synco() {
+static void SA72008Synco(void) {
 	setprg32(0x8000, (latch[0] >> 2) & 1);
 	setchr8(latch[0] & 3);
 }

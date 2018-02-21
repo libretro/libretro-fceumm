@@ -148,7 +148,7 @@ static void UNROM512LatchPower(void) {
 static void UNROM512LatchClose(void) {
 }
 
-static void UNROM512LSync() {
+static void UNROM512LSync(void) {
 	int erase_a[5] = { 0x9555, 0xAAAA, 0x9555, 0x9555, 0xAAAA };
 	int erase_d[5] = { 0xAA, 0x55, 0x80, 0xAA, 0x55 };
 	int erase_b[5] = { 1, 0, 1, 1, 0 };
@@ -198,7 +198,7 @@ static void UNROM512LSync() {
 	}
 }
 
-static void UNROM512HSync() {
+static void UNROM512HSync(void) {
 	flash_bank=latche&(ROM_size - 1);
 
 	setprg16(0x8000, flash_bank);
