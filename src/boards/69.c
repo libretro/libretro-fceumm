@@ -218,7 +218,6 @@ void Mapper69_ESI(void) {
 	memset(dcount, 0, sizeof(dcount));
 	memset(vcount, 0, sizeof(vcount));
 	memset(CAYBC, 0, sizeof(CAYBC));
-	AddExState(&SStateRegs, ~0, 0, 0);
 }
 
 /* SUNSOFT-5/FME-7 Sound */
@@ -271,6 +270,7 @@ void Mapper69_Init(CartInfo *info) {
 	}
 	GameStateRestore = StateRestore;
 	Mapper69_ESI();
+	AddExState(&SStateRegs, ~0, 0, 0);
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
@@ -279,4 +279,5 @@ void NSFAY_Init(void) {
 	SetWriteHandler(0xC000, 0xDFFF, M69SWrite0);
 	SetWriteHandler(0xE000, 0xFFFF, M69SWrite1);
 	Mapper69_ESI();
+	AddExState(&SStateRegs, ~0, 0, 0);
 }
