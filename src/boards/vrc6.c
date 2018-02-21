@@ -337,7 +337,6 @@ static void VRC6_ESI(void) {
 		}
 	} else
 		memset(sfun, 0, sizeof(sfun));
-	AddExState(&SStateRegs, ~0, 0, 0);
 }
 
 /* VRC6 Sound */
@@ -348,6 +347,7 @@ void Mapper24_Init(CartInfo *info) {
 	MapIRQHook = VRC6IRQHook;
 	VRC6_ESI();
 	GameStateRestore = StateRestore;
+	AddExState(&SStateRegs, ~0, 0, 0);
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
@@ -367,11 +367,12 @@ void Mapper26_Init(CartInfo *info) {
 		info->SaveGame[0] = WRAM;
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
-
+	AddExState(&SStateRegs, ~0, 0, 0);
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
 void NSFVRC6_Init(void) {
 	VRC6_ESI();
 	SetWriteHandler(0x8000, 0xbfff, VRC6SW);
+	AddExState(&SStateRegs, ~0, 0, 0);
 }
