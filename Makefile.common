@@ -2,7 +2,16 @@ LIBRETRO_COMM_DIR := $(CORE_DIR)/drivers/libretro/libretro-common
 INCFLAGS      := -I$(CORE_DIR)/drivers/libretro -I$(LIBRETRO_COMM_DIR)/include -I$(CORE_DIR) -I$(CORE_DIR)/input -I$(CORE_DIR)/boards -I$(CORE_DIR)/mappers
 COREDEFINES    = -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565 
 
+INCLUDE_STDINT = 0
 ifneq (,$(findstring msvc2003,$(platform)))
+INCLUDE_STDINT = 1
+endif
+
+ifneq (,$(findstring msvc2005,$(platform)))
+INCLUDE_STDINT = 1
+endif
+
+ifeq ($(INCLUDE_STDINT), 1)
 INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
 endif
 
