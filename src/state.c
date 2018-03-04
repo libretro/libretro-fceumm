@@ -76,6 +76,7 @@ SFORMAT SFCPUC[] = {
 	{ &X.tcount, 4 | RLSB, "ICoa" },
 	{ &X.count, 4 | RLSB, "ICou" },
 	{ &timestampbase, sizeof(timestampbase) | RLSB, "TSBS" },
+	{ &X.mooPI, 1, "MooP"},
 	{ 0 }
 };
 
