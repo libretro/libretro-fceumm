@@ -47,74 +47,73 @@ static void (*SPostSave)(void);
 static SFORMAT SFMDATA[64];
 static int SFEXINDEX;
 
-#define RLSB     FCEUSTATE_RLSB	/* 0x80000000 */
+#define RLSB     FCEUSTATE_RLSB     /* 0x80000000 */
 
 extern SFORMAT FCEUPPU_STATEINFO[];
 extern SFORMAT FCEUSND_STATEINFO[];
 extern SFORMAT FCEUCTRL_STATEINFO[];
 
-
 SFORMAT SFCPU[] = {
-	{ &X.PC, 2 | RLSB, "PC\0" },
-	{ &X.A, 1, "A\0\0" },
-	{ &X.X, 1, "X\0\0" },
-	{ &X.Y, 1, "Y\0\0" },
-	{ &X.S, 1, "S\0\0" },
-	{ &X.P, 1, "P\0\0" },
-	{ &X.DB, 1, "DB"},
+   { &X.PC, 2 | RLSB, "PC\0" },
+   { &X.A, 1, "A\0\0" },
+   { &X.X, 1, "X\0\0" },
+   { &X.Y, 1, "Y\0\0" },
+   { &X.S, 1, "S\0\0" },
+   { &X.P, 1, "P\0\0" },
+   { &X.DB, 1, "DB"},
 #ifdef COPYFAMI
-	{ RAM, 0x4000, "RAM" },
+   { RAM, 0x4000, "RAM" },
 #else
-	{ RAM, 0x800, "RAM" },
+   { RAM, 0x800, "RAM" },
 #endif
-	{ 0 }
+   { 0 }
 };
 
 SFORMAT SFCPUC[] = {
-	{ &X.jammed, 1, "JAMM" },
-	{ &X.IRQlow, 4 | RLSB, "IQLB" },
-	{ &X.tcount, 4 | RLSB, "ICoa" },
-	{ &X.count, 4 | RLSB, "ICou" },
-	{ &timestampbase, sizeof(timestampbase) | RLSB, "TSBS" },
-	{ &X.mooPI, 1, "MooP"},
-	{ 0 }
+   { &X.jammed, 1, "JAMM" },
+   { &X.IRQlow, 4 | RLSB, "IQLB" },
+   { &X.tcount, 4 | RLSB, "ICoa" },
+   { &X.count, 4 | RLSB, "ICou" },
+   { &timestampbase, sizeof(timestampbase) | RLSB, "TSBS" },
+   { &X.mooPI, 1, "MooP"},
+   { 0 }
 };
 
 static int SubWrite(memstream_t *mem, SFORMAT *sf)
 {
-   uint32 acc=0;
+   uint32 acc = 0;
 
    while(sf->v)
    {
-      if(sf->s==~0) /* Link to another struct. */
+      if(sf->s == ~0) /* Link to another struct. */
       {
          uint32 tmp;
 
-         if(!(tmp=SubWrite(mem, (SFORMAT *)sf->v)))
+         if(!(tmp = SubWrite(mem, (SFORMAT *)sf->v)))
             return(0);
-         acc+=tmp;
+         acc += tmp;
          sf++;
          continue;
       }
 
-      acc+=8; /* Description + size */
-      acc+=sf->s&(~RLSB);
+      acc += 8; /* Description + size */
+      acc += sf->s & (~RLSB);
 
       if(mem) /* Are we writing or calculating the size of this block? */
       {
          memstream_write(mem, sf->desc, 4);
-         write32le_mem(sf->s&(~RLSB), mem);
+         write32le_mem(sf->s & (~RLSB), mem);
 
 #ifdef MSB_FIRST
-         if(sf->s&RLSB)
-            FlipByteOrder((uint8 *)sf->v,sf->s&(~RLSB));
+         if(sf->s & RLSB)
+            FlipByteOrder((uint8 *)sf->v, sf->s & (~RLSB));
 #endif
+         memstream_write(mem, (uint8 *)sf->v, sf->s & (~RLSB));
 
-         memstream_write(mem, (uint8 *)sf->v, sf->s&(~RLSB));
          /* Now restore the original byte order. */
 #ifdef MSB_FIRST
-         if(sf->s&RLSB)
-            FlipByteOrder((uint8 *)sf->v,sf->s&(~RLSB));
+         if(sf->s & RLSB)
+            FlipByteOrder((uint8 *)sf->v, sf->s & (~RLSB));
 #endif
       }
       sf++;
@@ -129,7 +128,7 @@ static int WriteStateChunk(memstream_t *mem, int type, SFORMAT *sf)
 
    memstream_putc(mem, type);
 
-   bsize = SubWrite(0,sf);
+   bsize = SubWrite(0, sf);
    write32le_mem(bsize, mem);
 
    if (!SubWrite(mem, sf))
@@ -142,7 +141,7 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
    while (sf->v)
    {
       if (sf->s == ~0)
-      {	/* Link to another SFORMAT structure. */
+      { /* Link to another SFORMAT structure. */
          SFORMAT *tmp;
          if ((tmp = CheckS((SFORMAT*)sf->v, tsize, desc)))
             return(tmp);
@@ -164,28 +163,28 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 {
    SFORMAT *tmp;
    int temp;
-   temp=memstream_pos(mem);
+   temp = memstream_pos(mem);
 
-   while(memstream_pos(mem)<temp+size)
+   while(memstream_pos(mem) < (temp + size))
    {
       uint32 tsize;
       char toa[4];
-      if(memstream_read(mem, toa, 4)<=0)
+      if(memstream_read(mem, toa, 4) <= 0)
          return 0;
 
-      read32le_mem(&tsize,mem);
+      read32le_mem(&tsize, mem);
 
-      if((tmp=CheckS(sf,tsize,toa)))
+      if((tmp = CheckS(sf, tsize, toa)))
       {
-         memstream_read(mem, (uint8 *)tmp->v, tmp->s&(~RLSB));
+         memstream_read(mem, (uint8 *)tmp->v, tmp->s & (~RLSB));
 
 #ifdef MSB_FIRST
-         if(tmp->s&RLSB)
-            FlipByteOrder((uint8 *)tmp->v,tmp->s&(~RLSB));
+         if(tmp->s & RLSB)
+            FlipByteOrder((uint8 *)tmp->v, tmp->s & (~RLSB));
 #endif
       }
       else
-         memstream_seek(mem,tsize,SEEK_CUR);
+         memstream_seek(mem, tsize, SEEK_CUR);
    }
    return 1;
 }
@@ -201,7 +200,7 @@ static int ReadStateChunks(memstream_t *st, int32 totalsize)
       t = memstream_getc(st);
       if (t == EOF)
          break;
-      if (!read32le_mem(&size,st))
+      if (!read32le_mem(&size, st))
          break;
       totalsize -= size + 5;
 
@@ -251,7 +250,7 @@ void FCEUSS_Save_Mem(void)
 
    uint32 totalsize;
    uint8 header[16] = {0};
-   
+
    header[0] = 'F';
    header[1] = 'C';
    header[2] = 'S';
@@ -261,7 +260,7 @@ void FCEUSS_Save_Mem(void)
    memstream_write(mem, header, 16);
 
    FCEUPPU_SaveState();
-   totalsize = WriteStateChunk(mem, 1, SFCPU);
+   totalsize  = WriteStateChunk(mem, 1, SFCPU);
    totalsize += WriteStateChunk(mem, 2, SFCPUC);
    totalsize += WriteStateChunk(mem, 3, FCEUPPU_STATEINFO);
    totalsize += WriteStateChunk(mem, 4, FCEUCTRL_STATEINFO);
@@ -288,10 +287,10 @@ void FCEUSS_Load_Mem(void)
    uint8 header[16];
    int stateversion;
    int x;
-   
+
    memstream_read(mem, header, 16);
 
-   if (memcmp(header,"FCS",3) != 0)
+   if (memcmp(header, "FCS", 3) != 0)
       return;
 
    if (header[3] == 0xFF)
@@ -302,7 +301,7 @@ void FCEUSS_Load_Mem(void)
    x = ReadStateChunks(mem, *(uint32*)(header + 4));
 
    if (stateversion < 9500)
-      X.IRQlow=0;
+      X.IRQlow = 0;
 
    if (GameStateRestore)
       GameStateRestore(stateversion);
@@ -318,21 +317,23 @@ void FCEUSS_Load_Mem(void)
 
 void ResetExState(void (*PreSave)(void), void (*PostSave)(void))
 {
-	SPreSave = PreSave;
-	SPostSave = PostSave;
-	SFEXINDEX = 0;
+   SPreSave  = PreSave;
+   SPostSave = PostSave;
+   SFEXINDEX = 0;
 }
 
 void AddExState(void *v, uint32 s, int type, char *desc)
 {
-	memset(SFMDATA[SFEXINDEX].desc, 0, sizeof(SFMDATA[SFEXINDEX].desc));
-	if (desc)
-		strncpy(SFMDATA[SFEXINDEX].desc, desc, sizeof(SFMDATA[SFEXINDEX].desc));
-	SFMDATA[SFEXINDEX].v = v;
-	SFMDATA[SFEXINDEX].s = s;
-	if (type) SFMDATA[SFEXINDEX].s |= RLSB;
-	if (SFEXINDEX < 63) SFEXINDEX++;
-	SFMDATA[SFEXINDEX].v = 0;	/* End marker. */
+   memset(SFMDATA[SFEXINDEX].desc, 0, sizeof(SFMDATA[SFEXINDEX].desc));
+   if (desc)
+      strncpy(SFMDATA[SFEXINDEX].desc, desc, sizeof(SFMDATA[SFEXINDEX].desc));
+   SFMDATA[SFEXINDEX].v = v;
+   SFMDATA[SFEXINDEX].s = s;
+   if (type)
+      SFMDATA[SFEXINDEX].s |= RLSB;
+   if (SFEXINDEX < 63)
+      SFEXINDEX++;
+   SFMDATA[SFEXINDEX].v = 0;   /* End marker. */
 }
 
 void FCEU_DrawSaveStates(uint8 *XBuf)
