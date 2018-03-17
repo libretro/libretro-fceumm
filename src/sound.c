@@ -1166,12 +1166,13 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	//these are important for smooth sound after loading state
 	{ &sqacc[0], sizeof(sqacc[0]) | FCEUSTATE_RLSB, "SAC1" },
 	{ &sqacc[1], sizeof(sqacc[1]) | FCEUSTATE_RLSB, "SAC2" },
-	{ &RectDutyCount, sizeof(RectDutyCount) | FCEUSTATE_RLSB, "RCTD"},
+	{ &RectDutyCount[0], sizeof(RectDutyCount[0]) | FCEUSTATE_RLSB, "RCD1"},
+	{ &RectDutyCount[1], sizeof(RectDutyCount[1]) | FCEUSTATE_RLSB, "RCD2"},
 	{ &tristep, sizeof(tristep) | FCEUSTATE_RLSB, "TRIS"},
 	{ &lq_triacc, sizeof(lq_triacc) | FCEUSTATE_RLSB, "TACC" },
 	{ &lq_noiseacc, sizeof(lq_noiseacc) | FCEUSTATE_RLSB, "NACC" },
-
-	//not sure about these, but save/load them anyway
+	
+	//less important but still necessary
 	{ &ChannelBC[0], sizeof(ChannelBC[1]) | FCEUSTATE_RLSB, "CBC1" },
 	{ &ChannelBC[1], sizeof(ChannelBC[1]) | FCEUSTATE_RLSB, "CBC2" },
 	{ &ChannelBC[2], sizeof(ChannelBC[2]) | FCEUSTATE_RLSB, "CBC3" },
@@ -1186,6 +1187,9 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &sexyfilter_acc1, sizeof(sexyfilter_acc1) | FCEUSTATE_RLSB, "FAC1" },
 	{ &sexyfilter_acc2, sizeof(sexyfilter_acc2) | FCEUSTATE_RLSB, "FAC2" },
 	{ &lq_tcout, sizeof(lq_tcout) | FCEUSTATE_RLSB, "TCOU"},
+	
+	//wave buffer is used for filtering, only need first 17 values from it
+	{ &Wave, 32 * sizeof(int32), "WAVE"},
 { 0 }
 };
 
@@ -1196,4 +1200,44 @@ void FCEUSND_LoadState(int version) {
 	LoadDMCPeriod(DMCFormat & 0xF);
 	RawDALatch &= 0x7F;
 	DMCAddress &= 0x7FFF;
+
+	//minimal validation
+	for (int i = 0; i < 5; i++)
+	{
+		if (ChannelBC[i] < 0 || ChannelBC[i] > 15)
+		{
+			ChannelBC[i] = 0;
+		}
+	}
+	for (int i = 0; i < 4; i++)
+	{
+		if (wlcount[i] < 0 || wlcount[i] > 2048)
+		{
+			wlcount[i] = 2048;
+		}
+	}
+	for (int i = 0; i < 2; i++)
+	{
+		if (RectDutyCount[i] < 0 || RectDutyCount[i] > 7)
+		{
+			RectDutyCount[i] = 7;
+		}
+	}
+	if (sound_timestamp < 0)
+	{
+		sound_timestamp = 0;
+	}
+	if (soundtsoffs < 0)
+	{
+		soundtsoffs = 0;
+	}
+	if (soundtsoffs + sound_timestamp >= soundtsinc)
+	{
+		soundtsoffs = 0;
+		sound_timestamp = 0;
+	}
+	if (tristep > 32)
+	{
+		tristep &= 0x1F;
+	}
 }
