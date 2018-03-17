@@ -1173,7 +1173,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &lq_noiseacc, sizeof(lq_noiseacc) | FCEUSTATE_RLSB, "NACC" },
 	
 	//less important but still necessary
-	{ &ChannelBC[0], sizeof(ChannelBC[1]) | FCEUSTATE_RLSB, "CBC1" },
+	{ &ChannelBC[0], sizeof(ChannelBC[0]) | FCEUSTATE_RLSB, "CBC1" },
 	{ &ChannelBC[1], sizeof(ChannelBC[1]) | FCEUSTATE_RLSB, "CBC2" },
 	{ &ChannelBC[2], sizeof(ChannelBC[2]) | FCEUSTATE_RLSB, "CBC3" },
 	{ &ChannelBC[3], sizeof(ChannelBC[3]) | FCEUSTATE_RLSB, "CBC4" },
