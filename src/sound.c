@@ -1197,26 +1197,29 @@ void FCEUSND_SaveState(void) {
 }
 
 void FCEUSND_LoadState(int version) {
+	int i = 0;
+
 	LoadDMCPeriod(DMCFormat & 0xF);
 	RawDALatch &= 0x7F;
 	DMCAddress &= 0x7FFF;
 
+
 	//minimal validation
-	for (int i = 0; i < 5; i++)
+	for (i = 0; i < 5; i++)
 	{
 		if (ChannelBC[i] < 0 || ChannelBC[i] > 15)
 		{
 			ChannelBC[i] = 0;
 		}
 	}
-	for (int i = 0; i < 4; i++)
+	for (i = 0; i < 4; i++)
 	{
 		if (wlcount[i] < 0 || wlcount[i] > 2048)
 		{
 			wlcount[i] = 2048;
 		}
 	}
-	for (int i = 0; i < 2; i++)
+	for (i = 0; i < 2; i++)
 	{
 		if (RectDutyCount[i] < 0 || RectDutyCount[i] > 7)
 		{
