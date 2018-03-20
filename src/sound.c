@@ -1197,10 +1197,12 @@ void FCEUSND_SaveState(void) {
 }
 
 void FCEUSND_LoadState(int version) {
+	int i = 0;
+
 	LoadDMCPeriod(DMCFormat & 0xF);
 	RawDALatch &= 0x7F;
 	DMCAddress &= 0x7FFF;
-	int i = 0;
+
 
 	//minimal validation
 	for (i = 0; i < 5; i++)
