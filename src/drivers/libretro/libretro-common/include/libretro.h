@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 #ifndef __cplusplus
-#if defined(_MSC_VER) && !defined(SN_TARGET_PS3)
+#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(SN_TARGET_PS3)
 /* Hack applied for MSVC when compiling in C89 mode
  * as it isn't C99-compliant. */
 #define bool unsigned char
@@ -270,6 +270,7 @@ enum retro_language
    RETRO_LANGUAGE_ESPERANTO           = 13,
    RETRO_LANGUAGE_POLISH              = 14,
    RETRO_LANGUAGE_VIETNAMESE          = 15,
+   RETRO_LANGUAGE_ARABIC              = 16,
    RETRO_LANGUAGE_LAST,
 
    /* Ensure sizeof(enum) == sizeof(int) */
@@ -375,6 +376,10 @@ enum retro_key
    RETROK_x              = 120,
    RETROK_y              = 121,
    RETROK_z              = 122,
+   RETROK_LEFTBRACE      = 123,
+   RETROK_BAR            = 124,
+   RETROK_RIGHTBRACE     = 125,
+   RETROK_TILDE          = 126,
    RETROK_DELETE         = 127,
 
    RETROK_KP0            = 256,
@@ -1083,8 +1088,12 @@ struct retro_vfs_interface_info
 
 enum retro_hw_render_interface_type
 {
-   RETRO_HW_RENDER_INTERFACE_VULKAN = 0,
-   RETRO_HW_RENDER_INTERFACE_DUMMY = INT_MAX
+	RETRO_HW_RENDER_INTERFACE_VULKAN = 0,
+	RETRO_HW_RENDER_INTERFACE_D3D9   = 1,
+	RETRO_HW_RENDER_INTERFACE_D3D10  = 2,
+	RETRO_HW_RENDER_INTERFACE_D3D11  = 3,
+	RETRO_HW_RENDER_INTERFACE_D3D12  = 4,
+   RETRO_HW_RENDER_INTERFACE_DUMMY  = INT_MAX
 };
 
 /* Base struct. All retro_hw_render_interface_* types
@@ -1094,6 +1103,62 @@ struct retro_hw_render_interface
    enum retro_hw_render_interface_type interface_type;
    unsigned interface_version;
 };
+
+
+#define RETRO_ENVIRONMENT_GET_LED_INTERFACE (46 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* struct retro_led_interface * --
+                                            * Gets an interface which is used by a libretro core to set
+                                            * state of LEDs.
+                                            */
+
+typedef void (RETRO_CALLCONV *retro_set_led_state_t)(int led, int state);
+struct retro_led_interface
+{
+    retro_set_led_state_t set_led_state;
+};
+
+#define RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE (47 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+                                           /* int * --
+                                            * Tells the core if the frontend wants audio or video.
+                                            * If disabled, the frontend will discard the audio or video,
+                                            * so the core may decide to skip generating a frame or generating audio.
+                                            * This is mainly used for increasing performance.
+                                            * Bit 0 (value 1): Enable Video
+                                            * Bit 1 (value 2): Enable Audio
+                                            * Bit 2 (value 4): Use Fast Savestates.
+                                            * Bit 3 (value 8): Hard Disable Audio
+                                            * Other bits are reserved for future use and will default to zero.
+                                            * If video is disabled:
+                                            * * The frontend wants the core to not generate any video,
+                                            *   including presenting frames via hardware acceleration.
+                                            * * The frontend's video frame callback will do nothing.
+                                            * * After running the frame, the video output of the next frame should be
+                                            *   no different than if video was enabled, and saving and loading state
+                                            *   should have no issues.
+                                            * If audio is disabled:
+                                            * * The frontend wants the core to not generate any audio.
+                                            * * The frontend's audio callbacks will do nothing.
+                                            * * After running the frame, the audio output of the next frame should be
+                                            *   no different than if audio was enabled, and saving and loading state
+                                            *   should have no issues.
+                                            * Fast Savestates:
+                                            * * Guaranteed to be created by the same binary that will load them.
+                                            * * Will not be written to or read from the disk.
+                                            * * Suggest that the core assumes loading state will succeed.
+                                            * * Suggest that the core updates its memory buffers in-place if possible.
+                                            * * Suggest that the core skips clearing memory.
+                                            * * Suggest that the core skips resetting the system.
+                                            * * Suggest that the core may skip validation steps.
+                                            * Hard Disable Audio:
+                                            * * Used for a secondary core when running ahead.
+                                            * * Indicates that the frontend will never need audio from the core.
+                                            * * Suggests that the core may stop synthesizing audio, but this should not
+                                            *   compromise emulation accuracy.
+                                            * * Audio output for the next frame does not matter, and the frontend will
+                                            *   never need an accurate audio state in the future.
+                                            * * State will never be saved when using Hard Disable Audio.
+                                            */
+
 #define RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE (41 | RETRO_ENVIRONMENT_EXPERIMENTAL)
                                            /* const struct retro_hw_render_interface ** --
                                             * Returns an API specific rendering interface for accessing API specific data.
@@ -1821,6 +1886,10 @@ enum retro_hw_context_type
 
    /* Vulkan, see RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE. */
    RETRO_HW_CONTEXT_VULKAN           = 6,
+
+   /* Direct3D, set version_major to select the type of interface
+    * returned by RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE */
+   RETRO_HW_CONTEXT_DIRECT3D         = 7,
 
    RETRO_HW_CONTEXT_DUMMY = INT_MAX
 };
