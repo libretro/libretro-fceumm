@@ -583,7 +583,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { "fceumm_palette", "Color Palette; default|asqrealc|nintendo-vc|rgb|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
-      { "fceumm_up_down_allowed", "Up / Down Allowed; disabled|enabled" },
+      { "fceumm_up_down_allowed", "Allow Up+Down / Left+Right; disabled|enabled" },
       { "fceumm_use_ntsc", "Use NTSC Palette; disabled|enabled" },
 #ifdef PSP
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
