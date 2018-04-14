@@ -56,6 +56,7 @@ static bool use_overscan;
 static bool overscan_h;
 static bool overscan_v;
 #endif
+static bool up_down_allowed = false;
 static bool use_raw_palette;
 static bool use_par;
 static bool enable_4player = false;
@@ -582,6 +583,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { "fceumm_palette", "Color Palette; default|asqrealc|nintendo-vc|rgb|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
+      { "fceumm_up_down_allowed", "disabled|enabled" },
       { "fceumm_use_ntsc", "Use NTSC Palette; disabled|enabled" },
 #ifdef PSP
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
@@ -935,6 +937,15 @@ static void check_variables(bool startup)
          retro_set_custom_palette();
    }
 
+   var.key = "fceumm_up_down_allowed";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      up_down_allowed = (!strcmp(var.value, "enabled")) ? true : false;
+   }
+   else
+      up_down_allowed = false;
+
    var.key = "fceumm_use_ntsc";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1273,7 +1284,19 @@ static void FCEUD_UpdateInput(void)
                turbo_button_toggle[player][i-8] = 0;
          }
       }
+
+      if (!up_down_allowed)
+      {
+         if (input_buf & (JOY_UP))
+            if (input_buf & (JOY_DOWN))
+               input_buf &= ~((JOY_UP ) | (JOY_DOWN));
+         if (input_buf & (JOY_LEFT))
+            if (input_buf & (JOY_RIGHT))
+               input_buf &= ~((JOY_LEFT ) | (JOY_RIGHT));
+      }
+
       JSReturn |= (input_buf & 0xff) << (player << 3);
+
    }
 
    /* other inputs*/
