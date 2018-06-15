@@ -218,10 +218,8 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 
 /*palette for FCEU*/
 #define MAXPAL 17 /* raw palette # */
-static int use_ntsc = 0;
 static int external_palette_exist = 0;
 extern int ipalette;
-extern int ntsccol;
 
 struct st_palettes {
 	char name[32];
@@ -584,7 +582,6 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
       { "fceumm_palette", "Color Palette; default|asqrealc|nintendo-vc|rgb|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
       { "fceumm_up_down_allowed", "Allow Opposing Directions; disabled|enabled" },
-      { "fceumm_use_ntsc", "Use NTSC Palette; disabled|enabled" },
 #ifdef PSP
       { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
 #else
@@ -691,20 +688,17 @@ static void retro_set_custom_palette(void)
    uint8_t i,r,g,b;
 
    ipalette = 0;
-   ntsccol = 0;
    use_raw_palette = false;
 
-   if (current_palette == 0 || current_palette > MAXPAL
-   || (GameInfo->type == GIT_VSUNI))
+   if (!current_palette || current_palette > MAXPAL || (GameInfo->type == GIT_VSUNI))
    {
       if (current_palette > MAXPAL && GameInfo->type != GIT_VSUNI)
       {
          if (external_palette_exist)
+         {
             ipalette = 1;
+         }
       }
-
-      if (current_palette == 0)
-         ntsccol = use_ntsc;
 
       FCEU_ResetPalette(); /* Do palette reset. Priority will be:
                             * -ipalette   : sets external palette
@@ -945,14 +939,6 @@ static void check_variables(bool startup)
    }
    else
       up_down_allowed = false;
-
-   var.key = "fceumm_use_ntsc";
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      use_ntsc = (!strcmp(var.value, "enabled")) ? 1 : 0;
-      retro_set_custom_palette();
-   }
 
    var.key = "fceumm_nospritelimit";
 
