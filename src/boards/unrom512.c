@@ -210,6 +210,8 @@ static void UNROM512HSync(void) {
 }
 
 void UNROM512_Init(CartInfo *info) {
+	int mirror;
+
 	memset(fceumm_flash_buf, 0x00, fceumm_flash_buf_size);
 	flash_state = 0;
 	flash_bank = 0;
@@ -222,7 +224,21 @@ void UNROM512_Init(CartInfo *info) {
 	else
 		chrram_mask = 0x60;
 
-	SetupCartMirroring(info->mirror, (info->mirror >= MI_0) ? 0 : 1, 0);
+	mirror = (head.ROM_type & 1) | ((head.ROM_type & 8) >> 2);
+	switch (mirror) {
+	case 0: // hard horizontal, internal
+		SetupCartMirroring(MI_H, 1, NULL);
+		break;
+	case 1: // hard vertical, internal
+		SetupCartMirroring(MI_V, 1, NULL);
+		break;
+	case 2: // switchable 1-screen, internal (flags: 4-screen + horizontal)
+		SetupCartMirroring(MI_0, 0, NULL);
+		break;
+	case 3: // hard four screen, last 8k of 32k RAM (flags: 4-screen + vertical)
+		SetupCartMirroring(4, 1, VROM + (info->vram_size - 8192));
+		break;
+	}
 	bus_conflict = !info->battery;
 	latcheinit = 0;
 	WLSync = UNROM512LSync;
