@@ -277,6 +277,7 @@
 	{0x4f2f1846,	206,		1},	/* Famista '89 - Kaimaku Han!! (J) */
 	{0x22d6d5bd,	206,		1},	/* Jikuu Yuuden - Debias (J) */
 	{0x9d21fe96,	206,		1},	/* Lupin Sansei - Pandora no Isan (Japan) */
+	{0xae321339,	206,		1},	/* Pro Yakyuu - Family Stadium '88 (Japan) */
 	{0x96dfc776,	206,		1},	/* R.B.I. Baseball 2 (USA) (Unl) */
 	{0xfd63e7ac,	206,		1},	/* R.B.I. Baseball 3 (USA) (Unl) */
 	{0x2a01f9d1,	206,		1},	/* Wagyan Land (Japan) */

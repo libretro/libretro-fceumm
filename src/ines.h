@@ -22,9 +22,6 @@
 #ifndef _FCEU_INES_H
 #define _FCEU_INES_H
 
-extern uint32 ROM_size;
-extern uint32 VROM_size;
-
 typedef struct {
 	char ID[4];		/*NES^Z*/
 	uint8 ROM_size;
@@ -33,6 +30,12 @@ typedef struct {
 	uint8 ROM_type2;
 	uint8 reserve[8];
 } iNES_HEADER;
+
+extern uint8 *ROM;
+extern uint8 *VROM;
+extern uint32 ROM_size;
+extern uint32 VROM_size;
+extern iNES_HEADER head;
 
 void NSFVRC6_Init(void);
 void NSFMMC5_Init(void);
