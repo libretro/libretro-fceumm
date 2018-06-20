@@ -116,10 +116,7 @@ static int DetectPRGbonus(CartInfo *tmp) {
 }
 
 static void BMCFK23CPW(uint32 A, uint8 V) {
-	/* Modified (c)May 2017 - Backport older implementations from FCEUmm
-	 * to support big sized FK23CA carts which broke in latest commits.
-	 */
-	/* uint32 bank = (EXPREGS[1] & 0x1F); */
+        uint32 bank = (EXPREGS[1] & 0x1F);
 	uint32 hiblock = ((EXPREGS[0] & 8) << 4) | ((EXPREGS[0] & 0x80) << 1) |  (UNIFchrrama ? ((EXPREGS[2] & 0x40) << 3) : 0);
 	uint32 block = (EXPREGS[1] & 0x60) | hiblock;
 	uint32 extra = (EXPREGS[3] & 2);
@@ -129,8 +126,8 @@ static void BMCFK23CPW(uint32 A, uint8 V) {
 		setprg32(0x8000,(EXPREGS[1] | block) >> 1);
 		break;
 	case 3:
-		setprg16(0x8000,(EXPREGS[1] | block));
-		setprg16(0xC000,(EXPREGS[1] | block));
+		setprg16(0x8000,(EXPREGS[1]));
+		setprg16(0xC000,(EXPREGS[1]));
 		break;
 	default:
 		if (EXPREGS[0] & 3) {
@@ -139,9 +136,9 @@ static void BMCFK23CPW(uint32 A, uint8 V) {
 			V &= mask;
 			/* V &= 63; */ /* ??? is this a good idea? */
 			V |= EXPREGS[1] << 1;
-			setprg8(A, (V | (hiblock << 1)));
+			setprg8(A, V);
 		} else
-			setprg8(A, ((V & prg_mask) | (block << 1)));
+			setprg8(A, V & prg_mask);
 		if (extra) {
 			setprg8(0xC000, EXPREGS[4]);
 			setprg8(0xE000, EXPREGS[5]);
