@@ -269,10 +269,10 @@ else ifeq ($(platform), wiiu)
 
 # Nintendo Switch (libtransistor)
 else ifeq ($(platform), switch)
-	EXT=a
-        TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
-        include $(LIBTRANSISTOR_HOME)/libtransistor.mk
-        STATIC_LINKING=1
+	EXT=so
+	TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
+	include $(LIBTRANSISTOR_HOME)/libtransistor.mk
+	LDFLAGS = $(LD_SHARED_LIBRARY_FLAGS) -ltransistor.lib.nro $(LIBTRANSISTOR_LIB_LDFLAGS) -E
 	EXTERNAL_ZLIB=1
 
 
@@ -605,6 +605,10 @@ ifeq ($(STATIC_LINKING),1)
 else
 	LD = link.exe
 endif
+else ifeq ($(platform), switch)
+	OBJOUT   = -o 
+	LINKOUT  = -o
+# libtransistor.mk sets LD for us
 else
 	OBJOUT   = -o
 	LINKOUT  = -o 
