@@ -53,7 +53,7 @@ static void FP_FASTAPASS(2) Update(void *data, int arg) {
 		seq = ptr = 0;
 		have = 1;
 		strcpy((char*)bdata, (const char*)((uint8*)data + 1));
-		strcpy((char*)&bdata[13], "SUNSOFT");
+		memcpy((char*)&bdata[13], "SUNSOFT", 7);
 	}
 }
 
