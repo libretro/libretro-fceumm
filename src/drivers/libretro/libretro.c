@@ -63,7 +63,7 @@ static bool enable_4player = false;
 static unsigned turbo_enabler[MAX_PLAYERS] = {0};
 static unsigned turbo_delay = 0;
 static unsigned input_type[MAX_PLAYERS + 1] = {0}; /* 4-players + famicom expansion */
-static unsigned pointer_enabled = 0; /* 0=mouse 1=pointer */
+static unsigned lightgun_enabled = 1; /* 0=mouse 1=lightgun(default) */
 
 /* emulator-specific variables */
 
@@ -594,7 +594,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_swapduty", "Swap Duty Cycles; disabled|enabled" },
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
-      { "fceumm_zapper_mode", "Zapper Mode; pointer|mouse" },
+      { "fceumm_zapper_mode", "Zapper Mode; lightgun|mouse" },
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { NULL, NULL },
@@ -994,8 +994,8 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "mouse")) pointer_enabled = 0;
-      else if (!strcmp(var.value, "pointer")) pointer_enabled = 1;
+      if (!strcmp(var.value, "mouse")) lightgun_enabled = 0;
+      else lightgun_enabled = 1; /*default setting*/
    }
 
    var.key = "fceumm_show_crosshair";
@@ -1160,7 +1160,7 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
    max_height  = 240;
    zapdata[2]  = 0; /* reset click state */
 
-   if (!pointer_enabled) /* mouse device */
+   if (!lightgun_enabled) /* mouse device */
    {
       min_width   = (adjx ? 8 : 0) + 1;
       min_height  = (adjy ? 8 : 0) + 1;
@@ -1186,26 +1186,33 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
       if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT))
          zapdata[2] |= 0x2;
    }
-   else /* pointer device */
+   else /* lightgun device */
    {
       int offset_x = (adjx ? 0X8FF : 0);
       int offset_y = (adjy ? 0X999 : 0);
+      int offscreen;
+      int offscreen_shot;
+      int trigger;
 
-      int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-      int _y = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+      offscreen = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN );
+      offscreen_shot = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_RELOAD );
+      trigger = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER );
 
-      if (_x == 0 && _y == 0)
+      if ( offscreen || offscreen_shot )
       {
          zapdata[0] = 0;
          zapdata[1] = 0;
       }
       else
       {
+         int _x = input_cb(port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X);
+         int _y = input_cb(port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y);
+
          zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
          zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
       }
 
-      if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
+      if ( trigger || offscreen_shot )
          zapdata[2] |= 0x1;
    }
 }
