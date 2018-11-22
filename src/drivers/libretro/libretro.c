@@ -649,14 +649,10 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
    {
       if (port < 2) /* player 1-2 */
       {
-         if (device != RETRO_DEVICE_AUTO) {
-            printf("Non-auto mode\n");
+         if (device != RETRO_DEVICE_AUTO)
             update_nes_controllers(port, device);
-         }
-         else {
-            printf("automatic mode\n");
+         else
             update_nes_controllers(port, nes_to_libretro(GameInfo->input[port]));
-         }
       }
       else
       {
