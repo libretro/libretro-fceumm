@@ -30,12 +30,16 @@
 #define MAX_PORTS 2   /* max controller ports,
                        * port 0 for player 1/3, port 1 for player 2/4 */
 
-#define RETRO_DEVICE_GAMEPAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
+#define RETRO_DEVICE_AUTO        RETRO_DEVICE_JOYPAD
+#define RETRO_DEVICE_GAMEPAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1)
 #define RETRO_DEVICE_ZAPPER      RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  0)
 #define RETRO_DEVICE_ARKANOID    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  1)
+
 #define RETRO_DEVICE_FC_ARKANOID RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  2)
 #define RETRO_DEVICE_FC_OEKAKIDS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  3)
 #define RETRO_DEVICE_FC_SHADOW   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
+#define RETRO_DEVICE_FC_4PLAYERS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 2)
+#define RETRO_DEVICE_FC_AUTO     RETRO_DEVICE_JOYPAD
 
 #define NES_8_7_PAR  ((width * (8.0 / 7.0)) / height)
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
@@ -99,6 +103,7 @@ unsigned swapDuty = 0;
 
 static int32_t *sound = 0;
 static uint32_t JSReturn = 0;
+static uint32_t Dummy = 0;
 static uint32_t MouseData[MAX_PORTS][3] = { {0} };
 static uint32_t fc_MouseData[3] = {0};
 static uint32_t current_palette = 0;
@@ -546,31 +551,150 @@ void retro_set_input_state(retro_input_state_t cb)
    input_cb = cb;
 }
 
-void set_input_nes_controller(unsigned port, int x);
-void set_input_famicom_controller(int x);
+static void update_nes_controllers(unsigned port, unsigned device)
+{
+   input_type[port] = device;
+
+   if (port < 4)
+   {
+      switch (device)
+      {
+      case RETRO_DEVICE_NONE:
+         FCEUI_SetInput(port, SI_NONE, &Dummy, 0);
+         FCEU_printf(" Player %u: None Connected\n", port + 1);
+         break;
+      case RETRO_DEVICE_ZAPPER:
+         FCEUI_SetInput(port, SI_ZAPPER, MouseData[port], 1);
+         FCEU_printf(" Player %u: Zapper\n", port + 1);
+         break;
+      case RETRO_DEVICE_ARKANOID:
+         FCEUI_SetInput(port, SI_ARKANOID, MouseData[port], 0);
+         FCEU_printf(" Player %u: Arkanoid\n", port + 1);
+         break;
+      case RETRO_DEVICE_GAMEPAD:
+      default:
+         input_type[port] = RETRO_DEVICE_GAMEPAD;
+         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
+         FCEU_printf(" Player %u: Gamepad\n", port + 1);
+         break;
+      }
+   }
+
+   if (port == 4)
+   {
+      switch (device)
+      {
+      case RETRO_DEVICE_FC_ARKANOID:
+         FCEUI_SetInputFC(SIFC_ARKANOID, fc_MouseData, 0);
+         FCEU_printf(" Famicom Expansion: Arkanoid\n");
+         break;
+      case RETRO_DEVICE_FC_SHADOW:
+         FCEUI_SetInputFC(SIFC_SHADOW, fc_MouseData, 1);
+         FCEU_printf(" Famicom Expansion: (Bandai) Hyper Shot\n");
+         break;
+      case RETRO_DEVICE_FC_OEKAKIDS:
+         FCEUI_SetInputFC(SIFC_OEKAKIDS, fc_MouseData, 1);
+         FCEU_printf(" Famicom Expansion: Oeka Kids Tablet\n");
+         break;
+      case RETRO_DEVICE_FC_4PLAYERS:
+         FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
+         FCEU_printf(" Famicom Expansion: Famicom 4-Player Adapter\n");
+         break;
+      case RETRO_DEVICE_NONE:
+      default:
+         FCEUI_SetInputFC(SIFC_NONE, &Dummy, 0);
+         FCEU_printf(" Famicom Expansion: None Connected\n");
+         break;
+      }
+   }
+}
+
+static unsigned nes_to_libretro(int d)
+{
+   switch(d)
+   {
+   case SI_UNSET:
+   case SI_GAMEPAD:
+      return RETRO_DEVICE_GAMEPAD;
+   case SI_NONE:
+      return RETRO_DEVICE_NONE;
+   case SI_ZAPPER:
+      return RETRO_DEVICE_ZAPPER;
+   case SI_ARKANOID:
+      return RETRO_DEVICE_ARKANOID;
+   }
+}
+
+static unsigned fc_to_libretro(int d)
+{
+   switch(d)
+   {
+   case SIFC_UNSET:
+   case SIFC_NONE:
+      return RETRO_DEVICE_NONE;
+   case SIFC_ARKANOID:
+      return RETRO_DEVICE_FC_ARKANOID;
+   case SIFC_SHADOW:
+      return RETRO_DEVICE_FC_SHADOW;
+   case SIFC_OEKAKIDS:
+      return RETRO_DEVICE_FC_OEKAKIDS;
+   case SIFC_4PLAYER:
+      return RETRO_DEVICE_FC_4PLAYERS;
+   }
+}
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-   if (port < MAX_PORTS)  /* port #0 = player1/player3, port #1 = player2/player4 */
+   if ((port < 5) && (input_type[port] != device))
    {
-      switch(device)
+      if (port < 2) /* player 1-2 */
       {
-         case RETRO_DEVICE_NONE:
-            set_input_nes_controller(port, SI_NONE);
-            break;
-         case RETRO_DEVICE_GAMEPAD:
-            set_input_nes_controller(port, SI_GAMEPAD);
-            break;
-         case RETRO_DEVICE_ZAPPER:
-            set_input_nes_controller(port, SI_ZAPPER);
-            break;
-         case RETRO_DEVICE_ARKANOID:
-            set_input_nes_controller(port, SI_ARKANOID);
-            break;
-         case RETRO_DEVICE_JOYPAD: /* Assigned to auto configure devices */
-         default:                  /* based on database */
-            set_input_nes_controller(port, GameInfo->input[port]);
-            break;
+         if (device != RETRO_DEVICE_AUTO) {
+            printf("Non-auto mode\n");
+            update_nes_controllers(port, device);
+         }
+         else {
+            printf("automatic mode\n");
+            update_nes_controllers(port, nes_to_libretro(GameInfo->input[port]));
+         }
+      }
+      else
+      {
+         if (port < 4) /* player 3-4 */
+         {
+            /* This section automatically enables 4players support
+             * when player 3 or 4 used */
+
+            input_type[port] = RETRO_DEVICE_NONE;
+
+            if (device == RETRO_DEVICE_AUTO)
+            {
+               if (enable_4player)
+                  input_type[port] = RETRO_DEVICE_GAMEPAD;
+            }
+            else if (device == RETRO_DEVICE_GAMEPAD)
+               input_type[port] = RETRO_DEVICE_GAMEPAD;
+
+            FCEU_printf(" Player %u: %s\n", port + 1,
+               (input_type[port] == RETRO_DEVICE_NONE) ? "None Connected" : "Gamepad");
+         }
+         else /* do famicom controllers here */
+         {
+            if (device != RETRO_DEVICE_FC_AUTO)
+               update_nes_controllers(4, device);
+            else
+               update_nes_controllers(4, fc_to_libretro(GameInfo->inputfc));
+         }
+
+         if (input_type[2] == RETRO_DEVICE_GAMEPAD
+         || input_type[3] == RETRO_DEVICE_GAMEPAD)
+            FCEUI_DisableFourScore(0);
+         else
+            FCEUI_DisableFourScore(1);
+
+         /* check if famicom 4player adapter is used */
+         if (input_type[4] == RETRO_DEVICE_FC_4PLAYERS)
+            FCEUI_DisableFourScore(1);
       }
    }
 }
@@ -601,24 +725,48 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    static const struct retro_controller_description pads1[] = {
-      { "Auto",    RETRO_DEVICE_JOYPAD },
+      { "Auto",    RETRO_DEVICE_AUTO },
       { "Gamepad", RETRO_DEVICE_GAMEPAD },
       { "Zapper",  RETRO_DEVICE_ZAPPER },
-      { NULL, 0 },
+      { 0, 0 },
    };
 
    static const struct retro_controller_description pads2[] = {
-      { "Auto",     RETRO_DEVICE_JOYPAD },
+      { "Auto",     RETRO_DEVICE_AUTO },
       { "Gamepad",  RETRO_DEVICE_GAMEPAD },
       { "Arkanoid", RETRO_DEVICE_ARKANOID },
       { "Zapper",   RETRO_DEVICE_ZAPPER },
-      { NULL, 0 },
+      { 0, 0 },
+   };
+
+   static const struct retro_controller_description pads3[] = {
+      { "Auto",     RETRO_DEVICE_AUTO },
+      { "Gamepad",  RETRO_DEVICE_GAMEPAD },
+      { 0, 0 },
+   };
+
+   static const struct retro_controller_description pads4[] = {
+      { "Auto",     RETRO_DEVICE_AUTO },
+      { "Gamepad",  RETRO_DEVICE_GAMEPAD },
+      { 0, 0 },
+   };
+
+   static const struct retro_controller_description pads5[] = {
+      { "Auto",                  RETRO_DEVICE_FC_AUTO },
+      { "Arkanoid",              RETRO_DEVICE_FC_ARKANOID },
+      { "(Bandai) Hyper Shot",   RETRO_DEVICE_FC_SHADOW },
+      { "Oeka Kids Tablet",      RETRO_DEVICE_FC_OEKAKIDS },
+      { "4-Player Adapter",      RETRO_DEVICE_FC_4PLAYERS },
+      { 0, 0 },
    };
 
    static const struct retro_controller_info ports[] = {
       { pads1, 3 },
       { pads2, 4 },
-      { 0 },
+      { pads3, 2 },
+      { pads4, 2 },
+      { pads5, 5 },
+      { 0, 0 },
    };
 
    environ_cb = cb;
@@ -812,69 +960,6 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_X, JOY_A },
    { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
 };
-
-/* Set NES controllers */
-void set_input_nes_controller(unsigned port, int x)
-{
-   switch (x)
-   {
-      case SI_NONE:
-         input_type[port] = RETRO_DEVICE_NONE;
-         FCEUI_SetInput(port, SI_NONE, NULL, 0);
-         FCEU_printf(" Player %u: None\n", port + 1);
-         break;
-      case SI_ZAPPER:
-         input_type[port] = RETRO_DEVICE_ZAPPER;
-         FCEUI_SetInput(port, SI_ZAPPER, MouseData[port], 1);
-         FCEU_printf(" Player %u: Zapper\n", port + 1);
-            break;
-      case SI_ARKANOID:
-         input_type[port] = RETRO_DEVICE_ARKANOID;
-         FCEUI_SetInput(port, SI_ARKANOID, MouseData[port], 0);
-         FCEU_printf(" Player %u: Arkanoid\n", port + 1);
-         break;
-      case SI_GAMEPAD: /* Set gamepad as default when an unsupported device */
-      default:         /* is used */
-         input_type[port] = RETRO_DEVICE_GAMEPAD;
-         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
-         FCEU_printf(" Player %u: Gamepad\n", port + 1);
-         break;
-   }
-
-   if (enable_4player) // check if 4-player mode is enabled
-      input_type[2] = input_type[3] = RETRO_DEVICE_GAMEPAD;
-}
-
-/* Set Famicom controllers */
-void set_input_famicom_controller(int x)
-{
-   switch (x)
-   {
-      case SIFC_ARKANOID:
-         input_type[4] = RETRO_DEVICE_FC_ARKANOID;
-         FCEUI_SetInputFC(SIFC_ARKANOID, fc_MouseData, 0);
-         FCEU_printf("Famicom Expansion: Arkanoid\n");
-         break;
-      case SIFC_SHADOW:
-         input_type[4] = RETRO_DEVICE_FC_SHADOW;
-         FCEUI_SetInputFC(SIFC_SHADOW, fc_MouseData, 1);
-         FCEU_printf("Famicom Expansion: (Bandai) Hyper Shot\n");
-         break;
-      case SIFC_OEKAKIDS:
-         input_type[4] = RETRO_DEVICE_FC_OEKAKIDS;
-         FCEUI_SetInputFC(SIFC_OEKAKIDS, fc_MouseData, 1);
-         FCEU_printf("Famicom Expansion: Oeka Kids Tablet\n");
-         break;
-      default:
-         /* Do not disable port if a 4-player adaptor is used */
-         if (!enable_4player)
-         {
-            input_type[4] = 0;
-            FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
-            break;
-         }
-   }
-}
 
 static void check_variables(bool startup)
 {
@@ -1408,21 +1493,12 @@ static void retro_run_blit(uint8_t *gfx)
 #endif
 }
 
-static bool firstrun = true;
-
 void retro_run(void)
 {
    unsigned i;
    uint8_t *gfx;
    int32_t ssize = 0;
    bool updated = false;
-
-   if (firstrun)
-   {
-      /* setup famicom expansion devices */
-      set_input_famicom_controller(GameInfo->inputfc);
-      firstrun = false;
-   }
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables(false);
@@ -1865,7 +1941,14 @@ bool retro_load_game(const struct retro_game_info *game)
    }
 
    for (i = 0; i < MAX_PORTS; i++)
+   {
+      // init default controller
+      GameInfo->input[i] = SI_GAMEPAD;
       FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
+   }
+
+   //
+   FCEU_printf("Setting default controllers...\n");
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
@@ -1899,6 +1982,7 @@ bool retro_load_game(const struct retro_game_info *game)
    {
       if (famicom_4p_db_list[i].crc == iNESGameCRC32)
       {
+         GameInfo->inputfc = SIFC_4PLAYER;
          FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
          enable_4player = true;
          break;
