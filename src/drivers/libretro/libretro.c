@@ -1937,11 +1937,7 @@ bool retro_load_game(const struct retro_game_info *game)
    }
 
    for (i = 0; i < MAX_PORTS; i++)
-   {
-      // init default controller
-      GameInfo->input[i] = SI_GAMEPAD;
       FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
-   }
 
    //
    FCEU_printf("Setting default controllers...\n");
