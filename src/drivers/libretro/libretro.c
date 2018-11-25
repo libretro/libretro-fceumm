@@ -160,7 +160,7 @@ int FCEUD_SendData(void *data, uint32 len)
 #define BLUE_EXPAND 3
 #endif
 
-void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, unsigned char b)
+void FCEUD_SetPalette(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
 {
 #ifdef FRONTEND_SUPPORTS_RGB565
    retro_palette[index] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
@@ -219,10 +219,11 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
       return NULL;
 }
 
-#define MAX_PATH 1024
-
 /*palette for FCEU*/
-#define MAXPAL 17 /* raw palette # */
+#define PAL_TOTAL   16 /* total no. of palettes in palettes[] */
+#define PAL_DEFAULT (PAL_TOTAL + 1)
+#define PAL_RAW     (PAL_TOTAL + 2)
+#define PAL_CUSTOM  (PAL_TOTAL + 3)
 static int external_palette_exist = 0;
 extern int ipalette;
 
@@ -834,27 +835,24 @@ static void retro_set_custom_palette(void)
    ipalette = 0;
    use_raw_palette = false;
 
-   if (!current_palette || current_palette > MAXPAL || (GameInfo->type == GIT_VSUNI))
+   if (current_palette == PAL_DEFAULT || current_palette == PAL_CUSTOM
+   || (GameInfo->type == GIT_VSUNI))
    {
-      if (current_palette > MAXPAL && GameInfo->type != GIT_VSUNI)
+      if (current_palette == PAL_CUSTOM)
       {
-         if (external_palette_exist)
-         {
-            ipalette = 1;
-         }
+          if (external_palette_exist && (GameInfo->type != GIT_VSUNI))
+              ipalette = 1;
       }
 
-      FCEU_ResetPalette(); /* Do palette reset. Priority will be:
-                            * -ipalette   : sets external palette
-                            * -ntsccol    : sets ntsc to default palette.
-                            * If none of the above are true, then
-                            * default palette will be used.
-                            * VS Uniystem should always use default palette.
+      FCEU_ResetPalette(); /* if ipalette is set to 1, external palette
+                            * is loaded when FCEU_ResetPalette is called,
+                            * else it will load default NES palette.
+                            * VS Unisystem should always use default palette.
                             */
       return;
    }
 
-   if (current_palette == MAXPAL) /* raw palette */
+   if (current_palette == PAL_RAW) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -870,13 +868,14 @@ static void retro_set_custom_palette(void)
 
    for ( i = 0; i < 64; i++ )
    {
-      r = palettes[current_palette-1].data[i] >> 16;
-      g = ( palettes[current_palette-1].data[i] & 0xff00 ) >> 8;
-      b = ( palettes[current_palette-1].data[i] & 0xff );
+      unsigned palette_data = palettes[current_palette].data[i];
+      r = ( palette_data >> 16 ) & 0xff;
+      g = ( ( palette_data & 0xff00 ) >> 8 ) & 0xff;
+      b = ( palette_data & 0xff );
       FCEUD_SetPalette( i, r, g, b);
-      FCEUD_SetPalette( i+64, r, g, b);
-      FCEUD_SetPalette( i+128, r, g, b);
-      FCEUD_SetPalette( i+192, r, g, b);
+      FCEUD_SetPalette( i + 64, r, g, b);
+      FCEUD_SetPalette( i + 128, r, g, b);
+      FCEUD_SetPalette( i + 192, r, g, b);
    }
 }
 
@@ -970,43 +969,43 @@ static void check_variables(bool startup)
       unsigned orig_value = current_palette;
 
       if (!strcmp(var.value, "default"))
-         current_palette = 0;
-      else if (!strcmp(var.value, "asqrealc"))
-         current_palette = 1;
-      else if (!strcmp(var.value, "nintendo-vc"))
-         current_palette = 2;
-      else if (!strcmp(var.value, "rgb"))
-         current_palette = 3;
-      else if (!strcmp(var.value, "yuv-v3"))
-         current_palette = 4;
-      else if (!strcmp(var.value, "unsaturated-final"))
-         current_palette = 5;
-      else if (!strcmp(var.value, "sony-cxa2025as-us"))
-         current_palette = 6;
-      else if (!strcmp(var.value, "pal"))
-         current_palette = 7;
-      else if (!strcmp(var.value, "bmf-final2"))
-         current_palette = 8;
-      else if (!strcmp(var.value, "bmf-final3"))
-         current_palette = 9;
-      else if (!strcmp(var.value, "smooth-fbx"))
-         current_palette = 10;
-      else if (!strcmp(var.value, "composite-direct-fbx"))
-         current_palette = 11;
-      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
-         current_palette = 12;
-      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
-         current_palette = 13;
-      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
-         current_palette = 14;
-      else if (!strcmp(var.value, "nescap"))
-         current_palette = 15;
-      else if (!strcmp(var.value, "wavebeam"))
-         current_palette = 16;
+         current_palette = PAL_DEFAULT;
       else if (!strcmp(var.value, "raw"))
-         current_palette = MAXPAL;
+         current_palette = PAL_RAW;
       else if (!strcmp(var.value, "custom"))
-         current_palette = MAXPAL+1;
+         current_palette = PAL_CUSTOM;
+      else if (!strcmp(var.value, "asqrealc"))
+         current_palette = 0;
+      else if (!strcmp(var.value, "nintendo-vc"))
+         current_palette = 1;
+      else if (!strcmp(var.value, "rgb"))
+         current_palette = 2;
+      else if (!strcmp(var.value, "yuv-v3"))
+         current_palette = 3;
+      else if (!strcmp(var.value, "unsaturated-final"))
+         current_palette = 4;
+      else if (!strcmp(var.value, "sony-cxa2025as-us"))
+         current_palette = 5;
+      else if (!strcmp(var.value, "pal"))
+         current_palette = 6;
+      else if (!strcmp(var.value, "bmf-final2"))
+         current_palette = 7;
+      else if (!strcmp(var.value, "bmf-final3"))
+         current_palette = 8;
+      else if (!strcmp(var.value, "smooth-fbx"))
+         current_palette = 9;
+      else if (!strcmp(var.value, "composite-direct-fbx"))
+         current_palette = 10;
+      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
+         current_palette = 11;
+      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
+         current_palette = 12;
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
+         current_palette = 13;
+      else if (!strcmp(var.value, "nescap"))
+         current_palette = 14;
+      else if (!strcmp(var.value, "wavebeam"))
+         current_palette = 15;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
@@ -1835,6 +1834,12 @@ static const struct cartridge_db famicom_4p_db_list[] =
    }
 };
 
+#ifdef _WIN32
+static char slash = '\\';
+#else
+static char slash = '/';
+#endif
+
 extern uint32_t iNESGameCRC32;
 
 bool retro_load_game(const struct retro_game_info *game)
@@ -1939,17 +1944,9 @@ bool retro_load_game(const struct retro_game_info *game)
    for (i = 0; i < MAX_PORTS; i++)
       FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
 
-   //
-   FCEU_printf("Setting default controllers...\n");
-
    external_palette_exist = ipalette;
    if (external_palette_exist)
-      FCEU_printf("nes.pal loaded from system directory.\n");
-   else
-      FCEU_PrintError("Cannot find nes.pal from system directory.\n");
-
-   if (GameInfo->type == GIT_VSUNI)
-      FCEU_PrintError("VS Unisystem rom loaded, will use default palette.\n");
+      FCEU_printf("Loading custom palette: %s%cnes.pal\n", dir, slash);
 
    is_PAL = retro_get_region(); /* Save current loaded region info */
 
