@@ -366,7 +366,17 @@ else ifeq ($(platform), gcw0)
 	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
 	PLATFORM_DEFINES += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
 	EXTERNAL_ZLIB = 1
-	
+
+# Genode
+else ifeq ($(platform), genode)
+   TARGET  := $(TARGET_NAME)_libretro.lib.so
+   CC      := $(shell pkg-config genode-base --variable=cc)
+   LD      := $(shell pkg-config genode-base --variable=ld)
+   CFLAGS  += $(shell pkg-config --cflags genode-libc)
+   LDFLAGS += -shared --version-script=src/drivers/libretro/link.T
+   LDFLAGS += $(shell pkg-config --libs genode-lib genode-libc)
+   LIBM =
+
 # Windows MSVC 2017 all architectures
 else ifneq (,$(findstring windows_msvc2017,$(platform)))
 
@@ -660,6 +670,9 @@ else ifeq ($(platform), switch)
 	OBJOUT   = -o 
 	LINKOUT  = -o
 # libtransistor.mk sets LD for us
+else ifeq ($(platform), genode)
+	OBJOUT   = -o
+	LINKOUT  = -o
 else
 	OBJOUT   = -o
 	LINKOUT  = -o 
