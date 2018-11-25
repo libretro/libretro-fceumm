@@ -718,6 +718,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_zapper_mode", "Zapper Mode; lightgun|mouse" },
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
+      { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
       { NULL, NULL },
    };
 
@@ -1841,6 +1842,7 @@ static char slash = '/';
 #endif
 
 extern uint32_t iNESGameCRC32;
+extern int option_ramstate;
 
 bool retro_load_game(const struct retro_game_info *game)
 {
@@ -1903,9 +1905,24 @@ bool retro_load_game(const struct retro_game_info *game)
 
    struct retro_memory_descriptor descs[64];
    struct retro_memory_map        mmaps;
+   struct retro_variable          var = {0};
 
    if (!game)
       return false;
+
+   var.value = 0;
+   var.key = "fceumm_ramstate";
+
+   /* set this variable before calling PowerNES() */
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "random"))
+         option_ramstate = 2;
+      else if (!strcmp(var.value, "fill $00"))
+         option_ramstate = 1;
+      else
+         option_ramstate = 0;
+   }
 
    PowerNES();
    check_system_specs();
