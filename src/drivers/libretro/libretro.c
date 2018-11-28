@@ -719,6 +719,13 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
+#ifdef DEBUG
+      { "fceumm_apu_1", "Enable Sound Channel 1 (Square 1); enabled|disabled" },
+      { "fceumm_apu_2", "Enable Sound Channel 2 (Square 2); enabled|disabled" },
+      { "fceumm_apu_3", "Enable Sound Channel 3 (Triangle); enabled|disabled" },
+      { "fceumm_apu_4", "Enable Sound Channel 4 (Noise) ; enabled|disabled" },
+      { "fceumm_apu_5", "Enable Sound Channel 5 (PCM); enabled|disabled" },
+#endif
       { NULL, NULL },
    };
 
@@ -957,11 +964,22 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
 };
 
+static void set_apu_channels(int chan)
+{
+   FSettings.SquareVolume[1] = 255 * ((chan >> 0) & 1);
+   FSettings.SquareVolume[0] = 255 * ((chan >> 1) & 1);
+   FSettings.TriangleVolume = 255 * ((chan >> 2) & 1);
+   FSettings.NoiseVolume = 255 * ((chan >> 3) & 1);
+   FSettings.PCMVolume = 255 * ((chan >> 4) & 1);
+}
+
 static void check_variables(bool startup)
 {
    struct retro_variable var = {0};
    struct retro_system_av_info av_info;
    bool geometry_update = false;
+   char key[256];
+   int i, enable_apu;
 
    var.key = "fceumm_palette";
 
@@ -1169,7 +1187,6 @@ static void check_variables(bool startup)
          FCEUD_RegionOverride(setregion);
    }
 
-
    var.key = "fceumm_aspect";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1221,6 +1238,27 @@ static void check_variables(bool startup)
          swapDuty = newval;
       }
    }
+
+#ifdef DEBUG
+   var.key = key;
+
+   enable_apu = 0;
+
+   strcpy(key, "fceumm_apu_x");
+   for (i = 0; i < 5; i++)
+   {
+      key[strlen("fceumm_apu_")] = '1' + i;
+      var.value = NULL;
+      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && !strcmp(var.value, "disabled"))
+      {
+         enable_apu |= (1 << i);
+      }
+   }
+   set_apu_channels(enable_apu ^ 0xff);
+#else
+   set_apu_channels(0xff);
+#endif
+
 }
 
 static int mzx = 0, mzy = 0;
