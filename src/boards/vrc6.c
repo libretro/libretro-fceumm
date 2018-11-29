@@ -44,16 +44,32 @@ static SFORMAT StateRegs[] =
 };
 
 static void(*sfun[3]) (void);
+
 static uint8 vpsg1[8];
 static uint8 vpsg2[4];
 static int32 cvbc[3];
 static int32 vcount[3];
 static int32 dcount[2];
+static int32 saw1phaseacc;
+static int32 phaseacc;
+static uint8 b3; /* clock counter, resets phaseacc on the 7th clock */
 
 static SFORMAT SStateRegs[] =
 {
 	{ vpsg1, 8, "PSG1" },
 	{ vpsg2, 4, "PSG2" },
+	/* rw - 2018-11-28 Added */
+	{ &cvbc[0], 4 | FCEUSTATE_RLSB, "BC01" },
+	{ &cvbc[1], 4 | FCEUSTATE_RLSB, "BC02" },
+	{ &cvbc[2], 4 | FCEUSTATE_RLSB, "BC03" },
+	{ &dcount[0], 4 | FCEUSTATE_RLSB, "DCT0" },
+	{ &dcount[1], 4 | FCEUSTATE_RLSB, "DCT1" },
+	{ &vcount[0], 4 | FCEUSTATE_RLSB, "VCT0" },
+	{ &vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
+	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT1" },
+	{ &saw1phaseacc, 4| FCEUSTATE_RLSB, "SAW1" },
+	{ &phaseacc, 4 | FCEUSTATE_RLSB, "PACC" },
+	{ &b3, 1, "CLKC" },
 	{ 0 }
 };
 
@@ -177,15 +193,20 @@ static INLINE void DoSQV(int x) {
 		} else {
 			int32 thresh = (vpsg1[x << 2] >> 4) & 7;
 			int32 freq = ((vpsg1[(x << 2) | 0x1] | ((vpsg1[(x << 2) | 0x2] & 15) << 8)) + 1) << 17;
+			int32 dc = dcount[x];
+			int32 vc = vcount[x];
+
 			for (V = start; V < end; V++) {
-				if (dcount[x] > thresh)
+				if (dc > thresh)
 					Wave[V >> 4] += amp;
-				vcount[x] -= nesincsize;
-				while (vcount[x] <= 0) {
-					vcount[x] += freq;
-					dcount[x] = (dcount[x] + 1) & 15;
+				vc -= nesincsize;
+				while (vc <= 0) {
+					vc += freq;
+					dc = (dc + 1) & 15;
 				}
 			}
+			vcount[x] = vc;
+			dcount[x] = dc;
 		}
 	}
 }
@@ -208,10 +229,7 @@ static void DoSawV(void) {
 	cvbc[2] = end;
 
 	if (vpsg2[2] & 0x80) {
-		static int32 saw1phaseacc = 0;
 		uint32 freq3;
-		static uint8 b3 = 0;
-		static int32 phaseacc = 0;
 		static uint32 duff = 0;
 
 		freq3 = (vpsg2[1] + ((vpsg2[2] & 15) << 8) + 1);
@@ -249,15 +267,20 @@ static INLINE void DoSQVHQ(int x) {
 				WaveHi[V] += amp;
 		} else {
 			int32 thresh = (vpsg1[x << 2] >> 4) & 7;
+			int32 dc = dcount[x];
+			int32 vc = vcount[x];
+
 			for (V = cvbc[x]; V < (int)SOUNDTS; V++) {
-				if (dcount[x] > thresh)
+				if (dc > thresh)
 					WaveHi[V] += amp;
-				vcount[x]--;
-				if (vcount[x] <= 0) {
-					vcount[x] = (vpsg1[(x << 2) | 0x1] | ((vpsg1[(x << 2) | 0x2] & 15) << 8)) + 1;
-					dcount[x] = (dcount[x] + 1) & 15;
+				vc--;
+				if (vc <= 0) {
+					vc = (vpsg1[(x << 2) | 0x1] | ((vpsg1[(x << 2) | 0x2] & 15) << 8)) + 1;
+					dc = (dc + 1) & 15;
 				}
 			}
+			dcount[x] = dc;
+			vcount[x] = vc;
 		}
 	}
 	cvbc[x] = SOUNDTS;
@@ -272,8 +295,6 @@ static void DoSQV2HQ(void) {
 }
 
 static void DoSawVHQ(void) {
-	static uint8 b3 = 0;
-	static int32 phaseacc = 0;
 	int32 V;
 
 	if (vpsg2[2] & 0x80) {

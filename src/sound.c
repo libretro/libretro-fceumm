@@ -656,7 +656,7 @@ static void RDoSQLQ(void) {
 	if (!inie[0] && !inie[1]) {
 		for (V = start; V < end; V++)
 			Wave[V >> 4] += totalout;
-	} else
+	} else {
 		for (V = start; V < end; V++) {
 			/* int tmpamp=0;
 			if(RectDutyCount[0]<rthresh[0])
@@ -688,6 +688,7 @@ static void RDoSQLQ(void) {
 				totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
 			}
 		}
+	}
 }
 
 static void RDoTriangle(void) {
@@ -705,11 +706,11 @@ static void RDoTriangle(void) {
 			*start += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME */
 			start++;
 		}
-#if 0
-		cout = (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);
+
+		/* cout = (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);
 		for(V = ChannelBC[2]; V < SOUNDTS; V++)
-			WaveHi[V] += cout;
-#endif
+			WaveHi[V] += cout; */
+
 	} else {
 		for (V = ChannelBC[2]; V < SOUNDTS; V++) {
 			WaveHi[V] += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME! */
@@ -780,7 +781,6 @@ static void RDoTriangleNoisePCMLQ(void) {
 		nshift = 8;
 	else
 		nshift = 13;
-
 
 	totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
 
@@ -891,7 +891,7 @@ static void RDoNoise(void) {
 		outo = amptab[0] = 0;
 	}
 
-	if (PSG[0xE] & 0x80)/* "short" noise */
+	if (PSG[0xE] & 0x80) {/* "short" noise */
 		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
 			WaveHi[V] += outo;
 			wlcount[3]--;
@@ -907,7 +907,7 @@ static void RDoNoise(void) {
 				outo = amptab[(nreg >> 0xe) & 1];
 			}
 		}
-	else
+	} else {
 		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
 			WaveHi[V] += outo;
 			wlcount[3]--;
@@ -923,6 +923,7 @@ static void RDoNoise(void) {
 				outo = amptab[(nreg >> 0xe) & 1];
 			}
 		}
+	}
 	ChannelBC[3] = SOUNDTS;
 }
 
@@ -976,6 +977,7 @@ int FlushEmulateSound(void) {
 			*tmpo = (b & 65535) + wlookup2[(b >> 16) & 255] + wlookup1[b >> 24];
 			tmpo++;
 		}
+
 		end = NeoFilterSound(WaveHi, WaveFinal, SOUNDTS, &left);
 
 		memmove(WaveHi, WaveHi + SOUNDTS - left, left * sizeof(uint32));
@@ -991,10 +993,9 @@ int FlushEmulateSound(void) {
 
 		SexyFilter(Wave, WaveFinal, end >> 4);
 
-#if 0
-		if (FSettings.lowpass)
-			SexyFilter2(WaveFinal, end >> 4);
-#endif
+		/* if (FSettings.lowpass)
+			SexyFilter2(WaveFinal, end >> 4); */
+
 		if (end & 0xF)
 			Wave[0] = Wave[(end >> 4)];
 		Wave[end >> 4] = 0;
@@ -1230,7 +1231,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 
 	//wave buffer is used for filtering, only need first 17 values from it
 	{ &Wave, 32 * sizeof(int32), "WAVE"},
-{ 0 }
+	{ 0 }
 };
 
 void FCEUSND_SaveState(void) {
@@ -1245,7 +1246,17 @@ void FCEUSND_LoadState(int version) {
 	//minimal validation
 	for (i = 0; i < 5; i++)
 	{
-		if (ChannelBC[i] < 0 || ChannelBC[i] > 15)
+		int BC_max = 15;
+
+		if (FSettings.soundq == 2)
+		{
+			BC_max = 1025;
+		}
+		else if (FSettings.soundq == 1)
+		{
+			BC_max = 485;
+		}
+		if (ChannelBC[i] < 0 || ChannelBC[i] > BC_max)
 		{
 			ChannelBC[i] = 0;
 		}

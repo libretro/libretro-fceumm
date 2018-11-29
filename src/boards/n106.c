@@ -224,6 +224,28 @@ static int32 CVBC;
 
 #define TOINDEX        (16 + 1)
 
+static SFORMAT N106_SStateRegs[] =
+{
+	{ &PlayIndex[0], 4 | FCEUSTATE_RLSB, "IDX0" },
+	{ &PlayIndex[1], 4 | FCEUSTATE_RLSB, "IDX1" },
+	{ &PlayIndex[2], 4 | FCEUSTATE_RLSB, "IDX2" },
+	{ &PlayIndex[3], 4 | FCEUSTATE_RLSB, "IDX3" },
+	{ &PlayIndex[4], 4 | FCEUSTATE_RLSB, "IDX4" },
+	{ &PlayIndex[5], 4 | FCEUSTATE_RLSB, "IDX5" },
+	{ &PlayIndex[6], 4 | FCEUSTATE_RLSB, "IDX6" },
+	{ &PlayIndex[7], 4 | FCEUSTATE_RLSB, "IDX7" },
+	{ &vcount[0], 4 | FCEUSTATE_RLSB, "VCT0" },
+	{ &vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
+	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT2" },
+	{ &vcount[3], 4 | FCEUSTATE_RLSB, "VCT3" },
+	{ &vcount[4], 4 | FCEUSTATE_RLSB, "VCT4" },
+	{ &vcount[5], 4 | FCEUSTATE_RLSB, "VCT5" },
+	{ &vcount[6], 4 | FCEUSTATE_RLSB, "VCT6" },
+	{ &vcount[7], 4 | FCEUSTATE_RLSB, "VCT7" },
+	{ &CVBC, 4 | FCEUSTATE_RLSB, "BC00" },
+	{ 0 }
+};
+
 /* 16:15 */
 static void SyncHQ(int32 ts) {
 	CVBC = ts;
@@ -404,6 +426,7 @@ void Mapper19_Init(CartInfo *info) {
 	AddExState(WRAM, 8192, 0, "WRAM");
 	AddExState(IRAM, 128, 0, "IRAM");
 	AddExState(N106_StateRegs, ~0, 0, 0);
+	AddExState(N106_SStateRegs, ~0, 0, 0);
 
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;

@@ -27,6 +27,8 @@ static int32 IRQCount;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
+static void(*sfun[3]) (void);
+
 static SFORMAT StateRegs[] =
 {
 	{ &cmdreg, 1, "CMDR" },
@@ -41,7 +43,7 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	uint8 i;
 	if ((preg[3] & 0xC0) == 0xC0)
-		setprg8r(0x10, 0x6000, 0);
+		setprg8r(0x10, 0x6000, preg[3] & 0x3F);
 	else
 		setprg8(0x6000, preg[3] & 0x3F);
 	setprg8(0x8000, preg[0]);
@@ -89,16 +91,13 @@ static DECLFW(M69Write1) {
 	case 0xA: preg[1] = V; Sync(); break;
 	case 0xB: preg[2] = V; Sync(); break;
 	case 0xC: mirr = V & 3; Sync();break;
-	/* 17/10/17- reg $0D should awknowledge IRQ and no other
-	 * http://forums.nesdev.com/viewtopic.php?f=2&t=12436&start=15
-	 */
 	case 0xD: IRQa = V; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0xE: IRQCount &= 0xFF00; IRQCount |= V; break;
 	case 0xF: IRQCount &= 0x00FF; IRQCount |= V << 8; break;
 	}
 }
 
-/* SUNSOFT-5/FME-7 Sound */
+// SUNSOFT-5/FME-7 Sound
 
 static void AYSound(int Count);
 static void AYSoundHQ(void);
@@ -114,6 +113,15 @@ static SFORMAT SStateRegs[] =
 {
 	{ &sndcmd, 1, "SCMD" },
 	{ sreg, 14, "SREG" },
+	{ &dcount[0], 4 | FCEUSTATE_RLSB, "DCT0" },
+	{ &dcount[1], 4 | FCEUSTATE_RLSB, "DCT1" },
+	{ &dcount[2], 4 | FCEUSTATE_RLSB, "DCT2" },
+	{ &vcount[0], 4 | FCEUSTATE_RLSB, "VCT0" },
+	{ &vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
+	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT2" },
+	{ &CAYBC[0], 4 | FCEUSTATE_RLSB, "BC00" },
+	{ &CAYBC[1], 4 | FCEUSTATE_RLSB, "BC01" },
+	{ &CAYBC[2], 4 | FCEUSTATE_RLSB, "BC02" },
 	{ 0 }
 };
 
@@ -125,22 +133,21 @@ static DECLFW(M69SWrite1) {
 	int x;
 	GameExpSound.Fill = AYSound;
 	GameExpSound.HiFill = AYSoundHQ;
-	if (FSettings.SndRate)
-		switch (sndcmd) {
-		case 0:
-		case 1:
-		case 8: if (FSettings.soundq >= 1) DoAYSQHQ(0); else DoAYSQ(0); break;
-		case 2:
-		case 3:
-		case 9: if (FSettings.soundq >= 1) DoAYSQHQ(1); else DoAYSQ(1); break;
-		case 4:
-		case 5:
-		case 10: if (FSettings.soundq >= 1) DoAYSQHQ(2); else DoAYSQ(2); break;
-		case 7:
-			for (x = 0; x < 2; x++)
-				if (FSettings.soundq >= 1) DoAYSQHQ(x); else DoAYSQ(x);
-			break;
-		}
+	switch (sndcmd) {
+	case 0:
+	case 1:
+	case 8: if (sfun[0]) sfun[0](); break;
+	case 2:
+	case 3:
+	case 9: if (sfun[1]) sfun[1](); break;
+	case 4:
+	case 5:
+	case 10: if (sfun[2]) sfun[2](); break;
+	case 7:
+		if (sfun[0]) sfun[0]();
+		if (sfun[1]) sfun[1]();
+		break;
+	}
 	sreg[sndcmd] = V;
 }
 
@@ -190,19 +197,43 @@ static void DoAYSQHQ(int x) {
 	CAYBC[x] = SOUNDTS;
 }
 
+static void DoAYSQ1(void) {
+	DoAYSQ(0);
+}
+
+static void DoAYSQ2(void) {
+	DoAYSQ(1);
+}
+
+static void DoAYSQ3(void) {
+	DoAYSQ(2);
+}
+
+static void DoAYSQ1HQ(void) {
+	DoAYSQHQ(0);
+}
+
+static void DoAYSQ2HQ(void) {
+	DoAYSQHQ(1);
+}
+
+static void DoAYSQ3HQ(void) {
+	DoAYSQHQ(2);
+}
+
 static void AYSound(int Count) {
 	int x;
-	DoAYSQ(0);
-	DoAYSQ(1);
-	DoAYSQ(2);
+	DoAYSQ1();
+	DoAYSQ2();
+	DoAYSQ3();
 	for (x = 0; x < 3; x++)
 		CAYBC[x] = Count;
 }
 
 static void AYSoundHQ(void) {
-	DoAYSQHQ(0);
-	DoAYSQHQ(1);
-	DoAYSQHQ(2);
+	DoAYSQ1HQ();
+	DoAYSQ2HQ();
+	DoAYSQ3HQ();
 }
 
 static void AYHiSync(int32 ts) {
@@ -218,6 +249,18 @@ void Mapper69_ESI(void) {
 	memset(dcount, 0, sizeof(dcount));
 	memset(vcount, 0, sizeof(vcount));
 	memset(CAYBC, 0, sizeof(CAYBC));
+	if (FSettings.SndRate) {
+		if (FSettings.soundq >= 1) {
+			sfun[0] = DoAYSQ1HQ;
+			sfun[1] = DoAYSQ2HQ;
+			sfun[2] = DoAYSQ3HQ;
+		} else {
+			sfun[0] = DoAYSQ1;
+			sfun[1] = DoAYSQ2;
+			sfun[2] = DoAYSQ3;
+		}
+	} else
+		memset(sfun, 0, sizeof(sfun));
 }
 
 /* SUNSOFT-5/FME-7 Sound */
@@ -270,8 +313,8 @@ void Mapper69_Init(CartInfo *info) {
 	}
 	GameStateRestore = StateRestore;
 	Mapper69_ESI();
-	AddExState(&SStateRegs, ~0, 0, 0);
 	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(&SStateRegs, ~0, 0, 0);
 }
 
 void NSFAY_Init(void) {
