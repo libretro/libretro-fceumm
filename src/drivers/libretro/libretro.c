@@ -2081,7 +2081,6 @@ unsigned retro_get_region(void)
    return FSettings.PAL ? RETRO_REGION_PAL : RETRO_REGION_NTSC;
 }
 
-
 void *retro_get_memory_data(unsigned type)
 {
    uint8_t* data;
@@ -2089,9 +2088,9 @@ void *retro_get_memory_data(unsigned type)
    switch(type)
    {
       case RETRO_MEMORY_SAVE_RAM:
-         if (iNESCart.battery)
+         if (iNESCart.battery && iNESCart.SaveGame[0] && iNESCart.SaveGameLen[0])
             return iNESCart.SaveGame[0];
-         else if (UNIFCart.battery)
+         else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             return UNIFCart.SaveGame[0];
          else
             data = NULL;
@@ -2114,9 +2113,9 @@ size_t retro_get_memory_size(unsigned type)
    switch(type)
    {
       case RETRO_MEMORY_SAVE_RAM:
-         if (iNESCart.battery)
+         if (iNESCart.battery && iNESCart.SaveGame[0] && iNESCart.SaveGameLen[0])
             size = iNESCart.SaveGameLen[0];
-         else if (UNIFCart.battery)
+         else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             size = UNIFCart.SaveGameLen[0];
          else
             size = 0;
