@@ -58,8 +58,6 @@ static MEMWRAP *MakeMemWrap(void *tz, int type)
    fread(tmp->data, 1, tmp->size, (FILE*)tz);
 
 doret:
-   if (type == 0)
-      fclose((FILE*)tz);
    return tmp;
 }
 
@@ -97,6 +95,7 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn,
 
       fseek((FILE*)t, 0, SEEK_SET);
       fceufp->fp = MakeMemWrap(t, 0);
+      fclose((FILE*)t);
    }
    return fceufp;
 }

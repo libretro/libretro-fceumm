@@ -83,6 +83,10 @@ typedef struct {
 	int PAL;
 	int NetworkPlay;
 	int SoundVolume;
+	int TriangleVolume;
+	int SquareVolume[2];
+	int NoiseVolume;
+	int PCMVolume;
 	int GameGenie;
 
 	/* Current first and last rendered scanlines. */

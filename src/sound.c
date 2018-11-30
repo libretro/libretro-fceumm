@@ -520,7 +520,8 @@ void RDoPCM(void) {
 	uint32 V;
 
 	for (V = ChannelBC[4]; V < SOUNDTS; V++)
-		WaveHi[V] += RawDALatch << 16;
+		/* TODO: get rid of floating calculations to binary. set log volume scaling. */
+		WaveHi[V] += (((RawDALatch << 16) / 256) * FSettings.PCMVolume ) & (~0xFFFF);
 
 	ChannelBC[4] = SOUNDTS;
 }
@@ -546,7 +547,16 @@ static INLINE void RDoSQ(int x) {
 		amp = EnvUnits[x].Speed;
 	else
 		amp = EnvUnits[x].decvolume;
-/*   printf("%d\n",amp); */
+	/*   printf("%d\n",amp); */
+
+	/* Modify Square wave volume based on channel volume modifiers
+	 * Note: the formulat x = x * y /100 does not yield exact results,
+	 * but is "close enough" and avoids the need for using double values
+	 * or implicit cohersion which are slower (we need speed here) */
+	/* TODO: Optimize this. */
+	if (FSettings.SquareVolume[x] != 256)
+		amp = (amp * FSettings.SquareVolume[x]) / 256;
+
 	amp <<= 24;
 
 	rthresh = RectDuties[(PSG[(x << 2)] & 0xC0) >> 6];
@@ -618,6 +628,15 @@ static void RDoSQLQ(void) {
 		else
 			amp[x] = EnvUnits[x].decvolume;
 
+		/* Modify Square wave volume based on channel volume modifiers
+		 * Note: the formulat x = x * y /100 does not yield exact results,
+		 * but is "close enough" and avoids the need for using double vales
+		 * or implicit cohersion which are slower (we need speed here)
+		 * fixed - setting up maximum volume for square2 caused complete mute square2 channel.
+		 * TODO: Optimize this. */
+		if (FSettings.SquareVolume[x] != 256)
+			amp[x] = (amp[x] * FSettings.SquareVolume[x]) / 256;
+
 		if (!inie[x]) amp[x] = 0;	/* Correct? Buzzing in MM2, others otherwise... */
 
 		rthresh[x] = RectDuties[(PSG[x * 4] & 0xC0) >> 6];
@@ -637,7 +656,7 @@ static void RDoSQLQ(void) {
 	if (!inie[0] && !inie[1]) {
 		for (V = start; V < end; V++)
 			Wave[V >> 4] += totalout;
-	} else
+	} else {
 		for (V = start; V < end; V++) {
 			/* int tmpamp=0;
 			if(RectDutyCount[0]<rthresh[0])
@@ -669,11 +688,12 @@ static void RDoSQLQ(void) {
 				totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
 			}
 		}
+	}
 }
 
 static void RDoTriangle(void) {
 	int32 V;
-	int32 tcout;
+	int32 tcout, cout;
 
 	tcout = (tristep & 0xF);
 	if (!(tristep & 0x10)) tcout ^= 0xF;
@@ -683,16 +703,17 @@ static void RDoTriangle(void) {
 		int32 *start = &WaveHi[ChannelBC[2]];
 		int32 count = SOUNDTS - ChannelBC[2];
 		while (count--) {
-			*start += tcout;
+			*start += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME */
 			start++;
 		}
-#if 0
+
+		/* cout = (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);
 		for(V = ChannelBC[2]; V < SOUNDTS; V++)
-			WaveHi[V] += tcout;
-#endif
-	} else
+			WaveHi[V] += cout; */
+
+	} else {
 		for (V = ChannelBC[2]; V < SOUNDTS; V++) {
-			WaveHi[V] += tcout;
+			WaveHi[V] += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME! */
 			wlcount[2]--;
 			if (!wlcount[2]) {
 				wlcount[2] = (PSG[0xa] | ((PSG[0xb] & 7) << 8)) + 1;
@@ -702,6 +723,7 @@ static void RDoTriangle(void) {
 				tcout = (tcout * 3) << 16;
 			}
 		}
+    }
 
 	ChannelBC[2] = SOUNDTS;
 }
@@ -738,6 +760,15 @@ static void RDoTriangleNoisePCMLQ(void) {
 		amptab[0] = EnvUnits[2].Speed;
 	else
 		amptab[0] = EnvUnits[2].decvolume;
+
+	/* Modify Square wave volume based on channel volume modifiers
+	 * Note: the formulat x = x * y /100 does not yield exact results,
+	 * but is "close enough" and avoids the need for using double vales
+	 * or implicit cohersion which are slower (we need speed here)
+	 * TODO: Optimize this. */
+	if (FSettings.TriangleVolume != 256)
+		amptab[0] = (amptab[0] * FSettings.TriangleVolume) / 256;
+
 	amptab[1] = 0;
 	amptab[0] <<= 1;
 
@@ -750,7 +781,6 @@ static void RDoTriangleNoisePCMLQ(void) {
 		nshift = 8;
 	else
 		nshift = 13;
-
 
 	totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
 
@@ -842,6 +872,14 @@ static void RDoNoise(void) {
 	else
 		amptab[0] = EnvUnits[2].decvolume;
 
+	/* Modify Square wave volume based on channel volume modifiers
+	* Note: the formulat x = x * y /100 does not yield exact results,
+	* but is "close enough" and avoids the need for using double vales
+	* or implicit cohersion which are slower (we need speed here)
+	* TODO: Optimize this. */
+	if (FSettings.NoiseVolume != 256)
+		amptab[0] = (amptab[0] * FSettings.NoiseVolume) / 256;
+
 	amptab[0] <<= 16;
 	amptab[1] = 0;
 
@@ -853,7 +891,7 @@ static void RDoNoise(void) {
 		outo = amptab[0] = 0;
 	}
 
-	if (PSG[0xE] & 0x80)/* "short" noise */
+	if (PSG[0xE] & 0x80) {/* "short" noise */
 		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
 			WaveHi[V] += outo;
 			wlcount[3]--;
@@ -869,7 +907,7 @@ static void RDoNoise(void) {
 				outo = amptab[(nreg >> 0xe) & 1];
 			}
 		}
-	else
+	} else {
 		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
 			WaveHi[V] += outo;
 			wlcount[3]--;
@@ -885,6 +923,7 @@ static void RDoNoise(void) {
 				outo = amptab[(nreg >> 0xe) & 1];
 			}
 		}
+	}
 	ChannelBC[3] = SOUNDTS;
 }
 
@@ -938,6 +977,7 @@ int FlushEmulateSound(void) {
 			*tmpo = (b & 65535) + wlookup2[(b >> 16) & 255] + wlookup1[b >> 24];
 			tmpo++;
 		}
+
 		end = NeoFilterSound(WaveHi, WaveFinal, SOUNDTS, &left);
 
 		memmove(WaveHi, WaveHi + SOUNDTS - left, left * sizeof(uint32));
@@ -953,10 +993,9 @@ int FlushEmulateSound(void) {
 
 		SexyFilter(Wave, WaveFinal, end >> 4);
 
-#if 0
-		if (FSettings.lowpass)
-			SexyFilter2(WaveFinal, end >> 4);
-#endif
+		/* if (FSettings.lowpass)
+			SexyFilter2(WaveFinal, end >> 4); */
+
 		if (end & 0xF)
 			Wave[0] = Wave[(end >> 4)];
 		Wave[end >> 4] = 0;
@@ -1023,6 +1062,8 @@ void FCEUSND_Reset(void) {
 	DMCAddress = 0;
 	DMCSize = 0;
 	DMCShift = 0;
+	DMCacc=1;
+	DMCBitCount=0;
 }
 
 void FCEUSND_Power(void) {
@@ -1162,7 +1203,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &DMCAddressLatch, 1, "5ADL" },
 	{ &DMCFormat, 1, "5FMT" },
 	{ &RawDALatch, 1, "RWDA" },
-	
+
 	//these are important for smooth sound after loading state
 	{ &sqacc[0], sizeof(sqacc[0]) | FCEUSTATE_RLSB, "SAC1" },
 	{ &sqacc[1], sizeof(sqacc[1]) | FCEUSTATE_RLSB, "SAC2" },
@@ -1171,7 +1212,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &tristep, sizeof(tristep) | FCEUSTATE_RLSB, "TRIS"},
 	{ &lq_triacc, sizeof(lq_triacc) | FCEUSTATE_RLSB, "TACC" },
 	{ &lq_noiseacc, sizeof(lq_noiseacc) | FCEUSTATE_RLSB, "NACC" },
-	
+
 	//less important but still necessary
 	{ &ChannelBC[0], sizeof(ChannelBC[0]) | FCEUSTATE_RLSB, "CBC1" },
 	{ &ChannelBC[1], sizeof(ChannelBC[1]) | FCEUSTATE_RLSB, "CBC2" },
@@ -1187,10 +1228,10 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &sexyfilter_acc1, sizeof(sexyfilter_acc1) | FCEUSTATE_RLSB, "FAC1" },
 	{ &sexyfilter_acc2, sizeof(sexyfilter_acc2) | FCEUSTATE_RLSB, "FAC2" },
 	{ &lq_tcout, sizeof(lq_tcout) | FCEUSTATE_RLSB, "TCOU"},
-	
+
 	//wave buffer is used for filtering, only need first 17 values from it
 	{ &Wave, 32 * sizeof(int32), "WAVE"},
-{ 0 }
+	{ 0 }
 };
 
 void FCEUSND_SaveState(void) {
@@ -1205,7 +1246,17 @@ void FCEUSND_LoadState(int version) {
 	//minimal validation
 	for (i = 0; i < 5; i++)
 	{
-		if (ChannelBC[i] < 0 || ChannelBC[i] > 15)
+		int BC_max = 15;
+
+		if (FSettings.soundq == 2)
+		{
+			BC_max = 1025;
+		}
+		else if (FSettings.soundq == 1)
+		{
+			BC_max = 485;
+		}
+		if (ChannelBC[i] < 0 || ChannelBC[i] > BC_max)
 		{
 			ChannelBC[i] = 0;
 		}
