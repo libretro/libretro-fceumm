@@ -713,12 +713,6 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
       { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
       { "fceumm_swapduty", "Swap Duty Cycles; disabled|enabled" },
-      { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
-      { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
-      { "fceumm_zapper_mode", "Zapper Mode; lightgun|mouse" },
-      { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
-      { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
-      { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
 #ifdef DEBUG
       { "fceumm_apu_1", "Enable Sound Channel 1 (Square 1); enabled|disabled" },
       { "fceumm_apu_2", "Enable Sound Channel 2 (Square 2); enabled|disabled" },
@@ -726,6 +720,12 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_apu_4", "Enable Sound Channel 4 (Noise) ; enabled|disabled" },
       { "fceumm_apu_5", "Enable Sound Channel 5 (PCM); enabled|disabled" },
 #endif
+      { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
+      { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
+      { "fceumm_zapper_mode", "Zapper Mode; lightgun|mouse" },
+      { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
+      { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
+      { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
       { NULL, NULL },
    };
 
@@ -966,11 +966,11 @@ static const keymap bindmap[] = {
 
 static void set_apu_channels(int chan)
 {
-   FSettings.SquareVolume[1] = 255 * ((chan >> 0) & 1);
-   FSettings.SquareVolume[0] = 255 * ((chan >> 1) & 1);
-   FSettings.TriangleVolume = 255 * ((chan >> 2) & 1);
-   FSettings.NoiseVolume = 255 * ((chan >> 3) & 1);
-   FSettings.PCMVolume = 255 * ((chan >> 4) & 1);
+   FSettings.SquareVolume[1] = 256 * ((chan >> 0) & 1);
+   FSettings.SquareVolume[0] = 256 * ((chan >> 1) & 1);
+   FSettings.TriangleVolume = 256 * ((chan >> 2) & 1);
+   FSettings.NoiseVolume = 256 * ((chan >> 3) & 1);
+   FSettings.PCMVolume = 256 * ((chan >> 4) & 1);
 }
 
 static void check_variables(bool startup)
