@@ -1356,7 +1356,7 @@ static void FCEUD_UpdateInput(void)
 
    JSReturn = 0;
 
-   // nes gamepad
+   /* nes gamepad */
    for (player = 0; player < MAX_PLAYERS; player++)
    {
       uint8_t input_buf   = 0;

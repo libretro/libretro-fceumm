@@ -226,16 +226,16 @@ void UNROM512_Init(CartInfo *info) {
 
 	mirror = (head.ROM_type & 1) | ((head.ROM_type & 8) >> 2);
 	switch (mirror) {
-	case 0: // hard horizontal, internal
+	case 0: /* hard horizontal, internal */
 		SetupCartMirroring(MI_H, 1, NULL);
 		break;
-	case 1: // hard vertical, internal
+	case 1: /* hard vertical, internal */
 		SetupCartMirroring(MI_V, 1, NULL);
 		break;
-	case 2: // switchable 1-screen, internal (flags: 4-screen + horizontal)
+	case 2: /* switchable 1-screen, internal (flags: 4-screen + horizontal) */
 		SetupCartMirroring(MI_0, 0, NULL);
 		break;
-	case 3: // hard four screen, last 8k of 32k RAM (flags: 4-screen + vertical)
+	case 3: /* hard four screen, last 8k of 32k RAM (flags: 4-screen + vertical) */
 		SetupCartMirroring(4, 1, VROM + (info->vram_size - 8192));
 		break;
 	}
