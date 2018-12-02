@@ -17,8 +17,6 @@ endif
 
 ifneq (,$(findstring msvc,$(platform)))
 COREDEFINES += -DINLINE=_inline
-else
-COREDEFINES += -DINLINE=inline
 endif
 
 ifeq ($(PSS_STYLE),2)
