@@ -717,7 +717,7 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_apu_1", "Enable Sound Channel 1 (Square 1); enabled|disabled" },
       { "fceumm_apu_2", "Enable Sound Channel 2 (Square 2); enabled|disabled" },
       { "fceumm_apu_3", "Enable Sound Channel 3 (Triangle); enabled|disabled" },
-      { "fceumm_apu_4", "Enable Sound Channel 4 (Noise) ; enabled|disabled" },
+      { "fceumm_apu_4", "Enable Sound Channel 4 (Noise); enabled|disabled" },
       { "fceumm_apu_5", "Enable Sound Channel 5 (PCM); enabled|disabled" },
 #endif
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
