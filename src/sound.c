@@ -1204,7 +1204,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &DMCFormat, 1, "5FMT" },
 	{ &RawDALatch, 1, "RWDA" },
 
-	//these are important for smooth sound after loading state
+	/* these are important for smooth sound after loading state */
 	{ &sqacc[0], sizeof(sqacc[0]) | FCEUSTATE_RLSB, "SAC1" },
 	{ &sqacc[1], sizeof(sqacc[1]) | FCEUSTATE_RLSB, "SAC2" },
 	{ &RectDutyCount[0], sizeof(RectDutyCount[0]) | FCEUSTATE_RLSB, "RCD1"},
@@ -1213,7 +1213,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &lq_triacc, sizeof(lq_triacc) | FCEUSTATE_RLSB, "TACC" },
 	{ &lq_noiseacc, sizeof(lq_noiseacc) | FCEUSTATE_RLSB, "NACC" },
 
-	//less important but still necessary
+	/* less important but still necessary */
 	{ &ChannelBC[0], sizeof(ChannelBC[0]) | FCEUSTATE_RLSB, "CBC1" },
 	{ &ChannelBC[1], sizeof(ChannelBC[1]) | FCEUSTATE_RLSB, "CBC2" },
 	{ &ChannelBC[2], sizeof(ChannelBC[2]) | FCEUSTATE_RLSB, "CBC3" },
@@ -1229,7 +1229,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &sexyfilter_acc2, sizeof(sexyfilter_acc2) | FCEUSTATE_RLSB, "FAC2" },
 	{ &lq_tcout, sizeof(lq_tcout) | FCEUSTATE_RLSB, "TCOU"},
 
-	//wave buffer is used for filtering, only need first 17 values from it
+	/* wave buffer is used for filtering, only need first 17 values from it */
 	{ &Wave, 32 * sizeof(int32), "WAVE"},
 	{ 0 }
 };
@@ -1243,7 +1243,7 @@ void FCEUSND_LoadState(int version) {
 	RawDALatch &= 0x7F;
 	DMCAddress &= 0x7FFF;
 
-	//minimal validation
+	/* minimal validation */
 	for (i = 0; i < 5; i++)
 	{
 		int BC_max = 15;
