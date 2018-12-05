@@ -386,8 +386,7 @@ static void FASTAPASS(1) FrameSoundStuff(int V) {
 						mod = curfreq[P] >> (PSG[(P << 2) + 0x1] & 7);
 						if ((mod + curfreq[P]) & 0x800) {
 							sweepon[P] = 0;
-							/* https://github.com/TASVideos/fceux/issues/11 */
-							/* curfreq[P] = 0; */
+							curfreq[P] = 0;
 						} else {
 							if (curfreq[P] && (PSG[(P << 2) + 0x1] & 7)	/* && sweepon[P]&0x80*/) {
 								curfreq[P] += mod;
@@ -537,13 +536,12 @@ static INLINE void RDoSQ(int x) {
 	int32 cf;
 	int32 rc;
 
-	/* This has been updated in a section further down: */
-	/* if (curfreq[x] < 8 || curfreq[x] > 0x7ff)
+	if (curfreq[x] < 8 || curfreq[x] > 0x7ff)
 		goto endit;
 	if (!CheckFreq(curfreq[x], PSG[(x << 2) | 0x1]))
 		goto endit;
 	if (!lengthcount[x])
-		goto endit; */
+		goto endit;
 
 	if (EnvUnits[x].Mode & 0x1)
 		amp = EnvUnits[x].Speed;
@@ -570,20 +568,6 @@ static INLINE void RDoSQ(int x) {
 	cf = (curfreq[x] + 1) * 2;
 	rc = wlcount[x];
 
-	/* Testrom: apu_phase_reset.nes
-	 * http://forums.nesdev.com/viewtopic.php?f=2&t=15346 */
-	if (curfreq[x] < 8 || !CheckFreq(curfreq[x], PSG[(x << 2) | 0x1])
-	|| !lengthcount[x]) {
-		rc -= V;
-		if (rc <= 0) {
-			rc = cf - (-rc % cf);
-		}
-		V = 0;
-	}
-
-	if (rthresh == 6)	/* Reversed below */
-		currdc = (currdc - 2) & 0x7;
-
 	while (V > 0) {
 		if (currdc < rthresh)
 			*D += amp;
@@ -595,9 +579,6 @@ static INLINE void RDoSQ(int x) {
 		V--;
 		D++;
 	}
-
-	if (rthresh == 6)	/* Reverse above */
-		currdc = (currdc + 2) & 0x7;
 
 	RectDutyCount[x] = currdc;
 	wlcount[x] = rc;
