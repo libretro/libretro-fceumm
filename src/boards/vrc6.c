@@ -49,10 +49,8 @@ static uint8 vpsg1[8];
 static uint8 vpsg2[4];
 static int32 cvbc[3];
 static int32 vcount[3];
-static int32 dcount[2];
-static int32 saw1phaseacc;
+static int32 dcount[3];
 static int32 phaseacc;
-static uint8 b3; /* clock counter, resets phaseacc on the 7th clock */
 
 static SFORMAT SStateRegs[] =
 {
@@ -64,12 +62,11 @@ static SFORMAT SStateRegs[] =
 	{ &cvbc[2], 4 | FCEUSTATE_RLSB, "BC03" },
 	{ &dcount[0], 4 | FCEUSTATE_RLSB, "DCT0" },
 	{ &dcount[1], 4 | FCEUSTATE_RLSB, "DCT1" },
+	{ &dcount[2], 4 | FCEUSTATE_RLSB, "DCT2" },
 	{ &vcount[0], 4 | FCEUSTATE_RLSB, "VCT0" },
 	{ &vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
-	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT1" },
-	{ &saw1phaseacc, 4| FCEUSTATE_RLSB, "SAW1" },
-	{ &phaseacc, 4 | FCEUSTATE_RLSB, "PACC" },
-	{ &b3, 1, "CLKC" },
+	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT2" },
+	{ &phaseacc, 4 | FCEUSTATE_RLSB, "ACCU" },
 	{ 0 }
 };
 
@@ -235,20 +232,20 @@ static void DoSawV(void) {
 		freq3 = (vpsg2[1] + ((vpsg2[2] & 15) << 8) + 1);
 
 		for (V = start; V < end; V++) {
-			saw1phaseacc -= nesincsize;
-			if (saw1phaseacc <= 0) {
+			vcount[2] -= nesincsize;
+			if (vcount[2] <= 0) {
 				int32 t;
  rea:
 				t = freq3;
 				t <<= 18;
-				saw1phaseacc += t;
+				vcount[2] += t;
 				phaseacc += vpsg2[0] & 0x3f;
-				b3++;
-				if (b3 == 7) {
-					b3 = 0;
+				dcount[2]++;
+				if (dcount[2] == 7) {
+					dcount[2] = 0;
 					phaseacc = 0;
 				}
-				if (saw1phaseacc <= 0)
+				if (vcount[2] <= 0)
 					goto rea;
 				duff = (((phaseacc >> 3) & 0x1f) << 4) * 6 / 8;
 			}
@@ -304,9 +301,9 @@ static void DoSawVHQ(void) {
 			if (vcount[2] <= 0) {
 				vcount[2] = (vpsg2[1] + ((vpsg2[2] & 15) << 8) + 1) << 1;
 				phaseacc += vpsg2[0] & 0x3f;
-				b3++;
-				if (b3 == 7) {
-					b3 = 0;
+				dcount[2]++;
+				if (dcount[2] == 7) {
+					dcount[2] = 0;
 					phaseacc = 0;
 				}
 			}
@@ -314,7 +311,6 @@ static void DoSawVHQ(void) {
 	}
 	cvbc[2] = SOUNDTS;
 }
-
 
 void VRC6Sound(int Count) {
 	int x;
@@ -343,6 +339,7 @@ static void VRC6_ESI(void) {
 	GameExpSound.HiFill = VRC6SoundHQ;
 	GameExpSound.HiSync = VRC6SyncHQ;
 
+	phaseacc = 0;
 	memset(cvbc, 0, sizeof(cvbc));
 	memset(vcount, 0, sizeof(vcount));
 	memset(dcount, 0, sizeof(dcount));
@@ -368,8 +365,8 @@ void Mapper24_Init(CartInfo *info) {
 	MapIRQHook = VRC6IRQHook;
 	VRC6_ESI();
 	GameStateRestore = StateRestore;
-	AddExState(&SStateRegs, ~0, 0, 0);
 	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(&SStateRegs, ~0, 0, 0);
 }
 
 void Mapper26_Init(CartInfo *info) {
@@ -388,8 +385,8 @@ void Mapper26_Init(CartInfo *info) {
 		info->SaveGame[0] = WRAM;
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
-	AddExState(&SStateRegs, ~0, 0, 0);
 	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(&SStateRegs, ~0, 0, 0);
 }
 
 void NSFVRC6_Init(void) {

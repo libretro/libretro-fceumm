@@ -761,7 +761,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 	else
 		amptab[0] = EnvUnits[2].decvolume;
 
-	/* Modify Square wave volume based on channel volume modifiers
+	/* Modify Triangle wave volume based on channel volume modifiers
 	 * Note: the formulat x = x * y /100 does not yield exact results,
 	 * but is "close enough" and avoids the need for using double vales
 	 * or implicit cohersion which are slower (we need speed here)
@@ -872,7 +872,7 @@ static void RDoNoise(void) {
 	else
 		amptab[0] = EnvUnits[2].decvolume;
 
-	/* Modify Square wave volume based on channel volume modifiers
+	/* Modify Noise wave volume based on channel volume modifiers
 	* Note: the formulat x = x * y /100 does not yield exact results,
 	* but is "close enough" and avoids the need for using double vales
 	* or implicit cohersion which are slower (we need speed here)

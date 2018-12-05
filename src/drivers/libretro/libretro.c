@@ -41,6 +41,8 @@
 #define RETRO_DEVICE_FC_4PLAYERS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 2)
 #define RETRO_DEVICE_FC_AUTO     RETRO_DEVICE_JOYPAD
 
+#define NES_WIDTH   256
+#define NES_HEIGHT  240
 #define NES_8_7_PAR  ((width * (8.0 / 7.0)) / height)
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
 
@@ -795,16 +797,16 @@ void retro_get_system_info(struct retro_system_info *info)
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
 #ifdef PSP
-    unsigned width  = use_overscan ? 256 : (256 - 16);
-    unsigned height = use_overscan ? 240 : (240 - 16);
+    unsigned width  = NES_WIDTH - (use_overscan ? 16 : 0);
+    unsigned height = NES_HEIGHT - (use_overscan ? 16 : 0);
 #else
-    unsigned width  = 256 - (overscan_h ? 16 : 0);
-    unsigned height = 240 - (overscan_v ? 16 : 0);
+    unsigned width  = NES_WIDTH - (overscan_h ? 16 : 0);
+    unsigned height = NES_HEIGHT - (overscan_v ? 16 : 0);
 #endif
    info->geometry.base_width = width;
    info->geometry.base_height = height;
-   info->geometry.max_width = width;
-   info->geometry.max_height = height;
+   info->geometry.max_width = NES_WIDTH;
+   info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
