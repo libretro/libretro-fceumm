@@ -85,6 +85,9 @@ int32 nesincsize = 0;
 uint32 soundtsinc = 0;
 uint32 soundtsi = 0;
 static int32 sqacc[2];
+static uint32 lq_tcout;
+static int32 lq_triacc;
+static int32 lq_noiseacc;
 /* LQ variables segment ends. */
 
 static int32 lengthcount[4];
@@ -126,9 +129,9 @@ static const uint32 PALDMCTable[0x10] =
  * $4013  -  Size register:  Size in bytes = (V+1)*64
  */
 
-/*static*/ int32 DMCacc = 1;
+static int32 DMCacc = 1;
 static int32 DMCPeriod = 0;
-/*static*/ uint8 DMCBitCount = 0;
+static uint8 DMCBitCount = 0;
 
 static uint8 DMCAddressLatch = 0, DMCSizeLatch = 0;	/* writes to 4012 and 4013 */
 static uint8 DMCFormat = 0;							/* Write to $4010 */
@@ -176,13 +179,8 @@ static int FASTAPASS(2) CheckFreq(uint32 cf, uint8 sr) {
 }
 
 static void SQReload(int x, uint8 V) {
-	if (EnabledChannels & (1 << x)) {
-		if (x)
-			DoSQ2();
-		else
-			DoSQ1();
+	if (EnabledChannels & (1 << x))
 		lengthcount[x] = lengthtable[(V >> 3) & 0x1f];
-	}
 
 	curfreq[x] = curfreq[x] & 0xff | ((V & 7) << 8);
 	RectDutyCount[x] = 7;
@@ -211,6 +209,7 @@ static DECLFW(Write_PSG) {
 		curfreq[0] |= V;
 		break;
 	case 0x3:
+		DoSQ1();
 		SQReload(0, V);
 		break;
 	case 0x4:
@@ -231,6 +230,7 @@ static DECLFW(Write_PSG) {
 		curfreq[1] |= V;
 		break;
 	case 0x7:
+		DoSQ2();
 		SQReload(1, V);
 		break;
 	case 0xa:
@@ -532,54 +532,56 @@ static INLINE void RDoSQ(int x) {
 	int32 cf;
 	int32 rc;
 
-	if (curfreq[x] < 8 || curfreq[x] > 0x7ff)
-		goto endit;
-	if (!CheckFreq(curfreq[x], PSG[(x << 2) | 0x1]))
-		goto endit;
-	if (!lengthcount[x])
-		goto endit;
-
-	if (EnvUnits[x].Mode & 0x1)
-		amp = EnvUnits[x].Speed;
-	else
-		amp = EnvUnits[x].decvolume;
-	/*   printf("%d\n",amp); */
-
-	/* Modify Square wave volume based on channel volume modifiers
-	 * Note: the formulat x = x * y /100 does not yield exact results,
-	 * but is "close enough" and avoids the need for using double values
-	 * or implicit cohersion which are slower (we need speed here) */
-	/* TODO: Optimize this. */
-	if (FSettings.SquareVolume[x] != 256)
-		amp = (amp * FSettings.SquareVolume[x]) / 256;
-
-	amp <<= 24;
-
-	rthresh = RectDuties[(PSG[(x << 2)] & 0xC0) >> 6];
-
-	D = &WaveHi[ChannelBC[x]];
 	V = SOUNDTS - ChannelBC[x];
-
-	currdc = RectDutyCount[x];
 	cf = (curfreq[x] + 1) * 2;
 	rc = wlcount[x];
 
-	while (V > 0) {
-		if (currdc < rthresh)
-			*D += amp;
-		rc--;
-		if (!rc) {
-			rc = cf;
-			currdc = (currdc + 1) & 7;
+	/* added 2018/12/08 */
+	/* when pulse channel is silenced, resets length counters but not
+	 * duty cycle, instead of resetting both */
+	if ((curfreq[x] < 8 || curfreq[x] > 0x7ff) ||
+	!CheckFreq(curfreq[x], PSG[(x << 2) | 0x1]) ||
+	!lengthcount[x]) {
+		rc -= V;
+		if (rc <= 0) {
+			rc = cf - (-rc % cf);
 		}
-		V--;
-		D++;
+	} else {
+		if (EnvUnits[x].Mode & 0x1)
+			amp = EnvUnits[x].Speed;
+		else
+			amp = EnvUnits[x].decvolume;
+		/*   printf("%d\n",amp); */
+
+		/* Modify Square wave volume based on channel volume modifiers
+		 * Note: the formulat x = x * y /100 does not yield exact results,
+		 * but is "close enough" and avoids the need for using double values
+		 * or implicit cohersion which are slower (we need speed here) */
+		/* TODO: Optimize this. */
+		if (FSettings.SquareVolume[x] != 256)
+			amp = (amp * FSettings.SquareVolume[x]) / 256;
+
+		amp <<= 24;
+		rthresh = RectDuties[(PSG[(x << 2)] & 0xC0) >> 6];
+		currdc = RectDutyCount[x];
+		D = &WaveHi[ChannelBC[x]];
+
+		while (V > 0) {
+			if (currdc < rthresh)
+				*D += amp;
+			rc--;
+			if (!rc) {
+				rc = cf;
+				currdc = (currdc + 1) & 7;
+			}
+			V--;
+			D++;
+		}
+
+		RectDutyCount[x] = currdc;
 	}
 
-	RectDutyCount[x] = currdc;
 	wlcount[x] = rc;
-
- endit:
 	ChannelBC[x] = SOUNDTS;
 }
 
@@ -723,10 +725,6 @@ static void RDoTriangle(void) {
 
 	ChannelBC[2] = SOUNDTS;
 }
-
-uint32 lq_tcout = 0;
-int32 lq_triacc = 0;
-int32 lq_noiseacc = 0;
 
 static void RDoTriangleNoisePCMLQ(void) {
 	int32 V;
