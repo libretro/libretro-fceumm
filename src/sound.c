@@ -289,17 +289,17 @@ static DECLFW(Write_DMCRegs) {
 		break;
 	case 0x01: DoPCM();
 		RawDALatch = V & 0x7F;
-      if (RawDALatch)
-         DMC_7bit = 1;
+		if (RawDALatch)
+			DMC_7bit = 1;
 		break;
 	case 0x02:
-      DMCAddressLatch = V;
-      if (V)
+		DMCAddressLatch = V;
+		if (V)
 			DMC_7bit = 0;
-      break;
+		break;
 	case 0x03:
-      DMCSizeLatch = V;
-      if (V)
+		DMCSizeLatch = V;
+		if (V)
 			DMC_7bit = 0;
       break;
 	}
@@ -314,6 +314,7 @@ static DECLFW(StatusWrite) {
 	DoTriangle();
 	DoNoise();
 	DoPCM();
+
 	for (x = 0; x < 4; x++)
 		if (!(V & (1 << x))) lengthcount[x] = 0;	/* Force length counters to 0. */
 
@@ -337,9 +338,9 @@ static DECLFR(StatusRead) {
 	for (x = 0; x < 4; x++) ret |= lengthcount[x] ? (1 << x) : 0;
 	if (DMCSize) ret |= 0x10;
 
-		#ifdef FCEUDEF_DEBUGGER
+	#ifdef FCEUDEF_DEBUGGER
 	if (!fceuindbg)
-		#endif
+	#endif
 	{
 		SIRQStat &= ~0x40;
 		X6502_IRQEnd(FCEU_IQFCOUNT);
@@ -429,19 +430,21 @@ void FrameSoundUpdate(void) {
 	 * Length counter:  Bit 4-7 of $4003, $4007, $400b, $400f
 	 */
 
-	if (!fcnt && !(IRQFrameMode & 0x3)) {
-		SIRQStat |= 0x40;
-		X6502_IRQBegin(FCEU_IQFCOUNT);
-	}
-
 	if (fcnt == 3) {
 		if (IRQFrameMode & 0x2)
 			fhcnt += fhinc;
 	}
+
 	FrameSoundStuff(fcnt);
 	fcnt = (fcnt + 1) & 3;
-}
 
+	/* has to be moved here to fix Dragon Warrior 4
+	 * after irq inhibit fix for $4017 */
+	if (!fcnt && !(IRQFrameMode & 0x3)) {
+		SIRQStat |= 0x40;
+		X6502_IRQBegin(FCEU_IQFCOUNT);
+	}
+}
 
 static INLINE void tester(void) {
 	if (DMCBitCount == 0) {
@@ -468,9 +471,10 @@ static INLINE void DMCDMA(void) {
 			if (DMCFormat & 0x40)
 				PrepDPCM();
 			else {
-				SIRQStat |= 0x80;
-				if (DMCFormat & 0x80)
+				if (DMCFormat & 0x80) {
+					SIRQStat |= 0x80;
 					X6502_IRQBegin(FCEU_IQDPCM);
+				}
 			}
 		}
 	}
@@ -853,7 +857,6 @@ static void RDoTriangleNoisePCMLQ(void) {
 	}
 }
 
-
 static void RDoNoise(void) {
 	uint32 V;
 	int32 outo;
@@ -924,10 +927,12 @@ DECLFW(Write_IRQFM) {
 	fcnt = 0;
 	if (V & 2)
 		FrameSoundUpdate();
-	fcnt = 1;
+	/* fcnt = 1; */
 	fhcnt = fhinc;
-	X6502_IRQEnd(FCEU_IQFCOUNT);
-	SIRQStat &= ~0x40;
+	if (V & 1) {
+		X6502_IRQEnd(FCEU_IQFCOUNT);
+		SIRQStat &= ~0x40;
+	}
 	IRQFrameMode = V;
 }
 
