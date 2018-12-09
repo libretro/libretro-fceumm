@@ -1,9 +1,10 @@
-DEBUG=0
+DEBUG=1
 PSS_STYLE=1
 EXTERNAL_ZLIB=0
-HAVE_GRIFFIN=1
+HAVE_GRIFFIN=0
 STATIC_LINKING=0
 ENDIANNESS_DEFINES=
+SIGNED_CHAR=0
 
 SPACE :=
 SPACE := $(SPACE) $(SPACE)
@@ -255,6 +256,7 @@ else ifeq ($(platform), wii)
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
+	SIGNED_CHAR=1
 
 # Nintendo WiiU
 else ifeq ($(platform), wiiu)
@@ -266,6 +268,7 @@ else ifeq ($(platform), wiiu)
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
+	SIGNED_CHAR=1
 
 # Nintendo Switch (libtransistor)
 else ifeq ($(platform), switch)
@@ -624,6 +627,10 @@ endif
 
 ifeq ($(EXTERNAL_ZLIB), 1)
 	CFLAGS += -DHAVE_EXTERNAL_ZLIB
+endif
+
+ifeq ($(SIGNED_CHAR), 1)
+	CFLAGS += -fsigned-char
 endif
 
 CORE_DIR := src
