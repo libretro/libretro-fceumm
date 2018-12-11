@@ -108,7 +108,7 @@ static int SubWrite(memstream_t *mem, SFORMAT *sf)
          if(sf->s & RLSB)
             FlipByteOrder((uint8 *)sf->v, sf->s & (~RLSB));
 #endif
-         memstream_write(mem, (uint8 *)sf->v, sf->s & (~RLSB));
+         memstream_write(mem, (char *)sf->v, sf->s & (~RLSB));
 
          /* Now restore the original byte order. */
 #ifdef MSB_FIRST
@@ -176,7 +176,7 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 
       if((tmp = CheckS(sf, tsize, toa)))
       {
-         memstream_read(mem, (uint8 *)tmp->v, tmp->s & (~RLSB));
+         memstream_read(mem, (char *)tmp->v, tmp->s & (~RLSB));
 
 #ifdef MSB_FIRST
          if(tmp->s & RLSB)
@@ -213,8 +213,8 @@ static int ReadStateChunks(memstream_t *st, int32 totalsize)
          case 2:
             if (!ReadStateChunk(st, SFCPUC, size))
                ret = 0;
-            else
-               X.mooPI = X.P; /* Quick and dirty hack. */
+            /* else
+               X.mooPI = X.P; */ /* Quick and dirty hack. */
             break;
          case 3:
             if (!ReadStateChunk(st, FCEUPPU_STATEINFO, size))
@@ -320,6 +320,7 @@ void ResetExState(void (*PreSave)(void), void (*PostSave)(void))
    SPreSave  = PreSave;
    SPostSave = PostSave;
    SFEXINDEX = 0;
+   SFMDATA[0].s = 0;
 }
 
 void AddExState(void *v, uint32 s, int type, char *desc)
