@@ -174,6 +174,7 @@ static void VRC7IRQHook(int a) {
 
 static void StateRestore(int version) {
 	Sync();
+	OPLL_forceRefresh(VRC7Sound);
 }
 
 void Mapper85_Init(CartInfo *info) {
