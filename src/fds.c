@@ -702,7 +702,12 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		AddExState(diskdata[x], 65500, 0, temp);
 	}
 
-	AddExState(FDSRegs, sizeof(FDSRegs), 0, "FREG");
+   AddExState(&FDSRegs[0], 1, 0, "REG1");
+   AddExState(&FDSRegs[1], 1, 0, "REG2");
+   AddExState(&FDSRegs[2], 1, 0, "REG3");
+   AddExState(&FDSRegs[3], 1, 0, "REG4");
+   AddExState(&FDSRegs[4], 1, 0, "REG5");
+   AddExState(&FDSRegs[5], 1, 0, "REG6");
 	AddExState(&IRQCount, 4, 1, "IRQC");
 	AddExState(&IRQLatch, 4, 1, "IQL1");
 	AddExState(&IRQa, 1, 0, "IRQA");
