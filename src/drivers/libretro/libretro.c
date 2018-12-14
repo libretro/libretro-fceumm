@@ -98,10 +98,10 @@ static uint16_t retro_palette[256];
 static uint16_t* fceu_video_out;
 
 /* Some timing-related variables. */
-unsigned sndsamplerate = 48000;
-unsigned sndquality = 0;
-unsigned sndvolume = 150;
-unsigned swapDuty = 0;
+static unsigned sndsamplerate;
+static unsigned sndquality;
+static unsigned sndvolume;
+unsigned swapDuty;
 
 static int32_t *sound = 0;
 static uint32_t JSReturn = 0;
@@ -109,6 +109,8 @@ static uint32_t Dummy = 0;
 static uint32_t MouseData[MAX_PORTS][3] = { {0} };
 static uint32_t fc_MouseData[3] = {0};
 static uint32_t current_palette = 0;
+
+static unsigned serialize_size;
 
 int PPUViewScanline=0;
 int PPUViewer=0;
@@ -836,6 +838,20 @@ void retro_init(void)
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
+
+   /* initialize some of the default variables */
+#ifdef GEKKO
+   sndsamplerate = 32000;
+#else
+   sndsamplerate = 48000;
+#endif
+   sndquality = 0;
+   sndvolume = 150;
+   swapDuty = 0;
+
+   /* Wii: initialize this or else last variable is passed through
+    * when loading another rom causing save state size change. */
+   serialize_size = 0;
 }
 
 static void retro_set_custom_palette(void)
@@ -1549,8 +1565,6 @@ void retro_run(void)
 
    retro_run_blit(gfx);
 }
-
-static unsigned serialize_size = 0;
 
 size_t retro_serialize_size(void)
 {
