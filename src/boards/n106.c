@@ -53,10 +53,34 @@ static int is210;	/* Lesser mapper. */
 static uint8 PRG[3];
 static uint8 CHR[8];
 
+/* TODO: Clean this up. State variables are expanded for
+ * big-endian compatibility when saving and loading states */
 static SFORMAT N106_StateRegs[] = {
-	{ PRG, 3, "PRG" },
-	{ CHR, 8, "CHR" },
-	{ NTAPage, 4, "NTA" },
+	{ &PRG[0], 1, "PRG1" },
+	{ &PRG[1], 1, "PRG2" },
+	{ &PRG[2], 1, "PRG3" },
+
+	{ &CHR[0], 1, "CHR1" },
+	{ &CHR[1], 1, "CHR2" },
+	{ &CHR[2], 1, "CHR3" },
+	{ &CHR[3], 1, "CHR4" },
+	{ &CHR[4], 1, "CHR5" },
+	{ &CHR[5], 1, "CHR6" },
+	{ &CHR[6], 1, "CHR7" },
+	{ &CHR[7], 1, "CHR8" },
+
+	{ &NTAPage[0], 1, "NTA1" },
+	{ &NTAPage[1], 1, "NTA2" },
+	{ &NTAPage[2], 1, "NTA3" },
+	{ &NTAPage[3], 1, "NTA4" },
+
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
+	{ &IRQa, 1, "IRQA" },
+
+	{ &dopol, 1, "GORF" },
+	{ &gorfus, 1, "DOPO" },
+	{ &gorko, 1, "GORK" },
+
 	{ 0 }
 };
 

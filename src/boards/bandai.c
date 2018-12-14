@@ -31,12 +31,29 @@ static int16 IRQCount, IRQLatch;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
+/* TODO: Clean this up. State variables are expanded for
+ * big-endian compatibility when saving and loading states */
 static SFORMAT StateRegs[] =
 {
-	{ reg, 16, "REGS" },
+	{ &reg[0], 1, "REG0" },
+	{ &reg[1], 1, "REG1" },
+	{ &reg[2], 1, "REG2" },
+	{ &reg[3], 1, "REG3" },
+	{ &reg[4], 1, "REG4" },
+	{ &reg[5], 1, "REG5" },
+	{ &reg[6], 1, "REG6" },
+	{ &reg[7], 1, "REG7" },
+	{ &reg[8], 1, "REG8" },
+	{ &reg[9], 1, "REG9" },
+	{ &reg[10], 1, "REGA" },
+	{ &reg[11], 1, "REGB" },
+	{ &reg[12], 1, "REGC" },
+	{ &reg[13], 1, "REGD" },
+	{ &reg[14], 1, "REGE" },
+	{ &reg[15], 1, "REGF" },
 	{ &IRQa, 1, "IRQA" },
-	{ &IRQCount, 2, "IRQC" },
-	{ &IRQLatch, 2, "IRQL" },	/* need for Famicom Jump II - Saikyou no 7 Nin (J) [!] */
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
+	{ &IRQLatch, 2 | FCEUSTATE_RLSB, "IRQL" },	/* need for Famicom Jump II - Saikyou no 7 Nin (J) [!] */
 	{ 0 }
 };
 

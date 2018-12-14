@@ -174,7 +174,10 @@ static void VRC7IRQHook(int a) {
 
 static void StateRestore(int version) {
 	Sync();
+
+#ifndef GEKKO
 	OPLL_forceRefresh(VRC7Sound);
+#endif
 }
 
 void Mapper85_Init(CartInfo *info) {
@@ -193,6 +196,8 @@ void Mapper85_Init(CartInfo *info) {
 	VRC7_ESI();
 	AddExState(&StateRegs, ~0, 0, 0);
 
+/* Ignoring these sound state files for Wii since it causes states unable to load */
+#ifndef GEKKO
 	/* Sound states */
 	AddExState(&VRC7Sound->adr, sizeof(VRC7Sound->adr), 0, "ADDR");
 	AddExState(&VRC7Sound->out, sizeof(VRC7Sound->out), 0, "OUT0");
@@ -214,6 +219,7 @@ void Mapper85_Init(CartInfo *info) {
 	AddExState(&VRC7Sound->key_status, sizeof(VRC7Sound->key_status), 0, "KET");
 	AddExState(&VRC7Sound->mask, sizeof(VRC7Sound->mask), 0, "MASK");
 	AddExState((uint8 *)VRC7Sound->slot, sizeof(VRC7Sound->slot), 0, "SLOT");
+#endif
 }
 
 void NSFVRC7_Init(void) {

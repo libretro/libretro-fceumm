@@ -56,6 +56,9 @@ static SFORMAT SStateRegs[] =
 {
 	{ vpsg1, 8, "PSG1" },
 	{ vpsg2, 4, "PSG2" },
+
+/* Ignoring these sound state files for Wii since it causes states unable to load */
+#ifndef GEKKO
 	/* rw - 2018-11-28 Added */
 	{ &cvbc[0], 4 | FCEUSTATE_RLSB, "BC01" },
 	{ &cvbc[1], 4 | FCEUSTATE_RLSB, "BC02" },
@@ -67,6 +70,7 @@ static SFORMAT SStateRegs[] =
 	{ &vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
 	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT2" },
 	{ &phaseacc, 4 | FCEUSTATE_RLSB, "ACCU" },
+#endif
 	{ 0 }
 };
 
