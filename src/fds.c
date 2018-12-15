@@ -142,10 +142,12 @@ static void FDSInit(void) {
 
 void FCEU_FDSInsert(int oride) {
 	if (InDisk == 255) {
-		FCEU_DispMessage("Disk %d Side %s Inserted", SelectDisk >> 1, (SelectDisk & 1) ? "B" : "A");
+		FCEU_DispMessage("Disk %d of %d Side %s Inserted",
+			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 		InDisk = SelectDisk;
 	} else {
-		FCEU_DispMessage("Disk %d Side %s Ejected", SelectDisk >> 1, (SelectDisk & 1) ? "B" : "A");
+		FCEU_DispMessage("Disk %d of %d Side %s Ejected",
+			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 		InDisk = 255;
 	}
 }
@@ -160,7 +162,8 @@ void FCEU_FDSSelect(void) {
 		return;
 	}
 	SelectDisk = ((SelectDisk + 1) % TotalSides) & 3;
-	FCEU_DispMessage("Disk %d Side %s Selected", SelectDisk >> 1, (SelectDisk & 1) ? "B" : "A");
+	FCEU_DispMessage("Disk %d of %d Side %s Selected",
+		1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 }
 
 static void FP_FASTAPASS(1) FDSFix(int a) {
