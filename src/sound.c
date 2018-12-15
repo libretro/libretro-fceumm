@@ -1224,8 +1224,15 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &sexyfilter_acc2, sizeof(sexyfilter_acc2) | FCEUSTATE_RLSB, "FAC2" },
 	{ &lq_tcout, sizeof(lq_tcout) | FCEUSTATE_RLSB, "TCOU"},
 
+/* 2018-12-14 - Wii and possibly other big-endian platforms are having
+ * issues loading states with this. Increasing it only helps a few games.
+ * Disabling this state variable for Wii/WiiU/GC for now. */
+/* TODO: fix this for better runahead feature for big-endian */
+#ifndef GEKKO
 	/* wave buffer is used for filtering, only need first 17 values from it */
 	{ &Wave, 32 * sizeof(int32), "WAVE"},
+#endif
+
 	{ 0 }
 };
 

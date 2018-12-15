@@ -113,6 +113,9 @@ static SFORMAT SStateRegs[] =
 {
 	{ &sndcmd, 1, "SCMD" },
 	{ sreg, 14, "SREG" },
+
+/* Ignoring these sound state files for Wii since it causes states unable to load */
+#ifndef GEKKO
 	{ &dcount[0], 4 | FCEUSTATE_RLSB, "DCT0" },
 	{ &dcount[1], 4 | FCEUSTATE_RLSB, "DCT1" },
 	{ &dcount[2], 4 | FCEUSTATE_RLSB, "DCT2" },
@@ -122,6 +125,8 @@ static SFORMAT SStateRegs[] =
 	{ &CAYBC[0], 4 | FCEUSTATE_RLSB, "BC00" },
 	{ &CAYBC[1], 4 | FCEUSTATE_RLSB, "BC01" },
 	{ &CAYBC[2], 4 | FCEUSTATE_RLSB, "BC02" },
+#endif
+
 	{ 0 }
 };
 
