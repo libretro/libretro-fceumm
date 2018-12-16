@@ -166,18 +166,19 @@ void FCEU_FDSSelect(void) {
 		1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 }
 
+/* 2018/12/15 - update irq timings */
 static void FP_FASTAPASS(1) FDSFix(int a) {
-	if ((IRQa & 2) && IRQCount) {
-		IRQCount -= a;
+	if ((IRQa & 2) && (FDSRegs[3] & 0x1)) {
 		if (IRQCount <= 0) {
-			if (!(IRQa & 1)) {
-				IRQa &= ~2;
-				IRQCount = IRQLatch = 0;
-			} else
-				IRQCount = IRQLatch;
+			if (!(IRQa & 1))
+				IRQa &= ~2; /* does not clear latch, fix Druid */
+			IRQCount = IRQLatch;
 			X6502_IRQBegin(FCEU_IQEXT);
+		} else {
+			IRQCount -= a;
 		}
 	}
+
 	if (DiskSeekIRQ > 0) {
 		DiskSeekIRQ -= a;
 		if (DiskSeekIRQ <= 0) {
@@ -495,20 +496,29 @@ void FDSSoundReset(void) {
 static DECLFW(FDSWrite) {
 	switch (A) {
 	case 0x4020:
-		X6502_IRQEnd(FCEU_IQEXT);
 		IRQLatch &= 0xFF00;
 		IRQLatch |= V;
 		break;
 	case 0x4021:
-		X6502_IRQEnd(FCEU_IQEXT);
 		IRQLatch &= 0xFF;
 		IRQLatch |= V << 8;
 		break;
 	case 0x4022:
-		X6502_IRQEnd(FCEU_IQEXT);
-		IRQCount = IRQLatch;
-		IRQa = V & 3;
+		if (FDSRegs[3] & 0x1) {
+			IRQa = (V & 0x3);
+			if (IRQa & 2) {
+				IRQCount = IRQLatch;
+			} else {
+				X6502_IRQEnd(FCEU_IQEXT);
+				X6502_IRQEnd(FCEU_IQEXT2);
+			}
+		}
 		break;
+	case 0x4023:
+		if (!(V & 1)) {
+			X6502_IRQEnd(FCEU_IQEXT);
+			X6502_IRQEnd(FCEU_IQEXT2);
+		}
 	case 0x4024:
 		if ((InDisk != 255) && !(FDSRegs[5] & 0x4) && (FDSRegs[3] & 0x1)) {
 			if (DiskPtr >= 0 && DiskPtr < 65500) {
