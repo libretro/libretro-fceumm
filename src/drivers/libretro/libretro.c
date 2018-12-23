@@ -628,6 +628,8 @@ static unsigned nes_to_libretro(int d)
    case SI_ARKANOID:
       return RETRO_DEVICE_ARKANOID;
    }
+
+   return (RETRO_DEVICE_GAMEPAD);
 }
 
 static unsigned fc_to_libretro(int d)
@@ -646,6 +648,8 @@ static unsigned fc_to_libretro(int d)
    case SIFC_4PLAYER:
       return RETRO_DEVICE_FC_4PLAYERS;
    }
+
+   return (RETRO_DEVICE_NONE);
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
@@ -2017,7 +2021,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
-      FCEU_printf("Loading custom palette: %s%cnes.pal\n", dir, slash);
+      FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
 
    is_PAL = retro_get_region(); /* Save current loaded region info */
 

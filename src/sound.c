@@ -182,7 +182,7 @@ static void SQReload(int x, uint8 V) {
 	if (EnabledChannels & (1 << x))
 		lengthcount[x] = lengthtable[(V >> 3) & 0x1f];
 
-	curfreq[x] = curfreq[x] & 0xff | ((V & 7) << 8);
+	curfreq[x] = (curfreq[x] & 0xff) | ((V & 7) << 8);
 	RectDutyCount[x] = 7;
 	EnvUnits[x].reloaddec = 1;
 }
