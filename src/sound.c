@@ -182,7 +182,7 @@ static void SQReload(int x, uint8 V) {
 	if (EnabledChannels & (1 << x))
 		lengthcount[x] = lengthtable[(V >> 3) & 0x1f];
 
-	curfreq[x] = curfreq[x] & 0xff | ((V & 7) << 8);
+	curfreq[x] = (curfreq[x] & 0xff) | ((V & 7) << 8);
 	RectDutyCount[x] = 7;
 	EnvUnits[x].reloaddec = 1;
 }
@@ -195,8 +195,6 @@ static DECLFW(Write_PSG) {
 		DoSQ1();
 		EnvUnits[0].Mode = (V & 0x30) >> 4;
 		EnvUnits[0].Speed = (V & 0xF);
-		if (swapDuty)
-			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x1:
 		DoSQ1();
@@ -216,8 +214,6 @@ static DECLFW(Write_PSG) {
 		DoSQ2();
 		EnvUnits[1].Mode = (V & 0x30) >> 4;
 		EnvUnits[1].Speed = (V & 0xF);
-		if (swapDuty)
-			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x5:
 		DoSQ2();
@@ -547,6 +543,8 @@ static INLINE void RDoSQ(int x) {
 			rc = cf - (-rc % cf);
 		}
 	} else {
+		int dutyCycle;
+
 		if (EnvUnits[x].Mode & 0x1)
 			amp = EnvUnits[x].Speed;
 		else
@@ -562,7 +560,10 @@ static INLINE void RDoSQ(int x) {
 			amp = (amp * FSettings.SquareVolume[x]) / 256;
 
 		amp <<= 24;
-		rthresh = RectDuties[(PSG[(x << 2)] & 0xC0) >> 6];
+		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
+		if (swapDuty)
+			dutyCycle = ((dutyCycle & 2) >> 1) | ((dutyCycle & 1) << 1);
+		rthresh = RectDuties[dutyCycle];
 		currdc = RectDutyCount[x];
 		D = &WaveHi[ChannelBC[x]];
 
@@ -612,6 +613,7 @@ static void RDoSQLQ(void) {
 
 	for (x = 0; x < 2; x++) {
 		int y;
+		int dutyCycle;
 
 		inie[x] = nesincsize;
 		if (curfreq[x] < 8 || curfreq[x] > 0x7ff)
@@ -637,7 +639,10 @@ static void RDoSQLQ(void) {
 
 		if (!inie[x]) amp[x] = 0;	/* Correct? Buzzing in MM2, others otherwise... */
 
-		rthresh[x] = RectDuties[(PSG[x * 4] & 0xC0) >> 6];
+		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
+		if (swapDuty)
+			dutyCycle = ((dutyCycle & 2) >> 1) | ((dutyCycle & 1) << 1);
+		rthresh[x] = RectDuties[dutyCycle];
 
 		for (y = 0; y < 8; y++) {
 			if (y < rthresh[x])

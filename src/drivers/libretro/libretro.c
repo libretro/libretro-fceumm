@@ -628,6 +628,8 @@ static unsigned nes_to_libretro(int d)
    case SI_ARKANOID:
       return RETRO_DEVICE_ARKANOID;
    }
+
+   return (RETRO_DEVICE_GAMEPAD);
 }
 
 static unsigned fc_to_libretro(int d)
@@ -646,6 +648,8 @@ static unsigned fc_to_libretro(int d)
    case SIFC_4PLAYER:
       return RETRO_DEVICE_FC_4PLAYERS;
    }
+
+   return (RETRO_DEVICE_NONE);
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
@@ -978,6 +982,9 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_DOWN, JOY_DOWN },
    { RETRO_DEVICE_ID_JOYPAD_LEFT, JOY_LEFT },
    { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
+};
+
+static const keymap turbomap[] = {
    { RETRO_DEVICE_ID_JOYPAD_X, JOY_A },
    { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
 };
@@ -1168,13 +1175,19 @@ static void check_variables(bool startup)
    {
       unsigned i;
 
-      for (i = 0; i < MAX_PLAYERS; i++)
-         turbo_enabler[i] = 0;
+      turbo_enabler[0] = 0;
+      turbo_enabler[1] = 0;
 
       if (!strcmp(var.value, "Player 1"))
+      {
          turbo_enabler[0] = 1;
+         turbo_enabler[1] = 0;
+      }
       else if (!strcmp(var.value, "Player 2"))
+      {
+         turbo_enabler[0] = 0;
          turbo_enabler[1] = 1;
+      }
       else if (!strcmp(var.value, "Both"))
       {
          turbo_enabler[0] = 1;
@@ -1363,12 +1376,13 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
  * each player
  */
 
+#define MAX_BUTTONS 8
 #define TURBO_BUTTONS 2
 unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
 
 static void FCEUD_UpdateInput(void)
 {
-   unsigned player, port, i;
+   unsigned player, port;
 
    poll_cb();
 
@@ -1377,41 +1391,43 @@ static void FCEUD_UpdateInput(void)
    /* nes gamepad */
    for (player = 0; player < MAX_PLAYERS; player++)
    {
-      uint8_t input_buf   = 0;
-      bool player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD);
+      int i              = 0;
+      uint8_t input_buf  = 0;
+      int player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD);
 
-      for (i = 0; i < 8; i++)
-         input_buf |= (player_enabled && input_cb(player, RETRO_DEVICE_JOYPAD, 0,
-            bindmap[i].retro)) ? bindmap[i].nes : 0;
-
-      /* Turbo A and Turbo B buttons are
-      * mapped to Joypad X and Joypad Y
-      * in RetroArch joypad.
-      *
-      * We achieve this by keeping track of
-      * the number of times it increments
-      * the toggle counter and fire or not fire
-      * depending on whether the delay value has
-      * been reached.
-      */
-
-      if (turbo_enabler[player] == 1 && player_enabled)
+      if (player_enabled)
       {
-         /* Handle Turbo A & B buttons */
-         for (i = 8; i < 10; i++)
+         for (i = 0; i < MAX_BUTTONS; i++)
+            input_buf |= input_cb(player, RETRO_DEVICE_JOYPAD, 0,
+               bindmap[i].retro) ? bindmap[i].nes : 0;
+
+         /* Turbo A and Turbo B buttons are
+          * mapped to Joypad X and Joypad Y
+          * in RetroArch joypad.
+          *
+          * We achieve this by keeping track of
+          * the number of times it increments
+          * the toggle counter and fire or not fire
+          * depending on whether the delay value has
+          * been reached.
+          */
+
+         if (turbo_enabler[player])
          {
-            if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
+            /* Handle Turbo A & B buttons */
+            for (i = 0; i < TURBO_BUTTONS; i++)
             {
-               if (turbo_button_toggle[player][i-8] == 0)
-                  input_buf |= bindmap[i].nes;
-               turbo_button_toggle[player][i-8]++;
-               if (turbo_button_toggle[player][i-8] > turbo_delay)
-                  /* Reset the toggle if delay value is reached */
-                  turbo_button_toggle[player][i-8] = 0;
+               if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, turbomap[i].retro))
+               {
+                  if (!turbo_button_toggle[player][i])
+                     input_buf |= turbomap[i].nes;
+                  turbo_button_toggle[player][i]++;
+                  turbo_button_toggle[player][i] %= turbo_delay + 1;
+               }
+               else
+                  /* If the button is not pressed, just reset the toggle */
+                  turbo_button_toggle[player][i] = 0;
             }
-            else
-               /* If the button is not pressed, just reset the toggle */
-               turbo_button_toggle[player][i-8] = 0;
          }
       }
 
@@ -1426,7 +1442,6 @@ static void FCEUD_UpdateInput(void)
       }
 
       JSReturn |= (input_buf & 0xff) << (player << 3);
-
    }
 
    /* other inputs*/
@@ -2017,7 +2032,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
-      FCEU_printf("Loading custom palette: %s%cnes.pal\n", dir, slash);
+      FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
 
    is_PAL = retro_get_region(); /* Save current loaded region info */
 
