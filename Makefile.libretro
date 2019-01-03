@@ -382,6 +382,8 @@ else ifeq ($(platform), genode)
 
 # Windows MSVC 2017 all architectures
 else ifneq (,$(findstring windows_msvc2017,$(platform)))
+	CC  = cl.exe
+	CXX = cl.exe
 
 	PlatformSuffix = $(subst windows_msvc2017_,,$(platform))
 	ifneq (,$(findstring desktop,$(PlatformSuffix)))
@@ -401,8 +403,6 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 
 	TargetArchMoniker = $(subst $(WinPartition)_,,$(PlatformSuffix))
 
-	CC  = cl.exe
-	CXX = cl.exe
 	LD = link.exe
 
 	reg_query = $(call filter_out2,$(subst $2,,$(shell reg query "$2" -v "$1" 2>nul)))
@@ -714,7 +714,6 @@ include $(THEOS_MAKE_PATH)/library.mk
 else
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
-	@echo "** BUILDING $(TARGET) FOR PLATFORM $(platform) **"
 ifeq ($(STATIC_LINKING),1)
 ifneq (,$(findstring msvc,$(platform)))
 	$(LD) $(LINKOUT)$@ $(OBJECTS)
