@@ -564,6 +564,167 @@ static DECLFW(FDSWrite) {
 	FDSRegs[A & 7] = V;
 }
 
+struct codes_t {
+	uint8 code;
+	char *name;
+};
+
+static const struct codes_t list[] = {
+	{ 0x01, "Nintendo" },
+	{ 0x02, "Rocket Games" },
+	{ 0x08, "Capcom" },
+	{ 0x09, "Hot B Co." },
+	{ 0x0A, "Jaleco" },
+	{ 0x0B, "Coconuts Japan" },
+	{ 0x0C, "Coconuts Japan/G.X.Media" },
+	{ 0x13, "Electronic Arts Japan" },
+	{ 0x18, "Hudson Soft Japan" },
+	{ 0x19, "S.C.P." },
+	{ 0x1A, "Yonoman" },
+	{ 0x20, "Destination Software" },
+	{ 0x22, "VR 1 Japan" },
+	{ 0x25, "San-X" },
+	{ 0x28, "Kemco Japan" },
+	{ 0x29, "Seta" },
+	{ 0x36, "Codemasters" },
+	{ 0x37, "GAGA Communications" },
+	{ 0x38, "Laguna" },
+	{ 0x39, "Telstar Fun and Games" },
+	{ 0x41, "Ubi Soft Entertainment" },
+	{ 0x42, "Sunsoft" },
+	{ 0x47, "Spectrum Holobyte" },
+	{ 0x49, "Irem" },
+	{ 0x4A, "Gakken" },
+	{ 0x4D, "Malibu Games" },
+	{ 0x4F, "Eidos/U.S. Gold" },
+	{ 0x50, "Absolute Entertainment" },
+	{ 0x51, "Acclaim" },
+	{ 0x52, "Activision" },
+	{ 0x53, "American Sammy Corp." },
+	{ 0x54, "Take 2 Interactive" },
+	{ 0x55, "Hi Tech" },
+	{ 0x56, "LJN LTD." },
+	{ 0x58, "Mattel" },
+	{ 0x5A, "Mindscape/Red Orb Ent." },
+	{ 0x5C, "Taxan" },
+	{ 0x5D, "Midway" },
+	{ 0x5F, "American Softworks" },
+	{ 0x60, "Titus Interactive Studios" },
+	{ 0x61, "Virgin Interactive" },
+	{ 0x62, "Maxis" },
+	{ 0x64, "LucasArts Entertainment" },
+	{ 0x67, "Ocean" },
+	{ 0x69, "Electronic Arts" },
+	{ 0x6E, "Elite Systems Ltd." },
+	{ 0x6F, "Electro Brain" },
+	{ 0x70, "Infogrames" },
+	{ 0x71, "Interplay" },
+	{ 0x72, "JVC Musical Industries Inc" },
+	{ 0x73, "Parker Brothers" },
+	{ 0x75, "SCI" },
+	{ 0x78, "THQ" },
+	{ 0x79, "Accolade" },
+	{ 0x7A, "Triffix Ent. Inc." },
+	{ 0x7C, "Microprose Software" },
+	{ 0x7D, "Universal Interactive Studios" },
+	{ 0x7F, "Kemco" },
+	{ 0x80, "Misawa" },
+	{ 0x83, "LOZC" },
+	{ 0x8B, "Bulletproof Software" },
+	{ 0x8C, "Vic Tokai Inc." },
+	{ 0x91, "Chun Soft" },
+	{ 0x92, "Video System" },
+	{ 0x93, "BEC" },
+	{ 0x96, "Yonezawa/S'pal" },
+	{ 0x97, "Kaneko" },
+	{ 0x99, "Victor Interactive Software" },
+	{ 0x9A, "Nichibutsu/Nihon Bussan" },
+	{ 0x9B, "Tecmo" },
+	{ 0x9C, "Imagineer" },
+	{ 0x9F, "Nova" },
+	{ 0xA0, "Telenet" },
+	{ 0xA1, "Hori" },
+	{ 0xA2, "Scorpion Soft " },
+	{ 0xA4, "Konami" },
+	{ 0xA6, "Kawada" },
+	{ 0xA7, "Takara" },
+	{ 0xA8, "Royal Industries" },
+	{ 0xA9, "Technos Japan Corp." },
+	{ 0xAA, "JVC" },
+	{ 0xAC, "Toei Animation" },
+	{ 0xAD, "Toho" },
+	{ 0xAF, "Namco" },
+	{ 0xB0, "Acclaim Japan" },
+	{ 0xB1, "ASCII" },
+	{ 0xB2, "Bandai" },
+	{ 0xB3, "Soft Pro Inc." },
+	{ 0xB4, "Enix" },
+	{ 0xB6, "HAL Laboratory" },
+	{ 0xB7, "SNK" },
+	{ 0xB9, "Pony Canyon Hanbai" },
+	{ 0xBA, "Culture Brain" },
+	{ 0xBB, "Sunsoft" },
+	{ 0xBC, "Toshiba EMI" },
+	{ 0xBD, "Sony Imagesoft" },
+	{ 0xBF, "Sammy" },
+	{ 0xC0, "Taito" },
+	{ 0xC1, "Sunsoft / Ask Co., Ltd." },
+	{ 0xC2, "Kemco" },
+	{ 0xC3, "Square Soft" },
+	{ 0xC4, "Tokuma Shoten " },
+	{ 0xC5, "Data East" },
+	{ 0xC6, "Tonkin House" },
+	{ 0xC7, "East Cube" },
+	{ 0xC8, "Koei" },
+	{ 0xCA, "Konami/Palcom/Ultra" },
+	{ 0xCB, "Vapinc/NTVIC" },
+	{ 0xCC, "Use Co.,Ltd." },
+	{ 0xCD, "Meldac" },
+	{ 0xCE, "FCI/Pony Canyon" },
+	{ 0xCF, "Angel" },
+	{ 0xD1, "Sofel" },
+	/*{ 0xD2, "Quest" },*/
+	{ 0xD2, "Bothtec, Inc." },
+	{ 0xD3, "Sigma Enterprises" },
+	{ 0xD4, "Ask Kodansa" },
+	{ 0xD6, "Naxat" },
+	{ 0xD7, "Copya System" },
+	{ 0xD9, "Banpresto" },
+	{ 0xDA, "TOMY" },
+	/*{ 0xDB, "LJN Japan" },*/
+	{ 0xDB, "Hiro Co., Ltd." },
+	{ 0xDD, "NCS" },
+	{ 0xDF, "Altron Corporation" },
+	{ 0xE2, "Yutaka" },
+	{ 0xE3, "Varie" },
+	{ 0xE5, "Epoch" },
+	{ 0xE7, "Athena" },
+	{ 0xE8, "Asmik Ace Entertainment Inc." },
+	{ 0xE9, "Natsume" },
+	{ 0xEA, "King Records" },
+	{ 0xEB, "Atlus" },
+	{ 0xEC, "Epic/Sony Records" },
+	{ 0xEE, "IGS" },
+	{ 0xF0, "A Wave" },
+	{ 0 }
+ };
+
+static const char *getManufacturer(uint8 code)
+{
+	int x = 0;
+	char *ret = "unlicensed";
+
+	while (list[x].code != 0) {
+		if (list[x].code == code) {
+			ret = list[x].name;
+			break;
+		}
+		x++;
+	} 
+
+	return ret;
+}
+
 static void FreeFDSMemory(void) {
 	if (FDSROM)
 		free(FDSROM);
@@ -762,8 +923,10 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	SetupCartMirroring(0, 0, 0);
 
-	FCEU_printf(" # of Sides : %d\n\n", TotalSides);
-	FCEU_printf(" ROM MD5    : 0x%s\n", md5_asciistr(GameInfo->MD5));
+	FCEU_printf(" Code         : %02x\n", diskdata[0][0xf]);
+	FCEU_printf(" Manufacturer : %s\n", getManufacturer(diskdata[0][0xf]));
+	FCEU_printf(" # of Sides   : %d\n", TotalSides);
+	FCEU_printf(" ROM MD5      : 0x%s\n", md5_asciistr(GameInfo->MD5));
 
 	FCEUI_SetVidSystem(0);
 
