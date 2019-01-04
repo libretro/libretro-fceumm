@@ -62,6 +62,8 @@ static uint8 FDSRegs[6];
 static int32 IRQLatch, IRQCount;
 static uint8 IRQa;
 
+static uint8 *FDSROM = NULL;
+static uint32 FDSROMSize = 0;
 static uint8 *FDSRAM = NULL;
 static uint32 FDSRAMSize;
 static uint8 *FDSBIOS = NULL;
@@ -71,7 +73,6 @@ static uint32 CHRRAMSize;
 
 /* Original disk data backup, to help in creating save states. */
 static uint8 *diskdatao[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-
 static uint8 *diskdata[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 static uint32 TotalSides;
@@ -84,6 +85,15 @@ static uint8 SelectDisk, InDisk;
 uint32 lastDiskPtrRead, lastDiskPtrWrite;
 
 #define DC_INC    1
+#define BYTES_PER_SIDE 65500
+
+uint8 *FDSROM_ptr(void) {
+	return (FDSROM);
+}
+
+uint32 FDSROM_size(void) {
+	return (FDSROMSize);
+}
 
 void FDSGI(int h) {
 	switch (h) {
@@ -555,13 +565,18 @@ static DECLFW(FDSWrite) {
 }
 
 static void FreeFDSMemory(void) {
-	int x;
-
-	for (x = 0; x < TotalSides; x++)
-		if (diskdata[x]) {
-			free(diskdata[x]);
-			diskdata[x] = 0;
-		}
+	if (FDSROM)
+		free(FDSROM);
+	FDSROM = NULL;
+	if (FDSBIOS)
+		free(FDSBIOS);
+	FDSBIOS = NULL;
+	if (FDSRAM)
+		free(FDSRAM);
+	FDSRAM = NULL;
+	if (CHRRAM)
+		free(CHRRAM);
+	CHRRAM = NULL;
 }
 
 static int SubLoad(FCEUFILE *fp) {
@@ -584,19 +599,21 @@ static int SubLoad(FCEUFILE *fp) {
 	} else
 		TotalSides = header[4];
 
-	md5_starts(&md5);
-
 	if (TotalSides > 8) TotalSides = 8;
 	if (TotalSides < 1) TotalSides = 1;
 
+	FDSROMSize = TotalSides * BYTES_PER_SIDE;
+	FDSROM = (uint8*)FCEU_malloc(FDSROMSize);
+
+	if (!FDSROM)
+		return (0);
+
+	for (x = 0; x < TotalSides; x++)
+		diskdata[x] = &FDSROM[x * BYTES_PER_SIDE];
+
+	md5_starts(&md5);
+
 	for (x = 0; x < TotalSides; x++) {
-		diskdata[x] = (uint8*)FCEU_malloc(65500);
-		if (!diskdata[x]) {
-			int zol;
-			for (zol = 0; zol < x; zol++)
-				free(diskdata[zol]);
-			return 0;
-		}
 		FCEU_fread(diskdata[x], 1, 65500, fp);
 		md5_update(&md5, diskdata[x], 65500);
 	}
@@ -636,17 +653,9 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	free(fn);
 
-	ResetCartMapping();
+	FreeFDSMemory();
 
-	if (FDSBIOS)
-		free(FDSBIOS);
-	FDSBIOS = NULL;
-	if (FDSRAM)
-		free(FDSRAM);
-	FDSRAM = NULL;
-	if (CHRRAM)
-		free(CHRRAM);
-	CHRRAM = NULL;
+	ResetCartMapping();
 
 	FDSBIOSsize = 8192;
 	FDSBIOS = (uint8*)FCEU_gmalloc(FDSBIOSsize);
@@ -665,7 +674,6 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	FCEU_fseek(fp, 0, SEEK_SET);
 
-	FreeFDSMemory();
 	if (!SubLoad(fp)) {
 		if (FDSBIOS)
 			free(FDSBIOS);
@@ -673,6 +681,14 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		return(0);
 	}
 
+	for (x = 0; x < TotalSides; x++) {
+		diskdatao[x] = (uint8*)FCEU_malloc(65500);
+		memcpy(diskdatao[x], diskdata[x], 65500);
+	}
+
+#if 0
+	/* auxillary rom loading for save file is now handled
+	 * using retro_get_memory_size/data */
 	{
 		FCEUFILE *tp;
 		char *fn = FCEU_MakeFName(FCEUMKF_FDS, 0, 0);
@@ -699,6 +715,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		}
 		free(fn);
 	}
+#endif
 
 	GameInfo->type = GIT_FDS;
 	GameInterface = FDSGI;
@@ -715,12 +732,12 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		AddExState(diskdata[x], 65500, 0, temp);
 	}
 
-   AddExState(&FDSRegs[0], 1, 0, "REG1");
-   AddExState(&FDSRegs[1], 1, 0, "REG2");
-   AddExState(&FDSRegs[2], 1, 0, "REG3");
-   AddExState(&FDSRegs[3], 1, 0, "REG4");
-   AddExState(&FDSRegs[4], 1, 0, "REG5");
-   AddExState(&FDSRegs[5], 1, 0, "REG6");
+	AddExState(&FDSRegs[0], 1, 0, "REG1");
+	AddExState(&FDSRegs[1], 1, 0, "REG2");
+	AddExState(&FDSRegs[2], 1, 0, "REG3");
+	AddExState(&FDSRegs[3], 1, 0, "REG4");
+	AddExState(&FDSRegs[4], 1, 0, "REG5");
+	AddExState(&FDSRegs[5], 1, 0, "REG6");
 	AddExState(&IRQCount, 4, 1, "IRQC");
 	AddExState(&IRQLatch, 4, 1, "IQL1");
 	AddExState(&IRQa, 1, 0, "IRQA");
@@ -743,7 +760,8 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	SetupCartMirroring(0, 0, 0);
 
-	FCEU_printf(" Sides: %d\n\n", TotalSides);
+	FCEU_printf(" # of Sides : %d\n\n", TotalSides);
+	FCEU_printf(" ROM MD5    : 0x%s\n", md5_asciistr(GameInfo->MD5));
 
 	FCEUI_SetVidSystem(0);
 
@@ -751,26 +769,9 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 }
 
 void FDSClose(void) {
-	FILE *fp;
 	int x;
-	char *fn = FCEU_MakeFName(FCEUMKF_FDS, 0, 0);
 
 	if (!DiskWritten) return;
-
-	if (!(fp = fopen(fn, "wb"))) {
-		free(fn);
-		return;
-	}
-	FCEU_printf("FDS Save \"%s\"\n", fn);
-	free(fn);
-
-	for (x = 0; x < TotalSides; x++) {
-		if (fwrite(diskdata[x], 1, 65500, fp) != 65500) {
-			FCEU_PrintError("Error saving FDS image!\n");
-			fclose(fp);
-			return;
-		}
-	}
 
 	for (x = 0; x < TotalSides; x++)
 		if (diskdatao[x]) {
@@ -779,14 +780,4 @@ void FDSClose(void) {
 		}
 
 	FreeFDSMemory();
-	if (FDSBIOS)
-		free(FDSBIOS);
-	FDSBIOS = NULL;
-	if (FDSRAM)
-		free(FDSRAM);
-	FDSRAM = NULL;
-	if (CHRRAM)
-		free(CHRRAM);
-	CHRRAM = NULL;
-	fclose(fp);
 }

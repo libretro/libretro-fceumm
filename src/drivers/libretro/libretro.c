@@ -2123,6 +2123,8 @@ void *retro_get_memory_data(unsigned type)
             return iNESCart.SaveGame[0];
          else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             return UNIFCart.SaveGame[0];
+         else if (GameInfo->type == GIT_FDS)
+            return FDSROM_ptr();
          else
             data = NULL;
          break;
@@ -2148,6 +2150,8 @@ size_t retro_get_memory_size(unsigned type)
             size = iNESCart.SaveGameLen[0];
          else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             size = UNIFCart.SaveGameLen[0];
+         else if (GameInfo->type == GIT_FDS)
+            size = FDSROM_size();
          else
             size = 0;
          break;
