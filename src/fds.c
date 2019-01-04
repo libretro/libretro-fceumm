@@ -665,11 +665,13 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		if (FDSBIOS)
 			free(FDSBIOS);
 		FDSBIOS = NULL;
+		free(zp->fp->data);
 		FCEU_fclose(zp);
 		FCEU_PrintError("Error reading FDS BIOS ROM image.\n");
 		return 0;
 	}
 
+	free(zp->fp->data);
 	FCEU_fclose(zp);
 
 	FCEU_fseek(fp, 0, SEEK_SET);
