@@ -848,6 +848,8 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		diskdatao[x] = (uint8*)FCEU_malloc(65500);
 		memcpy(diskdatao[x], diskdata[x], 65500);
 	}
+	
+	DiskWritten = 1;
 
 #if 0
 	/* auxillary rom loading for save file is now handled
