@@ -24,6 +24,10 @@
 #include "../../vsuni.h"
 #include "../../video.h"
 
+#if defined(RENDER_GSKIT_PS2)
+#include "libretro-common/include/libretro_gskit_ps2.h"
+#endif
+
 #include "libretro-common/include/streams/memory_stream.h"
 
 #define MAX_PLAYERS 4 /* max supported players */
@@ -95,7 +99,11 @@ static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
 static uint16_t retro_palette[256];
 #endif
+#if defined(RENDER_GSKIT_PS2)
+static uint8_t* fceu_video_out;
+#else
 static uint16_t* fceu_video_out;
+#endif
 
 /* Some timing-related variables. */
 static unsigned sndsamplerate;
@@ -145,6 +153,16 @@ int FCEUD_SendData(void *data, uint32 len)
 #define RED_EXPAND 3
 #define GREEN_EXPAND 2
 #define BLUE_EXPAND 3
+#elif defined (FRONTEND_SUPPORTS_ABGR1555)
+#define RED_SHIFT 0
+#define GREEN_SHIFT 5
+#define BLUE_SHIFT 10
+#define RED_EXPAND 3
+#define GREEN_EXPAND 3
+#define BLUE_EXPAND 3
+#define RED_MASK 0x1F
+#define GREEN_MASK 0x3E0
+#define BLUE_MASK 0x7C00
 #elif defined (FRONTEND_SUPPORTS_RGB565)
 #define RED_SHIFT 11
 #define GREEN_SHIFT 5
@@ -166,10 +184,21 @@ int FCEUD_SendData(void *data, uint32 len)
 
 void FCEUD_SetPalette(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
 {
+   unsigned char index_to_write = index;
+#if defined(RENDER_GSKIT_PS2)
+   /* Index correction for PS2 GS */
+   int modi = index & 63;
+   if ((modi >= 8 && modi < 16) || (modi >= 40 && modi < 48)) {
+      index_to_write += 8;
+   } else if ((modi >= 16 && modi < 24) || (modi >= 48 && modi < 56)) {
+         index_to_write -= 8;
+   }
+#endif
+
 #ifdef FRONTEND_SUPPORTS_RGB565
-   retro_palette[index] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
+   retro_palette[index_to_write] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
 #else
-   retro_palette[index] =
+   retro_palette[index_to_write] =
       ((r >> RED_EXPAND) << RED_SHIFT) | ((g >> GREEN_EXPAND) << GREEN_SHIFT) | ((b >> BLUE_EXPAND) << BLUE_SHIFT);
 #endif
 }
@@ -1534,6 +1563,45 @@ static void retro_run_blit(uint8_t *gfx)
    sceGuFinish();
 
    video_cb(texture_vram_p, width, height, 256);
+#elif defined(RENDER_GSKIT_PS2)
+
+   RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
+   uint32_t *buf = (uint32_t *)RETRO_HW_FRAME_BUFFER_VALID;
+
+   incr   += (overscan_h ? 16 : 0);
+   width  -= (overscan_h ? 16 : 0);
+   height -= (overscan_v ? 16 : 0);
+   pitch  -= (overscan_h ? 32 : 0);
+   gfx    += (overscan_v ? ((overscan_h ? 8 : 0) + 256 * 8) : (overscan_h ? 8 : 0));
+
+   if (!environ_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void **)&ps2) || !ps2) {
+		printf("Failed to get HW rendering interface!\n");
+		return;
+	}
+
+	if (ps2->interface_version != RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION) {
+		printf("HW render interface mismatch, expected %u, got %u!\n", 
+               RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION, ps2->interface_version);
+		return;
+	}
+
+   if (ps2->clearTexture || !ps2->coreTexture->Clut || !ps2->coreTexture->Mem ) {
+      /* If it is empty we need to create it */
+      ps2->coreTexture->Width = width;
+      ps2->coreTexture->Height = height;
+      ps2->coreTexture->PSM = GS_PSM_T8;
+      ps2->coreTexture->ClutPSM = GS_PSM_CT16;
+      ps2->coreTexture->Filter = GS_FILTER_LINEAR;
+   }
+
+   for (y = 0; y < height; y++, gfx += incr)
+         for ( x = 0; x < width; x++, gfx++)
+            fceu_video_out[y * width + x] = *gfx;
+
+   ps2->coreTexture->Clut = (u32*)retro_palette;
+   ps2->coreTexture->Mem = (u32*)fceu_video_out;
+
+   video_cb(buf, width, height, pitch);
 #else
    incr   += (overscan_h ? 16 : 0);
    width  -= (overscan_h ? 16 : 0);

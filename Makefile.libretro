@@ -155,6 +155,18 @@ else ifeq ($(platform), sncps3)
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
 
+# PS2
+else ifeq ($(platform), ps2)
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
+	CC = ee-gcc$(EXE_EXT)
+	AR = ee-ar$(EXE_EXT)
+	FCEU_DEFINES := -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUMERIC=9813 -DHAVE_ASPRINTF
+	ENDIANNESS_DEFINES := -DLSB_FIRST -DLOCAL_LE=1
+	PLATFORM_DEFINES := -DPS2 -G0 -DFRONTEND_SUPPORTS_ABGR1555 -DRENDER_GSKIT_PS2
+	PLATFORM_DEFINES += -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include -Ips2/ -I$(PS2DEV)/gsKit/include
+	STATIC_LINKING=1
+	EXTERNAL_ZLIB=1
+
 # PSP
 else ifeq ($(platform), psp1)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
