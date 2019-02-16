@@ -14,6 +14,7 @@ filter_out1 = $(filter-out $(firstword $1),$1)
 filter_out2 = $(call filter_out1,$(call filter_out1,$1))
 unixpath = $(subst \,/,$1)
 unixcygpath = /$(subst :,,$(call unixpath,$1))
+RETROARCH_OBJECTS :=
 
 ifeq ($(platform),)
 	platform = unix
@@ -163,9 +164,12 @@ else ifeq ($(platform), ps2)
 	FCEU_DEFINES := -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUMERIC=9813 -DHAVE_ASPRINTF
 	ENDIANNESS_DEFINES := -DLSB_FIRST -DLOCAL_LE=1
 	PLATFORM_DEFINES := -DPS2 -G0 -DFRONTEND_SUPPORTS_ABGR1555 -DRENDER_GSKIT_PS2
+	PLATFORM_DEFINES += -Dmemcpy=mips_memcpy -Dmemset=mips_memset
 	PLATFORM_DEFINES += -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include -Ips2/ -I$(PS2DEV)/gsKit/include
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
+
+	RETROARCH_OBJECTS +=  ps2/SMS_Utils.o
 
 # PSP
 else ifeq ($(platform), psp1)
@@ -672,6 +676,7 @@ include Makefile.common
 CFLAGS += -DWANT_GRIFFIN
 
 OBJECTS := $(SOURCES_C:.c=.o)
+OBJECTS += $(RETROARCH_OBJECTS)
 
 DEFINES := $(COREDEFINES) $(PLATFORM_DEFINES)
 
@@ -738,6 +743,11 @@ endif
 
 %.o: %.c
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
+
+ifeq ($(platform), ps2)
+%.o: %.s
+	ee-as -G0 $< -o $@
+endif
 
 clean-objs:
 	rm -f $(OBJECTS)

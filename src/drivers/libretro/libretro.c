@@ -55,6 +55,10 @@ void* linearMemAlign(size_t size, size_t alignment);
 void linearFree(void* mem);
 #endif
 
+#if defined(RENDER_GSKIT_PS2)
+RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
+#endif
+
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
@@ -1564,42 +1568,31 @@ static void retro_run_blit(uint8_t *gfx)
 
    video_cb(texture_vram_p, width, height, 256);
 #elif defined(RENDER_GSKIT_PS2)
-
-   RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
    uint32_t *buf = (uint32_t *)RETRO_HW_FRAME_BUFFER_VALID;
 
-   incr   += (overscan_h ? 16 : 0);
-   width  -= (overscan_h ? 16 : 0);
-   height -= (overscan_v ? 16 : 0);
-   pitch  -= (overscan_h ? 32 : 0);
-   gfx    += (overscan_v ? ((overscan_h ? 8 : 0) + 256 * 8) : (overscan_h ? 8 : 0));
+   if (!ps2) {
+      if (!environ_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void **)&ps2) || !ps2) {
+         printf("Failed to get HW rendering interface!\n");
+         return;
+	   }
 
-   if (!environ_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void **)&ps2) || !ps2) {
-		printf("Failed to get HW rendering interface!\n");
-		return;
-	}
+      if (ps2->interface_version != RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION) {
+         printf("HW render interface mismatch, expected %u, got %u!\n", 
+                  RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION, ps2->interface_version);
+         return;
+      }
 
-	if (ps2->interface_version != RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION) {
-		printf("HW render interface mismatch, expected %u, got %u!\n", 
-               RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION, ps2->interface_version);
-		return;
-	}
-
-   if (ps2->clearTexture || !ps2->coreTexture->Clut || !ps2->coreTexture->Mem ) {
-      /* If it is empty we need to create it */
       ps2->coreTexture->Width = width;
       ps2->coreTexture->Height = height;
       ps2->coreTexture->PSM = GS_PSM_T8;
       ps2->coreTexture->ClutPSM = GS_PSM_CT16;
       ps2->coreTexture->Filter = GS_FILTER_LINEAR;
+      ps2->coreTexture->Clut = (u32*)retro_palette;
+      ps2->updatedPalette = true;
+      ps2->padding = (struct retro_hw_ps2_insets){8.0f, 8.0f, 8.0f, 8.0f};
    }
 
-   for (y = 0; y < height; y++, gfx += incr)
-         for ( x = 0; x < width; x++, gfx++)
-            fceu_video_out[y * width + x] = *gfx;
-
-   ps2->coreTexture->Clut = (u32*)retro_palette;
-   ps2->coreTexture->Mem = (u32*)fceu_video_out;
+   ps2->coreTexture->Mem = (u32*)gfx;
 
    video_cb(buf, width, height, pitch);
 #else
