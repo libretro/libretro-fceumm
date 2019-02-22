@@ -940,6 +940,12 @@ static void retro_set_custom_palette(void)
       FCEUD_SetPalette( i + 128, r, g, b);
       FCEUD_SetPalette( i + 192, r, g, b);
    }
+
+#if defined(RENDER_GSKIT_PS2)
+   if (ps2) {
+      ps2->updatedPalette = true;
+   }
+#endif
 }
 
 /* Set variables for NTSC(1) / PAL(2) / Dendy(3)
@@ -993,6 +999,10 @@ void retro_deinit (void)
       free(fceu_video_out);
    fceu_video_out = NULL;
 #endif
+#if defined(RENDER_GSKIT_PS2)
+   ps2 = NULL;
+#endif
+
 }
 
 void retro_reset(void)
@@ -1587,11 +1597,14 @@ static void retro_run_blit(uint8_t *gfx)
       ps2->coreTexture->PSM = GS_PSM_T8;
       ps2->coreTexture->ClutPSM = GS_PSM_CT16;
       ps2->coreTexture->Filter = GS_FILTER_LINEAR;
-      ps2->coreTexture->Clut = (u32*)retro_palette;
-      ps2->updatedPalette = true;
-      ps2->padding = (struct retro_hw_ps2_insets){8.0f, 8.0f, 8.0f, 8.0f};
+      ps2->padding = (struct retro_hw_ps2_insets){ overscan_v ? 8.0f : 0.0f, 
+                                                   overscan_h ? 8.0f : 0.0f, 
+                                                   overscan_v ? 8.0f : 0.0f, 
+                                                   overscan_h ? 8.0f : 0.0f};
    }
 
+   ps2->updatedPalette = true;
+   ps2->coreTexture->Clut = (u32*)retro_palette;
    ps2->coreTexture->Mem = (u32*)gfx;
 
    video_cb(buf, width, height, pitch);
@@ -2165,6 +2178,9 @@ void retro_unload_game(void)
    if (fceu_video_out)
       free(fceu_video_out);
    fceu_video_out = NULL;
+#endif
+#if defined(RENDER_GSKIT_PS2)
+   ps2 = NULL;
 #endif
 }
 
