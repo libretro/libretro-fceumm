@@ -1436,7 +1436,7 @@ static void FCEUD_UpdateInput(void)
    {
       int i              = 0;
       uint8_t input_buf  = 0;
-      int player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD);
+      int player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD) || (input_type[player] == RETRO_DEVICE_JOYPAD);
 
       if (player_enabled)
       {
@@ -2101,8 +2101,10 @@ bool retro_load_game(const struct retro_game_info *game)
       return false;
    }
 
-   for (i = 0; i < MAX_PORTS; i++)
+   for (i = 0; i < MAX_PORTS; i++) {
       FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
+      input_type[i] == RETRO_DEVICE_JOYPAD;
+   }
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
