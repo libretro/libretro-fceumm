@@ -1,19 +1,8 @@
+ifeq ($(LIBRETRO_COMM_DIR),)
 LIBRETRO_COMM_DIR := $(CORE_DIR)/drivers/libretro/libretro-common
+endif
 INCFLAGS      := -I$(CORE_DIR)/drivers/libretro -I$(LIBRETRO_COMM_DIR)/include -I$(CORE_DIR) -I$(CORE_DIR)/input -I$(CORE_DIR)/boards
-COREDEFINES    = -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565 
-
-INCLUDE_STDINT = 0
-ifneq (,$(findstring msvc200,$(platform)))
-INCLUDE_STDINT = 1
-endif
-
-ifeq ($(INCLUDE_STDINT), 1)
-INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
-endif
-
-ifneq (,$(findstring msvc,$(platform)))
-COREDEFINES += -DINLINE=_inline
-endif
+COREDEFINES    = -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565
 
 ifeq ($(PSS_STYLE),2)
 COREDEFINES += -DPSS_STYLE=2
@@ -21,8 +10,12 @@ else
 COREDEFINES += -DPSS_STYLE=1
 endif
 
+ifeq ($(TUP_CWD),)
 FCEU_SRC_DIRS := $(CORE_DIR)/boards $(CORE_DIR)/input
 SOURCES_C     := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
+else
+SOURCES_C = $(CORE_DIR)/boards/*.c $(CORE_DIR)/input/*.c
+endif
 
 ifeq ($(HAVE_GRIFFIN),1)
 SOURCES_C += $(CORE_DIR)/drivers/libretro/griffin.c
