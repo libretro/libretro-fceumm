@@ -53,6 +53,19 @@ typedef unsigned long long uint64;
 typedef long long int64;
 #endif
 
+#ifndef INLINE
+
+#if defined(_MSC_VER)
+#define INLINE __forceinline
+#elif defined(__GNUC__)
+#define INLINE __inline__
+#elif defined(_MWERKS_)
+#define INLINE inline
+#else
+#define INLINE
+#endif
+#endif
+
 #if PSS_STYLE == 2
 
 #define PSS "\\"

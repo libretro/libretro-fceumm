@@ -62,6 +62,8 @@ static uint8 FDSRegs[6];
 static int32 IRQLatch, IRQCount;
 static uint8 IRQa;
 
+static uint8 *FDSROM = NULL;
+static uint32 FDSROMSize = 0;
 static uint8 *FDSRAM = NULL;
 static uint32 FDSRAMSize;
 static uint8 *FDSBIOS = NULL;
@@ -71,7 +73,6 @@ static uint32 CHRRAMSize;
 
 /* Original disk data backup, to help in creating save states. */
 static uint8 *diskdatao[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-
 static uint8 *diskdata[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 static uint32 TotalSides;
@@ -84,6 +85,15 @@ static uint8 SelectDisk, InDisk;
 uint32 lastDiskPtrRead, lastDiskPtrWrite;
 
 #define DC_INC    1
+#define BYTES_PER_SIDE 65500
+
+uint8 *FDSROM_ptr(void) {
+	return (FDSROM);
+}
+
+uint32 FDSROM_size(void) {
+	return (FDSROMSize);
+}
 
 void FDSGI(int h) {
 	switch (h) {
@@ -142,10 +152,12 @@ static void FDSInit(void) {
 
 void FCEU_FDSInsert(int oride) {
 	if (InDisk == 255) {
-		FCEU_DispMessage("Disk %d Side %s Inserted", SelectDisk >> 1, (SelectDisk & 1) ? "B" : "A");
+		FCEU_DispMessage("Disk %d of %d Side %s Inserted",
+			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 		InDisk = SelectDisk;
 	} else {
-		FCEU_DispMessage("Disk %d Side %s Ejected", SelectDisk >> 1, (SelectDisk & 1) ? "B" : "A");
+		FCEU_DispMessage("Disk %d of %d Side %s Ejected",
+			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 		InDisk = 255;
 	}
 }
@@ -160,21 +172,23 @@ void FCEU_FDSSelect(void) {
 		return;
 	}
 	SelectDisk = ((SelectDisk + 1) % TotalSides) & 3;
-	FCEU_DispMessage("Disk %d Side %s Selected", SelectDisk >> 1, (SelectDisk & 1) ? "B" : "A");
+	FCEU_DispMessage("Disk %d of %d Side %s Selected",
+		1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 }
 
+/* 2018/12/15 - update irq timings */
 static void FP_FASTAPASS(1) FDSFix(int a) {
-	if ((IRQa & 2) && IRQCount) {
-		IRQCount -= a;
+	if ((IRQa & 2) && (FDSRegs[3] & 0x1)) {
 		if (IRQCount <= 0) {
-			if (!(IRQa & 1)) {
-				IRQa &= ~2;
-				IRQCount = IRQLatch = 0;
-			} else
-				IRQCount = IRQLatch;
+			if (!(IRQa & 1))
+				IRQa &= ~2; /* does not clear latch, fix Druid */
+			IRQCount = IRQLatch;
 			X6502_IRQBegin(FCEU_IQEXT);
+		} else {
+			IRQCount -= a;
 		}
 	}
+
 	if (DiskSeekIRQ > 0) {
 		DiskSeekIRQ -= a;
 		if (DiskSeekIRQ <= 0) {
@@ -492,20 +506,29 @@ void FDSSoundReset(void) {
 static DECLFW(FDSWrite) {
 	switch (A) {
 	case 0x4020:
-		X6502_IRQEnd(FCEU_IQEXT);
 		IRQLatch &= 0xFF00;
 		IRQLatch |= V;
 		break;
 	case 0x4021:
-		X6502_IRQEnd(FCEU_IQEXT);
 		IRQLatch &= 0xFF;
 		IRQLatch |= V << 8;
 		break;
 	case 0x4022:
-		X6502_IRQEnd(FCEU_IQEXT);
-		IRQCount = IRQLatch;
-		IRQa = V & 3;
+		if (FDSRegs[3] & 0x1) {
+			IRQa = (V & 0x3);
+			if (IRQa & 2) {
+				IRQCount = IRQLatch;
+			} else {
+				X6502_IRQEnd(FCEU_IQEXT);
+				X6502_IRQEnd(FCEU_IQEXT2);
+			}
+		}
 		break;
+	case 0x4023:
+		if (!(V & 1)) {
+			X6502_IRQEnd(FCEU_IQEXT);
+			X6502_IRQEnd(FCEU_IQEXT2);
+		}
 	case 0x4024:
 		if ((InDisk != 255) && !(FDSRegs[5] & 0x4) && (FDSRegs[3] & 0x1)) {
 			if (DiskPtr >= 0 && DiskPtr < 65500) {
@@ -541,14 +564,180 @@ static DECLFW(FDSWrite) {
 	FDSRegs[A & 7] = V;
 }
 
-static void FreeFDSMemory(void) {
-	int x;
+struct codes_t {
+	uint8 code;
+	char *name;
+};
 
-	for (x = 0; x < TotalSides; x++)
-		if (diskdata[x]) {
-			free(diskdata[x]);
-			diskdata[x] = 0;
+static const struct codes_t list[] = {
+	{ 0x01, "Nintendo" },
+	{ 0x02, "Rocket Games" },
+	{ 0x08, "Capcom" },
+	{ 0x09, "Hot B Co." },
+	{ 0x0A, "Jaleco" },
+	{ 0x0B, "Coconuts Japan" },
+	{ 0x0C, "Coconuts Japan/G.X.Media" },
+	{ 0x13, "Electronic Arts Japan" },
+	{ 0x18, "Hudson Soft Japan" },
+	{ 0x19, "S.C.P." },
+	{ 0x1A, "Yonoman" },
+	{ 0x20, "Destination Software" },
+	{ 0x22, "VR 1 Japan" },
+	{ 0x25, "San-X" },
+	{ 0x28, "Kemco Japan" },
+	{ 0x29, "Seta" },
+	{ 0x36, "Codemasters" },
+	{ 0x37, "GAGA Communications" },
+	{ 0x38, "Laguna" },
+	{ 0x39, "Telstar Fun and Games" },
+	{ 0x41, "Ubi Soft Entertainment" },
+	{ 0x42, "Sunsoft" },
+	{ 0x47, "Spectrum Holobyte" },
+	{ 0x49, "Irem" },
+	{ 0x4A, "Gakken" },
+	{ 0x4D, "Malibu Games" },
+	{ 0x4F, "Eidos/U.S. Gold" },
+	{ 0x50, "Absolute Entertainment" },
+	{ 0x51, "Acclaim" },
+	{ 0x52, "Activision" },
+	{ 0x53, "American Sammy Corp." },
+	{ 0x54, "Take 2 Interactive" },
+	{ 0x55, "Hi Tech" },
+	{ 0x56, "LJN LTD." },
+	{ 0x58, "Mattel" },
+	{ 0x5A, "Mindscape/Red Orb Ent." },
+	{ 0x5C, "Taxan" },
+	{ 0x5D, "Midway" },
+	{ 0x5F, "American Softworks" },
+	{ 0x60, "Titus Interactive Studios" },
+	{ 0x61, "Virgin Interactive" },
+	{ 0x62, "Maxis" },
+	{ 0x64, "LucasArts Entertainment" },
+	{ 0x67, "Ocean" },
+	{ 0x69, "Electronic Arts" },
+	{ 0x6E, "Elite Systems Ltd." },
+	{ 0x6F, "Electro Brain" },
+	{ 0x70, "Infogrames" },
+	{ 0x71, "Interplay" },
+	{ 0x72, "JVC Musical Industries Inc" },
+	{ 0x73, "Parker Brothers" },
+	{ 0x75, "SCI" },
+	{ 0x78, "THQ" },
+	{ 0x79, "Accolade" },
+	{ 0x7A, "Triffix Ent. Inc." },
+	{ 0x7C, "Microprose Software" },
+	{ 0x7D, "Universal Interactive Studios" },
+	{ 0x7F, "Kemco" },
+	{ 0x80, "Misawa" },
+	{ 0x83, "LOZC" },
+	{ 0x8B, "Bulletproof Software" },
+	{ 0x8C, "Vic Tokai Inc." },
+	{ 0x91, "Chun Soft" },
+	{ 0x92, "Video System" },
+	{ 0x93, "BEC" },
+	{ 0x96, "Yonezawa/S'pal" },
+	{ 0x97, "Kaneko" },
+	{ 0x99, "Victor Interactive Software" },
+	{ 0x9A, "Nichibutsu/Nihon Bussan" },
+	{ 0x9B, "Tecmo" },
+	{ 0x9C, "Imagineer" },
+	{ 0x9F, "Nova" },
+	{ 0xA0, "Telenet" },
+	{ 0xA1, "Hori" },
+	{ 0xA2, "Scorpion Soft " },
+	{ 0xA4, "Konami" },
+	{ 0xA6, "Kawada" },
+	{ 0xA7, "Takara" },
+	{ 0xA8, "Royal Industries" },
+	{ 0xA9, "Technos Japan Corp." },
+	{ 0xAA, "JVC" },
+	{ 0xAC, "Toei Animation" },
+	{ 0xAD, "Toho" },
+	{ 0xAF, "Namco" },
+	{ 0xB0, "Acclaim Japan" },
+	{ 0xB1, "ASCII" },
+	{ 0xB2, "Bandai" },
+	{ 0xB3, "Soft Pro Inc." },
+	{ 0xB4, "Enix" },
+	{ 0xB6, "HAL Laboratory" },
+	{ 0xB7, "SNK" },
+	{ 0xB9, "Pony Canyon Hanbai" },
+	{ 0xBA, "Culture Brain" },
+	{ 0xBB, "Sunsoft" },
+	{ 0xBC, "Toshiba EMI" },
+	{ 0xBD, "Sony Imagesoft" },
+	{ 0xBF, "Sammy" },
+	{ 0xC0, "Taito" },
+	{ 0xC1, "Sunsoft / Ask Co., Ltd." },
+	{ 0xC2, "Kemco" },
+	{ 0xC3, "Square Soft" },
+	{ 0xC4, "Tokuma Shoten " },
+	{ 0xC5, "Data East" },
+	{ 0xC6, "Tonkin House" },
+	{ 0xC7, "East Cube" },
+	{ 0xC8, "Koei" },
+	{ 0xCA, "Konami/Palcom/Ultra" },
+	{ 0xCB, "Vapinc/NTVIC" },
+	{ 0xCC, "Use Co.,Ltd." },
+	{ 0xCD, "Meldac" },
+	{ 0xCE, "FCI/Pony Canyon" },
+	{ 0xCF, "Angel" },
+	{ 0xD1, "Sofel" },
+	/*{ 0xD2, "Quest" },*/
+	{ 0xD2, "Bothtec, Inc." },
+	{ 0xD3, "Sigma Enterprises" },
+	{ 0xD4, "Ask Kodansa" },
+	{ 0xD6, "Naxat" },
+	{ 0xD7, "Copya System" },
+	{ 0xD9, "Banpresto" },
+	{ 0xDA, "TOMY" },
+	/*{ 0xDB, "LJN Japan" },*/
+	{ 0xDB, "Hiro Co., Ltd." },
+	{ 0xDD, "NCS" },
+	{ 0xDF, "Altron Corporation" },
+	{ 0xE2, "Yutaka" },
+	{ 0xE3, "Varie" },
+	{ 0xE5, "Epoch" },
+	{ 0xE7, "Athena" },
+	{ 0xE8, "Asmik Ace Entertainment Inc." },
+	{ 0xE9, "Natsume" },
+	{ 0xEA, "King Records" },
+	{ 0xEB, "Atlus" },
+	{ 0xEC, "Epic/Sony Records" },
+	{ 0xEE, "IGS" },
+	{ 0xF0, "A Wave" },
+	{ 0 }
+ };
+
+static const char *getManufacturer(uint8 code)
+{
+	int x = 0;
+	char *ret = "unlicensed";
+
+	while (list[x].code != 0) {
+		if (list[x].code == code) {
+			ret = list[x].name;
+			break;
 		}
+		x++;
+	} 
+
+	return ret;
+}
+
+static void FreeFDSMemory(void) {
+	if (FDSROM)
+		free(FDSROM);
+	FDSROM = NULL;
+	if (FDSBIOS)
+		free(FDSBIOS);
+	FDSBIOS = NULL;
+	if (FDSRAM)
+		free(FDSRAM);
+	FDSRAM = NULL;
+	if (CHRRAM)
+		free(CHRRAM);
+	CHRRAM = NULL;
 }
 
 static int SubLoad(FCEUFILE *fp) {
@@ -571,19 +760,21 @@ static int SubLoad(FCEUFILE *fp) {
 	} else
 		TotalSides = header[4];
 
-	md5_starts(&md5);
-
 	if (TotalSides > 8) TotalSides = 8;
 	if (TotalSides < 1) TotalSides = 1;
 
+	FDSROMSize = TotalSides * BYTES_PER_SIDE;
+	FDSROM = (uint8*)FCEU_malloc(FDSROMSize);
+
+	if (!FDSROM)
+		return (0);
+
+	for (x = 0; x < TotalSides; x++)
+		diskdata[x] = &FDSROM[x * BYTES_PER_SIDE];
+
+	md5_starts(&md5);
+
 	for (x = 0; x < TotalSides; x++) {
-		diskdata[x] = (uint8*)FCEU_malloc(65500);
-		if (!diskdata[x]) {
-			int zol;
-			for (zol = 0; zol < x; zol++)
-				free(diskdata[zol]);
-			return 0;
-		}
 		FCEU_fread(diskdata[x], 1, 65500, fp);
 		md5_update(&md5, diskdata[x], 65500);
 	}
@@ -623,17 +814,9 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	free(fn);
 
-	ResetCartMapping();
+	FreeFDSMemory();
 
-	if (FDSBIOS)
-		free(FDSBIOS);
-	FDSBIOS = NULL;
-	if (FDSRAM)
-		free(FDSRAM);
-	FDSRAM = NULL;
-	if (CHRRAM)
-		free(CHRRAM);
-	CHRRAM = NULL;
+	ResetCartMapping();
 
 	FDSBIOSsize = 8192;
 	FDSBIOS = (uint8*)FCEU_gmalloc(FDSBIOSsize);
@@ -643,16 +826,17 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		if (FDSBIOS)
 			free(FDSBIOS);
 		FDSBIOS = NULL;
+		free(zp->fp->data);
 		FCEU_fclose(zp);
 		FCEU_PrintError("Error reading FDS BIOS ROM image.\n");
 		return 0;
 	}
 
+	free(zp->fp->data);
 	FCEU_fclose(zp);
 
 	FCEU_fseek(fp, 0, SEEK_SET);
 
-	FreeFDSMemory();
 	if (!SubLoad(fp)) {
 		if (FDSBIOS)
 			free(FDSBIOS);
@@ -660,6 +844,16 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		return(0);
 	}
 
+	for (x = 0; x < TotalSides; x++) {
+		diskdatao[x] = (uint8*)FCEU_malloc(65500);
+		memcpy(diskdatao[x], diskdata[x], 65500);
+	}
+	
+	DiskWritten = 1;
+
+#if 0
+	/* auxillary rom loading for save file is now handled
+	 * using retro_get_memory_size/data */
 	{
 		FCEUFILE *tp;
 		char *fn = FCEU_MakeFName(FCEUMKF_FDS, 0, 0);
@@ -686,6 +880,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		}
 		free(fn);
 	}
+#endif
 
 	GameInfo->type = GIT_FDS;
 	GameInterface = FDSGI;
@@ -702,7 +897,12 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		AddExState(diskdata[x], 65500, 0, temp);
 	}
 
-	AddExState(FDSRegs, sizeof(FDSRegs), 0, "FREG");
+	AddExState(&FDSRegs[0], 1, 0, "REG1");
+	AddExState(&FDSRegs[1], 1, 0, "REG2");
+	AddExState(&FDSRegs[2], 1, 0, "REG3");
+	AddExState(&FDSRegs[3], 1, 0, "REG4");
+	AddExState(&FDSRegs[4], 1, 0, "REG5");
+	AddExState(&FDSRegs[5], 1, 0, "REG6");
 	AddExState(&IRQCount, 4, 1, "IRQC");
 	AddExState(&IRQLatch, 4, 1, "IQL1");
 	AddExState(&IRQa, 1, 0, "IRQA");
@@ -715,19 +915,20 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	CHRRAMSize = 8192;
 	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSize);
-	memset(CHRRAM, 0, CHRRAMSize);
 	SetupCartCHRMapping(0, CHRRAM, CHRRAMSize, 1);
 	AddExState(CHRRAM, CHRRAMSize, 0, "CHRR");
 
 	FDSRAMSize = 32768;
 	FDSRAM = (uint8*)FCEU_gmalloc(FDSRAMSize);
-	memset(FDSRAM, 0, FDSRAMSize);
 	SetupCartPRGMapping(1, FDSRAM, FDSRAMSize, 1);
 	AddExState(FDSRAM, FDSRAMSize, 0, "FDSR");
 
 	SetupCartMirroring(0, 0, 0);
 
-	FCEU_printf(" Sides: %d\n\n", TotalSides);
+	FCEU_printf(" Code         : %02x\n", diskdata[0][0xf]);
+	FCEU_printf(" Manufacturer : %s\n", getManufacturer(diskdata[0][0xf]));
+	FCEU_printf(" # of Sides   : %d\n", TotalSides);
+	FCEU_printf(" ROM MD5      : 0x%s\n", md5_asciistr(GameInfo->MD5));
 
 	FCEUI_SetVidSystem(0);
 
@@ -735,26 +936,9 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 }
 
 void FDSClose(void) {
-	FILE *fp;
 	int x;
-	char *fn = FCEU_MakeFName(FCEUMKF_FDS, 0, 0);
 
 	if (!DiskWritten) return;
-
-	if (!(fp = fopen(fn, "wb"))) {
-		free(fn);
-		return;
-	}
-	FCEU_printf("FDS Save \"%s\"\n", fn);
-	free(fn);
-
-	for (x = 0; x < TotalSides; x++) {
-		if (fwrite(diskdata[x], 1, 65500, fp) != 65500) {
-			FCEU_PrintError("Error saving FDS image!\n");
-			fclose(fp);
-			return;
-		}
-	}
 
 	for (x = 0; x < TotalSides; x++)
 		if (diskdatao[x]) {
@@ -763,14 +947,4 @@ void FDSClose(void) {
 		}
 
 	FreeFDSMemory();
-	if (FDSBIOS)
-		free(FDSBIOS);
-	FDSBIOS = NULL;
-	if (FDSRAM)
-		free(FDSRAM);
-	FDSRAM = NULL;
-	if (CHRRAM)
-		free(CHRRAM);
-	CHRRAM = NULL;
-	fclose(fp);
 }

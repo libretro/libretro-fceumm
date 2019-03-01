@@ -7,20 +7,6 @@
 #include <math.h>
 #include "../fceu-types.h"
 
-#ifndef INLINE
-
-#if defined(_MSC_VER)
-#define INLINE __forceinline
-#elif defined(__GNUC__)
-#define INLINE __inline__
-#elif defined(_MWERKS_)
-#define INLINE inline
-#else
-#define INLINE
-#endif
-#endif
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif

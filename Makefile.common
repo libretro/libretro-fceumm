@@ -3,11 +3,7 @@ INCFLAGS      := -I$(CORE_DIR)/drivers/libretro -I$(LIBRETRO_COMM_DIR)/include -
 COREDEFINES    = -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565 
 
 INCLUDE_STDINT = 0
-ifneq (,$(findstring msvc2003,$(platform)))
-INCLUDE_STDINT = 1
-endif
-
-ifneq (,$(findstring msvc2005,$(platform)))
+ifneq (,$(findstring msvc200,$(platform)))
 INCLUDE_STDINT = 1
 endif
 
@@ -17,8 +13,6 @@ endif
 
 ifneq (,$(findstring msvc,$(platform)))
 COREDEFINES += -DINLINE=_inline
-else
-COREDEFINES += -DINLINE=inline
 endif
 
 ifeq ($(PSS_STYLE),2)

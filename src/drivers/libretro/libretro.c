@@ -24,25 +24,39 @@
 #include "../../vsuni.h"
 #include "../../video.h"
 
+#if defined(RENDER_GSKIT_PS2)
+#include "libretro-common/include/libretro_gskit_ps2.h"
+#endif
+
 #include "libretro-common/include/streams/memory_stream.h"
 
 #define MAX_PLAYERS 4 /* max supported players */
 #define MAX_PORTS 2   /* max controller ports,
                        * port 0 for player 1/3, port 1 for player 2/4 */
 
-#define RETRO_DEVICE_GAMEPAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
+#define RETRO_DEVICE_AUTO        RETRO_DEVICE_JOYPAD
+#define RETRO_DEVICE_GAMEPAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1)
 #define RETRO_DEVICE_ZAPPER      RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  0)
 #define RETRO_DEVICE_ARKANOID    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  1)
+
 #define RETRO_DEVICE_FC_ARKANOID RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  2)
 #define RETRO_DEVICE_FC_OEKAKIDS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  3)
 #define RETRO_DEVICE_FC_SHADOW   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
+#define RETRO_DEVICE_FC_4PLAYERS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 2)
+#define RETRO_DEVICE_FC_AUTO     RETRO_DEVICE_JOYPAD
 
+#define NES_WIDTH   256
+#define NES_HEIGHT  240
 #define NES_8_7_PAR  ((width * (8.0 / 7.0)) / height)
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
 
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
 void linearFree(void* mem);
+#endif
+
+#if defined(RENDER_GSKIT_PS2)
+RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
 #endif
 
 static retro_video_refresh_t video_cb = NULL;
@@ -89,19 +103,26 @@ static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
 static uint16_t retro_palette[256];
 #endif
+#if defined(RENDER_GSKIT_PS2)
+static uint8_t* fceu_video_out;
+#else
 static uint16_t* fceu_video_out;
+#endif
 
 /* Some timing-related variables. */
-unsigned sndsamplerate = 48000;
-unsigned sndquality = 0;
-unsigned sndvolume = 150;
-unsigned swapDuty = 0;
+static unsigned sndsamplerate;
+static unsigned sndquality;
+static unsigned sndvolume;
+unsigned swapDuty;
 
 static int32_t *sound = 0;
 static uint32_t JSReturn = 0;
+static uint32_t Dummy = 0;
 static uint32_t MouseData[MAX_PORTS][3] = { {0} };
 static uint32_t fc_MouseData[3] = {0};
 static uint32_t current_palette = 0;
+
+static unsigned serialize_size;
 
 int PPUViewScanline=0;
 int PPUViewer=0;
@@ -136,6 +157,16 @@ int FCEUD_SendData(void *data, uint32 len)
 #define RED_EXPAND 3
 #define GREEN_EXPAND 2
 #define BLUE_EXPAND 3
+#elif defined (FRONTEND_SUPPORTS_ABGR1555)
+#define RED_SHIFT 0
+#define GREEN_SHIFT 5
+#define BLUE_SHIFT 10
+#define RED_EXPAND 3
+#define GREEN_EXPAND 3
+#define BLUE_EXPAND 3
+#define RED_MASK 0x1F
+#define GREEN_MASK 0x3E0
+#define BLUE_MASK 0x7C00
 #elif defined (FRONTEND_SUPPORTS_RGB565)
 #define RED_SHIFT 11
 #define GREEN_SHIFT 5
@@ -155,12 +186,23 @@ int FCEUD_SendData(void *data, uint32 len)
 #define BLUE_EXPAND 3
 #endif
 
-void FCEUD_SetPalette(unsigned char index, unsigned char r, unsigned char g, unsigned char b)
+void FCEUD_SetPalette(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
 {
+   unsigned char index_to_write = index;
+#if defined(RENDER_GSKIT_PS2)
+   /* Index correction for PS2 GS */
+   int modi = index & 63;
+   if ((modi >= 8 && modi < 16) || (modi >= 40 && modi < 48)) {
+      index_to_write += 8;
+   } else if ((modi >= 16 && modi < 24) || (modi >= 48 && modi < 56)) {
+         index_to_write -= 8;
+   }
+#endif
+
 #ifdef FRONTEND_SUPPORTS_RGB565
-   retro_palette[index] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
+   retro_palette[index_to_write] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
 #else
-   retro_palette[index] =
+   retro_palette[index_to_write] =
       ((r >> RED_EXPAND) << RED_SHIFT) | ((g >> GREEN_EXPAND) << GREEN_SHIFT) | ((b >> BLUE_EXPAND) << BLUE_SHIFT);
 #endif
 }
@@ -214,10 +256,11 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
       return NULL;
 }
 
-#define MAX_PATH 1024
-
 /*palette for FCEU*/
-#define MAXPAL 17 /* raw palette # */
+#define PAL_TOTAL   16 /* total no. of palettes in palettes[] */
+#define PAL_DEFAULT (PAL_TOTAL + 1)
+#define PAL_RAW     (PAL_TOTAL + 2)
+#define PAL_CUSTOM  (PAL_TOTAL + 3)
 static int external_palette_exist = 0;
 extern int ipalette;
 
@@ -546,31 +589,150 @@ void retro_set_input_state(retro_input_state_t cb)
    input_cb = cb;
 }
 
-void set_input_nes_controller(unsigned port, int x);
-void set_input_famicom_controller(int x);
+static void update_nes_controllers(unsigned port, unsigned device)
+{
+   input_type[port] = device;
+
+   if (port < 4)
+   {
+      switch (device)
+      {
+      case RETRO_DEVICE_NONE:
+         FCEUI_SetInput(port, SI_NONE, &Dummy, 0);
+         FCEU_printf(" Player %u: None Connected\n", port + 1);
+         break;
+      case RETRO_DEVICE_ZAPPER:
+         FCEUI_SetInput(port, SI_ZAPPER, MouseData[port], 1);
+         FCEU_printf(" Player %u: Zapper\n", port + 1);
+         break;
+      case RETRO_DEVICE_ARKANOID:
+         FCEUI_SetInput(port, SI_ARKANOID, MouseData[port], 0);
+         FCEU_printf(" Player %u: Arkanoid\n", port + 1);
+         break;
+      case RETRO_DEVICE_GAMEPAD:
+      default:
+         input_type[port] = RETRO_DEVICE_GAMEPAD;
+         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
+         FCEU_printf(" Player %u: Gamepad\n", port + 1);
+         break;
+      }
+   }
+
+   if (port == 4)
+   {
+      switch (device)
+      {
+      case RETRO_DEVICE_FC_ARKANOID:
+         FCEUI_SetInputFC(SIFC_ARKANOID, fc_MouseData, 0);
+         FCEU_printf(" Famicom Expansion: Arkanoid\n");
+         break;
+      case RETRO_DEVICE_FC_SHADOW:
+         FCEUI_SetInputFC(SIFC_SHADOW, fc_MouseData, 1);
+         FCEU_printf(" Famicom Expansion: (Bandai) Hyper Shot\n");
+         break;
+      case RETRO_DEVICE_FC_OEKAKIDS:
+         FCEUI_SetInputFC(SIFC_OEKAKIDS, fc_MouseData, 1);
+         FCEU_printf(" Famicom Expansion: Oeka Kids Tablet\n");
+         break;
+      case RETRO_DEVICE_FC_4PLAYERS:
+         FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
+         FCEU_printf(" Famicom Expansion: Famicom 4-Player Adapter\n");
+         break;
+      case RETRO_DEVICE_NONE:
+      default:
+         FCEUI_SetInputFC(SIFC_NONE, &Dummy, 0);
+         FCEU_printf(" Famicom Expansion: None Connected\n");
+         break;
+      }
+   }
+}
+
+static unsigned nes_to_libretro(int d)
+{
+   switch(d)
+   {
+   case SI_UNSET:
+   case SI_GAMEPAD:
+      return RETRO_DEVICE_GAMEPAD;
+   case SI_NONE:
+      return RETRO_DEVICE_NONE;
+   case SI_ZAPPER:
+      return RETRO_DEVICE_ZAPPER;
+   case SI_ARKANOID:
+      return RETRO_DEVICE_ARKANOID;
+   }
+
+   return (RETRO_DEVICE_GAMEPAD);
+}
+
+static unsigned fc_to_libretro(int d)
+{
+   switch(d)
+   {
+   case SIFC_UNSET:
+   case SIFC_NONE:
+      return RETRO_DEVICE_NONE;
+   case SIFC_ARKANOID:
+      return RETRO_DEVICE_FC_ARKANOID;
+   case SIFC_SHADOW:
+      return RETRO_DEVICE_FC_SHADOW;
+   case SIFC_OEKAKIDS:
+      return RETRO_DEVICE_FC_OEKAKIDS;
+   case SIFC_4PLAYER:
+      return RETRO_DEVICE_FC_4PLAYERS;
+   }
+
+   return (RETRO_DEVICE_NONE);
+}
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-   if (port < MAX_PORTS)  /* port #0 = player1/player3, port #1 = player2/player4 */
+   if ((port < 5) && (input_type[port] != device))
    {
-      switch(device)
+      if (port < 2) /* player 1-2 */
       {
-         case RETRO_DEVICE_NONE:
-            set_input_nes_controller(port, SI_NONE);
-            break;
-         case RETRO_DEVICE_GAMEPAD:
-            set_input_nes_controller(port, SI_GAMEPAD);
-            break;
-         case RETRO_DEVICE_ZAPPER:
-            set_input_nes_controller(port, SI_ZAPPER);
-            break;
-         case RETRO_DEVICE_ARKANOID:
-            set_input_nes_controller(port, SI_ARKANOID);
-            break;
-         case RETRO_DEVICE_JOYPAD: /* Assigned to auto configure devices */
-         default:                  /* based on database */
-            set_input_nes_controller(port, GameInfo->input[port]);
-            break;
+         if (device != RETRO_DEVICE_AUTO)
+            update_nes_controllers(port, device);
+         else
+            update_nes_controllers(port, nes_to_libretro(GameInfo->input[port]));
+      }
+      else
+      {
+         if (port < 4) /* player 3-4 */
+         {
+            /* This section automatically enables 4players support
+             * when player 3 or 4 used */
+
+            input_type[port] = RETRO_DEVICE_NONE;
+
+            if (device == RETRO_DEVICE_AUTO)
+            {
+               if (enable_4player)
+                  input_type[port] = RETRO_DEVICE_GAMEPAD;
+            }
+            else if (device == RETRO_DEVICE_GAMEPAD)
+               input_type[port] = RETRO_DEVICE_GAMEPAD;
+
+            FCEU_printf(" Player %u: %s\n", port + 1,
+               (input_type[port] == RETRO_DEVICE_NONE) ? "None Connected" : "Gamepad");
+         }
+         else /* do famicom controllers here */
+         {
+            if (device != RETRO_DEVICE_FC_AUTO)
+               update_nes_controllers(4, device);
+            else
+               update_nes_controllers(4, fc_to_libretro(GameInfo->inputfc));
+         }
+
+         if (input_type[2] == RETRO_DEVICE_GAMEPAD
+         || input_type[3] == RETRO_DEVICE_GAMEPAD)
+            FCEUI_DisableFourScore(0);
+         else
+            FCEUI_DisableFourScore(1);
+
+         /* check if famicom 4player adapter is used */
+         if (input_type[4] == RETRO_DEVICE_FC_4PLAYERS)
+            FCEUI_DisableFourScore(1);
       }
    }
 }
@@ -592,33 +754,65 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
       { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
       { "fceumm_swapduty", "Swap Duty Cycles; disabled|enabled" },
+#ifdef DEBUG
+      { "fceumm_apu_1", "Enable Sound Channel 1 (Square 1); enabled|disabled" },
+      { "fceumm_apu_2", "Enable Sound Channel 2 (Square 2); enabled|disabled" },
+      { "fceumm_apu_3", "Enable Sound Channel 3 (Triangle); enabled|disabled" },
+      { "fceumm_apu_4", "Enable Sound Channel 4 (Noise); enabled|disabled" },
+      { "fceumm_apu_5", "Enable Sound Channel 5 (PCM); enabled|disabled" },
+#endif
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
       { "fceumm_zapper_mode", "Zapper Mode; lightgun|mouse" },
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
+      { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
       { NULL, NULL },
    };
 
    static const struct retro_controller_description pads1[] = {
-      { "Auto",    RETRO_DEVICE_JOYPAD },
+      { "Auto",    RETRO_DEVICE_AUTO },
       { "Gamepad", RETRO_DEVICE_GAMEPAD },
       { "Zapper",  RETRO_DEVICE_ZAPPER },
-      { NULL, 0 },
+      { 0, 0 },
    };
 
    static const struct retro_controller_description pads2[] = {
-      { "Auto",     RETRO_DEVICE_JOYPAD },
+      { "Auto",     RETRO_DEVICE_AUTO },
       { "Gamepad",  RETRO_DEVICE_GAMEPAD },
       { "Arkanoid", RETRO_DEVICE_ARKANOID },
       { "Zapper",   RETRO_DEVICE_ZAPPER },
-      { NULL, 0 },
+      { 0, 0 },
+   };
+
+   static const struct retro_controller_description pads3[] = {
+      { "Auto",     RETRO_DEVICE_AUTO },
+      { "Gamepad",  RETRO_DEVICE_GAMEPAD },
+      { 0, 0 },
+   };
+
+   static const struct retro_controller_description pads4[] = {
+      { "Auto",     RETRO_DEVICE_AUTO },
+      { "Gamepad",  RETRO_DEVICE_GAMEPAD },
+      { 0, 0 },
+   };
+
+   static const struct retro_controller_description pads5[] = {
+      { "Auto",                  RETRO_DEVICE_FC_AUTO },
+      { "Arkanoid",              RETRO_DEVICE_FC_ARKANOID },
+      { "(Bandai) Hyper Shot",   RETRO_DEVICE_FC_SHADOW },
+      { "Oeka Kids Tablet",      RETRO_DEVICE_FC_OEKAKIDS },
+      { "4-Player Adapter",      RETRO_DEVICE_FC_4PLAYERS },
+      { 0, 0 },
    };
 
    static const struct retro_controller_info ports[] = {
       { pads1, 3 },
       { pads2, 4 },
-      { 0 },
+      { pads3, 2 },
+      { pads4, 2 },
+      { pads5, 5 },
+      { 0, 0 },
    };
 
    environ_cb = cb;
@@ -642,16 +836,16 @@ void retro_get_system_info(struct retro_system_info *info)
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
 #ifdef PSP
-    unsigned width  = use_overscan ? 256 : (256 - 16);
-    unsigned height = use_overscan ? 240 : (240 - 16);
+    unsigned width  = NES_WIDTH - (use_overscan ? 16 : 0);
+    unsigned height = NES_HEIGHT - (use_overscan ? 16 : 0);
 #else
-    unsigned width  = 256 - (overscan_h ? 16 : 0);
-    unsigned height = 240 - (overscan_v ? 16 : 0);
+    unsigned width  = NES_WIDTH - (overscan_h ? 16 : 0);
+    unsigned height = NES_HEIGHT - (overscan_v ? 16 : 0);
 #endif
    info->geometry.base_width = width;
    info->geometry.base_height = height;
-   info->geometry.max_width = width;
-   info->geometry.max_height = height;
+   info->geometry.max_width = NES_WIDTH;
+   info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
@@ -681,6 +875,20 @@ void retro_init(void)
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
+
+   /* initialize some of the default variables */
+#ifdef GEKKO
+   sndsamplerate = 32000;
+#else
+   sndsamplerate = 48000;
+#endif
+   sndquality = 0;
+   sndvolume = 150;
+   swapDuty = 0;
+
+   /* Wii: initialize this or else last variable is passed through
+    * when loading another rom causing save state size change. */
+   serialize_size = 0;
 }
 
 static void retro_set_custom_palette(void)
@@ -690,27 +898,24 @@ static void retro_set_custom_palette(void)
    ipalette = 0;
    use_raw_palette = false;
 
-   if (!current_palette || current_palette > MAXPAL || (GameInfo->type == GIT_VSUNI))
+   if (current_palette == PAL_DEFAULT || current_palette == PAL_CUSTOM
+   || (GameInfo->type == GIT_VSUNI))
    {
-      if (current_palette > MAXPAL && GameInfo->type != GIT_VSUNI)
+      if (current_palette == PAL_CUSTOM)
       {
-         if (external_palette_exist)
-         {
-            ipalette = 1;
-         }
+          if (external_palette_exist && (GameInfo->type != GIT_VSUNI))
+              ipalette = 1;
       }
 
-      FCEU_ResetPalette(); /* Do palette reset. Priority will be:
-                            * -ipalette   : sets external palette
-                            * -ntsccol    : sets ntsc to default palette.
-                            * If none of the above are true, then
-                            * default palette will be used.
-                            * VS Uniystem should always use default palette.
+      FCEU_ResetPalette(); /* if ipalette is set to 1, external palette
+                            * is loaded when FCEU_ResetPalette is called,
+                            * else it will load default NES palette.
+                            * VS Unisystem should always use default palette.
                             */
       return;
    }
 
-   if (current_palette == MAXPAL) /* raw palette */
+   if (current_palette == PAL_RAW) /* raw palette */
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
@@ -726,14 +931,21 @@ static void retro_set_custom_palette(void)
 
    for ( i = 0; i < 64; i++ )
    {
-      r = palettes[current_palette-1].data[i] >> 16;
-      g = ( palettes[current_palette-1].data[i] & 0xff00 ) >> 8;
-      b = ( palettes[current_palette-1].data[i] & 0xff );
+      unsigned palette_data = palettes[current_palette].data[i];
+      r = ( palette_data >> 16 ) & 0xff;
+      g = ( ( palette_data & 0xff00 ) >> 8 ) & 0xff;
+      b = ( palette_data & 0xff );
       FCEUD_SetPalette( i, r, g, b);
-      FCEUD_SetPalette( i+64, r, g, b);
-      FCEUD_SetPalette( i+128, r, g, b);
-      FCEUD_SetPalette( i+192, r, g, b);
+      FCEUD_SetPalette( i + 64, r, g, b);
+      FCEUD_SetPalette( i + 128, r, g, b);
+      FCEUD_SetPalette( i + 192, r, g, b);
    }
+
+#if defined(RENDER_GSKIT_PS2)
+   if (ps2) {
+      ps2->updatedPalette = true;
+   }
+#endif
 }
 
 /* Set variables for NTSC(1) / PAL(2) / Dendy(3)
@@ -787,6 +999,10 @@ void retro_deinit (void)
       free(fceu_video_out);
    fceu_video_out = NULL;
 #endif
+#if defined(RENDER_GSKIT_PS2)
+   ps2 = NULL;
+#endif
+
 }
 
 void retro_reset(void)
@@ -809,71 +1025,20 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_DOWN, JOY_DOWN },
    { RETRO_DEVICE_ID_JOYPAD_LEFT, JOY_LEFT },
    { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
+};
+
+static const keymap turbomap[] = {
    { RETRO_DEVICE_ID_JOYPAD_X, JOY_A },
    { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
 };
 
-/* Set NES controllers */
-void set_input_nes_controller(unsigned port, int x)
+static void set_apu_channels(int chan)
 {
-   switch (x)
-   {
-      case SI_NONE:
-         input_type[port] = RETRO_DEVICE_NONE;
-         FCEUI_SetInput(port, SI_NONE, NULL, 0);
-         FCEU_printf(" Player %u: None\n", port + 1);
-         break;
-      case SI_ZAPPER:
-         input_type[port] = RETRO_DEVICE_ZAPPER;
-         FCEUI_SetInput(port, SI_ZAPPER, MouseData[port], 1);
-         FCEU_printf(" Player %u: Zapper\n", port + 1);
-            break;
-      case SI_ARKANOID:
-         input_type[port] = RETRO_DEVICE_ARKANOID;
-         FCEUI_SetInput(port, SI_ARKANOID, MouseData[port], 0);
-         FCEU_printf(" Player %u: Arkanoid\n", port + 1);
-         break;
-      case SI_GAMEPAD: /* Set gamepad as default when an unsupported device */
-      default:         /* is used */
-         input_type[port] = RETRO_DEVICE_GAMEPAD;
-         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
-         FCEU_printf(" Player %u: Gamepad\n", port + 1);
-         break;
-   }
-
-   if (enable_4player) // check if 4-player mode is enabled
-      input_type[2] = input_type[3] = RETRO_DEVICE_GAMEPAD;
-}
-
-/* Set Famicom controllers */
-void set_input_famicom_controller(int x)
-{
-   switch (x)
-   {
-      case SIFC_ARKANOID:
-         input_type[4] = RETRO_DEVICE_FC_ARKANOID;
-         FCEUI_SetInputFC(SIFC_ARKANOID, fc_MouseData, 0);
-         FCEU_printf("Famicom Expansion: Arkanoid\n");
-         break;
-      case SIFC_SHADOW:
-         input_type[4] = RETRO_DEVICE_FC_SHADOW;
-         FCEUI_SetInputFC(SIFC_SHADOW, fc_MouseData, 1);
-         FCEU_printf("Famicom Expansion: (Bandai) Hyper Shot\n");
-         break;
-      case SIFC_OEKAKIDS:
-         input_type[4] = RETRO_DEVICE_FC_OEKAKIDS;
-         FCEUI_SetInputFC(SIFC_OEKAKIDS, fc_MouseData, 1);
-         FCEU_printf("Famicom Expansion: Oeka Kids Tablet\n");
-         break;
-      default:
-         /* Do not disable port if a 4-player adaptor is used */
-         if (!enable_4player)
-         {
-            input_type[4] = 0;
-            FCEUI_SetInputFC(SIFC_NONE, NULL, 0);
-            break;
-         }
-   }
+   FSettings.SquareVolume[1] = 256 * ((chan >> 0) & 1);
+   FSettings.SquareVolume[0] = 256 * ((chan >> 1) & 1);
+   FSettings.TriangleVolume = 256 * ((chan >> 2) & 1);
+   FSettings.NoiseVolume = 256 * ((chan >> 3) & 1);
+   FSettings.PCMVolume = 256 * ((chan >> 4) & 1);
 }
 
 static void check_variables(bool startup)
@@ -881,6 +1046,8 @@ static void check_variables(bool startup)
    struct retro_variable var = {0};
    struct retro_system_av_info av_info;
    bool geometry_update = false;
+   char key[256];
+   int i, enable_apu;
 
    var.key = "fceumm_palette";
 
@@ -889,43 +1056,43 @@ static void check_variables(bool startup)
       unsigned orig_value = current_palette;
 
       if (!strcmp(var.value, "default"))
-         current_palette = 0;
-      else if (!strcmp(var.value, "asqrealc"))
-         current_palette = 1;
-      else if (!strcmp(var.value, "nintendo-vc"))
-         current_palette = 2;
-      else if (!strcmp(var.value, "rgb"))
-         current_palette = 3;
-      else if (!strcmp(var.value, "yuv-v3"))
-         current_palette = 4;
-      else if (!strcmp(var.value, "unsaturated-final"))
-         current_palette = 5;
-      else if (!strcmp(var.value, "sony-cxa2025as-us"))
-         current_palette = 6;
-      else if (!strcmp(var.value, "pal"))
-         current_palette = 7;
-      else if (!strcmp(var.value, "bmf-final2"))
-         current_palette = 8;
-      else if (!strcmp(var.value, "bmf-final3"))
-         current_palette = 9;
-      else if (!strcmp(var.value, "smooth-fbx"))
-         current_palette = 10;
-      else if (!strcmp(var.value, "composite-direct-fbx"))
-         current_palette = 11;
-      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
-         current_palette = 12;
-      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
-         current_palette = 13;
-      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
-         current_palette = 14;
-      else if (!strcmp(var.value, "nescap"))
-         current_palette = 15;
-      else if (!strcmp(var.value, "wavebeam"))
-         current_palette = 16;
+         current_palette = PAL_DEFAULT;
       else if (!strcmp(var.value, "raw"))
-         current_palette = MAXPAL;
+         current_palette = PAL_RAW;
       else if (!strcmp(var.value, "custom"))
-         current_palette = MAXPAL+1;
+         current_palette = PAL_CUSTOM;
+      else if (!strcmp(var.value, "asqrealc"))
+         current_palette = 0;
+      else if (!strcmp(var.value, "nintendo-vc"))
+         current_palette = 1;
+      else if (!strcmp(var.value, "rgb"))
+         current_palette = 2;
+      else if (!strcmp(var.value, "yuv-v3"))
+         current_palette = 3;
+      else if (!strcmp(var.value, "unsaturated-final"))
+         current_palette = 4;
+      else if (!strcmp(var.value, "sony-cxa2025as-us"))
+         current_palette = 5;
+      else if (!strcmp(var.value, "pal"))
+         current_palette = 6;
+      else if (!strcmp(var.value, "bmf-final2"))
+         current_palette = 7;
+      else if (!strcmp(var.value, "bmf-final3"))
+         current_palette = 8;
+      else if (!strcmp(var.value, "smooth-fbx"))
+         current_palette = 9;
+      else if (!strcmp(var.value, "composite-direct-fbx"))
+         current_palette = 10;
+      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
+         current_palette = 11;
+      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
+         current_palette = 12;
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
+         current_palette = 13;
+      else if (!strcmp(var.value, "nescap"))
+         current_palette = 14;
+      else if (!strcmp(var.value, "wavebeam"))
+         current_palette = 15;
 
       if (current_palette != orig_value)
          retro_set_custom_palette();
@@ -1051,13 +1218,19 @@ static void check_variables(bool startup)
    {
       unsigned i;
 
-      for (i = 0; i < MAX_PLAYERS; i++)
-         turbo_enabler[i] = 0;
+      turbo_enabler[0] = 0;
+      turbo_enabler[1] = 0;
 
       if (!strcmp(var.value, "Player 1"))
+      {
          turbo_enabler[0] = 1;
+         turbo_enabler[1] = 0;
+      }
       else if (!strcmp(var.value, "Player 2"))
+      {
+         turbo_enabler[0] = 0;
          turbo_enabler[1] = 1;
+      }
       else if (!strcmp(var.value, "Both"))
       {
          turbo_enabler[0] = 1;
@@ -1087,7 +1260,6 @@ static void check_variables(bool startup)
       if (setregion != oldval)
          FCEUD_RegionOverride(setregion);
    }
-
 
    var.key = "fceumm_aspect";
 
@@ -1140,6 +1312,27 @@ static void check_variables(bool startup)
          swapDuty = newval;
       }
    }
+
+#ifdef DEBUG
+   var.key = key;
+
+   enable_apu = 0;
+
+   strcpy(key, "fceumm_apu_x");
+   for (i = 0; i < 5; i++)
+   {
+      key[strlen("fceumm_apu_")] = '1' + i;
+      var.value = NULL;
+      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && !strcmp(var.value, "disabled"))
+      {
+         enable_apu |= (1 << i);
+      }
+   }
+   set_apu_channels(enable_apu ^ 0xff);
+#else
+   set_apu_channels(0xff);
+#endif
+
 }
 
 static int mzx = 0, mzy = 0;
@@ -1226,55 +1419,58 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
  * each player
  */
 
+#define MAX_BUTTONS 8
 #define TURBO_BUTTONS 2
 unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
 
 static void FCEUD_UpdateInput(void)
 {
-   unsigned player, port, i;
+   unsigned player, port;
 
    poll_cb();
 
    JSReturn = 0;
 
-   // nes gamepad
+   /* nes gamepad */
    for (player = 0; player < MAX_PLAYERS; player++)
    {
-      uint8_t input_buf   = 0;
-      bool player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD);
+      int i              = 0;
+      uint8_t input_buf  = 0;
+      int player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD) || (input_type[player] == RETRO_DEVICE_JOYPAD);
 
-      for (i = 0; i < 8; i++)
-         input_buf |= (player_enabled && input_cb(player, RETRO_DEVICE_JOYPAD, 0,
-            bindmap[i].retro)) ? bindmap[i].nes : 0;
-
-      /* Turbo A and Turbo B buttons are
-      * mapped to Joypad X and Joypad Y
-      * in RetroArch joypad.
-      *
-      * We achieve this by keeping track of
-      * the number of times it increments
-      * the toggle counter and fire or not fire
-      * depending on whether the delay value has
-      * been reached.
-      */
-
-      if (turbo_enabler[player] == 1 && player_enabled)
+      if (player_enabled)
       {
-         /* Handle Turbo A & B buttons */
-         for (i = 8; i < 10; i++)
+         for (i = 0; i < MAX_BUTTONS; i++)
+            input_buf |= input_cb(player, RETRO_DEVICE_JOYPAD, 0,
+               bindmap[i].retro) ? bindmap[i].nes : 0;
+
+         /* Turbo A and Turbo B buttons are
+          * mapped to Joypad X and Joypad Y
+          * in RetroArch joypad.
+          *
+          * We achieve this by keeping track of
+          * the number of times it increments
+          * the toggle counter and fire or not fire
+          * depending on whether the delay value has
+          * been reached.
+          */
+
+         if (turbo_enabler[player])
          {
-            if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, bindmap[i].retro))
+            /* Handle Turbo A & B buttons */
+            for (i = 0; i < TURBO_BUTTONS; i++)
             {
-               if (turbo_button_toggle[player][i-8] == 0)
-                  input_buf |= bindmap[i].nes;
-               turbo_button_toggle[player][i-8]++;
-               if (turbo_button_toggle[player][i-8] > turbo_delay)
-                  /* Reset the toggle if delay value is reached */
-                  turbo_button_toggle[player][i-8] = 0;
+               if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, turbomap[i].retro))
+               {
+                  if (!turbo_button_toggle[player][i])
+                     input_buf |= turbomap[i].nes;
+                  turbo_button_toggle[player][i]++;
+                  turbo_button_toggle[player][i] %= turbo_delay + 1;
+               }
+               else
+                  /* If the button is not pressed, just reset the toggle */
+                  turbo_button_toggle[player][i] = 0;
             }
-            else
-               /* If the button is not pressed, just reset the toggle */
-               turbo_button_toggle[player][i-8] = 0;
          }
       }
 
@@ -1289,7 +1485,6 @@ static void FCEUD_UpdateInput(void)
       }
 
       JSReturn |= (input_buf & 0xff) << (player << 3);
-
    }
 
    /* other inputs*/
@@ -1382,6 +1577,37 @@ static void retro_run_blit(uint8_t *gfx)
    sceGuFinish();
 
    video_cb(texture_vram_p, width, height, 256);
+#elif defined(RENDER_GSKIT_PS2)
+   uint32_t *buf = (uint32_t *)RETRO_HW_FRAME_BUFFER_VALID;
+
+   if (!ps2) {
+      if (!environ_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void **)&ps2) || !ps2) {
+         printf("Failed to get HW rendering interface!\n");
+         return;
+	   }
+
+      if (ps2->interface_version != RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION) {
+         printf("HW render interface mismatch, expected %u, got %u!\n", 
+                  RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION, ps2->interface_version);
+         return;
+      }
+
+      ps2->coreTexture->Width = width;
+      ps2->coreTexture->Height = height;
+      ps2->coreTexture->PSM = GS_PSM_T8;
+      ps2->coreTexture->ClutPSM = GS_PSM_CT16;
+      ps2->coreTexture->Filter = GS_FILTER_LINEAR;
+      ps2->padding = (struct retro_hw_ps2_insets){ overscan_v ? 8.0f : 0.0f, 
+                                                   overscan_h ? 8.0f : 0.0f, 
+                                                   overscan_v ? 8.0f : 0.0f, 
+                                                   overscan_h ? 8.0f : 0.0f};
+   }
+
+   ps2->updatedPalette = true;
+   ps2->coreTexture->Clut = (u32*)retro_palette;
+   ps2->coreTexture->Mem = (u32*)gfx;
+
+   video_cb(buf, width, height, pitch);
 #else
    incr   += (overscan_h ? 16 : 0);
    width  -= (overscan_h ? 16 : 0);
@@ -1408,21 +1634,12 @@ static void retro_run_blit(uint8_t *gfx)
 #endif
 }
 
-static bool firstrun = true;
-
 void retro_run(void)
 {
    unsigned i;
    uint8_t *gfx;
    int32_t ssize = 0;
    bool updated = false;
-
-   if (firstrun)
-   {
-      /* setup famicom expansion devices */
-      set_input_famicom_controller(GameInfo->inputfc);
-      firstrun = false;
-   }
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables(false);
@@ -1437,8 +1654,6 @@ void retro_run(void)
 
    retro_run_blit(gfx);
 }
-
-static unsigned serialize_size = 0;
 
 size_t retro_serialize_size(void)
 {
@@ -1763,7 +1978,14 @@ static const struct cartridge_db famicom_4p_db_list[] =
    }
 };
 
+#ifdef _WIN32
+static char slash = '\\';
+#else
+static char slash = '/';
+#endif
+
 extern uint32_t iNESGameCRC32;
+extern int option_ramstate;
 
 bool retro_load_game(const struct retro_game_info *game)
 {
@@ -1826,9 +2048,24 @@ bool retro_load_game(const struct retro_game_info *game)
 
    struct retro_memory_descriptor descs[64];
    struct retro_memory_map        mmaps;
+   struct retro_variable          var = {0};
 
    if (!game)
       return false;
+
+   var.value = 0;
+   var.key = "fceumm_ramstate";
+
+   /* set this variable before calling PowerNES() */
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "random"))
+         option_ramstate = 2;
+      else if (!strcmp(var.value, "fill $00"))
+         option_ramstate = 1;
+      else
+         option_ramstate = 0;
+   }
 
    PowerNES();
    check_system_specs();
@@ -1864,17 +2101,14 @@ bool retro_load_game(const struct retro_game_info *game)
       return false;
    }
 
-   for (i = 0; i < MAX_PORTS; i++)
+   for (i = 0; i < MAX_PORTS; i++) {
       FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
+      input_type[i] == RETRO_DEVICE_JOYPAD;
+   }
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
-      FCEU_printf("nes.pal loaded from system directory.\n");
-   else
-      FCEU_PrintError("Cannot find nes.pal from system directory.\n");
-
-   if (GameInfo->type == GIT_VSUNI)
-      FCEU_PrintError("VS Unisystem rom loaded, will use default palette.\n");
+      FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
 
    is_PAL = retro_get_region(); /* Save current loaded region info */
 
@@ -1899,6 +2133,7 @@ bool retro_load_game(const struct retro_game_info *game)
    {
       if (famicom_4p_db_list[i].crc == iNESGameCRC32)
       {
+         GameInfo->inputfc = SIFC_4PLAYER;
          FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
          enable_4player = true;
          break;
@@ -1946,13 +2181,15 @@ void retro_unload_game(void)
       free(fceu_video_out);
    fceu_video_out = NULL;
 #endif
+#if defined(RENDER_GSKIT_PS2)
+   ps2 = NULL;
+#endif
 }
 
 unsigned retro_get_region(void)
 {
    return FSettings.PAL ? RETRO_REGION_PAL : RETRO_REGION_NTSC;
 }
-
 
 void *retro_get_memory_data(unsigned type)
 {
@@ -1961,10 +2198,12 @@ void *retro_get_memory_data(unsigned type)
    switch(type)
    {
       case RETRO_MEMORY_SAVE_RAM:
-         if (iNESCart.battery)
+         if (iNESCart.battery && iNESCart.SaveGame[0] && iNESCart.SaveGameLen[0])
             return iNESCart.SaveGame[0];
-         else if (UNIFCart.battery)
+         else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             return UNIFCart.SaveGame[0];
+         else if (GameInfo->type == GIT_FDS)
+            return FDSROM_ptr();
          else
             data = NULL;
          break;
@@ -1986,10 +2225,12 @@ size_t retro_get_memory_size(unsigned type)
    switch(type)
    {
       case RETRO_MEMORY_SAVE_RAM:
-         if (iNESCart.battery)
+         if (iNESCart.battery && iNESCart.SaveGame[0] && iNESCart.SaveGameLen[0])
             size = iNESCart.SaveGameLen[0];
-         else if (UNIFCart.battery)
+         else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             size = UNIFCart.SaveGameLen[0];
+         else if (GameInfo->type == GIT_FDS)
+            size = FDSROM_size();
          else
             size = 0;
          break;

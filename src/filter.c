@@ -100,7 +100,7 @@ int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 #endif
 	max = (inlen - 1) << 16;
 
-	if (FSettings.soundq == 2)
+	if (FSettings.soundq == 2) {
 		for (x = mrindex; x < max; x += mrratio) {
 			int32 acc = 0, acc2 = 0;
 			uint32 c;
@@ -116,7 +116,7 @@ int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 			out++;
 			count++;
 		}
-	else
+	} else {
 		for (x = mrindex; x < max; x += mrratio) {
 			int32 acc = 0, acc2 = 0;
 			uint32 c;
@@ -132,6 +132,7 @@ int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 			out++;
 			count++;
 		}
+	}
 
 	mrindex = x - max;
 

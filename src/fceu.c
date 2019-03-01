@@ -381,6 +381,8 @@ void ResetNES(void)
 	X6502_Reset();
 }
 
+int option_ramstate = 0;
+
 void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 {
 	int x = 0;
@@ -394,7 +396,14 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 		*ptr = (x & 1) ? 0x55 : 0xAA;	/* F-15 Sity War HISCORE is screwed... */
 										/* 1942 SCORE/HISCORE is screwed... */
 #endif
-		*ptr = 0xFF;
+		uint8_t v;
+		switch (option_ramstate)
+		{
+		case 0: v = 0xff; break;
+		case 1: v = 0x00; break;
+		case 2: v = (uint8_t)rand(); break;
+		}
+		*ptr = v;
 		x++;
 		size--;
 		ptr++;

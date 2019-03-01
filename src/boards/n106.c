@@ -53,10 +53,34 @@ static int is210;	/* Lesser mapper. */
 static uint8 PRG[3];
 static uint8 CHR[8];
 
+/* TODO: Clean this up. State variables are expanded for
+ * big-endian compatibility when saving and loading states */
 static SFORMAT N106_StateRegs[] = {
-	{ PRG, 3, "PRG" },
-	{ CHR, 8, "CHR" },
-	{ NTAPage, 4, "NTA" },
+	{ &PRG[0], 1, "PRG1" },
+	{ &PRG[1], 1, "PRG2" },
+	{ &PRG[2], 1, "PRG3" },
+
+	{ &CHR[0], 1, "CHR1" },
+	{ &CHR[1], 1, "CHR2" },
+	{ &CHR[2], 1, "CHR3" },
+	{ &CHR[3], 1, "CHR4" },
+	{ &CHR[4], 1, "CHR5" },
+	{ &CHR[5], 1, "CHR6" },
+	{ &CHR[6], 1, "CHR7" },
+	{ &CHR[7], 1, "CHR8" },
+
+	{ &NTAPage[0], 1, "NTA1" },
+	{ &NTAPage[1], 1, "NTA2" },
+	{ &NTAPage[2], 1, "NTA3" },
+	{ &NTAPage[3], 1, "NTA4" },
+
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
+	{ &IRQa, 1, "IRQA" },
+
+	{ &dopol, 1, "GORF" },
+	{ &gorfus, 1, "DOPO" },
+	{ &gorko, 1, "GORK" },
+
 	{ 0 }
 };
 
@@ -223,6 +247,28 @@ static int32 vcount[8];
 static int32 CVBC;
 
 #define TOINDEX        (16 + 1)
+
+static SFORMAT N106_SStateRegs[] =
+{
+	{ &PlayIndex[0], 4 | FCEUSTATE_RLSB, "IDX0" },
+	{ &PlayIndex[1], 4 | FCEUSTATE_RLSB, "IDX1" },
+	{ &PlayIndex[2], 4 | FCEUSTATE_RLSB, "IDX2" },
+	{ &PlayIndex[3], 4 | FCEUSTATE_RLSB, "IDX3" },
+	{ &PlayIndex[4], 4 | FCEUSTATE_RLSB, "IDX4" },
+	{ &PlayIndex[5], 4 | FCEUSTATE_RLSB, "IDX5" },
+	{ &PlayIndex[6], 4 | FCEUSTATE_RLSB, "IDX6" },
+	{ &PlayIndex[7], 4 | FCEUSTATE_RLSB, "IDX7" },
+	{ &vcount[0], 4 | FCEUSTATE_RLSB, "VCT0" },
+	{ &vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
+	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT2" },
+	{ &vcount[3], 4 | FCEUSTATE_RLSB, "VCT3" },
+	{ &vcount[4], 4 | FCEUSTATE_RLSB, "VCT4" },
+	{ &vcount[5], 4 | FCEUSTATE_RLSB, "VCT5" },
+	{ &vcount[6], 4 | FCEUSTATE_RLSB, "VCT6" },
+	{ &vcount[7], 4 | FCEUSTATE_RLSB, "VCT7" },
+	{ &CVBC, 4 | FCEUSTATE_RLSB, "BC00" },
+	{ 0 }
+};
 
 /* 16:15 */
 static void SyncHQ(int32 ts) {
@@ -404,6 +450,7 @@ void Mapper19_Init(CartInfo *info) {
 	AddExState(WRAM, 8192, 0, "WRAM");
 	AddExState(IRAM, 128, 0, "IRAM");
 	AddExState(N106_StateRegs, ~0, 0, 0);
+	AddExState(N106_SStateRegs, ~0, 0, 0);
 
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
