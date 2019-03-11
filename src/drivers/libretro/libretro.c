@@ -875,20 +875,6 @@ void retro_init(void)
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
-
-   /* initialize some of the default variables */
-#ifdef GEKKO
-   sndsamplerate = 32000;
-#else
-   sndsamplerate = 48000;
-#endif
-   sndquality = 0;
-   sndvolume = 150;
-   swapDuty = 0;
-
-   /* Wii: initialize this or else last variable is passed through
-    * when loading another rom causing save state size change. */
-   serialize_size = 0;
 }
 
 static void retro_set_custom_palette(void)
@@ -2052,6 +2038,20 @@ bool retro_load_game(const struct retro_game_info *game)
 
    if (!game)
       return false;
+
+   /* initialize some of the default variables */
+#ifdef GEKKO
+   sndsamplerate = 32000;
+#else
+   sndsamplerate = 48000;
+#endif
+   sndquality = 0;
+   sndvolume = 150;
+   swapDuty = 0;
+
+   /* Wii: initialize this or else last variable is passed through
+    * when loading another rom causing save state size change. */
+   serialize_size = 0;
 
    var.value = 0;
    var.key = "fceumm_ramstate";
