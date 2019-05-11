@@ -201,12 +201,12 @@ static int DetectMMC1WRAMSize(uint32 crc32) {
 
 static uint32 NWCIRQCount;
 static uint8 NWCRec;
-#define NWCDIP 0xE
+static int32 nwcdip = 0x4;
 
 static void NWCIRQHook(int a) {
 	if (!(NWCRec & 0x10)) {
 		NWCIRQCount += a;
-		if ((NWCIRQCount | (NWCDIP << 25)) >= 0x3e000000) {
+		if (NWCIRQCount >= (0x20000000 | (nwcdip << 25))) {
 			NWCIRQCount = 0;
 			X6502_IRQBegin(FCEU_IQEXT);
 		}
@@ -236,6 +236,11 @@ static void NWCPRGHook(uint32 A, uint8 V) {
 static void NWCPower(void) {
 	GenMMC1Power();
 	setchr8r(0, 0);
+	nwcdip = (int32)GameInfo->cspecial;
+}
+
+static void NWCReset(void) {
+	nwcdip = (int32)GameInfo->cspecial;
 }
 
 void Mapper105_Init(CartInfo *info) {
@@ -244,6 +249,7 @@ void Mapper105_Init(CartInfo *info) {
 	MMC1PRGHook16 = NWCPRGHook;
 	MapIRQHook = NWCIRQHook;
 	info->Power = NWCPower;
+	info->Reset = NWCReset;
 }
 
 static void GenMMC1Power(void) {

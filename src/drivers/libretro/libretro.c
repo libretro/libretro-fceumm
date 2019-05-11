@@ -29,6 +29,7 @@
 #endif
 
 #include "libretro-common/include/streams/memory_stream.h"
+#include "dipswitch.h"
 
 #define MAX_PLAYERS 4 /* max supported players */
 #define MAX_PORTS 2   /* max controller ports,
@@ -63,7 +64,7 @@ static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
-static retro_environment_t environ_cb = NULL;
+retro_environment_t environ_cb = NULL;
 #ifdef PSP
 static bool use_overscan;
 #else
@@ -133,6 +134,7 @@ extern uint8 *XBuf;
 extern CartInfo iNESCart;
 extern CartInfo UNIFCart;
 extern int show_crosshair;
+extern int option_ramstate;
 
 /* emulator-specific callback functions */
 
@@ -737,7 +739,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
    }
 }
 
-void retro_set_environment(retro_environment_t cb)
+static void set_variables(void)
 {
    static const struct retro_variable vars[] = {
       { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
@@ -767,9 +769,39 @@ void retro_set_environment(retro_environment_t cb)
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
-      { NULL, NULL },
+      { NULL, NULL }
    };
 
+   static struct retro_variable vars_empty = { NULL, NULL };
+   static struct retro_variable retro_vars[32];
+   unsigned i = 0, index_core = 0;
+
+   while (vars[index_core].key != NULL)
+   {
+      retro_vars[index_core].key = vars[index_core].key;
+      retro_vars[index_core].value = vars[index_core].value;
+      index_core++;
+   }
+
+   /* append dipswitches to core options if available */
+   set_dipswitch_variables(&index_core, &retro_vars[0]);
+
+   /* NULL terminate */
+   retro_vars[index_core] = vars_empty;
+   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)retro_vars);
+
+#ifdef DEBUG
+   /* list core options */
+   i = 0;
+   while (retro_vars[i].key) {
+      FCEU_printf(" { '%s', '%s' }\n", retro_vars[i].key, retro_vars[i].value);
+      i++;
+   }
+#endif
+}
+
+void retro_set_environment(retro_environment_t cb)
+{
    static const struct retro_controller_description pads1[] = {
       { "Auto",    RETRO_DEVICE_AUTO },
       { "Gamepad", RETRO_DEVICE_GAMEPAD },
@@ -816,8 +848,7 @@ void retro_set_environment(retro_environment_t cb)
    };
 
    environ_cb = cb;
-   cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
-   cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+   environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 }
 
 void retro_get_system_info(struct retro_system_info *info)
@@ -1035,6 +1066,18 @@ static void check_variables(bool startup)
    char key[256];
    int i, enable_apu;
 
+   var.key = "fceumm_ramstate";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "random"))
+         option_ramstate = 2;
+      else if (!strcmp(var.value, "fill $00"))
+         option_ramstate = 1;
+      else
+         option_ramstate = 0;
+   }
+
    var.key = "fceumm_palette";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1202,8 +1245,6 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      unsigned i;
-
       turbo_enabler[0] = 0;
       turbo_enabler[1] = 0;
 
@@ -1319,6 +1360,7 @@ static void check_variables(bool startup)
    set_apu_channels(0xff);
 #endif
 
+   update_dipswitch();
 }
 
 static int mzx = 0, mzy = 0;
@@ -1573,7 +1615,7 @@ static void retro_run_blit(uint8_t *gfx)
 	   }
 
       if (ps2->interface_version != RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION) {
-         printf("HW render interface mismatch, expected %u, got %u!\n", 
+         printf("HW render interface mismatch, expected %u, got %u!\n",
                   RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION, ps2->interface_version);
          return;
       }
@@ -1583,9 +1625,9 @@ static void retro_run_blit(uint8_t *gfx)
       ps2->coreTexture->PSM = GS_PSM_T8;
       ps2->coreTexture->ClutPSM = GS_PSM_CT16;
       ps2->coreTexture->Filter = GS_FILTER_LINEAR;
-      ps2->padding = (struct retro_hw_ps2_insets){ overscan_v ? 8.0f : 0.0f, 
-                                                   overscan_h ? 8.0f : 0.0f, 
-                                                   overscan_v ? 8.0f : 0.0f, 
+      ps2->padding = (struct retro_hw_ps2_insets){ overscan_v ? 8.0f : 0.0f,
+                                                   overscan_h ? 8.0f : 0.0f,
+                                                   overscan_v ? 8.0f : 0.0f,
                                                    overscan_h ? 8.0f : 0.0f};
    }
 
@@ -1971,7 +2013,6 @@ static char slash = '/';
 #endif
 
 extern uint32_t iNESGameCRC32;
-extern int option_ramstate;
 
 bool retro_load_game(const struct retro_game_info *game)
 {
@@ -2034,7 +2075,6 @@ bool retro_load_game(const struct retro_game_info *game)
 
    struct retro_memory_descriptor descs[64];
    struct retro_memory_map        mmaps;
-   struct retro_variable          var = {0};
 
    if (!game)
       return false;
@@ -2052,20 +2092,6 @@ bool retro_load_game(const struct retro_game_info *game)
    /* Wii: initialize this or else last variable is passed through
     * when loading another rom causing save state size change. */
    serialize_size = 0;
-
-   var.value = 0;
-   var.key = "fceumm_ramstate";
-
-   /* set this variable before calling PowerNES() */
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (!strcmp(var.value, "random"))
-         option_ramstate = 2;
-      else if (!strcmp(var.value, "fill $00"))
-         option_ramstate = 1;
-      else
-         option_ramstate = 0;
-   }
 
    PowerNES();
    check_system_specs();
@@ -2113,9 +2139,10 @@ bool retro_load_game(const struct retro_game_info *game)
    is_PAL = retro_get_region(); /* Save current loaded region info */
 
    retro_set_custom_palette();
-
    FCEUD_SoundToggle();
+   set_variables();
    check_variables(true);
+   PowerNES();
 
    FCEUI_DisableFourScore(1);
 

@@ -10,6 +10,7 @@ typedef struct {
 	uint32 SaveGameLen[4];	/* How much memory to save/load. */
 
 	/* Set by iNES/UNIF loading code. */
+	int mapper;		/* mapper used */
 	int mirror;		/* As set in the header or chunk.
 					 * iNES/UNIF specific.  Intended
 					 * to help support games like "Karnov"

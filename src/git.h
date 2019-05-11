@@ -25,6 +25,7 @@ typedef struct {
 	uint8 MD5[16];
 	int soundrate;		/* For Ogg Vorbis expansion sound wacky support.  0 for default. */
 	int soundchan;		/* Number of sound channels. */
+	int gameid;			/* VS game id for per-game settings e.g. dip switches */
 } FCEUGI;
 
 #endif
