@@ -792,6 +792,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	if (!iNES_Init(MapperNo))
 		FCEU_PrintError("iNES mapper #%d is not supported at all.", MapperNo);
+	iNESCart.mapper = MapperNo;
 
 	GameInterface = iNESGI;
 	FCEU_printf("\n");
