@@ -689,7 +689,7 @@ static unsigned fc_to_libretro(int d)
 
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-   if ((port < 5) && (input_type[port] != device))
+   if (port < 5)
    {
       if (port < 2) /* player 1-2 */
       {
@@ -2129,7 +2129,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    for (i = 0; i < MAX_PORTS; i++) {
       FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
-      input_type[i] == RETRO_DEVICE_JOYPAD;
+      input_type[i] = RETRO_DEVICE_JOYPAD;
    }
 
    external_palette_exist = ipalette;
