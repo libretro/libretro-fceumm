@@ -283,7 +283,8 @@ VSUNIENTRY VSUniGames[] =
 	{ "VS Slalom", VS_SLALOM, 0x4889b5a50a623215LL, 0, 1, RP2C04_0002, 0 },
 	{ "VS Super Mario Bros", VS_SMB, 0x39d8cfa788e20b6cLL, 99, 2, RP2C04_0004, 0 },
 	{ "VS Super Mario Bros [a1]", VS_SMB, 0xfc182e5aefbce14dLL, 99, 2, RP2C04_0004, 0 },
-	{ "VS TKO Boxing", VS_TKOBOXING, 0x6e1ee06171d8ce3aLL, 4, 1, RP2C04_0003, IOPTION_PREDIP, 0x00 },
+	{ "VS TKO Boxing", VS_TKOBOXING,      0x6e1ee06171d8ce3aLL, 206, 1, RP2C04_0003, IOPTION_PREDIP, 0x00 },
+	{ "VS TKO Boxing [a1]", VS_TKOBOXING, 0xa1c694ce147bc1edLL, 206, 1, RP2C04_0003, IOPTION_PREDIP, 0x00 },
 	{ 0 }
 };
 
@@ -303,11 +304,14 @@ void FCEU_VSUniCheck(uint64 md5partial, int *MapperNo, uint8 *Mirroring) {
 			curppu = vs->ppu;
 			curmd5 = md5partial;
 
+			FCEU_printf(" System: VS-UniSystem\n");
+			FCEU_printf(" Name: %s\n", vs->name);
+
 			secptr = 0;
 
 			{
 				static int64 tko = 0x6e1ee06171d8ce3aULL, rbi = 0x6a02d345812938afULL;
-				if (md5partial == tko)
+				if (vs->gameid & VS_TKOBOXING)
 					secptr = secdata[0];
 				if (md5partial == rbi)
 					secptr = secdata[1];
