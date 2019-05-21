@@ -12,16 +12,13 @@
 
 extern CartInfo iNESCart;
 
-/* VSUNI */
-
 typedef struct {
-   char        name[20];
+   char        *name;
    uint8       value;
 } SETTING;
 
 typedef struct {
-   char        var_name[50];
-   char        var_value[150];
+   const char  *option_name;
    unsigned    settings_size;
    uint8       mask;
    SETTING     settings[8];
@@ -29,38 +26,27 @@ typedef struct {
 
 typedef struct {
    unsigned    gameid;
-   char        romname[100];
+   char        *romname_short;
    unsigned    dipswitch_size;
-   DIPSWITCH   dipswitch_core_options[8];
+   DIPSWITCH   dipswitch_core_options[5];
 } VSUNIGAME;
 
 static VSUNIGAME dipswitch_battlecity = {
-   VS_BATTLECITY,
-   "VS. Battle City",
-   3,
+   VS_BATTLECITY, "battlecity", 3,
    {
-      {  "fceumm_dipswitch_battlecity_credits",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         2,
-         0x01,
+      {  "Credits for 2 Players", 2, 0x01,
          {
             { "2", 0x01 },
             { "1", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_battlecity_lives",
-         "Lives; 3|5",
-         2,
-         0x02,
+      {  "Lives", 2, 0x02,
          {
             { "5", 0x02 },
             { "3", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_battlecity_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x04,
+      {  "Demo Sounds", 2, 0x04,
          {
             { "disabled", 0x04 },
             { "enabled",  0x00 }
@@ -70,12 +56,9 @@ static VSUNIGAME dipswitch_battlecity = {
 };
 
 static VSUNIGAME dipswitch_castlevania = {
-   VS_CASTLEVANIA,
-   "VS. Castlevania",
-   4,
+   VS_CASTLEVANIA, "castlevania", 4,
    {
-      {  "fceumm_dipswitch_castlevania_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
+      {  "Coinage",
          8,
          0x07,
          {
@@ -89,19 +72,14 @@ static VSUNIGAME dipswitch_castlevania = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_castlevania_lives",
-         "Lives; 3|2",
-         2,
-         0x08,
+      {  "Lives", 2, 0x08,
          {
-            { "2", 0x08 },
-            { "3", 0x00 }
+            { "3", 0x00 },
+            { "2", 0x08 }
+
          }
       },
-      {  "fceumm_dipswitch_castlevania_bonus",
-         "Bonus; 100k|200k|300k|400k",
-         4,
-         0x30,
+      {  "Bonus", 4, 0x30,
          {
             { "100k", 0x00 },
             { "200k", 0x20 },
@@ -109,27 +87,19 @@ static VSUNIGAME dipswitch_castlevania = {
             { "400k", 0x30 }
          }
       },
-      {  "fceumm_dipswitch_castlevania_difficulty",
-         "Difficulty; Normal|Hard",
-         2,
-         0x40,
+      {  "Difficulty", 2, 0x40,
          {
-            { "Hard",   0x40 },
-            { "Normal", 0x00 }
+            { "Normal", 0x00 },
+            { "Hard",   0x40 }
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_clucluland = {
-   VS_CLUCLULAND,
-   "VS. Clu Clu Land",
-   2,
+   VS_CLUCLULAND, "clucluland", 2,
    {
-      {  "fceumm_dipswitch_clucluland_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|2 Coins 1 Credit|3 Coins 1 Credit|4 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -141,29 +111,21 @@ static VSUNIGAME dipswitch_clucluland = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_clucluland_lives",
-         "Lives; 3|4|5|2",
-         4,
-         0x60,
+      {  "Lives", 4, 0x60,
          {
-            { "2", 0x60 },
             { "3", 0x00 },
             { "4", 0x40 },
-            { "5", 0x20 }
+            { "5", 0x20 },
+            { "2", 0x60 }
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_drmario = {
-   VS_DRMARIO,
-   "VS. Dr. Mario",
-   5,
+   VS_DRMARIO, "drmario", 5,
    {
-      {  "fceumm_dipswitch_drmario_droprateinc",
-         "Drop Rate Increase After; 7 Pills|8 Pills|9 Pills|10 Pills",
-         4,
-         0x03,
+      {  "Drop Rate Increase After", 4, 0x03,
          {
             { "7 Pills",  0x00 },
             { "8 Pills",  0x01 },
@@ -171,10 +133,7 @@ static VSUNIGAME dipswitch_drmario = {
             { "10 Pills", 0x03 }
          },
       },
-      {  "fceumm_dipswitch_drmario_viruslevel",
-         "Virus Level; 1|3|5|7",
-         4,
-         0x0c,
+      {  "Virus Level", 4, 0x0c,
          {
             { "1", 0x00 },
             { "3", 0x04 },
@@ -182,10 +141,7 @@ static VSUNIGAME dipswitch_drmario = {
             { "7", 0x0c }
          },
       },
-      {  "fceumm_dipswitch_drmario_dropspeedup",
-         "Drop Speed Up; Slow|Medium|Fast|Fastest",
-         4,
-         0x30,
+      {  "Drop Speed Up", 4, 0x30,
          {
             { "Slow",    0x00 },
             { "Medium",  0x10 },
@@ -193,36 +149,25 @@ static VSUNIGAME dipswitch_drmario = {
             { "Fastest", 0x30 }
          },
       },
-      {  "fceumm_dipswitch_drmario_freeplay",
-         "Free Play; disabled|enabled",
-         2,
-         0x40,
+      {  "Free Play", 2, 0x40,
          {
             { "disabled", 0x00 },
             { "enabled",  0x40 }
          },
       },
-      {  "fceumm_dipswitch_drmario_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x80,
+      {  "Demo Sounds", 2, 0x80,
          {
-            { "disabled", 0x00 },
-            { "enabled",  0x80 }
+            { "enabled",  0x80 },
+            { "disabled", 0x00 }
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_duckhunt = {
-   VS_DUCKHUNT,
-   "VS. Duck Hunt",
-   4,
+   VS_DUCKHUNT, "duckhunt", 4,
    {
-      {  "fceumm_dipswitch_duckhunt_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|2 Coins 1 Credit|3 Coins 1 Credit|4 Coins 1 Credit|5 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -234,30 +179,21 @@ static VSUNIGAME dipswitch_duckhunt = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_duckhunt_difficulty",
-         "Difficulty; Normal|Easy|Hard|Medium",
-         4,
-         0x18,
+      {  "Difficulty", 4, 0x18,
          {
-            { "Easy",   0x00 },
             { "Normal", 0x08 },
             { "Medium", 0x10 },
-            { "Hard",   0x18 }
+            { "Hard",   0x18 },
+            { "Easy",   0x00 }
          }
       },
-      {  "fceumm_dipswitch_duckhunt_misspergame",
-         "Miss per game; 5|3",
-         2,
-         0x20,
+      {  "Miss per game", 2, 0x20,
          {
-            { "3", 0x00 },
-            { "5", 0x20 }
+            { "5", 0x20 },
+            { "3", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_duckhunt_bonus",
-         "Bonus Life; 30000|50000|80000|100000",
-         4,
-         0xc0,
+      {  "Bonus Life", 4, 0xc0,
          {
             { "30000",  0x00 },
             { "50000",  0x40 },
@@ -269,14 +205,9 @@ static VSUNIGAME dipswitch_duckhunt = {
 };
 
 static VSUNIGAME dipswitch_excitebike = {
-   VS_EXITEBIKE,
-   "VS. Excite Bike",
-   4,
+   VS_EXITEBIKE, "excitebike", 4,
    {
-      {  "fceumm_dipswitch_excitebike_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|2 Coins 1 Credit|3 Coins 1 Credit|4 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -288,10 +219,7 @@ static VSUNIGAME dipswitch_excitebike = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_excitebike_bonusbike",
-         "Bonus Bike; 100k and Every 50k|100k Only|Every 100k|None",
-         4,
-         0x18,
+      {  "Bonus Bike", 4, 0x18,
          {
             { "100k and Every 50k", 0x00 },
             { "100k Only",          0x08 },
@@ -299,19 +227,13 @@ static VSUNIGAME dipswitch_excitebike = {
             { "None",               0x18 }
          }
       },
-      {  "fceumm_dipswitch_excitebike_1stqtime",
-         "1st Qualifying Time; Easy|Hard",
-         2,
-         0x20,
+      {  "1st Qualifying Time", 2, 0x20,
          {
             { "Easy", 0x00 },
             { "Hard", 0x20 }
          }
       },
-      {  "fceumm_dipswitch_excitebike_2ndqtime",
-         "2st Qualifying Time; Easy|Hard",
-         2,
-         0x40,
+      {  "2nd Qualifying Time", 2, 0x40,
          {
             { "Easy", 0x00 },
             { "Hard", 0x40 }
@@ -321,14 +243,9 @@ static VSUNIGAME dipswitch_excitebike = {
 };
 
 static VSUNIGAME dipswitch_freedomforce = {
-   VS_FREEDOMFORCE,
-   "VS. Freedom Force",
-   4,
+   VS_FREEDOMFORCE, "freedomforce", 4,
    {
-      {  "fceumm_dipswitch_freedomforce_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|2 Coins 1 Credit|3 Coins 1 Credit|4 Coins 1 Credit|5 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -340,10 +257,7 @@ static VSUNIGAME dipswitch_freedomforce = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_freedomforce_healthawd",
-         "Health Awarded At; 10k 50k|10k 50k Every 50k|50k 60k|20k 60k Every 60k",
-         4,
-         0x18,
+      {  "Health Awarded At", 4, 0x18,
          {
             { "10k 50k",           0x10 },
             { "20k 60k",           0x00 },
@@ -351,10 +265,7 @@ static VSUNIGAME dipswitch_freedomforce = {
             { "10k 50k Every 50k", 0x18 }
          }
       },
-      {  "fceumm_dipswitch_freedomforce_damage",
-         "Difficulty (Damage); Normal|Easy|Hard|Hardest",
-         4,
-         0x60,
+      {  "Difficulty (Damage)", 4, 0x60,
          {
             { "Normal",  0x00 },
             { "Easy",    0x40 },
@@ -362,10 +273,7 @@ static VSUNIGAME dipswitch_freedomforce = {
             { "Hardest", 0x60 }
          }
       },
-      {  "fceumm_dipswitch_freedomforce_enemy",
-         "Difficulty (Enemy); Normal|Hard",
-         2,
-         0x80,
+      {  "Difficulty (Enemy)", 2, 0x80,
          {
             { "Normal", 0x80 },
             { "Hard",   0x00 }
@@ -375,14 +283,9 @@ static VSUNIGAME dipswitch_freedomforce = {
 };
 
 static VSUNIGAME dipswitch_goonies = {
-   VS_GOONIES,
-   "VS. Goonies",
-   5,
+   VS_GOONIES, "goonies", 5,
    {
-      {  "fceumm_dipswitch_goonies_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -394,19 +297,13 @@ static VSUNIGAME dipswitch_goonies = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_goonies_lives",
-         "Lives; 4|3",
-         2,
-         0x08,
+      {  "Lives", 2, 0x08,
          {
             { "3", 0x08 },
             { "4", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_goonies_bonus",
-         "Bonus; 40000|50000|60000|70000",
-         4,
-         0x30,
+      {  "Bonus", 4, 0x30,
          {
             { "40000", 0x00 },
             { "50000", 0x20 },
@@ -414,19 +311,13 @@ static VSUNIGAME dipswitch_goonies = {
             { "70000", 0x30 }
          }
       },
-      {  "fceumm_dipswitch_goonies_timer",
-         "Timer; Slow|Fast",
-         2,
-         0x40,
+      {  "Timer", 2, 0x40,
          {
             { "Slow", 0x00 },
             { "Fast", 0x40 }
          }
       },
-      { "fceumm_dipswitch_goonies_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x80,
+      { "Demo Sounds", 2, 0x80,
          {
             { "enabled",  0x80 },
             { "disabled", 0x00 }
@@ -436,14 +327,9 @@ static VSUNIGAME dipswitch_goonies = {
 };
 
 static VSUNIGAME dipswitch_gradius = {
-   VS_GRADIUS,
-   "VS. Gradius",
-   5,
+   VS_GRADIUS, "gradius", 5,
    {
-      {  "fceumm_dipswitch_gradius_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -455,19 +341,13 @@ static VSUNIGAME dipswitch_gradius = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_gradius_lives",
-         "Lives; 3|4",
-         2,
-         0x08,
+      {  "Lives", 2, 0x08,
          {
             { "3", 0x08 },
             { "4", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_gradius_bonus",
-         "Bonus; 100k|200k|300k|400k",
-         4,
-         0x30,
+      {  "Bonus", 4, 0x30,
          {
             { "100k", 0x00 },
             { "200k", 0x20 },
@@ -475,19 +355,13 @@ static VSUNIGAME dipswitch_gradius = {
             { "400k", 0x30 }
          }
       },
-      {  "fceumm_dipswitch_gradius_difficulty",
-         "Difficulty; Normal|Hard",
-         2,
-         0x40,
+      {  "Difficulty", 2, 0x40,
          {
-            { "Hard",   0x40 },
-            { "Normal", 0x00 }
+            { "Normal", 0x00 },
+            { "Hard",   0x40 }
          }
       },
-      { "fceumm_dipswitch_gradius_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x80,
+      { "Demo Sounds", 2, 0x80,
          {
             { "enabled",  0x80 },
             { "disabled", 0x00 }
@@ -497,14 +371,9 @@ static VSUNIGAME dipswitch_gradius = {
 };
 
 static VSUNIGAME dipswitch_gumshoe = {
-   VS_GUMSHOE,
-   "VS. Gumshoe",
-   5,
+   VS_GUMSHOE, "gumshoe", 5,
    {
-      {  "fceumm_dipswitch_gumshoe_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -516,10 +385,7 @@ static VSUNIGAME dipswitch_gumshoe = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_gumshoe_difficulty",
-         "Difficulty; Normal|Easy|Hard|Hardest",
-         4,
-         0x18,
+      {  "Difficulty", 4, 0x18,
          {
             { "Normal",  0x08 },
             { "Easy",    0x00 },
@@ -527,28 +393,19 @@ static VSUNIGAME dipswitch_gumshoe = {
             { "Hardest", 0x18 }
          }
       },
-      {  "fceumm_dipswitch_gumshoe_lives",
-         "Lives; 3|5",
-         2,
-         0x20,
+      {  "Lives", 2, 0x20,
          {
             { "3", 0x20 },
             { "5", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_gumshoe_bullets",
-         "Bullets per Balloon; 3|2",
-         2,
-         0x40,
+      {  "Bullets per Balloon", 2, 0x40,
          {
             { "3", 0x00 },
             { "2", 0x40 }
          }
       },
-      {  "fceumm_dipswitch_gumshoe_bonus",
-         "Bonus Man Awarded; At 50000|None",
-         2,
-         0x80,
+      {  "Bonus Man Awarded", 2, 0x80,
          {
             { "At 50000", 0x00 },
             { "None",     0x80 }
@@ -558,14 +415,9 @@ static VSUNIGAME dipswitch_gumshoe = {
 };
 
 static VSUNIGAME dipswitch_hogansalley = {
-   VS_HOGANSALLEY,
-   "VS. Hogan Alley",
-   4,
+   VS_HOGANSALLEY, "hogansalley", 4,
    {
-      {  "fceumm_dipswitch_hogansalley_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -577,10 +429,7 @@ static VSUNIGAME dipswitch_hogansalley = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_hogansalley_difficulty",
-         "Difficulty; Normal|Easy|Hard|Hardest",
-         4,
-         0x18,
+      {  "Difficulty", 4, 0x18,
          {
             { "Normal",  0x08 },
             { "Easy",    0x00 },
@@ -588,19 +437,13 @@ static VSUNIGAME dipswitch_hogansalley = {
             { "Hardest", 0x18 }
          }
       },
-      {  "fceumm_dipswitch_hogansalley_misspergame",
-         "Misses Per Game; 5|3",
-         2,
-         0x20,
+      {  "Misses Per Game", 2, 0x20,
          {
-            { "3", 0x00 },
-            { "5", 0x20 }
+            { "5", 0x20 },
+            { "3", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_hogansalley_bonuslife",
-         "Bonus Life; 30000|50000|80000|100000",
-         4,
-         0xc0,
+      {  "Bonus Life", 4, 0xc0,
          {
             { "30000",  0x00 },
             { "50000",  0x40 },
@@ -612,14 +455,9 @@ static VSUNIGAME dipswitch_hogansalley = {
 };
 
 static VSUNIGAME dipswitch_iceclimber = {
-   VS_ICECLIMBER,
-   "VS. Ice Climber",
-   4,
+   VS_ICECLIMBER, "iceclimber", 4,
    {
-      {  "fceumm_dipswitch_iceclimber_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -631,10 +469,7 @@ static VSUNIGAME dipswitch_iceclimber = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_iceclimber_lives",
-         "Lives; 3|4|5|7",
-         4,
-         0x18,
+      {  "Lives", 4, 0x18,
          {
             { "3", 0x00 },
             { "4", 0x10 },
@@ -642,19 +477,13 @@ static VSUNIGAME dipswitch_iceclimber = {
             { "7", 0x18 }
          }
       },
-      {  "fceumm_dipswitch_iceclimber_difficulty",
-         "Difficulty; Easy|Hard",
-         2,
-         0x20,
+      {  "Difficulty", 2, 0x20,
          {
             { "Easy", 0x00 },
             { "Hard", 0x20 }
          }
       },
-      {  "fceumm_dipswitch_iceclimber_time",
-         "Time before bear appears; Long|Short",
-         2,
-         0x40,
+      {  "Time before bear appears", 2, 0x40,
          {
             { "Long",  0x00 },
             { "Short", 0x40 }
@@ -664,14 +493,9 @@ static VSUNIGAME dipswitch_iceclimber = {
 };
 
 static VSUNIGAME dipswitch_jajamaru = {
-   VS_JAJAMARU,
-   "VS. Jajamaru",
-   3,
+   VS_JAJAMARU, "jajamaru", 3,
    {
-      {  "fceumm_dipswitch_jajamaru_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -683,20 +507,14 @@ static VSUNIGAME dipswitch_jajamaru = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_jajamaru_lives",
-         "Lives; 3|4|5",
-         3,
-         0x18,
+      {  "Lives", 3, 0x18,
          {
             { "3", 0x00 },
             { "4", 0x10 },
             { "5", 0x08 }
          }
       },
-      {  "fceumm_dipswitch_jajamaru_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x80,
+      {  "Demo Sounds", 2, 0x80,
          {
             { "enabled",  0x80 },
             { "disabled", 0x00 }
@@ -705,15 +523,42 @@ static VSUNIGAME dipswitch_jajamaru = {
    }
 };
 
-static VSUNIGAME dipswitch_mightybj = {
-   VS_MIGHTYBOMBJACK,
-   "VS. Mighty Bomb Jack",
-   2,
+static VSUNIGAME dipswitch_machrider = {
+   VS_MACHRIDER, "machrider", 3,
    {
-      {  "fceumm_dipswitch_mightybj_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
+         {
+            { "1 Coin 1 Credit",  0x00 },
+            { "1 Coin 2 Credits", 0x04 },
+            { "1 Coin 3 Credits", 0x02 },
+            { "1 Coin 4 Credits", 0x06 },
+            { "2 Coins 1 Credit", 0x01 },
+            { "3 Coins 1 Credit", 0x05 },
+            { "4 Coins 1 Credit", 0x03 },
+            { "Free Play",        0x07 }
+         }
+      },
+      {  "Time", 4, 0x18,
+         {
+            { "280 (Easy)", 0x00 },
+            { "250",        0x10 },
+            { "220",        0x08 },
+            { "200 (Hard)", 0x18 }
+         }
+      },
+      {  "Enemies", 2, 0x40,
+         {
+            { "Less", 0x00 },
+            { "More", 0x40 }
+         }
+      }
+   }
+};
+
+static VSUNIGAME dipswitch_mightybj = {
+   VS_MIGHTYBOMBJACK, "mightybj", 2,
+   {
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -725,29 +570,21 @@ static VSUNIGAME dipswitch_mightybj = {
             { "5 Coins 1 Credit", 0x07 }
          }
       },
-      {  "fceumm_dipswitch_mightybj_lives",
-         "Lives; 3|4|5|2",
-         4,
-         0x18,
+      {  "Lives", 4, 0x18,
          {
-            { "2", 0x10 },
             { "3", 0x00 },
             { "4", 0x08 },
-            { "5", 0x18 }
+            { "5", 0x18 },
+            { "2", 0x10 },
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_pinball = {
-   VS_PINBALL,
-   "VS. Pinball",
-   5,
+   VS_PINBALL, "pinball", 5,
    {
-      {  "fceumm_dipswitch_pinball_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x01 },
             { "1 Coin 2 Credits", 0x06 },
@@ -759,39 +596,27 @@ static VSUNIGAME dipswitch_pinball = {
             { "Free Play",        0x00 }
          }
       },
-      {  "fceumm_dipswitch_pinball_sidedrainwalls",
-         "Side Drain Walls; High|Low",
-         2,
-         0x08,
+      {  "Side Drain Walls", 2, 0x08,
          {
             { "High", 0x00 },
             { "Low",  0x08 }
          }
       },
-      {  "fceumm_dipswitch_pinball_bonus",
-         "Bonus Life; 50000|70000",
-         2,
-         0x10,
+      {  "Bonus Life", 2, 0x10,
          {
             { "50000", 0x00 },
             { "70000", 0x10 }
          }
       },
-      {  "fceumm_dipswitch_pinball_balls",
-         "Balls; 3|4|5|2",
-         4,
-         0x60,
+      {  "Balls", 4, 0x60,
          {
-            { "2", 0x60 },
             { "3", 0x00 },
             { "4", 0x40 },
-            { "5", 0x20 }
+            { "5", 0x20 },
+            { "2", 0x60 },
          }
       },
-      {  "fceumm_dipswitch_pinball_ballspeed",
-         "Ball Speed; Slow|Fast",
-         2,
-         0x80,
+      {  "Ball Speed", 2, 0x80,
          {
             { "Slow", 0x00 },
             { "Fast", 0x80 }
@@ -801,34 +626,23 @@ static VSUNIGAME dipswitch_pinball = {
 };
 
 static VSUNIGAME dipswitch_platoon = {
-   VS_PLATOON,
-   "VS. Platoon",
-   3,
+   VS_PLATOON, "platoon", 3,
    {
-      {  "fceumm_dipswitch_platoon_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x04,
+      {  "Demo Sounds", 2, 0x04,
          {
             { "enabled",  0x00 },
             { "disabled", 0x04 }
          }
       },
-      {  "fceumm_dipswitch_platoon_difficulty",
-         "Difficulty; Normal|Medium|Hard|Easy",
-         4,
-         0x18,
+      {  "Difficulty", 4, 0x18,
          {
-            { "Easy",0x00 },
             { "Normal", 0x08 },
             { "Medium", 0x10 },
-            { "Hard",0x18 }
+            { "Hard",   0x18 },
+            { "Easy",   0x00 },
          }
       },
-      {  "fceumm_dipswitch_platoon_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0xe0,
+      {  "Coinage", 8, 0xe0,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x20 },
@@ -844,14 +658,9 @@ static VSUNIGAME dipswitch_platoon = {
 };
 
 static VSUNIGAME dipswitch_rbibaseball = {
-   VS_RBIBASEBALL,
-   "VS. Atari R.B.I. Baseball",
-   3,
+   VS_RBIBASEBALL, "atari_rbibb", 3,
    {
-      {  "fceumm_dipswitch_rbibaseball_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|3 Coins 1 Credit|2 Coins 1 Credit",
-         4,
-         0x03,
+      {  "Coinage", 4, 0x03,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x01 },
@@ -859,21 +668,15 @@ static VSUNIGAME dipswitch_rbibaseball = {
             { "3 Coins 1 Credit", 0x03 }
          }
       },
-      {  "fceumm_dipswitch_rbibaseball_inn",
-         "1p-inn 2p-inn time-min; 2 2 4|3 2 6|4 3 7|2 1 3",
-         4,
-         0x0c,
+      {  "1p-inn 2p-inn time-min", 4, 0x0c,
          {
-            { "2 1 3", 0x04 },
             { "2 2 4", 0x0c },
             { "3 2 6", 0x00 },
-            { "4 3 7", 0x08 }
+            { "4 3 7", 0x08 },
+            { "2 1 3", 0x04 },
          }
       },
-      {  "fceumm_dipswitch_rbibaseball_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x10,
+      {  "Demo Sounds", 2, 0x10,
          {
             { "enabled",  0x00 },
             { "disabled", 0x10 }
@@ -883,14 +686,9 @@ static VSUNIGAME dipswitch_rbibaseball = {
 };
 
 static VSUNIGAME dipswitch_slalom = {
-   VS_SLALOM,
-   "VS. Slalom",
-   5,
+   VS_SLALOM, "slalom", 5,
    {
-      {  "fceumm_dipswitch_slalom_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -902,56 +700,39 @@ static VSUNIGAME dipswitch_slalom = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_slalom_freestylepts",
-         "Freestyle Points; Hold Time|Left Right",
-         2,
-         0x08,
+      {  "Freestyle Points", 2, 0x08,
          {
             { "Hold Time",  0x08 },
             { "Left Right", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_slalom_difficulty",
-         "Difficulty; Normal|Medium|Hard|Easy",
-         4,
-         0x30,
+      {  "Difficulty", 4, 0x30,
          {
-            { "Easy",   0x00 },
             { "Normal", 0x10 },
             { "Medium", 0x20 },
-            { "Hard",   0x30 }
+            { "Hard",   0x30 },
+            { "Easy",   0x00 }
          }
       },
-      {  "fceumm_dipswitch_slalom_allowcontinue",
-         "Allow Continue; enabled|disabled",
-         2,
-         0x40,
+      {  "Allow Continue", 2, 0x40,
          {
             { "enabled",  0x00 },
             { "disabled", 0x40 }
          }
       },
-      {  "fceumm_dipswitch_slalom_inverted_input",
-         "Inverted Input; disabled|enabled",
-         2,
-         0x80,
+      {  "Inverted Input", 2, 0x80,
          {
-            { "enabled",  0x80 },
-            { "disabled", 0x00 }
+            { "disabled", 0x00 },
+            { "enabled",  0x80 }
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_smb = {
-   VS_SMB,
-   "VS. Super Mario Bros.",
-   5,
+   VS_SMB, "smb", 5,
    {
-      {  "fceumm_dipswitch_smb_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|1 Coin 5 Credits|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-          8,
-          0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x06 },
@@ -963,39 +744,27 @@ static VSUNIGAME dipswitch_smb = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_smb_lives",
-         "Lives; 3|2",
-         2,
-         0x08,
+      {  "Lives", 2, 0x08,
          {
-            { "2", 0x08 },
-            { "3", 0x00 }
+            { "3", 0x00 },
+            { "2", 0x08 }
          }
       },
-      {  "fceumm_dipswitch_smb_bonuslife",
-         "Bonus Life (coins); 100|150|200|250",
-         4,
-         0x30,
+      {  "Bonus Life", 4, 0x30,
          {
-            { "100", 0x00 },
-            { "150", 0x20 },
-            { "200", 0x10 },
-            { "250", 0x30 }
+            { "100 coins", 0x00 },
+            { "150 coins", 0x20 },
+            { "200 coins", 0x10 },
+            { "250 coins", 0x30 }
          }
       },
-      {  "fceumm_dipswitch_smb_timer",
-         "Timer; Slow|Fast",
-         2,
-         0x40,
+      {  "Timer", 2, 0x40,
          {
             { "Slow", 0x00 },
             { "Fast", 0x40 }
          }
       },
-      {  "fceumm_dipswitch_smb_continuelives",
-         "Continue Lives; 3|4",
-         2,
-         0x80,
+      {  "Continue Lives", 2, 0x80,
          {
             { "3", 0x80 },
             { "4", 0x00 }
@@ -1005,14 +774,9 @@ static VSUNIGAME dipswitch_smb = {
 };
 
 static VSUNIGAME dipswitch_soccer = {
-   VS_SOCCER,
-   "VS. Soccer",
-   3,
+   VS_SOCCER, "soccer", 3,
    {
-      {  "fceumm_dipswitch_soccer_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -1024,40 +788,29 @@ static VSUNIGAME dipswitch_soccer = {
             { "Free Play",        0x07 }
          }
       },
-      {  "fceumm_dipswitch_soccer_pts_timer",
-         "Points Timer; 1000 Pts|1200 Pts|600 Pts|800 Pts",
-         4,
-         0x18,
+      {  "Points Timer", 4, 0x18,
          {
-            { "600 Pts",  0x00 },
-            { "800 Pts",  0x10 },
             { "1000 Pts", 0x08 },
-            { "1200 Pts", 0x18 }
+            { "1200 Pts", 0x18 },
+            { "600 Pts",  0x00 },
+            { "800 Pts",  0x10 }
          }
       },
-      { "fceumm_dipswitch_soccer_difficulty",
-         "Difficulty; Normal|Medium|Hard|Easy",
-         4,
-         0x60,
+      { "Difficulty", 4, 0x60,
          {
-            { "Easy",0x00 },
             { "Normal", 0x40 },
             { "Medium", 0x20 },
-            { "Hard",0x60 }
+            { "Hard",   0x60 },
+            { "Easy",   0x00 }
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_starluster = {
-   VS_STARLUSTER,
-   "VS. Star Luster",
-   1,
+   VS_STARLUSTER, "starluster", 1,
    {
-      { "fceumm_dipswitch_starluster_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|3 Coins 1 Credit|2 Coins 1 Credit",
-         4,
-         0x03,
+      { "Coinage", 4, 0x03,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x02 },
@@ -1069,34 +822,24 @@ static VSUNIGAME dipswitch_starluster = {
 };
 
 static VSUNIGAME dipswitch_superskykid = {
-   VS_SUPERSKYKID,
-   "VS. Super Sky Kid",
-   3,
+   VS_SUPERSKYKID, "superskykid", 3,
    {
-      {  "fceumm_dipswitch_superskykid_difficulty",
-         "Difficulty; Normal|Medium|Hard|Easy",
-         4,
-         0x03,
+      {  "Difficulty", 4, 0x03,
          {
-            { "Easy",0x00 },
+
             { "Normal", 0x01 },
             { "Medium", 0x02 },
-            { "Hard",0x03 }
+            { "Hard",   0x03 },
+            { "Easy",   0x00 },
          }
       },
-      {  "fceumm_dipswitch_superskykid_lives",
-         "Lives; 3|2",
-         2,
-         0x04,
+      {  "Lives", 2, 0x04,
          {
-            { "2", 0x00 },
-            { "3", 0x04 }
+            { "3", 0x04 },
+            { "2", 0x00 }
          }
       },
-      {  "fceumm_dipswitch_superskykid_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|3 Coins 1 Credit|2 Coins 1 Credit",
-         4,
-         0x18,
+      {  "Coinage", 4, 0x18,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x08 },
@@ -1108,14 +851,9 @@ static VSUNIGAME dipswitch_superskykid = {
 };
 
 static VSUNIGAME dipswitch_superxevious = {
-   VS_SUPERXEVIOUS,
-   "VS. Super Xevious",
-   1,
+   VS_SUPERXEVIOUS, "superxevious", 1,
    {
-      {  "fceumm_dipswitch_superxevious_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|3 Coins 1 Credit|2 Coins 1 Credit",
-         4,
-         0x30,
+      {  "Coinage", 4, 0x30,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x10 },
@@ -1127,33 +865,23 @@ static VSUNIGAME dipswitch_superxevious = {
 };
 
 static VSUNIGAME dipswitch_tetris = {
-   VS_TETRIS,
-   "VS. Tetris",
-   1,
+   VS_TETRIS, "tetris", 1,
    {
-      {  "fceumm_dipswitch_tetris_difficulty",
-         "Difficulty; Normal|Medium|Hard|Easy",
-         4,
-         0x0c,
+      {  "Difficulty", 4, 0x0c,
          {
-            { "Easy",0x00 },
             { "Normal", 0x04 },
             { "Medium", 0x08 },
-            { "Hard",0x0c }
+            { "Hard",   0x0c },
+            { "Easy",   0x00 },
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_tkoboxing = {
-   VS_TKOBOXING,
-   "VS. T.K.O. Boxing",
-   2,
+   VS_TKOBOXING, "tkoboxing", 2,
    {
-      {  "fceumm_dipswitch_tkoboxing_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|3 Coins 1 Credit|2 Coins 1 Credit",
-         4,
-         0x03,
+      {  "Coinage", 4, 0x03,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x01 },
@@ -1161,29 +889,21 @@ static VSUNIGAME dipswitch_tkoboxing = {
             { "3 Coins 1 Credit", 0x03 }
          }
       },
-      {  "fceumm_dipswitch_tkoboxing_difficulty",
-         "Difficulty; Easy|Normal|Hard|Very Hard",
-         4,
-         0x0c,
+      {  "Difficulty", 4, 0x0c,
          {
-            { "Easy",0x00 },
-            { "Normal", 0x04 },
-            { "Hard",0x08 },
-            { "Very Hard", 0x0c }
+            { "Normal",    0x04 },
+            { "Hard",      0x08 },
+            { "Very Hard", 0x0c },
+            { "Easy",      0x00 },
          }
       }
    }
 };
 
 static VSUNIGAME dipswitch_topgun = {
-   VS_TOPGUN,
-   "VS. Top Gun",
-   5,
+   VS_TOPGUN, "topgun", 5,
    {
-      {  "fceumm_dipswitch_topgun_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|5 Coins 1 Credit|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
+      {  "Coinage", 8, 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -1195,19 +915,13 @@ static VSUNIGAME dipswitch_topgun = {
             { "Free Play",  0x07 }
          }
       },
-      {  "fceumm_dipswitch_topgun_livespercoin",
-         "Live per Coin; 3-12 Max|2-9 Max",
-         2,
-         0x08,
+      {  "Lives per Coin", 2, 0x08,
          {
             { "3-12 Max", 0x00 },
             { "2-9 Max",  0x08 }
          }
       },
-      {  "fceumm_dipswitch_topgun_bonuslife",
-         "Bonus Life; 30k and Every 50k|50k and Every 100k|100k and Every 150k|200k and Every 200k",
-         4,
-         0x30,
+      {  "Bonus Life", 4, 0x30,
          {
             { "30k and Every 50k",   0x00 },
             { "50k and Every 100k",  0x20 },
@@ -1215,201 +929,145 @@ static VSUNIGAME dipswitch_topgun = {
             { "200k and Every 200k", 0x30 }
          }
       },
-      {  "fceumm_dipswitch_topgun_difficulty",
-         "Difficulty; Easy|Hard",
-         2,
-         0x40,
+      {  "Difficulty", 2, 0x40,
          {
             { "Easy", 0x00 },
             { "Hard", 0x40 }
          }
       },
-      {  "fceumm_dipswitch_topgun_demosounds",
-         "Demo Sounds; enabled|disabled",
-         2,
-         0x80,
+      {  "Demo Sounds", 2, 0x80,
          {
-            { "disabled", 0x00 },
-            { "enabled",  0x80 }
+            { "enabled",  0x80 },
+            { "disabled", 0x00 }
          }
       }
    }
 };
 
-static VSUNIGAME dipswitch_machrider = {
-   VS_MACHRIDER,
-   "VS. Mach Rider",
-   3,
-   {
-      {  "fceumm_dipswitch_machrider_coinage",
-         "Coinage; 1 Coin 1 Credit|1 Coin 2 Credits|1 Coin 3 Credits|1 Coin 4 Credits|4 Coins 1 Credit|3 Coins 1 Credit|2 Coins 1 Credit|Free Play",
-         8,
-         0x07,
-         {
-            { "1 Coin 1 Credit",  0x00 },
-            { "1 Coin 2 Credits", 0x04 },
-            { "1 Coin 3 Credits", 0x02 },
-            { "1 Coin 4 Credits", 0x06 },
-            { "2 Coins 1 Credit", 0x01 },
-            { "3 Coins 1 Credit", 0x05 },
-            { "4 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
-      },
-      {  "fceumm_dipswitch_machrider_time",
-         "Time; 280 (Easy)|250|220|200 (Hard)",
-         4,
-         0x18,
-         {
-            { "280 (Easy)", 0x00 },
-            { "250",        0x10 },
-            { "220",        0x08 },
-            { "200 (Hard)", 0x18 }
-         }
-      },
-      {  "fceumm_dipswitch_machrider_enemies",
-         "Enemies; Less|More",
-         2,
-         0x40,
-         {
-            { "Less", 0x00 },
-            { "More", 0x40 }
-         }
-      }
-   }
-};
+typedef struct {
+   char key[64];
+   char val[150];
+} VSUNIGAMEOPT;
 
-static struct retro_variable var_empty = { NULL, NULL };
-static struct retro_variable dipswitch_vsuni[8];
 static VSUNIGAME *vsgame = NULL;
+static VSUNIGAMEOPT vscoreopt[5];
 
-static int make_core_options(VSUNIGAME *tmp)
+static void str_to_corekey_label(char *str)
 {
-   unsigned ret = 0;
-   VSUNIGAME *vs = tmp;
+   unsigned i = 0;
 
-   if (vs->gameid != GameInfo->gameid)
-      return 0;
-
-   for (ret = 0; ret < vs->dipswitch_size; ret++) {
-      DIPSWITCH *coreoptions = &vs->dipswitch_core_options[ret];
-      dipswitch_vsuni[ret].key = coreoptions->var_name;
-      dipswitch_vsuni[ret].value = coreoptions->var_value;
+   while (str[i] != '\0')
+   {
+      if (str[i] == ' ')
+         str[i] = '_';
+      i++;
    }
-
-   dipswitch_vsuni[ret] = var_empty;
-   vsgame = vs;
-
-   return (ret);
+   str[i] = '\0';
 }
 
-static int get_vsuni_dipswitch(unsigned id)
+static void make_core_options(void)
 {
-   unsigned ret = 0;
+   unsigned i, dipswitch_size;
+   char core_prefix[32];
 
-   if (id == 0)
-      return 0;
+   dipswitch_size = vsgame->dipswitch_size;
+   sprintf(core_prefix, "fceumm_dipswitch_%s", vsgame->romname_short);   
+   for (i = 0; i < dipswitch_size; i++)
+   {
+      unsigned x;
+      char core_key[64], core_values[150];
+      DIPSWITCH *coreoptions = &vsgame->dipswitch_core_options[i];
 
+      /* make var key string from list */
+      sprintf(core_key, "%s%c%s", core_prefix, '-', coreoptions->option_name);
+      str_to_corekey_label(core_key);
+
+      /* make var values string from lists of values */
+      sprintf(core_values, "%s; ", coreoptions->option_name);
+      for (x = 0; x < coreoptions->settings_size; x++)
+      {
+         SETTING *corevalues = &coreoptions->settings[x];
+
+         strcat(core_values, corevalues->name);
+         if ((coreoptions->settings_size - 1) > x)
+            strcat(core_values, "|");
+      }
+
+      sprintf(vscoreopt[i].key, "%s", core_key);
+      sprintf(vscoreopt[i].val, "%s", core_values);
+   }
+}
+
+static VSUNIGAME *get_vsuni_dipswitch(unsigned id)
+{
    switch (id) {
    case VS_BATTLECITY:
-      ret = make_core_options(&dipswitch_battlecity);
-      break;
+      return (&dipswitch_battlecity);
    case VS_CASTLEVANIA:
-      ret = make_core_options(&dipswitch_castlevania);
-      break;
+      return (&dipswitch_castlevania);
    case VS_CLUCLULAND:
-      ret = make_core_options(&dipswitch_clucluland);
-      break;
+      return (&dipswitch_clucluland);
    case VS_DRMARIO:
-      ret = make_core_options(&dipswitch_drmario);
-      break;
+      return (&dipswitch_drmario);
    case VS_DUCKHUNT:
-      ret = make_core_options(&dipswitch_duckhunt);
-      break;
+      return (&dipswitch_duckhunt);
    case VS_EXITEBIKE:
-      ret = make_core_options(&dipswitch_excitebike);
-      break;
+      return (&dipswitch_excitebike);
    case VS_FREEDOMFORCE:
-      ret = make_core_options(&dipswitch_freedomforce);
-      break;
+      return (&dipswitch_freedomforce);
    case VS_GOONIES:
-      ret = make_core_options(&dipswitch_goonies);
-      break;
+      return (&dipswitch_goonies);
    case VS_GRADIUS:
-      ret = make_core_options(&dipswitch_gradius);
-      break;
+      return (&dipswitch_gradius);
    case VS_GUMSHOE:
-      ret = make_core_options(&dipswitch_gumshoe);
-      break;
+      return (&dipswitch_gumshoe);
    case VS_HOGANSALLEY:
-      ret = make_core_options(&dipswitch_hogansalley);
-      break;
+      return (&dipswitch_hogansalley);
    case VS_ICECLIMBER:
-      ret = make_core_options(&dipswitch_iceclimber);
-      break;
+      return (&dipswitch_iceclimber);
    case VS_JAJAMARU:
-      ret = make_core_options(&dipswitch_jajamaru);
-      break;
+      return (&dipswitch_jajamaru);
    /* case VS_LADIESGOLF: */
    /* case VS_STROKEANDMATCHGOLF: */
    case VS_MACHRIDER:
-      ret = make_core_options(&dipswitch_machrider);
-      break;
+      return (&dipswitch_machrider);
    case VS_MIGHTYBOMBJACK:
-      ret = make_core_options(&dipswitch_mightybj);
-      break;
+      return (&dipswitch_mightybj);
    case VS_PINBALL:
-      ret = make_core_options(&dipswitch_pinball);
-      break;
+      return (&dipswitch_pinball);
    case VS_PLATOON:
-      ret = make_core_options(&dipswitch_platoon);
-      break;
+      return (&dipswitch_platoon);
    case VS_RBIBASEBALL:
-      ret = make_core_options(&dipswitch_rbibaseball);
-      break;
+      return (&dipswitch_rbibaseball);
    case VS_SLALOM:
-      ret = make_core_options(&dipswitch_slalom);
-      break;
+      return (&dipswitch_slalom);
    case VS_SMB:
-      ret = make_core_options(&dipswitch_smb);
-      break;
+      return (&dipswitch_smb);
    case VS_SOCCER:
-      ret = make_core_options(&dipswitch_soccer);
-      break;
+      return (&dipswitch_soccer);
    case VS_STARLUSTER:
-      ret = make_core_options(&dipswitch_starluster);
-      break;
+      return (&dipswitch_starluster);
    case VS_SUPERSKYKID:
-      ret = make_core_options(&dipswitch_superskykid);
-      break;
+      return (&dipswitch_superskykid);
    case VS_SUPERXEVIOUS:
-      ret = make_core_options(&dipswitch_superxevious);
-      break;
+      return (&dipswitch_superxevious);
    case VS_TETRIS:
-      ret = make_core_options(&dipswitch_tetris);
-      break;
+      return (&dipswitch_tetris);
    case VS_TKOBOXING:
-      ret = make_core_options(&dipswitch_tkoboxing);
-      break;
+      return (&dipswitch_tkoboxing);
    case VS_TOPGUN:
-      ret = make_core_options(&dipswitch_topgun);
-      break;
-   default:
-      FCEU_printf("No dipsettings found. %d\n", id);
-      break;
+      return (&dipswitch_topgun);
    }
 
-   return (ret);
+   FCEU_printf("No dipsettings found. %d\n", id);
+   return (NULL);
 }
 
-void update_dipswitch_vsuni(void)
+static void update_dipswitch_vsuni(void)
 {
    struct retro_variable var = {0};
    unsigned idx_dips, idx_var;
    uint8 vsdip_new = 0x00;
-
-   if (GameInfo->type != GIT_VSUNI)
-      return;
 
    if (vsgame == NULL)
       return;
@@ -1418,7 +1076,7 @@ void update_dipswitch_vsuni(void)
    for (idx_dips = 0; idx_dips < vsgame->dipswitch_size; idx_dips++)
    {
       DIPSWITCH *core_option = &vsgame->dipswitch_core_options[idx_dips];
-      var.key = core_option->var_name;
+      var.key = vscoreopt[idx_dips].key;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) == 0)
          continue;
       for (idx_var = 0; idx_var < core_option->settings_size; idx_var++)
@@ -1431,9 +1089,9 @@ void update_dipswitch_vsuni(void)
       }
    }
 
-   if (FCEUI_VSUniGetDIPs() != (uint8)vsdip_new)
+   if (FCEUI_VSUniGetDIPs() != vsdip_new)
    {
-      vsdip = (uint8)vsdip_new;
+      vsdip = vsdip_new;
 #ifdef DEBUG
       FCEU_printf("Dipswitch changed %d%d%d%d%d%d%d%d\n",
          (vsdip >> 0) & 1, (vsdip >> 1) & 1, (vsdip >> 2) & 1, (vsdip >> 3) & 1,
@@ -1457,9 +1115,6 @@ static void update_dipswitch_nwc(void)
    unsigned dips = 0x00;
    unsigned index;
 
-   if (iNESCart.mapper != 105)
-      return;
-
    for (index = 0; index < 4; index++)
    {
       struct retro_variable *nwc = &dipswitch_nwc[index];
@@ -1481,22 +1136,20 @@ static void update_dipswitch_nwc(void)
    }
 }
 
-void set_dipswitch_variables(unsigned *index, struct retro_variable vars[])
+void set_dipswitch_variables(unsigned *index, struct retro_variable *vars)
 {
    unsigned i, idx = *index;
 
    /* VSUNI Dipswitch */
    if (GameInfo->type == GIT_VSUNI)
    {
-      unsigned size = 0;
-      size = get_vsuni_dipswitch(GameInfo->gameid);
-      if (size)
+      vsgame = get_vsuni_dipswitch(GameInfo->gameid);
+      if (vsgame)
       {
-         i = 0;
-         while (dipswitch_vsuni[i].key) {
-            vars[idx] = dipswitch_vsuni[i];
-            idx++;
-            i++;
+         make_core_options();
+         for (i = 0; i < vsgame->dipswitch_size; i++, idx++) {
+            vars[idx].key = vscoreopt[i].key;
+            vars[idx].value = vscoreopt[i].val;
          }
       }
    }
