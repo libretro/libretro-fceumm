@@ -784,7 +784,7 @@ static void set_variables(void)
    }
 
    /* append dipswitches to core options if available */
-   set_dipswitch_variables(&index_core, &retro_vars[0]);
+   set_dipswitch_variables(&index_core, retro_vars);
 
    /* NULL terminate */
    retro_vars[index_core] = vars_empty;
