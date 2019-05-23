@@ -463,6 +463,10 @@ static BMAPPING bmap[] = {
 	{ "RT-01", UNLRT01_Init, 0 },
 	{ "81-01-31-C", BMC810131C_Init, 0 },
 	{ "8-IN-1", BMC8IN1_Init, 0 },
+	{ "RET-CUFROM", Mapper29_Init, BMCFLAG_32KCHRR },
+	{ "60311C", BMC60311C_Init, 0 },
+	{ "WS", BMCWS_Init, 0 },
+	{ "HPxx", BMCHPxx_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
@@ -609,6 +613,7 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 
  aborto:
 
+	FCEU_printf(" Failed to initialize board %s\n", boardname);
 	FreeUNIF();
 	ResetUNIF();
 	return 0;

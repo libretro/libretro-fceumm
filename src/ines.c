@@ -417,10 +417,10 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"Konami VRC2/VRC4 D",	 25, Mapper25_Init},
 	{(uint8_t*)"Konami VRC6 Rev. B",	 26, Mapper26_Init},
 	{(uint8_t*)"CC-21 MI HUN CHE",	 27, UNLCC21_Init},		/* Former dupe for VRC2/VRC4 mapper, redefined with crc to mihunche boards */
-/*	{(uint8_t*)"",					 28, Mapper28_Init}, */	/* Custom Multidiscrete mapper for PDs */
-/*	{(uint8_t*)"",					 29, Mapper29_Init}, */
+	{(uint8_t*)"Action 53",				 28, Mapper28_Init},
+	{(uint8_t*)"",						 29, Mapper29_Init},
 	{(uint8_t*)"UNROM 512",				 30, UNROM512_Init},
-/*	{(uint8_t*)"",					 31, Mapper31_Init}, */
+	{(uint8_t*)"infineteNesLives-NSF",	 31, Mapper31_Init},
 	{(uint8_t*)"IREM G-101",			 32, Mapper32_Init},
 	{(uint8_t*)"TC0190FMC/TC0350FMR",	 33, Mapper33_Init},
 	{(uint8_t*)"IREM I-IM/BNROM",		 34, Mapper34_Init},
@@ -445,14 +445,14 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"SUPERVISION 16-in-1",	 53, Supervision16_Init},
 /*	{(uint8_t*)"",					 54, Mapper54_Init}, */
 /*	{(uint8_t*)"",					 55, Mapper55_Init}, */
-/*	{(uint8_t*)"",					 56, Mapper56_Init}, */
+	{(uint8_t*)"UNLKS202",						56, UNLKS202_Init},
 	{(uint8_t*)"SIMBPLE BMC PIRATE A", 57, Mapper57_Init},
 	{(uint8_t*)"SIMBPLE BMC PIRATE B", 58, BMCGK192_Init},
 	{(uint8_t*)"",					 59, Mapper59_Init},	/* Check this out */
 	{(uint8_t*)"SIMBPLE BMC PIRATE C", 60, BMCD1038_Init},
 	{(uint8_t*)"20-in-1 KAISER Rev. A",61, Mapper61_Init},
 	{(uint8_t*)"700-in-1",			 62, Mapper62_Init},
-/*	{(uint8_t*)"",					 63, Mapper63_Init}, */
+	{(uint8_t*)"",					 63, Mapper63_Init},
 	{(uint8_t*)"TENGEN RAMBO1",		 64, Mapper64_Init},
 	{(uint8_t*)"IREM-H3001",			 65, Mapper65_Init},
 	{(uint8_t*)"MHROM",				 66, MHROM_Init},
@@ -571,7 +571,7 @@ static BMAPPINGLocal bmap[] = {
 /*	{(uint8_t*)"",					179, Mapper179_Init}, */
 	{(uint8_t*)"",					180, Mapper180_Init},
 	{(uint8_t*)"",					181, Mapper181_Init},
-/*	{(uint8_t*)"",					182, Mapper182_Init}, */	/* Deprecated, dupe */
+/*	{(uint8_t*)"",					182, Mapper182_Init}, */	/* Deprecated, dupe of Mapper 114 */
 	{(uint8_t*)"",					183, Mapper183_Init},
 	{(uint8_t*)"",					184, Mapper184_Init},
 	{(uint8_t*)"",					185, Mapper185_Init},
@@ -644,7 +644,8 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"SAN GUO ZHI PIRATE",	252, Mapper252_Init},
 	{(uint8_t*)"DRAGON BALL PIRATE",	253, Mapper253_Init},
 	{(uint8_t*)"",					254, Mapper254_Init},
-/*	{(uint8_t*)"",					255, Mapper255_Init}, */	/* No good dumps for this mapper */
+	{(uint8_t*)"",					255, Mapper255_Init}, /* Duplicate of M225? */
+
 	{(uint8_t*)"",					0, NULL}
 };
 
@@ -742,10 +743,6 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	iNESCart.CRC32 = iNESGameCRC32;
 
-	FCEU_printf(" PRG ROM:  %3d x 16KiB\n", head.ROM_size ?  head.ROM_size : 256);
-	FCEU_printf(" CHR ROM:  %3d x  8KiB\n", head.VROM_size);
-	FCEU_printf(" ROM CRC32:  0x%08lx\n", iNESGameCRC32);
-	FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(iNESCart.MD5));
 	mappername = "Not Listed";
 
 	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
@@ -754,12 +751,6 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			break;
 		}
 	}
-
-	FCEU_printf(" Mapper #:  %d\n", MapperNo);
-	FCEU_printf(" Mapper name: %s\n", mappername);
-	FCEU_printf(" Mirroring: %s\n", Mirroring == 2 ? "None (Four-screen)" : Mirroring ? "Vertical" : "Horizontal");
-	FCEU_printf(" Battery-backed: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
-	FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
 
 	SetInput();
 	CheckHInfo();
@@ -790,9 +781,21 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
 	iNESCart.mirror = Mirroring;
 
+	FCEU_printf(" ROM CRC32:  0x%08lx\n", iNESGameCRC32);
+	FCEU_printf(" ROM MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
+	FCEU_printf(" PRG ROM:  %3d x 16KiB\n", head.ROM_size ?  head.ROM_size : 256);
+	FCEU_printf(" CHR ROM:  %3d x  8KiB\n", head.VROM_size);
+
 	if (!iNES_Init(MapperNo))
 		FCEU_PrintError("iNES mapper #%d is not supported at all.", MapperNo);
 	iNESCart.mapper = MapperNo;
+
+	FCEU_printf(" \n");
+	FCEU_printf(" Mapper #: %3d\n", MapperNo);
+	FCEU_printf(" Mapper name: %s\n", mappername);
+	FCEU_printf(" Mirroring: %s\n", Mirroring == 2 ? "None (Four-screen)" : Mirroring ? "Vertical" : "Horizontal");
+	FCEU_printf(" Battery-backed: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
+	FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
 
 	GameInterface = iNESGI;
 	FCEU_printf("\n");
@@ -831,6 +834,8 @@ static int iNES_Init(int num) {
 				switch (num) {	/* FIXME, mapper or game data base with the board parameters and ROM/RAM sizes */
 				case 13:  CHRRAMSize = 16 * 1024; break;
 				case 6:
+				case 28:
+				case 29:
 				case 30:
 				case 45:
 				case 96:  CHRRAMSize = 32 * 1024; break;
@@ -843,6 +848,7 @@ static int iNES_Init(int num) {
 				UNIFchrrama = VROM;
 				SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
 				AddExState(VROM, CHRRAMSize, 0, "CHRR");
+				FCEU_printf(" CHR RAM:  %3d x  1KiB\n", CHRRAMSize / 1024);
 			}
 			if (head.ROM_type & 8)
 				AddExState(ExtraNTARAM, 2048, 0, "EXNR");

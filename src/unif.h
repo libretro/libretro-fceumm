@@ -158,6 +158,12 @@ void UNLRT01_Init(CartInfo *info);
 void BMC810131C_Init(CartInfo *info);
 void BMC8IN1_Init(CartInfo *info);
 
+/* additional boards */
+void BMC60311C_Init(CartInfo *info);			/* m289 */
+void BMCWS_Init(CartInfo *info);			/* m332 */
+void UNLKS202_Init(CartInfo *info);			/* m056 */
+void BMCHPxx_Init(CartInfo *info);			/* m260 */
+
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);
 void MapperCopyFami_Init(CartInfo *info);

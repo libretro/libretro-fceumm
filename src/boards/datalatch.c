@@ -225,6 +225,22 @@ void CPROM_Init(CartInfo *info) {
 	Latch_Init(info, CPROMSync, 0, 0x8000, 0xFFFF, 0, 0);
 }
 
+/*------------------ Map 29 ---------------------------*/
+/* added 2019-5-23
+ * Mapper 28, used by homebrew game Glider
+ * https://wiki.nesdev.com/w/index.php/INES_Mapper_029 */
+
+static void M29Sync(void) {
+	setprg16(0x8000, (latche >> 2) & 7);
+	setprg16(0xc000, ~0);
+	setchr8r(0, latche & 3);
+	setprg8r(0x10, 0x6000, 0);
+}
+
+void Mapper29_Init(CartInfo *info) {
+	Latch_Init(info, M29Sync, 0x0000, 0x6000, 0xFFFF, 1, 0);
+}
+
 /*------------------ Map 38 ---------------------------*/
 
 static void M38Sync(void) {
