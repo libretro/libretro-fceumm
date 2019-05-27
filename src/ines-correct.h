@@ -317,7 +317,7 @@
 	{0x6bea1235,	245,	   -1},	/* MMC3 cart, but with nobanking applied to CHR-RAM, so let it be there */
 	{0x345ee51a,	245,	   -1},	/* DQ4c */
 	{0x57514c6c,	245,	   -1},	/* Yong Zhe Dou E Long - Dragon Quest VI (Ch) */
-
+	{0xdb9d71b7,    114,       -1}, /* Super Donkey Kong (Unl) [o1] */
 	{0x00000000,	  -1,	   -1}
 
 #endif
