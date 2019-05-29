@@ -468,6 +468,10 @@ static BMAPPING bmap[] = {
 	{ "WS", BMCWS_Init, 0 },
 	{ "HPxx", BMCHPxx_Init, 0 },
 
+	{ "CHINA_ER_SAN2", Mapper19_Init, 0 }, /* http://forums.nesdev.com/viewtopic.php?t=16465&p=216531 */
+	{ "WAIXING-FW01", Mapper227_Init, 0 }, /* https://wiki.nesdev.com/w/index.php/Talk:INES_Mapper_242 */
+	{ "WAIXING-FS005", BMCFK23C_Init, 0 }, /* https://wiki.nesdev.com/w/index.php/INES_Mapper_176 */
+
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
 	{ "COPYFAMI", MapperCopyFami_Init, 0 },

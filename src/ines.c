@@ -613,7 +613,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"UNLN625092",			221, UNLN625092_Init},
 	{(uint8_t*)"",					222, Mapper222_Init},
 /*	{(uint8_t*)"",					223, Mapper223_Init}, */
-/*	{(uint8_t*)"",					224, Mapper224_Init}, */
+	{(uint8_t*)"KT-008",				224, Mapper224_Init},
 	{(uint8_t*)"",					225, Mapper225_Init},
 	{(uint8_t*)"BMC 22+20-in-1",		226, Mapper226_Init},
 	{(uint8_t*)"",					227, Mapper227_Init},

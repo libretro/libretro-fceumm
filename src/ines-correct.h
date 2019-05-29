@@ -318,6 +318,12 @@
 	{0x345ee51a,	245,	   -1},	/* DQ4c */
 	{0x57514c6c,	245,	   -1},	/* Yong Zhe Dou E Long - Dragon Quest VI (Ch) */
 	{0xdb9d71b7,    114,       -1}, /* Super Donkey Kong (Unl) [o1] */
+
+	{0x61fc4d20,    224,        0}, /* Pokemon HeartGold (KT-008 PCB)(Ch)[!] */
+	{0x4d735cb1,    224,        0}, /* Pokemon Platinum (KT-008 PCB)(Ch)[!] */
+	{0x4f427110,    224,        0}, /* Pokemon Platinum Alt title 1 (KT-008 PCB)(Ch)[!] */
+	{0xe001de16,    224,        0}, /* Pokemon Platinum Alt title 2 (KT-008 PCB)(Ch)[!] */
+
 	{0x00000000,	  -1,	   -1}
 
 #endif
