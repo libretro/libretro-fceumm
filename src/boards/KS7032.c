@@ -93,7 +93,7 @@ static DECLFW(UNLKS7032Write) {
 	case 0xF000: {
 		uint8 bank = (cmd - 1);
 		if (bank < 3)
-			reg[bank] = reg[bank] & 0x10 | V & 0x0F;
+			reg[bank] = (reg[bank] & 0x10) | (V & 0x0F);
 		else if (bank < 4)
 			reg[bank] = V;
 		Sync();
@@ -101,7 +101,7 @@ static DECLFW(UNLKS7032Write) {
 		case 0xF000:
 			A &= 3;
 			if (A < 3)
-				reg[bank] = reg[bank] & 0x0F | V & 0x10;
+				reg[bank] = (reg[bank] & 0x0F) | (V & 0x10);
 			Sync();
 			break;
 		case 0xF800:

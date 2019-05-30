@@ -28,7 +28,7 @@
 #include "mmc3.h"
 
 static void M224PW(uint32 A, uint8 V) {
-	setprg8(A, V & 0x3f | (EXPREGS[0] << 4) & 0x40);
+	setprg8(A, (V & 0x3f) | ((EXPREGS[0] << 4) & 0x40));
 }
 
 static DECLFW(Mapper224Write) {
