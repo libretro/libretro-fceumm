@@ -515,7 +515,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"MMC3 PIRATE H2288",	123, UNLH2288_Init},
 /*	{(uint8_t*)"",					124, Mapper124_Init}, */
 	{(uint8_t*)"FDS LH32",			125, LH32_Init},
-/*	{(uint8_t*)"",					126, Mapper126_Init}, */
+	{(uint8_t*)"PowerJoy 84-in-1",			126, Mapper126_Init},
 /*	{(uint8_t*)"",					127, Mapper127_Init}, */
 /*	{(uint8_t*)"",					128, Mapper128_Init}, */
 /*	{(uint8_t*)"",					129, Mapper129_Init}, */
