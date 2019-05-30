@@ -72,51 +72,51 @@ static void Sync() {
 		break;
 	case 0x10:
 	case 0x14:
-		prglo = outb & ~2 | prg << 1 & 2;
-		prghi = outb & ~2 | prg << 1 & 2 | 1;
+		prglo = (outb & ~2) | (prg << 1 & 2);
+		prghi = (outb & ~2) | (prg << 1 & 2) | 1;
 		break;
 	case 0x20:
 	case 0x24:
-		prglo = outb & ~6 | prg << 1 & 6;
-		prghi = outb & ~6 | prg << 1 & 6 | 1;
+		prglo = (outb & ~6) | (prg << 1 & 6);
+		prghi = (outb & ~6) | (prg << 1 & 6) | 1;
 		break;
 	case 0x30:
 	case 0x34:
-		prglo = outb & ~14 | prg << 1 & 14;
-		prghi = outb & ~14 | prg << 1 & 14 | 1;
+		prglo = (outb & ~14) | (prg << 1 & 14);
+		prghi = (outb & ~14) | (prg << 1 & 14) | 1;
 		break;
 	/* bottom fixed modes */
 	case 0x08:
 		prglo = outb;
-		prghi = outb | prg & 1;
+		prghi = outb | (prg & 1);
 		break;
 	case 0x18:
 		prglo = outb;
-		prghi = outb & ~2 | prg & 3;
+		prghi = (outb & ~2) | (prg & 3);
 		break;
 	case 0x28:
 		prglo = outb;
-		prghi = outb & ~6 | prg & 7;
+		prghi = (outb & ~6) | (prg & 7);
 		break;
 	case 0x38:
 		prglo = outb;
-		prghi = outb & ~14 | prg & 15;
+		prghi = (outb & ~14) | (prg & 15);
 		break;
 	/* top fixed modes */
 	case 0x0c:
-		prglo = outb | prg & 1;
+		prglo = outb | (prg & 1);
 		prghi = outb | 1;
 		break;
 	case 0x1c:
-		prglo = outb & ~2 | prg & 3;
+		prglo = (outb & ~2) | (prg & 3);
 		prghi = outb | 1;
 		break;
 	case 0x2c:
-		prglo = outb & ~6 | prg & 7;
+		prglo = (outb & ~6) | (prg & 7);
 		prghi = outb | 1;
 		break;
 	case 0x3c:
-		prglo = outb & ~14 | prg & 15;
+		prglo = (outb & ~14) | (prg & 15);
 		prghi = outb | 1;
 		break;
 	}

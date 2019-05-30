@@ -223,7 +223,7 @@ static void M63Sync(void) {
 }
 
 void Mapper63_Init(CartInfo *info) {
-	Latch_Init(info, M63Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+	Latch_Init(info, M63Sync, M63Read, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
 /*------------------ Map 092 ---------------------------*/
