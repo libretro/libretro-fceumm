@@ -168,6 +168,9 @@ void CNROM_Init(CartInfo *info) {
 		case 0xebd0644d: /* Dao Shuai (Asia) (Unl).nes */
 		case 0x8f154a0d: /* Pu Ke Jing Ling (China) (Unl).nes */
 		case 0xd04a40e6: /* Bingo 75 (Asia) (Unl).nes */
+		case 0xe41b440f: /* Sidewinder (Joy Van) */
+		case 0xb0c871c5: /* Wei Lai Xiao Zi (Joy Van) */
+		case 0xb3be2f71: /* Yanshan Chess (Unl) */
 			_busc = 0;
 			break;
 	}

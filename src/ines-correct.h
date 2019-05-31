@@ -318,11 +318,23 @@
 	{0x345ee51a,	245,	   -1},	/* DQ4c */
 	{0x57514c6c,	245,	   -1},	/* Yong Zhe Dou E Long - Dragon Quest VI (Ch) */
 	{0xdb9d71b7,    114,       -1}, /* Super Donkey Kong (Unl) [o1] */
-
 	{0x61fc4d20,    224,        0}, /* Pokemon HeartGold (KT-008 PCB)(Ch)[!] */
 	{0x4d735cb1,    224,        0}, /* Pokemon Platinum (KT-008 PCB)(Ch)[!] */
 	{0x4f427110,    224,        0}, /* Pokemon Platinum Alt title 1 (KT-008 PCB)(Ch)[!] */
 	{0xe001de16,    224,        0}, /* Pokemon Platinum Alt title 2 (KT-008 PCB)(Ch)[!] */
+
+	{0xbdbe3c96,    238,        1}, /* Contra Fighter (Unl) */
+	{0xcfe02ada,      1,       -1}, /* Darkman (E) [!] */
+	{0xcb53c523,      1,       -1}, /* King Neptune's Adventure (Color Dreams) [!] */
+	{0x6e149729,    189,       -1}, /* Master Fighter II (Unl) [a1] */
+	{0x60bfeb0c,     90,       -1}, /* Mortal Kombat 2 (Unl) [!] */
+	{0x247cc73d,    150,       -1}, /* Poker II (Sachen) [!] */
+	{0xe41b440f,      3,        0}, /* Sidewinder (Joy Van) */
+	{0x1f1326d4,    121,        0}, /* Super Sonic 5 (1997) (Unl) [!] */
+	{0xb0c871c5,      3,        1}, /* Wei Lai Xiao Zi (Joy Van) */
+	{0xb3be2f71,      3,        0}, /* Yanshan Chess (Unl) */
+	{0x8dedea07,      3,        1}, /* Shui Guo Li (Ch) [a1] */
+	{0x1a71fd06,      1,        1}, /* Kujaku Ou (J) [T+Eng1.1_Snark] */
 
 	{0x00000000,	  -1,	   -1}
 
