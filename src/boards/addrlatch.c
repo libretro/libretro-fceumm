@@ -202,9 +202,12 @@ void Mapper61_Init(CartInfo *info) {
  * - Powerful 250-in-1
  * - Hello Kitty 255-in-1 */
 
+static uint16 openBus;
+
 static DECLFR(M63Read) {
-	if (latche & 0x0300)
-		return X.DB;
+	if (A < 0xC000)
+		if (openBus)
+			return X.DB;
 	return CartBR(A);
 }
 
@@ -213,6 +216,7 @@ static void M63Sync(void) {
 	uint16 prg_bank = (latche & 0x3F8) >> 1;
 	uint16 prg16 = (latche & 4) >> 1;
 
+	openBus = ((latche & 0x300) == 0x300);
 	setprg8(0x8000, (prg_bank | (mode ? 0 : prg16 | 0)));
 	setprg8(0xA000, (prg_bank | (mode ? 1 : prg16 | 1)));
 	setprg8(0xC000, (prg_bank | (mode ? 2 : prg16 | 0)));
