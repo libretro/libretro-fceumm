@@ -295,6 +295,8 @@ static void CheckHInfo(void) {
 	};
 	int32 tofix = 0, x;
 	uint64 partialmd5 = 0;
+	int current_mapper = 0;
+	int cur_mirr = 0;
 
 	for (x = 0; x < 8; x++)
 		partialmd5 |= (uint64)iNESCart.MD5[15 - x] << (x * 8);
@@ -312,10 +314,12 @@ static void CheckHInfo(void) {
 				}
 				if (MapperNo != (moo[x].mapper & 0xFF)) {
 					tofix |= 1;
+					current_mapper = MapperNo;
 					MapperNo = moo[x].mapper & 0xFF;
 				}
 			}
 			if (moo[x].mirror >= 0) {
+				cur_mirr = Mirroring;
 				if (moo[x].mirror == 8) {
 					if (Mirroring == 2) {	/* Anything but hard-wired(four screen). */
 						tofix |= 2;
@@ -361,12 +365,12 @@ static void CheckHInfo(void) {
 
 	if (tofix) {
 		char gigastr[768];
-		strcpy(gigastr, "The iNES header contains incorrect information.  For now, the information will be corrected in RAM.  ");
+		strcpy(gigastr, "The iNES header contains incorrect information.  For now, the information will be corrected in RAM. ");
 		if (tofix & 1)
-			sprintf(gigastr + strlen(gigastr), "The mapper number should be set to %d.  ", MapperNo);
+			sprintf(gigastr + strlen(gigastr), "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, MapperNo);
 		if (tofix & 2) {
 			uint8 *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
-			sprintf(gigastr + strlen(gigastr), "Mirroring should be set to \"%s\".  ", mstr[Mirroring & 3]);
+			sprintf(gigastr + strlen(gigastr), "Current mirroring is %s. Mirroring should be set to \"%s\". ", mstr[cur_mirr & 3], mstr[Mirroring & 3]);
 		}
 		if (tofix & 4)
 			strcat(gigastr, "The battery-backed bit should be set.  ");
@@ -604,7 +608,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					212, Mapper212_Init},
 	{(uint8_t*)"",					213, Mapper213_Init},
 	{(uint8_t*)"",					214, Mapper214_Init},
-	{(uint8_t*)"",					215, UNL8237_Init},
+	{(uint8_t*)"UNL-8237",				215, UNL8237_Init},
 	{(uint8_t*)"",					216, Mapper216_Init},
 	{(uint8_t*)"",					217, Mapper217_Init},	/* Redefined to a new Discrete BMC mapper */
 /*	{(uint8_t*)"",					218, Mapper218_Init}, */
@@ -743,6 +747,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	iNESCart.CRC32 = iNESGameCRC32;
 
+	SetInput();
+	CheckHInfo();
 	mappername = "Not Listed";
 
 	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
@@ -751,9 +757,6 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			break;
 		}
 	}
-
-	SetInput();
-	CheckHInfo();
 	{
 		int x;
 		uint64 partialmd5 = 0;
