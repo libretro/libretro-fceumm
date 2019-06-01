@@ -335,6 +335,9 @@
 	{0xb3be2f71,      3,        0}, /* Yanshan Chess (Unl) */
 	{0x8dedea07,      3,        1}, /* Shui Guo Li (Ch) [a1] */
 	{0x1a71fd06,      1,        1}, /* Kujaku Ou (J) [T+Eng1.1_Snark] */
+	{0x99748230,    215,        0}, /* EarthWorm Jim 2 (SuperGame) */
+	{0x37876ac7,    215,        0}, /* Golden Card 6-in-1 (Unl) [!] */
+	{0x1a3320a3,    215,        0}, /* Mortal Kombat 3 (SuperGame) */
 
 	{0x00000000,	  -1,	   -1}
 
