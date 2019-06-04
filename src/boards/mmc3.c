@@ -1137,22 +1137,21 @@ void Mapper198_Init(CartInfo *info) {
 }
 
 /* ---------------------------- Mapper 205 ------------------------------ */
-/* GN-45 BOARD */
+/* https://wiki.nesdev.com/w/index.php/INES_Mapper_205 */
 
 static void M205PW(uint32 A, uint8 V) {
-/* GN-30A - \ED\E0\F7\E0\EB\FC\ED\E0\FF \EC\E0\F1\EA\E0 \E4\EE\EB\E6\ED\E0 \E1\FB\F2\FC 1F + \E0\EF\EF\E0\F0\E0\F2\ED\FB\E9 \EF\E5\F0\E5\EA\EB\FE\F7\E0\F2\E5\EB\FC \ED\E0 \F8\E8\ED\E5 \E0\E4\F0\E5\F1\E0 */
-	setprg8(A, (V & 0x0f) | EXPREGS[0]);
+	setprg8(A, EXPREGS[0] & 0x30 | (V & (!(EXPREGS[0] & 0xC0) ? 0x1F : 0x0F)));
 }
 
 static void M205CW(uint32 A, uint8 V) {
-/* GN-30A - \ED\E0\F7\E0\EB\FC\ED\E0\FF \EC\E0\F1\EA\E0 \E4\EE\EB\E6\ED\E0 \E1\FB\F2\FC FF */
-	setchr1(A, (V & 0x7F) | (EXPREGS[0] << 3));
+	uint16 reg = (uint16)EXPREGS[0] & 0x30;
+	setchr1(A, (reg << 3) | V);
 }
 
 static DECLFW(M205Write0) {
-	if (EXPREGS[2] == 0) {
-		EXPREGS[0] = A & 0x30;
-		EXPREGS[2] = A & 0x80;
+	if (EXPREGS[1] == 0) {
+		EXPREGS[0] = (V << 4) & 0x30;
+		EXPREGS[1] = A & 0x80;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
 	} else
@@ -1160,8 +1159,8 @@ static DECLFW(M205Write0) {
 }
 
 static DECLFW(M205Write1) {
-	if (EXPREGS[2] == 0) {
-		EXPREGS[0] = V & 0x30;
+	if (EXPREGS[1] == 0) {
+		EXPREGS[0] = V & 0xF0;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
 	} else
@@ -1169,11 +1168,12 @@ static DECLFW(M205Write1) {
 }
 
 static void M205Reset(void) {
-	EXPREGS[0] = EXPREGS[2] = 0;
+	EXPREGS[0] = EXPREGS[1] = 0;
 	MMC3RegReset();
 }
 
 static void M205Power(void) {
+	EXPREGS[0] = EXPREGS[1] = 0;
 	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x6fff, M205Write0);
 	SetWriteHandler(0x7000, 0x7fff, M205Write1);	/* OK-411 boards, the same logic, but data latched, 2-in-1 frankenstein */
@@ -1185,6 +1185,58 @@ void Mapper205_Init(CartInfo *info) {
 	cwrap = M205CW;
 	info->Power = M205Power;
 	info->Reset = M205Reset;
+	AddExState(EXPREGS, 1, 0, "EXPR");
+}
+
+/* --------------------------- GN-45 BOARD ------------------------------ */
+
+/* Mapper 361 and 366, previously assigned as Mapper 205 */
+static void GN45PW(uint32 A, uint8 V) {
+/* GN-30A - \ED\E0\F7\E0\EB\FC\ED\E0\FF \EC\E0\F1\EA\E0 \E4\EE\EB\E6\ED\E0 \E1\FB\F2\FC 1F + \E0\EF\EF\E0\F0\E0\F2\ED\FB\E9 \EF\E5\F0\E5\EA\EB\FE\F7\E0\F2\E5\EB\FC \ED\E0 \F8\E8\ED\E5 \E0\E4\F0\E5\F1\E0 */
+	setprg8(A, (V & 0x0f) | EXPREGS[0]);
+}
+
+static void GN45CW(uint32 A, uint8 V) {
+/* GN-30A - \ED\E0\F7\E0\EB\FC\ED\E0\FF \EC\E0\F1\EA\E0 \E4\EE\EB\E6\ED\E0 \E1\FB\F2\FC FF */
+	setchr1(A, (V & 0x7F) | (EXPREGS[0] << 3));
+}
+
+static DECLFW(GN45Write0) {
+	if (EXPREGS[2] == 0) {
+		EXPREGS[0] = A & 0x30;
+		EXPREGS[2] = A & 0x80;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	} else
+		CartBW(A, V);
+}
+
+static DECLFW(GN45Write1) {
+	if (EXPREGS[2] == 0) {
+		EXPREGS[0] = V & 0x30;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	} else
+		CartBW(A, V);
+}
+
+static void GN45Reset(void) {
+	EXPREGS[0] = EXPREGS[2] = 0;
+	MMC3RegReset();
+}
+
+static void GN45Power(void) {
+	GenMMC3Power();
+	SetWriteHandler(0x6000, 0x6fff, GN45Write0);
+	SetWriteHandler(0x7000, 0x7fff, GN45Write1);	/* OK-411 boards, the same logic, but data latched, 2-in-1 frankenstein */
+}
+
+void GN45_Init(CartInfo *info) {
+	GenMMC3_Init(info, 128, 128, 8, 0);
+	pwrap = GN45PW;
+	cwrap = GN45CW;
+	info->Power = GN45Power;
+	info->Reset = GN45Reset;
 	AddExState(EXPREGS, 1, 0, "EXPR");
 }
 

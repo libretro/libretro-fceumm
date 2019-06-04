@@ -157,6 +157,7 @@ void BMCF15_Init(CartInfo *info);
 void UNLRT01_Init(CartInfo *info);
 void BMC810131C_Init(CartInfo *info);
 void BMC8IN1_Init(CartInfo *info);
+void BMC80013B_Init(CartInfo *info);
 
 /* additional boards */
 void BMC60311C_Init(CartInfo *info);			/* m289 */
