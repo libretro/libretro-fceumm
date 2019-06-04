@@ -612,7 +612,7 @@ CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 # Windows
 else
 	TARGET := $(TARGET_NAME)_libretro.dll
-	CC = gcc
+	CC ?= gcc
 	SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=src/drivers/libretro/link.T
    PSS_STYLE :=2
 endif
