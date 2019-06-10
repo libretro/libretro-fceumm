@@ -295,8 +295,8 @@ static void CheckHInfo(void) {
 	};
 	int32 tofix = 0, x;
 	uint64 partialmd5 = 0;
-	int current_mapper = 0;
-	int cur_mirr = 0;
+	int32 current_mapper = 0;
+	int32 cur_mirr = 0;
 
 	for (x = 0; x < 8; x++)
 		partialmd5 |= (uint64)iNESCart.MD5[15 - x] << (x * 8);
@@ -312,10 +312,10 @@ static void CheckHInfo(void) {
 					VROM = NULL;
 					tofix |= 8;
 				}
-				if (MapperNo != (moo[x].mapper & 0xFF)) {
+				if (MapperNo != (moo[x].mapper & 0xFFF)) {
 					tofix |= 1;
 					current_mapper = MapperNo;
-					MapperNo = moo[x].mapper & 0xFF;
+					MapperNo = moo[x].mapper & 0xFFF;
 				}
 			}
 			if (moo[x].mirror >= 0) {
@@ -649,6 +649,13 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"DRAGON BALL PIRATE",	253, Mapper253_Init},
 	{(uint8_t*)"",					254, Mapper254_Init},
 	{(uint8_t*)"",					255, Mapper255_Init}, /* Duplicate of M225? */
+
+	{(uint8_t*)"BMC-HPxx",				260, BMCHPxx_Init},
+	{(uint8_t*)"UNL-SHERO",				262, UNLSHeroes_Init},
+	{(uint8_t*)"OK-411",				361, GN45_Init}, /* OK-411 is emulated together with GN-45 */
+	{(uint8_t*)"HUMMER/JY-052",			281, Mapper281_Init},
+	{(uint8_t*)"GN-45",				366, GN45_Init},
+	{(uint8_t*)"DREAMTECH01",			521, DreamTech01_Init},
 
 	{(uint8_t*)"",					0, NULL}
 };

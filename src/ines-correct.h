@@ -167,7 +167,7 @@
 	{0x0d98db53,	114,	   -1},	/* Pocahontas */
 	{0x4e7729ff,	114,	   -1},	/* Super Donkey Kong */
 	{0xc5e5c5b2,	115,	   -1},	/* Bao Qing Tian (As).nes */
-	{0xa1dc16c0,	116,	   -1},	/* Street Heroes (Sachen) [b1] */
+/*	{0xa1dc16c0,	116,	   -1},	Street Heroes (Sachen) [b1] */
 	{0xe40dfb7e,	116,	   -1},	/* Somari (P conf.) */
 	{0xc9371ebb,	116,	   -1},	/* Somari (W conf.) */
 	{0x78b657ac,	118,	   -1},	/* Armadillo */
@@ -322,7 +322,6 @@
 	{0x4d735cb1,    224,        0}, /* Pokemon Platinum (KT-008 PCB)(Ch)[!] */
 	{0x4f427110,    224,        0}, /* Pokemon Platinum Alt title 1 (KT-008 PCB)(Ch)[!] */
 	{0xe001de16,    224,        0}, /* Pokemon Platinum Alt title 2 (KT-008 PCB)(Ch)[!] */
-
 	{0xbdbe3c96,    238,        1}, /* Contra Fighter (Unl) */
 	{0xcfe02ada,      1,       -1}, /* Darkman (E) [!] */
 	{0xcb53c523,      1,       -1}, /* King Neptune's Adventure (Color Dreams) [!] */
@@ -338,6 +337,25 @@
 	{0x99748230,    215,        0}, /* EarthWorm Jim 2 (SuperGame) */
 	{0x37876ac7,    215,        0}, /* Golden Card 6-in-1 (Unl) [!] */
 	{0x1a3320a3,    215,        0}, /* Mortal Kombat 3 (SuperGame) */
+	{0x80eb1839,    114,        0}, /* Boogerman (Sugar Softec) (Unl) [!] */
+	{0x071e4ee8,    114,        0}, /* m114,submapper 1 test rom */
+	{0xfe3e03a1,    197,       -1}, /* Mortal Kombat III Special (YY-030) (Ch) [!] */
+	{0x9151d311,    197,       -1}, /* Mortal Kombat III 28 Peoples (NT-328) (Ch) [!] */
+	{0xf6bd8e31,    281,        0}, /* 1997 Super HIK 4-in-1 (JY-052) [p1][!] */
+
+	/* ines mappers that uses iNes 2.0 numbers */
+
+	{0x5aa23a15,    361,        0}, /* 4-in-1 (OK-411)[p1][!] */
+	{0xf6b9d088,    366,        0}, /* 4-in-1 (K-3131GS, GN-45) [p1][!] */
+	{0x503566b2,    366,        0}, /* 4-in-1 (K-3131SS, GN-45) [p1][!] */
+
+	/* ines mappers that uses unif boards */
+
+	{0x0073dbd8,    260,       -1}, /* 2-in-1 - Mortal Kombat V Turbo 30 + Super Aladdin (Unl) [p1][!] */
+	{0x4dc6107d,    260,       -1}, /* 2-in-1 - Boogerman + Flintstones, The (Unl) [p1][!] */
+	{0xb72b2cf4,    260,       -1}, /* 2-in-1 - Aladdin + Lion King, The (Unl) [p1][!] */
+	{0xa1dc16c0,    262,       -1}, /* Street Heroes (Asia) (Ja) (Unl */
+	{0xf956fcea,    521,       -1}, /* Korean Igo (Korea) (Unl) */
 
 	{0x00000000,	  -1,	   -1}
 

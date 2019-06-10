@@ -236,8 +236,9 @@ static void GENPWRAP(uint32 A, uint8 V) {
    /* [NJ102] Mo Dao Jie (C) has 1024Mb MMC3 BOARD, maybe something other will be broken
     * also HengGe BBC-2x boards enables this mode as default board mode at boot up
     */
-   setprg8(A, (V & 0x7F) | ((kt_extra & 4) << 4));
+   setprg8(A, (V & 0x7F)/* | ((kt_extra & 4) << 4)*/);
    /* KT-008 boards hack 2-in-1, TODO assign to new ines mapper, most dump of KT-boards on the net are mapper 4, so need database or goodnes fix support */
+   /* KT-008 boards should be assigned to mapper 224 */
 }
 
 static void GENMWRAP(uint8 V) {
@@ -265,7 +266,7 @@ void GenMMC3Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 
    /* KT-008 boards hack 2-in-1, TODO assign to new ines mapper, most dump of KT-boards on the net are mapper 4, so need database or goodnes fix support */
-   SetWriteHandler(0x5000,0x5FFF, KT008HackWrite);
+   /* SetWriteHandler(0x5000,0x5FFF, KT008HackWrite); */   /* KT-008 boards should be assigned to mapper 224 */
 
 	A001B = A000B = 0;
 	setmirror(1);
@@ -321,6 +322,7 @@ void GenMMC3_Init(CartInfo *info, int prg, int chr, int wram, int battery) {
 	}
 
    /* KT-008 boards hack 2-in-1, TODO assign to new ines mapper, most dump of KT-boards on the net are mapper 4, so need database or goodnes fix support */
+   /* KT-008 boards should be assigned to mapper 224 */
    AddExState(&kt_extra, 1, 0, "KTEX");
 	AddExState(MMC3_StateRegs, ~0, 0, 0);
 
@@ -720,18 +722,24 @@ void Mapper74_Init(CartInfo *info) {
 
 /* ---------------------------- Mapper 114 ------------------------------ */
 
-static uint8 cmdin;
+static uint8 cmdin, type_Boogerman = 0;
+uint8 boogerman_perm[8] = { 0, 2, 5, 3, 6, 1, 7, 4 };
 uint8 m114_perm[8] = { 0, 3, 1, 5, 6, 7, 2, 4 };
 
 static void M114PWRAP(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 0x80) {
-/*		FCEU_printf("8000-C000:%02X\n",EXPREGS[0]&0xF); */
-		setprg16(0x8000, EXPREGS[0] & 0xF);
-		setprg16(0xC000, EXPREGS[0] & 0xF);
-	} else {
-/*		FCEU_printf("%04X:%02X\n",A,V&0x3F); */
-		setprg8(A, V & 0x3F);
-	}
+		if (EXPREGS[0] & 0x20)
+			setprg32(0x8000, (EXPREGS[0] & 0x0F) >> 1);
+		else {
+			setprg16(0x8000, (EXPREGS[0] & 0x0F));
+			setprg16(0xC000, (EXPREGS[0] & 0x0F));
+		}
+	} else
+		setprg8(A, V);
+}
+
+static void M114CWRAP(uint32 A, uint8 V) {
+	setchr1(A, (uint32)V | ((EXPREGS[1] & 1) << 8));
 }
 
 static DECLFW(M114Write) {
@@ -746,28 +754,52 @@ static DECLFW(M114Write) {
 	}
 }
 
+static DECLFW(BoogermanWrite) {
+	switch (A & 0xE001) {
+	case 0x8001: if (!cmdin) break; MMC3_CMDWrite(0x8001, V); cmdin = 0; break;
+	case 0xA000: MMC3_CMDWrite(0x8000, (V & 0xC0) | (boogerman_perm[V & 7])); cmdin = 1; break;
+	case 0xA001: IRQReload = 1; break;
+	case 0xC000: MMC3_CMDWrite(0xA000, V); break;
+	case 0xC001: IRQLatch = V; break;
+	case 0xE000: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; break;
+	case 0xE001: IRQa = 1; break;
+	}
+}
+
 static DECLFW(M114ExWrite) {
 	if (A <= 0x7FFF) {
-		EXPREGS[0] = V;
+		if (A & 1)
+			EXPREGS[1] = V;
+		else
+			EXPREGS[0] = V;
 		FixMMC3PRG(MMC3_cmd);
 	}
 }
 
 static void M114Power(void) {
+	EXPREGS[0] = EXPREGS[1] = 0;
 	GenMMC3Power();
+	SetWriteHandler(0x6000, 0x7FFF, M114ExWrite);
 	SetWriteHandler(0x8000, 0xFFFF, M114Write);
-	SetWriteHandler(0x5000, 0x7FFF, M114ExWrite);
+	if (type_Boogerman)
+		SetWriteHandler(0x8000, 0xFFFF, BoogermanWrite);
 }
 
 static void M114Reset(void) {
-	EXPREGS[0] = 0;
+	EXPREGS[0] = EXPREGS[1] = 0;
 	MMC3RegReset();
 }
 
 void Mapper114_Init(CartInfo *info) {
 	isRevB = 0;
+	type_Boogerman = 0;
+	if (info->CRC32 == 0x80eb1839 ||	/* Boogerman (Sugar Softec) (Unl) [!] - submapper 1 */
+		info->CRC32 == 0x071e4ee8)		/* 114 test-rom https://forums.nesdev.com/viewtopic.php?f=3&t=17391 */
+		type_Boogerman = 1;
+
 	GenMMC3_Init(info, 256, 256, 0, 0);
 	pwrap = M114PWRAP;
+	cwrap = M114CWRAP;
 	info->Power = M114Power;
 	info->Reset = M114Reset;
 	AddExState(EXPREGS, 1, 0, "EXPR");
