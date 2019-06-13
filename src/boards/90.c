@@ -3,6 +3,7 @@
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2019 Libretro Team
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +26,12 @@
 /* Mapper 090 is simpliest mapper hardware and have not extended nametable control and latched chr banks in 4k mode
  * Mapper 209 much compicated hardware with decribed above features disabled by default and switchable by command
  * Mapper 211 the same mapper 209 but with forced nametable control
+ * Mapper 281 PRG ($8000-$8FFF) and CHR ($9000-$AFFF) bank select register bits that select 256 KiB banks are masked off.
  */
 
 static int is209;
 static int is211;
+static int is281;
 
 static uint8 IRQMode;		/*  from $c001 */
 static uint8 IRQPre;		/*  from $c004 */
@@ -73,7 +76,7 @@ static SFORMAT Tek_StateRegs[] = {
 };
 
 static void mira(void) {
-	if ((tkcom[0] & 0x20 && is209) || is211) {
+	if (((tkcom[0] & 0x20) && is209) || is211 || ((tkcom[1] & 0x08) && is281)) {
 		int x;
 		if (tkcom[0] & 0x40) {		/* Name tables are ROM-only */
 			for (x = 0; x < 4; x++)
@@ -96,56 +99,64 @@ static void mira(void) {
 	}
 }
 
+static uint8 invertprg(uint8 bank, uint8 reverse) {
+	if (reverse)
+		return ((bank & 0x01) << 6 | (bank & 0x02) << 4 | (bank & 0x04) << 2 |
+				(bank & 0x10) >> 2 | (bank & 0x20) >> 4 | (bank & 0x40) >> 6);
+	else
+		return bank;
+}
+
 static void tekprom(void) {
-	uint32 bankmode = ((tkcom[3] & 6) << 5);
-	switch (tkcom[0] & 7) {
-		case 00:
+	uint8 prgshift = 0, prgmask = 0x3F, outb_sel = 0x06, last_bank = 0x3F;
+	uint8 prgmode = tkcom[0] & 0x03;
+	uint8 invert = (tkcom[0] & 0x03) == 0x03 ? 1 : 0;
+	uint32 bankmode = 0;
+
+	switch (tkcom[0] & 0x03) {
+	case 0x00: prgshift = 3; prgmask = 0x0F; break;
+	case 0x01: prgshift = 4; prgmask = 0x1F; break;
+	default: prgshift = 5; prgmask = 0x3F; break;
+	}
+
+	if (is281) {
+		prgmask >>= 1;
+		outb_sel = 0x01;
+	}
+
+	bankmode = ((tkcom[3] & outb_sel) << prgshift);
+	last_bank = (tkcom[0] & 0x04) ? prgb[3] : prgmask;
+	switch (prgmode) {
+		case 0x00:
 			if (tkcom[0] & 0x80)
 				setprg8(0x6000, (((prgb[3] << 2) + 3) & 0x3F) | bankmode);
-			setprg32(0x8000, 0x0F | ((tkcom[3] & 6) << 3));
+			setprg32(0x8000, last_bank & prgmask | bankmode);
 			break;
-		case 01:
+		case 0x01:
 			if (tkcom[0] & 0x80)
 				setprg8(0x6000, (((prgb[3] << 1) + 1) & 0x3F) | bankmode);
-			setprg16(0x8000, (prgb[1] & 0x1F) | ((tkcom[3] & 6) << 4));
-			setprg16(0xC000, 0x1F | ((tkcom[3] & 6) << 4));
+			setprg16(0x8000, (prgb[1] & prgmask) | bankmode);
+			setprg16(0xC000, last_bank & prgmask | bankmode);
 			break;
-		case 03: /* bit reversion */
-		case 02:
+		case 0x02:
+		case 0x03:
 			if (tkcom[0] & 0x80)
-				setprg8(0x6000, (prgb[3] & 0x3F) | bankmode);
-			setprg8(0x8000, (prgb[0] & 0x3F) | bankmode);
-			setprg8(0xa000, (prgb[1] & 0x3F) | bankmode);
-			setprg8(0xc000, (prgb[2] & 0x3F) | bankmode);
-			setprg8(0xe000, 0x3F | bankmode);
-			break;
-		case 04:
-			if (tkcom[0] & 0x80)
-				setprg8(0x6000, (((prgb[3] << 2) + 3) & 0x3F) | bankmode);
-			setprg32(0x8000, (prgb[3] & 0x0F) | ((tkcom[3] & 6) << 3));
-			break;
-		case 05:
-			if (tkcom[0] & 0x80)
-				setprg8(0x6000, (((prgb[3] << 1) + 1) & 0x3F) | bankmode);
-			setprg16(0x8000, (prgb[1] & 0x1F) | ((tkcom[3] & 6) << 4));
-			setprg16(0xC000, (prgb[3] & 0x1F) | ((tkcom[3] & 6) << 4));
-			break;
-		case 07: /* bit reversion */
-		case 06:
-			if (tkcom[0] & 0x80)
-				setprg8(0x6000, (prgb[3] & 0x3F) | bankmode);
-			setprg8(0x8000, (prgb[0] & 0x3F) | bankmode);
-			setprg8(0xa000, (prgb[1] & 0x3F) | bankmode);
-			setprg8(0xc000, (prgb[2] & 0x3F) | bankmode);
-			setprg8(0xe000, (prgb[3] & 0x3F) | bankmode);
+				setprg8(0x6000, (invertprg(prgb[3], invert) & 0x3F) | bankmode);
+			setprg8(0x8000, (invertprg(prgb[0], invert) & prgmask) | bankmode);
+			setprg8(0xa000, (invertprg(prgb[1], invert) & prgmask) | bankmode);
+			setprg8(0xc000, (invertprg(prgb[2], invert) & prgmask) | bankmode);
+			setprg8(0xe000, (invertprg(last_bank, invert) & prgmask) | bankmode);
 			break;
 	}
 }
 
 static void tekvrom(void) {
 	int x, bank = 0, mask = 0xFFFF;
-	if (!(tkcom[3] & 0x20)) {
-		bank = (tkcom[3] & 1) | ((tkcom[3] & 0x18) >> 2);
+	if (!(tkcom[3] & 0x20) || is281) {
+		if (is281)
+			bank = tkcom[3] & 1;
+		else
+			bank = (tkcom[3] & 1) | ((tkcom[3] & 0x18) >> 2);
 		switch (tkcom[0] & 0x18) {
 		case 0x00: bank <<= 5; mask = 0x1F; break;
 		case 0x08: bank <<= 6; mask = 0x3F; break;
@@ -445,6 +456,7 @@ static void M90Power(void) {
 void Mapper90_Init(CartInfo *info) {
 	is211 = 0;
 	is209 = 0;
+	is281 = 0;
 	info->Reset = togglie;
 	info->Power = M90Power;
 	PPU_hook = M90PPU;
@@ -457,6 +469,7 @@ void Mapper90_Init(CartInfo *info) {
 void Mapper209_Init(CartInfo *info) {
 	is211 = 0;
 	is209 = 1;
+	is281 = 0;
 	info->Reset = togglie;
 	info->Power = M90Power;
 	PPU_hook = M90PPU;
@@ -468,6 +481,20 @@ void Mapper209_Init(CartInfo *info) {
 
 void Mapper211_Init(CartInfo *info) {
 	is211 = 1;
+	is281 = 0;
+	info->Reset = togglie;
+	info->Power = M90Power;
+	PPU_hook = M90PPU;
+	MapIRQHook = CPUWrap;
+	GameHBIRQHook2 = SLWrap;
+	GameStateRestore = M90Restore;
+	AddExState(Tek_StateRegs, ~0, 0, 0);
+}
+
+void Mapper281_Init(CartInfo *info) {
+	is211 = 0;
+	is209 = 0;
+	is281 = 1;
 	info->Reset = togglie;
 	info->Power = M90Power;
 	PPU_hook = M90PPU;
