@@ -78,7 +78,8 @@ static bool enable_4player = false;
 static unsigned turbo_enabler[MAX_PLAYERS] = {0};
 static unsigned turbo_delay = 0;
 static unsigned input_type[MAX_PLAYERS + 1] = {0}; /* 4-players + famicom expansion */
-static unsigned lightgun_enabled = 1; /* 0=mouse 1=lightgun(default) */
+enum RetroZapperInputModes{RetroLightgun, RetroMouse, RetroPointer};
+static enum RetroZapperInputModes zappermode = RetroLightgun;
 
 /* emulator-specific variables */
 
@@ -765,7 +766,7 @@ static void set_variables(void)
 #endif
       { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
       { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
-      { "fceumm_zapper_mode", "Zapper Mode; lightgun|mouse" },
+      { "fceumm_zapper_mode", "Zapper Mode; lightgun|touchscreen|mouse" },
       { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
       { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
       { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
@@ -1190,8 +1191,9 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "mouse")) lightgun_enabled = 0;
-      else lightgun_enabled = 1; /*default setting*/
+      if (!strcmp(var.value, "mouse")) zappermode = RetroMouse;
+      else if (!strcmp(var.value, "touchscreen")) zappermode = RetroPointer;
+      else zappermode = RetroLightgun; /*default setting*/
    }
 
    var.key = "fceumm_show_crosshair";
@@ -1381,7 +1383,7 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
    max_height  = 240;
    zapdata[2]  = 0; /* reset click state */
 
-   if (!lightgun_enabled) /* mouse device */
+   if (zappermode == RetroMouse) /* mouse device */
    {
       min_width   = (adjx ? 8 : 0) + 1;
       min_height  = (adjy ? 8 : 0) + 1;
@@ -1406,6 +1408,27 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
          zapdata[2] |= 0x1;
       if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT))
          zapdata[2] |= 0x2;
+   }
+   else if (zappermode == RetroPointer) {
+      int offset_x = (adjx ? 0X8FF : 0);
+      int offset_y = (adjy ? 0X999 : 0);
+
+      int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+      int _y = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+
+      if (_x == 0 && _y == 0)
+      {
+         zapdata[0] = 0;
+         zapdata[1] = 0;
+      }
+      else
+      {
+         zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
+      }
+
+      if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
+         zapdata[2] |= 0x1;
    }
    else /* lightgun device */
    {
