@@ -237,7 +237,6 @@ void CheckBad(uint64 md5partial) {
 	}
 }
 
-
 struct CHINF {
 	uint32 crc32;
 	int32 mapper;
