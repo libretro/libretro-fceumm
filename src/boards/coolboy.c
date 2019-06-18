@@ -42,7 +42,7 @@ static void COOLBOYCW(uint32 A, uint8 V) {
 			}
 		}
 		/* Highest bit goes from MMC3 registers when EXPREGS[3]&0x80==0 or from EXPREGS[0]&0x08 otherwise */
-		setchr1(A, 
+		setchr1(A,
 			(V & 0x80 & mask) | ((((EXPREGS[0] & 0x08) << 4) & ~mask)) /* 7th bit */
 			| ((EXPREGS[2] & 0x0F) << 3) /* 6-3 bits */
 			| ((A >> 10) & 7) /* 2-0 bits */
@@ -107,7 +107,7 @@ static DECLFW(COOLBOYWrite) {
 		CartBW(A,V);
 
 	/* Deny any further writes when 7th bit is 1 AND 4th is 0 */
-	if ((EXPREGS[3] & 0x90) != 0x80) { 
+	if ((EXPREGS[3] & 0x90) != 0x80) {
 		EXPREGS[A & 3] = V;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
@@ -147,6 +147,30 @@ void COOLBOY_Init(CartInfo *info) {
 	pwrap = COOLBOYPW;
 	cwrap = COOLBOYCW;
 	info->Power = COOLBOYPower;
+	info->Reset = COOLBOYReset;
+	AddExState(EXPREGS, 4, 0, "EXPR");
+}
+
+/*------------------ MINDKIDS ---------------------------*/
+/* A COOLBOY variant that works identically but puts the outer bank registers
+ * in the $5xxx range instead of the $6xxx range.
+ * The UNIF board name is MINDKIDS (submapper 1).
+ * http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_268
+ */
+
+static void MINDKIDSPower(void) {
+	GenMMC3Power();
+	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = 0;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
+	SetWriteHandler(0x5000, 0x5fff, COOLBOYWrite);
+}
+
+void MINDKIDS_Init(CartInfo *info) {
+	GenMMC3_Init(info, 2048, 256, 8, info->battery);
+	pwrap = COOLBOYPW;
+	cwrap = COOLBOYCW;
+	info->Power = MINDKIDSPower;
 	info->Reset = COOLBOYReset;
 	AddExState(EXPREGS, 4, 0, "EXPR");
 }

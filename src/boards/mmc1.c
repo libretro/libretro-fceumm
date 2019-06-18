@@ -36,13 +36,17 @@ static uint8 *WRAM = NULL;
 static uint8 *CHRRAM = NULL;
 static int is155, is171;
 
+static uint8 MMC1WRAMEnabled(void) {
+	return !(DRegs[3] & 0x10);
+}
+
 static DECLFW(MBWRAM) {
-	if (!(DRegs[3] & 0x10) || is155)
+	if (MMC1WRAMEnabled() || is155)
 		Page[A >> 11][A] = V;	/* WRAM is enabled. */
 }
 
 static DECLFR(MAWRAM) {
-	if ((DRegs[3] & 0x10) && !is155)
+	if (!MMC1WRAMEnabled() && !is155)
 		return X.DB;			/* WRAM is disabled */
 	return(Page[A >> 11][A]);
 }
@@ -395,4 +399,47 @@ void SOROM_Init(CartInfo *info) {
 	GenMMC1Init(info, 256, 0, 16, info->battery);
 }
 
+/* ----------------------- FARID_SLROM_8-IN-1 -----------------------*/
 
+/* NES 2.0 Mapper 323 - UNIF FARID_SLROM_8-IN-1 */
+
+static uint8 reg, lock;
+
+static void FARIDSLROM8IN1PRGHook(uint32 A, uint8 V) {
+	setprg16(A, (V & 0x07) | (reg << 3));
+}
+
+static void FARIDSLROM8IN1CHRHook(uint32 A, uint8 V) {
+	setchr4(A, (V & 0x1F) | (reg << 5));
+}
+
+static DECLFW(FARIDSLROM8IN1Write) {
+	if (MMC1WRAMEnabled() && !lock) {
+		lock = (V & 0x08) >> 3;
+		reg = (V & 0xF0) >> 4;
+		MMC1MIRROR();
+		MMC1CHR();
+		MMC1PRG();
+	}
+}
+
+static void FARIDSLROM8IN1Power(void) {
+	reg = lock = 0;
+	GenMMC1Power();
+	SetWriteHandler(0x6000, 0x7FFF, FARIDSLROM8IN1Write);
+}
+
+static void FARIDSLROM8IN1Reset(void) {
+	reg = lock = 0;
+	MMC1CMReset();
+}
+
+void FARIDSLROM8IN1_Init(CartInfo *info) {
+	GenMMC1Init(info, 1024, 256, 8, 0);
+	MMC1CHRHook4 = FARIDSLROM8IN1CHRHook;
+	MMC1PRGHook16 = FARIDSLROM8IN1PRGHook;
+	info->Power = FARIDSLROM8IN1Power;
+	info->Reset = FARIDSLROM8IN1Reset;
+	AddExState(lock, 1, 0, "LOCK");
+	AddExState(reg, 1, 0, "REG6");
+}

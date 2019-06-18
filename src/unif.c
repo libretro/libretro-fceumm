@@ -473,6 +473,25 @@ static BMAPPING bmap[] = {
 	{ "WAIXING-FS005", BMCFK23C_Init, 0 }, /* https://wiki.nesdev.com/w/index.php/INES_Mapper_176 */
 	{ "80013-B", BMC80013B_Init, 0 },
 
+	{ "TH2131-1", UNLTH21311_Init, 0 },
+	{ "LH51", LH51_Init, 0 },
+	{ "RESETNROM-XIN1", BMCRESETNROMXIN1_Init, 0 },
+	{ " BMC-RESET-TXROM", BMCRESETTXROM_Init, 0 },
+	{ "RESET-TXROM", BMCRESETTXROM_Init, 0 },
+	{ "K-3088", BMC411120C_Init, 0 },
+	{ "FARID_SLROM_8-IN-1", FARIDSLROM8IN1_Init, 0 },
+	{ "830425C-4391T", BMC830425C4391T_Init, 0 },
+	{ "TJ-03", BMCTJ03_Init, 0 },
+	{ "CTC-09", BMCCTC09_Init, 0 },
+	{ "K-3046", BMCK3046_Init, 0 },
+	{ "SA005-A", BMCSA005A_Init, 0 },
+	{ "K-3006", BMCK3006_Init, 0 },
+	{ "K-3036", BMCK3036_Init, 0 },
+	{ "MINDKIDS", MINDKIDS_Init, BMCFLAG_256KCHRR },
+	{ "KS7021A", UNLKS7021A_Init, 0 },
+	{ "KS106C", BMCKS106C_Init, 0 },
+	{ "900218", BTL900218_Init, 0 },
+
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
 	{ "COPYFAMI", MapperCopyFami_Init, 0 },
