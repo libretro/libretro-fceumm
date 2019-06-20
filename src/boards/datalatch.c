@@ -527,3 +527,17 @@ static void BMC11160Sync(void) {
 void BMC11160_Init(CartInfo *info) {
 	Latch_Init(info, BMC11160Sync, 0, 0x8000, 0xFFFF, 0, 0);
 }
+
+/*------------------ BMC-K-3046 ---------------------------*/
+/* NES 2.0 mapper 336 is used for an 11-in-1 multicart
+ * http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_336 */
+
+static void BMCK3046Sync(void) {
+	setprg16(0x8000, latche);
+	setprg16(0xC000, latche | 0x07);
+	setchr8(0);
+}
+
+void BMCK3046_Init(CartInfo *info) {
+	Latch_Init(info, BMCK3046Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}

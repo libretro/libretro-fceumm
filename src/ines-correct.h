@@ -49,7 +49,7 @@
 	{0x52ab2d17,	  1,		8},	/* Toukyou Pachi-Slot Adventure (Japan) (Rev 0) */
 	{0x934db14a,	  1,		-1},/* All-Pro Basketball */
 	{0xf74dfc91,	  1,		-1},/* Win,	Lose,	or Draw */
-	{0xe6a477b2,	  2,		0},	/* 3-D WorldRunner (USA) */
+	{0xe6a477b2,	  2,		1},	/* 3-D WorldRunner (USA) */
 	{0x9ea1dc76,	  2,		0},	/* Rainbow Islands */
 	{0x6d65cac6,	  2,		0},	/* Terra Cresta */
 	{0xe1b260da,	  2,		1},	/* Argos no Senshi */
@@ -79,7 +79,7 @@
 	{0xbc065fc3,	  3,		1},	/* Pipe Dream */
 	{0xc9ee15a7,	  3,	   -1},	/* 3 is probably best.  41 WILL NOT WORK. */
 	{0x97b6cb19,	  4,		-1},/* Aladdin (SuperGame) (Mapper 4) [!] */
-	{0xd97c31b0,	  4,		1},	/* Rasaaru Ishii no Childs Quest (J) */
+	{0xd97c31b0,	206,		1},	/* Rasaaru Ishii no Childs Quest (J) */
 	{0x404b2e8b,	  4,		2},	/* Rad Racer 2 */
 	{0x15141401,	  4,		8},	/* Asmik Kun Land */
 	{0x4cccd878,	  4,		8},	/* Cat Ninden Teyandee */
@@ -116,24 +116,36 @@
 	{0x5555fca3,	 32,		8},
 	{0x283ad224,	 32,		8},	/* Ai Sensei no Oshiete */
 	{0x243a8735,	 32,   0x10|4},	/* Major League */
-	{0xbc7b1d0f,	 33,	   -1},	/* Bakushou!! Jinsei Gekijou 2 (J) [!] */
+	{0x8a7d0abe,	 33,		8}, /* Akira (J) [!] */
+	{0x376138d8,	 33,		8}, /* Akira (J) [a1] */
+	{0xadf606f6,	 33,		8}, /* Bakushou!! Jinsei Gekijou (J) [!] */
+	{0xbc7b1d0f,	 33,		8}, /* Bakushou!! Jinsei Gekijou 2 (J) [!] */
+	{0x7a497ae3,	 33,		8}, /* Don Doko Don (J) [!] */
+	{0xbaca10a9,	 33,		8}, /* Golf Ko Open (J) [!] */
+	{0xf80bdc50,	 33,		8}, /* Insector X (J) [!] */
+	{0x2a6559a1,	 33,		8}, /* Operation Wolf (J) [!] */
+	{0xaeb7fce9,	 33,		8}, /* Power Blazer (J) [!] */
+	{0xd920f9df,	 33,		8}, /* Takeshi no Sengoku Fuuunji (J) [!] */
+	{0x3cd4b420,	 33,		8}, /* Takeshi no Sengoku Fuuunji (Japan) (Beta) */
 	{0x4c7c1af3,	 34,		1},	/* Caesar's Palace */
 	{0x932ff06e,	 34,		1},	/* Classic Concentration */
 	{0xf46ef39a,	 37,	   -1},	/* Super Mario Bros. + Tetris + Nintendo World Cup (E) [!] */
 	{0x7ccb12a3,	 43,	   -1},	/* SMB2j */
 	{0x6c71feae,	 45,	   -1},	/* Kunio 8-in-1 */
-	{0xe2c94bc2,	 48,	   -1},	/* Super Bros 8 (Unl) [!] */
-	{0xaebd6549,	 48,		8},	/* Bakushou!! Jinsei Gekijou 3 */
-	{0x6cdc0cd9,	 48,		8},	/* Bubble Bobble 2 */
-	{0x99c395f9,	 48,		8},	/* Captain Saver */
-	{0xa7b0536c,	 48,		8},	/* Don Doko Don 2 */
 	{0x40c0ad47,	 48,		8},	/* Flintstones 2 */
-	{0x1500e835,	 48,		8},	/* Jetsons (J) */
+	{0xaebd6549,	 48,		8},	/* Bakushou!! Jinsei Gekijou 3 (J) [!] */
+	{0x6cdc0cd9,	 48,		8},	/* Bubble Bobble 2 (J) */
+	{0x99c395f9,	 48,		8},	/* Captain Saver (J) */
+	{0xa7b0536c,	 48,		8},	/* Don Doko Don 2 (J) [!] */
+	{0xb17c828a,	 48,		8},	/* Don Doko Don 2 (J) [a1] */
+	{0x10e24006,	 48,		8},	/* Flintstones, The - The Rescue of Dino & Hoppy (J) */
+	{0x1500e835,	 48,		8},	/* Jetsons, The - Cogswell's Caper! (J) */
+	{0xe2c94bc2,	 48,		8},	/* Super Bros 8 (Unl) [!] */
 	{0xa912b064,	 51|0x800,	8},	/* 11-in-1 Ball Games(has CHR ROM when it shouldn't) */
 	{0x39ab0fc7,	 64,		8},	/* Hard Drivin' (USA) (Proto) (Unl) */
 	{0xb19a55dd,	 64,		8},	/* Road Runner */
 	{0xf92be3ec,	 64,	   -1},	/* Rolling Thunder */
-	{0xd114f544,	 66,		1},	/* AV Super Real Pachinko (Japan) (Unl) */
+	{0xd114f544,	 66,		0},	/* AV Super Real Pachinko (Japan) (Unl) */
 	{0xe84274c5,	 66,		1},	/* Mississippi Satsujin Jiken (J) [h2] */
 	{0xbde3ae9b,	 66,		1},	/* Doraemon */
 	{0x9552e8df,	 66,		1},	/* Dragon Ball */
@@ -142,7 +154,7 @@
 	{0xdd8ed0f7,	 70,		1},	/* Kamen Rider Club */
 	{0xbba58be5,	 70,	   -1},	/* Family Trainer - Manhattan Police */
 	{0x370ceb65,	 70,	   -1},	/* Family Trainer - Meiro Dai Sakusen */
-	{0x86be4746,	 71,	   -1},	/* Dooly Bravo Land (Korea) (Unl) */
+	{0x86be4746,	  2,	   -1},	/* Dooly Bravo Land (Korea) (Unl) */
 	{0xe62e3382,	 71,	   -1},	/* Mig-29 Soviet Fighter */
 	{0xac7b0742,	 71,	   -1},	/* Golden KTV (Ch) [!], not actually 71, but UNROM without BUS conflict */
 	{0x054bd3e9,	 74,	   -1},	/* Di 4 Ci - Ji Qi Ren Dai Zhan (As) */
@@ -159,7 +171,8 @@
 	{0xd2699893,	 88,		0},	/*  Dragon Spirit */
 	{0xbb7c5f7a,	 89,		8},	/* Mito Koumon or something similar */
 	{0x10119e6b,	 93,		8},	/* Fantasy Zone (Japan) */
-	{0x0da5e32e,	101,	   -1},	/* Uruusey Yatsura */
+	{0x2b750bf9,	101,		1},	/* Urusei Yatsura - Lum no Wedding Bell (Japan) (Beta) */
+	{0x0da5e32e,	101,		1},	/* Urusei Yatsura - Lum no Wedding Bell (Japan) */
 	{0x6096f84e,	104,		1},	/* Pegasus 5-in-1 (Golden Five) (Unl) */
 	{0x3d3ff543,	113,		0},	/* Kazama Jun to Asama Yuuko no AV Dragon Mahjong (Japan) (Unl) */
 	{0x68379fdb,	113,		1},	/* Pipemania (Australia) (HES) (Unl) */
@@ -167,7 +180,6 @@
 	{0x0d98db53,	114,	   -1},	/* Pocahontas */
 	{0x4e7729ff,	114,	   -1},	/* Super Donkey Kong */
 	{0xc5e5c5b2,	115,	   -1},	/* Bao Qing Tian (As).nes */
-/*	{0xa1dc16c0,	116,	   -1},	Street Heroes (Sachen) [b1] */
 	{0xe40dfb7e,	116,	   -1},	/* Somari (P conf.) */
 	{0xc9371ebb,	116,	   -1},	/* Somari (W conf.) */
 	{0x78b657ac,	118,	   -1},	/* Armadillo */
@@ -296,7 +308,7 @@
 	{0x2447e03b,	210,		1},	/* Top Striker */
 	{0x1dc0f740,	210,		1},	/* Wagyan Land 2 */
 	{0xd323b806,	210,		1},	/* Wagyan Land 3 */
-	{0xbd523011,	210,		0},	/* Dream Master */
+	{0xbd523011,	210,		0},	/* Namco Prism Zone - Dream Master (Japan) */
 	{0x5daae69a,	211,	   -1},	/* Aladdin - Return of Jaffar, The (Unl) [!] */
 	{0x1ec1dfeb,	217,	   -1},	/* 255-in-1 (Cut version) [p1] */
 	{0x046d70cc,	217,	   -1},	/* 500-in-1 (Anim Splash, Alt Mapper)[p1][!] */
@@ -305,15 +317,15 @@
 	{0x62ef6c79,	232,		8},	/* Quattro Sports -Aladdin */
 	{0x2705eaeb,	234,	   -1},	/* Maxi 15 */
 	{0x6f12afc5,	235,	   -1},	/* Golden Game 150-in-1 */
-	{0xfb2b6b10,	241,	   -1},	/* Fan Kong Jing Ying (Ch) */
-	{0xb5e83c9a,	241,	   -1},	/* Xing Ji Zheng Ba (Ch) */
 	{0x2537b3e6,	241,	   -1},	/* Dance Xtreme - Prima (Unl) */
 	{0x11611e89,	241,	   -1},	/* Darkseed (Unl) [p1] */
 	{0x81a37827,	241,	   -1},	/* Darkseed (Unl) [p1][b1] */
-	{0xc2730c30,	241,	   -1},	/* Deadly Towers (U) [!] */
-	{0xa21e675c,	241,	   -1},	/* Mashou (J) [!] */
+	{0xfb2b6b10,	241,	   -1},	/* Fan Kong Jing Ying (Ch) */
+	{0xb5e83c9a,	241,	   -1},	/* Xing Ji Zheng Ba (Ch) */
 	{0x368c19a8,	241,	   -1},	/* LIKO Study Cartridge 3-in-1 (Unl) [!] */
 	{0x54d98b79,	241,	   -1},	/* Titanic 1912 (Unl) */
+	{0xc2730c30,	 34,	    0},	/* Deadly Towers (U) [!] */
+	{0xa21e675c,	 34,	    0},	/* Mashou (J) [!] */
 	{0x6bea1235,	245,	   -1},	/* MMC3 cart, but with nobanking applied to CHR-RAM, so let it be there */
 	{0x345ee51a,	245,	   -1},	/* DQ4c */
 	{0x57514c6c,	245,	   -1},	/* Yong Zhe Dou E Long - Dragon Quest VI (Ch) */
@@ -324,7 +336,7 @@
 	{0xe001de16,    224,        0}, /* Pokemon Platinum Alt title 2 (KT-008 PCB)(Ch)[!] */
 	{0xbdbe3c96,    238,        1}, /* Contra Fighter (Unl) */
 	{0xcfe02ada,      1,       -1}, /* Darkman (E) [!] */
-	{0xcb53c523,      1,       -1}, /* King Neptune's Adventure (Color Dreams) [!] */
+	{0xcb53c523,     11,        1}, /* King Neptune's Adventure (Color Dreams) [!] */
 	{0x6e149729,    189,       -1}, /* Master Fighter II (Unl) [a1] */
 	{0x60bfeb0c,     90,       -1}, /* Mortal Kombat 2 (Unl) [!] */
 	{0x247cc73d,    150,       -1}, /* Poker II (Sachen) [!] */
@@ -341,10 +353,10 @@
 	{0x071e4ee8,    114,        0}, /* m114,submapper 1 test rom */
 	{0xfe3e03a1,    197,       -1}, /* Mortal Kombat III Special (YY-030) (Ch) [!] */
 	{0x9151d311,    197,       -1}, /* Mortal Kombat III 28 Peoples (NT-328) (Ch) [!] */
-	{0xf6bd8e31,    281,        0}, /* 1997 Super HIK 4-in-1 (JY-052) [p1][!] */
 
 	/* ines mappers that uses iNes 2.0 numbers */
 
+	{0xf6bd8e31,    281,        0}, /* 1997 Super HIK 4-in-1 (JY-052) [p1][!] */
 	{0x5aa23a15,    361,        0}, /* 4-in-1 (OK-411)[p1][!] */
 	{0xf6b9d088,    366,        0}, /* 4-in-1 (K-3131GS, GN-45) [p1][!] */
 	{0x503566b2,    366,        0}, /* 4-in-1 (K-3131SS, GN-45) [p1][!] */

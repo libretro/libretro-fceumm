@@ -541,3 +541,36 @@ static void BMCG146Sync(void) {
 void BMCG146_Init(CartInfo *info) {
 	Latch_Init(info, BMCG146Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
+
+/*-------------- BMC-TJ-03 ------------------------*/
+/* NES 2.0 mapper 341 is used for a simple 4-in-1 multicart */
+
+static void BMCTJ03Sync(void) {
+	uint8 mirr = ((latche >> 1) & 1) ^ 1;
+	uint8 bank = (latche >> 8) & 7;
+
+	setprg32(0x8000, bank);
+	setchr8(bank);
+
+	if (bank == 3) mirr ^= 1; /* Twin Bee has incorrect mirroring */
+	SetupCartMirroring(mirr, 1, NULL);
+}
+
+void BMCTJ03_Init(CartInfo *info) {
+	Latch_Init(info, BMCTJ03Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+}
+
+/*-------------- BMC-SA005-A ------------------------*/
+/* NES 2.0 mapper 338 is used for a 16-in-1 and a 200/300/600/1000-in-1 multicart.
+ * http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_338 */
+
+static void BMCSA005ASync(void) {
+	setprg16(0x8000, latche & 0x0F);
+	setprg16(0xC000, latche & 0x0F);
+	setchr8(latche & 0x0F);
+	SetupCartMirroring((latche >> 3) & 1, 1, NULL);
+}
+
+void BMCSA005A_Init(CartInfo *info) {
+	Latch_Init(info, BMCSA005ASync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+}
