@@ -564,6 +564,8 @@ struct st_palettes palettes[] = {
    }
 };
 
+static bool libretro_supports_bitmasks = false;
+
 unsigned retro_api_version(void)
 {
    return RETRO_API_VERSION;
@@ -907,6 +909,9 @@ void retro_init(void)
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
 #endif
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
+      libretro_supports_bitmasks = true;
 }
 
 static void retro_set_custom_palette(void)
@@ -1020,7 +1025,7 @@ void retro_deinit (void)
 #if defined(RENDER_GSKIT_PS2)
    ps2 = NULL;
 #endif
-
+   libretro_supports_bitmasks = false;
 }
 
 void retro_reset(void)
@@ -1034,16 +1039,6 @@ typedef struct
    unsigned nes;
 } keymap;
 
-static const keymap bindmap[] = {
-   { RETRO_DEVICE_ID_JOYPAD_A, JOY_A },
-   { RETRO_DEVICE_ID_JOYPAD_B, JOY_B },
-   { RETRO_DEVICE_ID_JOYPAD_SELECT, JOY_SELECT },
-   { RETRO_DEVICE_ID_JOYPAD_START, JOY_START },
-   { RETRO_DEVICE_ID_JOYPAD_UP, JOY_UP },
-   { RETRO_DEVICE_ID_JOYPAD_DOWN, JOY_DOWN },
-   { RETRO_DEVICE_ID_JOYPAD_LEFT, JOY_LEFT },
-   { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
-};
 
 static const keymap turbomap[] = {
    { RETRO_DEVICE_ID_JOYPAD_X, JOY_A },
@@ -1491,9 +1486,45 @@ static void FCEUD_UpdateInput(void)
 
       if (player_enabled)
       {
-         for (i = 0; i < MAX_BUTTONS; i++)
-            input_buf |= input_cb(player, RETRO_DEVICE_JOYPAD, 0,
-               bindmap[i].retro) ? bindmap[i].nes : 0;
+         int16_t ret;
+
+         if (libretro_supports_bitmasks)
+         {
+            ret = input_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_A))
+               input_buf |= JOY_A;
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_B))
+               input_buf |= JOY_B;
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_SELECT))
+               input_buf |= JOY_SELECT;
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_START))
+               input_buf |= JOY_START;
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_UP))
+               input_buf |= JOY_UP;
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_DOWN))
+               input_buf |= JOY_DOWN;
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT))
+               input_buf |= JOY_LEFT;
+            if (ret & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT))
+               input_buf |= JOY_RIGHT;
+         }
+         else
+         {
+            static const keymap bindmap[] = {
+               { RETRO_DEVICE_ID_JOYPAD_A, JOY_A },
+               { RETRO_DEVICE_ID_JOYPAD_B, JOY_B },
+               { RETRO_DEVICE_ID_JOYPAD_SELECT, JOY_SELECT },
+               { RETRO_DEVICE_ID_JOYPAD_START, JOY_START },
+               { RETRO_DEVICE_ID_JOYPAD_UP, JOY_UP },
+               { RETRO_DEVICE_ID_JOYPAD_DOWN, JOY_DOWN },
+               { RETRO_DEVICE_ID_JOYPAD_LEFT, JOY_LEFT },
+               { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
+            };
+            for (i = 0; i < MAX_BUTTONS; i++)
+               input_buf |= input_cb(player, RETRO_DEVICE_JOYPAD, 0,
+                     bindmap[i].retro) ? bindmap[i].nes : 0;
+         }
 
          /* Turbo A and Turbo B buttons are
           * mapped to Joypad X and Joypad Y
