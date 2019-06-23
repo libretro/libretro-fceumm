@@ -493,6 +493,8 @@ static BMAPPING bmap[] = {
 	{ "KS106C", BMCKS106C_Init, 0 },
 	{ "900218", BTL900218_Init, 0 },
 
+	{ "JC-016-2", Mapper205_Init, 0 },
+
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
 	{ "COPYFAMI", MapperCopyFami_Init, 0 },
