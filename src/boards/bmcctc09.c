@@ -43,7 +43,7 @@ static void Sync(void) {
 		setprg32(0x8000, regs[PRG] & 0x07);
 
 	setchr8(regs[CHR] & 0x0F);
-	SetupCartMirroring(((regs[PRG] >> 5) & 1) ^ 1, 1, NULL);
+	setmirror(((regs[PRG] >> 5) & 1) ^ 1);
 }
 
 static DECLFW(WritePRG) {

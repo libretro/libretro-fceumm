@@ -43,7 +43,7 @@ static void Sync(void) {
 		setprg16(0xC000, regs[0] & 0x1F | 0x07);
 	}
 	setchr8(0);
-	SetupCartMirroring(((regs[0] & 0x25) == 0x25 ? MI_H : MI_V), 1, NULL);
+	setmirror(((regs[0] & 0x25) == 0x25) ? MI_H : MI_V);
 }
 
 static DECLFW(M340Write) {
