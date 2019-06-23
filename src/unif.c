@@ -113,7 +113,8 @@ static uint8 exntar[2048];
 
 static void MooMirroring(void) {
 	if (mirrortodo < 0x4)
-		SetupCartMirroring(mirrortodo, 1, 0);
+		/* 06-22-19 Allow override when using vertical/horizontal mirroring. */
+		SetupCartMirroring(mirrortodo, (mirrortodo >> 1) & 1, 0);
 	else if (mirrortodo == 0x4) {
 		SetupCartMirroring(4, 1, exntar);
 		AddExState(exntar, 2048, 0, "EXNR");
