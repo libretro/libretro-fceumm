@@ -495,6 +495,7 @@ static BMAPPING bmap[] = {
 
 	{ "JC-016-2", Mapper205_Init, 0 },
 	{ "AX-40G", UNLAX40G_Init, 0 },
+	{ " BMC-STREETFIGTER-GAME4IN1", BMCSFGAME4IN1_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },

@@ -599,6 +599,12 @@ void Mapper47_Init(CartInfo *info) {
 }
 
 /* ---------------------------- Mapper 49 ------------------------------- */
+/* -------------------- BMC-STREETFIGTER-GAME4IN1 ----------------------- */
+/* added 6-24-19:
+ * BMC-STREETFIGTER-GAME4IN1 - Sic. $6000 set to $41 rather than $00 on power-up.
+ */
+
+static uint8 isUNIF = 0;
 
 static void M49PW(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 1) {
@@ -625,11 +631,12 @@ static DECLFW(M49Write) {
 }
 
 static void M49Reset(void) {
-	EXPREGS[0] = 0;
+	EXPREGS[0] = isUNIF ? 0x41 : 0;
 	MMC3RegReset();
 }
 
 static void M49Power(void) {
+	EXPREGS[0] = isUNIF ? 0x41 : 0;
 	M49Reset();
 	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x7FFF, M49Write);
@@ -637,7 +644,18 @@ static void M49Power(void) {
 }
 
 void Mapper49_Init(CartInfo *info) {
+	isUNIF = 0;
 	GenMMC3_Init(info, 512, 256, 0, 0);
+	cwrap = M49CW;
+	pwrap = M49PW;
+	info->Reset = M49Reset;
+	info->Power = M49Power;
+	AddExState(EXPREGS, 1, 0, "EXPR");
+}
+
+void BMCSFGAME4IN1_Init(CartInfo *info) {
+	isUNIF = 1;
+	GenMMC3_Init(info, 512, 512, 0, 0);
 	cwrap = M49CW;
 	pwrap = M49PW;
 	info->Reset = M49Reset;
