@@ -182,6 +182,7 @@ void BTL900218_Init(CartInfo *info);		/* m524 */
 void UNLAX40G_Init(CartInfo *info);			/* m527 */
 void BMCK3088_Init(CartInfo *info);			/* m287 */
 void BMCSFGAME4IN1_Init(CartInfo *info);	/* m049 */
+void UNLBJ56_Init(CartInfo *info);			/* m526 */
 
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);
