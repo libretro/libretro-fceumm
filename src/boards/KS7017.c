@@ -23,7 +23,7 @@
 
 #include "mapinc.h"
 
-static uint8 reg, mirr;
+static uint8 latche, reg, mirr;
 static int32 IRQa, IRQCount, IRQLatch;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
@@ -35,6 +35,7 @@ static SFORMAT StateRegs[] =
 	{ &IRQa, 4, "IRQA" },
 	{ &IRQCount, 4, "IRQC" },
 	{ &IRQLatch, 4, "IRQL" },
+	{ &latche, 1, "LATC" },
 	{ 0 }
 };
 
@@ -47,8 +48,9 @@ static void Sync(void) {
 static DECLFW(UNLKS7017Write) {
 /*	FCEU_printf("bs %04x %02x\n",A,V); */
 	if ((A & 0xFF00) == 0x4A00) {
-		reg = ((A >> 2) & 3) | ((A >> 4) & 4);
+		latche = ((A >> 2) & 3) | ((A >> 4) & 4);
 	} else if ((A & 0xFF00) == 0x5100) {
+		reg = latche;
 		Sync();
 	} else if (A == 0x4020) {
 		X6502_IRQEnd(FCEU_IQEXT);
