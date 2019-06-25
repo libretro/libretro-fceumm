@@ -130,13 +130,13 @@ static void tekprom(void) {
 		case 0x00:
 			if (tkcom[0] & 0x80)
 				setprg8(0x6000, (((prgb[3] << 2) + 3) & 0x3F) | bankmode);
-			setprg32(0x8000, last_bank & prgmask | bankmode);
+			setprg32(0x8000, (last_bank & prgmask) | bankmode);
 			break;
 		case 0x01:
 			if (tkcom[0] & 0x80)
 				setprg8(0x6000, (((prgb[3] << 1) + 1) & 0x3F) | bankmode);
 			setprg16(0x8000, (prgb[1] & prgmask) | bankmode);
-			setprg16(0xC000, last_bank & prgmask | bankmode);
+			setprg16(0xC000, (last_bank & prgmask) | bankmode);
 			break;
 		case 0x02:
 		case 0x03:

@@ -39,8 +39,8 @@ static void Sync(void) {
 		setprg16(0x8000, regs[0] & 0x1F);
 		setprg16(0xC000, regs[0] & 0x1F);
 	} else {									/* UNROM */
-		setprg16(0x8000, regs[0] & 0x1F | regs[1] & 0x07);
-		setprg16(0xC000, regs[0] & 0x1F | 0x07);
+		setprg16(0x8000, (regs[0] & 0x1F) | (regs[1] & 0x07));
+		setprg16(0xC000, (regs[0] & 0x1F) | 0x07);
 	}
 	setchr8(0);
 	setmirror(((regs[0] & 0x25) == 0x25) ? MI_H : MI_V);

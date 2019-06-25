@@ -440,6 +440,6 @@ void FARIDSLROM8IN1_Init(CartInfo *info) {
 	MMC1PRGHook16 = FARIDSLROM8IN1PRGHook;
 	info->Power = FARIDSLROM8IN1Power;
 	info->Reset = FARIDSLROM8IN1Reset;
-	AddExState(lock, 1, 0, "LOCK");
-	AddExState(reg, 1, 0, "REG6");
+	AddExState(&lock, 1, 0, "LOCK");
+	AddExState(&reg, 1, 0, "REG6");
 }
