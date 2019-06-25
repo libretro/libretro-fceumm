@@ -185,6 +185,9 @@ void BMCSFGAME4IN1_Init(CartInfo *info);	/* m049 */
 void UNLBJ56_Init(CartInfo *info);			/* m526 */
 void BMCL6IN1_Init(CartInfo *info);			/* m345 */
 
+void BMCCTC12IN1_Init(CartInfo *info);		/* m337 */
+void BMC891227_Init(CartInfo *info);		/* m350 */
+
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);
 void MapperCopyFami_Init(CartInfo *info);
