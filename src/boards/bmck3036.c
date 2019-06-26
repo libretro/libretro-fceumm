@@ -26,40 +26,44 @@
 
 #include "mapinc.h"
 
-static uint8 regs[2];
+static uint8 regs[2], mirr, mode;
 
 static SFORMAT StateRegs[] =
 {
-	{ regs, 2, "REGS" },
+	{ regs,  2, "REGS" },
+	{ &mode, 1, "MODE" },
+	{ &mirr, 1, "MIRR" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (regs[0] & 0x20) {						/* NROM-128 */
-		setprg16(0x8000, regs[0] & 0x1F);
-		setprg16(0xC000, regs[0] & 0x1F);
+	if (mode) {						/* NROM-128 */
+		setprg16(0x8000, regs[0]);
+		setprg16(0xC000, regs[0]);
 	} else {									/* UNROM */
-		setprg16(0x8000, (regs[0] & 0x1F) | (regs[1] & 0x07));
-		setprg16(0xC000, (regs[0] & 0x1F) | 0x07);
+		setprg16(0x8000, regs[0] | regs[1]);
+		setprg16(0xC000, regs[0] | 0x07);
 	}
 	setchr8(0);
-	setmirror(((regs[0] & 0x25) == 0x25) ? MI_H : MI_V);
+	setmirror(mirr);
 }
 
 static DECLFW(M340Write) {
-	regs[0] = A & 0xFF;
-	regs[1] = V & 0xFF;
+	regs[0] = A & 0x1F;
+	regs[1] = V & 0x07;
+	mode = A & 0x20;
+	mirr = ((A & 0x25) == 0x25) ? 0 : 1;
 	Sync();
 }
 
 static void BMCK3036Power(void) {
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xBFFF, M340Write);
+	SetWriteHandler(0x8000, 0xFFFF, M340Write);
 }
 
 static void BMCK3036Reset(void) {
-	regs[0] = regs[1] = 0;
+	regs[0] = regs[1] = mode = mirr = 0;
 	Sync();
 }
 
