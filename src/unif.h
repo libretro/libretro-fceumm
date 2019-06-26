@@ -189,6 +189,7 @@ void BMCCTC12IN1_Init(CartInfo *info);		/* m337 */
 void BMC891227_Init(CartInfo *info);		/* m350 */
 void FARIDUNROM_Init(CartInfo *info);		/* m324 */
 void BMCK3033_Init(CartInfo *info);			/* mm22 */
+void BMC830134C_Init(CartInfo *info);		/* m315 */
 
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);
