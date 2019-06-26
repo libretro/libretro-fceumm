@@ -59,7 +59,7 @@ static void StateRestore(int version) {
 
 void BMCRESETNROMXIN1_Init(CartInfo *info) {
 	uint8 x;
-	uint64 partialmd5;
+	uint64 partialmd5 = 0;
 
 	for (x = 0; x < 8; x++)
 		partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);

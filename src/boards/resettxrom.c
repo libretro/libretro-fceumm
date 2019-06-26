@@ -28,11 +28,11 @@
 #include "mmc3.h"
 
 static void M313CW(uint32 A, uint8 V) {
-	setchr1r(EXPREGS[0], A, V & 0x7F);
+	setchr1r(CHRptr[1] ? EXPREGS[0] : 0, A, (EXPREGS[0] << 7) | (V & 0x7F));
 }
 
 static void M313PW(uint32 A, uint8 V) {
-	setprg8r(EXPREGS[0], A, V & 0x0F);
+	setprg8r(PRGptr[1] ? EXPREGS[0] : 0, A, (EXPREGS[0] << 4) | (V & 0x0F));
 }
 
 static void M313Reset(void) {
@@ -48,7 +48,7 @@ static void M313Power(void) {
 
 /* NES 2.0 313, UNIF BMC-RESET-TXROM */
 void BMCRESETTXROM_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 256, 0, 0);
+	GenMMC3_Init(info, 128, 128, 0, 0);
 	cwrap = M313CW;
 	pwrap = M313PW;
 	info->Power = M313Power;
