@@ -553,7 +553,7 @@ static void BMCTJ03Sync(void) {
 	setchr8(bank);
 
 	if (bank == 3) mirr ^= 1; /* Twin Bee has incorrect mirroring */
-	SetupCartMirroring(mirr, 1, NULL);
+	setmirror(mirr);
 }
 
 void BMCTJ03_Init(CartInfo *info) {
@@ -568,7 +568,7 @@ static void BMCSA005ASync(void) {
 	setprg16(0x8000, latche & 0x0F);
 	setprg16(0xC000, latche & 0x0F);
 	setchr8(latche & 0x0F);
-	SetupCartMirroring((latche >> 3) & 1, 1, NULL);
+	setmirror((latche >> 3) & 1);
 }
 
 void BMCSA005A_Init(CartInfo *info) {

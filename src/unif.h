@@ -179,6 +179,18 @@ void BMCK3036_Init(CartInfo *info);			/* m340 */
 void MINDKIDS_Init(CartInfo *info);			/* m268 */
 void UNLKS7021A_Init(CartInfo *info);		/* m525 */
 void BTL900218_Init(CartInfo *info);		/* m524 */
+void UNLAX40G_Init(CartInfo *info);			/* m527 */
+void BMCK3088_Init(CartInfo *info);			/* m287 */
+void BMCSFGAME4IN1_Init(CartInfo *info);	/* m049 */
+void UNLBJ56_Init(CartInfo *info);			/* m526 */
+void BMCL6IN1_Init(CartInfo *info);			/* m345 */
+
+void BMCCTC12IN1_Init(CartInfo *info);		/* m337 */
+void BMC891227_Init(CartInfo *info);		/* m350 */
+void FARIDUNROM_Init(CartInfo *info);		/* m324 */
+void BMCK3033_Init(CartInfo *info);			/* mm22 */
+void BMC830134C_Init(CartInfo *info);		/* m315 */
+void BMCGN26_Init(CartInfo *info);			/* m344 */
 
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);

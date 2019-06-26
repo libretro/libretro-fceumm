@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2019 Libretro Team
+ *
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,40 +18,51 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* NES 2.0 Mapper 313 is used for MMC3-based multicarts that switch
- * between 128 KiB PRG-ROM/128 KiB CHR-ROM-sized games on each reset and
- * thus require no additional registers.
- * Its UNIF board name is BMC-RESET-TXROM.
+/* NES 2.0 Mapper 344
+ * BMC-GN-26
+ * Kuai Da Jin Ka Zhong Ji Tiao Zhan 3-in-1 (3-in-1,6-in-1,Unl)
  */
 
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M313CW(uint32 A, uint8 V) {
-	setchr1r(CHRptr[1] ? EXPREGS[0] : 0, A, (EXPREGS[0] << 7) | (V & 0x7F));
+static void BMCGN26CW(uint32 A, uint8 V) {
+	uint32 chip = (EXPREGS[0] & 0x03);
+	if (chip) chip -= 1;
+	setchr1r(chip, A, (V & 0xFF));
 }
 
-static void M313PW(uint32 A, uint8 V) {
-	setprg8r(PRGptr[1] ? EXPREGS[0] : 0, A, (EXPREGS[0] << 4) | (V & 0x0F));
+static void BMCGN26PW(uint32 A, uint8 V) {
+	uint32 chip = (EXPREGS[0] & 0x03);
+	if (chip) chip -= 1; /* Re-ordered -> 0:SF4 1:Contra Force 2:Revolution Hero */
+	if (EXPREGS[0] & 4) {
+		if (A == 0x8000)
+			setprg32r(chip, 0x8000, (V >> 2));
+	} else
+		setprg8r(chip, A, (V & 0x0F));
 }
 
-static void M313Reset(void) {
-	EXPREGS[0]++;
-	EXPREGS[0] &= 0x03;
+static DECLFW(BMCGN26Write) {
+	EXPREGS[0] = A & 0x0F;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
+}
+
+static void BMCGN26Reset(void) {
+	EXPREGS[0] = 0;
 	MMC3RegReset();
 }
 
-static void M313Power(void) {
-	EXPREGS[0] = 0;
+static void BMCGN26Power(void) {
 	GenMMC3Power();
+	SetWriteHandler(0x6800, 0x68FF, BMCGN26Write);
 }
 
-/* NES 2.0 313, UNIF BMC-RESET-TXROM */
-void BMCRESETTXROM_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 0, 0);
-	cwrap = M313CW;
-	pwrap = M313PW;
-	info->Power = M313Power;
-	info->Reset = M313Reset;
+void BMCGN26_Init(CartInfo *info) {
+	GenMMC3_Init(info, 128, 256, 1, 0);
+	pwrap = BMCGN26PW;
+	cwrap = BMCGN26CW;
+	info->Power = BMCGN26Power;
+	info->Reset = BMCGN26Reset;
 	AddExState(EXPREGS, 1, 0, "EXPR");
 }

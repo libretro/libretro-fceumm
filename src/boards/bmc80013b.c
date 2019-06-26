@@ -35,11 +35,11 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	if (mode & 0x02)
-		setprg16(0x8000, regs[0] & 0x0F | regs[1] & 0x70);
+		setprg16(0x8000, (regs[0] & 0x0F) | (regs[1] & 0x70));
 	else
 		setprg16r(1, 0x8000, regs[0] & 0x03);
 	setprg16(0xC000, regs[1]);
-	SetupCartMirroring(((regs[0] >> 4) & 1) ^ 1, 1, NULL);
+	setmirror(((regs[0] >> 4) & 1) ^ 1);
 }
 
 static DECLFW(BMC80013BWrite) {

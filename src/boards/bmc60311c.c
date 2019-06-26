@@ -66,7 +66,7 @@ static void Sync(void) {
 	setchr8(0);
 	setprg16(0x8000, preg[0]);
 	setprg16(0xC000, preg[1]);
-	SetupCartMirroring(((mode & 8) >> 3) ^ 1, 1, NULL);
+	setmirror(((mode & 8) >> 3) ^ 1);
 }
 
 static DECLFW(Write0) {

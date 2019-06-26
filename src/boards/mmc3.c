@@ -599,6 +599,12 @@ void Mapper47_Init(CartInfo *info) {
 }
 
 /* ---------------------------- Mapper 49 ------------------------------- */
+/* -------------------- BMC-STREETFIGTER-GAME4IN1 ----------------------- */
+/* added 6-24-19:
+ * BMC-STREETFIGTER-GAME4IN1 - Sic. $6000 set to $41 rather than $00 on power-up.
+ */
+
+static uint8 isUNIF = 0;
 
 static void M49PW(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 1) {
@@ -625,11 +631,12 @@ static DECLFW(M49Write) {
 }
 
 static void M49Reset(void) {
-	EXPREGS[0] = 0;
+	EXPREGS[0] = isUNIF ? 0x41 : 0;
 	MMC3RegReset();
 }
 
 static void M49Power(void) {
+	EXPREGS[0] = isUNIF ? 0x41 : 0;
 	M49Reset();
 	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x7FFF, M49Write);
@@ -637,7 +644,18 @@ static void M49Power(void) {
 }
 
 void Mapper49_Init(CartInfo *info) {
+	isUNIF = 0;
 	GenMMC3_Init(info, 512, 256, 0, 0);
+	cwrap = M49CW;
+	pwrap = M49PW;
+	info->Reset = M49Reset;
+	info->Power = M49Power;
+	AddExState(EXPREGS, 1, 0, "EXPR");
+}
+
+void BMCSFGAME4IN1_Init(CartInfo *info) {
+	isUNIF = 1;
+	GenMMC3_Init(info, 512, 512, 0, 0);
 	cwrap = M49CW;
 	pwrap = M49PW;
 	info->Reset = M49Reset;
@@ -1169,20 +1187,29 @@ void Mapper198_Init(CartInfo *info) {
 }
 
 /* ---------------------------- Mapper 205 ------------------------------ */
-/* https://wiki.nesdev.com/w/index.php/INES_Mapper_205 */
+/* UNIF boardname BMC-JC-016-2
+https://wiki.nesdev.com/w/index.php/INES_Mapper_205 */
+static uint8 block[] = {0, 0, 1, 2};
 
 static void M205PW(uint32 A, uint8 V) {
-	setprg8(A, EXPREGS[0] & 0x30 | (V & (!(EXPREGS[0] & 0xC0) ? 0x1F : 0x0F)));
+	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x0F : 0x1F);
+	if (PRGptr[1])
+		setprg8r(block[EXPREGS[0]], A, bank);
+	else
+		setprg8(A, EXPREGS[0] << 4 | bank);
 }
 
 static void M205CW(uint32 A, uint8 V) {
-	uint16 reg = (uint16)EXPREGS[0] & 0x30;
-	setchr1(A, (reg << 3) | V);
+	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x7F : 0xFF);
+	if (PRGptr[1])
+		setchr1r(block[EXPREGS[0]], A, bank);
+	else
+		setchr1(A, (EXPREGS[0] << 7) | bank);
 }
 
 static DECLFW(M205Write0) {
 	if (EXPREGS[1] == 0) {
-		EXPREGS[0] = (V << 4) & 0x30;
+		EXPREGS[0] = V & 0x03;
 		EXPREGS[1] = A & 0x80;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
@@ -1212,7 +1239,7 @@ static void M205Power(void) {
 }
 
 void Mapper205_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 8, 0);
+	GenMMC3_Init(info, 256, 128, 8, 0);
 	pwrap = M205PW;
 	cwrap = M205CW;
 	info->Power = M205Power;
