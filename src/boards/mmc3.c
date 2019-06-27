@@ -905,13 +905,19 @@ void Mapper119_Init(CartInfo *info) {
 }
 
 /* ---------------------------- Mapper 134 ------------------------------ */
+/* ---------------------------- UNL-T4A54A ------------------------------ */
+
+/* UNL-T4A54A, functionally the same as mapper 134.
+ * Writes @ $6801. Menu @ prg $20000, chr $00000 */
 
 static void M134PW(uint32 A, uint8 V) {
-	setprg8(A, (V & 0x1F) | ((EXPREGS[0] & 2) << 4));
+	uint8 mask = (EXPREGS[0] & 0x04) ? 0x0F : 0x1F;
+	setprg8r(PRGptr[1] ? (EXPREGS[0] & 3) : 0, A, (V & mask) | ((EXPREGS[0] & 3) << 4));
 }
 
 static void M134CW(uint32 A, uint8 V) {
-	setchr1(A, (V & 0xFF) | ((EXPREGS[0] & 0x20) << 3));
+	uint8 mask = (EXPREGS[0] & 0x04) ? 0x7F : 0xFF;
+	setchr1r(PRGptr[1] ? (EXPREGS[0] & 0x30) >> 4 : 0, A, (V & mask) | ((EXPREGS[0] & 0x30) << 3));
 }
 
 static DECLFW(M134Write) {
@@ -921,13 +927,14 @@ static DECLFW(M134Write) {
 }
 
 static void M134Power(void) {
-	EXPREGS[0] = 0;
+	EXPREGS[0] = 0x01;
 	GenMMC3Power();
 	SetWriteHandler(0x6001, 0x6001, M134Write);
+	SetWriteHandler(0x6801, 0x6801, M134Write);
 }
 
 static void M134Reset(void) {
-	EXPREGS[0] = 0;
+	EXPREGS[0] = 0x01;
 	MMC3RegReset();
 }
 
