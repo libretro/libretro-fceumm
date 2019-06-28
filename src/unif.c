@@ -73,6 +73,9 @@ static UNIF_HEADER uchead;
 static uint8 *malloced[32];
 static uint32 mallocedsizes[32];
 
+static uint32 prg_chip_count;
+static uint32 chr_chip_count;
+
 static int FixRomSize(uint32 size, uint32 minimum) {
 	uint32 x = 1;
 
@@ -107,6 +110,8 @@ static void ResetUNIF(void) {
 	mirrortodo = 0;
 	memset(&UNIFCart, 0, sizeof(UNIFCart));
 	UNIFchrrama = 0;
+	prg_chip_count = 0;
+	chr_chip_count = 0;
 }
 
 static uint8 exntar[2048];
@@ -272,6 +277,7 @@ static int LoadPRG(FCEUFILE *fp) {
 		FCEU_printf("\n"); */
 
 	SetupCartPRGMapping(z, malloced[z], t, 0);
+	prg_chip_count++;
 	return(1);
 }
 
@@ -307,6 +313,7 @@ static int LoadCHR(FCEUFILE *fp) {
 		FCEU_printf("\n"); */
 
 	SetupCartCHRMapping(z, malloced[16 + z], t, 0);
+	chr_chip_count++;
 	return(1);
 }
 
@@ -584,12 +591,17 @@ static int InitializeBoard(void) {
 			if (bmap[x].flags & BMCFLAG_FORCE4)
 				mirrortodo = 4;
 			MooMirroring();
+
+			PRGchip_max = prg_chip_count - 1;
+			if (chr_chip_count)
+				CHRchip_max = chr_chip_count - 1;
+
 			bmap[x].init(&UNIFCart);
 			return(1);
 		}
 		x++;
 	}
-	FCEU_PrintError("Board type not supported.", boardname);
+	FCEU_PrintError("Board type not supported, '%s'.", boardname);
 	return(0);
 }
 

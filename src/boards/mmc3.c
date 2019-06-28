@@ -44,6 +44,8 @@ uint8 mmc3opts = 0;
 uint8 IRQCount, IRQLatch, IRQa;
 uint8 IRQReload;
 
+static uint8 chip;
+
 static SFORMAT MMC3_StateRegs[] =
 {
 	{ DRegBuf, 8, "REGS" },
@@ -912,12 +914,22 @@ void Mapper119_Init(CartInfo *info) {
 
 static void M134PW(uint32 A, uint8 V) {
 	uint8 mask = (EXPREGS[0] & 0x04) ? 0x0F : 0x1F;
-	setprg8r(PRGptr[1] ? (EXPREGS[0] & 3) : 0, A, (V & mask) | ((EXPREGS[0] & 3) << 4));
+	if (PRGptr[1]) {
+		chip = (EXPREGS[0] & 3);
+		if (chip > PRGchip_max) chip &= PRGchip_max;
+		setprg8r(chip, A, (V & mask));
+	} else
+		setprg8(A, (V & mask) | ((EXPREGS[0] & 3) << 4));
 }
 
 static void M134CW(uint32 A, uint8 V) {
 	uint8 mask = (EXPREGS[0] & 0x04) ? 0x7F : 0xFF;
-	setchr1r(PRGptr[1] ? (EXPREGS[0] & 0x30) >> 4 : 0, A, (V & mask) | ((EXPREGS[0] & 0x30) << 3));
+	if (CHRptr[1]) {
+		chip = (EXPREGS[0] & 0x30) >> 4;
+		if (chip > CHRchip_max) chip &= CHRchip_max;
+		setchr1r(chip, A, (V & mask));
+	} else
+		setchr1(A, (V & mask) | ((EXPREGS[0] & 0x30) << 3));
 }
 
 static DECLFW(M134Write) {
@@ -1200,17 +1212,21 @@ static uint8 block[] = {0, 0, 1, 2};
 
 static void M205PW(uint32 A, uint8 V) {
 	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x0F : 0x1F);
-	if (PRGptr[1])
-		setprg8r(block[EXPREGS[0]], A, bank);
-	else
+	if (PRGptr[1]) {
+		chip = block[EXPREGS[0]];
+		if (chip > PRGchip_max) chip &= PRGchip_max;
+		setprg8r(chip, A, bank);
+	} else
 		setprg8(A, EXPREGS[0] << 4 | bank);
 }
 
 static void M205CW(uint32 A, uint8 V) {
 	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x7F : 0xFF);
-	if (PRGptr[1])
-		setchr1r(block[EXPREGS[0]], A, bank);
-	else
+	if (CHRptr[1]) {
+		chip = block[EXPREGS[0]];
+		if (chip > CHRchip_max) chip &= CHRchip_max;
+		setchr1r(chip, A, bank);
+	} else
 		setchr1(A, (EXPREGS[0] << 7) | bank);
 }
 

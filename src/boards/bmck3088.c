@@ -24,24 +24,31 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
+static uint8 chip;
+
 static void BMCK3088CW(uint32 A, uint8 V) {
-	if (CHRptr[EXPREGS[0] & 7])
-		setchr1r(EXPREGS[0] & 7, A, V);
-	else
+	if (CHRptr[1]) {
+		chip = EXPREGS[0] & 7;
+		if (chip > CHRchip_max) chip &= CHRchip_max;
+		setchr1r(chip, A, V);
+	} else
 		setchr1(A, V | ((EXPREGS[0] & 3) << 7));
 }
 
 static void BMCK3088PW(uint32 A, uint8 V) {
-	if (PRGptr[EXPREGS[0] & 7]) {
-		uint8 chip = EXPREGS[0] & 7;
-		if (EXPREGS[0] & 8)
-			setprg32r(chip, 0x8000, ((EXPREGS[0] >> 4) & 3));
-		else
+	if (PRGptr[1]) {
+		chip = EXPREGS[0] & 7;
+		if (chip > PRGchip_max) chip &= PRGchip_max;
+		if (EXPREGS[0] & 8) {
+			if (A == 0x8000)
+				setprg32r(chip, A, ((EXPREGS[0] >> 4) & 3));
+		} else
 			setprg8r(chip, A, (V & 0x0F));
 	} else {
-		if (EXPREGS[0] & 8)
-			setprg32(0x8000, ((EXPREGS[0] >> 4) & 3) | (0x0C));
-		else
+		if (EXPREGS[0] & 8) {
+			if (A == 0x8000)
+				setprg32(A, ((EXPREGS[0] >> 4) & 3) | (0x0C));
+		} else
 			setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 3) << 4));
 	}
 }
