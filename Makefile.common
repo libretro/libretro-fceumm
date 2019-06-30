@@ -11,7 +11,7 @@ COREDEFINES += -DPSS_STYLE=1
 endif
 
 ifeq ($(TUP_CWD),)
-FCEU_SRC_DIRS := $(CORE_DIR)/boards $(CORE_DIR)/input
+FCEU_SRC_DIRS := $(CORE_DIR)/boards $(CORE_DIR)/input $(CORE_DIR)/mappers
 SOURCES_C     := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
 else
 SOURCES_C = $(CORE_DIR)/boards/*.c $(CORE_DIR)/input/*.c
