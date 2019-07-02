@@ -20,6 +20,7 @@
 
 #include "mapinc.h"
 
+static uint8 chip;
 static uint8 bank, base, lock, mirr, mode;
 static SFORMAT StateRegs[] =
 {
@@ -34,8 +35,10 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	setchr8(0);
 	if (PRGptr[1]) {
-		setprg16r(base >> 3, 0x8000, bank);
-		setprg16r(base >> 3, 0xC000, (mode ? bank : 7));
+		chip = base >> 3;
+		if (chip > PRGchip_max) chip &= PRGchip_max;
+		setprg16r(chip, 0x8000, bank);
+		setprg16r(chip, 0xC000, (mode ? bank : 7));
 	} else {
 		setprg16(0x8000, base | bank);
 		setprg16(0xC000, base | (mode ? bank : 7));

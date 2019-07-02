@@ -88,8 +88,3 @@ void UNLAX40G_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
-
-/*void UNLAX40G_Init(CartInfo *info);			// m527
-{ "AX-40G", UNLAX40G_Init, 0 },
-{ "JC-016-2", Mapper205_Init, 0 },
-*/

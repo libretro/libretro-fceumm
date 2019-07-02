@@ -27,12 +27,24 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
+static uint8 chip;
+
 static void M313CW(uint32 A, uint8 V) {
-	setchr1r(CHRptr[1] ? EXPREGS[0] : 0, A, (EXPREGS[0] << 7) | (V & 0x7F));
+	if (CHRptr[1]) {
+		chip = EXPREGS[0];
+		if (chip > CHRchip_max) chip &= CHRchip_max;
+		setchr1r(chip, A, (V & 0x7F));
+	} else
+		setchr1(A, (EXPREGS[0] << 7) | (V & 0x7F));
 }
 
 static void M313PW(uint32 A, uint8 V) {
-	setprg8r(PRGptr[1] ? EXPREGS[0] : 0, A, (EXPREGS[0] << 4) | (V & 0x0F));
+	if (PRGptr[1]) {
+		chip = EXPREGS[0];
+		if (chip > PRGchip_max) chip &= PRGchip_max;
+		setprg8r(chip, A, (V & 0x0F));
+	} else
+		setprg8(A, (EXPREGS[0] << 4) | (V & 0x0F));
 }
 
 static void M313Reset(void) {

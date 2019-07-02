@@ -23,6 +23,7 @@
 
 #include "mapinc.h"
 
+static uint8 chip;
 static uint16 cmdreg;
 static uint8 reset;
 static SFORMAT StateRegs[] =
@@ -36,13 +37,12 @@ static void Sync(void) {
 	uint32 base = ((cmdreg & 0x060) | ((cmdreg & 0x100) >> 1)) >> 2;
 	uint32 bank = (cmdreg & 0x01C) >> 2;
 	uint32 lbank = (cmdreg & 0x200) ? 7 : ((cmdreg & 0x80) ? bank : 0);
-	/* this fails to load at least one game, which probably has invalid PRG size in header
-	 * (rom is only 512KB but reported as having 3 prg banks with 128k each) */
-	/*if (PRGptr[1]) {
-		setprg16r(base >> 3, 0x8000, bank);        // for versions with split ROMs
-		setprg16r(base >> 3, 0xC000, lbank);
-	} else*/
-	{
+	if (PRGptr[1]) {
+		chip = base >> 3;
+		if (chip > PRGchip_max) chip &= PRGchip_max;
+		setprg16r(chip, 0x8000, bank);        /* for versions with split ROMs */
+		setprg16r(chip, 0xC000, lbank);
+	} else {
 		setprg16(0x8000, base | bank);
 		setprg16(0xC000, base | lbank);
 	}

@@ -18,7 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* BMC-RESETNROM-XIN1
+/* NES 2.0 Mapper 343
+ * BMC-RESETNROM-XIN1
  * - Sheng Tian 2-in-1(Unl,ResetBase)[p1] - Kung Fu (Spartan X), Super Mario Bros (alt)
  * - Sheng Tian 2-in-1(Unl,ResetBase)[p2] - B-Wings, Twin-bee
  *
@@ -58,18 +59,6 @@ static void StateRestore(int version) {
 }
 
 void BMCRESETNROMXIN1_Init(CartInfo *info) {
-	uint8 x;
-	uint64 partialmd5 = 0;
-
-	for (x = 0; x < 8; x++)
-		partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
-
-	/* Mirroring override - these boards have incorrect mirroring for some reasons in their headers */
-	if (partialmd5 == 0x616851e56946893bLL) /* Sheng Tian 2-in-1(Unl,ResetBase)[p1].unf */
-		SetupCartMirroring(1, 1, NULL);
-	else if (partialmd5 == 0x4cd729b5ae23a3cfLL) /* Sheng Tian 2-in-1(Unl,ResetBase)[p2].unf */
-		SetupCartMirroring(0, 1, NULL);
-
 	limit = 0x01;
 	info->Power = BMCRESETNROMXIN1Power;
 	info->Reset = BMCRESETNROMXIN1Reset;

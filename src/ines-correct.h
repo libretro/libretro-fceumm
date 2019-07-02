@@ -353,6 +353,7 @@
 	{0x071e4ee8,    114,        0}, /* m114,submapper 1 test rom */
 	{0xfe3e03a1,    197,       -1}, /* Mortal Kombat III Special (YY-030) (Ch) [!] */
 	{0x9151d311,    197,       -1}, /* Mortal Kombat III 28 Peoples (NT-328) (Ch) [!] */
+	{0x272709b9,    237,       -1}, /* Teletubbies Y2K (420-in-1) */
 
 	/* ines mappers that uses iNes 2.0 numbers */
 

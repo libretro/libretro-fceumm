@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2008 CaH4e3
+ *  Copyright (C) 2019 Libretro Team
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,25 +19,51 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* actually cart ID is 811120-C, sorry ;) K-3094 - another ID */
+/* NES 2.0 Mapper 287
+ * BMC-411120-C, actually cart ID is 811120-C, sorry ;) K-3094 - another ID
+ * - 4-in-1 (411120-C)
+ * - 4-in-1 (811120-C,411120-C) [p4][U]
+ *
+ * BMC-K-3088, similar to BMC-411120-C but without jumper or dipswitch
+ * - 19-in-1(K-3088)(810849-C)(Unl)
+ */
 
 #include "mapinc.h"
 #include "mmc3.h"
 
 static uint8 reset_flag = 0;
+static uint8 chip, isK3088;
 
 static void BMC411120CCW(uint32 A, uint8 V) {
-	setchr1(A, V | ((EXPREGS[0] & 3) << 7));
+	if (CHRptr[1]) {
+		chip = EXPREGS[0] & 7;
+		if (chip > CHRchip_max) chip &= CHRchip_max;
+		setchr1r(chip, A, V);
+	} else
+		setchr1(A, V | ((EXPREGS[0] & 3) << 7));
 }
 
 static void BMC411120CPW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & (8 | reset_flag))
-		setprg32(0x8000, ((EXPREGS[0] >> 4) & 3) | (0x0C));
-	else
-		setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 3) << 4));
+	if (PRGptr[1]) {
+		chip = EXPREGS[0] & 7;
+		if (chip > PRGchip_max) chip &= PRGchip_max;
+		if (EXPREGS[0] & (isK3088 ? 8 : (8 | reset_flag))) {	/* 32K Mode */
+			if (A == 0x8000)
+				setprg32r(chip, A, ((EXPREGS[0] >> 4) & 3));
+		} else													/* MMC3 Mode */
+			setprg8r(chip, A, (V & 0x0F));
+	} else {
+		if (EXPREGS[0] & (isK3088 ? 8 : (8 | reset_flag))) { 	/* 32K Mode */
+			if (A == 0x8000)
+				/* bit 0-1 of register should be used as outer bank regardless of banking modes */
+				setprg32(A, ((EXPREGS[0] >> 4) & 3) | ((EXPREGS[0] & 3) << 2));
+		} else													/* MMC3 Mode */
+			setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 3) << 4));
+	}
 }
 
 static DECLFW(BMC411120CLoWrite) {
+/*	printf("Wr: A:%04x V:%02x\n", A, V); */
 	EXPREGS[0] = A;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
@@ -55,6 +82,17 @@ static void BMC411120CPower(void) {
 }
 
 void BMC411120C_Init(CartInfo *info) {
+	isK3088 = 0;
+	GenMMC3_Init(info, 128, 128, 8, 0);
+	pwrap = BMC411120CPW;
+	cwrap = BMC411120CCW;
+	info->Power = BMC411120CPower;
+	info->Reset = BMC411120CReset;
+	AddExState(EXPREGS, 1, 0, "EXPR");
+}
+
+void BMCK3088_Init(CartInfo *info) {
+	isK3088 = 1;
 	GenMMC3_Init(info, 128, 128, 8, 0);
 	pwrap = BMC411120CPW;
 	cwrap = BMC411120CCW;

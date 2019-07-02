@@ -60,6 +60,8 @@ CartInfo UNIFCart;
 
 static int vramo;
 static int mirrortodo;
+static int submapper;
+static int cspecial;
 static uint8 *boardname;
 static uint8 *sboardname;
 
@@ -72,6 +74,9 @@ static UNIF_HEADER uchead;
 
 static uint8 *malloced[32];
 static uint32 mallocedsizes[32];
+
+static uint32 prg_chip_count;
+static uint32 chr_chip_count;
 
 static int FixRomSize(uint32 size, uint32 minimum) {
 	uint32 x = 1;
@@ -107,6 +112,8 @@ static void ResetUNIF(void) {
 	mirrortodo = 0;
 	memset(&UNIFCart, 0, sizeof(UNIFCart));
 	UNIFchrrama = 0;
+	prg_chip_count = 0;
+	chr_chip_count = 0;
 }
 
 static uint8 exntar[2048];
@@ -272,6 +279,7 @@ static int LoadPRG(FCEUFILE *fp) {
 		FCEU_printf("\n"); */
 
 	SetupCartPRGMapping(z, malloced[z], t, 0);
+	prg_chip_count++;
 	return(1);
 }
 
@@ -307,7 +315,67 @@ static int LoadCHR(FCEUFILE *fp) {
 		FCEU_printf("\n"); */
 
 	SetupCartCHRMapping(z, malloced[16 + z], t, 0);
+	chr_chip_count++;
 	return(1);
+}
+
+#define NO_BUSC 1
+
+struct _unif_db {
+	uint64 partialMD5;
+	char *boardname;
+	int submapper;
+	int mirroring;
+	int special; /* TODO: for bus conflicts, set 1 for no bus_conflict */
+};
+
+static struct _unif_db unif_db[] = {
+	{ 0x8ebad077d08e6c78ULL, "A65AS",          1,   -1 }, /* 3-in-1 (N080) [p1][U][!], not a real submapper */
+	{ 0x117181328eb1ad23ULL, "CNROM",          0, MI_H, NO_BUSC }, /* 75 Bingo (Sachen-English) [U] */
+	{ 0x616851e56946893bULL, "RESETNROM-XIN1", 0, MI_V }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p1].unf */
+	{ 0x4cd729b5ae23a3cfULL, "RESETNROM-XIN1", 0, MI_H }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p2].unf */
+
+	{ 0, NULL, -1, -1, -1 } /* end of the line */
+};
+
+static void CheckHashInfo(void) {
+	unsigned x = 0;
+	uint64 partialMD5 = 0;
+
+	for (x = 0; x < 8; x++)
+		partialMD5 |= (uint64)UNIFCart.MD5[15 - x] << (x * 8);
+
+	x = 0;
+	do {
+		if (partialMD5 == unif_db[x].partialMD5) {
+			FCEU_printf("\n");
+			FCEU_PrintError(" The UNIF header contains incorrect information.\n");
+			FCEU_PrintError(" For now, the information will be corrected in RAM.\n");
+			if (unif_db[x].boardname != NULL && strcmp((char*)unif_db[x].boardname, (char*)sboardname) != 0) {
+				FCEU_printf(" Boardname should be set to %s\n", unif_db[x].boardname);
+				sboardname = unif_db[x].boardname;
+			}
+			if (unif_db[x].submapper >= 0 && unif_db[x].submapper != submapper) {
+				FCEU_PrintError(" Submapper should be set to %d\n", unif_db[x].submapper);
+				submapper = unif_db[x].submapper;
+			}
+			if (unif_db[x].mirroring >= 0 && unif_db[x].mirroring != mirrortodo) {
+				static char *stuffo[6] = { "Horizontal", "Vertical", "$2000", "$2400", "\"Four-screen\"", "Controlled by Mapper Hardware" };
+				FCEU_PrintError(" Mirroring should be set to %s\n", stuffo[unif_db[x].mirroring]);
+				mirrortodo = unif_db[x].mirroring;
+			}
+			if (unif_db[x].special >= 0 && unif_db[x].special != cspecial) {
+				if (!(strcmp((char*)sboardname, "CNROM"))) {
+					FCEU_PrintError(" Special flags applied, No bus conflict.\n");
+					cspecial = unif_db[x].special;
+				}
+			}
+			/* todo special case aka, dipswitches, busc-like in fk23c/a, etc */
+			FCEU_printf("\n");
+		}
+		x++;
+	} while (unif_db[x].partialMD5 > 0);
+
 }
 
 #define BMCFLAG_FORCE4    0x01
@@ -504,6 +572,7 @@ static BMAPPING bmap[] = {
 	{ "K-3033", BMCK3033_Init, 0 },
 	{ "830134C", BMC830134C_Init, 0 },
 	{ "GN-26", BMCGN26_Init, 0 },
+	{ "T4A54A", Mapper134_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", MapperCopyFamiMMC3_Init, 0 },
@@ -583,12 +652,19 @@ static int InitializeBoard(void) {
 			if (bmap[x].flags & BMCFLAG_FORCE4)
 				mirrortodo = 4;
 			MooMirroring();
+
+			PRGchip_max = prg_chip_count - 1;
+			if (chr_chip_count)
+				CHRchip_max = chr_chip_count - 1;
+			UNIFCart.submapper = submapper;
+			GameInfo->cspecial = cspecial;
+
 			bmap[x].init(&UNIFCart);
 			return(1);
 		}
 		x++;
 	}
-	FCEU_PrintError("Board type not supported.", boardname);
+	FCEU_PrintError("Board type not supported, '%s'.", boardname);
 	return(0);
 }
 
@@ -641,6 +717,8 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(UNIFCart.MD5));
 		memcpy(GameInfo->MD5, UNIFCart.MD5, sizeof(UNIFCart.MD5));
 	}
+
+	CheckHashInfo();
 
 	if (!InitializeBoard())
 		goto aborto;

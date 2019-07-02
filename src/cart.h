@@ -11,6 +11,7 @@ typedef struct {
 
 	/* Set by iNES/UNIF loading code. */
 	int mapper;		/* mapper used */
+	int submapper;	/* submapper used */ /* TODO: */
 	int mirror;		/* As set in the header or chunk.
 					 * iNES/UNIF specific.  Intended
 					 * to help support games like "Karnov"
@@ -39,6 +40,9 @@ DECLFW(CartBW);
 
 extern uint8 *PRGptr[32];
 extern uint8 *CHRptr[32];
+
+extern uint32 PRGchip_max;
+extern uint32 CHRchip_max;
 
 extern uint32 PRGsize[32];
 extern uint32 CHRsize[32];
