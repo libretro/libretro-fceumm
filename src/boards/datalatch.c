@@ -153,27 +153,29 @@ static void CNROMSync(void) {
 }
 
 void CNROM_Init(CartInfo *info) {
+	unsigned _no_busc, _busc;
+
+	_busc = 1; /* by default, CNROM is set to emulate bus conflicts to all games */
+	_no_busc = 0;
+
+	if (GameInfo->cspecial == 1)
+		_no_busc = 1;
+
 	/* TODO: move these to extended database when implemented. */
-	int _busc, x;
-	uint64 partialmd5 = 0;
-	_busc = 1;
-	for (x = 0; x < 8; x++)
-		partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
-	if (partialmd5 == 0x117181328eb1ad23LL) /* 75 Bingo (Sachen-English) [U].unf */
-		_busc = 0;
-	else
-		switch (info->CRC32) {
-		case 0xf283cf58: /* Colorful Dragon (Asia) (PAL) (Unl).nes */
-		case 0x2915faf0: /* Incantation (Asia) (Unl).nes */
-		case 0xebd0644d: /* Dao Shuai (Asia) (Unl).nes */
-		case 0x8f154a0d: /* Pu Ke Jing Ling (China) (Unl).nes */
-		case 0xd04a40e6: /* Bingo 75 (Asia) (Unl).nes */
-		case 0xe41b440f: /* Sidewinder (Joy Van) */
-		case 0xb0c871c5: /* Wei Lai Xiao Zi (Joy Van) */
-		case 0xb3be2f71: /* Yanshan Chess (Unl) */
-			_busc = 0;
-			break;
+	switch (info->CRC32) {
+	case 0xf283cf58: /* Colorful Dragon (Asia) (PAL) (Unl).nes */
+	case 0x2915faf0: /* Incantation (Asia) (Unl).nes */
+	case 0xebd0644d: /* Dao Shuai (Asia) (Unl).nes */
+	case 0x8f154a0d: /* Pu Ke Jing Ling (China) (Unl).nes */
+	case 0xd04a40e6: /* Bingo 75 (Asia) (Unl).nes */
+	case 0xe41b440f: /* Sidewinder (Joy Van) */
+	case 0xb0c871c5: /* Wei Lai Xiao Zi (Joy Van) */
+	case 0xb3be2f71: /* Yanshan Chess (Unl) */
+		_no_busc = 1;
+		break;
 	}
+
+	if (_no_busc == 1) _busc = 0;
 	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, _busc);
 }
 
@@ -495,22 +497,32 @@ void Mapper241_Init(CartInfo *info) {
  * 16 bankswitching mode and normal mirroring... But there is no any
  * correlations between modes and they can be used in one mapper code.
  */
-
+static int A65ASsubmapper;
 static void BMCA65ASSync(void) {
 	if (latche & 0x40)
 		setprg32(0x8000, (latche >> 1) & 0x0F);
 	else {
-		setprg16(0x8000, ((latche & 0x30) >> 1) | (latche & 7));
-		setprg16(0xC000, ((latche & 0x30) >> 1) | 7);
+		if (A65ASsubmapper == 1) {
+			setprg16(0x8000, ((latche & 0x38) >> 0) | (latche & 7));
+			setprg16(0xC000, ((latche & 0x38) >> 0) | 7);
+		} else {
+			setprg16(0x8000, ((latche & 0x30) >> 1) | (latche & 7));
+			setprg16(0xC000, ((latche & 0x30) >> 1) | 7);
+		}
 	}
 	setchr8(0);
 	if (latche & 0x80)
 		setmirror(MI_0 + (((latche >> 5) & 1)));
-	else
-		setmirror(((latche >> 3) & 1) ^ 1);
+	else {
+		if (A65ASsubmapper == 1) /* added as workaround since games for this cart uses vertical mirroring */
+			setmirror(MI_V);
+		else
+			setmirror(((latche >> 3) & 1) ^ 1);
+	}
 }
 
 void BMCA65AS_Init(CartInfo *info) {
+	A65ASsubmapper = info->submapper; /* not a real submapper */
 	Latch_Init(info, BMCA65ASSync, 0, 0x8000, 0xFFFF, 0, 0);
 }
 
