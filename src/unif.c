@@ -353,7 +353,7 @@ static void CheckHashInfo(void) {
 			FCEU_PrintError(" For now, the information will be corrected in RAM.\n");
 			if (unif_db[x].boardname != NULL && strcmp((char*)unif_db[x].boardname, (char*)sboardname) != 0) {
 				FCEU_printf(" Boardname should be set to %s\n", unif_db[x].boardname);
-				sboardname = unif_db[x].boardname;
+				sboardname = (uint8*)unif_db[x].boardname;
 			}
 			if (unif_db[x].submapper >= 0 && unif_db[x].submapper != submapper) {
 				FCEU_PrintError(" Submapper should be set to %d\n", unif_db[x].submapper);

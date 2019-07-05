@@ -57,7 +57,9 @@ uint32 VROM_size = 0;
 static int CHRRAMSize = -1;
 static int iNES_Init(int num);
 
+static int iNES2 = 0;
 static int MapperNo = 0;
+static int subMapper = 0;
 
 static DECLFR(TrainerRead) {
 	return(trainerpoo[A & 0x1FF]);
@@ -376,7 +378,7 @@ static void CheckHInfo(void) {
 		if (tofix & 8)
 			strcat(gigastr, "This game should not have any CHR ROM.  ");
 		strcat(gigastr, "\n");
-		FCEU_printf("%s", gigastr);
+		FCEU_printf("%s\n", gigastr);
 	}
 }
 
@@ -661,14 +663,19 @@ static BMAPPINGLocal bmap[] = {
 
 int iNESLoad(const char *name, FCEUFILE *fp) {
 	struct md5_context md5;
-	 char* mappername;
-	 uint32 mappertest;
+	char* mappername = NULL;
+	uint32 filesize = fp->fp->size;
+	uint32 mappertest = 0;
+	uint32 prgRom = 0;
+	uint32 chrRom = 0;
 
 	if (FCEU_fread(&head, 1, 16, fp) != 16)
 		return 0;
 
+	filesize -= 16; /* remove header size from total size */
+
 	if (memcmp(&head, "NES\x1a", 4)) {
-		FCEU_PrintError("Missing header or invalid iNES format file!\n");
+		FCEU_PrintError("Not an iNES file!\n");
  		return 0;
 	}
 
@@ -689,20 +696,51 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			memset((char*)(&head) + 0xA, 0, 0x6);
 	}
 
-	MapperNo = (head.ROM_type >> 4);
-	MapperNo |= (head.ROM_type2 & 0xF0);
-	if (head.ROM_type & 8) {
-		Mirroring = 2;
-	} else
-		Mirroring = (head.ROM_type & 1);
+	Mirroring = 0;
+	ROM_size = 0;
+	VROM_size = 0;
+	iNES2 = 0;
+	MapperNo = 0;
+	subMapper = 0;
 
-	if (!head.ROM_size)
-		ROM_size = 256;
-	else
-		ROM_size = uppow2(head.ROM_size);
+	MapperNo  = (head.ROM_type >> 4) | (head.ROM_type2 & 0xF0);
+	Mirroring = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
+	prgRom    = head.ROM_size;
+	chrRom    = head.VROM_size;
 
-	VROM_size = uppow2(head.VROM_size);
+	if ((head.ROM_type2 & 0x0C) == 0x08) {
+		iNES2 = 1;
+		MapperNo |= ((uint32)head.ROM_type3 << 8) & 0xF00;
+		prgRom   |= ((uint32)head.upper_PRG_CHR_size << 8) & 0xF00;
+		chrRom   |= ((uint32)head.upper_PRG_CHR_size << 4) & 0xF00;
 
+		subMapper               = head.ROM_type3 >> 4 & 0x0F;
+		iNESCart.prgRam         = (head.PRGRAM_size & 0x0F) ? (64 << (head.PRGRAM_size & 0x0F)) : 0;
+		iNESCart.chrRam         = (head.CHRRAM_size & 0x0F) ? (64 << (head.CHRRAM_size & 0x0F)) : 0;
+		iNESCart.prgRam_battery = (head.PRGRAM_size & 0xF0) ? (64 << ((head.PRGRAM_size & 0xF0) >> 4)) : 0;
+		iNESCart.chrRam_battery = (head.CHRRAM_size & 0xF0) ? (64 << ((head.CHRRAM_size & 0xF0) >> 4)) : 0;
+		iNESCart.region         = head.Region;
+	} else {
+		if (!prgRom)
+			prgRom = 256;
+	}
+
+	if (head.ROM_type & 4) {	/* Trainer */
+		trainerpoo = (uint8*)FCEU_gmalloc(512);
+		FCEU_fread(trainerpoo, 512, 1, fp);
+		filesize -= 512;
+	}
+
+	if (((prgRom * 0x4000) + (chrRom * 0x2000)) > filesize) {
+		FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", ((prgRom * 0x4000) + (chrRom * 0x2000)) -  filesize);
+		return 0;
+	} else if (((prgRom * 0x4000) + (chrRom * 0x2000)) < filesize)
+		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - ((prgRom * 0x4000) + (chrRom * 0x2000)));
+
+	ROM_size =  uppow2(prgRom);
+
+	if (chrRom)
+		VROM_size = uppow2(chrRom);
 
 	if ((ROM = (uint8*)FCEU_malloc(ROM_size << 14)) == NULL)
 		return 0;
@@ -717,36 +755,23 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		memset(VROM, 0xFF, VROM_size << 13);
 	}
 
-	if (head.ROM_type & 4) {	/* Trainer */
-		trainerpoo = (uint8*)FCEU_gmalloc(512);
-		FCEU_fread(trainerpoo, 512, 1, fp);
-	}
-
 	ResetCartMapping();
 	ResetExState(0, 0);
 
 	SetupCartPRGMapping(0, ROM, ROM_size << 14, 0);
 
-	if (head.ROM_size)
-		FCEU_fread(ROM, 0x4000, head.ROM_size, fp);
-	else
-		FCEU_fread(ROM, 0x4000, ROM_size, fp);
+	FCEU_fread(ROM, 0x4000, prgRom, fp);
 
 	if (VROM_size)
-		FCEU_fread(VROM, 0x2000, VROM_size, fp);
+		FCEU_fread(VROM, 0x2000, chrRom, fp);
 
 	md5_starts(&md5);
-	if (head.ROM_size) {
-		md5_update(&md5, ROM, head.ROM_size << 14);
-		iNESGameCRC32 = CalcCRC32(0, ROM, head.ROM_size << 14);
-	} else {
-		md5_update(&md5, ROM, ROM_size << 14);
-		iNESGameCRC32 = CalcCRC32(0, ROM, ROM_size << 14);
-	}
+	md5_update(&md5, ROM, prgRom << 14);
+	iNESGameCRC32 = CalcCRC32(0, ROM, prgRom << 14);
 
 	if (VROM_size) {
-		iNESGameCRC32 = CalcCRC32(iNESGameCRC32, VROM, VROM_size << 13);
-		md5_update(&md5, VROM, VROM_size << 13);
+		iNESGameCRC32 = CalcCRC32(iNESGameCRC32, VROM, chrRom << 13);
+		md5_update(&md5, VROM, chrRom << 13);
 	}
 	md5_finish(&md5, iNESCart.MD5);
 	memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
@@ -755,14 +780,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	SetInput();
 	CheckHInfo();
-	mappername = "Not Listed";
 
-	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
-		if (bmap[mappertest].number == MapperNo) {
-			mappername = (char*)bmap[mappertest].name;
-			break;
-		}
-	}
 	{
 		int x;
 		uint64 partialmd5 = 0;
@@ -787,43 +805,92 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	else
 		SetupCartMirroring(Mirroring & 1, (Mirroring & 4) >> 2, 0);
 
+	iNESCart.iNES2 = iNES2;
+	iNESCart.mapper = MapperNo;
+	iNESCart.submapper = subMapper;
 	iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
 	iNESCart.mirror = Mirroring;
 
+	mappername = "Not Listed";
+
+	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
+		if (bmap[mappertest].number == MapperNo) {
+			mappername = (char*)bmap[mappertest].name;
+			break;
+		}
+	}
+
+	if (iNES2) FCEU_printf(" NES 2.0 extended iNES.\n");
 	FCEU_printf(" ROM CRC32:  0x%08lx\n", iNESGameCRC32);
 	FCEU_printf(" ROM MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
-	FCEU_printf(" PRG ROM:  %3d x 16KiB\n", head.ROM_size ?  head.ROM_size : 256);
-	FCEU_printf(" CHR ROM:  %3d x  8KiB\n", head.VROM_size);
+	FCEU_printf(" PRG ROM:  %3d x 16KiB\n", prgRom);
+	FCEU_printf(" CHR ROM:  %3d x  8KiB\n", chrRom);
 
-	if (!iNES_Init(MapperNo))
-		FCEU_PrintError("iNES mapper #%d is not supported at all.", MapperNo);
-	iNESCart.mapper = MapperNo;
+	if (iNES2) {
+		const char *tv_region[] = { "NTSC", "PAL", "Multi-region", "Dendy" };
+		unsigned PRGRAM = iNESCart.prgRam + iNESCart.prgRam_battery;
+		unsigned CHRRAM = iNESCart.chrRam + iNESCart.chrRam_battery;
 
-	FCEU_printf(" \n");
-	FCEU_printf(" Mapper #: %3d\n", MapperNo);
-	FCEU_printf(" Mapper name: %s\n", mappername);
-	FCEU_printf(" Mirroring: %s\n", Mirroring == 2 ? "None (Four-screen)" : Mirroring ? "Vertical" : "Horizontal");
-	FCEU_printf(" Battery-backed: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
-	FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
+		FCEU_printf(" Mapper #: %3d\n", MapperNo);
+		FCEU_printf(" Sub Mapper #: %3d\n", subMapper);
+		FCEU_printf(" Mapper name: %s\n", mappername);
+		if (PRGRAM || CHRRAM) {
+			FCEU_printf(" PRG RAM: %d KiB\n", PRGRAM / 1024);
+			FCEU_printf(" CHR RAM: %d KiB\n", CHRRAM / 1024);
+			if (head.ROM_type & 0x02) {
+				FCEU_printf(" PRG RAM backed by battery: %d KiB\n", iNESCart.prgRam_battery / 1024);
+				FCEU_printf(" CHR RAM backed by battery: %d KiB\n", iNESCart.chrRam_battery / 1024);
+			}
+		}
+		FCEU_printf(" Mirroring: %s\n", Mirroring == 2 ? "None (Four-screen)" : Mirroring ? "Vertical" : "Horizontal");
+		FCEU_printf(" System: %s\n", tv_region[(iNESCart.region & 3)]);
+		FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
+	} else {
+		FCEU_printf(" Mapper #: %3d\n", MapperNo);
+		FCEU_printf(" Mapper name: %s\n", mappername);
+		FCEU_printf(" Mirroring: %s\n", Mirroring == 2 ? "None (Four-screen)" : Mirroring ? "Vertical" : "Horizontal");
+		FCEU_printf(" Battery-backed: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
+		FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
+	}
+
+	if (!iNES_Init(MapperNo)) {
+		FCEU_printf("\n");
+		FCEU_PrintError(" iNES mapper #%d is not supported at all.\n", MapperNo);
+		return 0;
+	}
 
 	GameInterface = iNESGI;
-	FCEU_printf("\n");
 
-	if (strstr(name, "(E)") || strstr(name, "(e)")
-		|| strstr(name, "(Europe)") || strstr(name, "(PAL)")
-		|| strstr(name, "(F)") || strstr(name, "(f)")
-		|| strstr(name, "(G)") || strstr(name, "(g)")
-		|| strstr(name, "(I)") || strstr(name, "(i)")
-		|| strstr(name, "(S)") || strstr(name, "(s)")
-		|| strstr(name, "(France)") || strstr(name, "(Germany)")
-		|| strstr(name, "(Italy)") || strstr(name, "(Spain)")
-		|| strstr(name, "(Sweden)") || strstr(name, "(Sw)")
-		|| strstr(name, "(Australia)") || strstr(name, "(A)")
-		|| strstr(name, "(a)")) {
-			FCEUI_SetVidSystem(1);
+	if (iNES2) {
+		switch (iNESCart.region & 0x03) {
+		/* 0: RP2C02 ("NTSC NES")
+		 * 1: RP2C07 ("Licensed PAL NES")
+		 * 2: Multiple-region
+		 * 3: UMC 6527P ("Dendy")
+		 */
+		case 0: case 2: FCEUI_SetVidSystem(0); break;
+		case 1: FCEUI_SetVidSystem(1); break;
+		case 3: dendy = 1; FCEUI_SetVidSystem(0); break;
+		}
+	} else {
+		if (strstr(name, "(E)") || strstr(name, "(e)") ||
+			strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
+			strstr(name, "(F)") || strstr(name, "(f)") ||
+			strstr(name, "(G)") || strstr(name, "(g)") ||
+			strstr(name, "(I)") || strstr(name, "(i)") ||
+			strstr(name, "(S)") || strstr(name, "(s)") ||
+			strstr(name, "(France)") || strstr(name, "(Germany)") ||
+			strstr(name, "(Italy)") || strstr(name, "(Spain)") ||
+			strstr(name, "(Sweden)") || strstr(name, "(Sw)") ||
+			strstr(name, "(Australia)") || strstr(name, "(A)") ||
+			strstr(name, "(a)")) {
+				iNESCart.region = 1;
+				FCEUI_SetVidSystem(1);
+		} else {
+			iNESCart.region = 0;
+			FCEUI_SetVidSystem(0);
+		}
 	}
-	else
-		FCEUI_SetVidSystem(0);
 
 	return 1;
 }
@@ -840,24 +907,30 @@ static int iNES_Init(int num) {
 		if (num == tmp->number) {
 			UNIFchrrama = 0;	/* need here for compatibility with UNIF mapper code */
 			if (!VROM_size) {
-				switch (num) {	/* FIXME, mapper or game data base with the board parameters and ROM/RAM sizes */
-				case 13:  CHRRAMSize = 16 * 1024; break;
-				case 6:
-				case 28:
-				case 29:
-				case 30:
-				case 45:
-				case 96:  CHRRAMSize = 32 * 1024; break;
-				case 176: CHRRAMSize = 128 * 1024; break;
-				default:  CHRRAMSize = 8 * 1024; break;
+				if (iNESCart.iNES2) {
+					CHRRAMSize = iNESCart.chrRam + iNESCart.chrRam_battery;
+				} else {
+					switch (num) {	/* FIXME, mapper or game data base with the board parameters and ROM/RAM sizes */
+					case 13:  CHRRAMSize = 16 * 1024; break;
+					case 6:
+					case 28:
+					case 29:
+					case 30:
+					case 45:
+					case 96:  CHRRAMSize = 32 * 1024; break;
+					case 176: CHRRAMSize = 128 * 1024; break;
+					default:  CHRRAMSize = 8 * 1024; break;
+					}
+					iNESCart.chrRam = CHRRAMSize;
+					FCEU_printf(" CHR-RAM:  %3d KiB\n", CHRRAMSize / 1024);
 				}
-				iNESCart.vram_size = CHRRAMSize;
-				if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
-				FCEU_MemoryRand(VROM, CHRRAMSize);
-				UNIFchrrama = VROM;
-				SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
-				AddExState(VROM, CHRRAMSize, 0, "CHRR");
-				FCEU_printf(" CHR RAM:  %3d x  1KiB\n", CHRRAMSize / 1024);
+				if (CHRRAMSize) { /* TODO: CHR-RAM are sometimes handled in mappers e.g. MMC1 using submapper 1/2/4 and CHR-RAM can be zero here */
+					if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
+					FCEU_MemoryRand(VROM, CHRRAMSize);
+					UNIFchrrama = VROM;
+					SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
+					AddExState(VROM, CHRRAMSize, 0, "CHRR");
+				}
 			}
 			if (head.ROM_type & 8)
 				AddExState(ExtraNTARAM, 2048, 0, "EXNR");
