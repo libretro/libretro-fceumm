@@ -75,9 +75,15 @@ static UNIF_HEADER uchead;
 
 static uint8 *malloced[32];
 static uint32 mallocedsizes[32];
+/* used to preserve the rom order as found in the rom file
+ * at least one mapper has bank 4 at the beginning for e.g. */
+static uint32 prg_idx[16];
+static uint32 chr_idx[16];
 
 static uint32 prg_chip_count;
 static uint32 chr_chip_count;
+
+static uint64 UNIF_PRGROMSize, UNIF_CHRROMSize;
 
 static int FixRomSize(uint32 size, uint32 minimum) {
 	uint32 x = 1;
@@ -102,12 +108,20 @@ static void FreeUNIF(void) {
 			free(malloced[x]); malloced[x] = 0;
 		}
 	}
+	if (ROM) {
+		free(ROM); ROM = 0;
+	}
+	if (VROM) {
+		free(VROM); VROM = 0;
+	}
 }
 
 static void ResetUNIF(void) {
 	int x;
 	for (x = 0; x < 32; x++)
 		malloced[x] = 0;
+	for (x = 0; x < 16; x++)
+		prg_idx[x] = chr_idx[x] = 0;
 	vramo = 0;
 	boardname = 0;
 	mirrortodo = 0;
@@ -115,6 +129,10 @@ static void ResetUNIF(void) {
 	UNIFchrrama = 0;
 	prg_chip_count = 0;
 	chr_chip_count = 0;
+	UNIF_PRGROMSize = 0;
+	UNIF_CHRROMSize = 0;
+	ROM_size = 0;
+	VROM_size = 0;
 }
 
 static uint8 exntar[2048];
@@ -268,7 +286,7 @@ static int LoadPRG(FCEUFILE *fp) {
 	FCEU_printf(" PRG ROM %d size: %d\n", z, (int)uchead.info);
 	if (malloced[z])
 		free(malloced[z]);
-	t = FixRomSize(uchead.info, 2048);
+	t = uchead.info;
 	if (!(malloced[z] = (uint8*)FCEU_malloc(t)))
 		return(0);
 	mallocedsizes[z] = t;
@@ -276,11 +294,12 @@ static int LoadPRG(FCEUFILE *fp) {
 	if (FCEU_fread(malloced[z], 1, uchead.info, fp) != uchead.info) {
 		FCEU_printf("Read Error!\n");
 		return(0);
-	} /* else
-		FCEU_printf("\n"); */
+	}
 
-	SetupCartPRGMapping(z, malloced[z], t, 0);
+	UNIF_PRGROMSize += t;
+	prg_idx[prg_chip_count] = z;
 	prg_chip_count++;
+
 	return(1);
 }
 
@@ -304,7 +323,7 @@ static int LoadCHR(FCEUFILE *fp) {
 	FCEU_printf(" CHR ROM %d size: %d\n", z, (int)uchead.info);
 	if (malloced[16 + z])
 		free(malloced[16 + z]);
-	t = FixRomSize(uchead.info, 8192);
+	t = uchead.info;
 	if (!(malloced[16 + z] = (uint8*)FCEU_malloc(t)))
 		return(0);
 	mallocedsizes[16 + z] = t;
@@ -312,11 +331,12 @@ static int LoadCHR(FCEUFILE *fp) {
 	if (FCEU_fread(malloced[16 + z], 1, uchead.info, fp) != uchead.info) {
 		FCEU_printf("Read Error!\n");
 		return(0);
-	} /* else
-		FCEU_printf("\n"); */
+	}
 
-	SetupCartCHRMapping(z, malloced[16 + z], t, 0);
+	UNIF_CHRROMSize += t;
+	chr_idx[chr_chip_count] = z;
 	chr_chip_count++;
+
 	return(1);
 }
 
@@ -497,6 +517,7 @@ static BMAPPING bmap[] = {
 	{ "Sachen-8259C", 139, S8259C_Init, 0 },
 	{ "Sachen-8259D", 137, S8259D_Init, 0 },
 	{ "Super24in1SC03", 176, Super24_Init, 0 },
+	{ "Super24in1SC03", 176, Super24_Init, 0 },
 	{ "SuperHIK8in1", 45, Mapper45_Init, 0 },
 	{ "Supervision16in1", 53, Supervision16_Init, 0 },
 	{ "T-227-1", NO_INES, BMCT2271_Init, 0 },
@@ -563,7 +584,7 @@ static BMAPPING bmap[] = {
 	{ "900218", 524, BTL900218_Init, 0 },
 	{ "JC-016-2", 205, Mapper205_Init, 0 },
 	{ "AX-40G", 527, UNLAX40G_Init, 0 },
-	{ " BMC-STREETFIGTER-GAME4IN1", NO_INES, BMCSFGAME4IN1_Init, 0 }, /* mapper 49? */
+	{ " BMC-STREETFIGTER-GAME4IN1", NO_INES, BMCSFGAME4IN1_Init, 0 }, /* mapper 49? submapper 1*/
 	{ "G631", 226, BMCGhostbusters63in1_Init, 0 }, /* duplicate, probably wrong name */
 	{ "BJ-56", 526, UNLBJ56_Init, 0 },
 	{ "L6IN1", 345, BMCL6IN1_Init, 0 },
@@ -633,7 +654,7 @@ static int InitializeBoard(void) {
 
 	while (bmap[x].name) {
 		if (!strcmp((char*)sboardname, (char*)bmap[x].name)) {
-			if (!malloced[16]) {
+			if (VROM_size == 0) {
 				if (bmap[x].flags & BMCFLAG_16KCHRR)
 					CHRRAMSize = 16;
 				else if (bmap[x].flags & BMCFLAG_32KCHRR)
@@ -690,6 +711,10 @@ static void UNIFGI(int h) {
 }
 
 int UNIFLoad(const char *name, FCEUFILE *fp) {
+	struct md5_context md5;
+	uint32 x = 0;
+	uint64 PRGptr = 0, CHRptr = 0;
+
 	FCEU_fseek(fp, 0, SEEK_SET);
 	FCEU_fread(&unhead, 1, 4, fp);
 	if (memcmp(&unhead, "UNIF", 4))
@@ -705,22 +730,48 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		goto aborto;
 	if (!LoadUNIFChunks(fp))
 		goto aborto;
-	{
-		int x;
-		struct md5_context md5;
 
-		md5_starts(&md5);
+	ROM_size = FixRomSize(UNIF_PRGROMSize, 2048);
+	if (UNIF_CHRROMSize)
+		VROM_size = FixRomSize(UNIF_CHRROMSize, 8192);
 
-		for (x = 0; x < 32; x++)
-			if (malloced[x]) {
-				md5_update(&md5, malloced[x], mallocedsizes[x]);
-			}
-		md5_finish(&md5, UNIFCart.MD5);
-		FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(UNIFCart.MD5));
-		memcpy(GameInfo->MD5, UNIFCart.MD5, sizeof(UNIFCart.MD5));
+	ROM = (uint8*)malloc(ROM_size);
+	if (VROM_size)
+		VROM = (uint8*)malloc(VROM_size);
+
+	for (x = 0; x < 16; x++) {
+		if (malloced[prg_idx[x]]) {
+			memcpy(ROM + PRGptr, malloced[(prg_idx[x])], mallocedsizes[(prg_idx[x])]);
+			PRGptr += mallocedsizes[(prg_idx[x])];
+			free(malloced[(prg_idx[x])]);
+			malloced[(prg_idx[x])] = 0;
+		}
+
+		if (malloced[16 + (chr_idx[x])]) {
+			memcpy(VROM + CHRptr, malloced[16 + (chr_idx[x])], mallocedsizes[16 + (chr_idx[x])]);
+			CHRptr += mallocedsizes[16 + (chr_idx[x])];
+			free(malloced[16 + (chr_idx[x])]);
+			malloced[16 + (chr_idx[x])] = 0;
+		}
 	}
 
+	FCEU_printf(" PRG ROM:  %d KiB\n", UNIF_PRGROMSize / 1024);
+	if (VROM_size)
+		FCEU_printf(" CHR ROM:  %d KiB\n", UNIF_CHRROMSize / 1024);
+
+	md5_starts(&md5);
+	md5_update(&md5, ROM, UNIF_PRGROMSize);
+	if (VROM_size)
+		md5_update(&md5, VROM, UNIF_CHRROMSize);
+	md5_finish(&md5, UNIFCart.MD5);
+	FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(UNIFCart.MD5));
+	memcpy(GameInfo->MD5, UNIFCart.MD5, sizeof(UNIFCart.MD5));
+
 	CheckHashInfo();
+
+	SetupCartPRGMapping(0, ROM, ROM_size, 0);
+	if (VROM_size)
+		SetupCartCHRMapping(0, VROM, VROM_size, 0);
 
 	if (!InitializeBoard())
 		goto aborto;
