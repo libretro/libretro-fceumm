@@ -38,8 +38,8 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	setchr8r(gameblock, 0);
-	setprg32r(gameblock, 0x8000, 0);
+	setchr8(gameblock);
+	setprg32(0x8000, gameblock);
 }
 
 static void BMCRESETNROMXIN1Power(void) {

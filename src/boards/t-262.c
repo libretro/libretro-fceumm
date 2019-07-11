@@ -34,15 +34,8 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	setchr8(0);
-	if (PRGptr[1]) {
-		chip = base >> 3;
-		if (chip > PRGchip_max) chip &= PRGchip_max;
-		setprg16r(chip, 0x8000, bank);
-		setprg16r(chip, 0xC000, (mode ? bank : 7));
-	} else {
-		setprg16(0x8000, base | bank);
-		setprg16(0xC000, base | (mode ? bank : 7));
-	}
+	setprg16(0x8000, base | bank);
+	setprg16(0xC000, base | (mode ? bank : 7));
 	setmirror(mirr);
 }
 

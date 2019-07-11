@@ -44,7 +44,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	setprg8r(1, 0x6000, prg);
+	setprg8(0x6000, 4 | prg);
 	setprg32(0x8000, 0);
 	setchr8(0);
 }

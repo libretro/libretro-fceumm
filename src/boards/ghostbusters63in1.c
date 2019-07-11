@@ -35,10 +35,10 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	if (reg[0] & 0x20) {
-		setprg16r(banks[bank], 0x8000, reg[0] & 0x1F);
-		setprg16r(banks[bank], 0xC000, reg[0] & 0x1F);
+		setprg16(0x8000, (banks[bank] << 5) | (reg[0] & 0x1F));
+		setprg16(0xC000, (banks[bank] << 5) | (reg[0] & 0x1F));
 	} else
-		setprg32r(banks[bank], 0x8000, (reg[0] >> 1) & 0x0F);
+		setprg32(0x8000, ((banks[bank] << 5) | (reg[0] & 0x1F)) >> 1);
 	if (reg[1] & 2)
 		setchr8r(0x10, 0);
 	else

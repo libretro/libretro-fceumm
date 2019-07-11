@@ -914,22 +914,12 @@ void Mapper119_Init(CartInfo *info) {
 
 static void M134PW(uint32 A, uint8 V) {
 	uint8 mask = (EXPREGS[0] & 0x04) ? 0x0F : 0x1F;
-	if (PRGptr[1]) {
-		chip = (EXPREGS[0] & 3);
-		if (chip > PRGchip_max) chip &= PRGchip_max;
-		setprg8r(chip, A, (V & mask));
-	} else
-		setprg8(A, (V & mask) | ((EXPREGS[0] & 3) << 4));
+	setprg8(A, (V & mask) | ((EXPREGS[0] & 3) << 4));
 }
 
 static void M134CW(uint32 A, uint8 V) {
 	uint8 mask = (EXPREGS[0] & 0x04) ? 0x7F : 0xFF;
-	if (CHRptr[1]) {
-		chip = (EXPREGS[0] & 0x30) >> 4;
-		if (chip > CHRchip_max) chip &= CHRchip_max;
-		setchr1r(chip, A, (V & mask));
-	} else
-		setchr1(A, (V & mask) | ((EXPREGS[0] & 0x30) << 3));
+	setchr1(A, (V & mask) | ((EXPREGS[0] & 0x30) << 3));
 }
 
 static DECLFW(M134Write) {
@@ -1212,22 +1202,12 @@ static uint8 block[] = {0, 0, 1, 2};
 
 static void M205PW(uint32 A, uint8 V) {
 	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x0F : 0x1F);
-	if (PRGptr[1]) {
-		chip = block[EXPREGS[0]];
-		if (chip > PRGchip_max) chip &= PRGchip_max;
-		setprg8r(chip, A, bank);
-	} else
-		setprg8(A, EXPREGS[0] << 4 | bank);
+	setprg8(A, EXPREGS[0] << 4 | bank);
 }
 
 static void M205CW(uint32 A, uint8 V) {
 	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x7F : 0xFF);
-	if (CHRptr[1]) {
-		chip = block[EXPREGS[0]];
-		if (chip > CHRchip_max) chip &= CHRchip_max;
-		setchr1r(chip, A, bank);
-	} else
-		setchr1(A, (EXPREGS[0] << 7) | bank);
+	setchr1(A, (EXPREGS[0] << 7) | bank);
 }
 
 static DECLFW(M205Write0) {

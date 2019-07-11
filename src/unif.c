@@ -452,7 +452,7 @@ static BMAPPING bmap[] = {
 	{ "GK-192", NO_INES, BMCGK192_Init, 0 }, /* mapper 58? */
 	{ "GS-2004", 283, BMCGS2004_Init, 0 },
 	{ "GS-2013", 283, BMCGS2013_Init, 0 },
-	{ "Ghostbusters63in1", NO_INES, BMCGhostbusters63in1_Init, 0 }, /* 226 is non-split version */
+	{ "Ghostbusters63in1", NO_INES, BMCGhostbusters63in1_Init, 0 }, /* similar to 226 but different bank order */
 	{ "H2288", 123, UNLH2288_Init, 0 },
 	{ "HKROM", 4, HKROM_Init, 0 },
 	{ "KOF97", 263, UNLKOF97_Init, 0 },
@@ -585,7 +585,7 @@ static BMAPPING bmap[] = {
 	{ "JC-016-2", 205, Mapper205_Init, 0 },
 	{ "AX-40G", 527, UNLAX40G_Init, 0 },
 	{ " BMC-STREETFIGTER-GAME4IN1", NO_INES, BMCSFGAME4IN1_Init, 0 }, /* mapper 49? submapper 1*/
-	{ "G631", 226, BMCGhostbusters63in1_Init, 0 }, /* duplicate, probably wrong name */
+	{ "G631", NO_INES, BMCGhostbusters63in1_Init, 0 }, /* duplicate, probably wrong name */
 	{ "BJ-56", 526, UNLBJ56_Init, 0 },
 	{ "L6IN1", 345, BMCL6IN1_Init, 0 },
 	{ "CTC-12IN1", 337, BMCCTC12IN1_Init, 0 },

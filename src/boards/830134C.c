@@ -28,22 +28,20 @@
 #include "mmc3.h"
 
 static void BMC830134CCW(uint32 A, uint8 V) {
-	uint32 chip = (EXPREGS[0] & 0x03) & ~((EXPREGS[0] & 0x02) >> 1);
-	setchr1r(chip, A, (V & 0xFF) | ((EXPREGS[0] & 0x01) << 8) | ((EXPREGS[0] & 0x02) << 6) | ((EXPREGS[0] & 0x08) << 3));
+	setchr1(A, (V & 0xFF) | ((EXPREGS[0] & 0x01) << 8) | ((EXPREGS[0] & 0x02) << 6) | ((EXPREGS[0] & 0x08) << 3));
 }
 
 static void BMC830134CPW(uint32 A, uint8 V) {
-	uint32 chip = (EXPREGS[0] & 0x06) >> 1;
 	if ((EXPREGS[0] & 0x06) == 0x06) {
 		if (A == 0x8000) {
-			setprg8r(chip, A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));
-			setprg8r(chip, 0xC000, (V & 0x0F) | 0x32);
+			setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));
+			setprg8(0xC000, (V & 0x0F) | 0x32);
 		} else if (A == 0xA000) {
-			setprg8r(chip, A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));
-			setprg8r(chip, 0xE000, (V & 0x0F) | 0x32);
+			setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));
+			setprg8(0xE000, (V & 0x0F) | 0x32);
 		}
 	} else
-		setprg8r(chip, A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));
+		setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));
 }
 
 static DECLFW(BMC830134CWrite) {
