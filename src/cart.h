@@ -20,8 +20,10 @@ typedef struct {
 					 * set to mapper 4.
 					 */
 	int battery;	/* Presence of an actual battery. */
-	int prgRam;			/* prg ram size (volatile) */
-	int chrRam;	/* chr ram size (volatile) */
+	int prgRom;		/* total prg rom size in 16 K chunks */
+	int chrRom;		/* total chr rom size in 8 K chunks */
+	int prgRam;		/* prg ram size (volatile) */
+	int chrRam;		/* chr ram size (volatile) */
 	int prgRam_battery;	/* prg ram size (non-volatile or battery backed) */
 	int chrRam_battery;	/* chr ram size (non-volatile or battery backed) */
 	int region;			/* video system timing (ntsc, pal, dendy */

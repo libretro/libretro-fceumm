@@ -819,6 +819,9 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	} else if (((prgRom * 0x4000) + (chrRom * 0x2000)) < filesize)
 		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - ((prgRom * 0x4000) + (chrRom * 0x2000)));
 
+	iNESCart.prgRom = prgRom;
+	iNESCart.chrRom = chrRom;
+
 	ROM_size =  uppow2(prgRom);
 
 	if (chrRom)

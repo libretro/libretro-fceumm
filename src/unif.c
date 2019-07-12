@@ -414,7 +414,7 @@ static BMAPPING bmap[] = {
 	{ "22211", 132, UNL22211_Init, 0 },
 	{ "3D-BLOCK", 355, UNL3DBlock_Init, 0 },
 	{ "411120-C", 287, BMC411120C_Init, 0 },
-	{ "42in1ResetSwitch", 226, Mapper226_Init, 0 },
+	{ "42in1ResetSwitch", 233, Mapper233_Init, 0 },
 	{ "43272", 227, UNL43272_Init, 0 },
 	{ "603-5052", 238, UNL6035052_Init, 0 },
 	{ "64in1NoRepeat", 314, BMC64in1nr_Init, 0 },
@@ -452,7 +452,7 @@ static BMAPPING bmap[] = {
 	{ "GK-192", NO_INES, BMCGK192_Init, 0 }, /* mapper 58? */
 	{ "GS-2004", 283, BMCGS2004_Init, 0 },
 	{ "GS-2013", 283, BMCGS2013_Init, 0 },
-	{ "Ghostbusters63in1", NO_INES, BMCGhostbusters63in1_Init, 0 }, /* similar to 226 but different bank order */
+	{ "Ghostbusters63in1", 226, Mapper226_Init, 0 },
 	{ "H2288", 123, UNLH2288_Init, 0 },
 	{ "HKROM", 4, HKROM_Init, 0 },
 	{ "KOF97", 263, UNLKOF97_Init, 0 },
@@ -585,7 +585,7 @@ static BMAPPING bmap[] = {
 	{ "JC-016-2", 205, Mapper205_Init, 0 },
 	{ "AX-40G", 527, UNLAX40G_Init, 0 },
 	{ " BMC-STREETFIGTER-GAME4IN1", NO_INES, BMCSFGAME4IN1_Init, 0 }, /* mapper 49? submapper 1*/
-	{ "G631", NO_INES, BMCGhostbusters63in1_Init, 0 }, /* duplicate, probably wrong name */
+	{ "G631", 226, Mapper226_Init, 0 }, /* duplicate, probably wrong name */
 	{ "BJ-56", 526, UNLBJ56_Init, 0 },
 	{ "L6IN1", 345, BMCL6IN1_Init, 0 },
 	{ "CTC-12IN1", 337, BMCCTC12IN1_Init, 0 },
@@ -730,6 +730,11 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		goto aborto;
 	if (!LoadUNIFChunks(fp))
 		goto aborto;
+
+	UNIFCart.prgRom = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
+	UNIFCart.prgRom = (UNIFCart.prgRom >> 2) + ((UNIFCart.prgRom & 3) ? 1: 0);
+	UNIFCart.chrRom = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
+	UNIFCart.chrRom = (UNIFCart.chrRom >> 3) + ((UNIFCart.chrRom & 7) ? 1: 0);
 
 	ROM_size = FixRomSize(UNIF_PRGROMSize, 2048);
 	if (UNIF_CHRROMSize)
