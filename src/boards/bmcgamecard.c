@@ -41,12 +41,12 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	uint8 mirroring = m350 ? ((latche >> 7) & 1) : ((latche >> 5) & 1);
 	uint8 mode      = m350 ? ((latche >> 5) & 0x03) : ((latche >> 6) & 0x03);
-	uint8 chip      = m350 ? ((latche & 0x40) ? ((latche & 0x20) >> 5) : 0) : 0;
+	uint8 base      = m350 ? ((latche & 0x40) ? (latche & 0x20) : 0) : 0;
 
 	setchr8(0);
 	setprg8(0x6000, 1);
-	setprg16r(PRGptr[1] ? chip : 0, 0x8000, (latche & 0x1F));
-	setprg16r(PRGptr[1] ? chip : 0, 0xC000, (latche & 0x1F) | ((mode & 2) ? 0x07 : (mode & 1)));
+	setprg16r(0, 0x8000, base | (latche & 0x1F));
+	setprg16r(0, 0xC000, base | ((latche & 0x1F) | ((mode & 2) ? 0x07 : (mode & 1))));
 	setmirror(mirroring ^ 1);
 }
 

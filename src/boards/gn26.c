@@ -27,19 +27,20 @@
 #include "mmc3.h"
 
 static void BMCGN26CW(uint32 A, uint8 V) {
-	uint32 chip = (EXPREGS[0] & 0x03);
-	if (chip) chip -= 1;
-	setchr1r(chip, A, (V & 0xFF));
+	uint32 base = (EXPREGS[0] & 0x03) << 7;
+	setchr1(A, base | (V & 0xFF));
 }
 
 static void BMCGN26PW(uint32 A, uint8 V) {
-	uint32 chip = (EXPREGS[0] & 0x03);
-	if (chip) chip -= 1; /* Re-ordered -> 0:SF4 1:Contra Force 2:Revolution Hero */
+	/* Re-ordered -> 0:SF4 1:Contra Force 2:Revolution Hero */
+	uint32 table[] = { 0, 0, 1, 2 };
+	uint32 base = table[(EXPREGS[0] & 0x03)];
+
 	if (EXPREGS[0] & 4) {
 		if (A == 0x8000)
-			setprg32r(chip, 0x8000, (V >> 2));
+			setprg32(0x8000, (base << 2) | (V >> 2));
 	} else
-		setprg8r(chip, A, (V & 0x0F));
+		setprg8(A, (base << 4) | (V & 0x0F));
 }
 
 static DECLFW(BMCGN26Write) {

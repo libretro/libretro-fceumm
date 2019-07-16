@@ -29,8 +29,8 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	setprg8r(0, 0x6000, ~0);
-	setprg32r((reg & 8) >> 3, 0x8000, reg);
+	setprg8(0x6000, 31);
+	setprg32(0x8000, reg);
 	setchr8(0);
 }
 
@@ -40,7 +40,7 @@ static DECLFW(BMCGS2013Write) {
 }
 
 static void BMCGS2013Power(void) {
-	reg = ~0;
+	reg = 0;
 	Sync();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
@@ -48,7 +48,7 @@ static void BMCGS2013Power(void) {
 }
 
 static void BMCGS2013Reset(void) {
-	reg = ~0;
+	reg = 0;
 }
 
 static void StateRestore(int version) {

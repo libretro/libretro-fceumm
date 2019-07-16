@@ -28,7 +28,14 @@ typedef struct {
 	uint8 VROM_size;
 	uint8 ROM_type;
 	uint8 ROM_type2;
-	uint8 reserve[8];
+	uint8 ROM_type3;
+	uint8 upper_PRG_CHR_size;
+	uint8 PRGRAM_size;
+	uint8 CHRRAM_size;
+	uint8 Region;
+	uint8 VS_hardware;
+	uint8 MiscRoms;
+	uint8 ExpDevice;
 } iNES_HEADER;
 
 extern uint8 *ROM;

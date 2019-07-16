@@ -30,23 +30,12 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	setchr8(0);
-	if (PRGptr[1])
-		setprg8r((cmd0 & 0xC) >> 2, 0x6000, ((cmd0 & 0x3) << 4) | 0xF);
-	else
-		setprg8(0x6000, (((cmd0 & 0xF) << 4) | 0xF) + 4);
+	setprg8(0x6000, (((cmd0 & 0xF) << 4) | 0xF) + 4);
 	if (cmd0 & 0x10) {
-		if (PRGptr[1]) {
-			setprg16r((cmd0 & 0xC) >> 2, 0x8000, ((cmd0 & 0x3) << 3) | (cmd1 & 7));
-			setprg16r((cmd0 & 0xC) >> 2, 0xc000, ((cmd0 & 0x3) << 3) | 7);
-		} else {
 			setprg16(0x8000, (((cmd0 & 0xF) << 3) | (cmd1 & 7)) + 2);
 			setprg16(0xc000, (((cmd0 & 0xF) << 3) | 7) + 2);
-		}
 	} else
-		if (PRGptr[4])
-			setprg32r(4, 0x8000, 0);
-		else
-			setprg32(0x8000, 0);
+		setprg32(0x8000, 0);
 	setmirror(((cmd0 & 0x20) >> 5) ^ 1);
 }
 

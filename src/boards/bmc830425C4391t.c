@@ -39,17 +39,16 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	setprg16r(outer_bank, 0x8000, (inner_bank & bank_size));
-	setprg16r(outer_bank, 0xC000, bank_size);
+	setprg16(0x8000, (outer_bank << 3) | (inner_bank & bank_size));
+	setprg16(0xC000, (outer_bank << 3) | bank_size);
 	setchr8(0);
 }
 
 static DECLFW(M320Write) {
-	const uint8 chip[] = { 0, 0, 1, 0, 2, 3, 4, 5 };
 	/* address mask is inconsistent with that is in the wiki. Mask should be
 	 * 0xFFE0 or Mermaid game will not work. */
 	if ((A & 0xFFE0) == 0xF0E0) {
-		outer_bank = chip[(A & 0x0F)];
+		outer_bank = (A & 0x0F);
 		bank_size = (A & 0x10) ? 0x07 : 0x0F;
 	}
 	inner_bank = (V & 0x0F);

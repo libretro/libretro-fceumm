@@ -35,31 +35,18 @@ static uint8 reset_flag = 0;
 static uint8 chip, isK3088;
 
 static void BMC411120CCW(uint32 A, uint8 V) {
-	if (CHRptr[1]) {
-		chip = EXPREGS[0] & 7;
-		if (chip > CHRchip_max) chip &= CHRchip_max;
-		setchr1r(chip, A, V);
-	} else
-		setchr1(A, V | ((EXPREGS[0] & 3) << 7));
+	uint32 mask = isK3088 ? 0x07 : 0x03;
+	setchr1(A, V | ((EXPREGS[0] & mask) << 7));
 }
 
 static void BMC411120CPW(uint32 A, uint8 V) {
-	if (PRGptr[1]) {
-		chip = EXPREGS[0] & 7;
-		if (chip > PRGchip_max) chip &= PRGchip_max;
-		if (EXPREGS[0] & (isK3088 ? 8 : (8 | reset_flag))) {	/* 32K Mode */
-			if (A == 0x8000)
-				setprg32r(chip, A, ((EXPREGS[0] >> 4) & 3));
-		} else													/* MMC3 Mode */
-			setprg8r(chip, A, (V & 0x0F));
-	} else {
-		if (EXPREGS[0] & (isK3088 ? 8 : (8 | reset_flag))) { 	/* 32K Mode */
-			if (A == 0x8000)
-				/* bit 0-1 of register should be used as outer bank regardless of banking modes */
-				setprg32(A, ((EXPREGS[0] >> 4) & 3) | ((EXPREGS[0] & 3) << 2));
-		} else													/* MMC3 Mode */
-			setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 3) << 4));
-	}
+	uint32 mask = isK3088 ? 0x07 : 0x03;
+	if (EXPREGS[0] & (isK3088 ? 8 : (8 | reset_flag))) { 	/* 32K Mode */
+		if (A == 0x8000)
+			/* bit 0-1 of register should be used as outer bank regardless of banking modes */
+			setprg32(A, ((EXPREGS[0] >> 4) & 3) | ((EXPREGS[0] & mask) << 2));
+	} else													/* MMC3 Mode */
+		setprg8(A, (V & 0x0F) | ((EXPREGS[0] & mask) << 4));
 }
 
 static DECLFW(BMC411120CLoWrite) {

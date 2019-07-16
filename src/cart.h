@@ -10,6 +10,7 @@ typedef struct {
 	uint32 SaveGameLen[4];	/* How much memory to save/load. */
 
 	/* Set by iNES/UNIF loading code. */
+	int iNES2;		/* iNES version */
 	int mapper;		/* mapper used */
 	int submapper;	/* submapper used */ /* TODO: */
 	int mirror;		/* As set in the header or chunk.
@@ -19,7 +20,14 @@ typedef struct {
 					 * set to mapper 4.
 					 */
 	int battery;	/* Presence of an actual battery. */
-	int vram_size;
+	int prgRom;		/* total prg rom size in 16 K chunks */
+	int chrRom;		/* total chr rom size in 8 K chunks */
+	int prgRam;		/* prg ram size (volatile) */
+	int chrRam;		/* chr ram size (volatile) */
+	int prgRam_battery;	/* prg ram size (non-volatile or battery backed) */
+	int chrRam_battery;	/* chr ram size (non-volatile or battery backed) */
+	int region;			/* video system timing (ntsc, pal, dendy */
+
 	uint8 MD5[16];
 	uint32 CRC32;	/* Should be set by the iNES/UNIF loading
 					 * code, used by mapper/board code, maybe
