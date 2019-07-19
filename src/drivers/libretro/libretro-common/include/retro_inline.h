@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (retro_common.h).
+ * The following license statement only applies to this file (retro_inline.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,17 +20,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _LIBRETRO_COMMON_RETRO_COMMON_H
-#define _LIBRETRO_COMMON_RETRO_COMMON_H
+#ifndef __LIBRETRO_SDK_INLINE_H
+#define __LIBRETRO_SDK_INLINE_H
 
-/*
-This file is designed to normalize the libretro-common compiling environment.
-It is not to be used in public API headers, as they should be designed as leanly as possible.
-Nonetheless.. in the meantime, if you do something like use ssize_t, which is not fully portable,
-in a public API, you may need this.
-*/
+#ifndef INLINE
 
-/* conditional compilation is handled inside here */
-#include <compat/msvc.h>
+#if defined(_WIN32) || defined(__INTEL_COMPILER)
+#define INLINE __inline
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__>=199901L
+#define INLINE inline
+#elif defined(__GNUC__)
+#define INLINE __inline__
+#else
+#define INLINE
+#endif
 
+#endif
 #endif

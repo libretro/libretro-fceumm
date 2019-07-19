@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2017 The RetroArch team
+/* Copyright  (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (retro_common_api.h).
@@ -112,7 +112,6 @@ then you should pay the price everywhere, so you can see how much grief it will 
 Of course, another school of thought is that you should do as little damage as possible
 in as few places as possible...
 */
-
 
 /* _LIBRETRO_COMMON_RETRO_COMMON_API_H */
 #endif
