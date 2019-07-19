@@ -1,4 +1,4 @@
-/* Copyright  (C) 2010-2017 The RetroArch team
+/* Copyright  (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
  * The following license statement only applies to this file (compat_snprintf.c).
@@ -23,9 +23,7 @@
 /* THIS FILE HAS NOT BEEN VALIDATED ON PLATFORMS BESIDES MSVC */
 #ifdef _MSC_VER
 
-#include <retro_common.h>
-
-#include <stdio.h> /* added for _vsnprintf_s and _vscprintf on VS2015 and VS2017 */
+#include <stdio.h>
 #include <stdarg.h>
 
 #if _MSC_VER < 1800
@@ -53,13 +51,22 @@ int c99_vsnprintf_retro__(char *outBuf, size_t size, const char *format, va_list
    int count = -1;
 
    if (size != 0)
+   {
 #if (_MSC_VER <= 1310)
-       count = _vsnprintf(outBuf, size, format, ap);
+      count = _vsnprintf(outBuf, size - 1, format, ap);
 #else
-       count = _vsnprintf_s(outBuf, size, _TRUNCATE, format, ap);
+      count = _vsnprintf_s(outBuf, size, size - 1, format, ap);
 #endif
+   }
+
    if (count == -1)
        count = _vscprintf(format, ap);
+
+   if (count == size)
+   {
+      /* there was no room for a NULL, so truncate the last character */
+      outBuf[size - 1] = '\0';
+   }
 
    return count;
 }

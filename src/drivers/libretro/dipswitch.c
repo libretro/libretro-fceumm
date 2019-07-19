@@ -945,8 +945,13 @@ static VSUNIGAME dipswitch_topgun = {
 };
 
 typedef struct {
+   char value[100];
+   char label[100];
+} VSUNIGAMEOPT_VALUE;
+
+typedef struct {
    char key[64];
-   char val[150];
+   VSUNIGAMEOPT_VALUE val[10];
 } VSUNIGAMEOPT;
 
 static VSUNIGAME *vsgame = NULL;
@@ -967,34 +972,32 @@ static void str_to_corekey_label(char *str)
 
 static void make_core_options(void)
 {
-   unsigned i, dipswitch_size;
-   char core_prefix[32];
+   unsigned i, j, num_dipswitch;
+   char *romname_short = NULL;
 
-   dipswitch_size = vsgame->dipswitch_size;
-   sprintf(core_prefix, "fceumm_dipswitch_%s", vsgame->romname_short);   
-   for (i = 0; i < dipswitch_size; i++)
+   num_dipswitch = vsgame->dipswitch_size;
+   romname_short = vsgame->romname_short;
+   for (i = 0; i < num_dipswitch; i++)
    {
-      unsigned x;
       char core_key[64], core_values[150];
-      DIPSWITCH *coreoptions = &vsgame->dipswitch_core_options[i];
+      unsigned num_values = vsgame->dipswitch_core_options[i].settings_size;
+      const char *option_name = vsgame->dipswitch_core_options[i].option_name;
 
-      /* make var key string from list */
-      sprintf(core_key, "%s%c%s", core_prefix, '-', coreoptions->option_name);
+      memset(core_key, 0 , sizeof(core_key));
+      memset(core_values, 0 , sizeof(core_values));
+
+      /* Create core key string */
+      sprintf(core_key, "fceumm_dipswitch_%s-%s", romname_short, option_name);
+      /* sanitize core key string */
       str_to_corekey_label(core_key);
-
-      /* make var values string from lists of values */
-      sprintf(core_values, "%s; ", coreoptions->option_name);
-      for (x = 0; x < coreoptions->settings_size; x++)
-      {
-         SETTING *corevalues = &coreoptions->settings[x];
-
-         strcat(core_values, corevalues->name);
-         if ((coreoptions->settings_size - 1) > x)
-            strcat(core_values, "|");
-      }
-
       sprintf(vscoreopt[i].key, "%s", core_key);
-      sprintf(vscoreopt[i].val, "%s", core_values);
+
+      /* Create core values */
+      for (j = 0; j < num_values; j++)
+      {
+         const char *var_value = vsgame->dipswitch_core_options[i].settings[j].name;
+         sprintf(vscoreopt[i].val[j].value, "%s", var_value);
+      }
    }
 }
 
@@ -1067,25 +1070,25 @@ static void update_dipswitch_vsuni(void)
 {
    struct retro_variable var = {0};
    unsigned idx_dips, idx_var;
-   uint8 vsdip_new = 0x00;
+   uint8 vsdip_new = FCEUI_VSUniGetDIPs();
 
-   if (vsgame == NULL)
-      return;
-
-   vsdip_new = FCEUI_VSUniGetDIPs();
    for (idx_dips = 0; idx_dips < vsgame->dipswitch_size; idx_dips++)
    {
-      DIPSWITCH *core_option = &vsgame->dipswitch_core_options[idx_dips];
-      var.key = vscoreopt[idx_dips].key;
+      const char *key = vscoreopt[idx_dips].key;
+      unsigned num_options = vsgame->dipswitch_core_options[idx_dips].settings_size;
+
+      var.key = key;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) == 0)
          continue;
-      for (idx_var = 0; idx_var < core_option->settings_size; idx_var++)
+      for (idx_var = 0; idx_var < num_options; idx_var++)
       {
-         SETTING *vs_settings = &core_option->settings[idx_var];
-         if (strcmp(var.value, vs_settings->name) != 0)
+         const char *var_value = vsgame->dipswitch_core_options[idx_dips].settings[idx_var].name;
+         uint8 value = vsgame->dipswitch_core_options[idx_dips].settings[idx_var].value;
+         uint8 mask = vsgame->dipswitch_core_options[idx_dips].mask;
+         if (strcmp(var.value, var_value) != 0)
             continue;
-         vsdip_new &= ~core_option->mask;
-         vsdip_new |= vs_settings->value;
+         vsdip_new &= ~mask;
+         vsdip_new |= value;
       }
    }
 
@@ -1101,28 +1104,67 @@ static void update_dipswitch_vsuni(void)
 }
 
 /* Nintendo World Championship */
-static struct retro_variable dipswitch_nwc[] = {
-   { "fceumm_dipswitch_nwc_swa", "Dipswitch SW1 (18.7s); disabled|enabled" },
-   { "fceumm_dipswitch_nwc_swb", "Dipswitch SW2 (37.5s); disabled|enabled" },
-   { "fceumm_dipswitch_nwc_swc", "Dipswitch SW3 (1m 15s); enabled|disabled" },
-   { "fceumm_dipswitch_nwc_swd", "Dipswitch SW4 (2m 30s); disabled|enabled" },
-   { NULL, NULL }
+static struct retro_core_option_definition dipswitch_nwc[] = {
+   {
+      "fceumm_dipswitch_nwc_swa",
+      "Dipswitch SW1 (+18.7secs)",
+      "Adds 18.7 seconds to total time. Total time = 5 mins + enabled dipswitches.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL},
+      },
+      "disabled",
+   },
+   {
+      "fceumm_dipswitch_nwc_swb",
+      "Dipswitch SW1 (+37.5s)",
+      "Adds 37.5 seconds to total time. Total time = 5 mins + enabled dipswitches.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL},
+      },
+      "disabled",
+   },
+   {
+      "fceumm_dipswitch_nwc_swc",
+      "Dipswitch SW1 (+1m 15s)",
+      "Adds 1 minute and 15 seconds to total time. Total time = 5 mins + enabled dipswitches.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL},
+      },
+      "enabled",
+   },
+   {
+      "fceumm_dipswitch_nwc_swd",
+      "Dipswitch SW1 (+2m 30s)",
+      "Adds 2 minutes and 30 seconds to total time. Total time = 5 mins + time of enabled dipswitches.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL},
+      },
+      "disabled",
+   },
 };
 
 static void update_dipswitch_nwc(void)
 {
    struct retro_variable var = {0};
    unsigned dips = 0x00;
-   unsigned index;
+   unsigned i;
 
-   for (index = 0; index < 4; index++)
+   for (i = 0; i < 4; i++)
    {
-      struct retro_variable *nwc = &dipswitch_nwc[index];
-      var.key = nwc->key;
+      const char *key = dipswitch_nwc[i].key;
+      var.key = key;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
       {
          if (strcmp(var.value, "enabled") == 0)
-            dips |= (1 << index);
+            dips |= (1 << i);
       }
    }
 
@@ -1136,9 +1178,9 @@ static void update_dipswitch_nwc(void)
    }
 }
 
-void set_dipswitch_variables(unsigned *index, struct retro_variable *vars)
+void set_dipswitch_variables(unsigned *index, struct retro_core_option_definition *vars)
 {
-   unsigned i, idx = *index;
+   unsigned idx = *index;
 
    /* VSUNI Dipswitch */
    if (GameInfo->type == GIT_VSUNI)
@@ -1146,10 +1188,25 @@ void set_dipswitch_variables(unsigned *index, struct retro_variable *vars)
       vsgame = get_vsuni_dipswitch(GameInfo->gameid);
       if (vsgame)
       {
+         unsigned i, j;
+         unsigned num_options = vsgame->dipswitch_size;
+
          make_core_options();
-         for (i = 0; i < vsgame->dipswitch_size; i++, idx++) {
-            vars[idx].key = vscoreopt[i].key;
-            vars[idx].value = vscoreopt[i].val;
+
+         for (i = 0; i < num_options; i++) {
+            const char *key = vscoreopt[i].key;
+            const char *desc = vsgame->dipswitch_core_options[i].option_name;
+            unsigned num_values = vsgame->dipswitch_core_options[i].settings_size;
+
+            vars[idx].key = key;
+            vars[idx].desc = desc;
+
+            for (j = 0; j < num_values; j++) {
+               char *value = vscoreopt[i].val[j].value;
+               vars[idx].values[j].value = value;
+            }
+
+            idx++;
          }
       }
    }
@@ -1157,7 +1214,8 @@ void set_dipswitch_variables(unsigned *index, struct retro_variable *vars)
    /* Nintendo World Championship cart (Mapper 105)*/
    if (iNESCart.mapper == 105)
    {
-      i = 0;
+      unsigned i = 0;
+
       while (dipswitch_nwc[i].key) {
          vars[idx] = dipswitch_nwc[i];
          idx++;
@@ -1165,7 +1223,7 @@ void set_dipswitch_variables(unsigned *index, struct retro_variable *vars)
       }
    }
 
-   *index = idx;
+  *index = idx;
 }
 
 void update_dipswitch(void)
