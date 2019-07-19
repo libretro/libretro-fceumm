@@ -30,6 +30,7 @@
 
 #include "libretro-common/include/streams/memory_stream.h"
 #include "dipswitch.h"
+#include "libretro_core_options.h"
 
 #define MAX_PLAYERS 4 /* max supported players */
 #define MAX_PORTS 2   /* max controller ports,
@@ -80,6 +81,7 @@ static unsigned turbo_delay = 0;
 static unsigned input_type[MAX_PLAYERS + 1] = {0}; /* 4-players + famicom expansion */
 enum RetroZapperInputModes{RetroLightgun, RetroMouse, RetroPointer};
 static enum RetroZapperInputModes zappermode = RetroLightgun;
+static unsigned show_advance_sound_options;
 
 /* emulator-specific variables */
 
@@ -744,63 +746,22 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
 static void set_variables(void)
 {
-   static const struct retro_variable vars[] = {
-      { "fceumm_region", "Region Override; Auto|NTSC|PAL|Dendy" },
-      { "fceumm_aspect", "Preferred aspect ratio; 8:7 PAR|4:3" },
-      { "fceumm_palette", "Color Palette; default|asqrealc|nintendo-vc|rgb|yuv-v3|unsaturated-final|sony-cxa2025as-us|pal|bmf-final2|bmf-final3|smooth-fbx|composite-direct-fbx|pvm-style-d93-fbx|ntsc-hardware-fbx|nes-classic-fbx-fs|nescap|wavebeam|raw|custom" },
-      { "fceumm_up_down_allowed", "Allow Opposing Directions; disabled|enabled" },
-#ifdef PSP
-      { "fceumm_overscan", "Crop Overscan; enabled|disabled" },
-#else
-      { "fceumm_overscan_h", "Crop Overscan (Horizontal); disabled|enabled" },
-      { "fceumm_overscan_v", "Crop Overscan (Vertical); enabled|disabled" },
-#endif
-      { "fceumm_nospritelimit", "No Sprite Limit; disabled|enabled" },
-      { "fceumm_sndvolume", "Sound Volume; 150|160|170|180|190|200|210|220|230|240|250|0|10|20|30|40|50|60|70|80|90|100|110|120|130|140" },
-      { "fceumm_sndquality", "Sound Quality; Low|High|Very High" },
-      { "fceumm_swapduty", "Swap Duty Cycles; disabled|enabled" },
-#ifdef DEBUG
-      { "fceumm_apu_1", "Enable Sound Channel 1 (Square 1); enabled|disabled" },
-      { "fceumm_apu_2", "Enable Sound Channel 2 (Square 2); enabled|disabled" },
-      { "fceumm_apu_3", "Enable Sound Channel 3 (Triangle); enabled|disabled" },
-      { "fceumm_apu_4", "Enable Sound Channel 4 (Noise); enabled|disabled" },
-      { "fceumm_apu_5", "Enable Sound Channel 5 (PCM); enabled|disabled" },
-#endif
-      { "fceumm_turbo_enable", "Turbo Enable; None|Player 1|Player 2|Both" },
-      { "fceumm_turbo_delay", "Turbo Delay (in frames); 3|5|10|15|30|60|1|2" },
-      { "fceumm_zapper_mode", "Zapper Mode; lightgun|touchscreen|mouse" },
-      { "fceumm_show_crosshair", "Show Crosshair; enabled|disabled" },
-      { "fceumm_overclocking", "Overclocking; disabled|2x-Postrender|2x-VBlank" },
-      { "fceumm_ramstate", "RAM power up state (Restart); fill $ff|fill $00|random" },
-      { NULL, NULL }
-   };
+   unsigned i = 0, index = 0;
 
-   static struct retro_variable vars_empty = { NULL, NULL };
-   static struct retro_variable retro_vars[32];
-   unsigned i = 0, index_core = 0;
+   /* Initialize main core option struct */
+   for (i = 0; i < MAX_CORE_OPTIONS; i++)
+      option_defs_us[i] = option_defs_empty;
 
-   while (vars[index_core].key != NULL)
-   {
-      retro_vars[index_core].key = vars[index_core].key;
-      retro_vars[index_core].value = vars[index_core].value;
-      index_core++;
+   /* Write common core options to main struct */
+   while (option_defs_common[index].key) {
+      option_defs_us[index] = option_defs_common[index];
+      index++;
    }
 
-   /* append dipswitches to core options if available */
-   set_dipswitch_variables(&index_core, retro_vars);
+   /* Append dipswitch settings to core options if available */
+   set_dipswitch_variables(&index, option_defs_us);
 
-   /* NULL terminate */
-   retro_vars[index_core] = vars_empty;
-   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)retro_vars);
-
-#ifdef DEBUG
-   /* list core options */
-   i = 0;
-   while (retro_vars[i].key) {
-      FCEU_printf(" { '%s', '%s' }\n", retro_vars[i].key, retro_vars[i].value);
-      i++;
-   }
-#endif
+   libretro_set_core_options(environ_cb);
 }
 
 void retro_set_environment(retro_environment_t cb)
@@ -1316,7 +1277,8 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      sndvolume = atoi(var.value);
+      int val = (int)(atof(var.value) * 25.6);
+      sndvolume = val;
       FCEUD_SoundToggle();
    }
 
