@@ -759,7 +759,8 @@ static void set_variables(void)
    }
 
    /* Append dipswitch settings to core options if available */
-   set_dipswitch_variables(&index, option_defs_us);
+   index += set_dipswitch_variables(index, option_defs_us);
+   option_defs_us[index] = option_defs_empty;
 
    libretro_set_core_options(environ_cb);
 }
@@ -987,6 +988,7 @@ void retro_deinit (void)
    ps2 = NULL;
 #endif
    libretro_supports_bitmasks = false;
+   DPSW_Cleanup();
 }
 
 void retro_reset(void)
