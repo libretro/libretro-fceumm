@@ -1098,7 +1098,7 @@ static void make_core_options(struct retro_core_option_definition *opt)
       char key[100] = {0};
 
       /* Set core key and sanitize string */
-      len = snprintf(key, sizeof(key), "%s%s%c%s", "fceumm_dipswitch_", romname_short, '-', option_name);
+      len = sprintf(key, "fceumm_dipswitch_%s-%s", romname_short, option_name);
       core_key[i] = calloc(len + 1, sizeof(char));
       strcpy(core_key[i], key);
       opt[i].key = str_to_corekey(core_key[i]);
