@@ -29,7 +29,7 @@
 #endif
 
 #include "libretro-common/include/streams/memory_stream.h"
-#include "dipswitch.h"
+#include "libretro_dipswitch.h"
 #include "libretro_core_options.h"
 
 #define MAX_PLAYERS 4 /* max supported players */

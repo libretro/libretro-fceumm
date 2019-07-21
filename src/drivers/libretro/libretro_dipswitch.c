@@ -9,7 +9,7 @@
 #include "../../driver.h"
 #include "../../cart.h"
 
-#include "dipswitch.h"
+#include "libretro_dipswitch.h"
 
 extern CartInfo iNESCart;
 
