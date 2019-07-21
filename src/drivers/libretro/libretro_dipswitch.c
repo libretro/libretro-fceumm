@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../../fceu.h"
@@ -8,59 +9,59 @@
 #include "../../driver.h"
 #include "../../cart.h"
 
-#include "dipswitch.h"
+#include "libretro_dipswitch.h"
 
 extern CartInfo iNESCart;
 
 typedef struct {
-   char        *name;
+   const char  *name;
    uint8       value;
 } SETTING;
 
 typedef struct {
    const char  *option_name;
-   unsigned    settings_size;
    uint8       mask;
-   SETTING     settings[8];
+   SETTING     settings[10];
 } DIPSWITCH;
 
 typedef struct {
    unsigned    gameid;
-   char        *romname_short;
-   unsigned    dipswitch_size;
-   DIPSWITCH   dipswitch_core_options[5];
+   const char  *romname_short;
+   DIPSWITCH   dipswitch_core_options[8];
 } VSUNIGAME;
 
 static VSUNIGAME dipswitch_battlecity = {
-   VS_BATTLECITY, "battlecity", 3,
+   VS_BATTLECITY, "battlecity",
    {
-      {  "Credits for 2 Players", 2, 0x01,
+      {  "Credits for 2 Players", 0x01,
          {
             { "2", 0x01 },
-            { "1", 0x00 }
-         }
+            { "1", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 2, 0x02,
+      {  "Lives", 0x02,
          {
             { "5", 0x02 },
-            { "3", 0x00 }
-         }
+            { "3", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Demo Sounds", 2, 0x04,
+      {  "Demo Sounds", 0x04,
          {
             { "disabled", 0x04 },
-            { "enabled",  0x00 }
-         }
-      }
-   }
+            { "enabled",  0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
+   },
 };
 
 static VSUNIGAME dipswitch_castlevania = {
-   VS_CASTLEVANIA, "castlevania", 4,
+   VS_CASTLEVANIA, "castlevania",
    {
-      {  "Coinage",
-         8,
-         0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -69,37 +70,42 @@ static VSUNIGAME dipswitch_castlevania = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 2, 0x08,
+      {  "Lives", 0x08,
          {
             { "3", 0x00 },
             { "2", 0x08 }
 
          }
       },
-      {  "Bonus", 4, 0x30,
+      {  "Bonus", 0x30,
          {
             { "100k", 0x00 },
             { "200k", 0x20 },
             { "300k", 0x10 },
-            { "400k", 0x30 }
-         }
+            { "400k", 0x30 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 2, 0x40,
+      {  "Difficulty", 0x40,
          {
             { "Normal", 0x00 },
-            { "Hard",   0x40 }
-         }
-      }
+            { "Hard",   0x40 },
+            { NULL, 0 },
+         },
+      },
+
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_clucluland = {
-   VS_CLUCLULAND, "clucluland", 2,
+   VS_CLUCLULAND, "clucluland",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -108,24 +114,27 @@ static VSUNIGAME dipswitch_clucluland = {
             { "2 Coins 1 Credit", 0x01 },
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 4, 0x60,
+      {  "Lives", 0x60,
          {
             { "3", 0x00 },
             { "4", 0x40 },
             { "5", 0x20 },
-            { "2", 0x60 }
-         }
-      }
+            { "2", 0x60 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_drmario = {
-   VS_DRMARIO, "drmario", 5,
+   VS_DRMARIO, "drmario",
    {
-      {  "Drop Rate Increase After", 4, 0x03,
+      {  "Drop Rate Increase After", 0x03,
          {
             { "7 Pills",  0x00 },
             { "8 Pills",  0x01 },
@@ -133,7 +142,7 @@ static VSUNIGAME dipswitch_drmario = {
             { "10 Pills", 0x03 }
          },
       },
-      {  "Virus Level", 4, 0x0c,
+      {  "Virus Level", 0x0c,
          {
             { "1", 0x00 },
             { "3", 0x04 },
@@ -141,7 +150,7 @@ static VSUNIGAME dipswitch_drmario = {
             { "7", 0x0c }
          },
       },
-      {  "Drop Speed Up", 4, 0x30,
+      {  "Drop Speed Up", 0x30,
          {
             { "Slow",    0x00 },
             { "Medium",  0x10 },
@@ -149,25 +158,27 @@ static VSUNIGAME dipswitch_drmario = {
             { "Fastest", 0x30 }
          },
       },
-      {  "Free Play", 2, 0x40,
+      {  "Free Play", 0x40,
          {
             { "disabled", 0x00 },
             { "enabled",  0x40 }
          },
       },
-      {  "Demo Sounds", 2, 0x80,
+      {  "Demo Sounds", 0x80,
          {
             { "enabled",  0x80 },
-            { "disabled", 0x00 }
-         }
-      }
+            { "disabled", 0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_duckhunt = {
-   VS_DUCKHUNT, "duckhunt", 4,
+   VS_DUCKHUNT, "duckhunt",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -176,38 +187,43 @@ static VSUNIGAME dipswitch_duckhunt = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 4, 0x18,
+      {  "Difficulty", 0x18,
          {
             { "Normal", 0x08 },
             { "Medium", 0x10 },
             { "Hard",   0x18 },
-            { "Easy",   0x00 }
-         }
+            { "Easy",   0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Miss per game", 2, 0x20,
+      {  "Miss per game", 0x20,
          {
             { "5", 0x20 },
-            { "3", 0x00 }
-         }
+            { "3", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus Life", 4, 0xc0,
+      {  "Bonus Life", 0xc0,
          {
             { "30000",  0x00 },
             { "50000",  0x40 },
             { "80000",  0x80 },
-            { "100000", 0xc0 }
-         }
-      }
+            { "100000", 0xc0 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_excitebike = {
-   VS_EXITEBIKE, "excitebike", 4,
+   VS_EXITEBIKE, "excitebike",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -216,36 +232,41 @@ static VSUNIGAME dipswitch_excitebike = {
             { "2 Coins 1 Credit", 0x01 },
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus Bike", 4, 0x18,
+      {  "Bonus Bike", 0x18,
          {
             { "100k and Every 50k", 0x00 },
             { "100k Only",          0x08 },
             { "Every 100k",         0x10 },
-            { "None",               0x18 }
-         }
+            { "None",               0x18 },
+            { NULL, 0 },
+         },
       },
-      {  "1st Qualifying Time", 2, 0x20,
+      {  "1st Qualifying Time", 0x20,
          {
             { "Easy", 0x00 },
-            { "Hard", 0x20 }
-         }
+            { "Hard", 0x20 },
+            { NULL, 0 },
+         },
       },
-      {  "2nd Qualifying Time", 2, 0x40,
+      {  "2nd Qualifying Time", 0x40,
          {
             { "Easy", 0x00 },
-            { "Hard", 0x40 }
-         }
-      }
+            { "Hard", 0x40 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_freedomforce = {
-   VS_FREEDOMFORCE, "freedomforce", 4,
+   VS_FREEDOMFORCE, "freedomforce",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -254,38 +275,43 @@ static VSUNIGAME dipswitch_freedomforce = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Health Awarded At", 4, 0x18,
+      {  "Health Awarded At", 0x18,
          {
             { "10k 50k",           0x10 },
             { "20k 60k",           0x00 },
             { "20k 60k Every 60k", 0x08 },
-            { "10k 50k Every 50k", 0x18 }
-         }
+            { "10k 50k Every 50k", 0x18 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty (Damage)", 4, 0x60,
+      {  "Difficulty (Damage)", 0x60,
          {
             { "Normal",  0x00 },
             { "Easy",    0x40 },
             { "Hard",    0x20 },
-            { "Hardest", 0x60 }
-         }
+            { "Hardest", 0x60 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty (Enemy)", 2, 0x80,
+      {  "Difficulty (Enemy)", 0x80,
          {
             { "Normal", 0x80 },
-            { "Hard",   0x00 }
-         }
-      }
+            { "Hard",   0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_goonies = {
-   VS_GOONIES, "goonies", 5,
+   VS_GOONIES, "goonies",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -294,42 +320,48 @@ static VSUNIGAME dipswitch_goonies = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 2, 0x08,
+      {  "Lives", 0x08,
          {
             { "3", 0x08 },
-            { "4", 0x00 }
-         }
+            { "4", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus", 4, 0x30,
+      {  "Bonus", 0x30,
          {
             { "40000", 0x00 },
             { "50000", 0x20 },
             { "60000", 0x10 },
-            { "70000", 0x30 }
-         }
+            { "70000", 0x30 },
+            { NULL, 0 },
+         },
       },
-      {  "Timer", 2, 0x40,
+      {  "Timer", 0x40,
          {
             { "Slow", 0x00 },
-            { "Fast", 0x40 }
-         }
+            { "Fast", 0x40 },
+            { NULL, 0 },
+         },
       },
-      { "Demo Sounds", 2, 0x80,
+      { "Demo Sounds", 0x80,
          {
             { "enabled",  0x80 },
-            { "disabled", 0x00 }
-         }
-      }
+            { "disabled", 0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_gradius = {
-   VS_GRADIUS, "gradius", 5,
+   VS_GRADIUS, "gradius",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -338,42 +370,48 @@ static VSUNIGAME dipswitch_gradius = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 2, 0x08,
+      {  "Lives", 0x08,
          {
             { "3", 0x08 },
-            { "4", 0x00 }
-         }
+            { "4", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus", 4, 0x30,
+      {  "Bonus", 0x30,
          {
             { "100k", 0x00 },
             { "200k", 0x20 },
             { "300k", 0x10 },
-            { "400k", 0x30 }
-         }
+            { "400k", 0x30 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 2, 0x40,
+      {  "Difficulty", 0x40,
          {
             { "Normal", 0x00 },
-            { "Hard",   0x40 }
-         }
+            { "Hard",   0x40 },
+            { NULL, 0 },
+         },
       },
-      { "Demo Sounds", 2, 0x80,
+      { "Demo Sounds", 0x80,
          {
             { "enabled",  0x80 },
-            { "disabled", 0x00 }
-         }
-      }
+            { "disabled", 0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_gumshoe = {
-   VS_GUMSHOE, "gumshoe", 5,
+   VS_GUMSHOE, "gumshoe",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -382,42 +420,48 @@ static VSUNIGAME dipswitch_gumshoe = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 4, 0x18,
+      {  "Difficulty", 0x18,
          {
             { "Normal",  0x08 },
             { "Easy",    0x00 },
             { "Hard",    0x10 },
-            { "Hardest", 0x18 }
-         }
+            { "Hardest", 0x18 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 2, 0x20,
+      {  "Lives", 0x20,
          {
             { "3", 0x20 },
-            { "5", 0x00 }
-         }
+            { "5", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Bullets per Balloon", 2, 0x40,
+      {  "Bullets per Balloon", 0x40,
          {
             { "3", 0x00 },
-            { "2", 0x40 }
-         }
+            { "2", 0x40 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus Man Awarded", 2, 0x80,
+      {  "Bonus Man Awarded", 0x80,
          {
             { "At 50000", 0x00 },
-            { "None",     0x80 }
-         }
-      }
+            { "None",     0x80 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_hogansalley = {
-   VS_HOGANSALLEY, "hogansalley", 4,
+   VS_HOGANSALLEY, "hogansalley",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -426,38 +470,43 @@ static VSUNIGAME dipswitch_hogansalley = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 4, 0x18,
+      {  "Difficulty", 0x18,
          {
             { "Normal",  0x08 },
             { "Easy",    0x00 },
             { "Hard",    0x10 },
-            { "Hardest", 0x18 }
-         }
+            { "Hardest", 0x18 },
+            { NULL, 0 },
+         },
       },
-      {  "Misses Per Game", 2, 0x20,
+      {  "Misses Per Game", 0x20,
          {
             { "5", 0x20 },
-            { "3", 0x00 }
-         }
+            { "3", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus Life", 4, 0xc0,
+      {  "Bonus Life", 0xc0,
          {
             { "30000",  0x00 },
             { "50000",  0x40 },
             { "80000",  0x80 },
-            { "100000", 0xc0 }
-         }
-      }
+            { "100000", 0xc0 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_iceclimber = {
-   VS_ICECLIMBER, "iceclimber", 4,
+   VS_ICECLIMBER, "iceclimber",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -466,36 +515,41 @@ static VSUNIGAME dipswitch_iceclimber = {
             { "2 Coins 1 Credit", 0x01 },
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 4, 0x18,
+      {  "Lives", 0x18,
          {
             { "3", 0x00 },
             { "4", 0x10 },
             { "5", 0x08 },
-            { "7", 0x18 }
-         }
+            { "7", 0x18 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 2, 0x20,
+      {  "Difficulty", 0x20,
          {
             { "Easy", 0x00 },
-            { "Hard", 0x20 }
-         }
+            { "Hard", 0x20 },
+            { NULL, 0 },
+         },
       },
-      {  "Time before bear appears", 2, 0x40,
+      {  "Time before bear appears", 0x40,
          {
             { "Long",  0x00 },
-            { "Short", 0x40 }
-         }
-      }
+            { "Short", 0x40 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_jajamaru = {
-   VS_JAJAMARU, "jajamaru", 3,
+   VS_JAJAMARU, "jajamaru",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -504,29 +558,33 @@ static VSUNIGAME dipswitch_jajamaru = {
             { "2 Coins 1 Credit", 0x01 },
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 3, 0x18,
+      {  "Lives", 0x18,
          {
             { "3", 0x00 },
             { "4", 0x10 },
-            { "5", 0x08 }
-         }
+            { "5", 0x08 },
+            { NULL, 0 },
+         },
       },
-      {  "Demo Sounds", 2, 0x80,
+      {  "Demo Sounds", 0x80,
          {
             { "enabled",  0x80 },
-            { "disabled", 0x00 }
-         }
-      }
+            { "disabled", 0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_machrider = {
-   VS_MACHRIDER, "machrider", 3,
+   VS_MACHRIDER, "machrider",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -535,30 +593,34 @@ static VSUNIGAME dipswitch_machrider = {
             { "2 Coins 1 Credit", 0x01 },
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Time", 4, 0x18,
+      {  "Time", 0x18,
          {
             { "280 (Easy)", 0x00 },
             { "250",        0x10 },
             { "220",        0x08 },
-            { "200 (Hard)", 0x18 }
-         }
+            { "200 (Hard)", 0x18 },
+            { NULL, 0 },
+         },
       },
-      {  "Enemies", 2, 0x40,
+      {  "Enemies", 0x40,
          {
             { "Less", 0x00 },
-            { "More", 0x40 }
-         }
-      }
+            { "More", 0x40 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_mightybj = {
-   VS_MIGHTYBOMBJACK, "mightybj", 2,
+   VS_MIGHTYBOMBJACK, "mightybj",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -567,24 +629,26 @@ static VSUNIGAME dipswitch_mightybj = {
             { "2 Coins 1 Credit", 0x01 },
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x03 },
-            { "5 Coins 1 Credit", 0x07 }
-         }
+            { "5 Coins 1 Credit", 0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 4, 0x18,
+      {  "Lives", 0x18,
          {
             { "3", 0x00 },
             { "4", 0x08 },
             { "5", 0x18 },
             { "2", 0x10 },
-         }
-      }
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_pinball = {
-   VS_PINBALL, "pinball", 5,
+   VS_PINBALL, "pinball",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x01 },
             { "1 Coin 2 Credits", 0x06 },
@@ -593,22 +657,25 @@ static VSUNIGAME dipswitch_pinball = {
             { "2 Coins 1 Credit", 0x05 },
             { "3 Coins 1 Credit", 0x03 },
             { "4 Coins 1 Credit", 0x07 },
-            { "Free Play",        0x00 }
-         }
+            { "Free Play",        0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Side Drain Walls", 2, 0x08,
+      {  "Side Drain Walls", 0x08,
          {
             { "High", 0x00 },
-            { "Low",  0x08 }
-         }
+            { "Low",  0x08 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus Life", 2, 0x10,
+      {  "Bonus Life", 0x10,
          {
             { "50000", 0x00 },
-            { "70000", 0x10 }
-         }
+            { "70000", 0x10 },
+            { NULL, 0 },
+         },
       },
-      {  "Balls", 4, 0x60,
+      {  "Balls", 0x60,
          {
             { "3", 0x00 },
             { "4", 0x40 },
@@ -616,25 +683,28 @@ static VSUNIGAME dipswitch_pinball = {
             { "2", 0x60 },
          }
       },
-      {  "Ball Speed", 2, 0x80,
+      {  "Ball Speed", 0x80,
          {
             { "Slow", 0x00 },
-            { "Fast", 0x80 }
-         }
-      }
+            { "Fast", 0x80 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_platoon = {
-   VS_PLATOON, "platoon", 3,
+   VS_PLATOON, "platoon",
    {
-      {  "Demo Sounds", 2, 0x04,
+      {  "Demo Sounds", 0x04,
          {
             { "enabled",  0x00 },
-            { "disabled", 0x04 }
-         }
+            { "disabled", 0x04 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 4, 0x18,
+      {  "Difficulty", 0x18,
          {
             { "Normal", 0x08 },
             { "Medium", 0x10 },
@@ -642,7 +712,7 @@ static VSUNIGAME dipswitch_platoon = {
             { "Easy",   0x00 },
          }
       },
-      {  "Coinage", 8, 0xe0,
+      {  "Coinage", 0xe0,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x20 },
@@ -651,24 +721,27 @@ static VSUNIGAME dipswitch_platoon = {
             { "3 Coins 1 Credit", 0x80 },
             { "4 Coins 1 Credit", 0xa0 },
             { "5 Coins 1 Credit", 0xc0 },
-            { "Free Play",  0xe0 }
-         }
-      }
+            { "Free Play",  0xe0 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_rbibaseball = {
-   VS_RBIBASEBALL, "atari_rbibb", 3,
+   VS_RBIBASEBALL, "atari_rbibb",
    {
-      {  "Coinage", 4, 0x03,
+      {  "Coinage", 0x03,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x01 },
             { "2 Coins 1 Credit", 0x02 },
-            { "3 Coins 1 Credit", 0x03 }
-         }
+            { "3 Coins 1 Credit", 0x03 },
+            { NULL, 0 },
+         },
       },
-      {  "1p-inn 2p-inn time-min", 4, 0x0c,
+      {  "1p-inn 2p-inn time-min", 0x0c,
          {
             { "2 2 4", 0x0c },
             { "3 2 6", 0x00 },
@@ -676,19 +749,21 @@ static VSUNIGAME dipswitch_rbibaseball = {
             { "2 1 3", 0x04 },
          }
       },
-      {  "Demo Sounds", 2, 0x10,
+      {  "Demo Sounds", 0x10,
          {
             { "enabled",  0x00 },
-            { "disabled", 0x10 }
-         }
-      }
+            { "disabled", 0x10 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_slalom = {
-   VS_SLALOM, "slalom", 5,
+   VS_SLALOM, "slalom",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -697,42 +772,48 @@ static VSUNIGAME dipswitch_slalom = {
             { "3 Coins 1 Credit", 0x01 },
             { "4 Coins 1 Credit", 0x05 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Freestyle Points", 2, 0x08,
+      {  "Freestyle Points", 0x08,
          {
             { "Hold Time",  0x08 },
-            { "Left Right", 0x00 }
-         }
+            { "Left Right", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 4, 0x30,
+      {  "Difficulty", 0x30,
          {
             { "Normal", 0x10 },
             { "Medium", 0x20 },
             { "Hard",   0x30 },
-            { "Easy",   0x00 }
-         }
+            { "Easy",   0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Allow Continue", 2, 0x40,
+      {  "Allow Continue", 0x40,
          {
             { "enabled",  0x00 },
-            { "disabled", 0x40 }
-         }
+            { "disabled", 0x40 },
+            { NULL, 0 },
+         },
       },
-      {  "Inverted Input", 2, 0x80,
+      {  "Inverted Input", 0x80,
          {
             { "disabled", 0x00 },
-            { "enabled",  0x80 }
-         }
-      }
+            { "enabled",  0x80 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_smb = {
-   VS_SMB, "smb", 5,
+   VS_SMB, "smb",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x06 },
@@ -741,42 +822,48 @@ static VSUNIGAME dipswitch_smb = {
             { "1 Coin 5 Credits", 0x03 },
             { "2 Coins 1 Credit", 0x04 },
             { "3 Coins 1 Credit", 0x02 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives", 2, 0x08,
+      {  "Lives", 0x08,
          {
             { "3", 0x00 },
-            { "2", 0x08 }
-         }
+            { "2", 0x08 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus Life", 4, 0x30,
+      {  "Bonus Life", 0x30,
          {
             { "100 coins", 0x00 },
             { "150 coins", 0x20 },
             { "200 coins", 0x10 },
-            { "250 coins", 0x30 }
-         }
+            { "250 coins", 0x30 },
+            { NULL, 0 },
+         },
       },
-      {  "Timer", 2, 0x40,
+      {  "Timer", 0x40,
          {
             { "Slow", 0x00 },
-            { "Fast", 0x40 }
-         }
+            { "Fast", 0x40 },
+            { NULL, 0 },
+         },
       },
-      {  "Continue Lives", 2, 0x80,
+      {  "Continue Lives", 0x80,
          {
             { "3", 0x80 },
-            { "4", 0x00 }
-         }
-      }
+            { "4", 0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_soccer = {
-   VS_SOCCER, "soccer", 3,
+   VS_SOCCER, "soccer",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -785,46 +872,52 @@ static VSUNIGAME dipswitch_soccer = {
             { "2 Coins 1 Credit", 0x01 },
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x03 },
-            { "Free Play",        0x07 }
-         }
+            { "Free Play",        0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Points Timer", 4, 0x18,
+      {  "Points Timer", 0x18,
          {
             { "1000 Pts", 0x08 },
             { "1200 Pts", 0x18 },
             { "600 Pts",  0x00 },
-            { "800 Pts",  0x10 }
-         }
+            { "800 Pts",  0x10 },
+            { NULL, 0 },
+         },
       },
-      { "Difficulty", 4, 0x60,
+      { "Difficulty", 0x60,
          {
             { "Normal", 0x40 },
             { "Medium", 0x20 },
             { "Hard",   0x60 },
-            { "Easy",   0x00 }
-         }
-      }
+            { "Easy",   0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_starluster = {
-   VS_STARLUSTER, "starluster", 1,
+   VS_STARLUSTER, "starluster",
    {
-      { "Coinage", 4, 0x03,
+      { "Coinage", 0x03,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x02 },
             { "2 Coins 1 Credit", 0x01 },
-            { "3 Coins 1 Credit", 0x03 }
-         }
-      }
+            { "3 Coins 1 Credit", 0x03 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_superskykid = {
-   VS_SUPERSKYKID, "superskykid", 3,
+   VS_SUPERSKYKID, "superskykid",
    {
-      {  "Difficulty", 4, 0x03,
+      {  "Difficulty", 0x03,
          {
 
             { "Normal", 0x01 },
@@ -833,77 +926,85 @@ static VSUNIGAME dipswitch_superskykid = {
             { "Easy",   0x00 },
          }
       },
-      {  "Lives", 2, 0x04,
+      {  "Lives", 0x04,
          {
             { "3", 0x04 },
-            { "2", 0x00 }
-         }
+            { "2", 0x00 },
+            { NULL, 0 },
+         },
       },
-      {  "Coinage", 4, 0x18,
+      {  "Coinage", 0x18,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x08 },
             { "2 Coins 1 Credit", 0x10 },
-            { "3 Coins 1 Credit", 0x18 }
-         }
-      }
+            { "3 Coins 1 Credit", 0x18 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_superxevious = {
-   VS_SUPERXEVIOUS, "superxevious", 1,
+   VS_SUPERXEVIOUS, "superxevious",
    {
-      {  "Coinage", 4, 0x30,
+      {  "Coinage", 0x30,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x10 },
             { "2 Coins 1 Credit", 0x20 },
-            { "3 Coins 1 Credit", 0x30 }
-         }
-      }
+            { "3 Coins 1 Credit", 0x30 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_tetris = {
-   VS_TETRIS, "tetris", 1,
+   VS_TETRIS, "tetris",
    {
-      {  "Difficulty", 4, 0x0c,
+      {  "Difficulty", 0x0c,
          {
             { "Normal", 0x04 },
             { "Medium", 0x08 },
             { "Hard",   0x0c },
             { "Easy",   0x00 },
-         }
-      }
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_tkoboxing = {
-   VS_TKOBOXING, "tkoboxing", 2,
+   VS_TKOBOXING, "tkoboxing",
    {
-      {  "Coinage", 4, 0x03,
+      {  "Coinage", 0x03,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x01 },
             { "2 Coins 1 Credit", 0x02 },
-            { "3 Coins 1 Credit", 0x03 }
-         }
+            { "3 Coins 1 Credit", 0x03 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 4, 0x0c,
+      {  "Difficulty", 0x0c,
          {
             { "Normal",    0x04 },
             { "Hard",      0x08 },
             { "Very Hard", 0x0c },
             { "Easy",      0x00 },
-         }
-      }
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
 static VSUNIGAME dipswitch_topgun = {
-   VS_TOPGUN, "topgun", 5,
+   VS_TOPGUN, "topgun",
    {
-      {  "Coinage", 8, 0x07,
+      {  "Coinage", 0x07,
          {
             { "1 Coin 1 Credit",  0x00 },
             { "1 Coin 2 Credits", 0x04 },
@@ -912,53 +1013,65 @@ static VSUNIGAME dipswitch_topgun = {
             { "3 Coins 1 Credit", 0x05 },
             { "4 Coins 1 Credit", 0x06 },
             { "5 Coins 1 Credit", 0x03 },
-            { "Free Play",  0x07 }
-         }
+            { "Free Play",  0x07 },
+            { NULL, 0 },
+         },
       },
-      {  "Lives per Coin", 2, 0x08,
+      {  "Lives per Coin", 0x08,
          {
             { "3-12 Max", 0x00 },
-            { "2-9 Max",  0x08 }
-         }
+            { "2-9 Max",  0x08 },
+            { NULL, 0 },
+         },
       },
-      {  "Bonus Life", 4, 0x30,
+      {  "Bonus Life", 0x30,
          {
             { "30k and Every 50k",   0x00 },
             { "50k and Every 100k",  0x20 },
             { "100k and Every 150k", 0x10 },
-            { "200k and Every 200k", 0x30 }
-         }
+            { "200k and Every 200k", 0x30 },
+            { NULL, 0 },
+         },
       },
-      {  "Difficulty", 2, 0x40,
+      {  "Difficulty", 0x40,
          {
             { "Easy", 0x00 },
-            { "Hard", 0x40 }
-         }
+            { "Hard", 0x40 },
+            { NULL, 0 },
+         },
       },
-      {  "Demo Sounds", 2, 0x80,
+      {  "Demo Sounds", 0x80,
          {
             { "enabled",  0x80 },
-            { "disabled", 0x00 }
-         }
-      }
+            { "disabled", 0x00 },
+            { NULL, 0 },
+         },
+      },
+      {  NULL, 0, { NULL, 0 } }
    }
 };
 
-typedef struct {
-   char value[100];
-   char label[100];
-} VSUNIGAMEOPT_VALUE;
+#define DPSW_MAX 6
 
-typedef struct {
-   char key[64];
-   VSUNIGAMEOPT_VALUE val[10];
-} VSUNIGAMEOPT;
+enum {
+   DPSW_NONE = 0,
+   DPSW_VSUNI,
+   DPSW_NWC,
+};
 
+static struct retro_core_option_definition option_defs_empty = {
+   NULL, NULL, NULL, { NULL, NULL }, NULL
+};
+
+static struct retro_core_option_definition vscoreopt[DPSW_MAX];
 static VSUNIGAME *vsgame = NULL;
-static VSUNIGAMEOPT vscoreopt[5];
+static char *core_key[DPSW_MAX];
+static unsigned num_core_options;
+static unsigned dipswitch_type = DPSW_NONE;
 
-static void str_to_corekey_label(char *str)
+static const char *str_to_corekey(char *s)
 {
+   char *str = s;
    unsigned i = 0;
 
    while (str[i] != '\0')
@@ -968,36 +1081,45 @@ static void str_to_corekey_label(char *str)
       i++;
    }
    str[i] = '\0';
+
+   return str;
 }
 
-static void make_core_options(void)
+static void make_core_options(struct retro_core_option_definition *opt)
 {
-   unsigned i, j, num_dipswitch;
-   char *romname_short = NULL;
+   unsigned i, j;
 
-   num_dipswitch = vsgame->dipswitch_size;
-   romname_short = vsgame->romname_short;
-   for (i = 0; i < num_dipswitch; i++)
+   for (i = 0; i < num_core_options; i++)
    {
-      char core_key[64], core_values[150];
-      unsigned num_values = vsgame->dipswitch_core_options[i].settings_size;
+      struct retro_core_option_value vars_empty = { NULL, NULL };
+      const char *romname_short = vsgame->romname_short;
       const char *option_name = vsgame->dipswitch_core_options[i].option_name;
+      unsigned num_values = 0, len = 0;
+      char key[100] = {0};
 
-      memset(core_key, 0 , sizeof(core_key));
-      memset(core_values, 0 , sizeof(core_values));
+      /* Set core key and sanitize string */
+      len = snprintf(key, sizeof(key), "%s%s%c%s", "fceumm_dipswitch_", romname_short, '-', option_name);
+      core_key[i] = calloc(len + 1, sizeof(char));
+      strcpy(core_key[i], key);
+      opt[i].key = str_to_corekey(core_key[i]);
 
-      /* Create core key string */
-      sprintf(core_key, "fceumm_dipswitch_%s-%s", romname_short, option_name);
-      /* sanitize core key string */
-      str_to_corekey_label(core_key);
-      sprintf(vscoreopt[i].key, "%s", core_key);
+      /* Set desc */
+      opt[i].desc = option_name;
 
-      /* Create core values */
-      for (j = 0; j < num_values; j++)
-      {
+      /* Set info */
+      opt[i].info = NULL;
+
+      j = 0;
+      /* Set core values */
+      while (vsgame->dipswitch_core_options[i].settings[j].name) {
          const char *var_value = vsgame->dipswitch_core_options[i].settings[j].name;
-         sprintf(vscoreopt[i].val[j].value, "%s", var_value);
+         opt[i].values[j].value = var_value;
+         j++;
       }
+      opt[i].values[j] = vars_empty;
+
+      /* Set default value. Top entry used as default */
+      opt[i].default_value = vsgame->dipswitch_core_options[i].settings[0].name;
    }
 }
 
@@ -1068,27 +1190,34 @@ static VSUNIGAME *get_vsuni_dipswitch(unsigned id)
 
 static void update_dipswitch_vsuni(void)
 {
-   struct retro_variable var = {0};
-   unsigned idx_dips, idx_var;
+   unsigned index_key;
    uint8 vsdip_new = FCEUI_VSUniGetDIPs();
 
-   for (idx_dips = 0; idx_dips < vsgame->dipswitch_size; idx_dips++)
+   for (index_key = 0; index_key < num_core_options; index_key++)
    {
-      const char *key = vscoreopt[idx_dips].key;
-      unsigned num_options = vsgame->dipswitch_core_options[idx_dips].settings_size;
+      struct retro_variable var = { NULL, NULL };
+      const char *key = vscoreopt[index_key].key;
+      unsigned index_value;
 
       var.key = key;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) == 0)
          continue;
-      for (idx_var = 0; idx_var < num_options; idx_var++)
+
+      index_value = 0;
+      while (vscoreopt[index_key].values[index_value].value)
       {
-         const char *var_value = vsgame->dipswitch_core_options[idx_dips].settings[idx_var].name;
-         uint8 value = vsgame->dipswitch_core_options[idx_dips].settings[idx_var].value;
-         uint8 mask = vsgame->dipswitch_core_options[idx_dips].mask;
-         if (strcmp(var.value, var_value) != 0)
+         const char *var_value = vscoreopt[index_key].values[index_value].value;
+         uint8 value, mask;
+
+         if (strcmp(var.value, var_value) != 0) {
+            index_value++;
             continue;
-         vsdip_new &= ~mask;
+         }
+         value = vsgame->dipswitch_core_options[index_key].settings[index_value].value;
+         mask = vsgame->dipswitch_core_options[index_key].mask;
+         vsdip_new &= (~mask);
          vsdip_new |= value;
+         index_value++;
       }
    }
 
@@ -1149,23 +1278,25 @@ static struct retro_core_option_definition dipswitch_nwc[] = {
       },
       "disabled",
    },
+
+   { NULL, NULL, NULL, { NULL, NULL }, NULL },
 };
 
 static void update_dipswitch_nwc(void)
 {
-   struct retro_variable var = {0};
-   unsigned dips = 0x00;
-   unsigned i;
+   unsigned i, dips = 0x00;
 
    for (i = 0; i < 4; i++)
    {
+      struct retro_variable var = { NULL, NULL };
       const char *key = dipswitch_nwc[i].key;
+
       var.key = key;
-      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-      {
-         if (strcmp(var.value, "enabled") == 0)
-            dips |= (1 << i);
-      }
+      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) == 0)
+         continue;
+      if (strcmp(var.value, "enabled") != 0)
+         continue;
+      dips |= (1 << i);
    }
 
    if (GameInfo->cspecial != dips)
@@ -1178,9 +1309,10 @@ static void update_dipswitch_nwc(void)
    }
 }
 
-void set_dipswitch_variables(unsigned *index, struct retro_core_option_definition *vars)
+size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_definition *vars)
 {
-   unsigned idx = *index;
+   unsigned index = current_index;
+   int dipsw_size = 0;
 
    /* VSUNI Dipswitch */
    if (GameInfo->type == GIT_VSUNI)
@@ -1189,48 +1321,65 @@ void set_dipswitch_variables(unsigned *index, struct retro_core_option_definitio
       if (vsgame)
       {
          unsigned i, j;
-         unsigned num_options = vsgame->dipswitch_size;
 
-         make_core_options();
+         num_core_options = 0;
+         dipswitch_type = DPSW_VSUNI;
 
-         for (i = 0; i < num_options; i++) {
-            const char *key = vscoreopt[i].key;
-            const char *desc = vsgame->dipswitch_core_options[i].option_name;
-            unsigned num_values = vsgame->dipswitch_core_options[i].settings_size;
+         /* Initialize dipswitch struct and count number of core options */
+         for (i = 0; i < DPSW_MAX; i++) {
+            vscoreopt[i] = option_defs_empty;
+            if (vsgame->dipswitch_core_options[i].option_name)
+               num_core_options++;
+         }
 
-            vars[idx].key = key;
-            vars[idx].desc = desc;
+         make_core_options(vscoreopt);
 
-            for (j = 0; j < num_values; j++) {
-               char *value = vscoreopt[i].val[j].value;
-               vars[idx].values[j].value = value;
-            }
-
-            idx++;
+         /* Copy dpsw struct to main core option struct */
+         while (vscoreopt[dipsw_size].key) {
+            vars[index] = vscoreopt[dipsw_size];
+            index++;
+            dipsw_size++;
          }
       }
+      return (dipsw_size);
    }
 
    /* Nintendo World Championship cart (Mapper 105)*/
    if (iNESCart.mapper == 105)
    {
-      unsigned i = 0;
+      dipswitch_type = DPSW_NWC;
 
-      while (dipswitch_nwc[i].key) {
-         vars[idx] = dipswitch_nwc[i];
-         idx++;
-         i++;
+      while (dipswitch_nwc[dipsw_size].key) {
+         vars[index] = dipswitch_nwc[dipsw_size];
+         index++;
+         dipsw_size++;
       }
+      return (dipsw_size);
    }
 
-  *index = idx;
+  return (0);
 }
 
 void update_dipswitch(void)
 {
-   if (iNESCart.mapper == 105)
-      update_dipswitch_nwc();
-
-   if (GameInfo->type == GIT_VSUNI)
+   switch (dipswitch_type) {
+   case DPSW_VSUNI:
       update_dipswitch_vsuni();
+      break;
+   case DPSW_NWC:
+      update_dipswitch_nwc();
+      break;
+   }
+}
+
+void DPSW_Cleanup(void)
+{
+   unsigned i;
+
+   for (i = 0; i < DPSW_MAX; i++) {
+      if (core_key[i]) {
+         free(core_key[i]);
+         core_key[i] = NULL;
+      }
+   }
 }

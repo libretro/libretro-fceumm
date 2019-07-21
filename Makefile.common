@@ -57,4 +57,4 @@ endif
 SOURCES_C += \
 				 $(CORE_DIR)/ines.c \
 				 $(CORE_DIR)/unif.c $(CORE_DIR)/x6502.c \
-				 $(CORE_DIR)/drivers/libretro/dipswitch.c
+				 $(CORE_DIR)/drivers/libretro/libretro_dipswitch.c

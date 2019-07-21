@@ -3,8 +3,9 @@
 
 #include <libretro.h>
 
-void set_dipswitch_variables(unsigned *index, struct retro_core_option_definition *vars);
+size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_definition *vars);
 void update_dipswitch(void);
+void DPSW_Cleanup(void);
 
 extern retro_environment_t environ_cb;
 
