@@ -45,7 +45,7 @@ struct retro_core_option_definition option_defs_common[] = {
    {
       "fceumm_aspect",
       "Preferred aspect ratio",
-      "Choose prefered aspect ratio.",
+      "Choose preferred aspect ratio.",
       {
          { "8:7 PAR", NULL },
          { "4:3",     NULL },
@@ -56,7 +56,7 @@ struct retro_core_option_definition option_defs_common[] = {
    {
       "fceumm_palette",
       "Color Palette",
-      "Choose from pre-generted palettes, a custom 64x3 palette from file or raw format (needs to use a nes-decoder shader).",
+      "Choose from pre-generated palettes, a custom 64x3 palette from file or raw format (needs to use a nes-decoder shader).",
       {
          { "default",              NULL },
          { "asqrealc",             NULL },
@@ -84,7 +84,7 @@ struct retro_core_option_definition option_defs_common[] = {
    {
       "fceumm_up_down_allowed",
       "Allow Opposing Directions",
-      "Allows simultaneous UP+DOWN or LEFT+RIGHT button combination which can create different effects in some games.",
+      "Allows simultaneous UP+DOWN or LEFT+RIGHT button combinations which can create different effects in some games.",
       {
          { "disabled", NULL },
          { "enabled",  NULL },
@@ -109,7 +109,7 @@ struct retro_core_option_definition option_defs_common[] = {
    {
       "fceumm_overscan_h",
       "Crop Overscan (Horizontal)",
-      "Removes 8 pixel from left and right of screen to simulates overscans seen on standard CRT television.",
+      "Removes 8 pixel from left and right side of the screen to simulate overscan seen on standard CRT television.",
       {
          { "disabled", NULL },
          { "enabled",  NULL },
@@ -120,7 +120,7 @@ struct retro_core_option_definition option_defs_common[] = {
       {
       "fceumm_overscan_v",
       "Crop Overscan (Vertical)",
-      "Removes 8 pixel from top and bottom of screen to simulates overscans seen on standard CRT television.",
+      "Removes 8 pixel from the top and bottom of the screen to simulate overscan seen on standard CRT television.",
       {
          { "disabled", NULL },
          { "enabled",  NULL },
