@@ -27,8 +27,6 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 chip;
-
 static void M313CW(uint32 A, uint8 V) {
 	setchr1(A, (EXPREGS[0] << 7) | (V & 0x7F));
 }

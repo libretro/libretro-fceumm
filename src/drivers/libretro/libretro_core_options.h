@@ -318,11 +318,11 @@ struct retro_core_option_definition option_defs_common[] = {
    },
 #endif
 
-   { NULL, NULL, NULL, { NULL, NULL }, NULL },
+   { NULL, NULL, NULL, { {0} }, NULL },
 };
 
 struct retro_core_option_definition option_defs_empty = {
-   NULL, NULL, NULL, { NULL, NULL }, NULL
+   NULL, NULL, NULL, { {0} }, NULL
 };
 
 struct retro_core_option_definition option_defs_us[MAX_CORE_OPTIONS];

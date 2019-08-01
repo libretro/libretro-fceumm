@@ -32,7 +32,7 @@
 #include "mmc3.h"
 
 static uint8 reset_flag = 0;
-static uint8 chip, isK3088;
+static uint8 isK3088;
 
 static void BMC411120CCW(uint32 A, uint8 V) {
 	uint32 mask = isK3088 ? 0x07 : 0x03;

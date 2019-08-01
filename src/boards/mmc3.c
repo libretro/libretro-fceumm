@@ -44,8 +44,6 @@ uint8 mmc3opts = 0;
 uint8 IRQCount, IRQLatch, IRQa;
 uint8 IRQReload;
 
-static uint8 chip;
-
 static SFORMAT MMC3_StateRegs[] =
 {
 	{ DRegBuf, 8, "REGS" },
@@ -1198,7 +1196,6 @@ void Mapper198_Init(CartInfo *info) {
 /* ---------------------------- Mapper 205 ------------------------------ */
 /* UNIF boardname BMC-JC-016-2
 https://wiki.nesdev.com/w/index.php/INES_Mapper_205 */
-static uint8 block[] = {0, 0, 1, 2};
 
 static void M205PW(uint32 A, uint8 V) {
 	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x0F : 0x1F);
