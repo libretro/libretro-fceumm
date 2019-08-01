@@ -309,13 +309,10 @@ void FCEU_VSUniCheck(uint64 md5partial, int *MapperNo, uint8 *Mirroring) {
 
 			secptr = 0;
 
-			{
-				static int64 tko = 0x6e1ee06171d8ce3aULL, rbi = 0x6a02d345812938afULL;
-				if (vs->gameid & VS_TKOBOXING)
-					secptr = secdata[0];
-				if (md5partial == rbi)
-					secptr = secdata[1];
-			}
+			if (vs->gameid & VS_TKOBOXING)
+				secptr = secdata[0];
+			if (vs->gameid & VS_RBIBASEBALL)
+				secptr = secdata[1];
 
 			vsdip = 0x0;
 			if (vs->ioption & IOPTION_PREDIP) {

@@ -37,7 +37,7 @@ static void Sync(void) {
 	if (mode & 0x02)
 		setprg16(0x8000, (regs[0] & 0x0F) | (regs[1] & 0x70));
 	else
-		setprg16(0x8000, regs[0] & 0x0F | 0x80);
+		setprg16(0x8000, (regs[0] & 0x0F) | 0x80);
 	setprg16(0xC000, regs[1]);
 	setmirror(((regs[0] >> 4) & 1) ^ 1);
 }

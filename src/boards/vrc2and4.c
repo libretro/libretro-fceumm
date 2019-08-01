@@ -31,7 +31,6 @@ static uint8 prgreg[2], chrreg[8];
 static uint16 chrhi[8];
 static uint8 regcmd, irqcmd, mirr, big_bank;
 static uint16 acount = 0;
-static uint16 weirdo = 0;
 
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
@@ -65,15 +64,8 @@ static void Sync(void) {
 		setchr8(0);
 	else {
 		uint8 i;
-		/* if (!weirdo) */
-			for (i = 0; i < 8; i++)
-				setchr1(i << 10, (chrhi[i] | chrreg[i]) >> is22);
-		/* else {
-			setchr1(0x0000, 0xFC);
-			setchr1(0x0400, 0xFD);
-			setchr1(0x0800, 0xFF);
-			weirdo--;
-		} */
+		for (i = 0; i < 8; i++)
+			setchr1(i << 10, (chrhi[i] | chrreg[i]) >> is22);
 	}
 	switch (mirr & 0x3) {
 	case 0: setmirror(MI_V); break;

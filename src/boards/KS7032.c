@@ -31,7 +31,7 @@
 
 #include "mapinc.h"
 
-static uint8 reg[8], creg[8], mirr, cmd, IRQa = 0, isirqused = 0;
+static uint8 reg[8], creg[8], mirr, cmd, IRQa = 0;
 static int32 IRQCount, IRQLatch;
 static uint8 KS7032;
 static uint8 *WRAM = NULL;
