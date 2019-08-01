@@ -54,7 +54,7 @@ static VSUNIGAME dipswitch_battlecity = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    },
 };
 
@@ -77,8 +77,8 @@ static VSUNIGAME dipswitch_castlevania = {
       {  "Lives", 0x08,
          {
             { "3", 0x00 },
-            { "2", 0x08 }
-
+            { "2", 0x08 },
+            { NULL, 0 },
          }
       },
       {  "Bonus", 0x30,
@@ -98,7 +98,7 @@ static VSUNIGAME dipswitch_castlevania = {
          },
       },
 
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -127,7 +127,7 @@ static VSUNIGAME dipswitch_clucluland = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -139,7 +139,8 @@ static VSUNIGAME dipswitch_drmario = {
             { "7 Pills",  0x00 },
             { "8 Pills",  0x01 },
             { "9 Pills",  0x02 },
-            { "10 Pills", 0x03 }
+            { "10 Pills", 0x03 },
+            { NULL, 0 },
          },
       },
       {  "Virus Level", 0x0c,
@@ -147,7 +148,8 @@ static VSUNIGAME dipswitch_drmario = {
             { "1", 0x00 },
             { "3", 0x04 },
             { "5", 0x08 },
-            { "7", 0x0c }
+            { "7", 0x0c },
+            { NULL, 0 },
          },
       },
       {  "Drop Speed Up", 0x30,
@@ -155,13 +157,15 @@ static VSUNIGAME dipswitch_drmario = {
             { "Slow",    0x00 },
             { "Medium",  0x10 },
             { "Fast",    0x20 },
-            { "Fastest", 0x30 }
+            { "Fastest", 0x30 },
+            { NULL, 0 },
          },
       },
       {  "Free Play", 0x40,
          {
             { "disabled", 0x00 },
-            { "enabled",  0x40 }
+            { "enabled",  0x40 },
+            { NULL, 0 },
          },
       },
       {  "Demo Sounds", 0x80,
@@ -171,7 +175,7 @@ static VSUNIGAME dipswitch_drmario = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -216,7 +220,7 @@ static VSUNIGAME dipswitch_duckhunt = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -259,7 +263,7 @@ static VSUNIGAME dipswitch_excitebike = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -304,7 +308,7 @@ static VSUNIGAME dipswitch_freedomforce = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -354,7 +358,7 @@ static VSUNIGAME dipswitch_goonies = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -404,7 +408,7 @@ static VSUNIGAME dipswitch_gradius = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -454,7 +458,7 @@ static VSUNIGAME dipswitch_gumshoe = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -499,7 +503,7 @@ static VSUNIGAME dipswitch_hogansalley = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -542,7 +546,7 @@ static VSUNIGAME dipswitch_iceclimber = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -577,7 +581,7 @@ static VSUNIGAME dipswitch_jajamaru = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -613,7 +617,7 @@ static VSUNIGAME dipswitch_machrider = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -639,9 +643,10 @@ static VSUNIGAME dipswitch_mightybj = {
             { "4", 0x08 },
             { "5", 0x18 },
             { "2", 0x10 },
+            { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -681,6 +686,7 @@ static VSUNIGAME dipswitch_pinball = {
             { "4", 0x40 },
             { "5", 0x20 },
             { "2", 0x60 },
+            { NULL, 0 },
          }
       },
       {  "Ball Speed", 0x80,
@@ -690,7 +696,7 @@ static VSUNIGAME dipswitch_pinball = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -710,6 +716,7 @@ static VSUNIGAME dipswitch_platoon = {
             { "Medium", 0x10 },
             { "Hard",   0x18 },
             { "Easy",   0x00 },
+            { NULL, 0 },
          }
       },
       {  "Coinage", 0xe0,
@@ -725,7 +732,7 @@ static VSUNIGAME dipswitch_platoon = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -747,6 +754,7 @@ static VSUNIGAME dipswitch_rbibaseball = {
             { "3 2 6", 0x00 },
             { "4 3 7", 0x08 },
             { "2 1 3", 0x04 },
+            { NULL, 0 },
          }
       },
       {  "Demo Sounds", 0x10,
@@ -756,7 +764,7 @@ static VSUNIGAME dipswitch_rbibaseball = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -806,7 +814,7 @@ static VSUNIGAME dipswitch_slalom = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -856,7 +864,7 @@ static VSUNIGAME dipswitch_smb = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -894,7 +902,7 @@ static VSUNIGAME dipswitch_soccer = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -910,7 +918,7 @@ static VSUNIGAME dipswitch_starluster = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -924,6 +932,7 @@ static VSUNIGAME dipswitch_superskykid = {
             { "Medium", 0x02 },
             { "Hard",   0x03 },
             { "Easy",   0x00 },
+            { NULL, 0 },
          }
       },
       {  "Lives", 0x04,
@@ -942,7 +951,7 @@ static VSUNIGAME dipswitch_superskykid = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -958,7 +967,7 @@ static VSUNIGAME dipswitch_superxevious = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -971,9 +980,10 @@ static VSUNIGAME dipswitch_tetris = {
             { "Medium", 0x08 },
             { "Hard",   0x0c },
             { "Easy",   0x00 },
+            { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -995,9 +1005,10 @@ static VSUNIGAME dipswitch_tkoboxing = {
             { "Hard",      0x08 },
             { "Very Hard", 0x0c },
             { "Easy",      0x00 },
+            { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -1047,7 +1058,7 @@ static VSUNIGAME dipswitch_topgun = {
             { NULL, 0 },
          },
       },
-      {  NULL, 0, { NULL, 0 } }
+      {  NULL, 0, { {0} } }
    }
 };
 
@@ -1060,7 +1071,7 @@ enum {
 };
 
 static struct retro_core_option_definition option_defs_empty = {
-   NULL, NULL, NULL, { NULL, NULL }, NULL
+   NULL, NULL, NULL, { {0} }, NULL
 };
 
 static struct retro_core_option_definition vscoreopt[DPSW_MAX];
@@ -1094,12 +1105,11 @@ static void make_core_options(struct retro_core_option_definition *opt)
       struct retro_core_option_value vars_empty = { NULL, NULL };
       const char *romname_short = vsgame->romname_short;
       const char *option_name = vsgame->dipswitch_core_options[i].option_name;
-      unsigned num_values = 0, len = 0;
       char key[100] = {0};
 
       /* Set core key and sanitize string */
-      len = sprintf(key, "fceumm_dipswitch_%s-%s", romname_short, option_name);
-      core_key[i] = calloc(len + 1, sizeof(char));
+      sprintf(key, "fceumm_dipswitch_%s-%s", romname_short, option_name);
+      core_key[i] = calloc(strlen(key) + 1, sizeof(char));
       strcpy(core_key[i], key);
       opt[i].key = str_to_corekey(core_key[i]);
 
@@ -1279,7 +1289,7 @@ static struct retro_core_option_definition dipswitch_nwc[] = {
       "disabled",
    },
 
-   { NULL, NULL, NULL, { NULL, NULL }, NULL },
+   { NULL, NULL, NULL, { {0} }, NULL },
 };
 
 static void update_dipswitch_nwc(void)
@@ -1320,7 +1330,7 @@ size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_
       vsgame = get_vsuni_dipswitch(GameInfo->gameid);
       if (vsgame)
       {
-         unsigned i, j;
+         unsigned i;
 
          num_core_options = 0;
          dipswitch_type = DPSW_VSUNI;
