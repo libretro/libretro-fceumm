@@ -309,9 +309,9 @@ void FCEU_VSUniCheck(uint64 md5partial, int *MapperNo, uint8 *Mirroring) {
 
 			secptr = 0;
 
-			if (vs->gameid & VS_TKOBOXING)
+			if (vs->gameid == VS_TKOBOXING)
 				secptr = secdata[0];
-			if (vs->gameid & VS_RBIBASEBALL)
+			if (vs->gameid == VS_RBIBASEBALL)
 				secptr = secdata[1];
 
 			vsdip = 0x0;
