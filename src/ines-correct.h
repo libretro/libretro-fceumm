@@ -354,6 +354,10 @@
 	{0xfe3e03a1,    197,       -1}, /* Mortal Kombat III Special (YY-030) (Ch) [!] */
 	{0x9151d311,    197,       -1}, /* Mortal Kombat III 28 Peoples (NT-328) (Ch) [!] */
 	{0x272709b9,    237,       -1}, /* Teletubbies Y2K (420-in-1) */
+	{0x2e27e0af,    227,       -1}, /* Bio Hazard (No-Bug) (Unl).nes */
+	{0x0e7e9309,    189,       -1}, /* Street Fighter II - The World Warrior (Unl) [a1].nes */
+	{0xa3ac0095,    189,       -1}, /* Street Fighter II - The World Warrior (Unl) [a2].nes */
+	{0xeced5899,    121,       -1}, /* Ultimate Mortal Kombat 4 (Unl) [!].nes */
 
 	/* ines mappers that uses iNes 2.0 numbers */
 
@@ -368,6 +372,7 @@
 	{0x4dc6107d,    260,       -1}, /* 2-in-1 - Boogerman + Flintstones, The (Unl) [p1][!] */
 	{0xb72b2cf4,    260,       -1}, /* 2-in-1 - Aladdin + Lion King, The (Unl) [p1][!] */
 	{0xa1dc16c0,    262,       -1}, /* Street Heroes (Asia) (Ja) (Unl */
+	{0x1df10182,    263,       -1}, /* Boogerman II (Rex-Soft) [!].nes */
 	{0xf956fcea,    521,       -1}, /* Korean Igo (Korea) (Unl) */
 
 	{0x00000000,	  -1,	   -1}
