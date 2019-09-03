@@ -157,6 +157,40 @@ void BMCF15_Init(CartInfo *info);
 void UNLRT01_Init(CartInfo *info);
 void BMC810131C_Init(CartInfo *info);
 void BMC8IN1_Init(CartInfo *info);
+void BMC80013B_Init(CartInfo *info);
+void BMC60311C_Init(CartInfo *info);			/* m289 */
+void BMCWS_Init(CartInfo *info);			/* m332 */
+void UNLKS202_Init(CartInfo *info);			/* m056 */
+void BMCHPxx_Init(CartInfo *info);			/* m260 */
+
+void BMCRESETNROMXIN1_Init(CartInfo *info);
+void BMCKS106C_Init(CartInfo *info);
+void UNLTH21311_Init(CartInfo *info);		/* m308 */
+void LH51_Init(CartInfo *info);				/* m309 */
+void BMCRESETTXROM_Init(CartInfo *info);	/* m313 */
+void FARIDSLROM8IN1_Init(CartInfo *info);	/* m323 */
+void BMC830425C4391T_Init(CartInfo *info);	/* m320 */
+void BMCTJ03_Init(CartInfo *info);			/* m341 */
+void BMCCTC09_Init(CartInfo *info);			/* m335 */
+void BMCK3046_Init(CartInfo *info);			/* m336 */
+void BMCSA005A_Init(CartInfo *info);		/* m338 */
+void BMCK3006_Init(CartInfo *info);			/* m339 */
+void BMCK3036_Init(CartInfo *info);			/* m340 */
+void MINDKIDS_Init(CartInfo *info);			/* m268 */
+void UNLKS7021A_Init(CartInfo *info);		/* m525 */
+void BTL900218_Init(CartInfo *info);		/* m524 */
+void UNLAX40G_Init(CartInfo *info);			/* m527 */
+void BMCK3088_Init(CartInfo *info);			/* m287 */
+void BMCSFGAME4IN1_Init(CartInfo *info);	/* m049 */
+void UNLBJ56_Init(CartInfo *info);			/* m526 */
+void BMCL6IN1_Init(CartInfo *info);			/* m345 */
+
+void BMCCTC12IN1_Init(CartInfo *info);		/* m337 */
+void BMC891227_Init(CartInfo *info);		/* m350 */
+void FARIDUNROM_Init(CartInfo *info);		/* m324 */
+void BMCK3033_Init(CartInfo *info);			/* mm22 */
+void BMC830134C_Init(CartInfo *info);		/* m315 */
+void BMCGN26_Init(CartInfo *info);			/* m344 */
 
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);

@@ -1233,7 +1233,8 @@ SFORMAT FCEUSND_STATEINFO[] = {
  * issues loading states with this. Increasing it only helps a few games.
  * Disabling this state variable for Wii/WiiU/GC for now. */
 /* TODO: fix this for better runahead feature for big-endian */
-#ifndef GEKKO
+/* UPDATE: Try to ignore this for all big-endian for now */
+#ifndef MSB_FIRST
 	/* wave buffer is used for filtering, only need first 17 values from it */
 	{ &Wave, 32 * sizeof(int32), "WAVE"},
 #endif

@@ -195,6 +195,41 @@ void Mapper61_Init(CartInfo *info) {
 	Latch_Init(info, M61Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
+/*------------------ Map 063 ---------------------------*/
+/* added 2019-5-23
+ * Mapper 63 NTDEC-Multicart
+ * http://wiki.nesdev.com/w/index.php/INES_Mapper_063
+ * - Powerful 250-in-1
+ * - Hello Kitty 255-in-1 */
+
+static uint16 openBus;
+
+static DECLFR(M63Read) {
+	if (A < 0xC000)
+		if (openBus)
+			return X.DB;
+	return CartBR(A);
+}
+
+static void M63Sync(void) {
+	uint16 mode = latche & 2;
+	uint16 prg_bank = (latche & 0x3F8) >> 1;
+	uint16 prg16 = (latche & 4) >> 1;
+
+	openBus = ((latche & 0x300) == 0x300);
+	setprg8(0x8000, (prg_bank | (mode ? 0 : prg16 | 0)));
+	setprg8(0xA000, (prg_bank | (mode ? 1 : prg16 | 1)));
+	setprg8(0xC000, (prg_bank | (mode ? 2 : prg16 | 0)));
+	setprg8(0xE000, ((latche & 0x800) ? ((latche & 0x7C) | ((latche & 6) ? 3 : 1)) :
+					(prg_bank | (mode ? 3 : (prg16 | 1)))));
+	setchr8(0);
+	setmirror((latche & 1) ^ 1);
+}
+
+void Mapper63_Init(CartInfo *info) {
+	Latch_Init(info, M63Sync, M63Read, 0x0000, 0x8000, 0xFFFF, 0);
+}
+
 /*------------------ Map 092 ---------------------------*/
 /* Another two-in-one mapper, two Jaleco carts uses similar
  * hardware, but with different wiring.
@@ -505,4 +540,37 @@ static void BMCG146Sync(void) {
 
 void BMCG146_Init(CartInfo *info) {
 	Latch_Init(info, BMCG146Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+}
+
+/*-------------- BMC-TJ-03 ------------------------*/
+/* NES 2.0 mapper 341 is used for a simple 4-in-1 multicart */
+
+static void BMCTJ03Sync(void) {
+	uint8 mirr = ((latche >> 1) & 1) ^ 1;
+	uint8 bank = (latche >> 8) & 7;
+
+	setprg32(0x8000, bank);
+	setchr8(bank);
+
+	if (bank == 3) mirr ^= 1; /* Twin Bee has incorrect mirroring */
+	setmirror(mirr);
+}
+
+void BMCTJ03_Init(CartInfo *info) {
+	Latch_Init(info, BMCTJ03Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+}
+
+/*-------------- BMC-SA005-A ------------------------*/
+/* NES 2.0 mapper 338 is used for a 16-in-1 and a 200/300/600/1000-in-1 multicart.
+ * http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_338 */
+
+static void BMCSA005ASync(void) {
+	setprg16(0x8000, latche & 0x0F);
+	setprg16(0xC000, latche & 0x0F);
+	setchr8(latche & 0x0F);
+	setmirror((latche >> 3) & 1);
+}
+
+void BMCSA005A_Init(CartInfo *info) {
+	Latch_Init(info, BMCSA005ASync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }

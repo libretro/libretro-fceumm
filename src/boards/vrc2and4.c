@@ -31,7 +31,6 @@ static uint8 prgreg[2], chrreg[8];
 static uint16 chrhi[8];
 static uint8 regcmd, irqcmd, mirr, big_bank;
 static uint16 acount = 0;
-static uint16 weirdo = 0;
 
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
@@ -65,15 +64,8 @@ static void Sync(void) {
 		setchr8(0);
 	else {
 		uint8 i;
-		/* if (!weirdo) */
-			for (i = 0; i < 8; i++)
-				setchr1(i << 10, (chrhi[i] | chrreg[i]) >> is22);
-		/* else {
-			setchr1(0x0000, 0xFC);
-			setchr1(0x0400, 0xFD);
-			setchr1(0x0800, 0xFF);
-			weirdo--;
-		} */
+		for (i = 0; i < 8; i++)
+			setchr1(i << 10, (chrhi[i] | chrreg[i]) >> is22);
 	}
 	switch (mirr & 0x3) {
 	case 0: setmirror(MI_V); break;
@@ -158,14 +150,20 @@ static DECLFW(M23Write) {
 	VRC24Write(A, V);
 }
 
-static void M21Power(void) {
+static void VRC24PowerCommon(void (*WRITEFUNC)(uint32 A, uint8 V)) {
 	Sync();
-	setprg8r(0x10, 0x6000, 0);
+	setprg8r(0x10, 0x6000, 0);	/* Only two Goemon games are have battery backed RAM, three more shooters
+								 * (Parodius Da!, Gradius 2 and Crisis Force uses 2k or SRAM at 6000-67FF only
+								 */
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M21Write);
+	SetWriteHandler(0x8000, 0xFFFF, WRITEFUNC);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+}
+
+static void M21Power(void) {
+	VRC24PowerCommon(M21Write);
 }
 
 static void M22Power(void) {
@@ -176,26 +174,12 @@ static void M22Power(void) {
 
 static void M23Power(void) {
 	big_bank = 0x20;
-	Sync();
-	setprg8r(0x10, 0x6000, 0);	/* Only two Goemon games are have battery backed RAM, three more shooters
-								 * (Parodius Da!, Gradius 2 and Crisis Force uses 2k or SRAM at 6000-67FF only
-								 */
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
-	SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M23Write);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	VRC24PowerCommon(M23Write);
 }
 
 static void M25Power(void) {
 	big_bank = 0x20;
-	Sync();
-	setprg8r(0x10, 0x6000, 0);
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
-	SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M22Write);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	VRC24PowerCommon(M22Write);
 }
 
 void FP_FASTAPASS(1) VRC24IRQHook(int a) {
@@ -278,4 +262,100 @@ void UNLT230_Init(CartInfo *info) {
 	is22 = 0;
 	info->Power = M23Power;
 	VRC24_Init(info);
+}
+
+/* -------------------- UNL-TH2131-1 -------------------- */
+/* https://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_308
+ * NES 2.0 Mapper 308 is used for a bootleg version of the Sunsoft game Batman
+ * similar to Mapper 23 Submapper 3) with custom IRQ functionality.
+ * UNIF board name is UNL-TH2131-1.
+ */
+
+static DECLFW(TH2131Write) {
+	switch (A & 0xF003) {
+	case 0xF000: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; IRQCount = 0; break;
+	case 0xF001: IRQa = 1; break;
+	case 0xF003: IRQLatch = (V & 0xF0) >> 4; break;
+	}
+}
+
+void FP_FASTAPASS(1) TH2131IRQHook(int a) {
+	int count;
+
+	if (!IRQa)
+		return;
+
+	for (count = 0; count < a; count++) {
+		IRQCount++;
+		if ((IRQCount & 0x0FFF) == 2048)
+			IRQLatch--;
+		if (!IRQLatch && (IRQCount & 0x0FFF) < 2048)
+			X6502_IRQBegin(FCEU_IQEXT);
+	}
+}
+
+static void TH2131Power(void) {
+	VRC24PowerCommon(VRC24Write);
+	SetWriteHandler(0xF000, 0xFFFF, TH2131Write);
+}
+
+void UNLTH21311_Init(CartInfo *info) {
+	info->Power = TH2131Power;
+	VRC24_Init(info);
+	MapIRQHook = TH2131IRQHook;
+}
+
+/* -------------------- UNL-KS7021A -------------------- */
+/* http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_525
+ * NES 2.0 Mapper 525 is used for a bootleg version of versions of Contra and 月風魔伝 (Getsu Fūma Den).
+ * Its similar to Mapper 23 Submapper 3) with non-nibblized CHR-ROM bank registers.
+ */
+
+static DECLFW(KS7021AWrite) {
+	switch (A & 0xB000) {
+	case 0xB000: chrreg[A & 0x07] = V; Sync(); break;
+	}
+}
+
+static void KS7021APower(void) {
+	VRC24PowerCommon(VRC24Write);
+	SetWriteHandler(0xB000, 0xBFFF, KS7021AWrite);
+}
+
+void UNLKS7021A_Init(CartInfo *info) {
+	info->Power = KS7021APower;
+	VRC24_Init(info);
+}
+
+/* -------------------- BTL-900218 -------------------- */
+/* http://wiki.nesdev.com/w/index.php/UNIF/900218
+ * NES 2.0 Mapper 524 describes the PCB used for the pirate port Lord of King or Axe of Fight.
+ * UNIF board name is BTL-900218.
+ */
+
+static DECLFW(BTL900218Write) {
+	switch (A & 0xF00C) {
+	case 0xF008: IRQa = 1; break;
+	case 0xF00C: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; IRQCount = 0; break;
+	}
+}
+
+void FP_FASTAPASS(1) BTL900218IRQHook(int a) {
+	if (!IRQa)
+		return;
+
+	IRQCount += a;
+	if (IRQCount & 1024)
+		X6502_IRQBegin(FCEU_IQEXT);
+}
+
+static void BTL900218Power(void) {
+	VRC24PowerCommon(VRC24Write);
+	SetWriteHandler(0xF000, 0xFFFF, BTL900218Write);
+}
+
+void BTL900218_Init(CartInfo *info) {
+	info->Power = BTL900218Power;
+	VRC24_Init(info);
+	MapIRQHook = BTL900218IRQHook;
 }

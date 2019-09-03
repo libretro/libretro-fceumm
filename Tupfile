@@ -1,0 +1,3 @@
+TARGET_NAME=fceumm
+CORE_DIR=$(TUP_CWD)/src
+include_rules

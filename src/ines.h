@@ -28,7 +28,14 @@ typedef struct {
 	uint8 VROM_size;
 	uint8 ROM_type;
 	uint8 ROM_type2;
-	uint8 reserve[8];
+	uint8 ROM_type3;
+	uint8 upper_PRG_CHR_size;
+	uint8 PRGRAM_size;
+	uint8 CHRRAM_size;
+	uint8 Region;
+	uint8 VS_hardware;
+	uint8 MiscRoms;
+	uint8 ExpDevice;
 } iNES_HEADER;
 
 extern uint8 *ROM;
@@ -63,7 +70,9 @@ void Mapper23_Init(CartInfo *);
 void Mapper24_Init(CartInfo *);
 void Mapper25_Init(CartInfo *);
 void Mapper26_Init(CartInfo *);
-void UNROM512_Init(CartInfo *); /* Mapper #30 */
+void Mapper28_Init(CartInfo *);
+void Mapper29_Init(CartInfo *);
+void Mapper31_Init(CartInfo *);
 void Mapper32_Init(CartInfo *);
 void Mapper33_Init(CartInfo *);
 void Mapper34_Init(CartInfo *);
@@ -87,6 +96,7 @@ void Mapper57_Init(CartInfo *);
 void Mapper59_Init(CartInfo *);
 void Mapper61_Init(CartInfo *);
 void Mapper62_Init(CartInfo *);
+void Mapper63_Init(CartInfo *);
 void Mapper64_Init(CartInfo *);
 void Mapper65_Init(CartInfo *);
 void Mapper67_Init(CartInfo *);
@@ -136,6 +146,7 @@ void Mapper119_Init(CartInfo *);
 void Mapper120_Init(CartInfo *);
 void Mapper121_Init(CartInfo *);
 void Mapper125_Init(CartInfo *);
+void Mapper126_Init(CartInfo *);
 void Mapper134_Init(CartInfo *);
 void Mapper140_Init(CartInfo *);
 void Mapper144_Init(CartInfo *);
@@ -198,6 +209,7 @@ void Mapper216_Init(CartInfo *);
 void Mapper217_Init(CartInfo *);
 void Mapper220_Init(CartInfo *);
 void Mapper222_Init(CartInfo *);
+void Mapper224_Init(CartInfo *);
 void Mapper225_Init(CartInfo *);
 void Mapper226_Init(CartInfo *);
 void Mapper227_Init(CartInfo *);
@@ -222,5 +234,9 @@ void Mapper250_Init(CartInfo *);
 void Mapper252_Init(CartInfo *);
 void Mapper253_Init(CartInfo *);
 void Mapper254_Init(CartInfo *);
+void Mapper255_Init(CartInfo *);
+
+void GN45_Init(CartInfo *info); /* m361, m366 */
+void Mapper281_Init(CartInfo *);
 
 #endif

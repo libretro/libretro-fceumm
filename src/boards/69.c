@@ -135,7 +135,6 @@ static DECLFW(M69SWrite0) {
 }
 
 static DECLFW(M69SWrite1) {
-	int x;
 	GameExpSound.Fill = AYSound;
 	GameExpSound.HiFill = AYSoundHQ;
 	switch (sndcmd) {

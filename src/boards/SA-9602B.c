@@ -22,12 +22,12 @@
 #include "mmc3.h"
 
 static void SA9602BPW(uint32 A, uint8 V) {
-	setprg8r(EXPREGS[1], A, V & 0x3F);
+	setprg8(A, (EXPREGS[1] & 0xC0) | (V & 0x3F));
 	if (MMC3_cmd & 0x40)
-		setprg8r(0, 0x8000, ~(1));
+		setprg8(0x8000, 62);
 	else
-		setprg8r(0, 0xc000, ~(1));
-	setprg8r(0, 0xe000, ~(0));
+		setprg8(0xc000, 62);
+	setprg8(0xe000, 63);
 }
 
 static DECLFW(SA9602BWrite) {
@@ -35,7 +35,7 @@ static DECLFW(SA9602BWrite) {
 	case 0x8000: EXPREGS[0] = V; break;
 	case 0x8001:
 		if ((EXPREGS[0] & 7) < 6) {
-			EXPREGS[1] = V >> 6;
+			EXPREGS[1] = V;
 			FixMMC3PRG(MMC3_cmd);
 		}
 		break;
