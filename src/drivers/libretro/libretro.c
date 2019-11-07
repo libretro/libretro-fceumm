@@ -85,6 +85,10 @@ static unsigned show_advance_sound_options;
 
 /* emulator-specific variables */
 
+const size_t PPU_BIT = 1ULL << 31ULL;
+
+extern uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], PPU[4];
+
 /* overclock the console by adding dummy scanlines to PPU loop
  * disables DMC DMA and WaveHi filling for these dummies
  * doesn't work with new PPU */
@@ -2090,8 +2094,9 @@ bool retro_load_game(const struct retro_game_info *game)
 
       { 0 },
    };
-
-   struct retro_memory_descriptor descs[64];
+   size_t desc_base = 64;
+   size_t desc_count = desc_base+4;
+   struct retro_memory_descriptor descs[desc_count];
    struct retro_memory_map        mmaps;
 
    if (!game)
@@ -2188,18 +2193,66 @@ bool retro_load_game(const struct retro_game_info *game)
    memset(descs, 0, sizeof(descs));
    i = 0;
 
-   for (j = 0; j < 64; j++)
+   for (j = 0; j < desc_base; j++)
    {
-      if (MMapPtrs[j] != NULL)
-      {
+       if (MMapPtrs[j] != NULL)
+       {
          descs[i].ptr    = MMapPtrs[j];
          descs[i].start  = j * 1024;
          descs[i].len    = 1024;
          descs[i].select = 0;
          i++;
-      }
+       }
    }
-
+   // This doesn't map in 2004--2007 but those aren't really
+   // worthwhile to read from on a vblank anyway
+   descs[i].flags = 0;
+   descs[i].ptr = PPU;
+   descs[i].offset = 0;
+   descs[i].start = 0x2000;
+   descs[i].select = 0;
+   descs[i].disconnect = 0;
+   descs[i].len = 4;
+   descs[i].addrspace="PPUREG";
+   i++;
+   // In the future, it would be good to map pattern tables 1 and 2,
+   // but these must be remapped often
+   /* descs[i] = (struct retro_memory_descriptor){0, ????, 0, 0x0000 | PPU_BIT, PPU_BIT, PPU_BIT, 0x1000, "PAT0"}; */
+   /* i++; */
+   /* descs[i] = (struct retro_memory_descriptor){0, ????, 0, 0x1000 | PPU_BIT, PPU_BIT, PPU_BIT, 0x1000, "PAT1"}; */
+   /* i++; */
+   // Likewise it would be better to use "vnapage" for this but
+   // RetroArch API is inconvenient for handles like that, so we'll
+   // just blithely assume the client will handle mapping and that
+   // we'll ignore those carts that have extra NTARAM.
+   descs[i].flags = 0;
+   descs[i].ptr = NTARAM;
+   descs[i].offset = 0;
+   descs[i].start = PPU_BIT | 0x2000;
+   descs[i].select = PPU_BIT;
+   descs[i].disconnect = PPU_BIT;
+   descs[i].len = 0x0800;
+   descs[i].addrspace="NTARAM";
+   i++;
+   descs[i].flags = 0;
+   descs[i].ptr = PALRAM;
+   descs[i].offset = 0;
+   descs[i].start = PPU_BIT | 0x3000;
+   descs[i].select = PPU_BIT;
+   descs[i].disconnect = PPU_BIT;
+   descs[i].len = 0x020;
+   descs[i].addrspace="PALRAM";
+   i++;
+   // OAM doesn't really live anywhere in address space so I'll put it at 0x4000.
+   descs[i].flags = 0;
+   descs[i].ptr = SPRAM;
+   descs[i].offset = 0;
+   descs[i].start = PPU_BIT | 0x4000;
+   descs[i].select = PPU_BIT;
+   descs[i].disconnect = PPU_BIT;
+   descs[i].len = 0x100;
+   descs[i].addrspace="OAM";
+   i++;
    mmaps.descriptors = descs;
    mmaps.num_descriptors = i;
    environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &mmaps);
@@ -2289,4 +2342,3 @@ size_t retro_get_memory_size(unsigned type)
 
    return size;
 }
-
