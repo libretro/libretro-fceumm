@@ -2194,16 +2194,16 @@ bool retro_load_game(const struct retro_game_info *game)
    i = 0;
 
    for (j = 0; j < desc_base; j++)
-     {
+   {
        if (MMapPtrs[j] != NULL)
-         {
-           descs[i].ptr    = MMapPtrs[j];
-           descs[i].start  = j * 1024;
-           descs[i].len    = 1024;
-           descs[i].select = 0;
-           i++;
-         }
-     }
+       {
+         descs[i].ptr    = MMapPtrs[j];
+         descs[i].start  = j * 1024;
+         descs[i].len    = 1024;
+         descs[i].select = 0;
+         i++;
+       }
+   }
    // This doesn't map in 2004--2007 but those aren't really
    // worthwhile to read from on a vblank anyway
    descs[i].flags = 0;
