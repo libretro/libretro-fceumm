@@ -2095,8 +2095,7 @@ bool retro_load_game(const struct retro_game_info *game)
       { 0 },
    };
    size_t desc_base = 64;
-   size_t desc_count = desc_base+4;
-   struct retro_memory_descriptor descs[desc_count];
+   struct retro_memory_descriptor descs[64 + 4];
    struct retro_memory_map        mmaps;
 
    if (!game)
