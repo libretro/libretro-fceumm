@@ -2,7 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2015 CaH4e3
- *
+ *  Copyright (C) 2020 dragon2snow,loong2snow from www.nesbbs.com
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -21,21 +21,43 @@
 #include "mapinc.h"
 
 static uint8 regs[2];
+static uint8 _submapper = 0;
 
 static SFORMAT StateRegs[] =
 {
 	{ regs, 2, "REGS" },
+	{ &_submapper ,1, "SUBM"},
 	{ 0 }
 };
 
+// submapper 1 The code for the original fceux
+// submapper 0 new HP898F code by dragon2snow,loong2snow from www.nesbbs.com
 static void Sync(void) {
-	uint8 chr = (regs[0] >> 4) & 7;
-	uint8 prg = (regs[1] >> 3) & 7;
-	uint8 dec = (regs[1] >> 4) & 4;
-	setchr8(chr & (~(((regs[0] & 1) << 2) | (regs[0] & 2))));
-	setprg16(0x8000,prg & (~dec));
-	setprg16(0xC000,prg | dec);
-	setmirror(regs[1] >> 7);
+	
+	if (_submapper == 1)
+	{
+		uint8 chr = (regs[0] >> 4) & 7;
+		uint8 prg = (regs[1] >> 3) & 7;
+		uint8 dec = (regs[1] >> 4) & 4;
+		setchr8(chr & (~(((regs[0] & 1) << 2) | (regs[0] & 2))));
+		setprg16(0x8000, prg & (~dec));
+		setprg16(0xC000, prg | dec);
+		setmirror(regs[1] >> 7);
+	}
+	else
+	{
+		if (regs[1] & 0x40)
+			setprg32(0x8000, regs[1] >> 1);
+		else {
+			setprg16(0x8000, regs[1]);
+			setprg16(0xC000, regs[1]);
+		}
+		setchr8((regs[0] >> 4) &~(((regs[0] & 1) ? 4 : 0) | (regs[0] & 2)));
+		if (regs[1] & 0x80)
+			setmirror(1);
+		else
+			setmirror(0);
+	}
 }
 
 static DECLFW(HP898FWrite) {
@@ -45,11 +67,27 @@ static DECLFW(HP898FWrite) {
 	}
 }
 
+static DECLFW(HP898FWriteEx) {
+	switch (A & 4) {
+	case 0:	regs[0] = V; break;//CHR
+	case 4:	regs[1] = (V & 0xC0) | ((V >> 2) & 6) | ((V & 0x20) ? 1 : 0); break;//PRG
+	}
+	Sync();
+}
 static void HP898FPower(void) {
 	regs[0] = regs[1] = 0;
 	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x6000, 0xFFFF, HP898FWrite);
+	if (_submapper == 1)
+	{
+		SetReadHandler(0x8000, 0xFFFF, CartBR);
+		SetWriteHandler(0x6000, 0xFFFF, HP898FWrite);
+	}
+	else
+	{
+		SetReadHandler(0x8000, 0xFFFF, CartBR);
+		SetWriteHandler(0x6000, 0x7FFF, HP898FWriteEx);
+		SetWriteHandler(0xE000, 0xFFFF, HP898FWriteEx);
+	}
 }
 
 static void HP898FReset(void) {
@@ -62,6 +100,7 @@ static void StateRestore(int version) {
 }
 
 void BMCHP898F_Init(CartInfo *info) {
+	_submapper = info->submapper;
 	info->Reset = HP898FReset;
 	info->Power = HP898FPower;
 	GameStateRestore = StateRestore;
