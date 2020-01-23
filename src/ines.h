@@ -239,4 +239,8 @@ void Mapper255_Init(CartInfo *);
 void GN45_Init(CartInfo *info); /* m361, m366 */
 void Mapper281_Init(CartInfo *);
 
+void Bs5652_Init(CartInfo *);
+void NC7000M_Init(CartInfo *);
+void J2282_Init(CartInfo *);
+
 #endif

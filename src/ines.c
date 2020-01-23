@@ -528,7 +528,8 @@ static BMAPPINGLocal bmap[] = {
 /*	{(uint8_t*)"",					131, Mapper131_Init}, */
 	{(uint8_t*)"TXC/MGENIUS 22111",	132, UNL22211_Init},
 	{(uint8_t*)"SA72008",				133, SA72008_Init},
-	{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init},
+	//{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init},	
+	{(uint8_t*)"MMC3 BMC PIRATE",		134, Bs5652_Init},
 /*	{(uint8_t*)"",					135, Mapper135_Init}, */
 	{(uint8_t*)"TCU02",				136, TCU02_Init},
 	{(uint8_t*)"S8259D",				137, S8259D_Init},
@@ -727,6 +728,8 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"G-146",					349, BMCG146_Init },
 	{(uint8_t*)"891227",				350, BMC891227_Init },
 	{(uint8_t*)"3D-BLOCK",				355, UNL3DBlock_Init },
+	{(uint8_t*)"NC7000M",				391, NC7000M_Init },
+	{(uint8_t*)"831019C J-2282",		402, J2282_Init },
 	{(uint8_t*)"SA-9602B",				513, SA9602B_Init },
 	{(uint8_t*)"DANCE2000",				518, UNLD2000_Init },
 	{(uint8_t*)"EH8813A",				519, UNLEH8813A_Init },

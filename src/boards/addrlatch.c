@@ -580,3 +580,35 @@ static void BMCSA005ASync(void) {
 void BMCSA005A_Init(CartInfo *info) {
 	Latch_Init(info, BMCSA005ASync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
+
+
+//-------------- 831019C J-2282 ------------------------
+
+static void J2282Sync(void) {
+	setchr8(0);
+
+	if ((latche & 0x40))
+	{
+		uint8 bank = (latche >> 0) & 0x1F;
+		setprg16(0x8000, bank);
+		setprg16(0xC000, bank);
+	}
+	else
+	{
+		if (latche & 0x800)
+		{
+			setprg8(0x6000, ((latche << 1) & 0x3F) | 3);
+		}
+		uint8 bank = (latche >> 1) & 0x1F;
+		setprg32(0x8000, bank);
+	}
+
+	if (latche & 0x80)
+		setmirror(0);
+	else
+		setmirror(1);
+}
+
+void J2282_Init(CartInfo *info) {
+	Latch_Init(info, J2282Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+}
