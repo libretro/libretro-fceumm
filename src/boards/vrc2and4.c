@@ -42,15 +42,22 @@ static uint8 prgMask = 0x1F;
 
 static SFORMAT StateRegs[] =
 {
-	{ prgreg, 2, "PREG" },
+	{ prgreg, 4, "PREG" },
 	{ chrreg, 8, "CREG" },
-	{ chrhi, 16, "CRGH" },
+	{ &chrhi[0], 2 | FCEUSTATE_RLSB, "CRH0" },
+	{ &chrhi[1], 2 | FCEUSTATE_RLSB, "CRH1" },
+	{ &chrhi[2], 2 | FCEUSTATE_RLSB, "CRH2" },
+	{ &chrhi[3], 2 | FCEUSTATE_RLSB, "CRH3" },
+	{ &chrhi[4], 2 | FCEUSTATE_RLSB, "CRH4" },
+	{ &chrhi[5], 2 | FCEUSTATE_RLSB, "CRH5" },
+	{ &chrhi[6], 2 | FCEUSTATE_RLSB, "CRH6" },
+	{ &chrhi[7], 2 | FCEUSTATE_RLSB, "CRH7" },
 	{ &regcmd, 1, "CMDR" },
 	{ &irqcmd, 1, "CMDI" },
 	{ &mirr, 1, "MIRR" },
 	{ &prgMask, 1, "MAK" },
 	{ &big_bank, 1, "BIGB" },
-	{ &IRQCount, 2, "IRQC" },
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
 	{ &IRQLatch, 1, "IRQL" },
 	{ &IRQa, 1, "IRQA" },
 	{ 0 }

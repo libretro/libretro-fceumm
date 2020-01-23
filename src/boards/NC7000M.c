@@ -52,13 +52,13 @@ static SFORMAT NC7000M_StateRegs[] =
 	{ mmc3_reg, 8, "MMC3R" },
 	{ &pointer, 1, "POINT" },
 	{ &readDIP, 1, "RDIP" },
-	{ &prgAND, 1, "PRGAND" },
-	{ &chrAND, 1, "CHRAND" },
-	{ &prgOR, 1, "PRGOR" },
-	{ &chrOR, 1, "CHROR" },
+	{ &prgAND, 2 | FCEUSTATE_RLSB, "PRGAND" },
+	{ &chrAND, 2 | FCEUSTATE_RLSB, "CHRAND" },
+	{ &prgOR, 2 | FCEUSTATE_RLSB, "PRGOR" },
+	{ &chrOR, 2 | FCEUSTATE_RLSB, "CHROR" },
 	{ &nrom, 1, "NROM" },
 	{ &nrom256, 1, "N256" },
-	{ &reg, 1, "REG" },
+	{ &reg, 2 | FCEUSTATE_RLSB, "REG" },
 	{ 0 }
 };
 
