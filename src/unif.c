@@ -517,7 +517,7 @@ static BMAPPING bmap[] = {
 	{ "Sachen-8259C", 139, S8259C_Init, 0 },
 	{ "Sachen-8259D", 137, S8259D_Init, 0 },
 	{ "Super24in1SC03", 176, Super24_Init, 0 },
-	{ "Super24in1SC03", 176, Super24_Init, 0 },
+	{ "SUPER24IN1SC03", 176, Super24_Init, 0 },
 	{ "SuperHIK8in1", 45, Mapper45_Init, 0 },
 	{ "Supervision16in1", 53, Supervision16_Init, 0 },
 	{ "T-227-1", NO_INES, BMCT2271_Init, 0 },
