@@ -27,7 +27,7 @@
 static uint8 isPirate, is22;
 static uint16 IRQCount;
 static uint8 IRQLatch, IRQa;
-static uint8 prgreg[2], chrreg[8];
+static uint8 prgreg[4], chrreg[8];
 static uint16 chrhi[8];
 static uint8 regcmd, irqcmd, mirr, big_bank;
 static uint16 acount = 0;
@@ -35,16 +35,29 @@ static uint16 acount = 0;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
+static uint8 *_CHRptr = NULL;//for 400k+128K Contra J
+static uint32 _CHRsize;
+
+static uint8 prgMask = 0x1F;
+
 static SFORMAT StateRegs[] =
 {
-	{ prgreg, 2, "PREG" },
+	{ prgreg, 4, "PREG" },
 	{ chrreg, 8, "CREG" },
-	{ chrhi, 16, "CRGH" },
+	{ &chrhi[0], 2 | FCEUSTATE_RLSB, "CRH0" },
+	{ &chrhi[1], 2 | FCEUSTATE_RLSB, "CRH1" },
+	{ &chrhi[2], 2 | FCEUSTATE_RLSB, "CRH2" },
+	{ &chrhi[3], 2 | FCEUSTATE_RLSB, "CRH3" },
+	{ &chrhi[4], 2 | FCEUSTATE_RLSB, "CRH4" },
+	{ &chrhi[5], 2 | FCEUSTATE_RLSB, "CRH5" },
+	{ &chrhi[6], 2 | FCEUSTATE_RLSB, "CRH6" },
+	{ &chrhi[7], 2 | FCEUSTATE_RLSB, "CRH7" },
 	{ &regcmd, 1, "CMDR" },
 	{ &irqcmd, 1, "CMDI" },
 	{ &mirr, 1, "MIRR" },
+	{ &prgMask, 1, "MAK" },
 	{ &big_bank, 1, "BIGB" },
-	{ &IRQCount, 2, "IRQC" },
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
 	{ &IRQLatch, 1, "IRQL" },
 	{ &IRQa, 1, "IRQA" },
 	{ 0 }
@@ -53,13 +66,13 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	if (regcmd & 2) {
 		setprg8(0xC000, prgreg[0] | big_bank);
-		setprg8(0x8000, ((~1) & 0x1F) | big_bank);
+		setprg8(0x8000, ((prgreg[2]) & prgMask) | big_bank);
 	} else {
 		setprg8(0x8000, prgreg[0] | big_bank);
-		setprg8(0xC000, ((~1) & 0x1F) | big_bank);
+		setprg8(0xC000, ((prgreg[2]) & prgMask) | big_bank);
 	}
 	setprg8(0xA000, prgreg[1] | big_bank);
-	setprg8(0xE000, ((~0) & 0x1F) | big_bank);
+	setprg8(0xE000, ((prgreg[3]) & prgMask) | big_bank);
 	if (UNIFchrrama)
 		setchr8(0);
 	else {
@@ -95,7 +108,7 @@ static DECLFW(VRC24Write) {
 		case 0x8002:
 		case 0x8003:
 			if (!isPirate) {
-				prgreg[0] = V & 0x1F;
+				prgreg[0] = V & prgMask;
 				Sync();
 			}
 			break;
@@ -104,10 +117,12 @@ static DECLFW(VRC24Write) {
 		case 0xA002:
 		case 0xA003:
 			if (!isPirate)
-				prgreg[1] = V & 0x1F;
+			{
+				prgreg[1] = V & prgMask;
+			}
 			else {
-				prgreg[0] = (V & 0x1F) << 1;
-				prgreg[1] = ((V & 0x1F) << 1) | 1;
+				prgreg[0] = (V & prgMask) << 1;
+				prgreg[1] = ((V & prgMask) << 1) | 1;
 			}
 			Sync();
 			break;
@@ -174,6 +189,12 @@ static void M22Power(void) {
 
 static void M23Power(void) {
 	big_bank = 0x20;
+
+	if((prgreg[2] == 0x30) && (prgreg[3]== 0x31))
+	{
+		big_bank = 0x00;
+	}
+
 	VRC24PowerCommon(M23Write);
 }
 
@@ -207,6 +228,10 @@ static void VRC24Close(void) {
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;
+	
+		if (_CHRptr)
+		FCEU_gfree(_CHRptr);
+	_CHRptr = NULL;
 }
 
 void Mapper22_Init(CartInfo *info) {
@@ -222,6 +247,23 @@ void VRC24_Init(CartInfo *info) {
 	info->Close = VRC24Close;
 	MapIRQHook = VRC24IRQHook;
 	GameStateRestore = StateRestore;
+	prgMask = 0x1F;
+	prgreg[2] = ~1;
+	prgreg[3] = ~0;
+	
+	if (info->CRC32 == 0xa20ad5d6)//400K PRG+ 128K CHR
+	{
+		prgreg[2] = 0x30;
+		prgreg[3] = 0x31;
+		prgMask = 0x3F;
+		big_bank = 0x00;
+		_CHRsize = 128 * 1024;
+		_CHRptr = (uint8*)FCEU_gmalloc(128*1024);
+		memcpy(&_CHRptr[112 * 1024], CHRptr[0], 16 * 1024);
+		memcpy(&_CHRptr[0], &PRGptr[0][400 * 1024], 112 * 1024);
+		SetupCartCHRMapping(0, _CHRptr, _CHRsize, 0);
+		AddExState(_CHRptr, _CHRsize, 0, "_CHR");
+	}
 
 	WRAMSIZE = 8192;
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
