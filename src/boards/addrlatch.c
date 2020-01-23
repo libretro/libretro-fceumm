@@ -595,11 +595,11 @@ static void J2282Sync(void) {
 	}
 	else
 	{
+      uint8 bank;
+
 		if (latche & 0x800)
-		{
 			setprg8(0x6000, ((latche << 1) & 0x3F) | 3);
-		}
-		uint8 bank = (latche >> 1) & 0x1F;
+		bank = (latche >> 1) & 0x1F;
 		setprg32(0x8000, bank);
 	}
 

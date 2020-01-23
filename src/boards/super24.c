@@ -125,24 +125,28 @@ void Super24_Init(CartInfo *info) {
 
 	if (oldversion == 0)
 	{
+      uint8* _CHRptr;
+      uint8* _PRGptr;
+      uint32 _CHROffset = 0;
+      uint32 _PRGOffset = 0;
 		uint32 _PRGsize = 0;
 		uint32 _CHRsize = 0;
 		int i = 0;
+
 		for (i = 0;i < 4;i++)
 		{
 			_PRGsize += PRGsize[i];
 			_CHRsize += CHRsize[i];
 		}
-		uint8* _CHRptr = (uint8*)FCEU_gmalloc(_CHRsize);
-		uint32 _CHROffset = 0;
+
+		_CHRptr = (uint8*)FCEU_gmalloc(_CHRsize);
 		for (i = 0;i < 4;i++)
 		{
 			memcpy(&_CHRptr[_CHROffset], CHRptr[i], CHRsize[i]);
 			_CHROffset += CHRsize[i];
 		}
 
-		uint8* _PRGptr = (uint8*)FCEU_gmalloc(_PRGsize);
-		uint32 _PRGOffset = 0;
+		_PRGptr = (uint8*)FCEU_gmalloc(_PRGsize);
 		for (i = 0;i < 4;i++)
 		{
 			memcpy(&_PRGptr[_PRGOffset], PRGptr[i], PRGsize[i]);

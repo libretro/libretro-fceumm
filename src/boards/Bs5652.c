@@ -174,24 +174,21 @@ static DECLFW(Bs5652WriteLo) {
 static DECLFR(Bs5652ReadHi)
 {
 	if (readDIP)
-	{
 		return dipswitch;
-	}
-	else
-		return CartBR(A);
+   return CartBR(A);
 }
 
-static void Bs5652Power(void) {
+static void Bs5652Power(void)
+{
+	int i=0;
+
 	dipswitch = 0;
 	mmc3_reg[0] = 0x00; mmc3_reg[1] = 0x02;
 	mmc3_reg[2] = 0x04; mmc3_reg[3] = 0x05; mmc3_reg[4] = 0x06; mmc3_reg[5] = 0x07;
 	mmc3_reg[6] = 0x00; mmc3_reg[7] = 0x01;
-	int i=0;
 
 	for(i=0;i<4;i++)
-	{
 		exRegs[i]=0;
-	}
 	
 	Bs5652AnalyzeReg();
 	
@@ -201,30 +198,34 @@ static void Bs5652Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, Bs5652ReadHi);
 }
 
-static void Bs5652Reset(void) {
+static void Bs5652Reset(void)
+{
+	int i=0;
 
 	dipswitch++;
 	mmc3_reg[0] = 0x00; mmc3_reg[1] = 0x02;
 	mmc3_reg[2] = 0x04; mmc3_reg[3] = 0x05; mmc3_reg[4] = 0x06; mmc3_reg[5] = 0x07;
 	mmc3_reg[6] = 0x00; mmc3_reg[7] = 0x01;
-	int i=0;
 	
 	for(i=0;i<4;i++)
-	{
 		exRegs[i]=0;
-	}
 	
 	Bs5652AnalyzeReg();
 	
 	MMC3RegReset();
 }
-static void Bs5652Close(void) {
+
+static void Bs5652Close(void)
+{
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;
 }
 
-void Bs5652_Init(CartInfo *info) {
+void Bs5652_Init(CartInfo *info)
+{
+   uint32 unif_crc;
+
 	GenMMC3_Init(info, 512, 512, 0, 0);
 	pwrap = Bs5652PW;
 	cwrap = Bs5652CW;
@@ -242,7 +243,7 @@ void Bs5652_Init(CartInfo *info) {
 	//SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	//AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 
-	uint32 unif_crc = CalcCRC32(0, PRGptr[0], PRGsize[0]);
+	unif_crc = CalcCRC32(0, PRGptr[0], PRGsize[0]);
 
 	if (unif_crc == 0xb97641b5) //Fix my own error, unif CHR 0 error
 	{

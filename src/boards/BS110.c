@@ -148,17 +148,16 @@ static DECLFR(BS110ReadHi)
 		
 }
 
-static void BS110Power(void) {
+static void BS110Power(void)
+{
+   int i = 0;
 	dipswitch = 0;
 	mmc3_reg[0] = 0x00; mmc3_reg[1] = 0x02;
 	mmc3_reg[2] = 0x04; mmc3_reg[3] = 0x05; mmc3_reg[4] = 0x06; mmc3_reg[5] = 0x07;
 	mmc3_reg[6] = 0x00; mmc3_reg[7] = 0x01;
-	int i = 0;
 
 	for (i = 0;i<4;i++)
-	{
 		exRegs[i] = 0;
-	}
 
 	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x7FFF, BS110WriteLo);
@@ -166,18 +165,17 @@ static void BS110Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, BS110ReadHi);
 }
 
-static void BS110Reset(void) {
+static void BS110Reset(void)
+{
+	int i = 0;
 
 	dipswitch++;
 	mmc3_reg[0] = 0x00; mmc3_reg[1] = 0x02;
 	mmc3_reg[2] = 0x04; mmc3_reg[3] = 0x05; mmc3_reg[4] = 0x06; mmc3_reg[5] = 0x07;
 	mmc3_reg[6] = 0x00; mmc3_reg[7] = 0x01;
-	int i = 0;
 
 	for (i = 0;i<4;i++)
-	{
 		exRegs[i] = 0;
-	}
 
 	MMC3RegReset();
 }

@@ -31,13 +31,13 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
-
+static void Sync(void)
+{
+   uint8 mirr;
 	int r = 0;
+
 	if ((regs[1]) & 0x20)
-	{
 		r = 1;
-	}
 	if ((regs[1] >> 4) & 0x01)
 	{
 		setprg16(0x8000, regs[1] & 0x07 | (r) << 3);
@@ -50,7 +50,7 @@ static void Sync(void) {
 		setchr8(regs[2] & 0x01 | (r) << 3);
 	}
 
-	uint8 mirr = (((regs[0] >> 4 & 0x1)));
+	mirr = (((regs[0] >> 4 & 0x1)));
 
 	if (mirr)
 		setmirror(0);
