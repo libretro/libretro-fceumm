@@ -2203,8 +2203,9 @@ bool retro_load_game(const struct retro_game_info *game)
          i++;
        }
    }
-   // This doesn't map in 2004--2007 but those aren't really
-   // worthwhile to read from on a vblank anyway
+   /* This doesn't map in 2004--2007 but those aren't really
+    * worthwhile to read from on a vblank anyway 
+    */
    descs[i].flags = 0;
    descs[i].ptr = PPU;
    descs[i].offset = 0;
@@ -2214,16 +2215,18 @@ bool retro_load_game(const struct retro_game_info *game)
    descs[i].len = 4;
    descs[i].addrspace="PPUREG";
    i++;
-   // In the future, it would be good to map pattern tables 1 and 2,
-   // but these must be remapped often
+   /* In the future, it would be good to map pattern tables 1 and 2,
+    * but these must be remapped often
+    */
    /* descs[i] = (struct retro_memory_descriptor){0, ????, 0, 0x0000 | PPU_BIT, PPU_BIT, PPU_BIT, 0x1000, "PAT0"}; */
    /* i++; */
    /* descs[i] = (struct retro_memory_descriptor){0, ????, 0, 0x1000 | PPU_BIT, PPU_BIT, PPU_BIT, 0x1000, "PAT1"}; */
    /* i++; */
-   // Likewise it would be better to use "vnapage" for this but
-   // RetroArch API is inconvenient for handles like that, so we'll
-   // just blithely assume the client will handle mapping and that
-   // we'll ignore those carts that have extra NTARAM.
+   /* Likewise it would be better to use "vnapage" for this but
+    * RetroArch API is inconvenient for handles like that, so we'll
+    * just blithely assume the client will handle mapping and that
+    * we'll ignore those carts that have extra NTARAM.
+    */
    descs[i].flags = 0;
    descs[i].ptr = NTARAM;
    descs[i].offset = 0;
@@ -2242,7 +2245,7 @@ bool retro_load_game(const struct retro_game_info *game)
    descs[i].len = 0x020;
    descs[i].addrspace="PALRAM";
    i++;
-   // OAM doesn't really live anywhere in address space so I'll put it at 0x4000.
+   /* OAM doesn't really live anywhere in address space so I'll put it at 0x4000. */
    descs[i].flags = 0;
    descs[i].ptr = SPRAM;
    descs[i].offset = 0;

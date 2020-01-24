@@ -528,7 +528,7 @@ static BMAPPINGLocal bmap[] = {
 /*	{(uint8_t*)"",					131, Mapper131_Init}, */
 	{(uint8_t*)"TXC/MGENIUS 22111",	132, UNL22211_Init},
 	{(uint8_t*)"SA72008",				133, SA72008_Init},
-	//{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init},	
+/*	{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init}, */
 	{(uint8_t*)"MMC3 BMC PIRATE",		134, Bs5652_Init},
 /*	{(uint8_t*)"",					135, Mapper135_Init}, */
 	{(uint8_t*)"TCU02",				136, TCU02_Init},

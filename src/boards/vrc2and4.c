@@ -35,7 +35,7 @@ static uint16 acount = 0;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
-static uint8 *_CHRptr = NULL;//for 400k+128K Contra J
+static uint8 *_CHRptr = NULL; /* for 400k+128K Contra J */
 static uint32 _CHRsize;
 
 static uint8 prgMask = 0x1F;
@@ -225,13 +225,13 @@ static void StateRestore(int version) {
 }
 
 static void VRC24Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
-	
-		if (_CHRptr)
-		FCEU_gfree(_CHRptr);
-	_CHRptr = NULL;
+    if (WRAM)
+        FCEU_gfree(WRAM);
+    WRAM = NULL;
+
+    if (_CHRptr)
+        FCEU_gfree(_CHRptr);
+    _CHRptr = NULL;
 }
 
 void Mapper22_Init(CartInfo *info) {
@@ -251,7 +251,7 @@ void VRC24_Init(CartInfo *info) {
 	prgreg[2] = ~1;
 	prgreg[3] = ~0;
 	
-	if (info->CRC32 == 0xa20ad5d6)//400K PRG+ 128K CHR
+	if (info->CRC32 == 0xa20ad5d6) /* 400K PRG+ 128K CHR */
 	{
 		prgreg[2] = 0x30;
 		prgreg[3] = 0x31;

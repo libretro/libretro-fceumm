@@ -25,7 +25,7 @@ static uint8 *CHRRAM = NULL;
 static int masko8[8] = { 63, 31, 15, 1, 3, 0, 0, 0 };
 
 static uint8 oldversion = 0;
-// this mapper is 176 rip mapper.
+/* this mapper is 176 rip mapper. */
 
 static void Super24PW(uint32 A, uint8 V) {
 	if (oldversion == 1)

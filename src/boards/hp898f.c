@@ -30,8 +30,9 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-// submapper 1 The code for the original fceux
-// submapper 0 new HP898F code by dragon2snow,loong2snow from www.nesbbs.com
+/* submapper 1 The code for the original fceux
+ * submapper 0 new HP898F code by dragon2snow,loong2snow from www.nesbbs.com 
+ */
 static void Sync(void) {
 	
 	if (_submapper == 1)
@@ -69,8 +70,8 @@ static DECLFW(HP898FWrite) {
 
 static DECLFW(HP898FWriteEx) {
 	switch (A & 4) {
-	case 0:	regs[0] = V; break;//CHR
-	case 4:	regs[1] = (V & 0xC0) | ((V >> 2) & 6) | ((V & 0x20) ? 1 : 0); break;//PRG
+	case 0:	regs[0] = V; break; /* CHR */
+	case 4:	regs[1] = (V & 0xC0) | ((V >> 2) & 6) | ((V & 0x20) ? 1 : 0); break; /* PRG */
 	}
 	Sync();
 }

@@ -24,39 +24,35 @@
 #include "mmc3.h"
 #include "crc32.h"
 
-extern uint8 *WRAM;
-extern uint32 WRAMSIZE;
+static uint8 *WRAM;
+static uint32 WRAMSIZE;
 
-//extern uint8 *CHRRAM;
-//extern uint32 CHRRAMSIZE;
-
-uint8 mmc3_reg[8];
-uint8 exRegs[8];
-uint8 pointer;
-uint8 locked;
-uint8 readDIP;
-uint16 prgAND;
-uint16 chrAND;
-uint16 prgOR;
-uint16 chrOR;
-uint8 nrom;
-uint8 nrom128;
-uint8 dipswitch;
-
+static uint8 mmc3_reg[8];
+static uint8 exRegs[8];
+static uint8 pointer;
+static uint8 locked;
+static uint8 readDIP;
+static uint16 prgAND;
+static uint16 chrAND;
+static uint16 prgOR;
+static uint16 chrOR;
+static uint8 nrom;
+static uint8 nrom128;
+static uint8 dipswitch;
 
 static SFORMAT BS5652_StateRegs[] =
 {
 	{ exRegs, 8, "REGS" },
-	{ mmc3_reg, 8, "MMC3R" },
-	{ &pointer, 1, "POINT" },
+	{ mmc3_reg, 8, "MREG" },
+	{ &pointer, 1, "PNT0" },
 	{ &readDIP, 1, "RDIP" },
-	{ &prgAND, 2 | FCEUSTATE_RLSB, "PRGAND" },
-	{ &chrAND, 2 | FCEUSTATE_RLSB, "CHRAND" },
-	{ &prgOR, 2 | FCEUSTATE_RLSB, "PRGOR" },
-	{ &chrOR, 2 | FCEUSTATE_RLSB, "CHROR" },
+	{ &prgAND, 2 | FCEUSTATE_RLSB, "PAND" },
+	{ &chrAND, 2 | FCEUSTATE_RLSB, "CAND" },
+	{ &prgOR, 2 | FCEUSTATE_RLSB, "PROR" },
+	{ &chrOR, 2 | FCEUSTATE_RLSB, "CHOR" },
 	{ &nrom, 1, "NROM" },
 	{ &nrom128, 1, "N128" },
-	{ &dipswitch, 1, "DIP" },
+	{ &dipswitch, 1, "DIP0" },
 	{ 0 }
 };
 
@@ -96,7 +92,7 @@ static void Bs5652CW(uint32 A, uint8 V) {
 static void Bs5652PW(uint32 A, uint8 V) {
 	if (nrom)
 	{
-		if (exRegs[3] & 0x8)// 20190504 up2
+		if (exRegs[3] & 0x8) /* 20190504 up2 */
 		{
 			if ((exRegs[1] >> 3) & 0x01)
 			{
@@ -237,15 +233,10 @@ void Bs5652_Init(CartInfo *info)
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-	
-	//CHRRAMSIZE = 8192;
-	//CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
-	//SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
-	//AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 
 	unif_crc = CalcCRC32(0, PRGptr[0], PRGsize[0]);
 
-	if (unif_crc == 0xb97641b5) //Fix my own error, unif CHR 0 error
+	if (unif_crc == 0xb97641b5) /* Fix my own error, unif CHR 0 error */
 	{
 		if ((CHRsize[0] == 0x2000) && (CHRsize[1] > 0x2000))
 		{

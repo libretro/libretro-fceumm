@@ -25,40 +25,36 @@
 #include "mmc3.h"
 
 
-extern uint8 *WRAM;
-extern uint32 WRAMSIZE;
+static uint8 *WRAM;
+static uint32 WRAMSIZE;
 
-//extern uint8 *CHRRAM;
-//extern uint32 CHRRAMSIZE;
-
-
-uint8 mmc3_reg[8];
-uint8 exRegs[8];
-uint8 pointer;
-uint8 locked;
-uint8 readDIP;
-uint16 prgAND;
-uint16 chrAND;
-uint16 prgOR;
-uint16 chrOR;
-uint8 nrom;
-uint8 nrom256;
-uint16	reg;
+static uint8 mmc3_reg[8];
+static uint8 exRegs[8];
+static uint8 pointer;
+static uint8 locked;
+static uint8 readDIP;
+static uint16 prgAND;
+static uint16 chrAND;
+static uint16 prgOR;
+static uint16 chrOR;
+static uint8 nrom;
+static uint8 nrom256;
+static uint16 reg;
 
 
 static SFORMAT NC7000M_StateRegs[] =
 {
 	{ exRegs, 8, "REGS" },
-	{ mmc3_reg, 8, "MMC3R" },
-	{ &pointer, 1, "POINT" },
+	{ mmc3_reg, 8, "MREG" },
+	{ &pointer, 1, "PNT0" },
 	{ &readDIP, 1, "RDIP" },
-	{ &prgAND, 2 | FCEUSTATE_RLSB, "PRGAND" },
-	{ &chrAND, 2 | FCEUSTATE_RLSB, "CHRAND" },
-	{ &prgOR, 2 | FCEUSTATE_RLSB, "PRGOR" },
-	{ &chrOR, 2 | FCEUSTATE_RLSB, "CHROR" },
+	{ &prgAND, 2 | FCEUSTATE_RLSB, "PAND" },
+	{ &chrAND, 2 | FCEUSTATE_RLSB, "CAND" },
+	{ &prgOR, 2 | FCEUSTATE_RLSB, "PROR" },
+	{ &chrOR, 2 | FCEUSTATE_RLSB, "CHOR" },
 	{ &nrom, 1, "NROM" },
 	{ &nrom256, 1, "N256" },
-	{ &reg, 2 | FCEUSTATE_RLSB, "REG" },
+	{ &reg, 2 | FCEUSTATE_RLSB, "REG0" },
 	{ 0 }
 };
 
@@ -187,11 +183,6 @@ void NC7000M_Init(CartInfo *info) {
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-	
-	//CHRRAMSIZE = 8192;
-	//CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
-	//SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
-	//AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 
 	AddExState(EXPREGS, 3, 0, "EXPR");
 	AddExState(NC7000M_StateRegs, ~0, 0, 0);
