@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (memory_stream.h).
+ * The following license statement only applies to this file (utf.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,44 +20,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _LIBRETRO_SDK_FILE_MEMORY_STREAM_H
-#define _LIBRETRO_SDK_FILE_MEMORY_STREAM_H
+#ifndef _LIBRETRO_ENCODINGS_WIN32_H
+#define _LIBRETRO_ENCODINGS_WIN32_H
 
-#include <stdint.h>
-#include <stddef.h>
+#ifndef _XBOX
+#ifdef _WIN32
+/*#define UNICODE
+#include <tchar.h>
+#include <wchar.h>*/
 
-#include <retro_common_api.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-RETRO_BEGIN_DECLS
+#include <encodings/utf.h>
 
-typedef struct memstream memstream_t;
+#ifdef __cplusplus
+}
+#endif
 
-memstream_t *memstream_open(unsigned writing);
+#endif
+#endif
 
-void memstream_close(memstream_t *stream);
+#ifdef UNICODE
+#define CHAR_TO_WCHAR_ALLOC(s, ws) \
+   size_t ws##_size = (NULL != s && s[0] ? strlen(s) : 0) + 1; \
+   wchar_t *ws = (wchar_t*)calloc(ws##_size, 2); \
+   if (NULL != s && s[0]) \
+      MultiByteToWideChar(CP_UTF8, 0, s, -1, ws, ws##_size / sizeof(wchar_t));
 
-uint64_t memstream_read(memstream_t *stream, void *data, uint64_t bytes);
+#define WCHAR_TO_CHAR_ALLOC(ws, s) \
+   size_t s##_size = ((NULL != ws && ws[0] ? wcslen((const wchar_t*)ws) : 0) / 2) + 1; \
+   char *s = (char*)calloc(s##_size, 1); \
+   if (NULL != ws && ws[0]) \
+      utf16_to_char_string((const uint16_t*)ws, s, s##_size);
 
-uint64_t memstream_write(memstream_t *stream, const void *data, uint64_t bytes);
-
-int memstream_getc(memstream_t *stream);
-
-void memstream_putc(memstream_t *stream, int c);
-
-char *memstream_gets(memstream_t *stream, char *buffer, size_t len);
-
-uint64_t memstream_pos(memstream_t *stream);
-
-void memstream_rewind(memstream_t *stream);
-
-int64_t memstream_seek(memstream_t *stream, int64_t offset, int whence);
-
-void memstream_set_buffer(uint8_t *buffer, uint64_t size);
-
-uint64_t memstream_get_last_size(void);
-
-uint64_t memstream_get_ptr(memstream_t *stream);
-
-RETRO_END_DECLS
+#else
+#define CHAR_TO_WCHAR_ALLOC(s, ws) char *ws = (NULL != s && s[0] ? strdup(s) : NULL);
+#define WCHAR_TO_CHAR_ALLOC(ws, s) char *s = (NULL != ws && ws[0] ? strdup(ws) : NULL);
+#endif
 
 #endif

@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (memory_stream.h).
+ * The following license statement only applies to this file (utf.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,43 +20,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _LIBRETRO_SDK_FILE_MEMORY_STREAM_H
-#define _LIBRETRO_SDK_FILE_MEMORY_STREAM_H
+#ifndef _LIBRETRO_ENCODINGS_UTF_H
+#define _LIBRETRO_ENCODINGS_UTF_H
 
 #include <stdint.h>
 #include <stddef.h>
+
+#include <boolean.h>
 
 #include <retro_common_api.h>
 
 RETRO_BEGIN_DECLS
 
-typedef struct memstream memstream_t;
+enum CodePage
+{
+   CODEPAGE_LOCAL = 0, /* CP_ACP */
+   CODEPAGE_UTF8 = 65001 /* CP_UTF8 */
+};
 
-memstream_t *memstream_open(unsigned writing);
+size_t utf8_conv_utf32(uint32_t *out, size_t out_chars,
+      const char *in, size_t in_size);
 
-void memstream_close(memstream_t *stream);
+bool utf16_conv_utf8(uint8_t *out, size_t *out_chars,
+      const uint16_t *in, size_t in_size);
 
-uint64_t memstream_read(memstream_t *stream, void *data, uint64_t bytes);
+size_t utf8len(const char *string);
 
-uint64_t memstream_write(memstream_t *stream, const void *data, uint64_t bytes);
+size_t utf8cpy(char *d, size_t d_len, const char *s, size_t chars);
 
-int memstream_getc(memstream_t *stream);
+const char *utf8skip(const char *str, size_t chars);
 
-void memstream_putc(memstream_t *stream, int c);
+uint32_t utf8_walk(const char **string);
 
-char *memstream_gets(memstream_t *stream, char *buffer, size_t len);
+bool utf16_to_char_string(const uint16_t *in, char *s, size_t len);
 
-uint64_t memstream_pos(memstream_t *stream);
+char* utf8_to_local_string_alloc(const char *str);
 
-void memstream_rewind(memstream_t *stream);
+char* local_to_utf8_string_alloc(const char *str);
 
-int64_t memstream_seek(memstream_t *stream, int64_t offset, int whence);
+wchar_t* utf8_to_utf16_string_alloc(const char *str);
 
-void memstream_set_buffer(uint8_t *buffer, uint64_t size);
-
-uint64_t memstream_get_last_size(void);
-
-uint64_t memstream_get_ptr(memstream_t *stream);
+char* utf16_to_utf8_string_alloc(const wchar_t *str);
 
 RETRO_END_DECLS
 
