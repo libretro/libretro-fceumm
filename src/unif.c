@@ -687,9 +687,6 @@ static int InitializeBoard(void) {
 				mirrortodo = 4;
 			MooMirroring();
 
-			PRGchip_max = prg_chip_count - 1;
-			if (chr_chip_count)
-				CHRchip_max = chr_chip_count - 1;
 			UNIFCart.submapper = submapper;
 			GameInfo->cspecial = cspecial;
 
@@ -756,18 +753,20 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		VROM = (uint8*)malloc(VROM_size);
 
 	for (x = 0; x < 16; x++) {
-		if (malloced[prg_idx[x]]) {
-			memcpy(ROM + PRGptr, malloced[(prg_idx[x])], mallocedsizes[(prg_idx[x])]);
-			PRGptr += mallocedsizes[(prg_idx[x])];
-			free(malloced[(prg_idx[x])]);
-			malloced[(prg_idx[x])] = 0;
+		unsigned p = prg_idx[x];
+		unsigned c = 16 + chr_idx[x];
+		if (malloced[p]) {
+			memcpy(ROM + PRGptr, malloced[p], mallocedsizes[p]);
+			PRGptr += mallocedsizes[p];
+			free(malloced[p]);
+			malloced[p] = 0;
 		}
 
-		if (malloced[16 + (chr_idx[x])]) {
-			memcpy(VROM + CHRptr, malloced[16 + (chr_idx[x])], mallocedsizes[16 + (chr_idx[x])]);
-			CHRptr += mallocedsizes[16 + (chr_idx[x])];
-			free(malloced[16 + (chr_idx[x])]);
-			malloced[16 + (chr_idx[x])] = 0;
+		if (malloced[c]) {
+			memcpy(VROM + CHRptr, malloced[c], mallocedsizes[c]);
+			CHRptr += mallocedsizes[c];
+			free(malloced[c]);
+			malloced[c] = 0;
 		}
 	}
 
