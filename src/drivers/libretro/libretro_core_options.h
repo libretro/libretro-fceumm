@@ -77,6 +77,22 @@ struct retro_core_option_definition option_defs_common[] = {
       },
       "disabled",
    },
+#ifdef HAVE_NTSC_FILTER
+   {
+      "fceumm_ntsc_filter",
+      "NTSC Filter",
+      "Enable blargg NTSC filters.",
+      {
+         { "disabled",   NULL },
+         { "composite",  NULL },
+         { "svideo",     NULL },
+         { "rgb",        NULL },
+         { "monochrome", NULL },
+         { NULL, NULL },
+      },
+      "disabled"
+   },
+#endif
    {
       "fceumm_palette",
       "Color Palette",

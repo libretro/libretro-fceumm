@@ -5,6 +5,7 @@ HAVE_GRIFFIN=1
 STATIC_LINKING=0
 ENDIANNESS_DEFINES=
 SIGNED_CHAR=0
+HAVE_NTSC=1
 
 SPACE :=
 SPACE := $(SPACE) $(SPACE)
@@ -180,6 +181,7 @@ else ifeq ($(platform), ps2)
 	EXTERNAL_ZLIB=1
 
 	RETROARCH_OBJECTS +=  ps2/SMS_Utils.o
+	HAVE_NTSC = 0
 
 # PSP
 else ifeq ($(platform), psp1)
@@ -192,6 +194,7 @@ else ifeq ($(platform), psp1)
 	PLATFORM_DEFINES += -falign-functions=32 -falign-loops -falign-labels -falign-jumps
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
+	HAVE_NTSC = 0
 
 # Vita
 else ifeq ($(platform), vita)

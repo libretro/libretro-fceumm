@@ -17,6 +17,11 @@ else
 SOURCES_C = $(CORE_DIR)/boards/*.c $(CORE_DIR)/input/*.c
 endif
 
+ifeq ($(HAVE_NTSC),1)
+CFLAGS += -DHAVE_NTSC_FILTER -I$(CORE_DIR)/ntsc
+SOURCES_C += $(CORE_DIR)/ntsc/nes_ntsc.c
+endif
+
 ifeq ($(HAVE_GRIFFIN),1)
 SOURCES_C += $(CORE_DIR)/drivers/libretro/griffin.c
 else
