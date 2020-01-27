@@ -53,9 +53,6 @@ static int PRGram[32];
 uint8 *PRGptr[32];
 uint8 *CHRptr[32];
 
-uint32 PRGchip_max;
-uint32 CHRchip_max;
-
 uint32 PRGsize[32];
 uint32 CHRsize[32];
 
@@ -107,8 +104,6 @@ void ResetCartMapping(void) {
 	for (x = 0; x < 8; x++) {
 		MMC5SPRVPage[x] = MMC5BGVPage[x] = VPageR[x] = nothing - 0x400 * x;
 	}
-	PRGchip_max = 0;
-	CHRchip_max = 0;
 }
 
 void SetupCartPRGMapping(int chip, uint8 *p, uint32 size, int ram) {

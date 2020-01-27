@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2018 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (memory_stream.h).
+ * The following license statement only applies to this file (compat_strl.c).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,44 +20,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _LIBRETRO_SDK_FILE_MEMORY_STREAM_H
-#define _LIBRETRO_SDK_FILE_MEMORY_STREAM_H
+#include <stdlib.h>
+#include <ctype.h>
 
-#include <stdint.h>
-#include <stddef.h>
+#include <compat/strl.h>
 
-#include <retro_common_api.h>
+/* Implementation of strlcpy()/strlcat() based on OpenBSD. */
 
-RETRO_BEGIN_DECLS
+#ifndef __MACH__
 
-typedef struct memstream memstream_t;
+size_t strlcpy(char *dest, const char *source, size_t size)
+{
+   size_t src_size = 0;
+   size_t        n = size;
 
-memstream_t *memstream_open(unsigned writing);
+   if (n)
+      while (--n && (*dest++ = *source++)) src_size++;
 
-void memstream_close(memstream_t *stream);
+   if (!n)
+   {
+      if (size) *dest = '\0';
+      while (*source++) src_size++;
+   }
 
-uint64_t memstream_read(memstream_t *stream, void *data, uint64_t bytes);
+   return src_size;
+}
 
-uint64_t memstream_write(memstream_t *stream, const void *data, uint64_t bytes);
+size_t strlcat(char *dest, const char *source, size_t size)
+{
+   size_t len = strlen(dest);
 
-int memstream_getc(memstream_t *stream);
+   dest += len;
 
-void memstream_putc(memstream_t *stream, int c);
+   if (len > size)
+      size = 0;
+   else
+      size -= len;
 
-char *memstream_gets(memstream_t *stream, char *buffer, size_t len);
-
-uint64_t memstream_pos(memstream_t *stream);
-
-void memstream_rewind(memstream_t *stream);
-
-int64_t memstream_seek(memstream_t *stream, int64_t offset, int whence);
-
-void memstream_set_buffer(uint8_t *buffer, uint64_t size);
-
-uint64_t memstream_get_last_size(void);
-
-uint64_t memstream_get_ptr(memstream_t *stream);
-
-RETRO_END_DECLS
-
+   return len + strlcpy(dest, source, size);
+}
 #endif
+
+char *strldup(const char *s, size_t n)
+{
+   char *dst = (char*)malloc(sizeof(char) * (n + 1));
+   strlcpy(dst, s, n);
+   return dst;
+}

@@ -49,9 +49,6 @@ DECLFW(CartBW);
 extern uint8 *PRGptr[32];
 extern uint8 *CHRptr[32];
 
-extern uint32 PRGchip_max;
-extern uint32 CHRchip_max;
-
 extern uint32 PRGsize[32];
 extern uint32 CHRsize[32];
 

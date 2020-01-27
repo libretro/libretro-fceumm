@@ -4,6 +4,9 @@
 
 #ifndef STATIC_LINKING
 #include "drivers/libretro/libretro-common/streams/memory_stream.c"
+#include "drivers/libretro/libretro-common/string/stdstring.c"
+#include "drivers/libretro/libretro-common/encodings/encoding_utf.c"
+#include "drivers/libretro/libretro-common/compat/compat_strl.c"
 #endif
 
 #include "cart.c"

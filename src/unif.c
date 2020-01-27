@@ -40,6 +40,8 @@
 #include  "input.h"
 #include  "md5.h"
 
+#include "string/stdstring.h"
+
 typedef struct {
 	char ID[4];
 	uint32 info;
@@ -308,10 +310,15 @@ static int SetBoardName(FCEUFILE *fp) {
 		return(0);
 	FCEU_fread(boardname, 1, uchead.info, fp);
 	boardname[uchead.info] = 0;
+	/* strip whitespaces */
+	boardname = string_trim_whitespace(boardname);
 	FCEU_printf(" Board name: %s\n", boardname);
 	sboardname = boardname;
-	if (!memcmp(boardname, "NES-", 4) || !memcmp(boardname, "UNL-", 4) || !memcmp(boardname, "HVC-", 4) || !memcmp(boardname, "BTL-", 4) || !memcmp(boardname, "BMC-", 4))
+	if (!memcmp(boardname, "NES-", 4) || !memcmp(boardname, "UNL-", 4) ||
+			!memcmp(boardname, "HVC-", 4) || !memcmp(boardname, "BTL-", 4) ||
+			!memcmp(boardname, "BMC-", 4))
 		sboardname += 4;
+
 	return(1);
 }
 
@@ -519,7 +526,6 @@ static BMAPPING bmap[] = {
 	{ "Sachen-8259C", 139, S8259C_Init, 0 },
 	{ "Sachen-8259D", 137, S8259D_Init, 0 },
 	{ "Super24in1SC03", 176, Super24_Init, 0 },
-	{ "SUPER24IN1SC03", 176, Super24_Init, 0 },
 	{ "SuperHIK8in1", 45, Mapper45_Init, 0 },
 	{ "Supervision16in1", 53, Supervision16_Init, 0 },
 	{ "T-227-1", NO_INES, BMCT2271_Init, 0 },
@@ -570,7 +576,6 @@ static BMAPPING bmap[] = {
 	{ "TH2131-1", 308, UNLTH21311_Init, 0 },
 	{ "LH51", 309, LH51_Init, 0 },
 	{ "RESETNROM-XIN1", NO_INES, BMCRESETNROMXIN1_Init, 0 }, /* split roms */
-	{ " BMC-RESET-TXROM", 313, BMCRESETTXROM_Init, 0 },
 	{ "RESET-TXROM", 313, BMCRESETTXROM_Init, 0 },
 	{ "K-3088", 287, BMCK3088_Init, 0 },
 	{ "FARID_SLROM_8-IN-1", 323, FARIDSLROM8IN1_Init, 0 },
@@ -587,7 +592,7 @@ static BMAPPING bmap[] = {
 	{ "900218", 524, BTL900218_Init, 0 },
 	{ "JC-016-2", 205, Mapper205_Init, 0 },
 	{ "AX-40G", 527, UNLAX40G_Init, 0 },
-	{ " BMC-STREETFIGTER-GAME4IN1", NO_INES, BMCSFGAME4IN1_Init, 0 }, /* mapper 49? submapper 1*/
+	{ "STREETFIGTER-GAME4IN1", NO_INES, BMCSFGAME4IN1_Init, 0 }, /* mapper 49? submapper 1*/
 	{ "G631", 226, Mapper226_Init, 0 }, /* duplicate, probably wrong name */
 	{ "BJ-56", 526, UNLBJ56_Init, 0 },
 	{ "L6IN1", 345, BMCL6IN1_Init, 0 },
@@ -599,7 +604,7 @@ static BMAPPING bmap[] = {
 	{ "830134C", 315, BMC830134C_Init, 0 },
 	{ "GN-26", 344, BMCGN26_Init, 0 },
 	{ "KG256", NO_INES,KG256_Init, 0 },
-	{ "T4A54A", 134, Mapper134_Init, 0 },	
+	{ "T4A54A", 134, Mapper134_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", NO_INES, MapperCopyFamiMMC3_Init, 0 },
@@ -657,7 +662,9 @@ static int InitializeBoard(void) {
 	if (!sboardname) return(0);
 
 	while (bmap[x].name) {
-		if (!strcmp((char*)sboardname, (char*)bmap[x].name)) {
+		/* ignore case during board name comparing */
+		if (string_is_equal_noncase((const char*)sboardname, (const char*)bmap[x].name)) {
+
 			if (VROM_size == 0) {
 				if (bmap[x].flags & BMCFLAG_16KCHRR)
 					CHRRAMSize = 16;
@@ -680,9 +687,6 @@ static int InitializeBoard(void) {
 				mirrortodo = 4;
 			MooMirroring();
 
-			PRGchip_max = prg_chip_count - 1;
-			if (chr_chip_count)
-				CHRchip_max = chr_chip_count - 1;
 			UNIFCart.submapper = submapper;
 			GameInfo->cspecial = cspecial;
 
@@ -749,18 +753,20 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		VROM = (uint8*)malloc(VROM_size);
 
 	for (x = 0; x < 16; x++) {
-		if (malloced[prg_idx[x]]) {
-			memcpy(ROM + PRGptr, malloced[(prg_idx[x])], mallocedsizes[(prg_idx[x])]);
-			PRGptr += mallocedsizes[(prg_idx[x])];
-			free(malloced[(prg_idx[x])]);
-			malloced[(prg_idx[x])] = 0;
+		unsigned p = prg_idx[x];
+		unsigned c = 16 + chr_idx[x];
+		if (malloced[p]) {
+			memcpy(ROM + PRGptr, malloced[p], mallocedsizes[p]);
+			PRGptr += mallocedsizes[p];
+			free(malloced[p]);
+			malloced[p] = 0;
 		}
 
-		if (malloced[16 + (chr_idx[x])]) {
-			memcpy(VROM + CHRptr, malloced[16 + (chr_idx[x])], mallocedsizes[16 + (chr_idx[x])]);
-			CHRptr += mallocedsizes[16 + (chr_idx[x])];
-			free(malloced[16 + (chr_idx[x])]);
-			malloced[16 + (chr_idx[x])] = 0;
+		if (malloced[c]) {
+			memcpy(VROM + CHRptr, malloced[c], mallocedsizes[c]);
+			CHRptr += mallocedsizes[c];
+			free(malloced[c]);
+			malloced[c] = 0;
 		}
 	}
 
