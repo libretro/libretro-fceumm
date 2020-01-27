@@ -660,6 +660,8 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"HUMMER/JY-052",			281, Mapper281_Init},
 	{(uint8_t*)"GN-45",					366, GN45_Init},
 
+	{(uint8_t*)"Bit Corp 4-in-1",		357, Mapper357_Init },
+
 	/* UNIF to NES 2.0 BOARDS */
 
 	{(uint8_t*)"OneBus",				256, UNLOneBus_Init },
