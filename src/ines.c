@@ -665,6 +665,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"MMC3 PIRATE SFC-12",	372, Mapper372_Init },
 	{(uint8_t*)"95/96 Super HiK 4-in-1",	374, Mapper374_Init },
 	{(uint8_t*)"KN-42",					381, Mapper381_Init },
+	{(uint8_t*)"Realtec 8031",			390, Mapper390_Init },
 	{(uint8_t*)"60-1064-16L (FDS)",		538, Mapper538_Init },
 	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
 
