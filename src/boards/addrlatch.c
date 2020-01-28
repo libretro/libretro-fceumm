@@ -472,6 +472,25 @@ void Mapper242_Init(CartInfo *info) {
 	Latch_Init(info, M242Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
 
+/*------------------ Map 541 ---------------------------*/
+/* LittleCom 160-in-1 multicart */
+static void M541Sync(void) {
+	if (latche & 2) {
+		/* NROM-128 */
+		setprg16(0x8000, latche >> 2);
+		setprg16(0xC000, latche >> 2);
+	} else {
+		/* NROM=256 */
+		setprg32(0x8000, latche >> 3);
+	}
+	setchr8(0);
+	setmirror(latche & 1);
+}
+
+void Mapper541_Init(CartInfo *info) {
+	Latch_Init(info, M541Sync, NULL, 0x0000, 0xC000, 0xFFFF, 0);
+}
+
 /*------------------ 190in1 ---------------------------*/
 
 static void BMC190in1Sync(void) {

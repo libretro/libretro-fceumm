@@ -659,9 +659,10 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"OK-411",				361, GN45_Init}, /* OK-411 is emulated together with GN-45 */
 	{(uint8_t*)"HUMMER/JY-052",			281, Mapper281_Init},
 	{(uint8_t*)"GN-45",					366, GN45_Init},
-
+	
 	{(uint8_t*)"Bit Corp 4-in-1",		357, Mapper357_Init },
 	{(uint8_t*)"MMC3 PIRATE SFC-12",	372, Mapper372_Init },
+	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
 
 	/* UNIF to NES 2.0 BOARDS */
 
