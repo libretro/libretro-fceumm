@@ -490,6 +490,26 @@ void Mapper241_Init(CartInfo *info) {
 	Latch_Init(info, M241Sync, 0, 0x8000, 0xFFFF, 1, 0);
 }
 
+/*------------------ Map 538 ---------------------------*/
+/* NES 2.0 Mapper 538 denotes the 60-1064-16L PCB, used for a
+ * bootleg cartridge conversion named Super Soccer Champion
+ * of the Konami FDS game Exciting Soccer.
+ */
+static uint8 M538Banks[16] = { 0, 1, 2, 1, 3, 1, 4, 1, 5, 5, 1, 1, 6, 6, 7, 7 };
+static void M538Sync(void) {
+	setprg8(0x6000, (latche >> 1) | 8);
+	setprg8(0x8000, M538Banks[latche & 15]);
+	setprg8(0xA000, 14);
+	setprg8(0xC000, 7);
+	setprg8(0xE000, 15);
+	setchr8(0);
+	setmirror(1);
+}
+
+void Mapper538_Init(CartInfo *info) {
+	Latch_Init(info, M538Sync, 0, 0xC000, 0xCFFF, 1, 0);
+}
+
 /* ------------------ A65AS --------------------------- */
 
 /* actually, there is two cart in one... First have extra mirroring
