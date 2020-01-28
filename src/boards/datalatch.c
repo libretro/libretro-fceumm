@@ -490,6 +490,26 @@ void Mapper241_Init(CartInfo *info) {
 	Latch_Init(info, M241Sync, 0, 0x8000, 0xFFFF, 1, 0);
 }
 
+/*------------------ Map 381 ---------------------------*/
+/* 2-in-1 High Standard Game (BC-019), reset-based */
+static uint8 reset = 0;
+static void M381Sync(void) {
+	setprg16(0x8000, ((latche & 0x10) >> 4) | ((latche & 7) << 1) | (reset << 4));
+	setprg16(0xC000, 15 | (reset << 4));
+	setchr8(0);
+}
+
+static void M381Reset(void) {
+	reset ^= 1;
+	M381Sync();
+}
+
+void Mapper381_Init(CartInfo *info) {
+	info->Reset = M381Reset;
+	Latch_Init(info, M381Sync, 0, 0x8000, 0xFFFF, 1, 0);
+	AddExState(&reset, 1, 0, "RST0");
+}
+
 /*------------------ Map 538 ---------------------------*/
 /* NES 2.0 Mapper 538 denotes the 60-1064-16L PCB, used for a
  * bootleg cartridge conversion named Super Soccer Champion
