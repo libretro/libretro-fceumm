@@ -243,6 +243,7 @@ void Bs5652_Init(CartInfo *);
 void NC7000M_Init(CartInfo *);
 void J2282_Init(CartInfo *);
 
+void Mapper288_Init(CartInfo *);
 void Mapper357_Init(CartInfo *);
 void Mapper372_Init(CartInfo *);
 void Mapper381_Init(CartInfo *);

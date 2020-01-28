@@ -472,6 +472,36 @@ void Mapper242_Init(CartInfo *info) {
 	Latch_Init(info, M242Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
 
+/*------------------ Map 288 ---------------------------*/
+/* NES 2.0 Mapper 288 is used for two GKCX1 21-in-1 multicarts
+ * - 21-in-1 (GA-003)
+ * - 64-in-1 (CF-015)
+ */
+static void M288Sync(void) {
+	setchr8(latche & 7);
+	setprg32(0x8000, (latche >> 3) & 3);
+}
+
+static DECLFR(M288Read) {
+	uint8 ret = CartBR(A);
+	if (latche & 0x20)
+		ret |= (dipswitch << 2);
+	return ret;
+}
+
+static void M288Reset(void) {
+	dipswitch++;
+	dipswitch &= 3;
+	M288Sync();
+}
+
+void Mapper288_Init(CartInfo *info) {
+	dipswitch = 0;
+	Latch_Init(info, M288Sync, M288Read, 0x0000, 0x8000, 0xFFFF, 0);
+	info->Reset = M288Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
+}
+
 /*------------------ Map 541 ---------------------------*/
 /* LittleCom 160-in-1 multicart */
 static void M541Sync(void) {
