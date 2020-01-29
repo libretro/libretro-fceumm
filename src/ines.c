@@ -668,6 +668,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"Realtec 8031",			390, Mapper390_Init },
 	{(uint8_t*)"60-1064-16L (FDS)",		538, Mapper538_Init },
 	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
+	{(uint8_t*)"8-in-1 JY-119",	267, Mapper267_Init },
 
 	/* UNIF to NES 2.0 BOARDS */
 
