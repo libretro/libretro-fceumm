@@ -669,6 +669,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"60-1064-16L (FDS)",		538, Mapper538_Init },
 	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
 	{(uint8_t*)"8-in-1 JY-119",	267, Mapper267_Init },
+	{(uint8_t*)"MMC3 BMC PIRATE",		294, Bs5652_Init}, /* nesdev redirects this as mapper 134 */
 
 	/* UNIF to NES 2.0 BOARDS */
 

@@ -604,7 +604,7 @@ static BMAPPING bmap[] = {
 	{ "830134C", 315, BMC830134C_Init, 0 },
 	{ "GN-26", 344, BMCGN26_Init, 0 },
 	{ "KG256", NO_INES,KG256_Init, 0 },
-	{ "T4A54A", 134, Mapper134_Init, 0 },
+	{ "T4A54A", 134, Bs5652_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", NO_INES, MapperCopyFamiMMC3_Init, 0 },
