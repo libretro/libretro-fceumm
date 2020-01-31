@@ -198,6 +198,8 @@ static void SetInput(void) {
 		{0xb8b9aca3,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Wild Gunman */
 		{0x5112dc21,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Wild Gunman */
 		{0xaf4010ea,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	/* World Class Track Meet */
+		{0xb3cc4d26,	SI_GAMEPAD,		SI_UNSET,		SIFC_SHADOW		},	/* 2-in-1 Uzi Lightgun (MGC-002) */
+
 		{0x00000000,	SI_UNSET,		SI_UNSET,		SIFC_UNSET		}
 	};
 	int x = 0;
@@ -670,6 +672,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
 	{(uint8_t*)"8-in-1 JY-119",	267, Mapper267_Init },
 	{(uint8_t*)"MMC3 BMC PIRATE",		294, Bs5652_Init}, /* nesdev redirects this as mapper 134 */
+	{(uint8_t*)"TXC 01-22110-000",		297, Mapper297_Init},
 
 	/* UNIF to NES 2.0 BOARDS */
 
