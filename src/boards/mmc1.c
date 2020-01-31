@@ -443,3 +443,92 @@ void FARIDSLROM8IN1_Init(CartInfo *info) {
 	AddExState(&lock, 1, 0, "LOCK");
 	AddExState(&reg, 1, 0, "REG6");
 }
+
+/* ---------------------------- Mapper 374 -------------------------------- */
+/* 1995 Super HiK 4-in-1 - 新系列機器戰警组合卡 (JY-022)
+ * 1996 Super HiK 4-in-1 - 新系列超級飛狼組合卡 (JY-051)
+ */
+static uint8 game = 0;
+static void M374PRG(uint32 A, uint8 V) {
+	setprg16(A, (V & 0x07) | (game << 3));
+}
+
+static void M374CHR(uint32 A, uint8 V) {
+	setchr4(A, (V & 0x1F) | (game << 5));
+}
+
+static void M374Reset(void) {
+	game = (game + 1) & 3;
+	MMC1CMReset();
+}
+
+void Mapper374_Init(CartInfo *info) {
+	GenMMC1Init(info, 128, 128, 0, 0);
+	MMC1CHRHook4 = M374CHR;
+	MMC1PRGHook16 = M374PRG;
+	info->Reset = M374Reset;
+	AddExState(&game, 1, 0, "GAME");
+}
+
+/* ---------------------------- Mapper 297 -------------------------------- */
+/* NES 2.0 Mapper 297 - 2-in-1 Uzi Lightgun (MGC-002) */
+
+static uint8 mode;
+static uint8 latch;
+
+static void M297PRG(uint32 A, uint8 V) {
+	setprg16(A, (V & 0x07) | ((mode & 1) << 3));
+}
+
+static void M297CHR(uint32 A, uint8 V) {
+	setchr4(A, (V & 0x1F) | ((mode & 1) << 5));
+}
+
+static void Sync(void) {
+	if (mode & 1) {
+		/* MMC1 */
+        MMC1PRG();
+		MMC1CHR();
+		MMC1MIRROR();
+    } else {		
+		/* Mapper 70 */
+        setprg16(0x8000, ((mode & 2) << 1) | ((latch >> 4) & 3));
+        setprg16(0xC000, ((mode & 2) << 1) | 3);
+        setchr8(latch & 0xF);
+        setmirror(1);
+    }
+}
+
+static DECLFW(M297Mode) {
+    if (A & 0x100) {
+        mode = V;
+        Sync();
+    }
+}
+
+static DECLFW(M297Latch) {
+	if (mode & 1) {
+		MMC1_write(A, V);
+	} else {
+		latch = V;
+		Sync();
+	}
+}
+
+static void M297Power(void) {
+	latch = 0;
+	mode = 0;
+	Sync();
+	GenMMC1Power();
+	SetWriteHandler(0x4120, 0x4120, M297Mode);
+	SetWriteHandler(0x8000, 0xFFFF, M297Latch);
+}
+
+void Mapper297_Init(CartInfo *info) {
+	GenMMC1Init(info, 256, 256, 0, 0);
+	info->Power = M297Power;
+	MMC1CHRHook4 = M297CHR;
+	MMC1PRGHook16 = M297PRG;
+	AddExState(&latch, 1, 0, "LATC");
+	AddExState(&mode, 1, 0, "MODE");
+}

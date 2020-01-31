@@ -198,6 +198,8 @@ static void SetInput(void) {
 		{0xb8b9aca3,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Wild Gunman */
 		{0x5112dc21,	SI_UNSET,		SI_ZAPPER,		SIFC_NONE		},	/* Wild Gunman */
 		{0xaf4010ea,	SI_GAMEPAD,		SI_POWERPADB,	SIFC_UNSET		},	/* World Class Track Meet */
+		{0xb3cc4d26,	SI_GAMEPAD,		SI_UNSET,		SIFC_SHADOW		},	/* 2-in-1 Uzi Lightgun (MGC-002) */
+
 		{0x00000000,	SI_UNSET,		SI_UNSET,		SIFC_UNSET		}
 	};
 	int x = 0;
@@ -659,6 +661,18 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"OK-411",				361, GN45_Init}, /* OK-411 is emulated together with GN-45 */
 	{(uint8_t*)"HUMMER/JY-052",			281, Mapper281_Init},
 	{(uint8_t*)"GN-45",					366, GN45_Init},
+	
+	{(uint8_t*)"GKCX1",					288, Mapper288_Init },
+	{(uint8_t*)"Bit Corp 4-in-1",		357, Mapper357_Init },
+	{(uint8_t*)"MMC3 PIRATE SFC-12",	372, Mapper372_Init },
+	{(uint8_t*)"95/96 Super HiK 4-in-1",	374, Mapper374_Init },
+	{(uint8_t*)"KN-42",					381, Mapper381_Init },
+	{(uint8_t*)"Realtec 8031",			390, Mapper390_Init },
+	{(uint8_t*)"60-1064-16L (FDS)",		538, Mapper538_Init },
+	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
+	{(uint8_t*)"8-in-1 JY-119",	267, Mapper267_Init },
+	{(uint8_t*)"MMC3 BMC PIRATE",		294, Bs5652_Init}, /* nesdev redirects this as mapper 134 */
+	{(uint8_t*)"TXC 01-22110-000",		297, Mapper297_Init},
 
 	/* UNIF to NES 2.0 BOARDS */
 
