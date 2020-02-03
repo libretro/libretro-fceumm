@@ -520,7 +520,7 @@ static BMAPPING bmap[] = {
 	{ "SSS-NROM-256", NO_INES, SSSNROM_Init, 0 },
 	{ "SUNSOFT_UNROM", 93, SUNSOFT_UNROM_Init, 0 },	/* fix me, real pcb name, real pcb type */
 	{ "Sachen-74LS374N", 150, S74LS374N_Init, 0 },
-	{ "Sachen-74LS374NA", 243, S74LS374NA_Init, 0 },	/* seems to be custom mapper */
+	{ "Sachen-74LS374NA", 243, S74LS374N_Init, 0 },	/* seems to be custom mapper */
 	{ "Sachen-8259A", 141, S8259A_Init, 0 },
 	{ "Sachen-8259B", 138, S8259B_Init, 0 },
 	{ "Sachen-8259C", 139, S8259C_Init, 0 },

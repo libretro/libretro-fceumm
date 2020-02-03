@@ -545,7 +545,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"TCU01",				147, TCU01_Init},
 	{(uint8_t*)"SA0037",				148, SA0037_Init},
 	{(uint8_t*)"SA0036",				149, SA0036_Init},
-	{(uint8_t*)"S74LS374N",			150, S74LS374N_Init},
+	{(uint8_t*)"SA-015/SA-630",			150, S74LS374N_Init},
 	{(uint8_t*)"",					151, Mapper151_Init},
 	{(uint8_t*)"",					152, Mapper152_Init},
 	{(uint8_t*)"BANDAI SRAM",			153, Mapper153_Init},	/* Bandai board 16 with SRAM instead of EEPROM */
@@ -638,7 +638,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					240, Mapper240_Init},
 	{(uint8_t*)"",					241, Mapper241_Init},
 	{(uint8_t*)"",					242, Mapper242_Init},
-	{(uint8_t*)"S74LS374NA",			243, S74LS374NA_Init},
+	{(uint8_t*)"SA-020A",			243, S74LS374N_Init},
 	{(uint8_t*)"DECATHLON",			244, Mapper244_Init},
 	{(uint8_t*)"",					245, Mapper245_Init},
 	{(uint8_t*)"FONG SHEN BANG",		246, Mapper246_Init},
