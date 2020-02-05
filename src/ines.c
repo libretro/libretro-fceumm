@@ -668,11 +668,14 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"Realtec 8031",			390, Mapper390_Init },
 	{(uint8_t*)"60-1064-16L (FDS)",		538, Mapper538_Init },
 	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
-	{(uint8_t*)"8-in-1 JY-119",	267, Mapper267_Init },
+	{(uint8_t*)"8-in-1 JY-119",			267, Mapper267_Init },
 	{(uint8_t*)"MMC3 BMC PIRATE",		294, Bs5652_Init}, /* nesdev redirects this as mapper 134 */
 	{(uint8_t*)"TXC 01-22110-000",		297, Mapper297_Init},
 	{(uint8_t*)"Bitcorp 31-in-1",		360, Mapper360_Init},
-	{(uint8_t*)"Sachen 3014",		533, Mapper533_Init},
+	{(uint8_t*)"Sachen 3014",			533, Mapper533_Init},
+	{(uint8_t*)"830928C",				382, Mapper382_Init},
+	{(uint8_t*)"NJ064",					534, Mapper534_Init},
+	{(uint8_t*)"Kid Ikarus (FDS)",		539, Mapper539_Init},
 
 	/* UNIF to NES 2.0 BOARDS */
 
