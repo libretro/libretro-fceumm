@@ -676,7 +676,9 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"830928C",				382, Mapper382_Init},
 	{(uint8_t*)"NJ064",					534, Mapper534_Init},
 	{(uint8_t*)"Kid Ikarus (FDS)",		539, Mapper539_Init},
-/*	{(uint8_t*)"5-in-1 (CH-501)",		543, Mapper543_Init}, */
+	{(uint8_t*)"5-in-1 (CH-501)",		543, Mapper543_Init},
+	{(uint8_t*)"",						550, Mapper550_Init},
+	{(uint8_t*)"Brilliant Com Cocoma Pack", 516, Mapper516_Init},
 
 	/* UNIF to NES 2.0 BOARDS */
 
@@ -1042,6 +1044,7 @@ static int iNES_Init(int num) {
 					SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
 					AddExState(VROM, CHRRAMSize, 0, "CHRR");
 				}
+				FCEU_printf(" CHR-RAM:  %3d KiB\n", CHRRAMSize / 1024);
 			}
 			if (head.ROM_type & 8)
 				AddExState(ExtraNTARAM, 2048, 0, "EXNR");
