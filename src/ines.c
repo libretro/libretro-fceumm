@@ -676,6 +676,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"830928C",				382, Mapper382_Init},
 	{(uint8_t*)"NJ064",					534, Mapper534_Init},
 	{(uint8_t*)"Kid Ikarus (FDS)",		539, Mapper539_Init},
+/*	{(uint8_t*)"5-in-1 (CH-501)",		543, Mapper543_Init}, */
 
 	/* UNIF to NES 2.0 BOARDS */
 

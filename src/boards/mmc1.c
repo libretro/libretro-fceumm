@@ -22,12 +22,17 @@
 #include "mapinc.h"
 
 static void GenMMC1Power(void);
-static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery);
+static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram);
 
 static uint8 DRegs[4];
 static uint8 Buffer, BufferShift;
 
-static int mmc1opts;
+static uint32 WRAMSIZE = 0;
+
+ /* size of non-battery-backed portion of WRAM */
+ /* serves as starting offset for actual save ram from total wram size */
+ /* returns 0 if entire work ram is battery backed ram */
+static uint32 NONSaveRAMSIZE = 0;
 
 static void (*MMC1CHRHook4)(uint32 A, uint8 V);
 static void (*MMC1PRGHook16)(uint32 A, uint8 V);
@@ -52,9 +57,9 @@ static DECLFR(MAWRAM) {
 }
 
 static void MMC1CHR(void) {
-	if (mmc1opts & 4) {
-		if (DRegs[0] & 0x10)
-			setprg8r(0x10, 0x6000, (DRegs[1] >> 4) & 1);
+	if (WRAMSIZE > 8192) {
+		if (WRAMSIZE > 16384)
+			setprg8r(0x10, 0x6000, (DRegs[1] >> 2) & 3);
 		else
 			setprg8r(0x10, 0x6000, (DRegs[1] >> 3) & 1);
 	}
@@ -183,24 +188,44 @@ static void MMC1CMReset(void) {
 	MMC1PRG();
 }
 
-static int DetectMMC1WRAMSize(uint32 crc32) {
-	switch (crc32) {
-	case 0xc6182024:			/* Romance of the 3 Kingdoms */
-	case 0x2225c20f:			/* Genghis Khan */
-	case 0x4642dda6:			/* Nobunaga's Ambition */
-	case 0x29449ba9:			/* ""        "" (J) */
-	case 0x2b11e0b0:			/* ""        "" (J) */
-	case 0xb8747abf:			/* Best Play Pro Yakyuu Special (J) */
-	case 0xc9556b36:			/* Final Fantasy I & II (J) [!] */
-		FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
-		return(16);
+static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
+    int workRAM = 8;
+    switch (info->CRC32) {
+    case 0xc6182024: /* Romance of the 3 Kingdoms */
+    case 0xabbf7217: /* ""        "" (J) (PRG0) */
+    case 0xccf35c02: /* ""        "" (J) (PRG1) */
+    case 0x2225c20f: /* Genghis Khan */
+    case 0xfb69743a: /* ""        "" (J) */
+    case 0x4642dda6: /* Nobunaga's Ambition */
+    case 0x3f7ad415: /* ""        "" (J) (PRG0) */
+    case 0x2b11e0b0: /* ""        "" (J) (PRG1) */
+        *saveRAM = 8;
+        workRAM = 16;
+        break;
+    case 0xb8747abf: /* Best Play Pro Yakyuu Special (J) (PRG0) */
+    case 0xc3de7c69: /* ""        "" (J) (PRG1) */
+    case 0xc9556b36: /* Final Fantasy I & II (J) [!] */
+        *saveRAM = 32;
+        workRAM = 32;
+        break;
+    default:
+        if (info->iNES2) {
+            workRAM = (info->prgRam + info->prgRam_battery) / 1024;
+            *saveRAM = info->prgRam_battery / 1024;
+            /* we only support sizes between 8K and 32K */
+            if (workRAM > 0 && workRAM < 8)
+                workRAM = 8;
+            if (workRAM > 32)
+                workRAM = 32;
+            if (*saveRAM > workRAM)
+                *saveRAM = workRAM;
+        }
 		break;
-	case 0xd1e50064:            /* Dezaemon */
-		FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
-		return(32);
-		break;
-	default: return(8);
-	}
+    }
+    if (workRAM > 8)
+        FCEU_printf(" >8KB external WRAM present.  Use NES 2.0 if you hack the ROM image.\n");
+
+    return workRAM;
 }
 
 static uint32 NWCIRQCount;
@@ -258,17 +283,16 @@ void Mapper105_Init(CartInfo *info) {
 
 static void GenMMC1Power(void) {
 	lreset = 0;
-	if (mmc1opts & 1) {
-		FCEU_CheatAddRAM(8, 0x6000, WRAM);
-		if (mmc1opts & 4)
-			FCEU_dwmemset(WRAM, 0, 8192)
-			else if (!(mmc1opts & 2))
-				FCEU_dwmemset(WRAM, 0, 8192);
-	}
 	SetWriteHandler(0x8000, 0xFFFF, MMC1_write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 
-	if (mmc1opts & 1) {
+	if (WRAMSIZE) {
+		FCEU_CheatAddRAM(8, 0x6000, WRAM);
+
+		/* clear non-battery-backed portion of WRAM */
+		if (NONSaveRAMSIZE)
+			FCEU_dwmemset(WRAM, 0, NONSaveRAMSIZE);
+
 		SetReadHandler(0x6000, 0x7FFF, MAWRAM);
 		SetWriteHandler(0x6000, 0x7FFF, MBWRAM);
 		setprg8r(0x10, 0x6000, 0);
@@ -285,26 +309,24 @@ static void GenMMC1Close(void) {
 	CHRRAM = WRAM = NULL;
 }
 
-static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery) {
+static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram) {
 	is155 = 0;
 
 	info->Close = GenMMC1Close;
 	MMC1PRGHook16 = MMC1CHRHook4 = 0;
-	mmc1opts = 0;
+	WRAMSIZE = wram * 1024;
+	NONSaveRAMSIZE = (wram - saveram) * 1024;
 	PRGmask16[0] &= (prg >> 14) - 1;
 	CHRmask4[0] &= (chr >> 12) - 1;
 	CHRmask8[0] &= (chr >> 13) - 1;
 
-	if (wram) {
-		WRAM = (uint8*)FCEU_gmalloc(wram * 1024);
-		mmc1opts |= 1;
-		if (wram > 8) mmc1opts |= 4;
-		SetupCartPRGMapping(0x10, WRAM, wram * 1024, 1);
-		AddExState(WRAM, wram * 1024, 0, "WRAM");
-		if (battery) {
-			mmc1opts |= 2;
-			info->SaveGame[0] = WRAM + ((mmc1opts & 4) ? 8192 : 0);
-			info->SaveGameLen[0] = 8192;
+	if (WRAMSIZE) {
+		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+		if (saveram) {
+			info->SaveGame[0] = WRAM + NONSaveRAMSIZE;
+			info->SaveGameLen[0] = saveram * 1024;
 		}
 	}
 	if (!chr) {
@@ -322,13 +344,14 @@ static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery)
 }
 
 void Mapper1_Init(CartInfo *info) {
-	int ws = DetectMMC1WRAMSize(info->CRC32);
-	GenMMC1Init(info, 512, 256, ws, info->battery);
+	int bs = info->battery ? 8 : 0;
+	int ws = DetectMMC1WRAMSize(info, &bs);
+	GenMMC1Init(info, 512, 256, ws, bs);
 }
 
 /* Same as mapper 1, without respect for WRAM enable bit. */
 void Mapper155_Init(CartInfo *info) {
-	GenMMC1Init(info, 512, 256, 8, info->battery);
+	GenMMC1Init(info, 512, 256, 8, info->battery ? 8 : 0);
 	is155 = 1;
 }
 
@@ -340,7 +363,7 @@ void Mapper171_Init(CartInfo *info) {
 }
 
 void SAROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 128, 64, 8, info->battery);
+	GenMMC1Init(info, 128, 64, 8, info->battery ? 8 : 0);
 }
 
 void SBROM_Init(CartInfo *info) {
@@ -360,7 +383,7 @@ void SGROM_Init(CartInfo *info) {
 }
 
 void SKROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 256, 64, 8, info->battery);
+	GenMMC1Init(info, 256, 64, 8, info->battery ? 8 : 0);
 }
 
 void SLROM_Init(CartInfo *info) {
@@ -392,11 +415,11 @@ void SHROM_Init(CartInfo *info) {
 /*              */
 
 void SNROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 256, 0, 8, info->battery);
+	GenMMC1Init(info, 256, 0, 8, info->battery ? 8 : 0);
 }
 
 void SOROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 256, 0, 16, info->battery);
+	GenMMC1Init(info, 256, 0, 16, info->battery ? 8 : 0);
 }
 
 /* ----------------------- FARID_SLROM_8-IN-1 -----------------------*/
@@ -490,7 +513,7 @@ static void Sync(void) {
         MMC1PRG();
 		MMC1CHR();
 		MMC1MIRROR();
-    } else {		
+    } else {
 		/* Mapper 70 */
         setprg16(0x8000, ((mode & 2) << 1) | ((latch >> 4) & 3));
         setprg16(0xC000, ((mode & 2) << 1) | 3);
