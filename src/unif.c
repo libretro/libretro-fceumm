@@ -687,6 +687,7 @@ static int InitializeBoard(void) {
 				mirrortodo = 4;
 			MooMirroring();
 
+			UNIFCart.submapper = bmap[x].ines_mapper;
 			UNIFCart.submapper = submapper;
 			GameInfo->cspecial = cspecial;
 
@@ -770,16 +771,11 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		}
 	}
 
-	FCEU_printf(" PRG ROM:  %d KiB\n", UNIF_PRGROMSize / 1024);
-	if (VROM_size)
-		FCEU_printf(" CHR ROM:  %d KiB\n", UNIF_CHRROMSize / 1024);
-
 	md5_starts(&md5);
 	md5_update(&md5, ROM, UNIF_PRGROMSize);
 	if (VROM_size)
 		md5_update(&md5, VROM, UNIF_CHRROMSize);
 	md5_finish(&md5, UNIFCart.MD5);
-	FCEU_printf(" ROM MD5:  0x%s\n", md5_asciistr(UNIFCart.MD5));
 	memcpy(GameInfo->MD5, UNIFCart.MD5, sizeof(UNIFCart.MD5));
 
 	CheckHashInfo();
@@ -790,6 +786,14 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 
 	if (!InitializeBoard())
 		goto aborto;
+
+	if (UNIFCart.mapper)
+		FCEU_printf(" [Unif] Mapper:    %d\n", UNIFCart.mapper);
+	FCEU_printf(" [Unif] SubMapper: %d\n", UNIFCart.submapper);
+	FCEU_printf(" [Unif] PRG ROM:   %d KiB\n", UNIF_PRGROMSize / 1024);
+	if (VROM_size)
+		FCEU_printf(" [Unif] CHR ROM:   %d KiB\n", UNIF_CHRROMSize / 1024);
+	FCEU_printf(" [Unif] ROM MD5:   0X%s\n", md5_asciistr(UNIFCart.MD5));
 
 	GameInterface = UNIFGI;
 	return 1;
