@@ -1156,7 +1156,7 @@ int FCEUPPU_Loop(int skip) {
 				TriggerNMI();
 		}
 		X6502_Run((scanlines_per_frame - 242) * (256 + 85) - 12);
-		if (overclock_state && vblankscanlines) {
+		if (overclock_enabled && vblankscanlines) {
 			if (!DMC_7bit || !skip_7bit_overclocking) {
 				overclocked = 1;
 				X6502_Run(vblankscanlines * (256 + 85) - 12);
@@ -1227,7 +1227,7 @@ int FCEUPPU_Loop(int skip) {
 			if (DMC_7bit && skip_7bit_overclocking)
 				totalscanlines = normal_scanlines;
 			else
-				totalscanlines = normal_scanlines + (overclock_state ? extrascanlines : 0);
+				totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
 
 			for (scanline = 0; scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;

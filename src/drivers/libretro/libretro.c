@@ -92,17 +92,17 @@ extern uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], PPU[4];
 /* overclock the console by adding dummy scanlines to PPU loop
  * disables DMC DMA and WaveHi filling for these dummies
  * doesn't work with new PPU */
-unsigned overclock_state = -1;
+unsigned overclock_enabled = -1;
 unsigned overclocked = 0;
 unsigned skip_7bit_overclocking = 1; /* 7-bit samples have priority over overclocking */
 unsigned totalscanlines = 0;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
-
-static unsigned is_PAL = 0;
-static unsigned setregion = 0;
 unsigned dendy = 0;
+
+static unsigned systemRegion = 0;
+static unsigned opt_region = 0;
 
 int FCEUnetplay;
 #ifdef PSP
@@ -944,34 +944,30 @@ static void retro_set_custom_palette(void)
 void FCEUD_RegionOverride(unsigned region)
 {
    unsigned pal = 0;
+   unsigned d = 0;
 
    switch (region)
    {
       case 0: /* auto */
-         normal_scanlines = 240;
-         dendy = 0;
-         pal = is_PAL;
+         d = (systemRegion >> 1) & 1;
+         pal = systemRegion & 1;
          break;
       case 1: /* ntsc */
-         normal_scanlines = 240;
-         dendy = 0;
-         pal = 0;
-         FCEU_DispMessage("Switched to NTSC");
+         FCEU_DispMessage("System: NTSC");
          break;
       case 2: /* pal */
-         normal_scanlines = 240;
-         dendy = 0;
          pal = 1;
-         FCEU_DispMessage("Switched to PAL");
+         FCEU_DispMessage("System: PAL");
          break;
       case 3: /* dendy */
-         normal_scanlines = 290;
-         dendy = 1;
-         pal = 0;
-         FCEU_DispMessage("Switched to Dendy");
+         d = 1;
+         FCEU_DispMessage("System: Dendy");
          break;
    }
 
+   dendy = d;
+   normal_scanlines = dendy ? 290 : 240;
+   totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
    FCEUI_SetVidSystem(pal);
    retro_set_custom_palette();
 }
@@ -1114,33 +1110,33 @@ static void check_variables(bool startup)
       bool do_reinit = false;
 
       if (!strcmp(var.value, "disabled")
-            && overclock_state != 0)
+            && overclock_enabled != 0)
       {
-         overclocked            = 0;
          skip_7bit_overclocking = 1;
          extrascanlines         = 0;
          vblankscanlines        = 0;
-         overclock_state        = 0;
+         overclock_enabled      = 0;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-Postrender"))
       {
-         overclocked            = 1;
          skip_7bit_overclocking = 1;
          extrascanlines         = 266;
          vblankscanlines        = 0;
-         overclock_state        = 1;
+         overclock_enabled      = 1;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-VBlank"))
       {
-         overclocked            = 1;
          skip_7bit_overclocking = 1;
          extrascanlines         = 0;
          vblankscanlines        = 266;
-         overclock_state        = 1;
+         overclock_enabled      = 1;
          do_reinit              = true;
       }
+
+      normal_scanlines = dendy ? 290 : 240;
+      totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
 
       if (do_reinit && startup)
       {
@@ -1239,17 +1235,17 @@ static void check_variables(bool startup)
    var.key = "fceumm_region";
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      unsigned oldval = setregion;
+      unsigned oldval = opt_region;
       if (!strcmp(var.value, "Auto"))
-         setregion = 0;
+         opt_region = 0;
       else if (!strcmp(var.value, "NTSC"))
-         setregion = 1;
+         opt_region = 1;
       else if (!strcmp(var.value, "PAL"))
-         setregion = 2;
+         opt_region = 2;
       else if (!strcmp(var.value, "Dendy"))
-         setregion = 3;
-      if (setregion != oldval)
-         FCEUD_RegionOverride(setregion);
+         opt_region = 3;
+      if (opt_region != oldval)
+         FCEUD_RegionOverride(opt_region);
    }
 
    var.key = "fceumm_aspect";
@@ -2110,6 +2106,7 @@ bool retro_load_game(const struct retro_game_info *game)
    sndquality = 0;
    sndvolume = 150;
    swapDuty = 0;
+   dendy = 0;
 
    /* Wii: initialize this or else last variable is passed through
     * when loading another rom causing save state size change. */
@@ -2158,7 +2155,8 @@ bool retro_load_game(const struct retro_game_info *game)
    if (external_palette_exist)
       FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
 
-   is_PAL = retro_get_region(); /* Save current loaded region info */
+   /* Save region and dendy mode for region-auto detect */
+   systemRegion = (dendy << 1) | retro_get_region() & 1;
 
    retro_set_custom_palette();
    FCEUD_SoundToggle();

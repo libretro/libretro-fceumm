@@ -763,10 +763,12 @@ static BMAPPINGLocal bmap[] = {
 int iNESLoad(const char *name, FCEUFILE *fp) {
 	struct md5_context md5;
 	char* mappername = NULL;
-	uint32 filesize = fp->fp->size;
+	uint64 filesize = FCEU_fgetsize(fp);
+	uint64 romSize = 0;
 	uint32 mappertest = 0;
 	uint32 prgRom = 0;
 	uint32 chrRom = 0;
+	uint32 region = 0;
 
 	if (FCEU_fread(&head, 1, 16, fp) != 16)
 		return 0;
@@ -795,46 +797,42 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			memset((char*)(&head) + 0xA, 0, 0x6);
 	}
 
-	Mirroring = 0;
-	ROM_size = 0;
-	VROM_size = 0;
-	iNES2 = 0;
-	MapperNo = 0;
 	subMapper = 0;
-
 	MapperNo  = (head.ROM_type >> 4) | (head.ROM_type2 & 0xF0);
 	Mirroring = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
 	prgRom    = head.ROM_size;
 	chrRom    = head.VROM_size;
+	iNES2     = ((head.ROM_type2 & 0x0C) == 0x08) ? 1 : 0;
 
-	if ((head.ROM_type2 & 0x0C) == 0x08) {
-		iNES2 = 1;
+	if (iNES2) {
 		MapperNo |= ((uint32)head.ROM_type3 << 8) & 0xF00;
 		prgRom   |= ((uint32)head.upper_PRG_CHR_size << 8) & 0xF00;
 		chrRom   |= ((uint32)head.upper_PRG_CHR_size << 4) & 0xF00;
 
-		subMapper               = head.ROM_type3 >> 4 & 0x0F;
+		subMapper               = (head.ROM_type3 >> 4) & 0x0F;
 		iNESCart.prgRam         = (head.PRGRAM_size & 0x0F) ? (64 << (head.PRGRAM_size & 0x0F)) : 0;
 		iNESCart.chrRam         = (head.CHRRAM_size & 0x0F) ? (64 << (head.CHRRAM_size & 0x0F)) : 0;
 		iNESCart.prgRam_battery = (head.PRGRAM_size & 0xF0) ? (64 << ((head.PRGRAM_size & 0xF0) >> 4)) : 0;
 		iNESCart.chrRam_battery = (head.CHRRAM_size & 0xF0) ? (64 << ((head.CHRRAM_size & 0xF0) >> 4)) : 0;
-		iNESCart.region         = head.Region;
+		region                  = (head.Region & 3);
 	} else {
 		if (!prgRom)
 			prgRom = 256;
 	}
 
-	if (head.ROM_type & 4) {	/* Trainer */
+	/* Trainer */
+	if (head.ROM_type & 4) {
 		trainerpoo = (uint8*)FCEU_gmalloc(512);
 		FCEU_fread(trainerpoo, 512, 1, fp);
 		filesize -= 512;
 	}
 
-	if (((prgRom * 0x4000) + (chrRom * 0x2000)) > filesize) {
-		FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", ((prgRom * 0x4000) + (chrRom * 0x2000)) -  filesize);
+	romSize = (prgRom * 0x4000) + (chrRom * 0x2000);
+	if (romSize > filesize) {
+		FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", romSize -  filesize);
 		return 0;
-	} else if (((prgRom * 0x4000) + (chrRom * 0x2000)) < filesize)
-		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - ((prgRom * 0x4000) + (chrRom * 0x2000)));
+	} else if (romSize < filesize)
+		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
 	iNESCart.prgRom = prgRom;
 	iNESCart.chrRom = chrRom;
@@ -907,11 +905,11 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	else
 		SetupCartMirroring(Mirroring & 1, (Mirroring & 4) >> 2, 0);
 
-	iNESCart.iNES2 = iNES2;
-	iNESCart.mapper = MapperNo;
+	iNESCart.iNES2     = iNES2;
+	iNESCart.mapper    = MapperNo;
 	iNESCart.submapper = subMapper;
-	iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
-	iNESCart.mirror = Mirroring;
+	iNESCart.battery   = (head.ROM_type & 2) ? 1 : 0;
+	iNESCart.mirror    = Mirroring;
 
 	mappername = "Not Listed";
 
@@ -945,7 +943,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			}
 		}
 		FCEU_printf(" Mirroring: %s\n", Mirroring == 2 ? "None (Four-screen)" : Mirroring ? "Vertical" : "Horizontal");
-		FCEU_printf(" System: %s\n", tv_region[(iNESCart.region & 3)]);
+		FCEU_printf(" System: %s\n", tv_region[region]);
 		FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
 	} else {
 		FCEU_printf(" Mapper #: %3d\n", MapperNo);
@@ -963,18 +961,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	GameInterface = iNESGI;
 
-	if (iNES2) {
-		switch (iNESCart.region & 0x03) {
-		/* 0: RP2C02 ("NTSC NES")
-		 * 1: RP2C07 ("Licensed PAL NES")
-		 * 2: Multiple-region
-		 * 3: UMC 6527P ("Dendy")
-		 */
-		case 0: case 2: FCEUI_SetVidSystem(0); break;
-		case 1: FCEUI_SetVidSystem(1); break;
-		case 3: dendy = 1; FCEUI_SetVidSystem(0); break;
-		}
-	} else {
+	if (iNES2 == 0) {
 		if (strstr(name, "(E)") || strstr(name, "(e)") ||
 			strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
 			strstr(name, "(F)") || strstr(name, "(f)") ||
@@ -986,12 +973,29 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			strstr(name, "(Sweden)") || strstr(name, "(Sw)") ||
 			strstr(name, "(Australia)") || strstr(name, "(A)") ||
 			strstr(name, "(a)")) {
-				iNESCart.region = 1;
-				FCEUI_SetVidSystem(1);
+				region = 1;
 		} else {
-			iNESCart.region = 0;
-			FCEUI_SetVidSystem(0);
+			region = 0;
 		}
+	}
+
+	iNESCart.region = region;
+	switch (region) {
+	/* 0: RP2C02 ("NTSC NES")
+	 * 1: RP2C07 ("Licensed PAL NES")
+	 * 2: Multiple-region
+	 * 3: UMC 6527P ("Dendy")
+	 */
+	case 1:
+		FCEUI_SetVidSystem(1);
+		break;
+	case 3:
+		dendy = 1;
+	/* fallthrough */
+	case 0:
+	case 2:
+		FCEUI_SetVidSystem(0);
+		break;
 	}
 
 	return 1;

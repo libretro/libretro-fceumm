@@ -6,7 +6,7 @@
 extern int fceuindbg;
 
 /* Overclocking-related */
-extern unsigned overclock_state;
+extern unsigned overclock_enabled;
 extern unsigned overclocked;
 extern unsigned skip_7bit_overclocking;
 extern unsigned DMC_7bit;
