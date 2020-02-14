@@ -505,7 +505,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"FDS UNROM BOARD",		108, Mapper108_Init},
 /*	{(uint8_t*)"",					109, Mapper109_Init}, */
 /*	{(uint8_t*)"",					110, Mapper110_Init}, */
-/*	{(uint8_t*)"",					111, Mapper111_Init}, */
+	{(uint8_t*)"Cheapocabra",		111, Mapper111_Init},
 	{(uint8_t*)"ASDER/NTDEC BOARD",	112, Mapper112_Init},
 	{(uint8_t*)"HACKER/SACHEN BOARD",	113, Mapper113_Init},
 	{(uint8_t*)"MMC3 SG PROT. A",		114, Mapper114_Init},
@@ -681,6 +681,9 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"Brilliant Com Cocoma Pack", 516, Mapper516_Init},
 	{(uint8_t*)"SB-5013/GCL8050/841242C",	359, Mapper359_Init},
 	{(uint8_t*)"82112C", 				540, Mapper540_Init},
+	{(uint8_t*)"7-in-1 Rockman (JY-208)",	356, Mapper356_Init},
+	{(uint8_t*)"Games Xplosion 121-in-1",	269, Mapper269_Init},
+	{(uint8_t*)"Super Mario Family",	353, Mapper353_Init},
 
 	/* UNIF to NES 2.0 BOARDS */
 
