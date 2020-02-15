@@ -31,7 +31,7 @@ extern "C" {
 struct retro_core_option_definition option_defs_common[] = {
    {
       "fceumm_region",
-      "Region Override",
+      "Region",
       "Force core to use NTSC, PAL or Dendy region timings.",
       {
          { "Auto",  NULL },
@@ -43,15 +43,39 @@ struct retro_core_option_definition option_defs_common[] = {
       "Auto",
    },
    {
-      "fceumm_aspect",
-      "Preferred aspect ratio",
-      "Choose preferred aspect ratio.",
+      "fceumm_overclocking",
+      "Overclock",
+      "Enables or disables overclocking which can reduce slowdowns in some games. Postrender method is more compatible with every game with Vblank more effective for games like Contra Force.",
       {
-         { "8:7 PAR", NULL },
-         { "4:3",     NULL },
+         { "disabled",      NULL },
+         { "2x-Postrender", NULL },
+         { "2x-VBlank",     NULL },
          { NULL, NULL},
       },
-      "8:7 PAR",
+      "disabled",
+   },
+   {
+      "fceumm_ramstate",
+      "RAM Power-On Fill (Needs Restart)",
+      "Choose RAM startup during power up. Some games rely on initial ram values for random generator as an example.",
+      {
+         { "fill $ff", "$FF" },
+         { "fill $00", "$00" },
+         { "random",   "random" },
+         { NULL, NULL},
+      },
+      "fill $ff",
+   },
+   {
+      "fceumm_nospritelimit",
+      "No Sprite Limit",
+      "Removes the 8-per-scanline hardware limit. This reduces sprite flickering but can cause some games to glitch since some use this for effects.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL},
+      },
+      "disabled",
    },
    {
       "fceumm_palette",
@@ -82,17 +106,16 @@ struct retro_core_option_definition option_defs_common[] = {
       "default",
    },
    {
-      "fceumm_up_down_allowed",
-      "Allow Opposing Directions",
-      "Allows simultaneous UP+DOWN or LEFT+RIGHT button combinations which can create different effects in some games.",
+      "fceumm_aspect",
+      "Aspect Ratio",
+      "Choose preferred aspect ratio.",
       {
-         { "disabled", NULL },
-         { "enabled",  NULL },
+         { "8:7 PAR", NULL },
+         { "4:3",     NULL },
          { NULL, NULL},
       },
-      "disabled",
+      "8:7 PAR",
    },
-
 #ifdef PSP
    {
       "fceumm_overscan",
@@ -108,7 +131,7 @@ struct retro_core_option_definition option_defs_common[] = {
 #else
    {
       "fceumm_overscan_h",
-      "Crop Overscan (Horizontal)",
+      "Crop Horizontal Overscan",
       "Removes 8 pixel from left and right side of the screen to simulate overscan seen on standard CRT television.",
       {
          { "disabled", NULL },
@@ -119,7 +142,7 @@ struct retro_core_option_definition option_defs_common[] = {
    },
       {
       "fceumm_overscan_v",
-      "Crop Overscan (Vertical)",
+      "Crop Vertical Overscan",
       "Removes 8 pixel from the top and bottom of the screen to simulate overscan seen on standard CRT television.",
       {
          { "disabled", NULL },
@@ -128,54 +151,11 @@ struct retro_core_option_definition option_defs_common[] = {
       },
       "enabled",
    },
-#endif
+#endif /* overscan options */
    {
-      "fceumm_nospritelimit",
-      "No Sprite Limit",
-      "Removes the 8-per-scanline hardware limit. This reduces sprite flickering but can cause some games to glitch since some use this for effects.",
-      {
-         { "disabled", NULL },
-         { "enabled",  NULL },
-         { NULL, NULL},
-      },
-      "disabled",
-   },
-   {
-      "fceumm_sndvolume",
-      "Sound Volume",
-      "Change master volume level",
-      {
-         { "0",  NULL },
-         { "1",  NULL },
-         { "2",  NULL },
-         { "3",  NULL },
-         { "4",  NULL },
-         { "5",  NULL },
-         { "6",  NULL },
-         { "7",  NULL },
-         { "8",  NULL },
-         { "9",  NULL },
-         { "10", NULL },
-         { NULL, NULL},
-      },
-      "7",
-   },
-   {
-      "fceumm_sndquality",
-      "Sound Quality",
-      "Enable higher quality sounds in exchange for more processing power required",
-      {
-         { "Low",       NULL },
-         { "High",      NULL },
-         { "Very High", NULL },
-         { NULL, NULL},
-      },
-      "Low",
-   },
-   {
-      "fceumm_swapduty",
-      "Swap Duty Cycles",
-      "Simulates the sound from famiclones has the pulse wave channels duty cycle bits reversed.",
+      "fceumm_up_down_allowed",
+      "Allow Opposing Directions",
+      "Allows simultaneous UP+DOWN or LEFT+RIGHT button combinations which can create different effects in some games.",
       {
          { "disabled", NULL },
          { "enabled",  NULL },
@@ -237,30 +217,48 @@ struct retro_core_option_definition option_defs_common[] = {
       "enabled",
    },
    {
-      "fceumm_overclocking",
-      "Overclocking",
-      "Enables or disables overclocking which can reduce slowdowns in some games. Postrender method is more compatible with every game with Vblank more effective for games like Contra Force.",
+      "fceumm_sndquality",
+      "Sound Quality",
+      "Enable higher quality sounds in exchange for more processing power required",
       {
-         { "disabled",      NULL },
-         { "2x-Postrender", NULL },
-         { "2x-VBlank",     NULL },
+         { "Low",       NULL },
+         { "High",      NULL },
+         { "Very High", NULL },
+         { NULL, NULL},
+      },
+      "Low",
+   },
+   {
+      "fceumm_swapduty",
+      "Swap Duty Cycles",
+      "Simulates the sound from famiclones has the pulse wave channels duty cycle bits reversed.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
          { NULL, NULL},
       },
       "disabled",
    },
    {
-      "fceumm_ramstate",
-      "RAM power up state (Restart)",
-      "Choose RAM startup during power up. Some games rely on initial ram values for random generator as an example.",
+      "fceumm_sndvolume",
+      "Master Volume",
+      "Change master volume level",
       {
-         { "fill $ff", NULL },
-         { "fill $00", NULL },
-         { "random",   NULL },
+         { "0",  NULL },
+         { "1",  NULL },
+         { "2",  NULL },
+         { "3",  NULL },
+         { "4",  NULL },
+         { "5",  NULL },
+         { "6",  NULL },
+         { "7",  NULL },
+         { "8",  NULL },
+         { "9",  NULL },
+         { "10", NULL },
          { NULL, NULL},
       },
-      "fill $ff",
+      "7",
    },
-#ifdef DEBUG
    {
       "fceumm_apu_1",
       "Channel 1 (Square 1)",
@@ -316,7 +314,28 @@ struct retro_core_option_definition option_defs_common[] = {
       },
       "enabled",
    },
-#endif
+   {
+      "fceumm_show_adv_system_options",
+      "Show Advanced System Options",
+      "Show advanced system options and tweaks.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled"
+   },
+   {
+      "fceumm_show_adv_sound_options",
+      "Show Advanced Sound Options",
+      "Show advanced sound options and tweaks.",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled"
+   },
 
    { NULL, NULL, NULL, { {0} }, NULL },
 };

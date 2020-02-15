@@ -103,6 +103,8 @@ unsigned dendy = 0;
 
 static unsigned systemRegion = 0;
 static unsigned opt_region = 0;
+static unsigned opt_showAdvSoundOptions = 0;
+static unsigned opt_showAdvSystemOptions = 0;
 
 int FCEUnetplay;
 #ifdef PSP
@@ -1010,11 +1012,11 @@ static const keymap turbomap[] = {
 
 static void set_apu_channels(int chan)
 {
-   FSettings.SquareVolume[1] = 256 * ((chan >> 0) & 1);
-   FSettings.SquareVolume[0] = 256 * ((chan >> 1) & 1);
-   FSettings.TriangleVolume = 256 * ((chan >> 2) & 1);
-   FSettings.NoiseVolume = 256 * ((chan >> 3) & 1);
-   FSettings.PCMVolume = 256 * ((chan >> 4) & 1);
+   FSettings.SquareVolume[1] = (chan & 1) ? 256 : 0;
+   FSettings.SquareVolume[0] = (chan & 2) ? 256 : 0;
+   FSettings.TriangleVolume  = (chan & 3) ? 256 : 0;
+   FSettings.NoiseVolume     = (chan & 4) ? 256 : 0;
+   FSettings.PCMVolume       = (chan & 5) ? 256 : 0;
 }
 
 static void check_variables(bool startup)
@@ -1301,10 +1303,9 @@ static void check_variables(bool startup)
       }
    }
 
-#ifdef DEBUG
    var.key = key;
 
-   enable_apu = 0;
+   enable_apu = 0xff;
 
    strcpy(key, "fceumm_apu_x");
    for (i = 0; i < 5; i++)
@@ -1313,15 +1314,73 @@ static void check_variables(bool startup)
       var.value = NULL;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && !strcmp(var.value, "disabled"))
       {
-         enable_apu |= (1 << i);
+         enable_apu &= ~(1 << i);
       }
    }
-   set_apu_channels(enable_apu ^ 0xff);
-#else
-   set_apu_channels(0xff);
-#endif
+   set_apu_channels(enable_apu);
 
    update_dipswitch();
+
+   var.key = "fceumm_show_adv_system_options";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      unsigned newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
+      if ((opt_showAdvSystemOptions != newval) || startup)
+      {
+         opt_showAdvSystemOptions = newval;
+         struct retro_core_option_display option_display;
+         unsigned i;
+         unsigned size;
+         char options_list[][25] = {
+            "fceumm_overclocking",
+            "fceumm_ramstate",
+            "fceumm_nospritelimit",
+            "fceumm_up_down_allowed",
+            "fceumm_show_crosshair"
+         };
+         option_display.visible = opt_showAdvSystemOptions;
+         size = sizeof(options_list) / sizeof(options_list[0]);
+         for (i = 0; i < size; i++)
+         {
+            option_display.key = options_list[i];
+            environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+         }
+      }
+   }
+
+   var.key = "fceumm_show_adv_sound_options";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      unsigned newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
+      if ((opt_showAdvSoundOptions != newval) || startup)
+      {
+         opt_showAdvSoundOptions = newval;
+         struct retro_core_option_display option_display;
+         unsigned i;
+         unsigned size;
+         char options_list[][25] = {
+            "fceumm_sndvolume",
+            "fceumm_sndquality",
+            "fceumm_swapduty",
+            "fceumm_apu_1",
+            "fceumm_apu_2",
+            "fceumm_apu_3",
+            "fceumm_apu_4",
+            "fceumm_apu_5"
+         };
+         option_display.visible = opt_showAdvSoundOptions;
+         size = sizeof(options_list) / sizeof(options_list[0]);
+         for (i = 0; i < size; i++)
+         {
+            option_display.key = options_list[i];
+            environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+         }
+      }
+   }
 }
 
 static int mzx = 0, mzy = 0;
