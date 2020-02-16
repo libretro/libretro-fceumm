@@ -39,6 +39,7 @@
 #include  "fceu-memory.h"
 #include  "input.h"
 #include  "md5.h"
+#include  "crc32.h"
 
 #include "string/stdstring.h"
 
@@ -799,8 +800,8 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (UNIFCart.mapper)
 		FCEU_printf(" [Unif] Mapper:    %d\n", UNIFCart.mapper);
 	FCEU_printf(" [Unif] SubMapper: %d\n", UNIFCart.submapper);
-	FCEU_printf(" [Unif] PRG ROM:   %ull KiB\n", UNIF_PRGROMSize / 1024);
-	FCEU_printf(" [Unif] CHR ROM:   %ull KiB\n", UNIF_CHRROMSize / 1024);
+	FCEU_printf(" [Unif] PRG ROM:   %u KiB\n", UNIF_PRGROMSize / 1024);
+	FCEU_printf(" [Unif] CHR ROM:   %u KiB\n", UNIF_CHRROMSize / 1024);
 
 	GameInterface = UNIFGI;
 	return 1;

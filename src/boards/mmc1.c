@@ -232,8 +232,8 @@ static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
         break;
     default:
         if (info->iNES2) {
-            workRAM = (info->prgRam + info->prgRam_battery) / 1024;
-            *saveRAM = info->prgRam_battery / 1024;
+            workRAM = (info->PRGRamSize + info->PRGRamSaveSize) / 1024;
+            *saveRAM = info->PRGRamSaveSize / 1024;
             /* we only support sizes between 8K and 32K */
             if (workRAM > 0 && workRAM < 8)
                 workRAM = 8;
