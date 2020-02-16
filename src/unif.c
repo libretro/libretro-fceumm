@@ -740,10 +740,10 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (!LoadUNIFChunks(fp))
 		goto aborto;
 
-	UNIFCart.prgRom = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
-	UNIFCart.prgRom = (UNIFCart.prgRom >> 2) + ((UNIFCart.prgRom & 3) ? 1: 0);
-	UNIFCart.chrRom = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
-	UNIFCart.chrRom = (UNIFCart.chrRom >> 3) + ((UNIFCart.chrRom & 7) ? 1: 0);
+	UNIFCart.PRGRomSize = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
+	UNIFCart.PRGRomSize = (UNIFCart.PRGRomSize >> 2) + ((UNIFCart.PRGRomSize & 3) ? 1: 0);
+	UNIFCart.CHRRomSize = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
+	UNIFCart.CHRRomSize = (UNIFCart.CHRRomSize >> 3) + ((UNIFCart.CHRRomSize & 7) ? 1: 0);
 
 	ROM_size = FixRomSize(UNIF_PRGROMSize, 2048);
 	if (UNIF_CHRROMSize)
