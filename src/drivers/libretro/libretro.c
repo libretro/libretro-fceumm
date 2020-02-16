@@ -1329,7 +1329,6 @@ static void check_variables(bool startup)
       unsigned newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
       if ((opt_showAdvSystemOptions != newval) || startup)
       {
-         opt_showAdvSystemOptions = newval;
          struct retro_core_option_display option_display;
          unsigned i;
          unsigned size;
@@ -1340,6 +1339,8 @@ static void check_variables(bool startup)
             "fceumm_up_down_allowed",
             "fceumm_show_crosshair"
          };
+
+         opt_showAdvSystemOptions = newval;
          option_display.visible = opt_showAdvSystemOptions;
          size = sizeof(options_list) / sizeof(options_list[0]);
          for (i = 0; i < size; i++)
@@ -1358,7 +1359,6 @@ static void check_variables(bool startup)
       unsigned newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
       if ((opt_showAdvSoundOptions != newval) || startup)
       {
-         opt_showAdvSoundOptions = newval;
          struct retro_core_option_display option_display;
          unsigned i;
          unsigned size;
@@ -1372,7 +1372,9 @@ static void check_variables(bool startup)
             "fceumm_apu_4",
             "fceumm_apu_5"
          };
-         option_display.visible = opt_showAdvSoundOptions;
+
+         opt_showAdvSoundOptions = newval;
+         option_display.visible  = opt_showAdvSoundOptions;
          size = sizeof(options_list) / sizeof(options_list[0]);
          for (i = 0; i < size; i++)
          {
