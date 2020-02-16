@@ -808,8 +808,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		chrRom   |= ((uint32)head.upper_PRG_CHR_size << 4) & 0xF00;
 
 		subMapper               = (head.ROM_type3 >> 4) & 0x0F;
-		iNESCart.PRGRamSize         = (head.PRGRAM_size & 0x0F) ? (64 << (head.PRGRAM_size & 0x0F)) : 0;
-		iNESCart.CHRRamSize         = (head.CHRRAM_size & 0x0F) ? (64 << (head.CHRRAM_size & 0x0F)) : 0;
+		iNESCart.PRGRamSize     = (head.PRGRAM_size & 0x0F) ? (64 << (head.PRGRAM_size & 0x0F)) : 0;
+		iNESCart.CHRRamSize     = (head.CHRRAM_size & 0x0F) ? (64 << (head.CHRRAM_size & 0x0F)) : 0;
 		iNESCart.PRGRamSaveSize = (head.PRGRAM_size & 0xF0) ? (64 << ((head.PRGRAM_size & 0xF0) >> 4)) : 0;
 		iNESCart.CHRRamSaveSize = (head.CHRRAM_size & 0xF0) ? (64 << ((head.CHRRAM_size & 0xF0) >> 4)) : 0;
 		region                  = (head.Region & 3);
