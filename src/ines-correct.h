@@ -359,6 +359,14 @@
 	{0xa3ac0095,    189,       -1}, /* Street Fighter II - The World Warrior (Unl) [a2].nes */
 	{0xeced5899,    121,       -1}, /* Ultimate Mortal Kombat 4 (Unl) [!].nes */
 
+	/* TXC / Sachen / JoyVan */
+
+	/* This cart does not work anymore with latest mapper implementation.
+	 * This will be run using alternate mapper using override in m132 */
+	{0x2a5f4c5a,    132,       -1}, /* /Zhan Guo Si Chuan Sheng (C&E) (Unl).nes */
+
+	{0x0acfc3cd,    132,       -1}, /* Mahjong Block (MGC-008) (Unl) [!].nes */
+
 	/* ines mappers that uses iNes 2.0 numbers */
 
 	{0xf6bd8e31,    281,        0}, /* 1997 Super HIK 4-in-1 (JY-052) [p1][!] */

@@ -526,12 +526,12 @@ static BMAPPINGLocal bmap[] = {
 /*	{(uint8_t*)"",					129, Mapper129_Init}, */
 /*	{(uint8_t*)"",					130, Mapper130_Init}, */
 /*	{(uint8_t*)"",					131, Mapper131_Init}, */
-	{(uint8_t*)"TXC/MGENIUS 22111",	132, UNL22211_Init},
+	{(uint8_t*)"TXC/UNL-22211",		132, Mapper132_Init},
 	{(uint8_t*)"SA72008",				133, SA72008_Init},
 /*	{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init}, */
 	{(uint8_t*)"MMC3 BMC PIRATE",		134, Bs5652_Init},
 /*	{(uint8_t*)"",					135, Mapper135_Init}, */
-	{(uint8_t*)"TCU02",				136, TCU02_Init},
+	{(uint8_t*)"Sachen 3011",			136, Mapper136_Init},
 	{(uint8_t*)"S8259D",				137, S8259D_Init},
 	{(uint8_t*)"S8259B",				138, S8259B_Init},
 	{(uint8_t*)"S8259C",				139, S8259C_Init},
@@ -542,7 +542,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"AGCI 50282",			144, Mapper144_Init},
 	{(uint8_t*)"SA72007",				145, SA72007_Init},
 	{(uint8_t*)"SA0161M",				146, SA0161M_Init},
-	{(uint8_t*)"TCU01",				147, TCU01_Init},
+	{(uint8_t*)"Sachen 3018 board",		147, Mapper147_Init},
 	{(uint8_t*)"SA0037",				148, SA0037_Init},
 	{(uint8_t*)"SA0036",				149, SA0036_Init},
 	{(uint8_t*)"SA-015/SA-630",			150, S74LS374N_Init},
@@ -567,8 +567,8 @@ static BMAPPINGLocal bmap[] = {
 /*	{(uint8_t*)"",					169, Mapper169_Init}, */
 	{(uint8_t*)"",					170, Mapper170_Init},
 	{(uint8_t*)"",					171, Mapper171_Init},
-	{(uint8_t*)"",					172, Mapper172_Init},
-	{(uint8_t*)"",					173, Mapper173_Init},
+	{(uint8_t*)"Super Mega P-4070",	172, Mapper172_Init},
+	{(uint8_t*)"Idea-Tek ET.xx",	173, Mapper173_Init},
 /*	{(uint8_t*)"",					174, Mapper174_Init}, */
 	{(uint8_t*)"",					175, Mapper175_Init},
 	{(uint8_t*)"BMCFK23C",			176, BMCFK23C_Init},	/* zero 26-may-2012 - well, i have some WXN junk games that use 176 for instance ????. i dont know what game uses this BMCFK23C as mapper 176. we'll have to make a note when we find it. */
