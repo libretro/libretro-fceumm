@@ -2089,8 +2089,6 @@ static char slash = '\\';
 static char slash = '/';
 #endif
 
-extern uint32_t iNESGameCRC32;
-
 bool retro_load_game(const struct retro_game_info *game)
 {
    unsigned i, j;
@@ -2227,7 +2225,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    for (i = 0; i < fourscore_len; i++)
    {
-      if (fourscore_db_list[i].crc == iNESGameCRC32)
+      if (fourscore_db_list[i].crc == iNESCart.CRC32)
       {
          FCEUI_DisableFourScore(0);
          enable_4player = true;
@@ -2237,7 +2235,7 @@ bool retro_load_game(const struct retro_game_info *game)
 
    for (i = 0; i < famicom_4p_len; i++)
    {
-      if (famicom_4p_db_list[i].crc == iNESGameCRC32)
+      if (famicom_4p_db_list[i].crc == iNESCart.CRC32)
       {
          GameInfo->inputfc = SIFC_4PLAYER;
          FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);

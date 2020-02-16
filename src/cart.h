@@ -29,6 +29,8 @@ typedef struct {
 	int region;			/* video system timing (ntsc, pal, dendy */
 
 	uint8 MD5[16];
+	uint32 PRGCRC32;
+	uint32 CHRCRC32;
 	uint32 CRC32;	/* Should be set by the iNES/UNIF loading
 					 * code, used by mapper/board code, maybe
 					 * other code in the future.
