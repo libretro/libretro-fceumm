@@ -606,6 +606,7 @@ static BMAPPING bmap[] = {
 	{ "GN-26", 344, BMCGN26_Init, 0 },
 	{ "KG256", NO_INES,KG256_Init, 0 },
 	{ "T4A54A", 134, Bs5652_Init, 0 },
+	{ "WX-KB4K", 134, Bs5652_Init, 0 },
 	{ "SB-5013", 359, Mapper359_Init, 0 },
 	{ "82112C", 540, Mapper540_Init, 0 },
 
