@@ -83,16 +83,19 @@ static const unsigned long crc_table[256] = {
 
 static unsigned long crc32(unsigned long crc, const unsigned char *buf, unsigned int len)
 {
-	if (buf == 0) return 0L;
-	crc = crc ^ 0xffffffffL;
-	while (len >= 8)
-	{
-	DO8_CRC32(buf);
-	len -= 8;
-	}
-	if (len) do {
-	DO1_CRC32(buf);
-	} while (--len);
+	const unsigned char *p;
+  crc = crc ^ 0xffffffffL;
+  p = (const unsigned char*)buf;
+  if (p) {
+	  while (len >= 8)
+	  {
+	  DO8_CRC32(p);
+	  len -= 8;
+	  }
+	  if (len) do {
+	  DO1_CRC32(p);
+	  } while (--len);
+  }
 	return crc ^ 0xffffffffL;
 }
 

@@ -740,10 +740,10 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (!LoadUNIFChunks(fp))
 		goto aborto;
 
-	UNIFCart.prgRom = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
-	UNIFCart.prgRom = (UNIFCart.prgRom >> 2) + ((UNIFCart.prgRom & 3) ? 1: 0);
-	UNIFCart.chrRom = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
-	UNIFCart.chrRom = (UNIFCart.chrRom >> 3) + ((UNIFCart.chrRom & 7) ? 1: 0);
+	UNIFCart.PRGRomSize = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
+	UNIFCart.PRGRomSize = (UNIFCart.PRGRomSize >> 2) + ((UNIFCart.PRGRomSize & 3) ? 1: 0);
+	UNIFCart.CHRRomSize = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
+	UNIFCart.CHRRomSize = (UNIFCart.CHRRomSize >> 3) + ((UNIFCart.CHRRomSize & 7) ? 1: 0);
 
 	ROM_size = FixRomSize(UNIF_PRGROMSize, 2048);
 	if (UNIF_CHRROMSize)
@@ -771,6 +771,10 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		}
 	}
 
+	UNIFCart.PRGCRC32 = CalcCRC32(0, ROM, UNIF_PRGROMSize);
+	UNIFCart.CHRCRC32 = CalcCRC32(0, VROM, UNIF_CHRROMSize);
+	UNIFCart.CRC32    = CalcCRC32(UNIFCart.PRGCRC32, VROM, UNIF_CHRROMSize);
+
 	md5_starts(&md5);
 	md5_update(&md5, ROM, UNIF_PRGROMSize);
 	if (VROM_size)
@@ -787,13 +791,14 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (!InitializeBoard())
 		goto aborto;
 
+	FCEU_printf(" PRG-ROM CRC32:   0x%08X\n", UNIFCart.PRGCRC32);
+	FCEU_printf(" PRG+CHR CRC32:   0x%08X\n", UNIFCart.CRC32);
+	FCEU_printf(" PRG+CHR MD5  :   0x%s\n", md5_asciistr(UNIFCart.MD5));
 	if (UNIFCart.mapper)
 		FCEU_printf(" [Unif] Mapper:    %d\n", UNIFCart.mapper);
 	FCEU_printf(" [Unif] SubMapper: %d\n", UNIFCart.submapper);
-	FCEU_printf(" [Unif] PRG ROM:   %d KiB\n", UNIF_PRGROMSize / 1024);
-	if (VROM_size)
-		FCEU_printf(" [Unif] CHR ROM:   %d KiB\n", UNIF_CHRROMSize / 1024);
-	FCEU_printf(" [Unif] ROM MD5:   0X%s\n", md5_asciistr(UNIFCart.MD5));
+	FCEU_printf(" [Unif] PRG ROM:   %ull KiB\n", UNIF_PRGROMSize / 1024);
+	FCEU_printf(" [Unif] CHR ROM:   %ull KiB\n", UNIF_CHRROMSize / 1024);
 
 	GameInterface = UNIFGI;
 	return 1;

@@ -217,9 +217,9 @@ void UNROM512_Init(CartInfo *info) {
 	flash_bank = 0;
 	flash_save = info->battery;
 
-	if (info->chrRam == 8192)
+	if (info->CHRRamSize == 8192)
 		chrram_mask = 0;
-	else if (info->chrRam == 16384)
+	else if (info->CHRRamSize == 16384)
 		chrram_mask = 0x20;
 	else
 		chrram_mask = 0x60;
@@ -236,7 +236,7 @@ void UNROM512_Init(CartInfo *info) {
 		SetupCartMirroring(MI_0, 0, NULL);
 		break;
 	case 3: /* hard four screen, last 8k of 32k RAM (flags: 4-screen + vertical) */
-		SetupCartMirroring(4, 1, VROM + (info->chrRam - 8192));
+		SetupCartMirroring(4, 1, VROM + (info->CHRRamSize - 8192));
 		break;
 	}
 	bus_conflict = !info->battery;

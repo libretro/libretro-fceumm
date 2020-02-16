@@ -1,3 +1,6 @@
+#ifndef _SHARE_H
+#define _SHARE_H
+
 #include "../fceu-types.h"
 #include "../input.h"
 #include "../fceu.h"
@@ -9,3 +12,5 @@
 void FCEUMOV_AddJoy(uint8 *js);
 void FCEU_DrawCursor(uint8 *buf, int xc, int yc);
 void FCEU_DrawGunSight(uint8 *buf, int xc, int yc);
+
+#endif /* _SHARE_H */

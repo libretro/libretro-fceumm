@@ -555,10 +555,10 @@ static void maketables(uint32 c, uint32 r) {
 	}
 }
 
-OPLL *OPLL_new(uint32 clk, uint32 rate) {
+OPLL *OPLL_new(uint32 _clk, uint32 _rate) {
 	OPLL *opll;
 
-	maketables(clk, rate);
+	maketables(_clk, _rate);
 
 	opll = (OPLL*)calloc(sizeof(OPLL), 1);
 	if (opll == NULL)

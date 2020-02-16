@@ -1,3 +1,6 @@
+#ifndef _MMC3_H
+#define _MMC3_H
+
 extern uint8 MMC3_cmd;
 extern uint8 mmc3opts;
 extern uint8 A000B;
@@ -24,3 +27,5 @@ DECLFW(MMC3_CMDWrite);
 DECLFW(MMC3_IRQWrite);
 
 void GenMMC3_Init(CartInfo *info, int prg, int chr, int wram, int battery);
+
+#endif /* _MMC3_H */
