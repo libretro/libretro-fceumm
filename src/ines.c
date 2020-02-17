@@ -505,7 +505,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"FDS UNROM BOARD",		108, Mapper108_Init},
 /*	{(uint8_t*)"",					109, Mapper109_Init}, */
 /*	{(uint8_t*)"",					110, Mapper110_Init}, */
-/*	{(uint8_t*)"",					111, Mapper111_Init}, */
+	{(uint8_t*)"Cheapocabra",		111, Mapper111_Init},
 	{(uint8_t*)"ASDER/NTDEC BOARD",	112, Mapper112_Init},
 	{(uint8_t*)"HACKER/SACHEN BOARD",	113, Mapper113_Init},
 	{(uint8_t*)"MMC3 SG PROT. A",		114, Mapper114_Init},
@@ -526,12 +526,12 @@ static BMAPPINGLocal bmap[] = {
 /*	{(uint8_t*)"",					129, Mapper129_Init}, */
 /*	{(uint8_t*)"",					130, Mapper130_Init}, */
 /*	{(uint8_t*)"",					131, Mapper131_Init}, */
-	{(uint8_t*)"TXC/MGENIUS 22111",	132, UNL22211_Init},
+	{(uint8_t*)"TXC/UNL-22211",		132, Mapper132_Init},
 	{(uint8_t*)"SA72008",				133, SA72008_Init},
 /*	{(uint8_t*)"MMC3 BMC PIRATE",		134, Mapper134_Init}, */
 	{(uint8_t*)"MMC3 BMC PIRATE",		134, Bs5652_Init},
 /*	{(uint8_t*)"",					135, Mapper135_Init}, */
-	{(uint8_t*)"TCU02",				136, TCU02_Init},
+	{(uint8_t*)"Sachen 3011",			136, Mapper136_Init},
 	{(uint8_t*)"S8259D",				137, S8259D_Init},
 	{(uint8_t*)"S8259B",				138, S8259B_Init},
 	{(uint8_t*)"S8259C",				139, S8259C_Init},
@@ -542,10 +542,10 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"AGCI 50282",			144, Mapper144_Init},
 	{(uint8_t*)"SA72007",				145, SA72007_Init},
 	{(uint8_t*)"SA0161M",				146, SA0161M_Init},
-	{(uint8_t*)"TCU01",				147, TCU01_Init},
+	{(uint8_t*)"Sachen 3018 board",		147, Mapper147_Init},
 	{(uint8_t*)"SA0037",				148, SA0037_Init},
 	{(uint8_t*)"SA0036",				149, SA0036_Init},
-	{(uint8_t*)"S74LS374N",			150, S74LS374N_Init},
+	{(uint8_t*)"SA-015/SA-630",			150, S74LS374N_Init},
 	{(uint8_t*)"",					151, Mapper151_Init},
 	{(uint8_t*)"",					152, Mapper152_Init},
 	{(uint8_t*)"BANDAI SRAM",			153, Mapper153_Init},	/* Bandai board 16 with SRAM instead of EEPROM */
@@ -567,8 +567,8 @@ static BMAPPINGLocal bmap[] = {
 /*	{(uint8_t*)"",					169, Mapper169_Init}, */
 	{(uint8_t*)"",					170, Mapper170_Init},
 	{(uint8_t*)"",					171, Mapper171_Init},
-	{(uint8_t*)"",					172, Mapper172_Init},
-	{(uint8_t*)"",					173, Mapper173_Init},
+	{(uint8_t*)"Super Mega P-4070",	172, Mapper172_Init},
+	{(uint8_t*)"Idea-Tek ET.xx",	173, Mapper173_Init},
 /*	{(uint8_t*)"",					174, Mapper174_Init}, */
 	{(uint8_t*)"",					175, Mapper175_Init},
 	{(uint8_t*)"BMCFK23C",			176, BMCFK23C_Init},	/* zero 26-may-2012 - well, i have some WXN junk games that use 176 for instance ????. i dont know what game uses this BMCFK23C as mapper 176. we'll have to make a note when we find it. */
@@ -638,7 +638,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"",					240, Mapper240_Init},
 	{(uint8_t*)"",					241, Mapper241_Init},
 	{(uint8_t*)"",					242, Mapper242_Init},
-	{(uint8_t*)"S74LS374NA",			243, S74LS374NA_Init},
+	{(uint8_t*)"SA-020A",			243, S74LS374N_Init},
 	{(uint8_t*)"DECATHLON",			244, Mapper244_Init},
 	{(uint8_t*)"",					245, Mapper245_Init},
 	{(uint8_t*)"FONG SHEN BANG",		246, Mapper246_Init},
@@ -668,9 +668,22 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"Realtec 8031",			390, Mapper390_Init },
 	{(uint8_t*)"60-1064-16L (FDS)",		538, Mapper538_Init },
 	{(uint8_t*)"LittleCom 160-in-1",	541, Mapper541_Init },
-	{(uint8_t*)"8-in-1 JY-119",	267, Mapper267_Init },
+	{(uint8_t*)"8-in-1 JY-119",			267, Mapper267_Init },
 	{(uint8_t*)"MMC3 BMC PIRATE",		294, Bs5652_Init}, /* nesdev redirects this as mapper 134 */
 	{(uint8_t*)"TXC 01-22110-000",		297, Mapper297_Init},
+	{(uint8_t*)"Bitcorp 31-in-1",		360, Mapper360_Init},
+	{(uint8_t*)"Sachen 3014",			533, Mapper533_Init},
+	{(uint8_t*)"830928C",				382, Mapper382_Init},
+	{(uint8_t*)"NJ064",					534, Mapper534_Init},
+	{(uint8_t*)"Kid Ikarus (FDS)",		539, Mapper539_Init},
+	{(uint8_t*)"5-in-1 (CH-501)",		543, Mapper543_Init},
+	{(uint8_t*)"",						550, Mapper550_Init},
+	{(uint8_t*)"Brilliant Com Cocoma Pack", 516, Mapper516_Init},
+	{(uint8_t*)"SB-5013/GCL8050/841242C",	359, Mapper359_Init},
+	{(uint8_t*)"82112C", 				540, Mapper540_Init},
+	{(uint8_t*)"7-in-1 Rockman (JY-208)",	356, Mapper356_Init},
+	{(uint8_t*)"Games Xplosion 121-in-1",	269, Mapper269_Init},
+	{(uint8_t*)"Super Mario Family",	353, Mapper353_Init},
 
 	/* UNIF to NES 2.0 BOARDS */
 
@@ -1036,6 +1049,7 @@ static int iNES_Init(int num) {
 					SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
 					AddExState(VROM, CHRRAMSize, 0, "CHRR");
 				}
+				FCEU_printf(" CHR-RAM:  %3d KiB\n", CHRRAMSize / 1024);
 			}
 			if (head.ROM_type & 8)
 				AddExState(ExtraNTARAM, 2048, 0, "EXNR");

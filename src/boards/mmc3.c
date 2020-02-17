@@ -540,7 +540,8 @@ static DECLFR(M45Read) {
 }
 
 static void M45Reset(void) {
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = EXPREGS[4] = 0;
+	EXPREGS[0] = EXPREGS[1] = EXPREGS[3] = EXPREGS[4] = 0;
+	EXPREGS[2] = 0x0F;
 	EXPREGS[5]++;
 	EXPREGS[5] &= 7;
 	MMC3RegReset();
@@ -548,8 +549,9 @@ static void M45Reset(void) {
 
 static void M45Power(void) {
 	GenMMC3Power();
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = EXPREGS[4] = EXPREGS[5] = 0;
-	SetWriteHandler(0x5000, 0x7FFF, M45Write);
+	EXPREGS[0] = EXPREGS[1] = EXPREGS[3] = EXPREGS[4] = EXPREGS[5] = 0;
+	EXPREGS[2] = 0x0F;
+	SetWriteHandler(0x6000, 0x7FFF, M45Write);
 	SetReadHandler(0x5000, 0x5FFF, M45Read);
 }
 

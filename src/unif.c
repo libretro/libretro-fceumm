@@ -39,6 +39,7 @@
 #include  "fceu-memory.h"
 #include  "input.h"
 #include  "md5.h"
+#include  "crc32.h"
 
 #include "string/stdstring.h"
 
@@ -311,7 +312,7 @@ static int SetBoardName(FCEUFILE *fp) {
 	FCEU_fread(boardname, 1, uchead.info, fp);
 	boardname[uchead.info] = 0;
 	/* strip whitespaces */
-	boardname = string_trim_whitespace(boardname);
+	boardname = string_trim_whitespace((char const*)boardname);
 	FCEU_printf(" Board name: %s\n", boardname);
 	sboardname = boardname;
 	if (!memcmp(boardname, "NES-", 4) || !memcmp(boardname, "UNL-", 4) ||
@@ -418,7 +419,7 @@ static BMAPPING bmap[] = {
 	{ "12-IN-1",  331, BMC12IN1_Init, 0 },
 	{ "13in1JY110", 295, BMC13in1JY110_Init, 0 },
 	{ "190in1", 300, BMC190in1_Init, 0 },
-	{ "22211", 132, UNL22211_Init, 0 },
+	{ "22211", 132, Mapper132_Init, 0 },
 	{ "3D-BLOCK", 355, UNL3DBlock_Init, 0 },
 	{ "411120-C", 287, BMC411120C_Init, 0 },
 	{ "42in1ResetSwitch", 233, Mapper233_Init, 0 },
@@ -493,7 +494,7 @@ static BMAPPING bmap[] = {
 	{ "PEC-586", NO_INES, UNLPEC586Init, 0 },
 	{ "RROM", 0, NROM_Init, 0 },
 	{ "RROM-128", 0, NROM_Init, 0 },
-	{ "SA-002", 136, TCU02_Init, 0 },
+	{ "SA-002", 136, Mapper136_Init, 0 },
 	{ "SA-0036", 149, SA0036_Init, 0 },
 	{ "SA-0037", 148, SA0037_Init, 0 },
 	{ "SA-009", 160, SA009_Init, 0 },
@@ -520,7 +521,7 @@ static BMAPPING bmap[] = {
 	{ "SSS-NROM-256", NO_INES, SSSNROM_Init, 0 },
 	{ "SUNSOFT_UNROM", 93, SUNSOFT_UNROM_Init, 0 },	/* fix me, real pcb name, real pcb type */
 	{ "Sachen-74LS374N", 150, S74LS374N_Init, 0 },
-	{ "Sachen-74LS374NA", 243, S74LS374NA_Init, 0 },	/* seems to be custom mapper */
+	{ "Sachen-74LS374NA", 243, S74LS374N_Init, 0 },	/* seems to be custom mapper */
 	{ "Sachen-8259A", 141, S8259A_Init, 0 },
 	{ "Sachen-8259B", 138, S8259B_Init, 0 },
 	{ "Sachen-8259C", 139, S8259C_Init, 0 },
@@ -532,7 +533,7 @@ static BMAPPING bmap[] = {
 	{ "T-230", 529, UNLT230_Init, 0 },
 	{ "T-262", 265, BMCT262_Init, 0 },
 	{ "TBROM", 4, TBROM_Init, 0 },
-	{ "TC-U01-1.5M", 147, TCU01_Init, 0 },
+	{ "TC-U01-1.5M", 147, Mapper147_Init, 0 },
 	{ "TEK90", 90, Mapper90_Init, 0 },
 	{ "TEROM", 4, TEROM_Init, 0 },
 	{ "TF1201", 298, UNLTF1201_Init, 0 },
@@ -605,6 +606,9 @@ static BMAPPING bmap[] = {
 	{ "GN-26", 344, BMCGN26_Init, 0 },
 	{ "KG256", NO_INES,KG256_Init, 0 },
 	{ "T4A54A", 134, Bs5652_Init, 0 },
+	{ "WX-KB4K", 134, Bs5652_Init, 0 },
+	{ "SB-5013", 359, Mapper359_Init, 0 },
+	{ "82112C", 540, Mapper540_Init, 0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3", NO_INES, MapperCopyFamiMMC3_Init, 0 },
@@ -797,8 +801,8 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (UNIFCart.mapper)
 		FCEU_printf(" [Unif] Mapper:    %d\n", UNIFCart.mapper);
 	FCEU_printf(" [Unif] SubMapper: %d\n", UNIFCart.submapper);
-	FCEU_printf(" [Unif] PRG ROM:   %ull KiB\n", UNIF_PRGROMSize / 1024);
-	FCEU_printf(" [Unif] CHR ROM:   %ull KiB\n", UNIF_CHRROMSize / 1024);
+	FCEU_printf(" [Unif] PRG ROM:   %u KiB\n", UNIF_PRGROMSize / 1024);
+	FCEU_printf(" [Unif] CHR ROM:   %u KiB\n", UNIF_CHRROMSize / 1024);
 
 	GameInterface = UNIFGI;
 	return 1;

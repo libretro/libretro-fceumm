@@ -22,19 +22,34 @@
 #include "mapinc.h"
 
 static void GenMMC1Power(void);
-static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery);
+static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram);
 
 static uint8 DRegs[4];
 static uint8 Buffer, BufferShift;
 
-static int mmc1opts;
+static uint32 WRAMSIZE = 0;
+
+ /* size of non-battery-backed portion of WRAM */
+ /* serves as starting offset for actual save ram from total wram size */
+ /* returns 0 if entire work ram is battery backed ram */
+static uint32 NONSaveRAMSIZE = 0;
 
 static void (*MMC1CHRHook4)(uint32 A, uint8 V);
 static void (*MMC1PRGHook16)(uint32 A, uint8 V);
+/* Used to override default wram behavior */
+/* NULL uses default MMC1 wram. Set after GenMMC1Init() is called to override */
+static void (*MMC1WRAMHook8)(void);
 
 static uint8 *WRAM = NULL;
 static uint8 *CHRRAM = NULL;
 static int is155, is171;
+
+static uint32 MMC1GetCHRBank (uint32 bank) {
+    if (DRegs[0] & 0x10)	/* 4 KiB mode */
+        return (DRegs[1 + bank]);
+    else 					/* 8 KiB mode */
+        return ((DRegs[1] & ~1) | bank);
+}
 
 static uint8 MMC1WRAMEnabled(void) {
 	return !(DRegs[3] & 0x10);
@@ -51,14 +66,26 @@ static DECLFR(MAWRAM) {
 	return(Page[A >> 11][A]);
 }
 
-static void MMC1CHR(void) {
-	if (mmc1opts & 4) {
-		if (DRegs[0] & 0x10)
-			setprg8r(0x10, 0x6000, (DRegs[1] >> 4) & 1);
+static void MMC1WRAM(void) {
+	if (WRAMSIZE > 8192) {
+		if (WRAMSIZE > 16384)
+			setprg8r(0x10, 0x6000, (DRegs[1] >> 2) & 3);
 		else
 			setprg8r(0x10, 0x6000, (DRegs[1] >> 3) & 1);
 	}
+}
 
+static void MMC1CHR(void) {
+	if (MMC1WRAMHook8)		/* Use custom wram hook, currently used for M543 */
+		MMC1WRAMHook8();
+	else {					/* Use default MMC1 wram behavior */
+		if (WRAMSIZE > 8192) {
+        	if (WRAMSIZE > 16384)
+            	setprg8r(0x10, 0x6000, (DRegs[1] >> 2) & 3);
+            else
+            	setprg8r(0x10, 0x6000, (DRegs[1] >> 3) & 1);
+        }
+    }
 	if (MMC1CHRHook4) {
 		if (DRegs[0] & 0x10) {
 			MMC1CHRHook4(0x0000, DRegs[1]);
@@ -183,24 +210,44 @@ static void MMC1CMReset(void) {
 	MMC1PRG();
 }
 
-static int DetectMMC1WRAMSize(uint32 crc32) {
-	switch (crc32) {
-	case 0xc6182024:			/* Romance of the 3 Kingdoms */
-	case 0x2225c20f:			/* Genghis Khan */
-	case 0x4642dda6:			/* Nobunaga's Ambition */
-	case 0x29449ba9:			/* ""        "" (J) */
-	case 0x2b11e0b0:			/* ""        "" (J) */
-	case 0xb8747abf:			/* Best Play Pro Yakyuu Special (J) */
-	case 0xc9556b36:			/* Final Fantasy I & II (J) [!] */
-		FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
-		return(16);
+static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
+    int workRAM = 8;
+    switch (info->CRC32) {
+    case 0xc6182024: /* Romance of the 3 Kingdoms */
+    case 0xabbf7217: /* ""        "" (J) (PRG0) */
+    case 0xccf35c02: /* ""        "" (J) (PRG1) */
+    case 0x2225c20f: /* Genghis Khan */
+    case 0xfb69743a: /* ""        "" (J) */
+    case 0x4642dda6: /* Nobunaga's Ambition */
+    case 0x3f7ad415: /* ""        "" (J) (PRG0) */
+    case 0x2b11e0b0: /* ""        "" (J) (PRG1) */
+        *saveRAM = 8;
+        workRAM = 16;
+        break;
+    case 0xb8747abf: /* Best Play Pro Yakyuu Special (J) (PRG0) */
+    case 0xc3de7c69: /* ""        "" (J) (PRG1) */
+    case 0xc9556b36: /* Final Fantasy I & II (J) [!] */
+        *saveRAM = 32;
+        workRAM = 32;
+        break;
+    default:
+        if (info->iNES2) {
+            workRAM = (info->PRGRamSize + info->PRGRamSaveSize) / 1024;
+            *saveRAM = info->PRGRamSaveSize / 1024;
+            /* we only support sizes between 8K and 32K */
+            if (workRAM > 0 && workRAM < 8)
+                workRAM = 8;
+            if (workRAM > 32)
+                workRAM = 32;
+            if (*saveRAM > workRAM)
+                *saveRAM = workRAM;
+        }
 		break;
-	case 0xd1e50064:            /* Dezaemon */
-		FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
-		return(32);
-		break;
-	default: return(8);
-	}
+    }
+    if (workRAM > 8)
+        FCEU_printf(" >8KB external WRAM present.  Use NES 2.0 if you hack the ROM image.\n");
+
+    return workRAM;
 }
 
 static uint32 NWCIRQCount;
@@ -258,17 +305,16 @@ void Mapper105_Init(CartInfo *info) {
 
 static void GenMMC1Power(void) {
 	lreset = 0;
-	if (mmc1opts & 1) {
-		FCEU_CheatAddRAM(8, 0x6000, WRAM);
-		if (mmc1opts & 4)
-			FCEU_dwmemset(WRAM, 0, 8192)
-			else if (!(mmc1opts & 2))
-				FCEU_dwmemset(WRAM, 0, 8192);
-	}
 	SetWriteHandler(0x8000, 0xFFFF, MMC1_write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 
-	if (mmc1opts & 1) {
+	if (WRAMSIZE) {
+		FCEU_CheatAddRAM(8, 0x6000, WRAM);
+
+		/* clear non-battery-backed portion of WRAM */
+		if (NONSaveRAMSIZE)
+			FCEU_dwmemset(WRAM, 0, NONSaveRAMSIZE);
+
 		SetReadHandler(0x6000, 0x7FFF, MAWRAM);
 		SetWriteHandler(0x6000, 0x7FFF, MBWRAM);
 		setprg8r(0x10, 0x6000, 0);
@@ -285,26 +331,25 @@ static void GenMMC1Close(void) {
 	CHRRAM = WRAM = NULL;
 }
 
-static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery) {
+static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram) {
 	is155 = 0;
 
 	info->Close = GenMMC1Close;
 	MMC1PRGHook16 = MMC1CHRHook4 = 0;
-	mmc1opts = 0;
+	MMC1WRAMHook8 = 0;
+	WRAMSIZE = wram * 1024;
+	NONSaveRAMSIZE = (wram - saveram) * 1024;
 	PRGmask16[0] &= (prg >> 14) - 1;
 	CHRmask4[0] &= (chr >> 12) - 1;
 	CHRmask8[0] &= (chr >> 13) - 1;
 
-	if (wram) {
-		WRAM = (uint8*)FCEU_gmalloc(wram * 1024);
-		mmc1opts |= 1;
-		if (wram > 8) mmc1opts |= 4;
-		SetupCartPRGMapping(0x10, WRAM, wram * 1024, 1);
-		AddExState(WRAM, wram * 1024, 0, "WRAM");
-		if (battery) {
-			mmc1opts |= 2;
-			info->SaveGame[0] = WRAM + ((mmc1opts & 4) ? 8192 : 0);
-			info->SaveGameLen[0] = 8192;
+	if (WRAMSIZE) {
+		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+		if (saveram) {
+			info->SaveGame[0] = WRAM + NONSaveRAMSIZE;
+			info->SaveGameLen[0] = saveram * 1024;
 		}
 	}
 	if (!chr) {
@@ -322,13 +367,14 @@ static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int battery)
 }
 
 void Mapper1_Init(CartInfo *info) {
-	int ws = DetectMMC1WRAMSize(info->CRC32);
-	GenMMC1Init(info, 512, 256, ws, info->battery);
+	int bs = info->battery ? 8 : 0;
+	int ws = DetectMMC1WRAMSize(info, &bs);
+	GenMMC1Init(info, 512, 256, ws, bs);
 }
 
 /* Same as mapper 1, without respect for WRAM enable bit. */
 void Mapper155_Init(CartInfo *info) {
-	GenMMC1Init(info, 512, 256, 8, info->battery);
+	GenMMC1Init(info, 512, 256, 8, info->battery ? 8 : 0);
 	is155 = 1;
 }
 
@@ -340,7 +386,7 @@ void Mapper171_Init(CartInfo *info) {
 }
 
 void SAROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 128, 64, 8, info->battery);
+	GenMMC1Init(info, 128, 64, 8, info->battery ? 8 : 0);
 }
 
 void SBROM_Init(CartInfo *info) {
@@ -360,7 +406,7 @@ void SGROM_Init(CartInfo *info) {
 }
 
 void SKROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 256, 64, 8, info->battery);
+	GenMMC1Init(info, 256, 64, 8, info->battery ? 8 : 0);
 }
 
 void SLROM_Init(CartInfo *info) {
@@ -392,11 +438,11 @@ void SHROM_Init(CartInfo *info) {
 /*              */
 
 void SNROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 256, 0, 8, info->battery);
+	GenMMC1Init(info, 256, 0, 8, info->battery ? 8 : 0);
 }
 
 void SOROM_Init(CartInfo *info) {
-	GenMMC1Init(info, 256, 0, 16, info->battery);
+	GenMMC1Init(info, 256, 0, 16, info->battery ? 8 : 0);
 }
 
 /* ----------------------- FARID_SLROM_8-IN-1 -----------------------*/
@@ -490,7 +536,7 @@ static void Sync(void) {
         MMC1PRG();
 		MMC1CHR();
 		MMC1MIRROR();
-    } else {		
+    } else {
 		/* Mapper 70 */
         setprg16(0x8000, ((mode & 2) << 1) | ((latch >> 4) & 3));
         setprg16(0xC000, ((mode & 2) << 1) | 3);
@@ -531,4 +577,128 @@ void Mapper297_Init(CartInfo *info) {
 	MMC1PRGHook16 = M297PRG;
 	AddExState(&latch, 1, 0, "LATC");
 	AddExState(&mode, 1, 0, "MODE");
+}
+
+/* ---------------------------- Mapper 543 -------------------------------- */
+
+/* NES 2.0 Mapper 543 - 1996 無敵智カ卡 5-in-1 (CH-501) */
+
+static uint8_t outerBank;
+static uint8_t bits;
+static uint8_t shift;
+
+static void M543PRG16(uint32 A, uint8 V) {
+	setprg16(A, (V & 0x0F) | (outerBank << 4));
+}
+
+static void M543CHR4(uint32 A, uint8 V) {
+	setchr4(A, (V & 7));
+}
+
+static void M543WRAM8(void) {
+	uint32 wramBank;
+	if (outerBank & 2)
+		wramBank = 4 | ((outerBank >> 1) & 2) | (outerBank & 1) ;
+	else
+		wramBank = ((outerBank << 1) & 2) | ((MMC1GetCHRBank(0) >> 3) & 1);
+	setprg8r(0x10, 0x6000, wramBank);
+}
+
+static DECLFW(M543Write) {
+    bits |= ((V >> 3) & 1) << shift++;
+    if (shift == 4) {
+        outerBank = bits;
+        bits = shift = 0;
+        MMC1PRG();
+    	MMC1CHR();
+    }
+}
+
+static void M543Reset(void) {
+    bits = 0;
+    shift = 0;
+	outerBank = 0;
+	MMC1CMReset();
+}
+
+static void M543Power(void) {
+    bits = 0;
+    shift = 0;
+	outerBank = 0;
+    GenMMC1Power();
+    SetWriteHandler(0x5000, 0x5FFF, M543Write);
+}
+
+void Mapper543_Init(CartInfo *info) {
+	/* M543 has 32K CHR RAM but only uses 8K, so its safe to set this chr to 0 */
+	GenMMC1Init(info, 2048, 32, 64, info->battery ? 64 : 0);
+	info->Power = M543Power;
+	info->Reset = M543Reset;
+	MMC1CHRHook4 = M543CHR4;
+	MMC1PRGHook16 = M543PRG16;
+	MMC1WRAMHook8 = M543WRAM8;
+	AddExState(&bits, 1, 0, "BITS");
+	AddExState(&shift, 1, 0, "SHFT");
+	AddExState(&outerBank, 1, 0, "BANK");
+}
+
+/* ---------------------------- Mapper 550 -------------------------------- */
+
+/* NES 2.0 Mapper 550 - 7-in-1 1993 Chess Series (JY-015) */
+
+static uint8_t latch;
+static uint8_t outerBank;
+
+static void M550PRG16(uint32 A, uint8 V) {
+	if ((outerBank & 6) == 6)
+		setprg16(A, (V & 7) | (outerBank << 2));
+	else
+		setprg32(0x8000, (latch >> 4) | (outerBank << 1));
+}
+
+static void M550CHR4(uint32 A, uint8 V) {
+	if ((outerBank & 6) == 6)
+		setchr4(A, (V & 7) | ((outerBank << 2) & 0x18));
+    else
+		setchr8((latch & 3) | ((outerBank << 1) & 0x0C));
+}
+
+static DECLFW(M550Write7) {
+	if (!(outerBank & 8)) {
+		outerBank = A & 15;
+		MMC1PRG();
+		MMC1CHR();
+	}
+}
+
+static DECLFW(M550Write8) {
+	latch = V;
+	if ((outerBank & 6) == 6)
+		MMC1_write(A, V);
+	MMC1PRG();
+	MMC1CHR();
+}
+
+static void M550Reset(void) {
+	latch = 0;
+	outerBank = 0;
+	MMC1CMReset();
+}
+
+static void M550Power(void) {
+	latch = 0;
+	outerBank = 0;
+	GenMMC1Power();
+	SetWriteHandler(0x7000, 0x7FFF, M550Write7);
+	SetWriteHandler(0x8000, 0xFFFF, M550Write8);
+}
+
+void Mapper550_Init(CartInfo *info) {
+	GenMMC1Init(info, 512, 128, 8, 0);
+	info->Power = M550Power;
+	info->Reset = M550Reset;
+	MMC1CHRHook4 = M550CHR4;
+	MMC1PRGHook16 = M550PRG16;
+	AddExState(&latch, 1, 0, "LATC");
+	AddExState(&outerBank, 1, 0, "BANK");
 }

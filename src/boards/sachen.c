@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2020 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +19,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* 2020-2-3 - updated mapper 150/243 */
+
 #include "mapinc.h"
 
 static uint8 cmd, dip;
 static uint8 latch[8];
+static uint8 mapperNum;
 
 static void S74LS374MSync(uint8 mirr) {
 	switch (mirr & 3) {
@@ -32,7 +36,8 @@ static void S74LS374MSync(uint8 mirr) {
 	}
 }
 
-static void S74LS374NSynco(void) {
+/* old mapper 150 and 243 */
+/* static void S74LS374NSynco(void) {
 	setprg32(0x8000, latch[0]);
 	setchr8(latch[1] | latch[3] | latch[4]);
 	S74LS374MSync(latch[2]);
@@ -57,7 +62,7 @@ static DECLFW(S74LS374NWrite) {
 static DECLFR(S74LS374NRead) {
 	uint8 ret;
 	if ((A & 0x4100) == 0x4100)
-/*		ret=(X.DB&0xC0)|((~cmd)&0x3F); */
+//		ret=(X.DB&0xC0)|((~cmd)&0x3F);
 		ret = ((~cmd) & 0x3F) ^ dip;
 	else
 		ret = X.DB;
@@ -128,7 +133,7 @@ void S74LS374NA_Init(CartInfo *info) {
 	GameStateRestore = S74LS374NRestore;
 	AddExState(latch, 5, 0, "LATC");
 	AddExState(&cmd, 1, 0, "CMD");
-}
+}*/
 
 static int type;
 static void S8259Synco(void) {
@@ -317,73 +322,6 @@ void SA0037_Init(CartInfo *info) {
 	AddExState(&latch[0], 1, 0, "LATC");
 }
 
-/* ----------------------------------------------- */
-
-static void TCU01Synco() {
-	setprg32(0x8000, ((latch[0] & 0x80) >> 6) | ((latch[0] >> 2) & 1));
-	setchr8((latch[0] >> 3) & 0xF);
-}
-
-static DECLFW(TCU01Write) {
-	if ((A & 0x103) == 0x102) {
-		latch[0] = V;
-		TCU01Synco();
-	}
-}
-
-static void TCU01Power(void) {
-	latch[0] = 0;
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x4100, 0xFFFF, TCU01Write);
-	TCU01Synco();
-}
-
-static void TCU01Restore(int version) {
-	TCU01Synco();
-}
-
-void TCU01_Init(CartInfo *info) {
-	GameStateRestore = TCU01Restore;
-	info->Power = TCU01Power;
-	AddExState(&latch[0], 1, 0, "LATC");
-}
-
-/* ----------------------------------------------- */
-
-static void TCU02Synco() {
-	setprg32(0x8000, 0);
-	setchr8(latch[0] & 3);
-}
-
-static DECLFW(TCU02Write) {
-	if ((A & 0x103) == 0x102) {
-		latch[0] = V + 3;
-		TCU02Synco();
-	}
-}
-
-static DECLFR(TCU02Read) {
-	return (latch[0] & 0x3F) | (X.DB & 0xC0);
-}
-
-static void TCU02Power(void) {
-	latch[0] = 0;
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0x4100, 0x4100, TCU02Read);
-	SetWriteHandler(0x4100, 0xFFFF, TCU02Write);
-	TCU02Synco();
-}
-
-static void TCU02Restore(int version) {
-	TCU02Synco();
-}
-
-void TCU02_Init(CartInfo *info) {
-	GameStateRestore = TCU02Restore;
-	info->Power = TCU02Power;
-	AddExState(&latch[0], 1, 0, "LATC");
-}
-
 /* --------------------------------------------- */
 
 static DECLFR(TCA01Read) {
@@ -407,3 +345,84 @@ void TCA01_Init(CartInfo *info) {
 	info->Power = TCA01Power;
 }
 
+/* ------------------ Mapper 150 --------------------- */
+/* ------------------ Mapper 243 --------------------- */
+
+/* Mapper 150 - SA-015 / SA-630 / Unif UNL-Sachen-74LS374N */
+/* Mapper 243 - SA-020A */
+
+static void S74LS374NSynco(void) {
+	uint32 chrBank;
+	if (mapperNum == 150)
+		chrBank = (latch[6] & 3) | ((latch[4] << 2) & 4) | (latch[2] << 3);
+	else
+		chrBank = (latch[2] & 1) | ((latch[4] << 1) & 2) | (latch[6] << 2);
+
+	setprg32(0x8000, (latch[2] & 1) | latch[5]);
+	setchr8(chrBank);
+
+	switch ((latch[7] >> 1) & 3) {
+	case 0: setmirrorw(0, 1, 1, 1); break;
+	case 1: setmirror(MI_H); break;
+	case 2: setmirror(MI_V); break;
+	case 3: setmirror(MI_0); break;
+	}
+}
+
+static DECLFR(S74LS374NRead) {
+	uint8 ret;
+	if ((A & 0xC101) == 0x4101) {
+		if (dip & 1)
+			ret = (latch[cmd] & 3) | (X.DB & 0xFC);
+		else
+			ret = (latch[cmd] & 7) | (X.DB & 0xF8);
+	} else {
+		ret = X.DB;
+	}
+	return ret;
+}
+
+static DECLFW(S74LS374NWrite) {
+	if (dip & 1)
+		V |= 4;
+	switch (A & 0xC101) {
+	case 0x4100:
+		cmd = V & 7;
+		break;
+	case 0x4101:
+		latch[cmd] = V & 7;
+		S74LS374NSynco();
+		break;
+	}
+}
+
+static void S74LS374NRestore(int version) {
+	S74LS374NSynco();
+}
+
+static void S74LS374NReset(void) {
+	dip ^= 1;
+	latch[0] = latch[1] = latch[2] = latch[3] = 0;
+	latch[4] = latch[5] = latch[6] = latch[7] = 0;
+	S74LS374NSynco();
+}
+
+static void S74LS374NPower(void) {
+	dip = 0;
+	latch[0] = latch[1] = latch[2] = latch[3] = 0;
+	latch[4] = latch[5] = latch[6] = latch[7] = 0;
+	S74LS374NSynco();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x4100, 0x7FFF, S74LS374NWrite);
+	if (mapperNum == 150)
+		SetReadHandler(0x4100, 0x7FFF, S74LS374NRead);
+}
+
+void S74LS374N_Init(CartInfo *info) {
+	mapperNum = info->mapper;
+	info->Power = S74LS374NPower;
+	info->Reset = S74LS374NReset;
+	GameStateRestore = S74LS374NRestore;
+	AddExState(latch, 8, 0, "LATC");
+	AddExState(&cmd, 1, 0, "CMD");
+}

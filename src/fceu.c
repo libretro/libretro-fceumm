@@ -396,7 +396,7 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 		*ptr = (x & 1) ? 0x55 : 0xAA;	/* F-15 Sity War HISCORE is screwed... */
 										/* 1942 SCORE/HISCORE is screwed... */
 #endif
-		uint8_t v;
+		uint8_t v = 0;
 		switch (option_ramstate)
 		{
 		case 0: v = 0xff; break;

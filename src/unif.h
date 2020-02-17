@@ -94,8 +94,6 @@ void Super24_Init(CartInfo *info);
 void Supervision16_Init(CartInfo *info);
 void TBROM_Init(CartInfo *info);
 void TCA01_Init(CartInfo *info);
-void TCU01_Init(CartInfo *info);
-void TCU02_Init(CartInfo *info);
 void TEROM_Init(CartInfo *info);
 void TFROM_Init(CartInfo *info);
 void TGROM_Init(CartInfo *info);
