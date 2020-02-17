@@ -28,7 +28,6 @@ static uint32 WRAMSIZE;
 static uint8 mmc3_reg[8];
 static uint8 exRegs[8];
 static uint8 pointer;
-static uint8 locked;
 static uint8 readDIP;
 static uint16 prgAND;
 static uint16 chrAND;
@@ -57,15 +56,15 @@ static SFORMAT BS110_StateRegs[] =
 
 int BS110GetPRGBank(int bank)
 {
-	if (~bank & 1 && (pointer & 0x40)) bank ^= 2;
-	return bank & 2 ? 0xFE | bank & 1 : mmc3_reg[6 | bank & 1];
+	if ((~bank & 1) && (pointer & 0x40)) bank ^= 2;
+	return (bank & 2) ? 0xFE | (bank & 1) : mmc3_reg[6 | (bank & 1)];
 }
 
 void BS110SyncPRG_GNROM(int A14, int AND, int OR) {
-	setprg8(0x8000, (BS110GetPRGBank(0) &~A14) &AND | OR);
-	setprg8(0xA000, (BS110GetPRGBank(1) &~A14) &AND | OR);
-	setprg8(0xC000, (BS110GetPRGBank(0) | A14) &AND | OR);
-	setprg8(0xE000, (BS110GetPRGBank(1) | A14) &AND | OR);
+	setprg8(0x8000, ((BS110GetPRGBank(0) &~A14) &AND) | OR);
+	setprg8(0xA000, ((BS110GetPRGBank(1) &~A14) &AND) | OR);
+	setprg8(0xC000, ((BS110GetPRGBank(0) | A14) &AND) | OR);
+	setprg8(0xE000, ((BS110GetPRGBank(1) | A14) &AND) | OR);
 }
 
 static void BS110CW(uint32 A, uint8 V) {
@@ -83,18 +82,18 @@ static void BS110PW(uint32 A, uint8 V) {
 		uint8 block = (exRegs[1] & 3) << 4;
 		if ((exRegs[1] >> 3) & 0x01)
 		{
-			setprg8(0x8000, (BS110GetPRGBank(0)) & mask | block);
-			setprg8(0xA000, (BS110GetPRGBank(1)) & mask | block);
-			setprg8(0xC000, (BS110GetPRGBank(0)) & mask | block);
-			setprg8(0xE000, (BS110GetPRGBank(1)) & mask | block);
+			setprg8(0x8000, ((BS110GetPRGBank(0)) & mask) | block);
+			setprg8(0xA000, ((BS110GetPRGBank(1)) & mask) | block);
+			setprg8(0xC000, ((BS110GetPRGBank(0)) & mask) | block);
+			setprg8(0xE000, ((BS110GetPRGBank(1)) & mask) | block);
 		}
 		else
 		{
 
-			setprg8(0x8000, (BS110GetPRGBank(0)) & mask | block);
-			setprg8(0xA000, (BS110GetPRGBank(1)) & mask | block);
-			setprg8(0xC000, (BS110GetPRGBank(0) | 2) & mask | block);
-			setprg8(0xE000, (BS110GetPRGBank(1) | 2) & mask | block);
+			setprg8(0x8000, ((BS110GetPRGBank(0)) & mask) | block);
+			setprg8(0xA000, ((BS110GetPRGBank(1)) & mask) | block);
+			setprg8(0xC000, ((BS110GetPRGBank(0) | 2) & mask) | block);
+			setprg8(0xE000, ((BS110GetPRGBank(1) | 2) & mask) | block);
 		}
 	}
 	else
