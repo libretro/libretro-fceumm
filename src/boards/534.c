@@ -30,10 +30,10 @@ static uint32 GetPRGBank(uint32 bank)
 }
 
 void SyncPRG_GNROM(int A14, int AND, int OR) {
-    setprg8(0x8000, (GetPRGBank(0) & ~A14) & AND | OR);
-    setprg8(0xA000, (GetPRGBank(1) & ~A14) & AND | OR);
-    setprg8(0xC000, (GetPRGBank(0) |  A14) & AND | OR);
-    setprg8(0xE000, (GetPRGBank(1) |  A14) & AND | OR);
+    setprg8(0x8000, ((GetPRGBank(0) & ~A14) & AND) | OR);
+    setprg8(0xA000, ((GetPRGBank(1) & ~A14) & AND) | OR);
+    setprg8(0xC000, ((GetPRGBank(0) |  A14) & AND) | OR);
+    setprg8(0xE000, ((GetPRGBank(1) |  A14) & AND) | OR);
 }
 
 static void M534PW(uint32 A, uint8 V) {
@@ -45,13 +45,6 @@ static void M534PW(uint32 A, uint8 V) {
 
 static void M534CW(uint32 A, uint8 V) {
     setchr1(A, (V & 0xFF) | ((EXPREGS[2] & 0x0F) << 3) | ((EXPREGS[0] & 0x18) << 4));
-}
-
-static DECLFR(M534Read) {
-    if (EXPREGS[1] & 0x01)
-        return (EXPREGS[4] | (X.DB & ~0x03));
-    else
-        return CartBR(A);
 }
 
 static DECLFW(M534IRQWrite) {

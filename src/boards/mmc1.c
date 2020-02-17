@@ -335,7 +335,8 @@ static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram)
 	is155 = 0;
 
 	info->Close = GenMMC1Close;
-	MMC1PRGHook16 = MMC1CHRHook4 = MMC1WRAMHook8 = 0;
+	MMC1PRGHook16 = MMC1CHRHook4 = 0;
+	MMC1WRAMHook8 = 0;
 	WRAMSIZE = wram * 1024;
 	NONSaveRAMSIZE = (wram - saveram) * 1024;
 	PRGmask16[0] &= (prg >> 14) - 1;
@@ -597,9 +598,9 @@ static void M543CHR4(uint32 A, uint8 V) {
 static void M543WRAM8(void) {
 	uint32 wramBank;
 	if (outerBank & 2)
-        wramBank = 4 | ((outerBank >> 1) & 2) | (outerBank & 1) ;
-    else
-        wramBank = ((outerBank << 1) & 2) | ((MMC1GetCHRBank(0) >> 3) & 1);
+		wramBank = 4 | ((outerBank >> 1) & 2) | (outerBank & 1) ;
+	else
+		wramBank = ((outerBank << 1) & 2) | ((MMC1GetCHRBank(0) >> 3) & 1);
 	setprg8r(0x10, 0x6000, wramBank);
 }
 

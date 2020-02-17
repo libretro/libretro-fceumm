@@ -81,7 +81,6 @@ static unsigned turbo_delay = 0;
 static unsigned input_type[MAX_PLAYERS + 1] = {0}; /* 4-players + famicom expansion */
 enum RetroZapperInputModes{RetroLightgun, RetroMouse, RetroPointer};
 static enum RetroZapperInputModes zappermode = RetroLightgun;
-static unsigned show_advance_sound_options;
 
 /* emulator-specific variables */
 
@@ -2215,7 +2214,7 @@ bool retro_load_game(const struct retro_game_info *game)
       FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
 
    /* Save region and dendy mode for region-auto detect */
-   systemRegion = (dendy << 1) | retro_get_region() & 1;
+   systemRegion = (dendy << 1) | (retro_get_region() & 1);
 
    retro_set_custom_palette();
    FCEUD_SoundToggle();

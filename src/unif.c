@@ -312,7 +312,7 @@ static int SetBoardName(FCEUFILE *fp) {
 	FCEU_fread(boardname, 1, uchead.info, fp);
 	boardname[uchead.info] = 0;
 	/* strip whitespaces */
-	boardname = string_trim_whitespace(boardname);
+	boardname = string_trim_whitespace((char const*)boardname);
 	FCEU_printf(" Board name: %s\n", boardname);
 	sboardname = boardname;
 	if (!memcmp(boardname, "NES-", 4) || !memcmp(boardname, "UNL-", 4) ||

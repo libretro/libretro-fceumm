@@ -98,7 +98,7 @@ static DECLFW(TXC_CMDWrite) {
 			if (txc.increase)
 				txc.accumulator++;
 			else
-				txc.accumulator = ((txc.accumulator & ~txc.mask) | (txc.staging ^ txc.invert) & txc.mask);
+				txc.accumulator = ((txc.accumulator & ~txc.mask) | ((txc.staging ^ txc.invert) & txc.mask));
 			break;
 		case 0x101:
 			txc.invert = (V & 0x01) ? 0xFF : 0x00;
@@ -133,9 +133,6 @@ static void GenTXCPower(void) {
 	TXCRegReset();
 }
 
-static void TXCClose(void) {
-}
-
 static void StateRestore(int version) {
 	WSync();
 }
@@ -148,7 +145,7 @@ static void GenTXC_Init(CartInfo *info, void (*proc)(void), uint32 jv001) {
 }
 
 static int CheckHash(CartInfo *info) {
-	int x, i = 0;
+	int x = 0;
 	uint64 partialmd5 = 0;
 
 	/* These carts do not work with new mapper implementation.

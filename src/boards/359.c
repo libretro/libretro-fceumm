@@ -24,7 +24,7 @@
 
 #include "mapinc.h"
 
-static uint8 mapperNum;
+static uint32 mapperNum;
 static uint8 preg[4];
 static uint8 creg[8];
 static uint8 exRegs[4];

@@ -56,8 +56,8 @@ void Mirror(uint8 value)
 
 
 static void Sync() {
-	uint8 prglo;
-	uint8 prghi;
+	uint8 prglo = 0;
+	uint8 prghi = 0;
 
 	uint8 outb = outer << 1;
 

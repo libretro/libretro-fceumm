@@ -52,6 +52,8 @@ static void Sync(void) {
 	 */
 
 	preg[0] = bank;
+	preg[1] = 0;
+
 	switch (mode & 3) {
 	case 0x00:
 	case 0x01:
