@@ -1040,7 +1040,6 @@ static int iNES_Init(int num) {
 					default:  CHRRAMSize = 8 * 1024; break;
 					}
 					iNESCart.CHRRamSize = CHRRAMSize;
-					FCEU_printf(" CHR-RAM:  %3d KiB\n", CHRRAMSize / 1024);
 				}
 				if (CHRRAMSize) { /* TODO: CHR-RAM are sometimes handled in mappers e.g. MMC1 using submapper 1/2/4 and CHR-RAM can be zero here */
 					if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
@@ -1048,8 +1047,8 @@ static int iNES_Init(int num) {
 					UNIFchrrama = VROM;
 					SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
 					AddExState(VROM, CHRRAMSize, 0, "CHRR");
+					FCEU_printf(" CHR-RAM:  %3d KiB\n", CHRRAMSize / 1024);
 				}
-				FCEU_printf(" CHR-RAM:  %3d KiB\n", CHRRAMSize / 1024);
 			}
 			if (head.ROM_type & 8)
 				AddExState(ExtraNTARAM, 2048, 0, "EXNR");
