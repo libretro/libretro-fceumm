@@ -613,7 +613,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"UNL-8237",				215, UNL8237_Init},
 	{(uint8_t*)"",					216, Mapper216_Init},
 	{(uint8_t*)"",					217, Mapper217_Init},	/* Redefined to a new Discrete BMC mapper */
-/*	{(uint8_t*)"",					218, Mapper218_Init}, */
+	{(uint8_t*)"Magic Floor",		218, Mapper218_Init},
 	{(uint8_t*)"UNLA9746",			219, UNLA9746_Init},
 	{(uint8_t*)"Debug Mapper",		220, UNLKS7057_Init},
 	{(uint8_t*)"UNLN625092",			221, UNLN625092_Init},
