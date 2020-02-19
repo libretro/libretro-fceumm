@@ -70,15 +70,15 @@ void Bs5652AnalyzeReg()
 
 int Bs5652GetPRGBank(int bank)
 {
-	if (~bank & 1 && (pointer & 0x40)) bank ^= 2;
-	return bank & 2 ? 0xFE | bank & 1 : mmc3_reg[6 | bank & 1];
+	if ((~bank & 1) && (pointer & 0x40)) bank ^= 2;
+	return (bank & 2) ? 0xFE | (bank & 1) : mmc3_reg[6 | (bank & 1)];
 }	
 		
 void Bs5652SyncPRG_GNROM(int A14, int AND, int OR) {
-	setprg8(0x8000, (Bs5652GetPRGBank(0) &~A14) &AND | OR);
-	setprg8(0xA000, (Bs5652GetPRGBank(1) &~A14) &AND | OR);
-	setprg8(0xC000, (Bs5652GetPRGBank(0) | A14) &AND | OR);
-	setprg8(0xE000, (Bs5652GetPRGBank(1) | A14) &AND | OR);
+	setprg8(0x8000, ((Bs5652GetPRGBank(0) &~A14) &AND) | OR);
+	setprg8(0xA000, ((Bs5652GetPRGBank(1) &~A14) &AND) | OR);
+	setprg8(0xC000, ((Bs5652GetPRGBank(0) | A14) &AND) | OR);
+	setprg8(0xE000, ((Bs5652GetPRGBank(1) | A14) &AND) | OR);
 }
 
 static void Bs5652CW(uint32 A, uint8 V) {

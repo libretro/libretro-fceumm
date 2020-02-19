@@ -27,6 +27,7 @@ static void (*WSync)(void);
 static readfunc defread;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
+static uint32 hasBattery;
 
 static DECLFW(LatchWrite) {
 	latche = A;
@@ -65,6 +66,7 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16
 	addrreg0 = adr0;
 	addrreg1 = adr1;
 	WSync = proc;
+	hasBattery = 0;
 	if (func != NULL)
 		defread = func;
 	else
@@ -77,6 +79,7 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16
 		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 		if (info->battery) {
+			hasBattery = 1;
 			info->SaveGame[0] = WRAM;
 			info->SaveGameLen[0] = WRAMSIZE;
 		}
@@ -415,6 +418,12 @@ static void M227Sync(void) {
 			}
 		}
 	}
+
+	if (!hasBattery && (latche & 0x80) == 0x80)
+		/* CHR-RAM write protect hack, needed for some multicarts */
+		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
+	else
+		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
 
 	setmirror(((latche >> 1) & 1) ^ 1);
 	setchr8(0);

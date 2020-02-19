@@ -66,15 +66,6 @@ static DECLFR(MAWRAM) {
 	return(Page[A >> 11][A]);
 }
 
-static void MMC1WRAM(void) {
-	if (WRAMSIZE > 8192) {
-		if (WRAMSIZE > 16384)
-			setprg8r(0x10, 0x6000, (DRegs[1] >> 2) & 3);
-		else
-			setprg8r(0x10, 0x6000, (DRegs[1] >> 3) & 1);
-	}
-}
-
 static void MMC1CHR(void) {
 	if (MMC1WRAMHook8)		/* Use custom wram hook, currently used for M543 */
 		MMC1WRAMHook8();

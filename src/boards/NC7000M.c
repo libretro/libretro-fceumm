@@ -64,22 +64,22 @@ void NC7000MAnalyzeReg()
 	prgAND = (reg & 0x08 ? 0x0F : 0x1F);
 	chrAND = (reg & 0x40 ? 0x7F : 0xFF);
 	prgOR = (reg << 4 & 0x30);
-	chrOR = (reg << 3 & 0x080 | reg & 0x100);
+	chrOR = ((reg << 3) & 0x080) | (reg & 0x100);
 	nrom = (reg & 0x20);
 	nrom256 = (reg & 0x04);
 }
 
 int NC7000MGetPRGBank(int bank)
 {
-	if (~bank & 1 && (pointer & 0x40)) bank ^= 2;
-	return bank & 2 ? 0xFE | bank & 1 : mmc3_reg[6 | bank & 1];
+	if ((~bank & 1) && (pointer & 0x40)) bank ^= 2;
+	return (bank & 2) ? 0xFE | (bank & 1) : mmc3_reg[6 | (bank & 1)];
 }	
 		
 void NC7000MSyncPRG_GNROM(int A14, int AND, int OR) {
-	setprg8(0x8000, (NC7000MGetPRGBank(0) &~A14) &AND | OR);
-	setprg8(0xA000, (NC7000MGetPRGBank(1) &~A14) &AND | OR);
-	setprg8(0xC000, (NC7000MGetPRGBank(0) | A14) &AND | OR);
-	setprg8(0xE000, (NC7000MGetPRGBank(1) | A14) &AND | OR);
+	setprg8(0x8000, ((NC7000MGetPRGBank(0) &~A14) &AND) | OR);
+	setprg8(0xA000, ((NC7000MGetPRGBank(1) &~A14) &AND) | OR);
+	setprg8(0xC000, ((NC7000MGetPRGBank(0) | A14) &AND) | OR);
+	setprg8(0xE000, ((NC7000MGetPRGBank(1) | A14) &AND) | OR);
 }
 
 static void NC7000MCW(uint32 A, uint8 V) {
@@ -124,7 +124,7 @@ static DECLFW(NC7000MWriteHi) {
 static DECLFW(NC7000MWriteLo) {
 
 	if (!(reg & 0x80)) {
-		reg = V | A & 0x100;
+		reg = V | (A & 0x100);
 		NC7000MAnalyzeReg();
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
@@ -133,10 +133,6 @@ static DECLFW(NC7000MWriteLo) {
 	{
 		WRAM[A - 0x6000] = V;
 	}
-}
-static DECLFR(NC7000MReadHi)
-{
-	return CartBR(A);
 }
 
 static void NC7000MPower(void) {
