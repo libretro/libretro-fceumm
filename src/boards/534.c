@@ -78,8 +78,6 @@ static void M534Reset(void) {
     FCEU_printf("dipswitch = %d\n", EXPREGS[4]);
     MMC3RegReset();
 }
-static void M534Close(void) {
-}
 
 void Mapper534_Init(CartInfo *info) {
 	GenMMC3_Init(info, 512, 512, 0, 0);
@@ -87,6 +85,5 @@ void Mapper534_Init(CartInfo *info) {
 	cwrap = M534CW;
 	info->Power = M534Power;
 	info->Reset = M534Reset;
-	info->Close = M534Close;
 	AddExState(EXPREGS, 5, 0, "EXPR");
 }
