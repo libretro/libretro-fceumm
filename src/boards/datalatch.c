@@ -153,13 +153,7 @@ static void CNROMSync(void) {
 }
 
 void CNROM_Init(CartInfo *info) {
-	unsigned _no_busc, _busc;
-
-	_busc = 1; /* by default, CNROM is set to emulate bus conflicts to all games */
-	_no_busc = 0;
-
-	if (GameInfo->cspecial == 1)
-		_no_busc = 1;
+	uint8 CNROM_busc = 1; /* by default, CNROM is set to emulate bus conflicts to all games */
 
 	/* TODO: move these to extended database when implemented. */
 	switch (info->CRC32) {
@@ -171,12 +165,10 @@ void CNROM_Init(CartInfo *info) {
 	case 0xe41b440f: /* Sidewinder (Joy Van) */
 	case 0xb0c871c5: /* Wei Lai Xiao Zi (Joy Van) */
 	case 0xb3be2f71: /* Yanshan Chess (Unl) */
-		_no_busc = 1;
+		CNROM_busc = 0;
 		break;
 	}
-
-	if (_no_busc == 1) _busc = 0;
-	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, _busc);
+	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, CNROM_busc);
 }
 
 /*------------------ Map 7 ---------------------------*/
