@@ -630,7 +630,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"BMC QUATTRO",			232, Mapper232_Init},
 	{(uint8_t*)"BMC 22+20-in-1 RST",	233, Mapper233_Init},
 	{(uint8_t*)"BMC MAXI",			234, Mapper234_Init},
-	{(uint8_t*)"",					235, Mapper235_Init},
+	{(uint8_t*)"Golden Game",	235, Mapper235_Init},
 /*	{(uint8_t*)"",					236, Mapper236_Init}, */
 	{(uint8_t*)"Teletubbies / Y2K",	237, Mapper237_Init},
 	{(uint8_t*)"UNL6035052",			238, UNL6035052_Init},
