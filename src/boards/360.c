@@ -26,33 +26,33 @@ static uint8 dipswitch;
 
 static SFORMAT StateRegs[] =
 {
-    { &dipswitch, 1, "DPSW" },
+	{ &dipswitch, 1, "DPSW" },
 	{ 0 }
 };
 
 static void Sync(void) {
-    /* dip 0 and 1 is the same game SMB) */            
-    if (dipswitch < 2)
-        setprg32(0x8000, dipswitch >> 1);
-    else {
-        setprg16(0x8000, dipswitch);
-        setprg16(0xC000, dipswitch);
-    }
-    setchr8(dipswitch);
-    setmirror(((dipswitch & 0x10) >> 4) ^ 1);
+	/* dip 0 and 1 is the same game SMB) */
+	if (dipswitch < 2)
+		setprg32(0x8000, dipswitch >> 1);
+	else {
+		setprg16(0x8000, dipswitch);
+		setprg16(0xC000, dipswitch);
+	}
+	setchr8(dipswitch);
+	setmirror(((dipswitch & 0x10) >> 4) ^ 1);
 }
 
 static void M360Power(void) {
-    dipswitch = 0;
+	dipswitch = 0;
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-    SetWriteHandler(0x8000, 0XFFFF, CartBW);
+	SetWriteHandler(0x8000, 0XFFFF, CartBW);
 }
 
 static void M360Reset(void) {
-    dipswitch = (dipswitch + 1) & 31;
-    Sync();
-    FCEU_printf("dipswitch = %d\n", dipswitch);
+	dipswitch = (dipswitch + 1) & 31;
+	Sync();
+	FCEU_printf("dipswitch = %d\n", dipswitch);
 }
 
 static void StateRestore(int version) {

@@ -31,68 +31,68 @@ static uint8 mirr;
 static uint8 lock;
 
 static SFORMAT StateRegs[] = {
-    { &preg[0], 1, "PRG0" },
-    { &preg[1], 1, "PRG1" },
-    { &mode, 1, "MODE" },
-    { &mirr, 1, "MIRR" },
-    { &lock, 1, "LOCK" },
-    { 0 }
+	{ &preg[0], 1, "PRG0" },
+	{ &preg[1], 1, "PRG1" },
+	{ &mode, 1, "MODE" },
+	{ &mirr, 1, "MIRR" },
+	{ &lock, 1, "LOCK" },
+	{ 0 }
 };
 
 static void Sync(void) {
-    switch (mode) {
-    case 1:
-        /* bnrom */
-        setprg32(0x8000, (preg[1] << 2) | (preg[0] & 3));
-        break;
-    default:
-        /* unrom */
-        setprg16(0x8000, (preg[1] << 3) | (preg[0] & 7));
-        setprg16(0xC000, (preg[1] << 3) | 7);
-        break;
-    }
-    setchr8(0);
-    setmirror(mirr ^ 1);
-    /* FCEU_printf("inB[0]:%02x outB[1]:%02x mode:%02x mirr:%02x lock:%02x\n", preg[0], preg[1], mode, mirr, lock); */
+	switch (mode) {
+	case 1:
+		/* bnrom */
+		setprg32(0x8000, (preg[1] << 2) | (preg[0] & 3));
+		break;
+	default:
+		/* unrom */
+		setprg16(0x8000, (preg[1] << 3) | (preg[0] & 7));
+		setprg16(0xC000, (preg[1] << 3) | 7);
+		break;
+	}
+	setchr8(0);
+	setmirror(mirr ^ 1);
+	/* FCEU_printf("inB[0]:%02x outB[1]:%02x mode:%02x mirr:%02x lock:%02x\n", preg[0], preg[1], mode, mirr, lock); */
 }
 
 static DECLFW(M382Write) {
-    if (!lock) {
-        preg[1] = (A & 0x07);
-        mode = (A & 0x08) >> 3;
-        mirr = (A & 0x10) >> 4;
-        lock = (A & 0x20) >> 5;
-    }
-    /* inner bank subject to bus conflicts */
-    preg[0] = V & CartBR(A);
-    Sync();
+	if (!lock) {
+		preg[1] = (A & 0x07);
+		mode = (A & 0x08) >> 3;
+		mirr = (A & 0x10) >> 4;
+		lock = (A & 0x20) >> 5;
+	}
+	/* inner bank subject to bus conflicts */
+	preg[0] = V & CartBR(A);
+	Sync();
 }
 
 static void M382Power(void) {
-    preg[0] = preg[1] = 0;
-    mode = 0;
-    mirr = 0;
-    lock = 0;
-    Sync();
-    SetReadHandler(0x8000, 0xFFFF, CartBR);
-    SetWriteHandler(0x8000, 0xFFFF, M382Write);
+	preg[0] = preg[1] = 0;
+	mode = 0;
+	mirr = 0;
+	lock = 0;
+	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0xFFFF, M382Write);
 }
 
 static void M382Reset(void) {
-    preg[1] = 0;
-    mode = 0;
-    mirr = 0;
-    lock = 0;
-    Sync();
+	preg[1] = 0;
+	mode = 0;
+	mirr = 0;
+	lock = 0;
+	Sync();
 }
 
 static void StateRestore(int version) {
-    Sync();
+	Sync();
 }
 
 void Mapper382_Init(CartInfo* info) {
-    info->Power = M382Power;
-    info->Reset = M382Reset;
-    GameStateRestore = StateRestore;
-    AddExState(&StateRegs, ~0, 0, 0);
+	info->Power = M382Power;
+	info->Reset = M382Reset;
+	GameStateRestore = StateRestore;
+	AddExState(&StateRegs, ~0, 0, 0);
 }

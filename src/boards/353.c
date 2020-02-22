@@ -84,13 +84,13 @@ static void M353MW(uint8 V) {
 static DECLFW(M353Write) {
 	if (A & 0x80) {
 		EXPREGS[0] = (A >> 13) & 0x03;
-	    FixMMC3PRG(MMC3_cmd);
-        FixMMC3CHR(MMC3_cmd);
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
 	} else {
 		if (A < 0xC000) {
 			MMC3_CMDWrite(A, V);
-            FixMMC3PRG(MMC3_cmd);
-        } else
+			FixMMC3PRG(MMC3_cmd);
+		} else
 			MMC3_IRQWrite(A, V);
 	}
 }

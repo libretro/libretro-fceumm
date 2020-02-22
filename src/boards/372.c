@@ -38,8 +38,8 @@ static void M372CW(uint32 A, uint8 V) {
 		else if (EXPREGS[2])
 			NV &= 0;	/* hack ;( don't know exactly how it should be */
 		NV |= EXPREGS[0] | ((EXPREGS[2] & 0xF0) << 4);
-        if (EXPREGS[2] & 0x20)
-		    setchr1r(0x10, A, V);
+		if (EXPREGS[2] & 0x20)
+			setchr1r(0x10, A, V);
 		else
 			setchr1(A, NV);
 	} else

@@ -28,56 +28,56 @@ static uint8 dipswitch;
 static SFORMAT StateRegs[] =
 {
 	{ &regs, 2, "REG" },
-    { &dipswitch, 1, "DPSW" },
+	{ &dipswitch, 1, "DPSW" },
 	{ 0 }
 };
 
 static void Sync(void) {
-    switch ((regs[1] >> 4) & 3) {
-    case 0:
-    case 1:
-        /* UNROM */
-        setprg16(0x8000, regs[1]);
-        setprg16(0xC000, regs[1] | 7);
-        break;
-    case 2:
-        /* Maybe unused, NROM-256? */
-        setprg32(0x8000, regs[1] >> 1); 
-        break;
-    case 3:
-        /* NROM-128 */
-        setprg16(0x8000, regs[1]);
-        setprg16(0xC000, regs[1]);
-        break;
-    }
-    setchr8(regs[0]);
-    setmirror(((regs[0] & 0x20) >> 5) ^ 1);
+	switch ((regs[1] >> 4) & 3) {
+	case 0:
+	case 1:
+		/* UNROM */
+		setprg16(0x8000, regs[1]);
+		setprg16(0xC000, regs[1] | 7);
+		break;
+	case 2:
+		/* Maybe unused, NROM-256? */
+		setprg32(0x8000, regs[1] >> 1);
+		break;
+	case 3:
+		/* NROM-128 */
+		setprg16(0x8000, regs[1]);
+		setprg16(0xC000, regs[1]);
+		break;
+	}
+	setchr8(regs[0]);
+	setmirror(((regs[0] & 0x20) >> 5) ^ 1);
 }
 
 static DECLFR(M390Read) {
-    uint8 ret = CartBR(A);
-    if ((regs[1] & 0x30) == 0x10)
-        ret |= dipswitch;
-    return ret;
+	uint8 ret = CartBR(A);
+	if ((regs[1] & 0x30) == 0x10)
+		ret |= dipswitch;
+	return ret;
 }
 
 static DECLFW(M390Write) {
-    regs[(A >> 14) & 1] = A & 0x3F;
-    Sync();
+	regs[(A >> 14) & 1] = A & 0x3F;
+	Sync();
 }
 
 static void M390Power(void) {
-    regs[0] = 0;
-    regs[1] = 0;
-    dipswitch = 11; /* hard-coded 150-in-1 menu */
+	regs[0] = 0;
+	regs[1] = 0;
+	dipswitch = 11; /* hard-coded 150-in-1 menu */
 	Sync();
 	SetReadHandler(0x8000, 0xffff, M390Read);
-    SetWriteHandler(0x8000, 0xffff, M390Write);
+	SetWriteHandler(0x8000, 0xffff, M390Write);
 }
 
 static void M390Reset(void) {
-    dipswitch = 11; /* hard-coded 150-in-1 menu */
-    Sync();
+	dipswitch = 11; /* hard-coded 150-in-1 menu */
+	Sync();
 }
 
 static void StateRestore(int version) {
