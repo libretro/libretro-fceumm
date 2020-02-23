@@ -144,6 +144,30 @@ extern CartInfo UNIFCart;
 extern int show_crosshair;
 extern int option_ramstate;
 
+#ifdef HAVE_NTSC_FILTER
+/* ntsc */
+#include "nes_ntsc.h"
+#define NTSC_NONE       0
+#define NTSC_COMPOSITE  1
+#define NTSC_SVIDEO     2
+#define NTSC_RGB        3
+#define NTSC_MONOCHROME 4
+
+static unsigned use_ntsc = 0;
+static unsigned burst_phase;
+static nes_ntsc_t nes_ntsc;
+static nes_ntsc_setup_t ntsc_setup;
+static pal base_palette[64];
+static uint8_t *ntsc_video_out = NULL; /* for ntsc blit buffer */
+
+static void nes_ntsc_cleanup(void)
+{
+   if (ntsc_video_out)
+      free(ntsc_video_out);
+   ntsc_video_out = NULL;
+}
+#endif /* HAVE_NTSC_FILTER */
+
 /* emulator-specific callback functions */
 
 void UpdatePPUView(int refreshchr) { }
@@ -836,16 +860,22 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
+   unsigned width, height, maxwidth;
 #ifdef PSP
-    unsigned width  = NES_WIDTH - (use_overscan ? 16 : 0);
-    unsigned height = NES_HEIGHT - (use_overscan ? 16 : 0);
+   width  = NES_WIDTH - (use_overscan ? 16 : 0);
+   height = NES_HEIGHT - (use_overscan ? 16 : 0);
 #else
-    unsigned width  = NES_WIDTH - (overscan_h ? 16 : 0);
-    unsigned height = NES_HEIGHT - (overscan_v ? 16 : 0);
+   width  = NES_WIDTH - (overscan_h ? 16 : 0);
+   height = NES_HEIGHT - (overscan_v ? 16 : 0);
+#endif
+#ifdef HAVE_NTSC_FILTER
+   maxwidth = NES_NTSC_OUT_WIDTH(NES_WIDTH);
+#else
+   maxwidth = NES_WIDTH;
 #endif
    info->geometry.base_width = width;
    info->geometry.base_height = height;
-   info->geometry.max_width = NES_WIDTH;
+   info->geometry.max_width = maxwidth;
    info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
    info->timing.sample_rate = (float)sndsamplerate;
@@ -883,13 +913,17 @@ void retro_init(void)
 
 static void retro_set_custom_palette(void)
 {
-   uint8_t i,r,g,b;
+   unsigned i;
+   unsigned palette_changed;
+   pal color;
 
    ipalette = 0;
    use_raw_palette = false;
+   palette_changed = 0;
 
-   if (current_palette == PAL_DEFAULT || current_palette == PAL_CUSTOM
-   || (GameInfo->type == GIT_VSUNI))
+   if ((current_palette == PAL_DEFAULT) ||
+      (current_palette == PAL_CUSTOM) ||
+      (GameInfo->type == GIT_VSUNI))
    {
       if (current_palette == PAL_CUSTOM)
       {
@@ -902,34 +936,72 @@ static void retro_set_custom_palette(void)
                             * else it will load default NES palette.
                             * VS Unisystem should always use default palette.
                             */
-      return;
    }
 
-   if (current_palette == PAL_RAW) /* raw palette */
+   /* setup raw palette */
+   else if (current_palette == PAL_RAW)
    {
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
       {
-         r = (((i >> 0) & 0xF) * 255) / 15;
-         g = (((i >> 4) & 0x3) * 255) / 3;
-         FCEUD_SetPalette( i, r, g, 0);
+         color.r = (((i >> 0) & 0xF) * 255) / 15;
+         color.g = (((i >> 4) & 0x3) * 255) / 3;
+         color.b = 0;
+         FCEUD_SetPalette( i, color.r, color.g, color.b);
       }
-      return;
    }
 
    /* Setup this palette*/
-
-   for ( i = 0; i < 64; i++ )
+   else
    {
-      unsigned palette_data = palettes[current_palette].data[i];
-      r = ( palette_data >> 16 ) & 0xff;
-      g = ( ( palette_data & 0xff00 ) >> 8 ) & 0xff;
-      b = ( palette_data & 0xff );
-      FCEUD_SetPalette( i, r, g, b);
-      FCEUD_SetPalette( i + 64, r, g, b);
-      FCEUD_SetPalette( i + 128, r, g, b);
-      FCEUD_SetPalette( i + 192, r, g, b);
+      unsigned *palette_data = palettes[current_palette].data;
+      for ( i = 0; i < 64; i++ )
+      {
+         unsigned data = palette_data[i];
+         color.r = ( data >> 16 ) & 0xff;
+         color.g = ( data >>  8 ) & 0xff;
+         color.b = ( data & 0xff );
+         FCEUD_SetPalette( i, color.r, color.g, color.b);
+         FCEUD_SetPalette( i + 64, color.r, color.g, color.b);
+         FCEUD_SetPalette( i + 128, color.r, color.g, color.b);
+         FCEUD_SetPalette( i + 192, color.r, color.g, color.b);
+#ifdef HAVE_NTSC_FILTER
+         palette_changed = 1;
+         if (use_ntsc)
+         {
+            base_palette[i].r = color.r;
+            base_palette[i].g = color.g;
+            base_palette[i].b = color.b;
+         }
+#endif
+      }
    }
+
+#ifdef HAVE_NTSC_FILTER
+   if (use_ntsc) {
+      switch (use_ntsc) {
+      case NTSC_COMPOSITE:
+         ntsc_setup = nes_ntsc_composite;
+         break;
+      case NTSC_SVIDEO:
+         ntsc_setup = nes_ntsc_svideo;
+         break;
+      case NTSC_RGB:
+         ntsc_setup = nes_ntsc_rgb;
+         break;
+      case NTSC_MONOCHROME:
+         ntsc_setup = nes_ntsc_monochrome;
+         break;
+      default:
+         break;
+      }
+      if (palette_changed)
+         ntsc_setup.base_palette = (unsigned char const*)base_palette;
+      else
+         ntsc_setup.base_palette = ipalette ? (unsigned char const*)palo : NULL;
+      nes_ntsc_init(&nes_ntsc, &ntsc_setup);
+   }
+#endif
 
 #if defined(RENDER_GSKIT_PS2)
    if (ps2) {
@@ -990,6 +1062,9 @@ void retro_deinit (void)
 #endif
    libretro_supports_bitmasks = false;
    DPSW_Cleanup();
+#ifdef HAVE_NTSC_FILTER
+   nes_ntsc_cleanup();
+#endif
 }
 
 void retro_reset(void)
@@ -1023,6 +1098,7 @@ static void check_variables(bool startup)
    struct retro_variable var = {0};
    struct retro_system_av_info av_info;
    bool geometry_update = false;
+   bool palette_updated = false;
    char key[256];
    int i, enable_apu;
 
@@ -1037,6 +1113,27 @@ static void check_variables(bool startup)
       else
          option_ramstate = 0;
    }
+
+#ifdef HAVE_NTSC_FILTER
+   var.key = "fceumm_ntsc_filter";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+   {
+      unsigned orig_value = use_ntsc;
+      if (strcmp(var.value, "disabled") == 0)
+         use_ntsc = NTSC_NONE;
+      else if (strcmp(var.value, "composite") == 0)
+         use_ntsc = NTSC_COMPOSITE;
+      else if (strcmp(var.value, "svideo") == 0)
+         use_ntsc = NTSC_SVIDEO;
+      else if (strcmp(var.value, "rgb") == 0)
+         use_ntsc = NTSC_RGB;
+      else if (strcmp(var.value, "monochrome") == 0)
+         use_ntsc = NTSC_MONOCHROME;
+      if (use_ntsc != orig_value)
+         palette_updated = true;
+   }
+#endif
 
    var.key = "fceumm_palette";
 
@@ -1084,8 +1181,11 @@ static void check_variables(bool startup)
          current_palette = 15;
 
       if (current_palette != orig_value)
-         retro_set_custom_palette();
+         palette_updated = true;
    }
+
+   if (palette_updated)
+      retro_set_custom_palette();
 
    var.key = "fceumm_up_down_allowed";
 
@@ -1715,28 +1815,74 @@ static void retro_run_blit(uint8_t *gfx)
 
    video_cb(buf, width, height, pitch);
 #else
-   incr   += (overscan_h ? 16 : 0);
-   width  -= (overscan_h ? 16 : 0);
-   height -= (overscan_v ? 16 : 0);
-   pitch  -= (overscan_h ? 32 : 0);
-   gfx    += (overscan_v ? ((overscan_h ? 8 : 0) + 256 * 8) : (overscan_h ? 8 : 0));
-
-   if (use_raw_palette)
+#ifdef HAVE_NTSC_FILTER
+   if (use_ntsc)
    {
-      extern uint8 PPU[4];
-      int deemp = (PPU[1] >> 5) << 2;
-      for (y = 0; y < height; y++, gfx += incr)
-         for ( x = 0; x < width; x++, gfx++)
-            fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+      int y;
+      unsigned out_width, out_height, out_pitch;
+
+      /*burst_phase ^= 1;
+      if (ntsc_setup.merge_fields) burst_phase = 0;*/
+
+      width  = overscan_h ? 240 : 256;
+      height = overscan_v ? 224 : 240;
+      out_width = NES_NTSC_OUT_WIDTH(width);
+      out_height = height;
+      out_pitch = out_width * sizeof(uint16_t);
+      gfx += (overscan_v ? ((overscan_h ? 8 : 0) + 256 * 8) : (overscan_h ? 8 : 0));
+
+      nes_ntsc_blit(&nes_ntsc, (const unsigned char*)gfx, NES_WIDTH, burst_phase, width, height, ntsc_video_out, out_pitch);
+
+#if 0 /* this doubles the height for proper scaling, disabled for performance reasons */
+      out_height <<= 1;
+      for (y = out_height / 2; --y >= 0;)
+      {
+         uint8_t const *in = ntsc_video_out + y * out_pitch;
+         uint8_t *out = ntsc_video_out + y * 2 * out_pitch;
+         int n;
+         for (n = out_width; n; --n)
+         {
+            unsigned prev = *(uint16_t*)in;
+            unsigned next = *(uint16_t*)(in + out_pitch);
+            /* mix 16-bit rgb without losing low bits */
+            unsigned mixed = prev + next + ((prev ^ next) & 0x0821);
+            /* darken by 12% */
+            *(uint16_t*)out = prev;
+            *(uint16_t*)(out + out_pitch) = (mixed >> 1) - (mixed >> 4 & 0x18E3);
+            in += 2;
+            out += 2;
+         }
+      }
+#endif
+
+      video_cb(ntsc_video_out, out_width, out_height, out_pitch);
    }
    else
+#endif /* HAVE_NTSC_FILTER */
    {
-      for (y = 0; y < height; y++, gfx += incr)
-         for ( x = 0; x < width; x++, gfx++)
-            fceu_video_out[y * width + x] = retro_palette[*gfx];
+      incr   += (overscan_h ? 16 : 0);
+      width  -= (overscan_h ? 16 : 0);
+      height -= (overscan_v ? 16 : 0);
+      pitch  -= (overscan_h ? 32 : 0);
+      gfx    += (overscan_v ? ((overscan_h ? 8 : 0) + 256 * 8) : (overscan_h ? 8 : 0));
+
+      if (use_raw_palette)
+      {
+         extern uint8 PPU[4];
+         int deemp = (PPU[1] >> 5) << 2;
+         for (y = 0; y < height; y++, gfx += incr)
+            for (x = 0; x < width; x++, gfx++)
+               fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | deemp;
+      }
+      else
+      {
+         for (y = 0; y < height; y++, gfx += incr)
+            for (x = 0; x < width; x++, gfx++)
+               fceu_video_out[y * width + x] = retro_palette[*gfx];
+      }
+      video_cb(fceu_video_out, width, height, pitch);
    }
 
-   video_cb(fceu_video_out, width, height, pitch);
 #endif
 }
 
@@ -2185,6 +2331,13 @@ bool retro_load_game(const struct retro_game_info *game)
    if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &sav_dir) && sav_dir)
       FCEUI_SetSaveDirectory(sav_dir);
 
+#ifdef HAVE_NTSC_FILTER
+   use_ntsc = 0;
+   memset(base_palette, 0, sizeof(base_palette));
+   memset(&nes_ntsc, 0, sizeof(nes_ntsc));
+   ntsc_video_out = (uint8_t*)malloc(NES_NTSC_OUT_WIDTH(NES_WIDTH) * (NES_HEIGHT * 2) * sizeof(uint16_t));
+#endif
+
    FCEUI_Initialize();
 
    FCEUI_SetSoundVolume(sndvolume);
@@ -2260,7 +2413,7 @@ bool retro_load_game(const struct retro_game_info *game)
        }
    }
    /* This doesn't map in 2004--2007 but those aren't really
-    * worthwhile to read from on a vblank anyway 
+    * worthwhile to read from on a vblank anyway
     */
    descs[i].flags = 0;
    descs[i].ptr = PPU;
@@ -2339,6 +2492,9 @@ void retro_unload_game(void)
 #endif
 #if defined(RENDER_GSKIT_PS2)
    ps2 = NULL;
+#endif
+#ifdef HAVE_NTSC_FILTER
+   nes_ntsc_cleanup();
 #endif
 }
 

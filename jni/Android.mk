@@ -2,6 +2,8 @@ LOCAL_PATH := $(call my-dir)
 
 CORE_DIR := $(LOCAL_PATH)/../src
 
+HAVE_NTSC := 1
+
 include $(LOCAL_PATH)/../Makefile.common
 
 COREFLAGS := $(COREDEFINES) -DPSS_STYLE=1 $(INCFLAGS)
