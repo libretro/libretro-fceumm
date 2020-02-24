@@ -225,6 +225,7 @@ else ifeq ($(platform), ctr)
 	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
+	HAVE_NTSC=0
 
 # Raspberry Pi 1
 else ifeq ($(platform), rpi1)
