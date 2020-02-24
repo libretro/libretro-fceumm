@@ -157,7 +157,6 @@ static unsigned use_ntsc = 0;
 static unsigned burst_phase;
 static nes_ntsc_t nes_ntsc;
 static nes_ntsc_setup_t ntsc_setup;
-static pal base_palette[64];
 static uint8_t *ntsc_video_out = NULL; /* for ntsc blit buffer */
 
 static void nes_ntsc_cleanup(void)
@@ -295,8 +294,12 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define PAL_DEFAULT (PAL_TOTAL + 1)
 #define PAL_RAW     (PAL_TOTAL + 2)
 #define PAL_CUSTOM  (PAL_TOTAL + 3)
+
 static int external_palette_exist = 0;
 extern int ipalette;
+
+/* table for currently loaded palette */
+static uint8_t base_palette[192];
 
 struct st_palettes {
 	char name[32];
@@ -913,9 +916,7 @@ void retro_init(void)
 
 static void retro_set_custom_palette(void)
 {
-   unsigned i;
-   unsigned palette_changed;
-   pal color;
+   unsigned i, palette_changed;
 
    ipalette = 0;
    use_raw_palette = false;
@@ -941,6 +942,7 @@ static void retro_set_custom_palette(void)
    /* setup raw palette */
    else if (current_palette == PAL_RAW)
    {
+      pal color;
       use_raw_palette = true;
       for (i = 0; i < 64; i++)
       {
@@ -958,23 +960,12 @@ static void retro_set_custom_palette(void)
       for ( i = 0; i < 64; i++ )
       {
          unsigned data = palette_data[i];
-         color.r = ( data >> 16 ) & 0xff;
-         color.g = ( data >>  8 ) & 0xff;
-         color.b = ( data & 0xff );
-         FCEUD_SetPalette( i, color.r, color.g, color.b);
-         FCEUD_SetPalette( i + 64, color.r, color.g, color.b);
-         FCEUD_SetPalette( i + 128, color.r, color.g, color.b);
-         FCEUD_SetPalette( i + 192, color.r, color.g, color.b);
-#ifdef HAVE_NTSC_FILTER
-         palette_changed = 1;
-         if (use_ntsc)
-         {
-            base_palette[i].r = color.r;
-            base_palette[i].g = color.g;
-            base_palette[i].b = color.b;
-         }
-#endif
+         base_palette[ i * 3 + 0 ] = ( data >> 16 ) & 0xff; /* red */
+         base_palette[ i * 3 + 1 ] = ( data >>  8 ) & 0xff; /* green */
+         base_palette[ i * 3 + 2 ] = ( data >>  0 ) & 0xff; /* blue */
       }
+      FCEUI_SetPaletteArray( base_palette );
+      palette_changed = 1;
    }
 
 #ifdef HAVE_NTSC_FILTER
@@ -2333,10 +2324,10 @@ bool retro_load_game(const struct retro_game_info *game)
 
 #ifdef HAVE_NTSC_FILTER
    use_ntsc = 0;
-   memset(base_palette, 0, sizeof(base_palette));
    memset(&nes_ntsc, 0, sizeof(nes_ntsc));
    ntsc_video_out = (uint8_t*)malloc(NES_NTSC_OUT_WIDTH(NES_WIDTH) * (NES_HEIGHT * 2) * sizeof(uint16_t));
 #endif
+   memset(base_palette, 0, sizeof(base_palette));
 
    FCEUI_Initialize();
 
