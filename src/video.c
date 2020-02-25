@@ -36,6 +36,7 @@
 #include "vsuni.h"
 
 uint8 *XBuf = NULL;
+uint8 *XDBuf = NULL;
 int show_crosshair = 0;
 
 void FCEU_KillVirtualVideo(void)
@@ -43,6 +44,9 @@ void FCEU_KillVirtualVideo(void)
 	if (XBuf)
 		free(XBuf);
    XBuf = 0;
+   if (XDBuf)
+		free(XDBuf);
+   XDBuf = 0;
 }
 
 int FCEU_InitVirtualVideo(void)
@@ -50,11 +54,14 @@ int FCEU_InitVirtualVideo(void)
    /* 256 bytes per scanline, * 240 scanline maximum, +8 for alignment, */
    if (!XBuf)
       XBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
+   if (!XDBuf)
+      XDBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
 
-   if (!XBuf)
+   if (!XBuf || !XDBuf)
       return 0;
 
-   memset(XBuf, 128, 256 * (256 + extrascanlines));
+   memset(XBuf, 128, 256 * (256 + extrascanlines + 8));
+   memset(XDBuf, 128, 256 * (256 + extrascanlines + 8));
    return 1;
 }
 
