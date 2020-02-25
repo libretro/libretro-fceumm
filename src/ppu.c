@@ -656,10 +656,12 @@ static void Fixit1(void) {
 void MMC5_hb(int);		/* Ugh ugh ugh. */
 static void DoLine(void)
 {
-   int x;
-   uint8 *target = NULL;
-   if (scanline >= 240 && scanline != totalscanlines)
-   {
+	int x, colour_emphasis;
+	uint8 *target = NULL;
+	uint8 *dtarget = NULL;
+
+	if (scanline >= 240 && scanline != totalscanlines)
+	{
 		X6502_Run(256 + 69);
 		scanline++;
 		X6502_Run(16);
@@ -667,6 +669,7 @@ static void DoLine(void)
 	}
 
 	target = XBuf + ((scanline < 240 ? scanline : 240) << 8);
+	dtarget = XDBuf + ((scanline < 240 ? scanline : 240) << 8);
 
 	if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 
@@ -699,7 +702,12 @@ static void DoLine(void)
 		for (x = 63; x >= 0; x--)
 			*(uint32*)&target[x << 2] = ((*(uint32*)&target[x << 2]) & 0x3f3f3f3f) | 0x80808080;
 
-	sphitx = 0x100;
+	//write the actual colour emphasis
+	colour_emphasis = ((PPU[1] >> 5) << 24) | ((PPU[1] >> 5) << 16) | ((PPU[1] >> 5) << 8) | ((PPU[1] >> 5) << 0);
+	for (x = 63; x >= 0; x--)
+		*(uint32*)&dtarget[x << 2] = colour_emphasis;
+
+    sphitx = 0x100;
 
 	if (ScreenON || SpriteON)
 		FetchSpriteData();
