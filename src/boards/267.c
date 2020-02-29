@@ -26,15 +26,15 @@
 #define OUTER_BANK (((EXPREGS[0] & 0x20) >> 2) | (EXPREGS[0] & 0x06))
 
 static void M267CW(uint32 A, uint8 V) {
-    setchr1(A, (V & 0x7F) | (OUTER_BANK << 6));
+	setchr1(A, (V & 0x7F) | (OUTER_BANK << 6));
 }
 
 static void M267PW(uint32 A, uint8 V) {
-    setprg8(A, (V & 0x1F) | (OUTER_BANK << 4));
+	setprg8(A, (V & 0x1F) | (OUTER_BANK << 4));
 }
 
 static DECLFW(M267Write) {
-    EXPREGS[0] = V;
+	EXPREGS[0] = V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
@@ -46,7 +46,7 @@ static void M267Reset(void) {
 
 static void M267Power(void) {
 	EXPREGS[0] = 0;
-    GenMMC3Power();
+	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x6FFF, M267Write);
 }
 

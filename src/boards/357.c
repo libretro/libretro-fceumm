@@ -38,66 +38,66 @@ static SFORMAT StateRegs[] =
 {
 	{ &IRQCount, 4 | FCEUSTATE_RLSB, "IRQC" },
 	{ &IRQa, 4 | FCEUSTATE_RLSB, "IRQA" },
-    { &dipswitch, 1, "DPSW" },
+	{ &dipswitch, 1, "DPSW" },
 	{ &preg, 4, "REG" },
 	{ 0 }
 };
 
 static void Sync(void) {
-    if (dipswitch == 0) {
-        /* SMB2J Mode */
-        setprg4(0x5000, 16);
-	    setprg8(0x6000, preg[1] ? 0 : 2);
-	    setprg8(0x8000, 1);
-	    setprg8(0xa000, 0);
-	    setprg8(0xc000, banks[preg[0]]);
-	    setprg8(0xe000, preg[1] ? 8 : 10);
-    } else {
-        /* UNROM Mode */
-        setprg16(0x8000, outer_bank[dipswitch] | preg[2]);
-        setprg16(0xc000, outer_bank[dipswitch] | 7);
-    }
+	if (dipswitch == 0) {
+		/* SMB2J Mode */
+		setprg4(0x5000, 16);
+		setprg8(0x6000, preg[1] ? 0 : 2);
+		setprg8(0x8000, 1);
+		setprg8(0xa000, 0);
+		setprg8(0xc000, banks[preg[0]]);
+		setprg8(0xe000, preg[1] ? 8 : 10);
+	} else {
+		/* UNROM Mode */
+		setprg16(0x8000, outer_bank[dipswitch] | preg[2]);
+		setprg16(0xc000, outer_bank[dipswitch] | 7);
+	}
 	setchr8(0);
-    setmirror(dipswitch == 3 ? MI_H : MI_V);
+	setmirror(dipswitch == 3 ? MI_H : MI_V);
 }
 
 static DECLFW(M357WriteLo) {
-    switch (A & 0x71ff) {
-        case 0x4022: preg[0] = V & 7; Sync(); break;
-        case 0x4120: preg[1] = V & 1; Sync(); break;
-    }
+	switch (A & 0x71ff) {
+		case 0x4022: preg[0] = V & 7; Sync(); break;
+		case 0x4120: preg[1] = V & 1; Sync(); break;
+	}
 }
 
 static DECLFW(M357WriteIRQ) {
-    IRQa = V & 1;
-    if (!IRQa) {
-        IRQCount = 0;
-        X6502_IRQEnd(FCEU_IQEXT);
-    }
+	IRQa = V & 1;
+	if (!IRQa) {
+		IRQCount = 0;
+		X6502_IRQEnd(FCEU_IQEXT);
+	}
 }
 
 static DECLFW(M357WriteUNROM) {
-    preg[2] = V & 7;
-    Sync();
+	preg[2] = V & 7;
+	Sync();
 }
 
 static void M357Power(void) {
-    preg[0] = 0;
-    preg[1] = 0;
-    IRQa = IRQCount = 0;
+	preg[0] = 0;
+	preg[1] = 0;
+	IRQa = IRQCount = 0;
 	Sync();
 	SetReadHandler(0x5000, 0xffff, CartBR);
 	SetWriteHandler(0x4022, 0x4022, M357WriteLo);
-    SetWriteHandler(0x4120, 0x4120, M357WriteLo);
-    SetWriteHandler(0x4122, 0x4122, M357WriteIRQ);
-    SetWriteHandler(0x8000, 0xffff, M357WriteUNROM);
+	SetWriteHandler(0x4120, 0x4120, M357WriteLo);
+	SetWriteHandler(0x4122, 0x4122, M357WriteIRQ);
+	SetWriteHandler(0x8000, 0xffff, M357WriteUNROM);
 }
 
 static void M357Reset(void) {
-    IRQa = IRQCount = 0;
-    dipswitch++;
-    dipswitch &= 3;
-    Sync();
+	IRQa = IRQCount = 0;
+	dipswitch++;
+	dipswitch &= 3;
+	Sync();
 }
 
 static void FP_FASTAPASS(1) M357IRQHook(int a) {

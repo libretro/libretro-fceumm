@@ -88,29 +88,29 @@ static uint8 TXC_CMDRead(void) {
 
 static DECLFW(TXC_CMDWrite) {
 	if (A & 0x8000) {
-		if (txc.isJV001)
-			txc.output = (txc.accumulator & 0x0F) | (txc.inverter & 0xF0);
-		else
-			txc.output = (txc.accumulator & 0x0F) | ((txc.inverter << 1) & 0x10);
+	  if (txc.isJV001)
+		 txc.output = (txc.accumulator & 0x0F) | (txc.inverter & 0xF0);
+	  else
+		 txc.output = (txc.accumulator & 0x0F) | ((txc.inverter << 1) & 0x10);
 	} else {
-		switch (A & 0x103) {
-		case 0x100:
-			if (txc.increase)
-				txc.accumulator++;
-			else
-				txc.accumulator = ((txc.accumulator & ~txc.mask) | ((txc.staging ^ txc.invert) & txc.mask));
-			break;
-		case 0x101:
-			txc.invert = (V & 0x01) ? 0xFF : 0x00;
-			break;
-		case 0x102:
-			txc.staging = V & txc.mask;
-			txc.inverter = V & ~txc.mask;
-			break;
-		case 0x103:
-			txc.increase = ((V & 0x01) != 0);
-			break;
-		}
+	  switch (A & 0x103) {
+	  case 0x100:
+		 if (txc.increase)
+			txc.accumulator++;
+		 else
+			txc.accumulator = ((txc.accumulator & ~txc.mask) | ((txc.staging ^ txc.invert) & txc.mask));
+		 break;
+	  case 0x101:
+		 txc.invert = (V & 0x01) ? 0xFF : 0x00;
+		 break;
+	  case 0x102:
+		 txc.staging = V & txc.mask;
+		 txc.inverter = V & ~txc.mask;
+		 break;
+	  case 0x103:
+		 txc.increase = ((V & 0x01) != 0);
+		 break;
+	  }
 	}
 	txc.Y = !txc.invert || ((V & 0x10) != 0);
 	WSync();
@@ -149,14 +149,14 @@ static int CheckHash(CartInfo *info) {
 	uint64 partialmd5 = 0;
 
 	/* These carts do not work with new mapper implementation.
-	 * This is a hack to use previous mapper implementation for such carts. */
+	* This is a hack to use previous mapper implementation for such carts. */
 	for (x = 0; x < 8; x++)
-		partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
+	  partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
 	switch (partialmd5) {
 	case 0x2dd8f958850f21f4LL: /* Jin Gwok Sei Chuen Saang (Ch) [U][!] */
-		FCEU_printf(" WARNING: Using alternate mapper implementation.\n");
-		UNL22211_Init(info);
-		return 1;
+	  FCEU_printf(" WARNING: Using alternate mapper implementation.\n");
+	  UNL22211_Init(info);
+	  return 1;
 	}
 	return 0;
 }
@@ -178,7 +178,7 @@ static DECLFW(M36Write) {
 static DECLFR(M36Read) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
-		ret = (X.DB & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
+	  ret = (X.DB & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
 	return ret;
 }
 
@@ -210,7 +210,7 @@ static DECLFW(M132Write) {
 static DECLFR(M132Read) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
-		ret = ((X.DB & 0xF0) | (TXC_CMDRead() & 0x0F));
+	  ret = ((X.DB & 0xF0) | (TXC_CMDRead() & 0x0F));
 	return ret;
 }
 
@@ -232,9 +232,9 @@ void Mapper132_Init(CartInfo *info) {
 static void M173Sync(void) {
 	setprg32(0x8000, 0);
 	if (CHRsize[0] > 0x2000)
-		setchr8(((txc.output & 0x01) | (txc.Y ? 0x02 : 0x00) | ((txc.output & 2) << 0x01)));
+	  setchr8(((txc.output & 0x01) | (txc.Y ? 0x02 : 0x00) | ((txc.output & 2) << 0x01)));
 	else
-		setchr8(0);
+	  setchr8(0);
 }
 
 void Mapper173_Init(CartInfo *info) {
@@ -258,7 +258,7 @@ static DECLFW(M136Write) {
 static DECLFR(M136Read) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
-		ret = ((X.DB & 0xC0) | (TXC_CMDRead() & 0x3F));
+	  ret = ((X.DB & 0xC0) | (TXC_CMDRead() & 0x3F));
 	return ret;
 }
 
@@ -288,8 +288,8 @@ static DECLFW(M147Write) {
 static DECLFR(M147Read) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100) {
-		uint8 value = TXC_CMDRead();
-		ret = ((value << 2) & 0xFC) | ((value >> 6) & 0x03);
+	  uint8 value = TXC_CMDRead();
+	  ret = ((value << 2) & 0xFC) | ((value >> 6) & 0x03);
 	}
 	return ret;
 }
@@ -316,7 +316,7 @@ static void M172Sync(void) {
 
 static uint8 GetValue(uint8 value) {
 	return (((value << 5) & 0x20) | ((value << 3) & 0x10) | ((value << 1) & 0x08) |
-			((value >> 1) & 0x04) | ((value >> 3) & 0x02) | ((value >> 5) & 0x01));
+		 ((value >> 1) & 0x04) | ((value >> 3) & 0x02) | ((value >> 5) & 0x01));
 }
 
 static DECLFW(M172Write) {
@@ -326,7 +326,7 @@ static DECLFW(M172Write) {
 static DECLFR(M172Read) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
-		ret = (X.DB & 0xC0) | GetValue(TXC_CMDRead());
+	  ret = (X.DB & 0xC0) | GetValue(TXC_CMDRead());
 	return ret;
 }
 
@@ -356,10 +356,10 @@ static SFORMAT UNL22211StateRegs[] =
 static void UNL22211Sync(void) {
 	setprg32(0x8000, (reg[2] >> 2) & 1);
 	if (is172)
-		setchr8((((cmd ^ reg[2]) >> 3) & 2) | (((cmd ^ reg[2]) >> 5) & 1));	/* 1991 DU MA Racing probably CHR bank sequence is WRONG, so it is possible to
-																			 * rearrange CHR banks for normal UNIF board and mapper 172 is unneccessary */
+	  setchr8((((cmd ^ reg[2]) >> 3) & 2) | (((cmd ^ reg[2]) >> 5) & 1));	/* 1991 DU MA Racing probably CHR bank sequence is WRONG, so it is possible to
+														  * rearrange CHR banks for normal UNIF board and mapper 172 is unneccessary */
 	else
-		setchr8(reg[2] & 3);
+	  setchr8(reg[2] & 3);
 }
 
 static DECLFW(UNL22211WriteLo) {
@@ -377,9 +377,9 @@ static DECLFR(UNL22211ReadLo) {
 	return (reg[1] ^ reg[2]) | (is173 ? 0x01 : 0x40);
 #if 0
 	if(reg[3])
-		return reg[2];
+	  return reg[2];
 	else
-		return X.DB;
+	  return X.DB;
 #endif
 }
 

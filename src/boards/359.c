@@ -149,13 +149,13 @@ static void M359Power(void) {
 }
 
 static void FP_FASTAPASS(1) M359CPUHook(int a) {
-    if (!irqPA12) {
-        if (IRQa && IRQCount16) {
-            IRQCount16 -= a;
-            if (IRQCount16 <= 0)
-                X6502_IRQBegin(FCEU_IQEXT);
-        }
-    }
+	if (!irqPA12) {
+		if (IRQa && IRQCount16) {
+			IRQCount16 -= a;
+			if (IRQCount16 <= 0)
+				X6502_IRQBegin(FCEU_IQEXT);
+		}
+	}
 }
 
 static void M359IRQHook(void) {

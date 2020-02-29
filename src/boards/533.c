@@ -30,13 +30,13 @@
 static uint8 latche;
 
 static SFORMAT StateRegs[] = {
-    { &latche, 1, "LATC" },
-    { 0 }
+	{ &latche, 1, "LATC" },
+	{ 0 }
 };
 
 static void Sync(void) {
-    setprg32(0x8000, 0);
-    setchr8((latche >> 4) & 1);
+	setprg32(0x8000, 0);
+	setchr8((latche >> 4) & 1);
 }
 
 static DECLFR(M533Read) {
@@ -44,23 +44,23 @@ static DECLFR(M533Read) {
 }
 
 static DECLFW(M533Write) {
-    latche = (V & CartBR(A));
-    Sync();
+	latche = (V & CartBR(A));
+	Sync();
 }
 
 static void M533Power(void) {
-    Sync();
-    SetReadHandler(0x8000, 0xFFFF, CartBROB);
+	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBROB);
 	SetReadHandler(0xE000, 0xEFFF, M533Read);
-    SetWriteHandler(0x8000, 0xFFFF, M533Write);
+	SetWriteHandler(0x8000, 0xFFFF, M533Write);
 }
 
 static void StateRestore(int version) {
-    Sync();
+	Sync();
 }
 
 void Mapper533_Init(CartInfo* info) {
-    info->Power = M533Power;
-    GameStateRestore = StateRestore;
-    AddExState(&StateRegs, ~0, 0, 0);
+	info->Power = M533Power;
+	GameStateRestore = StateRestore;
+	AddExState(&StateRegs, ~0, 0, 0);
 }

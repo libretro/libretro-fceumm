@@ -27,34 +27,42 @@ static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 static SFORMAT StateRegs[] =
 {
-	{ &latchea, 2, "AREG" },
+	{ &latchea, 2 | FCEUSTATE_RLSB, "AREG" },
 	{ &latched, 1, "DREG" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	int i;
-	setmirror(((latched >> 6) & 1) ^ 1);
-	switch (latchea) {
-	case 0x8000:
-		for (i = 0; i < 4; i++)
-			setprg8(0x8000 + (i << 13), (((latched & 0x7F) << 1) + i) ^ (latched >> 7));
+	uint32 preg[4];
+	uint32 bank = (latched & 0x3F) << 1;
+	switch (latchea & 0x03) {
+	case 0:
+		preg[0] = bank + 0;
+		preg[1] = bank + 1;
+		preg[2] = bank + 2;
+		preg[3] = bank + 3;
 		break;
-	case 0x8002:
-		for (i = 0; i < 4; i++)
-			setprg8(0x8000 + (i << 13), ((latched & 0x7F) << 1) + (latched >> 7));
+	case 2:
+		bank = bank | (latched >> 7);
+		preg[0] = bank;
+		preg[1] = bank;
+		preg[2] = bank;
+		preg[3] = bank;
 		break;
-	case 0x8001:
-	case 0x8003:
-		for (i = 0; i < 4; i++) {
-			unsigned int b;
-			b = latched & 0x7F;
-			if (i >= 2 && !(latchea & 0x2))
-				b = 0x7F;
-			setprg8(0x8000 + (i << 13), (i & 1) + ((b << 1) ^ (latched >> 7)));
-		}
+	case 1:
+	case 3:
+		preg[0] = bank + 0;
+		preg[1] = bank + 1;
+		preg[2] = (((latchea & 0x02) == 0) ? (bank | 0xE) : bank) + 0;
+		preg[3] = (((latchea & 0x02) == 0) ? (bank | 0xE) : bank) + 1;
 		break;
 	}
+
+	setprg8(0x8000, preg[0]);
+	setprg8(0xA000, preg[1]);
+	setprg8(0xC000, preg[2]);
+	setprg8(0xE000, preg[3]);
+	setmirror(((latched >> 6) & 1) ^ 1);
 }
 
 static DECLFW(M15Write) {
@@ -76,7 +84,7 @@ static void M15Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x8000, 0xFFFF, M15Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-        FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 	Sync();
 }
 

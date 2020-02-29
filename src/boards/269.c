@@ -54,6 +54,12 @@ static DECLFW(M269Write5) {
 	}
 }
 
+static void M269Close(void) {
+	if (CHRROM)
+		FCEU_free(CHRROM);
+	CHRROM = NULL;
+}
+
 static void M269Reset(void) {
 	EXPREGS[0] = EXPREGS[1] = EXPREGS[3] = EXPREGS[4] = 0;
 	EXPREGS[2] = 0x0F;
@@ -85,5 +91,6 @@ void Mapper269_Init(CartInfo *info) {
 	pwrap = M269PW;
 	info->Power = M269Power;
 	info->Reset = M269Reset;
+	info->Close = M269Close;
 	AddExState(EXPREGS, 5, 0, "EXPR");
 }

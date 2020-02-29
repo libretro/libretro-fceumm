@@ -2,6 +2,8 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2011 CaH4e3
+  * Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2020 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,15 +21,20 @@
  *
  * PCB-018 board, discrete multigame cart 110-in-1
  *
+ * Mapper 225
+ * Mapper 255
+ *
  */
+
+/* 2020-2-20 - merge mapper 255, re-implement extra RAM */
 
 #include "mapinc.h"
 
-static uint8 prot[4], prg, mode, chr, mirr;
+static uint8 extraRAM[4], prg, mode, chr, mirr;
 
 static SFORMAT StateRegs[] =
 {
-	{ prot, 4, "PROT" },
+	{ extraRAM, 4, "PROT" },
 	{ &prg, 1, "PRG" },
 	{ &chr, 1, "CHR" },
 	{ &mode, 1, "MODE" },
@@ -55,10 +62,13 @@ static DECLFW(M225Write) {
 }
 
 static DECLFW(M225LoWrite) {
+	/* e.g. 115-in-1 [p1][!] CRC32 0xb39d30b4 */
+	if (A & 0x800) extraRAM[A & 3] = V & 0x0F;
 }
 
 static DECLFR(M225LoRead) {
-	return 0;
+	if (A & 0x800) return extraRAM[A & 3];
+	return X.DB;
 }
 
 static void M225Power(void) {
@@ -86,4 +96,8 @@ void Mapper225_Init(CartInfo *info) {
 	info->Power = M225Power;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
+}
+
+void Mapper255_Init(CartInfo *info) {
+	Mapper225_Init(info);
 }

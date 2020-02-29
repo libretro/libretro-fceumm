@@ -21,9 +21,6 @@
 #include "mapinc.h"
 #include "../ines.h"
 
-static uint8 mirror;
-static uint8 mask;
-
 static void M218Power(void) {
 	setchr8(0);
 	setprg32(0x8000, 0);

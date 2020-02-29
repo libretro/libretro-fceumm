@@ -316,6 +316,11 @@
 	{0xd09f778d,	217,	   -1},	/* 9999999-in-1 (Static Splash, Alt Mapper)[p1][!] */
 	{0x62ef6c79,	232,		8},	/* Quattro Sports -Aladdin */
 	{0x2705eaeb,	234,	   -1},	/* Maxi 15 */
+	{0x80CBCACB,	235,	   -1},	/* 100-in-1 (Unl).nes */
+	{0x6175B9A0,	235,	   -1},	/* 150_in_1_199x-ASp */
+	{0x745A6791,	235,	   -1},	/* 210-in-1 and Contra 4-in-1 (212-in-1,212 Hong Kong,Reset Based)(Unl).nes */
+	{0xDF81364D,	235,	   -1},	/* 260-in-1 [p1][!].nes */
+	{0xA38F2F1D,	235,	   -1},	/* 1500-in-1.nes */
 	{0x6f12afc5,	235,	   -1},	/* Golden Game 150-in-1 */
 	{0x2537b3e6,	241,	   -1},	/* Dance Xtreme - Prima (Unl) */
 	{0x11611e89,	241,	   -1},	/* Darkseed (Unl) [p1] */
