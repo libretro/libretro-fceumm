@@ -77,7 +77,7 @@ static DECLFW(M235Write) {
 
 static void M235Close(void) {
 	if (CHRRAM)
-		free(CHRRAM);
+		FCEU_free(CHRRAM);
 	CHRRAM = NULL;
 }
 
