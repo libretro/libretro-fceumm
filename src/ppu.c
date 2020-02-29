@@ -702,7 +702,7 @@ static void DoLine(void)
 		for (x = 63; x >= 0; x--)
 			*(uint32*)&target[x << 2] = ((*(uint32*)&target[x << 2]) & 0x3f3f3f3f) | 0x80808080;
 
-	//write the actual colour emphasis
+	/* write the actual colour emphasis */
 	colour_emphasis = ((PPU[1] >> 5) << 24) | ((PPU[1] >> 5) << 16) | ((PPU[1] >> 5) << 8) | ((PPU[1] >> 5) << 0);
 	for (x = 63; x >= 0; x--)
 		*(uint32*)&dtarget[x << 2] = colour_emphasis;
