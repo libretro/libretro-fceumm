@@ -808,12 +808,24 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			memset((char*)(&head) + 0xA, 0, 0x6);
 	}
 
-	subMapper = 0;
-	MapperNo  = (head.ROM_type >> 4) | (head.ROM_type2 & 0xF0);
+	/* If byte 7 AND $0C = $08, and the size taking into account byte 9 does not exceed the actual size of the ROM image, then NES 2.0.
+	 * If byte 7 AND $0C = $00, and bytes 12-15 are all 0, then iNES.
+	 * Otherwise, archaic iNES. - nesdev*/
+	switch (head.ROM_type2 & 0x0C) {
+	case 0x08:	/* header version is NES 2.0 */
+		iNES2 = 1;
+		/* fallthrough */
+	case 0x00:	/* header version is iNES */
+		MapperNo  = (head.ROM_type >> 4) | (head.ROM_type2 & 0xF0);
+		break;
+	default:	/* any other value is Archaic iNes, byte 7-15 not used */
+		MapperNo  = (head.ROM_type >> 4);
+		break;
+	}
 	Mirroring = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
 	prgRom    = head.ROM_size;
 	chrRom    = head.VROM_size;
-	iNES2     = ((head.ROM_type2 & 0x0C) == 0x08) ? 1 : 0;
+	subMapper = 0;
 
 	if (iNES2) {
 		MapperNo |= ((uint32)head.ROM_type3 << 8) & 0xF00;
