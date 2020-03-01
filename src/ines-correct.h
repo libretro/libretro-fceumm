@@ -106,6 +106,9 @@
 	{0x33b899c9,	 16,	   -1},	/* Dragon Ball - Dai Maou Fukkatsu (J) [!] */
 	{0xa262a81f,	 16,	   -1},	/* Rokudenashi Blues (J) */
 	{0x286fcd20,	 21,	   -1},	/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] */
+	{0x335E6339,	 23,	   -1},	/* kung fu legend (unl)[!].nes */
+	{0x1A8D767B,	 23,	   -1},	/* kung fu legend (unl)[!p].nes */
+	{0x0E263D47,	 23,	   -1},	/* World Hero (Unl) (TV System Select) [!].nes */
 	{0xe4a291ce,	 23,	   -1},	/* World Hero (Unl) [!] */
 	{0x51e9cd33,	 23,	   -1},	/* World Hero (Unl) [b1] */
 	{0x105dd586,	 27,	   -1},	/* Mi Hun Che variations... */
