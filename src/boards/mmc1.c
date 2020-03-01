@@ -45,10 +45,10 @@ static uint8 *CHRRAM = NULL;
 static int is155, is171;
 
 static uint32 MMC1GetCHRBank (uint32 bank) {
-    if (DRegs[0] & 0x10)	/* 4 KiB mode */
-        return (DRegs[1 + bank]);
-    else 					/* 8 KiB mode */
-        return ((DRegs[1] & ~1) | bank);
+	if (DRegs[0] & 0x10)	/* 4 KiB mode */
+		return (DRegs[1 + bank]);
+	else 					/* 8 KiB mode */
+		return ((DRegs[1] & ~1) | bank);
 }
 
 static uint8 MMC1WRAMEnabled(void) {
@@ -71,12 +71,12 @@ static void MMC1CHR(void) {
 		MMC1WRAMHook8();
 	else {					/* Use default MMC1 wram behavior */
 		if (WRAMSIZE > 8192) {
-        	if (WRAMSIZE > 16384)
-            	setprg8r(0x10, 0x6000, (DRegs[1] >> 2) & 3);
-            else
-            	setprg8r(0x10, 0x6000, (DRegs[1] >> 3) & 1);
-        }
-    }
+			if (WRAMSIZE > 16384)
+				setprg8r(0x10, 0x6000, (DRegs[1] >> 2) & 3);
+			else
+				setprg8r(0x10, 0x6000, (DRegs[1] >> 3) & 1);
+		}
+	}
 	if (MMC1CHRHook4) {
 		if (DRegs[0] & 0x10) {
 			MMC1CHRHook4(0x0000, DRegs[1]);
@@ -202,43 +202,49 @@ static void MMC1CMReset(void) {
 }
 
 static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
-    int workRAM = 8;
-    switch (info->CRC32) {
-    case 0xc6182024: /* Romance of the 3 Kingdoms */
-    case 0xabbf7217: /* ""        "" (J) (PRG0) */
-    case 0xccf35c02: /* ""        "" (J) (PRG1) */
-    case 0x2225c20f: /* Genghis Khan */
-    case 0xfb69743a: /* ""        "" (J) */
-    case 0x4642dda6: /* Nobunaga's Ambition */
-    case 0x3f7ad415: /* ""        "" (J) (PRG0) */
-    case 0x2b11e0b0: /* ""        "" (J) (PRG1) */
-        *saveRAM = 8;
-        workRAM = 16;
-        break;
-    case 0xb8747abf: /* Best Play Pro Yakyuu Special (J) (PRG0) */
-    case 0xc3de7c69: /* ""        "" (J) (PRG1) */
-    case 0xc9556b36: /* Final Fantasy I & II (J) [!] */
-        *saveRAM = 32;
-        workRAM = 32;
-        break;
-    default:
-        if (info->iNES2) {
-            workRAM = (info->PRGRamSize + info->PRGRamSaveSize) / 1024;
-            *saveRAM = info->PRGRamSaveSize / 1024;
-            /* we only support sizes between 8K and 32K */
-            if (workRAM > 0 && workRAM < 8)
-                workRAM = 8;
-            if (workRAM > 32)
-                workRAM = 32;
-            if (*saveRAM > workRAM)
-                *saveRAM = workRAM;
-        }
+	int workRAM = 8;
+	switch (info->CRC32) {
+	case 0xc6182024: /* Romance of the 3 Kingdoms */
+	case 0xabbf7217: /* ""        "" (J) (PRG0) or Sangokushi  */
+	case 0xccf35c02: /* ""        "" (J) (PRG1) */
+	case 0x2225c20f: /* Genghis Khan */
+	case 0xfb69743a: /* ""        "" (J) */
+	case 0x4642dda6: /* Nobunaga's Ambition */
+	case 0x3f7ad415: /* ""        "" (J) (PRG0) */
+	case 0x2b11e0b0: /* ""        "" (J) (PRG1) */
+		*saveRAM = 8;
+		workRAM = 16;
 		break;
-    }
-    if (workRAM > 8)
-        FCEU_printf(" >8KB external WRAM present.  Use NES 2.0 if you hack the ROM image.\n");
-
-    return workRAM;
+	case 0xb8747abf: /* Best Play Pro Yakyuu Special (J) (PRG0) */
+	case 0xc3de7c69: /* ""        "" (J) (PRG1) */
+	case 0xc9556b36: /* Final Fantasy I & II (J) [!] */
+		*saveRAM = 32;
+		workRAM = 32;
+		break;
+	default:
+		/* FIXME:
+		 * According to NesCartDB, the games above are the only ones using 16K / 32K wram or battery,
+		 * the rest of the roms for this mapper can either have 8KB wram or 8KB battery save or both.
+		 * Some NES 2.0 headered roms have been found to have incorrect wram size causing save issues, so we
+		 * override games here that have battery bit enabled but not listed above to ignore header and use default 8 KB battery/wram instead.
+		 * Nes 2.0 roms without battery bit can use the header to set wram size. */
+		if (info->battery) {
+			workRAM = 8;
+			*saveRAM = 8;
+		}
+		else if (info->iNES2) {
+			workRAM = (info->PRGRamSize + info->PRGRamSaveSize) / 1024;
+			/* we only support sizes between 8K and 32K */
+			if (workRAM > 0 && workRAM < 8)
+				workRAM = 8;
+			if (workRAM > 32)
+				workRAM = 32;
+		} /* the rest use default 8KB wram by default*/
+		break;
+	}
+	if (workRAM > 8)
+		FCEU_printf(" >8KB external WRAM present.  Use NES 2.0 if you hack the ROM image.\n");
+	return workRAM;
 }
 
 static uint32 NWCIRQCount;
@@ -524,23 +530,23 @@ static void M297CHR(uint32 A, uint8 V) {
 static void Sync(void) {
 	if (mode & 1) {
 		/* MMC1 */
-        MMC1PRG();
+		MMC1PRG();
 		MMC1CHR();
 		MMC1MIRROR();
-    } else {
+	} else {
 		/* Mapper 70 */
-        setprg16(0x8000, ((mode & 2) << 1) | ((latch >> 4) & 3));
-        setprg16(0xC000, ((mode & 2) << 1) | 3);
-        setchr8(latch & 0xF);
-        setmirror(1);
-    }
+		setprg16(0x8000, ((mode & 2) << 1) | ((latch >> 4) & 3));
+		setprg16(0xC000, ((mode & 2) << 1) | 3);
+		setchr8(latch & 0xF);
+		setmirror(1);
+	}
 }
 
 static DECLFW(M297Mode) {
-    if (A & 0x100) {
-        mode = V;
-        Sync();
-    }
+	if (A & 0x100) {
+		mode = V;
+		Sync();
+	}
 }
 
 static DECLFW(M297Latch) {
@@ -596,28 +602,28 @@ static void M543WRAM8(void) {
 }
 
 static DECLFW(M543Write) {
-    bits |= ((V >> 3) & 1) << shift++;
-    if (shift == 4) {
-        outerBank = bits;
-        bits = shift = 0;
-        MMC1PRG();
-    	MMC1CHR();
-    }
+	bits |= ((V >> 3) & 1) << shift++;
+	if (shift == 4) {
+		outerBank = bits;
+		bits = shift = 0;
+		MMC1PRG();
+		MMC1CHR();
+	}
 }
 
 static void M543Reset(void) {
-    bits = 0;
-    shift = 0;
+	bits = 0;
+	shift = 0;
 	outerBank = 0;
 	MMC1CMReset();
 }
 
 static void M543Power(void) {
-    bits = 0;
-    shift = 0;
+	bits = 0;
+	shift = 0;
 	outerBank = 0;
-    GenMMC1Power();
-    SetWriteHandler(0x5000, 0x5FFF, M543Write);
+	GenMMC1Power();
+	SetWriteHandler(0x5000, 0x5FFF, M543Write);
 }
 
 void Mapper543_Init(CartInfo *info) {
@@ -650,7 +656,7 @@ static void M550PRG16(uint32 A, uint8 V) {
 static void M550CHR4(uint32 A, uint8 V) {
 	if ((outerBank & 6) == 6)
 		setchr4(A, (V & 7) | ((outerBank << 2) & 0x18));
-    else
+	else
 		setchr8((latch & 3) | ((outerBank << 1) & 0x0C));
 }
 
