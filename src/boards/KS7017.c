@@ -17,11 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * FDS Conversion
+ * FDS Conversion - Almana No Kiseki
  *
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 latche, reg, mirr;
 static int32 IRQa, IRQCount, IRQLatch;
@@ -52,19 +53,23 @@ static DECLFW(UNLKS7017Write) {
 	} else if ((A & 0xFF00) == 0x5100) {
 		reg = latche;
 		Sync();
-	} else if (A == 0x4020) {
-		X6502_IRQEnd(FCEU_IQEXT);
-		IRQCount &= 0xFF00;
-		IRQCount |= V;
-	} else if (A == 0x4021) {
-		X6502_IRQEnd(FCEU_IQEXT);
-		IRQCount &= 0xFF;
-		IRQCount |= V << 8;
-		IRQa = 1;
-	} else if (A == 0x4025) {
-		mirr = ((V & 8) >> 3) ^ 1;
+	} else {
+	 	if (A == 0x4020) {
+			X6502_IRQEnd(FCEU_IQEXT);
+			IRQCount &= 0xFF00;
+			IRQCount |= V;
+		} else if (A == 0x4021) {
+			X6502_IRQEnd(FCEU_IQEXT);
+			IRQCount &= 0xFF;
+			IRQCount |= V << 8;
+			IRQa = 1;
+		} else if (A == 0x4025) {
+			mirr = ((V & 8) >> 3) ^ 1;
+		}
+		FDSSoundWrite(A, V);
 	}
 }
+
 static DECLFR(FDSRead4030) {
 	X6502_IRQEnd(FCEU_IQEXT);
 	return X.IRQlow & FCEU_IQEXT ? 1 : 0;
@@ -81,6 +86,7 @@ static void FP_FASTAPASS(1) UNL7017IRQ(int a) {
 }
 
 static void UNLKS7017Power(void) {
+	FDSSoundPower();
 	Sync();
 	setchr8(0);
 	setprg8r(0x10, 0x6000, 0);

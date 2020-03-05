@@ -18,10 +18,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * FDS Conversion
- *
+ * - Ai Senshi Nicol (256K PRG, 128K CHR)
+ * - Bio Miracle Bokutte Upa (J) (128K PRG, 0K CHR)
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 preg, creg, mirr;
 static uint32 IRQCount, IRQa;
@@ -53,6 +55,7 @@ static DECLFW(M42Write) {
 }
 
 static void M42Power(void) {
+	FDSSoundPower();
 	preg = 0;
 	mirr = 1;	/* Ai Senshi Nicol actually has fixed mirroring, but mapper forcing it's default value now */
 	Sync();
@@ -76,6 +79,11 @@ static void StateRestore(int version) {
 }
 
 void Mapper42_Init(CartInfo *info) {
+	if (info->CHRRomSize == 0 && info->PRGRomSize > 131072) {
+		/* Green Beret FDS Conversion can be 160K or 256K */
+		AC08_Init(info);
+		return;
+	}
 	info->Power = M42Power;
 	MapIRQHook = M42IRQHook;
 	GameStateRestore = StateRestore;

@@ -25,6 +25,7 @@
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 preg;
 
@@ -68,6 +69,7 @@ static DECLFW(UNLKS7016Write) {
 }
 
 static void UNLKS7016Power(void) {
+	FDSSoundPower();
 	preg = 8;
 	Sync();
 	SetReadHandler(0x6000, 0xffff, CartBR);

@@ -21,6 +21,7 @@
 #include "misc.c"
 #include "fceu.c"
 #include "fds.c"
+#include "fds_apu.c"
 #include "file.c"
 #include "filter.c"
 #include "general.c"

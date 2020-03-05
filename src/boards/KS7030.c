@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * FDS Conversion
+ * FDS Conversion - Yume Koujou: Doki Doki Panic
  *
  * Logical bank layot 32 K BANK 0, 64K BANK 1, 32K ~0 hardwired, 8K is missing
  * need redump from MASKROM!
@@ -26,6 +26,7 @@
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 reg0, reg1;
 static uint8 *WRAM = NULL;
@@ -108,6 +109,7 @@ static DECLFW(UNLKS7030Write1) {
 }
 
 static void UNLKS7030Power(void) {
+	FDSSoundPower();
 	reg0 = reg1 = ~0;
 	Sync();
 	SetReadHandler(0x6000, 0x7FFF, UNLKS7030RamRead0);

@@ -35,6 +35,7 @@ SOURCES_C += \
 				 $(CORE_DIR)/misc.c \
 				 $(CORE_DIR)/fceu.c \
 				 $(CORE_DIR)/fds.c \
+				 $(CORE_DIR)/fds_apu.c \
 				 $(CORE_DIR)/file.c \
 				 $(CORE_DIR)/filter.c \
 				 $(CORE_DIR)/general.c \

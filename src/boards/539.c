@@ -18,7 +18,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/* FDS Conversion - Kid Icarus (パルテナの鏡) (Parthena) */
+
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 preg;
 static uint8 mirr;
@@ -82,6 +85,7 @@ static DECLFW(M539Write) {
 }
 
 static void M539Power(void) {
+	FDSSoundPower();
 	preg = 0;
 	mirr = 0;
 	Sync();

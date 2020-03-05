@@ -40,8 +40,8 @@ typedef struct {
 
 extern uint8 *ROM;
 extern uint8 *VROM;
-extern uint32 ROM_size;
-extern uint32 VROM_size;
+extern uint32 ROM_size;		/* prg size in 16K chunks */
+extern uint32 VROM_size;	/* chr size in 8K chunks */
 extern iNES_HEADER head;
 
 void NSFVRC6_Init(void);

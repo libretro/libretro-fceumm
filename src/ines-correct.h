@@ -133,6 +133,14 @@
 	{0x4c7c1af3,	 34,		1},	/* Caesar's Palace */
 	{0x932ff06e,	 34,		1},	/* Classic Concentration */
 	{0xf46ef39a,	 37,	   -1},	/* Super Mario Bros. + Tetris + Nintendo World Cup (E) [!] */
+	{0x090C0C17,	 42,		1},	/* Ai Senshi Nicol (FDS Conversion) [p1][!].nes */
+	{0x4DF84825,	 42,		1},	/* Ai Senshi Nicol (FDS Conversion) [p2][!].nes */
+	{0x579E5BC5,	 42,		1},	/* Ai Senshi Nicol (FDS Conversion) [p3].nes */
+	{0xC744F205,	 42,		1},	/* Ai Senshi Nicol (FDS Conversion) [p3][t1].nes */
+	{0x71699765,	 42,		-1},	/* Love Warrior Nicol.nes */
+	{0x6BF3F6A3,	 42,		-1},	/* Bio Miracle Bokutte Upa (J) (Mario Baby - FDS Conversion).nes */
+	{0x5BA1C5CF,	 42,		-1},	/* Green Beret (FDS Conversion) (Unl).nes (256K PRG) */
+	{0x50AB1AB2,	 42,		-1},	/* Green Beret (FDS Conversion, LH09) (Unl) [U][!][t1] (160K PRG */
 	{0x7ccb12a3,	 43,	   -1},	/* SMB2j */
 	{0x6c71feae,	 45,	   -1},	/* Kunio 8-in-1 */
 	{0x40c0ad47,	 48,		8},	/* Flintstones 2 */
