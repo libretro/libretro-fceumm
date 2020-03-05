@@ -853,7 +853,6 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	romSize = (prgRom * 0x4000) + (chrRom * 0x2000);
 	if (romSize > filesize) {
 		FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", romSize -  filesize);
-		return 0;
 	} else if (romSize < filesize)
 		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
