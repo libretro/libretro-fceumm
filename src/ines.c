@@ -659,7 +659,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"OK-411",				361, GN45_Init}, /* OK-411 is emulated together with GN-45 */
 	{(uint8_t*)"HUMMER/JY-052",			281, Mapper281_Init},
 	{(uint8_t*)"GN-45",					366, GN45_Init},
-	
+
 	{(uint8_t*)"GKCX1",					288, Mapper288_Init },
 	{(uint8_t*)"Bit Corp 4-in-1",		357, Mapper357_Init },
 	{(uint8_t*)"MMC3 PIRATE SFC-12",	372, Mapper372_Init },
@@ -856,8 +856,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	} else if (romSize < filesize)
 		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
-	iNESCart.PRGRomSize = prgRom;
-	iNESCart.CHRRomSize = chrRom;
+	iNESCart.PRGRomSize = prgRom << 14;
+	iNESCart.CHRRomSize = chrRom << 13;
 
 	ROM_size =  uppow2(prgRom);
 
@@ -886,11 +886,11 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	if (VROM_size)
 		FCEU_fread(VROM, 0x2000, chrRom, fp);
-	
+
 	iNESCart.PRGCRC32 = CalcCRC32(0, ROM, prgRom * 0x4000);
 	iNESCart.CHRCRC32 = CalcCRC32(0, VROM, chrRom * 0x2000);
 	iNESCart.CRC32    = CalcCRC32(iNESCart.PRGCRC32, VROM, chrRom * 0x2000);
-	
+
 	md5_starts(&md5);
 	md5_update(&md5, ROM, prgRom << 14);
 	if (VROM_size)

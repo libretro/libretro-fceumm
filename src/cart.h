@@ -20,12 +20,12 @@ typedef struct {
 					 * set to mapper 4.
 					 */
 	int battery;	/* Presence of an actual battery. */
-	int PRGRomSize;		/* total prg rom size in 16 K chunks */
-	int CHRRomSize;		/* total chr rom size in 8 K chunks */
-	int PRGRamSize;		/* prg ram size (volatile) */
-	int CHRRamSize;		/* chr ram size (volatile) */
-	int PRGRamSaveSize;	/* prg ram size (non-volatile or battery backed) */
-	int CHRRamSaveSize;	/* chr ram size (non-volatile or battery backed) */
+	int PRGRomSize;		/* prg rom size in bytes */
+	int CHRRomSize;		/* chr rom size in bytes */
+	int PRGRamSize;		/* prg ram size in bytes (volatile) */
+	int CHRRamSize;		/* chr ram size in bytes (volatile) */
+	int PRGRamSaveSize;	/* prg ram size in bytes (non-volatile or battery backed) */
+	int CHRRamSaveSize;	/* chr ram size in bytes (non-volatile or battery backed) */
 	int region;			/* video system timing (ntsc, pal, dendy */
 
 	uint8 MD5[16];

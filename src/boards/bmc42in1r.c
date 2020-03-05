@@ -88,7 +88,7 @@ static void M226Reset(void) {
 void Mapper226_Init(CartInfo *info) {
 	isresetbased = 0;
 	/* 1536KiB PRG roms have different bank order */
-	reorder_banks = ((info->PRGRomSize * 16) == 1536) ? 1 : 0;
+	reorder_banks = ((info->PRGRomSize / 1024) == 1536) ? 1 : 0;
 	info->Power = M226Power;
 	info->Reset = M226Reset;
 	AddExState(&StateRegs, ~0, 0, 0);

@@ -743,18 +743,23 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (!LoadUNIFChunks(fp))
 		goto aborto;
 
-	UNIFCart.PRGRomSize = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
-	UNIFCart.PRGRomSize = (UNIFCart.PRGRomSize >> 2) + ((UNIFCart.PRGRomSize & 3) ? 1: 0);
-	UNIFCart.CHRRomSize = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
-	UNIFCart.CHRRomSize = (UNIFCart.CHRRomSize >> 3) + ((UNIFCart.CHRRomSize & 7) ? 1: 0);
+	ROM_size = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
+	ROM_size = (ROM_size >> 2) + ((ROM_size & 3) ? 1: 0);
+	if (UNIF_CHRROMSize) {
+		VROM_size = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
+		VROM_size = (VROM_size >> 3) + ((VROM_size & 7) ? 1: 0);
+	}
 
-	ROM_size = FixRomSize(UNIF_PRGROMSize, 2048);
+	UNIFCart.PRGRomSize = UNIF_PRGROMSize;
+	UNIFCart.CHRRomSize = UNIF_CHRROMSize;
+
+	UNIF_PRGROMSize = FixRomSize(UNIF_PRGROMSize, 2048);
 	if (UNIF_CHRROMSize)
-		VROM_size = FixRomSize(UNIF_CHRROMSize, 8192);
+		UNIF_CHRROMSize = FixRomSize(UNIF_CHRROMSize, 8192);
 
-	ROM = (uint8*)malloc(ROM_size);
-	if (VROM_size)
-		VROM = (uint8*)malloc(VROM_size);
+	ROM = (uint8*)malloc(UNIF_PRGROMSize);
+	if (UNIF_CHRROMSize)
+		VROM = (uint8*)malloc(UNIF_CHRROMSize);
 
 	for (x = 0; x < 16; x++) {
 		unsigned p = prg_idx[x];
@@ -774,22 +779,24 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		}
 	}
 
-	UNIFCart.PRGCRC32 = CalcCRC32(0, ROM, UNIF_PRGROMSize);
-	UNIFCart.CHRCRC32 = CalcCRC32(0, VROM, UNIF_CHRROMSize);
-	UNIFCart.CRC32    = CalcCRC32(UNIFCart.PRGCRC32, VROM, UNIF_CHRROMSize);
+	UNIFCart.PRGCRC32 = CalcCRC32(0, ROM, PRGptr);
+	UNIFCart.CHRCRC32 = CalcCRC32(0, VROM, CHRptr);
+	UNIFCart.CRC32    = CalcCRC32(UNIFCart.PRGCRC32, VROM, CHRptr);
+
+	FCEU_printf("CHR CRC32 = %08x\n", UNIFCart.CHRCRC32);
 
 	md5_starts(&md5);
-	md5_update(&md5, ROM, UNIF_PRGROMSize);
-	if (VROM_size)
-		md5_update(&md5, VROM, UNIF_CHRROMSize);
+	md5_update(&md5, ROM, PRGptr);
+	if (UNIF_CHRROMSize)
+		md5_update(&md5, VROM, CHRptr);
 	md5_finish(&md5, UNIFCart.MD5);
 	memcpy(GameInfo->MD5, UNIFCart.MD5, sizeof(UNIFCart.MD5));
 
 	CheckHashInfo();
 
-	SetupCartPRGMapping(0, ROM, ROM_size, 0);
-	if (VROM_size)
-		SetupCartCHRMapping(0, VROM, VROM_size, 0);
+	SetupCartPRGMapping(0, ROM, UNIF_PRGROMSize, 0);
+	if (UNIF_CHRROMSize)
+		SetupCartCHRMapping(0, VROM, UNIF_CHRROMSize, 0);
 
 	if (!InitializeBoard())
 		goto aborto;
@@ -804,6 +811,7 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	FCEU_printf(" [Unif] CHR ROM:   %u KiB\n", UNIF_CHRROMSize / 1024);
 
 	GameInterface = UNIFGI;
+
 	return 1;
 
  aborto:
