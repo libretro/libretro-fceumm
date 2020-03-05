@@ -17,11 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * FDS Conversion
+ * FDS Conversion - Metroid - Jin Ji Zhi Ling (Kaiser)(KS7037)[U][!]
  *
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 reg[8], cmd;
 static uint8 *WRAM = NULL;
@@ -66,6 +67,7 @@ static DECLFW(UNLKS7037Write) {
 }
 
 static void UNLKS7037Power(void) {
+	FDSSoundPower();
 	reg[0] = reg[1] = reg[2] = reg[3] = reg[4] = reg[5] = reg[6] = reg[7] = 0;
 	WSync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);

@@ -17,11 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * FDS Conversion
+ * FDS Conversion - Nazo no Murasamejō
  *
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 reg, IRQa;
 static int32 IRQCount;
@@ -75,6 +76,7 @@ static void FP_FASTAPASS(1) LH53IRQ(int a) {
 }
 
 static void LH53Power(void) {
+	FDSSoundPower();
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0xB800, 0xD7FF, LH53RamWrite);

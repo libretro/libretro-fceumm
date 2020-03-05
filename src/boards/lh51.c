@@ -26,6 +26,7 @@
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 reg, mirr;
 static uint8 *WRAM = NULL;
@@ -56,6 +57,7 @@ static DECLFW(LH51Write) {
 }
 
 static void LH51Power(void) {
+	FDSSoundPower();
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);

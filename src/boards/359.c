@@ -23,6 +23,7 @@
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint32 mapperNum;
 static uint8 preg[4];
@@ -140,12 +141,18 @@ static DECLFW(M359WriteEx) {
 }
 
 static void M359Power(void) {
+	FDSSoundPower();
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0x8FFF, M359WritePRG);
 	SetWriteHandler(0x9000, 0x9FFF, M359WriteEx);
 	SetWriteHandler(0xA000, 0xBFFF, M359WriteCHR);
 	SetWriteHandler(0xC000, 0xCFFF, M359WriteIRQ);
+}
+
+static void M359Reset(void) {
+	FDSSoundReset();
+	Sync();
 }
 
 static void FP_FASTAPASS(1) M359CPUHook(int a) {
@@ -177,6 +184,7 @@ static void StateRestore(int version) {
 void Mapper359_Init(CartInfo* info) {
 	mapperNum = 359;
 	info->Power = M359Power;
+	info->Reset = M359Reset;
 	MapIRQHook = M359CPUHook;
 	GameHBIRQHook = M359IRQHook;
 	GameStateRestore = StateRestore;

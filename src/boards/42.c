@@ -23,6 +23,7 @@
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 preg, creg, mirr;
 static uint32 IRQCount, IRQa;
@@ -54,6 +55,7 @@ static DECLFW(M42Write) {
 }
 
 static void M42Power(void) {
+	FDSSoundPower();
 	preg = 0;
 	mirr = 1;	/* Ai Senshi Nicol actually has fixed mirroring, but mapper forcing it's default value now */
 	Sync();

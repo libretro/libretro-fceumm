@@ -24,6 +24,7 @@
  */
 
 #include "mapinc.h"
+#include "../fds_apu.h"
 
 static uint8 reg, mirr;
 static uint8 prg;
@@ -56,6 +57,7 @@ static DECLFW(AC08Write) {
 }
 
 static void AC08Power(void) {
+	FDSSoundPower();
 	reg = 0;
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);

@@ -20,6 +20,7 @@
 
 #include "mapinc.h"
 #include "../ines.h"
+#include "../fds_apu.h"
 
 static uint8 latche, latcheinit, bus_conflict;
 static uint16 addrreg0, addrreg1;
@@ -518,8 +519,14 @@ static void M538Sync(void) {
 	setmirror(1);
 }
 
+static void M538Power(void) {
+	FDSSoundPower();
+	LatchPower();
+}
+
 void Mapper538_Init(CartInfo *info) {
 	Latch_Init(info, M538Sync, 0, 0xC000, 0xCFFF, 1, 0);
+	info->Power = M538Power;
 }
 
 /* ------------------ A65AS --------------------------- */

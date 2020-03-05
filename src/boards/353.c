@@ -25,6 +25,7 @@
 
 #include "mapinc.h"
 #include "mmc3.h"
+#include "../fds_apu.h"
 
 static uint8* CHRRAM = NULL;
 static uint32 CHRRAMSIZE;
@@ -96,6 +97,7 @@ static DECLFW(M353Write) {
 }
 
 static void M353Power(void) {
+	FDSSoundPower();
 	EXPREGS[0] = 0;
 	GenMMC3Power();
 	SetWriteHandler(0x8000, 0xFFFF, M353Write);
@@ -104,6 +106,7 @@ static void M353Power(void) {
 static void M353Reset(void) {
 	EXPREGS[0] = 0;
 	MMC3RegReset();
+	FDSSoundReset();
 }
 
 static void M353Close(void) {

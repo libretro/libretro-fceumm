@@ -26,6 +26,7 @@
 #include "x6502.h"
 #include "fceu.h"
 #include "fds.h"
+#include "fds_apu.h"
 #include "sound.h"
 #include "general.h"
 #include "state.h"
@@ -106,8 +107,6 @@ static uint8  mapperFDS_diskaccess; /* disk needs to be accessed at least once b
 #define GET_FDS_DISK() (diskdata[InDisk][mapperFDS_blockstart + mapperFDS_diskaddr])
 #define FDS_DISK_INSERTED (InDisk != 255)
 
-uint32 lastDiskPtrRead, lastDiskPtrWrite;
-
 #define DC_INC    1
 #define BYTES_PER_SIDE 65500
 
@@ -139,15 +138,9 @@ static void FDSStateRestore(int version) {
 		}
 }
 
-void FDSSound(int a);
-void FDSSoundReset(void);
-void FDSSoundStateAdd(void);
-static void RenderSound(void);
-static void RenderSoundHQ(void);
-
 static void FDSInit(void) {
 	memset(FDSRegs, 0, sizeof(FDSRegs));
-	lastDiskPtrRead = lastDiskPtrWrite = writeskip = DiskPtr = DiskSeekIRQ = 0;
+	writeskip = DiskPtr = DiskSeekIRQ = 0;
 
 	setmirror(1);
 	setprg8(0xE000, 0);			/* BIOS */
@@ -255,7 +248,6 @@ static DECLFR(FDSRead4031) {
 	static uint8 z = 0;
 	if (InDisk != 255) {
 		z = diskdata[InDisk][DiskPtr];
-		lastDiskPtrRead = DiskPtr;
 		#ifdef FCEUDEF_DEBUGGER
 		if (!fceuindbg)
 		#endif
@@ -328,261 +320,6 @@ static DECLFR(FDSRead4033) {
 	return 0x80;		/* battery */
 }
 
-/* Begin FDS sound */
-
-#define FDSClock (1789772.7272727272727272 / 2)
-
-typedef struct {
-	int64 cycles;		/* Cycles per PCM sample */
-	int64 count;		/* Cycle counter */
-	int64 envcount;		/* Envelope cycle counter */
-	uint32 b19shiftreg60;
-	uint32 b24adder66;
-	uint32 b24latch68;
-	uint32 b17latch76;
-	int32 clockcount;	/* Counter to divide frequency by 8. */
-	uint8 b8shiftreg88;	/* Modulation register. */
-	uint8 amplitude[2];	/* Current amplitudes. */
-	uint8 speedo[2];
-	uint8 mwcount;
-	uint8 mwstart;
-	uint8 mwave[0x20];	/* Modulation waveform */
-	uint8 cwave[0x40];	/* Game-defined waveform(carrier) */
-	uint8 SPSG[0xB];
-} FDSSOUND;
-
-static FDSSOUND fdso;
-
-#define  SPSG  fdso.SPSG
-#define b19shiftreg60  fdso.b19shiftreg60
-#define b24adder66  fdso.b24adder66
-#define b24latch68  fdso.b24latch68
-#define b17latch76  fdso.b17latch76
-#define b8shiftreg88  fdso.b8shiftreg88
-#define clockcount  fdso.clockcount
-#define amplitude  fdso.amplitude
-#define speedo    fdso.speedo
-
-void FDSSoundStateAdd(void) {
-	AddExState(fdso.cwave, 64, 0, "WAVE");
-	AddExState(fdso.mwave, 32, 0, "MWAV");
-	AddExState(amplitude, 2, 0, "AMPL");
-	AddExState(SPSG, 0xB, 0, "SPSG");
-
-	AddExState(&b8shiftreg88, 1, 0, "B88");
-
-	AddExState(&clockcount, 4, 1, "CLOC");
-	AddExState(&b19shiftreg60, 4, 1, "B60");
-	AddExState(&b24adder66, 4, 1, "B66");
-	AddExState(&b24latch68, 4, 1, "B68");
-	AddExState(&b17latch76, 4, 1, "B76");
-}
-
-static DECLFR(FDSSRead) {
-	switch (A & 0xF) {
-	case 0x0: return(amplitude[0] | (X.DB & 0xC0));
-	case 0x2: return(amplitude[1] | (X.DB & 0xC0));
-	}
-	return(X.DB);
-}
-
-static DECLFW(FDSSWrite) {
-	if (FSettings.SndRate) {
-		if (FSettings.soundq >= 1)
-			RenderSoundHQ();
-		else
-			RenderSound();
-	}
-	A -= 0x4080;
-	switch (A) {
-	case 0x0:
-	case 0x4:
-		if (V & 0x80)
-			amplitude[(A & 0xF) >> 2] = V & 0x3F;
-		break;
-	case 0x7:
-		b17latch76 = 0;
-		SPSG[0x5] = 0;
-		break;
-	case 0x8:
-		b17latch76 = 0;
-		fdso.mwave[SPSG[0x5] & 0x1F] = V & 0x7;
-		SPSG[0x5] = (SPSG[0x5] + 1) & 0x1F;
-		break;
-	}
-	SPSG[A] = V;
-}
-
-/* $4080 - Fundamental wave amplitude data register 92
- * $4082 - Fundamental wave frequency data register 58
- * $4083 - Same as $4082($4083 is the upper 4 bits).
- *
- * $4084 - Modulation amplitude data register 78
- * $4086 - Modulation frequency data register 72
- * $4087 - Same as $4086($4087 is the upper 4 bits)
- */
-
-
-static void DoEnv() {
-	int x;
-
-	for (x = 0; x < 2; x++)
-		if (!(SPSG[x << 2] & 0x80) && !(SPSG[0x3] & 0x40)) {
-			static int counto[2] = { 0, 0 };
-
-			if (counto[x] <= 0) {
-				if (!(SPSG[x << 2] & 0x80)) {
-					if (SPSG[x << 2] & 0x40) {
-						if (amplitude[x] < 0x3F)
-							amplitude[x]++;
-					} else {
-						if (amplitude[x] > 0)
-							amplitude[x]--;
-					}
-				}
-				counto[x] = (SPSG[x << 2] & 0x3F);
-			} else
-				counto[x]--;
-		}
-}
-
-static DECLFR(FDSWaveRead) {
-	return(fdso.cwave[A & 0x3f] | (X.DB & 0xC0));
-}
-
-static DECLFW(FDSWaveWrite) {
-	if (SPSG[0x9] & 0x80)
-		fdso.cwave[A & 0x3f] = V & 0x3F;
-}
-
-static int ta;
-static INLINE void ClockRise(void) {
-	if (!clockcount) {
-		ta++;
-
-		b19shiftreg60 = (SPSG[0x2] | ((SPSG[0x3] & 0xF) << 8));
-		b17latch76 = (SPSG[0x6] | ((SPSG[0x07] & 0xF) << 8)) + b17latch76;
-
-		if (!(SPSG[0x7] & 0x80)) {
-			int t = fdso.mwave[(b17latch76 >> 13) & 0x1F] & 7;
-			int t2 = amplitude[1];
-			int adj = 0;
-
-			if ((t & 3)) {
-				if ((t & 4))
-					adj -= (t2 * ((4 - (t & 3))));
-				else
-					adj += (t2 * ((t & 3)));
-			}
-			adj *= 2;
-			if (adj > 0x7F) adj = 0x7F;
-			if (adj < -0x80) adj = -0x80;
-			b8shiftreg88 = 0x80 + adj;
-		} else {
-			b8shiftreg88 = 0x80;
-		}
-	} else {
-		b19shiftreg60 <<= 1;
-		b8shiftreg88 >>= 1;
-	}
-	b24adder66 = (b24latch68 + b19shiftreg60) & 0x1FFFFFF;
-}
-
-static INLINE void ClockFall(void) {
-	if ((b8shiftreg88 & 1))
-		b24latch68 = b24adder66;
-	clockcount = (clockcount + 1) & 7;
-}
-
-static INLINE int32 FDSDoSound(void) {
-	fdso.count += fdso.cycles;
-	if (fdso.count >= ((int64)1 << 40)) {
- dogk:
-		fdso.count -= (int64)1 << 40;
-		ClockRise();
-		ClockFall();
-		fdso.envcount--;
-		if (fdso.envcount <= 0) {
-			fdso.envcount += SPSG[0xA] * 3;
-			DoEnv();
-		}
-	}
-	if (fdso.count >= 32768) goto dogk;
-
-	/* Might need to emulate applying the amplitude to the waveform a bit better... */
-	{
-		int k = amplitude[0];
-		if (k > 0x20) k = 0x20;
-		return (fdso.cwave[b24latch68 >> 19] * k) * 4 / ((SPSG[0x9] & 0x3) + 2);
-	}
-}
-
-static int32 FBC = 0;
-
-static void RenderSound(void) {
-	int32 end, start;
-	int32 x;
-
-	start = FBC;
-	end = (SOUNDTS << 16) / soundtsinc;
-	if (end <= start)
-		return;
-	FBC = end;
-
-	if (!(SPSG[0x9] & 0x80))
-		for (x = start; x < end; x++) {
-			uint32 t = FDSDoSound();
-			t += t >> 1;
-			t >>= 4;
-			Wave[x >> 4] += t;	/* (t>>2)-(t>>3); */ /* >>3; */
-		}
-}
-
-static void RenderSoundHQ(void) {
-	uint32 x;
-
-	if (!(SPSG[0x9] & 0x80))
-		for (x = FBC; x < SOUNDTS; x++) {
-			uint32 t = FDSDoSound();
-			t += t >> 1;
-			WaveHi[x] += t;	/* (t<<2)-(t<<1); */
-		}
-	FBC = SOUNDTS;
-}
-
-static void HQSync(int32 ts) {
-	FBC = ts;
-}
-
-void FDSSound(int c) {
-	RenderSound();
-	FBC = c;
-}
-
-static void FDS_ESI(void) {
-	if (FSettings.SndRate) {
-		if (FSettings.soundq >= 1) {
-			fdso.cycles = (int64)1 << 39;
-		} else {
-			fdso.cycles = ((int64)1 << 40) * FDSClock;
-			fdso.cycles /= FSettings.SndRate * 16;
-		}
-	}
-	SetReadHandler(0x4040, 0x407f, FDSWaveRead);
-	SetWriteHandler(0x4040, 0x407f, FDSWaveWrite);
-	SetWriteHandler(0x4080, 0x408A, FDSSWrite);
-	SetReadHandler(0x4090, 0x4092, FDSSRead);
-}
-
-void FDSSoundReset(void) {
-	memset(&fdso, 0, sizeof(fdso));
-	FDS_ESI();
-	GameExpSound.HiSync = HQSync;
-	GameExpSound.HiFill = RenderSoundHQ;
-	GameExpSound.Fill = FDSSound;
-	GameExpSound.RChange = FDS_ESI;
-}
-
 static DECLFW(FDSWrite) {
 	switch (A) {
 	case 0x4020:
@@ -618,7 +355,6 @@ static DECLFW(FDSWrite) {
 				else if (DiskPtr >= 2) {
 					DiskWritten = 1;
 					diskdata[InDisk][DiskPtr - 2] = V;
-					lastDiskPtrWrite = DiskPtr - 2;
 				}
 			}
 		}

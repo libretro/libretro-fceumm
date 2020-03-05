@@ -17,11 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * FDS Conversion
+ * FDS Conversion - dracula ii - noroi no fuuin [u][!]
  *
  */
 
 #include "mapinc.h"
+#include "fds_apu.h"
 
 static uint8 reg[4];
 
@@ -64,6 +65,7 @@ static DECLFW(UNLKS7031Write) {
 }
 
 static void UNLKS7031Power(void) {
+	FDSSoundPower();
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xffff, UNLKS7031Write);
