@@ -18,12 +18,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * FDS Conversion
+ * - [UNIF] Green Beret (FDS Conversion, LH09) (Unl) [U][!][t1] (160K PRG)
+ * - Green Beret (FDS Conversion) (Unl) (256K PRG)
  *
  */
 
 #include "mapinc.h"
 
 static uint8 reg, mirr;
+static uint8 prg;
 
 static SFORMAT StateRegs[] =
 {
@@ -34,7 +37,7 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	setprg8(0x6000, reg);
-	setprg32(0x8000, 4);
+	setprg32(0x8000, prg);
 	setchr8(0);
 	setmirror(mirr);
 }
@@ -45,7 +48,7 @@ static DECLFW(AC08Mirr) {
 }
 
 static DECLFW(AC08Write) {
-	if (A == 0x8001)			/* Green Berret bank switching is only 100x xxxx xxxx xxx1 mask */
+	if (A == 0x8001)			/* Green Berret prg switching is only 100x xxxx xxxx xxx1 mask */
 		reg = (V >> 1) & 0xf;
 	else
 		reg = V & 0xf;			/* Sad But True, 2-in-1 mapper, Green Berret need value shifted left one byte, Castlevania doesn't */
@@ -65,6 +68,7 @@ static void StateRestore(int version) {
 }
 
 void AC08_Init(CartInfo *info) {
+	prg = (info->PRGRomSize / 16384) & 0x0F ? 4 : 7;
 	info->Power = AC08Power;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);

@@ -783,8 +783,6 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	UNIFCart.CHRCRC32 = CalcCRC32(0, VROM, CHRptr);
 	UNIFCart.CRC32    = CalcCRC32(UNIFCart.PRGCRC32, VROM, CHRptr);
 
-	FCEU_printf("CHR CRC32 = %08x\n", UNIFCart.CHRCRC32);
-
 	md5_starts(&md5);
 	md5_update(&md5, ROM, PRGptr);
 	if (UNIF_CHRROMSize)
