@@ -266,7 +266,7 @@ static void M200Sync(void) {
 	setprg16(0x8000, latche & 7);
 	setprg16(0xC000, latche & 7);
 	setchr8(latche & 7);
-	setmirror((latche & 8) >> 3);
+	setmirror(((latche >> 3) & 1) ^ 1);
 }
 
 void Mapper200_Init(CartInfo *info) {
