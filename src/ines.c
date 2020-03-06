@@ -596,7 +596,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"TW MMC3+VRAM Rev. E",	198, Mapper198_Init},
 	{(uint8_t*)"",					199, Mapper199_Init},
 	{(uint8_t*)"",					200, Mapper200_Init},
-	{(uint8_t*)"",					201, Mapper201_Init},
+	{(uint8_t*)"21-in-1",			201, Mapper201_Init},
 	{(uint8_t*)"",					202, Mapper202_Init},
 	{(uint8_t*)"",					203, Mapper203_Init},
 	{(uint8_t*)"",					204, Mapper204_Init},

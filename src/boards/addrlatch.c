@@ -274,18 +274,25 @@ void Mapper200_Init(CartInfo *info) {
 }
 
 /*------------------ Map 201 ---------------------------*/
-
+/* 2020-3-6 - Support for 21-in-1 (CF-043) (2006-V) (Unl) [p1].nes which has mixed mirroring
+ * found at the time labeled as submapper 15 (negativeExponent)
+ * 0x05658DED 128K PRG, 32K CHR */
+static uint32 submapper = 0;
 static void M201Sync(void) {
-	if (latche & 8) {
+	if (latche & 8 || submapper == 15) {
 		setprg32(0x8000, latche & 3);
 		setchr8(latche & 3);
 	} else {
 		setprg32(0x8000, 0);
 		setchr8(0);
 	}
+	if (submapper == 15)
+		setmirror(((latche & 0x07) == 0x07) ? MI_V : MI_H);
 }
 
 void Mapper201_Init(CartInfo *info) {
+	if (info->CRC32 == 0x05658DED)
+		submapper = 15;
 	Latch_Init(info, M201Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 

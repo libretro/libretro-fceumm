@@ -294,7 +294,8 @@
 	{0xd871d3e6,	199,	   -1},	/* Dragon Ball Z 2 - Gekishin Freeza! (C) */
 	{0xed481b7c,	199,	   -1},	/* Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (C) */
 	{0x44c20420,	199,	   -1},	/* San Guo Zhi 2 (C) */
-	{0x4e1c1e3c,	206,		0},	/* Karnov */
+	{0x44c20420,	199,	   -1},	/* San Guo Zhi 2 (C) */
+	{0x05658DED,	201,	   -1},	/* 21-in-1 (CF-043) (2006-V) (Unl) [p1].nes, submapper 15 */
 	{0x276237b3,	206,		0},	/* Karnov */
 	{0xa5e6baf9,	206,		1},	/* Dragon Slayer 4 - Drasle Family (Japan) */
 	{0x4f2f1846,	206,		1},	/* Famista '89 - Kaimaku Han!! (J) */
