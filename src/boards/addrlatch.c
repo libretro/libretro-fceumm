@@ -377,8 +377,8 @@ void Mapper214_Init(CartInfo *info) {
 /*------------------ Map 217 ---------------------------*/
 
 static void M217Sync(void) {
-	setprg32(0x8000, (latche >> 2) & 3);
-	setchr8(latche & 7);
+	setprg32(0x8000, (latche >> 2) & 0x03);
+	setchr8(latche & 0x0F);
 }
 
 void Mapper217_Init(CartInfo *info) {
