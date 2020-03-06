@@ -398,6 +398,7 @@
 	{0xa1dc16c0,    262,       -1}, /* Street Heroes (Asia) (Ja) (Unl */
 	{0x1df10182,    263,       -1}, /* Boogerman II (Rex-Soft) [!].nes */
 	{0xf956fcea,    521,       -1}, /* Korean Igo (Korea) (Unl) */
+	{0x2EED2E34,    289,       -1}, /* 76-in-1 [p1][a1].nes 2048 PRG, 0 CHR */
 
 	{0x00000000,	  -1,	   -1}
 
