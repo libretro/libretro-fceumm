@@ -753,6 +753,7 @@ static BMAPPINGLocal bmap[] = {
 	{(uint8_t*)"G-146",					349, BMCG146_Init },
 	{(uint8_t*)"891227",				350, BMC891227_Init },
 	{(uint8_t*)"3D-BLOCK",				355, UNL3DBlock_Init },
+	{(uint8_t*)"Super Mario Bros. Party (N49C-300)",	369, Mapper369_Init },
 	{(uint8_t*)"NC7000M",				391, NC7000M_Init },
 	{(uint8_t*)"831019C J-2282",		402, J2282_Init },
 	{(uint8_t*)"SA-9602B",				513, SA9602B_Init },

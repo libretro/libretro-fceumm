@@ -390,6 +390,8 @@
 	{0x5aa23a15,    361,        0}, /* 4-in-1 (OK-411)[p1][!] */
 	{0xf6b9d088,    366,        0}, /* 4-in-1 (K-3131GS, GN-45) [p1][!] */
 	{0x503566b2,    366,        0}, /* 4-in-1 (K-3131SS, GN-45) [p1][!] */
+	{0xDB2D2D88,    369,        -1}, /* Super Mario Bros. Party.nes */
+	
 
 	/* ines mappers that uses unif boards */
 
