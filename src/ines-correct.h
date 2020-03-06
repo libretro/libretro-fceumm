@@ -294,7 +294,8 @@
 	{0xd871d3e6,	199,	   -1},	/* Dragon Ball Z 2 - Gekishin Freeza! (C) */
 	{0xed481b7c,	199,	   -1},	/* Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (C) */
 	{0x44c20420,	199,	   -1},	/* San Guo Zhi 2 (C) */
-	{0x4e1c1e3c,	206,		0},	/* Karnov */
+	{0x44c20420,	199,	   -1},	/* San Guo Zhi 2 (C) */
+	{0x05658DED,	201,	   -1},	/* 21-in-1 (CF-043) (2006-V) (Unl) [p1].nes, submapper 15 */
 	{0x276237b3,	206,		0},	/* Karnov */
 	{0xa5e6baf9,	206,		1},	/* Dragon Slayer 4 - Drasle Family (Japan) */
 	{0x4f2f1846,	206,		1},	/* Famista '89 - Kaimaku Han!! (J) */
@@ -389,6 +390,8 @@
 	{0x5aa23a15,    361,        0}, /* 4-in-1 (OK-411)[p1][!] */
 	{0xf6b9d088,    366,        0}, /* 4-in-1 (K-3131GS, GN-45) [p1][!] */
 	{0x503566b2,    366,        0}, /* 4-in-1 (K-3131SS, GN-45) [p1][!] */
+	{0xDB2D2D88,    369,        -1}, /* Super Mario Bros. Party.nes */
+	
 
 	/* ines mappers that uses unif boards */
 
@@ -398,6 +401,7 @@
 	{0xa1dc16c0,    262,       -1}, /* Street Heroes (Asia) (Ja) (Unl */
 	{0x1df10182,    263,       -1}, /* Boogerman II (Rex-Soft) [!].nes */
 	{0xf956fcea,    521,       -1}, /* Korean Igo (Korea) (Unl) */
+	{0x2EED2E34,    289,       -1}, /* 76-in-1 [p1][a1].nes 2048 PRG, 0 CHR */
 
 	{0x00000000,	  -1,	   -1}
 
