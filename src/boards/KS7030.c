@@ -25,6 +25,17 @@
  *
  */
 
+/* 2020-3-6 - update mirroring (negativeExponent)
+/* PRG-ROM Bank Select #1/Mirroring Select ($8000-$8FFF, write)
+ * A~FEDC BA98 7654 3210
+ * -------------------
+ *  1000 .... .... MBBB
+ *                 |+++- Select 4 KiB PRG-ROM bank at CPU $7000-$7FFF
+ *                 +---- Select nametable mirroring type
+ *                        0: Vertical
+ *                        1: Horizontal
+ */
+
 #include "mapinc.h"
 #include "../fds_apu.h"
 
@@ -42,8 +53,9 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	setchr8(0);
 	setprg32(0x8000, ~0);
-	setprg4(0xb800, reg0);
+	setprg4(0xb800, reg0 & 0x07);
 	setprg4(0xc800, 8 + reg1);
+	setmirror(((reg0 >> 3) & 1) ^ 1);
 }
 
 /* 6000 - 6BFF - RAM
@@ -99,12 +111,12 @@ static DECLFR(UNLKS7030RamRead1) {
 }
 
 static DECLFW(UNLKS7030Write0) {
-	reg0 = A & 7;
+	reg0 = A & 0xF;
 	Sync();
 }
 
 static DECLFW(UNLKS7030Write1) {
-	reg1 = A & 15;
+	reg1 = A & 0xF;
 	Sync();
 }
 
