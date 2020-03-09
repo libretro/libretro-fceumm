@@ -378,7 +378,8 @@
 
 	{0x19C1ED51,    150,       -1}, /* Poker III (Asia) (Ja) (Unl).nes */
 	{0x282745C5,    141,       -1}, /* Q Boy (Asia) (Ja) (Unl).nes */
-	{0x4B9ECFB2,    21,       -1}, /* Wai Wai World 2 - SOS!! Paseri Jou (Japan) (Virtual Console).nes */
+	{0x4B9ECFB2,     21,       -1}, /* Wai Wai World 2 - SOS!! Paseri Jou (Japan) (Virtual Console).nes */
+	{0x33751782,      4,       -1}, /* Zoda's Revenge - StarTropics II (USA, Europe) (Virtual Console).nes */
 
 	/* TXC / Sachen / JoyVan */
 
