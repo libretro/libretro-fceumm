@@ -30,7 +30,8 @@ static uint8 WRAM[8192];
 static SFORMAT StateRegs[] =
 {
 	{ &preg, 1, "PREG" },
-	{ &mirr, 1, "MIRR" }
+	{ &mirr, 1, "MIRR" },
+	{ 0 }
 };
 
 static uint32 GetWRAMAddress(uint32 A) {
