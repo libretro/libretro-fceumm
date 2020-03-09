@@ -35,9 +35,6 @@ static uint16 acount = 0;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
-static uint8 *_CHRptr = NULL; /* for 400k+128K Contra J */
-static uint32 _CHRsize;
-
 static uint8 prgMask = 0x1F;
 
 static SFORMAT StateRegs[] =
@@ -66,13 +63,13 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	if (regcmd & 2) {
 		setprg8(0xC000, prgreg[0] | big_bank);
-		setprg8(0x8000, ((prgreg[2]) & prgMask) | big_bank);
+		setprg8(0x8000, (prgreg[2] & prgMask) | big_bank);
 	} else {
 		setprg8(0x8000, prgreg[0] | big_bank);
-		setprg8(0xC000, ((prgreg[2]) & prgMask) | big_bank);
+		setprg8(0xC000, (prgreg[2] & prgMask) | big_bank);
 	}
 	setprg8(0xA000, prgreg[1] | big_bank);
-	setprg8(0xE000, ((prgreg[3]) & prgMask) | big_bank);
+	setprg8(0xE000, (prgreg[3] & prgMask) | big_bank);
 	if (UNIFchrrama)
 		setchr8(0);
 	else {
@@ -101,7 +98,7 @@ static DECLFW(VRC24Write) {
 				chrhi[i] = (V & 0x10) << 4;						/* another one many in one feature from pirate carts */
 		}
 		Sync();
-	} else
+	} else {
 		switch (A & 0xF003) {
 		case 0x8000:
 		case 0x8001:
@@ -130,11 +127,12 @@ static DECLFW(VRC24Write) {
 		case 0x9001: if (V != 0xFF) mirr = V; Sync(); break;
 		case 0x9002:
 		case 0x9003: regcmd = V; Sync(); break;
-		case 0xF000: X6502_IRQEnd(FCEU_IQEXT); IRQLatch &= 0xF0; IRQLatch |= V & 0xF; break;
+        case 0xF000: X6502_IRQEnd(FCEU_IQEXT); IRQLatch &= 0xF0; IRQLatch |= V & 0xF; break;
 		case 0xF001: X6502_IRQEnd(FCEU_IQEXT); IRQLatch &= 0x0F; IRQLatch |= V << 4; break;
 		case 0xF002: X6502_IRQEnd(FCEU_IQEXT); acount = 0; IRQCount = IRQLatch; IRQa = V & 2; irqcmd = V & 1; break;
 		case 0xF003: X6502_IRQEnd(FCEU_IQEXT); IRQa = irqcmd; break;
-		}
+        }
+	}
 }
 
 static DECLFW(M21Write) {
@@ -167,14 +165,16 @@ static DECLFW(M23Write) {
 
 static void VRC24PowerCommon(void (*WRITEFUNC)(uint32 A, uint8 V)) {
 	Sync();
-	setprg8r(0x10, 0x6000, 0);	/* Only two Goemon games are have battery backed RAM, three more shooters
-								 * (Parodius Da!, Gradius 2 and Crisis Force uses 2k or SRAM at 6000-67FF only
-								 */
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
-	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	if (WRAMSIZE) {
+		setprg8r(0x10, 0x6000, 0);	/* Only two Goemon games are have battery backed RAM, three more shooters
+									 * (Parodius Da!, Gradius 2 and Crisis Force uses 2k or SRAM at 6000-67FF only
+									 */
+		SetReadHandler(0x6000, 0x7FFF, CartBR);
+		SetWriteHandler(0x6000, 0x7FFF, CartBW);
+		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	}
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, WRITEFUNC);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M21Power(void) {
@@ -182,19 +182,13 @@ static void M21Power(void) {
 }
 
 static void M22Power(void) {
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M22Write);
+	VRC24PowerCommon(M22Write);
 }
 
 static void M23Power(void) {
 	big_bank = 0x20;
-
-	if((prgreg[2] == 0x30) && (prgreg[3]== 0x31))
-	{
+	if ((prgreg[2] == 0x30) && (prgreg[3] == 0x31))
 		big_bank = 0x00;
-	}
-
 	VRC24PowerCommon(M23Write);
 }
 
@@ -225,54 +219,39 @@ static void StateRestore(int version) {
 }
 
 static void VRC24Close(void) {
-    if (WRAM)
-        FCEU_gfree(WRAM);
-    WRAM = NULL;
-
-    if (_CHRptr)
-        FCEU_gfree(_CHRptr);
-    _CHRptr = NULL;
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
 }
 
-void Mapper22_Init(CartInfo *info) {
-	isPirate = 0;
-	is22 = 1;
-	info->Power = M22Power;
-	GameStateRestore = StateRestore;
-
-	AddExState(&StateRegs, ~0, 0, 0);
-}
-
-void VRC24_Init(CartInfo *info) {
+static void VRC24_Init(CartInfo *info, uint32 hasWRAM) {
 	info->Close = VRC24Close;
 	MapIRQHook = VRC24IRQHook;
 	GameStateRestore = StateRestore;
+
 	prgMask = 0x1F;
 	prgreg[2] = ~1;
 	prgreg[3] = ~0;
-	
-	if (info->CRC32 == 0xa20ad5d6) /* 400K PRG+ 128K CHR */
-	{
+
+	WRAMSIZE = 0;
+
+	/* 400K PRG + 128K CHR Contra rom hacks */
+	if (info->PRGRomSize == 400 * 1024 && info->CHRRomSize == 128 * 1024) {
 		prgreg[2] = 0x30;
 		prgreg[3] = 0x31;
 		prgMask = 0x3F;
-		big_bank = 0x00;
-		_CHRsize = 128 * 1024;
-		_CHRptr = (uint8*)FCEU_gmalloc(128*1024);
-		memcpy(&_CHRptr[112 * 1024], CHRptr[0], 16 * 1024);
-		memcpy(&_CHRptr[0], &PRGptr[0][400 * 1024], 112 * 1024);
-		SetupCartCHRMapping(0, _CHRptr, _CHRsize, 0);
-		AddExState(_CHRptr, _CHRsize, 0, "_CHR");
 	}
 
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	if (hasWRAM) {
+		WRAMSIZE = 8192;
+		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
-	if (info->battery) {
-		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
+		if (info->battery) {
+			info->SaveGame[0] = WRAM;
+			info->SaveGameLen[0] = WRAMSIZE;
+		}
 	}
 
 	AddExState(&StateRegs, ~0, 0, 0);
@@ -282,28 +261,35 @@ void Mapper21_Init(CartInfo *info) {
 	isPirate = 0;
 	is22 = 0;
 	info->Power = M21Power;
-	VRC24_Init(info);
+	VRC24_Init(info, 1);
+}
+
+void Mapper22_Init(CartInfo *info) {
+	isPirate = 0;
+	is22 = 1;
+	info->Power = M22Power;
+	VRC24_Init(info, 0);
 }
 
 void Mapper23_Init(CartInfo *info) {
 	isPirate = 0;
 	is22 = 0;
 	info->Power = M23Power;
-	VRC24_Init(info);
+	VRC24_Init(info, 1);
 }
 
 void Mapper25_Init(CartInfo *info) {
 	isPirate = 0;
 	is22 = 0;
 	info->Power = M25Power;
-	VRC24_Init(info);
+	VRC24_Init(info, 1);
 }
 
 void UNLT230_Init(CartInfo *info) {
 	isPirate = 1;
 	is22 = 0;
 	info->Power = M23Power;
-	VRC24_Init(info);
+	VRC24_Init(info, 1);
 }
 
 /* -------------------- UNL-TH2131-1 -------------------- */
@@ -343,7 +329,7 @@ static void TH2131Power(void) {
 
 void UNLTH21311_Init(CartInfo *info) {
 	info->Power = TH2131Power;
-	VRC24_Init(info);
+	VRC24_Init(info, 1);
 	MapIRQHook = TH2131IRQHook;
 }
 
@@ -366,7 +352,7 @@ static void KS7021APower(void) {
 
 void UNLKS7021A_Init(CartInfo *info) {
 	info->Power = KS7021APower;
-	VRC24_Init(info);
+	VRC24_Init(info, 1);
 }
 
 /* -------------------- BTL-900218 -------------------- */
@@ -398,6 +384,6 @@ static void BTL900218Power(void) {
 
 void BTL900218_Init(CartInfo *info) {
 	info->Power = BTL900218Power;
-	VRC24_Init(info);
+	VRC24_Init(info, 1);
 	MapIRQHook = BTL900218IRQHook;
 }
