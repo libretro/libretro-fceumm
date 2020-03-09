@@ -712,13 +712,15 @@ static void DoLine(void)
 	if (ScreenON || SpriteON)
 		FetchSpriteData();
 
-   X6502_Run(6);
-   Fixit2();
 	if (GameHBIRQHook && (ScreenON || SpriteON) && ((PPU[0] & 0x38) != 0x18)) {
+		X6502_Run(6);
+		Fixit2();
 		X6502_Run(4);
 		GameHBIRQHook();
 		X6502_Run(85 - 16 - 10);
 	} else {
+		X6502_Run(6);	// Tried 65, caused problems with Slalom(maybe others)
+		Fixit2();
 		X6502_Run(85 - 6 - 16);
 
 		/* A semi-hack for Star Trek: 25th Anniversary */
