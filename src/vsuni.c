@@ -288,7 +288,7 @@ VSUNIENTRY VSUniGames[] =
 	{ 0 }
 };
 
-void FCEU_VSUniCheck(uint64 md5partial, int *MapperNo, uint8 *Mirroring) {
+void FCEU_VSUniCheck(uint64 md5partial, int *MapperNo, int *Mirroring) {
 	VSUNIENTRY *vs = VSUniGames;
 
 	while (vs->name) {
