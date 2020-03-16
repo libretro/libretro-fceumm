@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2020 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,282 +19,465 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* 2020-3-14 - Refactoring based on latest sources */
+/* TODO: Add database for ines 1.0 headers */
+
 #include "mapinc.h"
-#include "mmc3.h"
+#include "../ines.h"
 
-static int is_BMCFK23CA;
-static uint8 unromchr;
-static uint32 dipswitch = 0;
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSize;
+static uint8 *WRAM            = NULL;
+static uint8 *CHRRAM          = NULL;
+static uint32 WRAMSIZE        = 0;
+static uint32 CHRRAMSIZE      = 0;
 
-static void BMCFK23CCW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x40)
-		setchr8(EXPREGS[2] | unromchr);
-	else if (EXPREGS[0] & 0x20) {
-		setchr1r(0x10, A, V);
-	} else {
-		uint16 base=(EXPREGS[2] & 0x7F) << 3;
-		if (EXPREGS[3] & 2) {
-			int cbase = (MMC3_cmd & 0x80) << 5;
-			setchr1(A, V | base);
-			setchr1(0x0000 ^ cbase, DRegBuf[0] | base);
-			setchr1(0x0400 ^ cbase, EXPREGS[6] | base);
-			setchr1(0x0800 ^ cbase, DRegBuf[1] | base);
-			setchr1(0x0c00 ^ cbase, EXPREGS[7] | base);
-		} else
-			setchr1(A, V | base);
-	}
-}
+static uint8 fk23_regs[4]     = { 0 };
+static uint8 mmc3_regs[12]    = { 0 };
+static uint8 mmc3_ctrl        = 0;
+static uint8 mmc3_mirr        = 0;
+static uint8 mmc3_wram        = 0;
+static uint8 irq_count        = 0;
+static uint8 irq_latch        = 0;
+static uint8 irq_enabled      = 0;
+static uint8 irq_reload       = 0;
+static uint8 cnrom_chr        = 0;
+static uint8 dipswitch        = 0;
 
-/* some games are wired differently, and this will need to be changed.
- * all the WXN games require prg_bonus = 1, and cah4e3's multicarts require prg_bonus = 0
- * we'll populate this from a game database
- */
-static int prg_mask;
-static int prg_bonus = 1;
+static uint8 is_bmcfk23ca     = 0;
+static uint8 subtype          = 0;
 
-/*
- * prg_bonus = 0
- * 4-in-1 (FK23C8021)[p1][!].nes
- * 4-in-1 (FK23C8033)[p1][!].nes
- * 4-in-1 (FK23C8043)[p1][!].nes
- * 4-in-1 (FK23Cxxxx, S-0210A PCB)[p1][!].nes
-
- * prg_bonus = 1
- * [m176]大富翁2-上海大亨.wxn.nes
- * [m176]宠物翡翠.fix.nes
- * [m176]格兰帝亚.wxn.nes
- * [m176]梦幻之星.wxn.nes
- * [m176]水浒神兽.fix.nes
- * [m176]西楚霸王.fix.nes
- * [m176]超级大富翁.wxn.nes
- * [m176]雄霸天下.wxn.nes
-
- * works as-is under virtuanes m176
- * [m176]三侠五义.wxn.nes
- * [m176]口袋金.fix.nes
- * [m176]爆笑三国.fix.nes
-
- * needs other tweaks
- * [m176]三国忠烈传.wxn.nes
- * [m176]破釜沉舟.fix.nes
-*/
-
-static uint64 CartList[] =
-{
-	0x1606b8c2aff8d942LL, /* 4-in-1 (BS-8088) [p1][!].nes				*/
-	0x62b51b108a01d2beLL, /* 4-in-1 (FK23C8021) [p1][!].nes				*/
-	0xa37eb9163e001a46LL, /* 4-in-1 (FK23C8026) [p1][!].nes				*/
-	0x8bb48490d8d22711LL, /* 4-in-1 (FK23C8033) [p1][!].nes				*/
-	0xc75888d7b48cd378LL, /* 4-in-1 (FK23C8043) [p1][!].nes				*/
-	0xde5ce25860233f7eLL, /* 4-in-1 (FK23C8045) [p1][!].nes				*/
-	0x8b6c9fc7769a5500LL, /* 4-in-1 (FK23C8052) [p1][!].nes				*/
-	0x5b3aa4cdc484a088LL, /* 4-in-1 (FK23C8056) [p1][!].nes				*/
-	0x497344d14c308a1aLL, /* 4-in-1 (FK23C8078) (Ch) [p1].nes			*/
-	0x9342bf9bae1c798aLL, /* 4-in-1 (FK23C8079) [p1][!].nes				*/
-	0xf81a376fa54fdd69LL, /* 4-in-1 (FK23Cxxxx, S-0210A PCB)[p1][!].nes	*/
-	0x8fd9c235957a6df0LL, /* 5-in-1 (K5003) [p1][!]-1125) (Ch).nes		*/
-	0x0315924d00dd7807LL, /* Mortal Kombat 30 Peoples (DH1043) (Ch).nes	*/
-	0x4b99c39fdb66128aLL, /* 4-in-1 (FK23C8078) (Ch) [p1][U][!].unf		*/
-	0x22a0ba5743191778LL, /* Rockman 4 MI (Hack)						*/
-	0
+static SFORMAT StateRegs[] = {
+   { fk23_regs,      4, "EXPR" },
+   { mmc3_regs,     12, "M3RG" },
+   { &cnrom_chr,     1, "CCHR" },
+   { &dipswitch,     1, "DPSW" },
+   { &mmc3_ctrl,     1, "M3CT" },
+   { &mmc3_mirr,     1, "M3MR" },
+   { &mmc3_wram,     1, "M3WR" },
+   { &irq_reload,    1, "IRQR" },
+   { &irq_count,     1, "IRQC" },
+   { &irq_latch,     1, "IRQL" },
+   { &irq_enabled,   1, "IRQA" },
+   { 0 }
 };
 
-static int DetectPRGbonus(CartInfo *tmp) {
-	int x, i = 0;
-	uint64 partialmd5 = 0;
+#define INVERT_PRG          (mmc3_ctrl & 0x40)
+#define INVERT_CHR          (mmc3_ctrl & 0x80)
+#define WRAM_ENABLED        (mmc3_wram & 0x80)
+#define WRAM_EXTENDED       (mmc3_wram & 0x20)
+#define FK23_ENABLED        (mmc3_wram & 0x40)
+#define MMC3_EXTENDED       (fk23_regs[3] & 0x02)
+#define CHR_CNROM_MODE      (fk23_regs[0] & 0x40)
+#define CHR_OUTER_BANK_SIZE (fk23_regs[0] & 0x10)
 
-	for (x = 0; x < 8; x++)
-		partialmd5 |= (uint64)tmp->MD5[15 - x] << (x * 8);
-	while (CartList[i] != 0) {
-		if (CartList[i] == partialmd5) {
-			return (0);
-		}
-		i++;
-	}
-	return (1);
+static void cwrap(uint16 A, uint16 V)
+{
+   uint8 bank = 0;
+
+   /* some workaround for chr rom / ram access */
+   if (!UNIFchrrama && !CHRRAMSIZE)
+      fk23_regs[0] &= ~0x20; /* chr rom with no chr ram always write to bank 0 */
+   if (UNIFchrrama)
+      fk23_regs[0] &= ~0x20; /* no chr rom, then chr ram is in bank 0 through UNIFchrrama */
+   if (UNIFchrrama && WRAM_EXTENDED && (mmc3_wram & 0x04))
+      fk23_regs[0] &= ~0x20;
+
+   bank = (fk23_regs[0] & 0x20) ? 0x10 : 0;
+   setchr1r(bank, A, V);
 }
 
-static void BMCFK23CPW(uint32 A, uint8 V) {
-	/* Modified (c)May 2017 - Backport older implementations from FCEUmm
-	 * to support big sized FK23CA carts which broke in latest commits.
-	 */
-	/* uint32 bank = (EXPREGS[1] & 0x1F); */
-	uint32 hiblock = ((EXPREGS[0] & 8) << 4) | ((EXPREGS[0] & 0x80) << 1) |  (UNIFchrrama ? ((EXPREGS[2] & 0x40) << 3) : 0);
-	uint32 block = (EXPREGS[1] & 0x60) | hiblock;
-	uint32 extra = (EXPREGS[3] & 2);
+static void SyncCHR(void)
+{
+   if (CHR_CNROM_MODE)
+   {
+      uint8 cnrom_mode  = fk23_regs[3] & 0x46;
+      uint8 mask        = cnrom_mode ? (CHR_OUTER_BANK_SIZE ? 0x01 : 0x03) : 0;
+      uint16 bank       = (fk23_regs[2] | (cnrom_chr & mask)) << 3;
 
-	switch (EXPREGS[0] & 7)	{
-	case 4:
-		setprg32(0x8000,(EXPREGS[1] | block) >> 1);
-		break;
-	case 3:
-		setprg16(0x8000,(EXPREGS[1] | block));
-		setprg16(0xC000,(EXPREGS[1] | block));
-		break;
-	default:
-		if (EXPREGS[0] & 3) {
-			uint32 blocksize = (6) - (EXPREGS[0] & 3);
-			uint32 mask = (1 << blocksize) - 1;
-			V &= mask;
-			/* V &= 63; */ /* ??? is this a good idea? */
-			V |= EXPREGS[1] << 1;
-			setprg8(A, (V | (hiblock << 1)));
-		} else
-			setprg8(A, ((V & prg_mask) | (block << 1)));
-		if (extra) {
-			setprg8(0xC000, EXPREGS[4]);
-			setprg8(0xE000, EXPREGS[5]);
-		}
-		break;
-	}
-	setprg8r(0x10, 0x6000, A001B & 3);
+      cwrap(0x0000, bank);
+      cwrap(0x0400, bank + 1);
+      cwrap(0x0800, bank + 2);
+      cwrap(0x0C00, bank + 3);
+
+      cwrap(0x1000, bank + 4);
+      cwrap(0x1400, bank + 5);
+      cwrap(0x1800, bank + 6);
+      cwrap(0x1C00, bank + 7);
+   }
+   else
+   {
+      uint16 cbase = INVERT_CHR ? 0x1000 : 0;
+
+      if (MMC3_EXTENDED)
+      {
+         uint16 outer = fk23_regs[2] << 3;
+
+         cwrap(cbase ^ 0x0000, mmc3_regs[0] | outer);
+         cwrap(cbase ^ 0x0400, mmc3_regs[10] | outer);
+         cwrap(cbase ^ 0x0800, mmc3_regs[1] | outer);
+         cwrap(cbase ^ 0x0c00, mmc3_regs[11] | outer);
+
+         cwrap(cbase ^ 0x1000, mmc3_regs[2] | outer);
+         cwrap(cbase ^ 0x1400, mmc3_regs[3] | outer);
+         cwrap(cbase ^ 0x1800, mmc3_regs[4] | outer);
+         cwrap(cbase ^ 0x1c00, mmc3_regs[5] | outer);
+      }
+      else
+      {
+         uint8 mask     = CHR_OUTER_BANK_SIZE ? 0x7F : 0xFF;
+         uint16 outer   = (fk23_regs[2] << 3) & ~mask;
+
+         cwrap(cbase ^ 0x0000, ((mmc3_regs[0] & 0xFE) & mask) | outer);
+         cwrap(cbase ^ 0x0400, ((mmc3_regs[0] | 0x01) & mask) | outer);
+         cwrap(cbase ^ 0x0800, ((mmc3_regs[1] & 0xFE) & mask) | outer);
+         cwrap(cbase ^ 0x0C00, ((mmc3_regs[1] | 0x01) & mask) | outer);
+
+         cwrap(cbase ^ 0x1000, (mmc3_regs[2] & mask) | outer);
+         cwrap(cbase ^ 0x1400, (mmc3_regs[3] & mask) | outer);
+         cwrap(cbase ^ 0x1800, (mmc3_regs[4] & mask) | outer);
+         cwrap(cbase ^ 0x1c00, (mmc3_regs[5] & mask) | outer);
+      }
+   }
 }
 
-static DECLFW(BMCFK23CHiWrite) {
-	if (EXPREGS[0] & 0x40) {
-		if (EXPREGS[0] & 0x30)
-			unromchr = 0;
-		else {
-			unromchr = V & 3;
-			FixMMC3CHR(MMC3_cmd);
-		}
-	} else {
-		if ((A == 0x8001) && (EXPREGS[3] & 2 && MMC3_cmd & 8)) {
-			EXPREGS[4 | (MMC3_cmd & 3)] = V;
-			FixMMC3PRG(MMC3_cmd);
-			FixMMC3CHR(MMC3_cmd);
-		} else
-			if (A < 0xC000) {
-				if (UNIFchrrama) { /* hacky... strange behaviour, must be bit scramble due to pcb layot restrictions
-								    * check if it not interfer with other dumps
-								    */
-					if ((A == 0x8000) && (V == 0x46))
-						V = 0x47;
-					else if ((A==0x8000) && (V == 0x47))
-						V = 0x46;
-				}
-				MMC3_CMDWrite(A, V);
-				FixMMC3PRG(MMC3_cmd);
-			} else
-				MMC3_IRQWrite(A, V);
-	}
+static void SyncPRG(void)
+{
+   uint8 prg_mode    = fk23_regs[0] & 7;
+   uint16 prg_base   = (fk23_regs[1] & 0x07F) | ((fk23_regs[0] << 4) & 0x080) | ((fk23_regs[0] << 1) & 0x100) | ((fk23_regs[2] << 3) & 0x600) | ((fk23_regs[2] << 6) & 0x800);
+
+   switch (prg_mode)
+   {
+   case 4:
+      setprg32(0x8000, prg_base >> 1);
+      break;
+   case 3:
+      setprg16(0x8000, prg_base);
+      setprg16(0xC000, prg_base);
+      break;
+   case 0:
+   case 1:
+   case 2:
+      if (MMC3_EXTENDED)
+      {
+         uint16 cbase = INVERT_PRG ? 0x4000 : 0;
+         uint16 outer = prg_base << 1;
+
+         setprg8(0x8000 ^ cbase, mmc3_regs[6] | outer);
+         setprg8(0xA000,         mmc3_regs[7] | outer);        
+         setprg8(0xC000 ^ cbase, mmc3_regs[8] | outer); 
+         setprg8(0xE000,         mmc3_regs[9] | outer);
+      }
+      else
+      {
+         uint8 mask     = 0x3F >> prg_mode;
+         uint16 outer   = (prg_base << 1) & ~mask;
+         uint16 cbase   = INVERT_PRG ? 0x4000 : 0;
+
+         setprg8(0x8000 ^ cbase, (mmc3_regs[6] & mask) | outer);
+         setprg8(0xA000,         (mmc3_regs[7] & mask) | outer);
+         setprg8(0xC000 ^ cbase, (0xFE & mask) | outer);
+         setprg8(0xE000,         (0xFF & mask) | outer);
+      }
+      break;
+   }
 }
 
-static DECLFW(BMCFK23CWrite) {
-	if (A & (1 << (dipswitch + 4))) {
-		int remap = 0;
-		EXPREGS[A & 3] = V;
-
-		/* sometimes writing to reg0 causes remappings to occur. we think the 2 signifies this.
-		 * if not, 0x24 is a value that is known to work
-		 * however, the low 4 bits are known to control the mapping mode,
-		 * so 0x20 is more likely to be the immediate remap flag
-		 */
-		remap |= ((EXPREGS[0] & 0xF0) == 0x20);
-
-		/* this is an actual mapping reg. i think reg0 controls what happens
-		 * when reg1 is written. anyway, we have to immediately remap these
-		 */
-		remap |= (A & 3) == 1;
-		/* this too. */
-		remap |= (A & 3) == 2;
-
-		if (remap) {
-			FixMMC3PRG(MMC3_cmd);
-			FixMMC3CHR(MMC3_cmd);
-		}
-	}
-
-	if (is_BMCFK23CA)
-		if(EXPREGS[3] & 2)
-			EXPREGS[0] &= ~7;   /* hacky hacky! if someone wants extra banking,
-								 * then for sure doesn't want mode 4 for it!
-								 * (allow to run A version boards on normal mapper)
-								 */
+static void SyncWRAM(void)
+{
+   /* TODO: WRAM Protected  mode when not in extended mode */
+   if (WRAM_ENABLED || WRAM_EXTENDED)
+   {
+      if (WRAM_EXTENDED)
+      {
+         /* FIXME:this does not look normal, but it works, $5000-$5fff */
+         setprg8r(0x10, 0x4000, (mmc3_wram & 0x03) + 1);
+         setprg8r(0x10, 0x6000, mmc3_wram & 0x03);
+      }
+      else
+         setprg8r(0x10, 0x6000, 0);
+   }
 }
 
-static void BMCFK23CReset(void) {
-	/* !NOT NECESSARY ANYMORE!
-	 *
-	 * this little hack makes sure that we try all the dip switch settings eventually, if we reset enough
-	 * dipswitch++;
-	 * dipswitch&=7;
-	 * printf("BMCFK23C dipswitch set to %d\n",dipswitch);
-	 */
-
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = 0;
-	EXPREGS[4] = EXPREGS[5] = EXPREGS[6] = EXPREGS[7] = 0xFF;
-	MMC3RegReset();
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static void SyncMIR(void)
+{
+   switch (mmc3_mirr & (WRAM_EXTENDED ? 0x03 : 0x01))
+   {
+   case 0: setmirror(MI_V); break;
+   case 1: setmirror(MI_H); break;
+   case 2: setmirror(MI_0); break;
+   case 3: setmirror(MI_1); break;
+   }
 }
 
-static void BMCFK23CPower(void) {
-	GenMMC3Power();
-	dipswitch = 0;
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = 0;
-	EXPREGS[4] = EXPREGS[5] = EXPREGS[6] = EXPREGS[7] = 0xFF;
-	SetWriteHandler(0x5000, 0x5fff, BMCFK23CWrite);
-	SetWriteHandler(0x8000, 0xFFFF, BMCFK23CHiWrite);
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static void Sync(void)
+{
+   SyncPRG();
+   SyncCHR();
+   SyncWRAM();
+   SyncMIR();
 }
 
-static void BMCFK23CAPower(void) {
-	GenMMC3Power();
-	dipswitch = 0;
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = 0;
-	EXPREGS[4] = EXPREGS[5] = EXPREGS[6] = EXPREGS[7] = 0xFF;
-	SetWriteHandler(0x5000, 0x5fff, BMCFK23CWrite);
-	SetWriteHandler(0x8000, 0xFFFF, BMCFK23CHiWrite);
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(WriteLo)
+{
+   if (((WRAM_EXTENDED == 0) || FK23_ENABLED) && (A & (0x10 << dipswitch)))
+   {
+      fk23_regs[A & 3] = V;
+      cnrom_chr = 0;      
+      SyncPRG();
+      SyncCHR();
+   }
+   else
+      /* FK23C Registers disabled, $5000-$5FFF maps to the second 4 KiB of the 8 KiB WRAM bank 2 */
+      CartBW(A, V);
 }
 
-static void BMCFK23CAClose(void) {
-	if (CHRRAM)
-		FCEU_gfree(CHRRAM);
-	CHRRAM=NULL;
+static DECLFW(WriteHi)
+{
+   if (CHR_CNROM_MODE && ((A < 0xA000) || (A >= 0xC000)))
+   {
+      cnrom_chr = V & 3;
+      if ((fk23_regs[0] & 0x07) == 0x03)
+         cnrom_chr = 0;         
+
+      SyncCHR();
+   }
+
+   switch (A & 0xE000)
+   {
+   case 0x8000:
+   case 0x9000:
+   case 0xC000:
+   case 0xD000:
+   case 0xE000:
+      if (CHR_CNROM_MODE)
+      {
+         if ((fk23_regs[0] & 0x07) == 0x03)
+            cnrom_chr = 0;
+         else
+            cnrom_chr = V & 3;
+
+         SyncCHR();
+      }
+      break;
+   }
+
+   switch (A & 0xE001)
+   {
+   case 0x8000:
+   {
+      uint8 old_ctrl = mmc3_ctrl;
+
+      /* Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0,
+       * but MMC3 registers $46 and $47 swapped. */
+      if (UNIFchrrama && ((ROM_size << 4) > 8192))
+      {
+         if (V == 0x46)
+            V = 0x47;
+         else if (V == 0x47)
+            V = 0x46;
+      }
+
+      mmc3_ctrl = V;
+
+      if (INVERT_PRG != (old_ctrl & 0x40))
+         SyncPRG();
+
+      if (INVERT_CHR != (old_ctrl & 0x80))
+         SyncCHR();
+
+      break;
+   }
+   case 0x8001:
+   {
+      uint8 ctrl_mask = MMC3_EXTENDED ? 0x0F : 0x07;
+
+      if ((mmc3_ctrl & ctrl_mask) < 12)
+      {
+         mmc3_regs[mmc3_ctrl & ctrl_mask] = V;
+
+         if (((mmc3_ctrl & ctrl_mask) < 6) || ((mmc3_ctrl & ctrl_mask) >= 10))
+            SyncCHR();
+         else
+            SyncPRG();
+      }
+      break;
+   }
+   case 0xA000:
+      mmc3_mirr = V;
+      SyncMIR();
+      break;
+   case 0xA001:
+      /* ignore bits when ram config register is disabled */
+      if ((V & 0x20) == 0)
+         V &= 0xC0;
+      mmc3_wram = V;
+      Sync();
+      break;
+   case 0xC000:
+      irq_latch = V;
+      break;
+   case 0xC001:
+      irq_reload = 1;
+      break;
+   case 0xE000:
+      X6502_IRQEnd(FCEU_IQEXT);
+      irq_enabled = 0;
+      break;
+   case 0xE001:
+      irq_enabled = 1;
+      break;
+   }
 }
 
-void BMCFK23C_Init(CartInfo *info) {
-	is_BMCFK23CA = 0;
+static void IRQHook(void)
+{
+   if (!irq_count || irq_reload)
+      irq_count = irq_latch;
+   else
+      irq_count--;
 
-	GenMMC3_Init(info, 512, 256, 8, 0);
-	cwrap = BMCFK23CCW;
-	pwrap = BMCFK23CPW;
-	info->Power = BMCFK23CPower;
-	info->Reset = BMCFK23CReset;
+   if (!irq_count && irq_enabled)
+      X6502_IRQBegin(FCEU_IQEXT);
 
-	AddExState(EXPREGS, 8, 0, "EXPR");
-	AddExState(&unromchr, 1, 0, "UCHR");
-	AddExState(&dipswitch, 1, 0, "DPSW");
-
-	prg_bonus = DetectPRGbonus(info);
-	prg_mask = (0x7F >> prg_bonus);
+   irq_reload = 0;
 }
 
-void BMCFK23CA_Init(CartInfo *info) {
-	is_BMCFK23CA = 1;
+static void Reset(void)
+{
+   /* this little hack makes sure that we try all the dip switch settings eventually, if we reset enough */
+   /*if (is_bmcfk23ca) {
+      dipswitch = (dipswitch + 1) & 7;
+      printf("BMCFK23C dipswitch set to $%04x\n",0x5000|0x10 << dipswitch);
+   }*/
 
-	GenMMC3_Init(info, 512, 256, 8, 0);
-	cwrap=BMCFK23CCW;
-	pwrap=BMCFK23CPW;
-	info->Power=BMCFK23CAPower;
-	info->Reset=BMCFK23CReset;
-	info->Close=BMCFK23CAClose;
+   fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = 0;
+   mmc3_regs[0]   = 0;
+   mmc3_regs[1]   = 2;
+   mmc3_regs[2]   = 4;
+   mmc3_regs[3]   = 5;
+   mmc3_regs[4]   = 6;
+   mmc3_regs[5]   = 7;
+   mmc3_regs[6]   = 0;
+   mmc3_regs[7]   = 1;
+   mmc3_regs[8]   = ~1;
+   mmc3_regs[9]   = ~0;
+   mmc3_regs[10]  = ~0;
+   mmc3_regs[11]  = ~0;
+   mmc3_wram      = 0x80;
+   mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
 
-	CHRRAMSize=8192;
-	CHRRAM=(uint8*)FCEU_gmalloc(CHRRAMSize);
-	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);
-	AddExState(CHRRAM, CHRRAMSize, 0, "CRAM");
+   if (subtype == 1)
+      fk23_regs[1] = 0x20;
 
-	AddExState(EXPREGS, 8, 0, "EXPR");
-	AddExState(&unromchr, 1, 0, "UCHR");
-	AddExState(&dipswitch, 1, 0, "DPSW");
+   Sync();
+}
 
-	prg_bonus = DetectPRGbonus(info);
-	prg_mask = (0x7F >> prg_bonus);
+static void Power(void)
+{
+   fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = 0;
+   mmc3_regs[0]   = 0;
+   mmc3_regs[1]   = 2;
+   mmc3_regs[2]   = 4;
+   mmc3_regs[3]   = 5;
+   mmc3_regs[4]   = 6;
+   mmc3_regs[5]   = 7;
+   mmc3_regs[6]   = 0;
+   mmc3_regs[7]   = 1;
+   mmc3_regs[8]   = ~1;
+   mmc3_regs[9]   = ~0;
+   mmc3_regs[10]  = ~0;
+   mmc3_regs[11]  = ~0;
+   mmc3_wram      = 0x80;
+   mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
+
+   if (subtype == 1)
+      fk23_regs[1] = 0x20;
+
+   Sync();
+
+   SetReadHandler(0x8000, 0xFFFF, CartBR);
+   SetWriteHandler(0x5000, 0x5fff, WriteLo);
+   SetWriteHandler(0x8000, 0xFFFF, WriteHi);
+
+   if (WRAMSIZE)
+   {
+      SetReadHandler(0x6000, 0x7FFF, CartBR);
+      SetWriteHandler(0x6000, 0x7FFF, CartBW);
+      FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+   }
+}
+
+static void Close(void)
+{
+   if (WRAM)
+      FCEU_gfree(WRAM);
+   WRAM = NULL;
+
+   if (CHRRAM)
+      FCEU_gfree(CHRRAM);
+   CHRRAM = NULL;
+}
+
+static void StateRestore(void)
+{
+   Sync();
+}
+
+void BMCFK23C_Init(CartInfo *info)
+{
+   is_bmcfk23ca = 0;
+
+   info->Power = Power;
+   info->Reset = Reset;
+   info->Close = Close;
+   GameHBIRQHook = IRQHook;
+   GameStateRestore = StateRestore;
+   AddExState(StateRegs, ~0, 0, 0);
+
+   if (((ROM_size << 4) == 1024) && ((VROM_size << 3) == 1024))
+      subtype = 1;
+
+   if (info->iNES2)
+   {
+      if (!UNIFchrrama)
+         CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
+      WRAMSIZE = info->PRGRamSize + info->PRGRamSaveSize;
+   }
+   else
+   {
+      if (!UNIFchrrama)
+      {
+         /*  Rockman I - VI */
+         if (ROM_size == 128 && VROM_size == 64)
+            CHRRAMSIZE = 8 * 1024;
+      }
+
+      /* For compatibility with waixing games, set wram to 32K */
+      WRAMSIZE = 32 * 1024;
+   }
+
+   if (CHRRAMSIZE)
+   {
+      CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
+      SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
+      AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
+   }
+
+   if (WRAMSIZE)
+   {
+      WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+      SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+      AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+
+      if (info->battery)
+      {
+         info->SaveGame[0] = WRAM;
+         info->SaveGameLen[0] = info->PRGRamSaveSize ? info->PRGRamSaveSize : WRAMSIZE;
+      }
+   }
+}
+
+void BMCFK23CA_Init(CartInfo *info)
+{
+   BMCFK23C_Init(info);
+   is_bmcfk23ca = 1;
 }
