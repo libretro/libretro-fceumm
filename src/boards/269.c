@@ -31,7 +31,7 @@ static uint8 *CHRROM;
 static uint32 CHRROMSIZE;
 
 static void M269CW(uint32 A, uint8 V) {
-	uint32 NV = V;
+	uint16 NV = V;
 	if (EXPREGS[2] & 8)
 		NV &= (1 << ((EXPREGS[2] & 7) + 1)) - 1;
 	NV |= EXPREGS[0] | ((EXPREGS[2] & 0xF0) << 4);
@@ -39,7 +39,7 @@ static void M269CW(uint32 A, uint8 V) {
 }
 
 static void M269PW(uint32 A, uint8 V) {
-	uint32 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
+	uint16 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
 	MV |= EXPREGS[1];
 	MV |= ((EXPREGS[3] & 0x40) << 2);
 	setprg8(A, MV);

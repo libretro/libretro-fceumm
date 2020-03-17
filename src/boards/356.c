@@ -30,7 +30,7 @@ static uint32 CHRRAMSIZE = 0;
 
 static void M356CW(uint32 A, uint8 V) {
 	if (EXPREGS[2] & 0x20) {
-		uint32 NV = V;
+		uint8 NV = V;
 		if (EXPREGS[2] & 8)
 			NV &= (1 << ((EXPREGS[2] & 7) + 1)) - 1;
 		else
@@ -43,7 +43,7 @@ static void M356CW(uint32 A, uint8 V) {
 }
 
 static void M356PW(uint32 A, uint8 V) {
-	uint32 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
+	uint8 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
 	MV |= EXPREGS[1];
 	if (UNIFchrrama)
 		MV |= ((EXPREGS[2] & 0x40) << 2);

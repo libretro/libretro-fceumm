@@ -29,9 +29,6 @@ static uint8 smb2_reg;
 static uint8 smb2j_enabled;
 static uint16 smb2j_count;
 
-static uint32 WRAMSIZE;
-static uint8 *WRAM;
-
 static SFORMAT StateRegs[] = {
 	{ &mode, 1, "MODE" },
 	{ &mmc3_reload, 1, "IRQR" },

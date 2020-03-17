@@ -31,8 +31,8 @@ static uint8 preg[4];
 static uint8 dipswitch;
 static uint32 IRQCount, IRQa;
 
-static uint8 banks[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };
-static uint8 outer_bank[4] = { 0x00, 0x08, 0x10, 0x18 };
+static const uint8 banks[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };
+static const uint8 outer_bank[4] = { 0x00, 0x08, 0x10, 0x18 };
 
 static SFORMAT StateRegs[] =
 {
