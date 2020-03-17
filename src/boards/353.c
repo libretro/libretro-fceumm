@@ -110,6 +110,7 @@ static void M353Reset(void) {
 }
 
 static void M353Close(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;

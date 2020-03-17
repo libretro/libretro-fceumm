@@ -55,6 +55,7 @@ static DECLFW(M269Write5) {
 }
 
 static void M269Close(void) {
+	GenMMC3Close();
 	if (CHRROM)
 		FCEU_free(CHRROM);
 	CHRROM = NULL;

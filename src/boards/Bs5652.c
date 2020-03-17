@@ -213,6 +213,7 @@ static void Bs5652Reset(void)
 
 static void Bs5652Close(void)
 {
+	GenMMC3Close();
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;

@@ -289,7 +289,7 @@ void GenMMC3Power(void) {
 		FCEU_dwmemset(CHRRAM, 0, CHRRAMSIZE);
 }
 
-static void GenMMC3Close(void) {
+void GenMMC3Close(void) {
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	if (WRAM)

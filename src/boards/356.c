@@ -67,6 +67,7 @@ static DECLFW(M356Write) {
 }
 
 static void M356Close(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_free(CHRRAM);
 	CHRRAM = NULL;

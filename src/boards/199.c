@@ -75,6 +75,7 @@ static void M199Power(void) {
 }
 
 static void M199Close(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;

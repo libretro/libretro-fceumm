@@ -162,6 +162,7 @@ static void NC7000MReset(void) {
 	MMC3RegReset();
 }
 static void NC7000MClose(void) {
+	GenMMC3Close();
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;

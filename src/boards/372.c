@@ -90,6 +90,7 @@ static void M372Power(void) {
 }
 
 static void M372Close(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;

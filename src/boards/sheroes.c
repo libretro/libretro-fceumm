@@ -61,6 +61,7 @@ static void MSHPower(void) {
 }
 
 static void MSHClose(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;
