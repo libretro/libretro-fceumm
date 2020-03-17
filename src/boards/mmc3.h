@@ -21,6 +21,7 @@ extern void (*mwrap)(uint8 V);
 void GenMMC3Power(void);
 void GenMMC3Restore(int version);
 void MMC3RegReset(void);
+void GenMMC3Close(void);
 void FixMMC3PRG(int V);
 void FixMMC3CHR(int V);
 DECLFW(MMC3_CMDWrite);

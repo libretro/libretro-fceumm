@@ -41,7 +41,7 @@ static void M353PPU(uint32 A) {
 }
 
 static void M353PW(uint32 A, uint8 V) {
-	uint32 bank = V;
+	uint8 bank = V;
 
 	if (EXPREGS[0] == 2) {
 		bank &= 0x0F;
@@ -110,6 +110,7 @@ static void M353Reset(void) {
 }
 
 static void M353Close(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;

@@ -53,7 +53,7 @@ static void Sync(void) {
 }
 
 static DECLFW(M225Write) {
-	uint32 bank = (A >> 14) & 1;
+	uint8 bank = (A >> 14) & 1;
 	mirr = (A >> 13) & 1;
 	mode = (A >> 12) & 1;
 	chr = (A & 0x3f) | (bank << 6);

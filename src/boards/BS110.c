@@ -175,6 +175,10 @@ static void BS110Reset(void)
 	MMC3RegReset();
 }
 static void BS110Close(void) {
+	GenMMC3Close();
+	if (WRAM)
+		FCEU_free(WRAM);
+	WRAM = NULL;
 }
 
 void BS110_Init(CartInfo *info) {

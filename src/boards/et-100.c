@@ -83,6 +83,7 @@ static void BMC1024CA1Power(void) {
 }
 
 static void BMC1024CA1Close(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;

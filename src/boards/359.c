@@ -52,8 +52,8 @@ static SFORMAT StateRegs[] = {
 };
 
 static void Sync(void) {
-	uint32 prgMask = 0x3F;
-	uint32 prgOuterBank = (exRegs[0] & 0x38) << 1;
+	uint8 prgMask = 0x3F;
+	uint8 prgOuterBank = (exRegs[0] & 0x38) << 1;
 
 	switch (exRegs[1] & 3) {
 	case 0: prgMask = 0x3F; break;
@@ -71,9 +71,10 @@ static void Sync(void) {
 	if (!UNIFchrrama) {
 		switch (mapperNum) {
 		case 359: {
-			uint32 chrMask = (exRegs[1] & 0x40) ? 0xFF : 0x7F;
-			uint32 chrOuterBank = (exRegs[3] << 7);
-			uint32 i;
+			uint8 i;
+			uint8 chrMask = (exRegs[1] & 0x40) ? 0xFF : 0x7F;
+			uint16 chrOuterBank = (exRegs[3] << 7);
+			
 			for (i = 0; i < 8; i++)
 				setchr1(i << 10, (creg[i] & chrMask) | chrOuterBank);
 		} break;
@@ -123,19 +124,19 @@ static DECLFW(M359WriteIRQ) {
 }
 
 static DECLFW(M359WritePRG) {
-	uint32 i = A & 3;
+	uint8 i = A & 3;
 	preg[i] = V;
 	Sync();
 }
 
 static DECLFW(M359WriteCHR) {
-	uint32 i = ((A >> 10) & 4) | (A & 3);
+	uint8 i = ((A >> 10) & 4) | (A & 3);
 	creg[i] = V;
 	Sync();
 }
 
 static DECLFW(M359WriteEx) {
-	uint32 i = A & 3;
+	uint8 i = A & 3;
 	exRegs[i] = V;
 	Sync();
 }

@@ -806,8 +806,8 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (UNIFCart.mapper)
 		FCEU_printf(" [Unif] Mapper:    %d\n", UNIFCart.mapper);
 	FCEU_printf(" [Unif] SubMapper: %d\n", UNIFCart.submapper);
-	FCEU_printf(" [Unif] PRG ROM:   %u KiB\n", UNIF_PRGROMSize / 1024);
-	FCEU_printf(" [Unif] CHR ROM:   %u KiB\n", UNIF_CHRROMSize / 1024);
+	FCEU_printf(" [Unif] PRG ROM:   %u KiB\n", UNIFCart.PRGRomSize / 1024);
+	FCEU_printf(" [Unif] CHR ROM:   %u KiB\n", UNIFCart.CHRRomSize / 1024);
 
 	GameInterface = UNIFGI;
 

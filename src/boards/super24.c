@@ -76,6 +76,7 @@ static void Super24Reset(void) {
 }
 
 static void Super24Close(void) {
+	GenMMC3Close();
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;
