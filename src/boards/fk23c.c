@@ -232,15 +232,6 @@ static DECLFW(WriteLo)
 
 static DECLFW(WriteHi)
 {
-   if (CHR_CNROM_MODE && ((A < 0xA000) || (A >= 0xC000)))
-   {
-      cnrom_chr = V & 3;
-      if ((fk23_regs[0] & 0x07) == 0x03)
-         cnrom_chr = 0;         
-
-      SyncCHR();
-   }
-
    switch (A & 0xE000)
    {
    case 0x8000:
@@ -248,12 +239,13 @@ static DECLFW(WriteHi)
    case 0xC000:
    case 0xD000:
    case 0xE000:
+   case 0xF000:
       if (CHR_CNROM_MODE)
       {
+         cnrom_chr = V & 0x03;
+
          if ((fk23_regs[0] & 0x07) == 0x03)
             cnrom_chr = 0;
-         else
-            cnrom_chr = V & 3;
 
          SyncCHR();
       }
