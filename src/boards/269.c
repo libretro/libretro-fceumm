@@ -67,25 +67,19 @@ static void M269Reset(void) {
 }
 
 static void M269Power(void) {
-	uint32 i;
 	EXPREGS[0] = EXPREGS[1] = EXPREGS[3] = EXPREGS[4] = 0;
 	EXPREGS[2] = 0x0F;
 	GenMMC3Power();
 	SetWriteHandler(0x5000, 0x5FFF, M269Write5);
+}
 
-	CHRROMSIZE = PRGsize[0];
-	CHRROM = (uint8*)FCEU_gmalloc(CHRROMSIZE);
-	/* Decrypt CHR data */
-	for (i = 0; i < CHRROMSIZE; i++) {
-		uint8_t Val = PRGptr[0][i];
-		Val = ((Val & 1) << 6) | ((Val & 2) << 3) | ((Val & 4) << 0) | ((Val & 8) >> 3) | ((Val & 16) >> 3) | ((Val & 32) >> 2) | ((Val & 64) >> 1) | ((Val & 128) << 0);
-		CHRROM[i] = Val;
-	}
-	SetupCartCHRMapping(0, CHRROM, CHRROMSIZE, 0);
-	AddExState(CHRROM, CHRROMSIZE, 0, "_CHR");
+static uint8 unscrambleCHR(uint8 data) {
+	return 	((data & 0x01) << 6) | ((data & 0x02) << 3) | ((data & 0x04) << 0) | ((data & 0x08) >> 3) |
+			((data & 0x10) >> 3) | ((data & 0x20) >> 2) | ((data & 0x40) >> 1) | ((data & 0x80) << 0);
 }
 
 void Mapper269_Init(CartInfo *info) {
+	int i;
 	GenMMC3_Init(info, 512, 0, 8, 0);
 	cwrap = M269CW;
 	pwrap = M269PW;
@@ -93,4 +87,12 @@ void Mapper269_Init(CartInfo *info) {
 	info->Reset = M269Reset;
 	info->Close = M269Close;
 	AddExState(EXPREGS, 5, 0, "EXPR");
+
+	CHRROMSIZE = PRGsize[0];
+	CHRROM = (uint8*)FCEU_gmalloc(CHRROMSIZE);
+	/* unscramble CHR data from PRG */
+	for (i = 0; i < CHRROMSIZE; i++)
+		CHRROM[i] = unscrambleCHR(PRGptr[0][i]);
+	SetupCartCHRMapping(0, CHRROM, CHRROMSIZE, 0);
+	AddExState(CHRROM, CHRROMSIZE, 0, "_CHR");
 }
