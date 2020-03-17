@@ -18,90 +18,50 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* BMC-Super24in1SC03, basically is just a duplicate of BMC-FK23C (mapper 176)
+ * This should be merge with the said mapper soon... */
+
 #include "mapinc.h"
 #include "mmc3.h"
 
 static uint8 *CHRRAM = NULL;
-static int masko8[8] = { 63, 31, 15, 1, 3, 0, 0, 0 };
-
-static uint8 oldversion = 0;
-/* this mapper is 176 rip mapper. */
+static const int masko8[8] = { 63, 31, 15, 1, 3, 0, 0, 0 };
 
 static void Super24PW(uint32 A, uint8 V) {
-	if (oldversion == 1)
-	{
-		uint32 NV = V & masko8[EXPREGS[0] & 7];
-		NV |= (EXPREGS[1] << 1);
-		setprg8r((NV >> 6) & 0xF, A, NV);
-	}
-	else
-	{
-		setprg8(A, (EXPREGS[1] << 1) | (V & masko8[EXPREGS[0] & 0x7]));
-	}
-
+	setprg8(A, (EXPREGS[1] << 1) | (V & masko8[EXPREGS[0] & 0x7]));
 }
 
 static void Super24CW(uint32 A, uint8 V) {
-	if (oldversion == 1)
-	{
-		if (EXPREGS[0] & 0x20)
-			setchr1r(0x10, A, V);
-		else {
-			uint32 NV = V | (EXPREGS[2] << 3);
-			setchr1r((NV >> 9) & 0xF, A, NV);
-		}
-	}
-	else
-	{
-		if (EXPREGS[0] & 0x20)
-			setchr1r(0x10, A, (EXPREGS[2] << 3) | V);
-		else
-			setchr1r(0x00, A, (EXPREGS[2] << 3) | V);
-	}
+	setchr1r((EXPREGS[0] & 0x20) >> 1, A, (EXPREGS[2] << 3) | V);
 }
 
 static DECLFW(Super24Write) {
-	if (oldversion == 1)
-	{
-		switch (A) {
-		case 0x5FF0:
+	switch (A & 0xF003) {
+	case 0x5000:
+		if (EXPREGS[0] != V) {
 			EXPREGS[0] = V;
 			FixMMC3PRG(MMC3_cmd);
 			FixMMC3CHR(MMC3_cmd);
-			break;
-		case 0x5FF1:
+		}
+		break;
+	case 0x5001:
+		if (EXPREGS[1] != V) {
 			EXPREGS[1] = V;
 			FixMMC3PRG(MMC3_cmd);
-			break;
-		case 0x5FF2:
+		}
+		break;
+	case 0x5002:
+		if (EXPREGS[2] != V) {
 			EXPREGS[2] = V;
 			FixMMC3CHR(MMC3_cmd);
-			break;
 		}
-	}
-	else
-	{
-		switch (A & 0xF003) {
-		case 0x5000:
-			EXPREGS[0] = V;
-			FixMMC3PRG(MMC3_cmd);
-			FixMMC3CHR(MMC3_cmd);
-			break;
-		case 0x5001:
-			EXPREGS[1] = V;
-			FixMMC3PRG(MMC3_cmd);
-			break;
-		case 0x5002:
-			EXPREGS[2] = V;
-			FixMMC3CHR(MMC3_cmd);
-			break;
-		}
+		break;
 	}
 }
 
 static void Super24Power(void) {
 	EXPREGS[0] = 0x24;
-	EXPREGS[1] = 159;
+	EXPREGS[1] = 0x9F;
 	EXPREGS[2] = 0;
 	GenMMC3Power();
 	SetWriteHandler(0x5000, 0x7FFF, Super24Write);
@@ -110,7 +70,7 @@ static void Super24Power(void) {
 
 static void Super24Reset(void) {
 	EXPREGS[0] = 0x24;
-	EXPREGS[1] = 159;
+	EXPREGS[1] = 0x9F;
 	EXPREGS[2] = 0;
 	MMC3RegReset();
 }
@@ -122,40 +82,6 @@ static void Super24Close(void) {
 }
 
 void Super24_Init(CartInfo *info) {
-
-	if (oldversion == 0)
-	{
-      uint8* _CHRptr;
-      uint8* _PRGptr;
-      uint32 _CHROffset = 0;
-      uint32 _PRGOffset = 0;
-		uint32 _PRGsize = 0;
-		uint32 _CHRsize = 0;
-		int i = 0;
-
-		for (i = 0;i < 4;i++)
-		{
-			_PRGsize += PRGsize[i];
-			_CHRsize += CHRsize[i];
-		}
-
-		_CHRptr = (uint8*)FCEU_gmalloc(_CHRsize);
-		for (i = 0;i < 4;i++)
-		{
-			memcpy(&_CHRptr[_CHROffset], CHRptr[i], CHRsize[i]);
-			_CHROffset += CHRsize[i];
-		}
-
-		_PRGptr = (uint8*)FCEU_gmalloc(_PRGsize);
-		for (i = 0;i < 4;i++)
-		{
-			memcpy(&_PRGptr[_PRGOffset], PRGptr[i], PRGsize[i]);
-			_PRGOffset += PRGsize[i];
-		}
-		SetupCartCHRMapping(0, _CHRptr, _CHRsize, 0);
-		SetupCartPRGMapping(0, _PRGptr, _PRGsize, 0);
-	}
-
 	GenMMC3_Init(info, 512, 512, 0, 0);
 	info->Power = Super24Power;
 	info->Reset = Super24Reset;

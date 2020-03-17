@@ -71,8 +71,6 @@ static SFORMAT StateRegs[] = {
 
 static void cwrap(uint16 A, uint16 V)
 {
-   uint8 bank = 0;
-
    /* some workaround for chr rom / ram access */
    if (!UNIFchrrama && !CHRRAMSIZE)
       fk23_regs[0] &= ~0x20; /* chr rom with no chr ram always write to bank 0 */
@@ -81,16 +79,14 @@ static void cwrap(uint16 A, uint16 V)
    if (UNIFchrrama && WRAM_EXTENDED && (mmc3_wram & 0x04))
       fk23_regs[0] &= ~0x20;
 
-   bank = (fk23_regs[0] & 0x20) ? 0x10 : 0;
-   setchr1r(bank, A, V);
+   setchr1r((fk23_regs[0] & 0x20) >> 1, A, V);
 }
 
 static void SyncCHR(void)
 {
    if (CHR_CNROM_MODE)
    {
-      uint8 cnrom_mode  = fk23_regs[3] & 0x46;
-      uint8 mask        = cnrom_mode ? (CHR_OUTER_BANK_SIZE ? 0x01 : 0x03) : 0;
+      uint8 mask        = (fk23_regs[3] & 0x46) ? (CHR_OUTER_BANK_SIZE ? 0x01 : 0x03) : 0;
       uint16 bank       = (fk23_regs[2] | (cnrom_chr & mask)) << 3;
 
       cwrap(0x0000, bank);
@@ -109,11 +105,11 @@ static void SyncCHR(void)
 
       if (MMC3_EXTENDED)
       {
-         uint16 outer = fk23_regs[2] << 3;
+         uint16 outer   = fk23_regs[2] << 3;
 
-         cwrap(cbase ^ 0x0000, mmc3_regs[0] | outer);
+         cwrap(cbase ^ 0x0000, mmc3_regs[0]  | outer);
          cwrap(cbase ^ 0x0400, mmc3_regs[10] | outer);
-         cwrap(cbase ^ 0x0800, mmc3_regs[1] | outer);
+         cwrap(cbase ^ 0x0800, mmc3_regs[1]  | outer);
          cwrap(cbase ^ 0x0c00, mmc3_regs[11] | outer);
 
          cwrap(cbase ^ 0x1000, mmc3_regs[2] | outer);
@@ -142,7 +138,9 @@ static void SyncCHR(void)
 static void SyncPRG(void)
 {
    uint8 prg_mode    = fk23_regs[0] & 7;
-   uint16 prg_base   = (fk23_regs[1] & 0x07F) | ((fk23_regs[0] << 4) & 0x080) | ((fk23_regs[0] << 1) & 0x100) | ((fk23_regs[2] << 3) & 0x600) | ((fk23_regs[2] << 6) & 0x800);
+   uint16 prg_base   = (fk23_regs[1] & 0x07F) | ((fk23_regs[0] << 4) & 0x080) |
+         ((fk23_regs[0] << 1) & 0x100) | ((fk23_regs[2] << 3) & 0x600) |
+         ((fk23_regs[2] << 6) & 0x800);
 
    switch (prg_mode)
    {
@@ -158,8 +156,8 @@ static void SyncPRG(void)
    case 2:
       if (MMC3_EXTENDED)
       {
-         uint16 cbase = INVERT_PRG ? 0x4000 : 0;
-         uint16 outer = prg_base << 1;
+         uint16 cbase   = INVERT_PRG ? 0x4000 : 0;
+         uint16 outer   = prg_base << 1;
 
          setprg8(0x8000 ^ cbase, mmc3_regs[6] | outer);
          setprg8(0xA000,         mmc3_regs[7] | outer);        
@@ -232,15 +230,6 @@ static DECLFW(WriteLo)
 
 static DECLFW(WriteHi)
 {
-   if (CHR_CNROM_MODE && ((A < 0xA000) || (A >= 0xC000)))
-   {
-      cnrom_chr = V & 3;
-      if ((fk23_regs[0] & 0x07) == 0x03)
-         cnrom_chr = 0;         
-
-      SyncCHR();
-   }
-
    switch (A & 0xE000)
    {
    case 0x8000:
@@ -248,12 +237,13 @@ static DECLFW(WriteHi)
    case 0xC000:
    case 0xD000:
    case 0xE000:
+   case 0xF000:
       if (CHR_CNROM_MODE)
       {
+         cnrom_chr = V & 0x03;
+
          if ((fk23_regs[0] & 0x07) == 0x03)
             cnrom_chr = 0;
-         else
-            cnrom_chr = V & 3;
 
          SyncCHR();
       }
