@@ -1240,51 +1240,32 @@ static void update_dipswitch_vsuni(void)
    }
 }
 
-/* Nintendo World Championship */
+/* Nintendo World Championships 1990 */
 static struct retro_core_option_definition dipswitch_nwc[] = {
    {
-      "fceumm_dipswitch_nwc_swa",
-      "Dipswitch SW1 (+18.7secs)",
-      "Adds 18.7 seconds to total time. Total time = 5 mins + enabled dipswitches.",
+      "fceumm_dipswitch_nwc",
+      "Gameplay Duration in minutes (Restart)",
+      "Sets the game timer in minutes.",
       {
-         { "disabled", NULL },
-         { "enabled",  NULL },
+         { "0",  "5:00" },
+         { "1",  "5:19" },
+         { "2",  "5:38" },
+         { "3",  "5:56" },
+         { "4",  "6:15 (Tournament)" },
+         { "5",  "6:34" },
+         { "6",  "6:53" },
+         { "7",  "7:11" },
+         { "8",  "7:30" },
+         { "9",  "7:49" },
+         { "10", "8:08" },
+         { "11"  "8:27" },
+         { "12", "8:45" },
+         { "13", "9:04" },
+         { "14", "9:23" },
+         { "15", "9:42" },
          { NULL, NULL},
       },
-      "disabled",
-   },
-   {
-      "fceumm_dipswitch_nwc_swb",
-      "Dipswitch SW1 (+37.5s)",
-      "Adds 37.5 seconds to total time. Total time = 5 mins + enabled dipswitches.",
-      {
-         { "disabled", NULL },
-         { "enabled",  NULL },
-         { NULL, NULL},
-      },
-      "disabled",
-   },
-   {
-      "fceumm_dipswitch_nwc_swc",
-      "Dipswitch SW1 (+1m 15s)",
-      "Adds 1 minute and 15 seconds to total time. Total time = 5 mins + enabled dipswitches.",
-      {
-         { "disabled", NULL },
-         { "enabled",  NULL },
-         { NULL, NULL},
-      },
-      "enabled",
-   },
-   {
-      "fceumm_dipswitch_nwc_swd",
-      "Dipswitch SW1 (+2m 30s)",
-      "Adds 2 minutes and 30 seconds to total time. Total time = 5 mins + time of enabled dipswitches.",
-      {
-         { "disabled", NULL },
-         { "enabled",  NULL },
-         { NULL, NULL},
-      },
-      "disabled",
+      "4",
    },
 
    { NULL, NULL, NULL, { {0} }, NULL },
@@ -1292,27 +1273,21 @@ static struct retro_core_option_definition dipswitch_nwc[] = {
 
 static void update_dipswitch_nwc(void)
 {
-   unsigned i, dips = 0x00;
+   int dpsw_nwc = 0x00;
+   struct retro_variable var = {
+      "fceumm_dipswitch_nwc",
+      NULL
+   };
 
-   for (i = 0; i < 4; i++)
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+      dpsw_nwc = atoi(var.value);
+
+   if (GameInfo->cspecial != dpsw_nwc)
    {
-      struct retro_variable var = { NULL, NULL };
-      const char *key = dipswitch_nwc[i].key;
-
-      var.key = key;
-      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) == 0)
-         continue;
-      if (strcmp(var.value, "enabled") != 0)
-         continue;
-      dips |= (1 << i);
-   }
-
-   if (GameInfo->cspecial != dips)
-   {
-      GameInfo->cspecial = dips;
+      GameInfo->cspecial = dpsw_nwc;
 #ifdef DEBUG
-      FCEU_printf("Dipswitch changed = %d%d%d%d\n", (dips >> 0) & 1,
-         (dips >> 1) & 1, (dips >> 2) & 1, (dips >> 3) & 1);
+      FCEU_printf("Dipswitch changed = %d%d%d%d\n", (dpsw_nwc >> 0) & 1,
+         (dpsw_nwc >> 1) & 1, (dpsw_nwc >> 2) & 1, (dpsw_nwc >> 3) & 1);
 #endif
    }
 }
