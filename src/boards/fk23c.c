@@ -19,6 +19,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* BMC-FK23C (no WRAM, no DIP switch)
+ * BMC-FK23CA (no WRAM, with DIP switch)
+ * BMC-Super24in1SC03 (functional duplicate of BMC-FK23C)
+ * WAIXING-FS005 (alternative name: Bensheng BS-001) (32 KiB battery-backed WRAM, 8 KiB of CHR-RAM, no DIP switch)
+ * WAIXING-FS006 (optional 8 KiB battery-backed WRAM, optional 8 KiB of CHR-RAM, no DIP switch)
+
+ * Three incompatible subtypes exist that do not correspond to these UNIF board names. No submappers have been proposed, as the subtypes can be easily discerned heuristically by looking at ROM sizes:
+
+ * Subtype 0, ROM size other than specified below: boot with Extended MMC3 mode disabled (boots in first 512 KiB of PRG-ROM regardless of ROM size)
+ * Subtype 1, 1024 KiB PRG-ROM, 1024 KiB CHR-ROM: boot with Extended MMC3 mode enabled (boots in last 512 KiB of the first 2 MiB of PRG-ROM)
+ * Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0, but MMC3 registers $46 and $47 swapped.
+ */
+
 /* 2020-3-14 - Refactoring based on latest sources */
 /* TODO: Add database for ines 1.0 headers */
 
@@ -74,10 +87,10 @@ static void cwrap(uint16 A, uint16 V)
    /* some workaround for chr rom / ram access */
    if (!UNIFchrrama && !CHRRAMSIZE)
       fk23_regs[0] &= ~0x20; /* chr rom with no chr ram always write to bank 0 */
-   if (UNIFchrrama)
-      fk23_regs[0] &= ~0x20; /* no chr rom, then chr ram is in bank 0 through UNIFchrrama */
-   if (UNIFchrrama && WRAM_EXTENDED && (mmc3_wram & 0x04))
+   else if (UNIFchrrama && WRAM_EXTENDED && (mmc3_wram & 0x04))
       fk23_regs[0] &= ~0x20;
+   else if (UNIFchrrama)
+      fk23_regs[0] &= ~0x20; /* no chr rom, then chr ram is in bank 0 through UNIFchrrama */
 
    setchr1r((fk23_regs[0] & 0x20) >> 1, A, V);
 }
@@ -160,8 +173,8 @@ static void SyncPRG(void)
          uint16 outer   = prg_base << 1;
 
          setprg8(0x8000 ^ cbase, mmc3_regs[6] | outer);
-         setprg8(0xA000,         mmc3_regs[7] | outer);        
-         setprg8(0xC000 ^ cbase, mmc3_regs[8] | outer); 
+         setprg8(0xA000,         mmc3_regs[7] | outer);
+         setprg8(0xC000 ^ cbase, mmc3_regs[8] | outer);
          setprg8(0xE000,         mmc3_regs[9] | outer);
       }
       else
@@ -218,10 +231,41 @@ static DECLFW(WriteLo)
 {
    if (((WRAM_EXTENDED == 0) || FK23_ENABLED) && (A & (0x10 << dipswitch)))
    {
-      fk23_regs[A & 3] = V;
-      cnrom_chr = 0;      
-      SyncPRG();
-      SyncCHR();
+      switch (A & 3)
+      {
+      case 0:
+         if (fk23_regs[0] != V)
+         {
+            fk23_regs[0] = V;
+            SyncPRG();
+            SyncCHR();
+         }
+         break;
+      case 1:
+         if (fk23_regs[1] != V)
+         {
+            fk23_regs[1] = V;
+            SyncPRG();
+         }
+         break;
+      case 2:
+         cnrom_chr = 0;
+         if (fk23_regs[2] != V)
+         {
+            fk23_regs[2] = V;
+            SyncPRG();
+            SyncCHR();
+         }
+         break;
+      case 3:
+         if (fk23_regs[3] != V)
+         {
+            fk23_regs[3] = V;
+            SyncPRG();
+            SyncCHR();
+         }
+         break;
+      }
    }
    else
       /* FK23C Registers disabled, $5000-$5FFF maps to the second 4 KiB of the 8 KiB WRAM bank 2 */
@@ -407,7 +451,7 @@ static void Close(void)
    CHRRAM = NULL;
 }
 
-static void StateRestore(void)
+static void StateRestore(int version)
 {
    Sync();
 }
