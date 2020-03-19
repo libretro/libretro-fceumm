@@ -54,33 +54,33 @@ static uint8 irq_enabled      = 0;
 static uint8 irq_reload       = 0;
 static uint8 cnrom_chr        = 0;
 static uint8 dipswitch        = 0;
-
+static uint8 subType          = 0;
 static uint8 is_bmcfk23ca     = 0;
-static uint8 subtype          = 0;
 
 static SFORMAT StateRegs[] = {
-   { fk23_regs,      4, "EXPR" },
-   { mmc3_regs,     12, "M3RG" },
-   { &cnrom_chr,     1, "CCHR" },
-   { &dipswitch,     1, "DPSW" },
-   { &mmc3_ctrl,     1, "M3CT" },
-   { &mmc3_mirr,     1, "M3MR" },
-   { &mmc3_wram,     1, "M3WR" },
-   { &irq_reload,    1, "IRQR" },
-   { &irq_count,     1, "IRQC" },
-   { &irq_latch,     1, "IRQL" },
-   { &irq_enabled,   1, "IRQA" },
+   { fk23_regs,               4, "EXPR" },
+   { mmc3_regs,              12, "M3RG" },
+   { &cnrom_chr,              1, "CCHR" },
+   { &dipswitch,              1, "DPSW" },
+   { &mmc3_ctrl,              1, "M3CT" },
+   { &mmc3_mirr,              1, "M3MR" },
+   { &mmc3_wram,              1, "M3WR" },
+   { &irq_reload,             1, "IRQR" },
+   { &irq_count,              1, "IRQC" },
+   { &irq_latch,              1, "IRQL" },
+   { &irq_enabled,            1, "IRQA" },
+   { &subType,                1, "SUBT" },
    { 0 }
 };
 
-#define INVERT_PRG          (mmc3_ctrl & 0x40)
-#define INVERT_CHR          (mmc3_ctrl & 0x80)
-#define WRAM_ENABLED        (mmc3_wram & 0x80)
-#define WRAM_EXTENDED       (mmc3_wram & 0x20)
-#define FK23_ENABLED        (mmc3_wram & 0x40)
-#define MMC3_EXTENDED       (fk23_regs[3] & 0x02)
-#define CHR_CNROM_MODE      (fk23_regs[0] & 0x40)
-#define CHR_OUTER_BANK_SIZE (fk23_regs[0] & 0x10)
+#define INVERT_PRG            (mmc3_ctrl & 0x40)
+#define INVERT_CHR            (mmc3_ctrl & 0x80)
+#define WRAM_ENABLED          (mmc3_wram & 0x80)
+#define WRAM_EXTENDED         (mmc3_wram & 0x20)
+#define FK23_ENABLED          (mmc3_wram & 0x40)
+#define MMC3_EXTENDED         (fk23_regs[3] & 0x02)
+#define CHR_CNROM_MODE        (fk23_regs[0] & 0x40)
+#define CHR_OUTER_BANK_SIZE   (fk23_regs[0] & 0x10)
 
 static void cwrap(uint16 A, uint16 V)
 {
@@ -99,8 +99,8 @@ static void SyncCHR(void)
 {
    if (CHR_CNROM_MODE)
    {
-      uint8 mask        = (fk23_regs[3] & 0x46) ? (CHR_OUTER_BANK_SIZE ? 0x01 : 0x03) : 0;
-      uint16 bank       = (fk23_regs[2] | (cnrom_chr & mask)) << 3;
+      uint8 mask              = (fk23_regs[3] & 0x46) ? (CHR_OUTER_BANK_SIZE ? 0x01 : 0x03) : 0;
+      uint16 bank             = (fk23_regs[2] | (cnrom_chr & mask)) << 3;
 
       cwrap(0x0000, bank);
       cwrap(0x0400, bank + 1);
@@ -114,11 +114,10 @@ static void SyncCHR(void)
    }
    else
    {
-      uint16 cbase = INVERT_CHR ? 0x1000 : 0;
-
       if (MMC3_EXTENDED)
       {
-         uint16 outer   = fk23_regs[2] << 3;
+         uint16 cbase         = INVERT_CHR ? 0x1000 : 0;
+         uint16 outer         = fk23_regs[2] << 3;
 
          cwrap(cbase ^ 0x0000, mmc3_regs[0]  | outer);
          cwrap(cbase ^ 0x0400, mmc3_regs[10] | outer);
@@ -132,8 +131,9 @@ static void SyncCHR(void)
       }
       else
       {
-         uint8 mask     = CHR_OUTER_BANK_SIZE ? 0x7F : 0xFF;
-         uint16 outer   = (fk23_regs[2] << 3) & ~mask;
+         uint16 cbase         = INVERT_CHR ? 0x1000 : 0;
+         uint8 mask           = CHR_OUTER_BANK_SIZE ? 0x7F : 0xFF;
+         uint16 outer         = (fk23_regs[2] << 3) & ~mask;
 
          cwrap(cbase ^ 0x0000, ((mmc3_regs[0] & 0xFE) & mask) | outer);
          cwrap(cbase ^ 0x0400, ((mmc3_regs[0] | 0x01) & mask) | outer);
@@ -150,8 +150,8 @@ static void SyncCHR(void)
 
 static void SyncPRG(void)
 {
-   uint8 prg_mode    = fk23_regs[0] & 7;
-   uint16 prg_base   = (fk23_regs[1] & 0x07F) | ((fk23_regs[0] << 4) & 0x080) |
+   uint8 prg_mode             = fk23_regs[0] & 7;
+   uint16 prg_base            = (fk23_regs[1] & 0x07F) | ((fk23_regs[0] << 4) & 0x080) |
          ((fk23_regs[0] << 1) & 0x100) | ((fk23_regs[2] << 3) & 0x600) |
          ((fk23_regs[2] << 6) & 0x800);
 
@@ -169,8 +169,8 @@ static void SyncPRG(void)
    case 2:
       if (MMC3_EXTENDED)
       {
-         uint16 cbase   = INVERT_PRG ? 0x4000 : 0;
-         uint16 outer   = prg_base << 1;
+         uint16 cbase         = INVERT_PRG ? 0x4000 : 0;
+         uint16 outer         = prg_base << 1;
 
          setprg8(0x8000 ^ cbase, mmc3_regs[6] | outer);
          setprg8(0xA000,         mmc3_regs[7] | outer);
@@ -179,9 +179,9 @@ static void SyncPRG(void)
       }
       else
       {
-         uint8 mask     = 0x3F >> prg_mode;
-         uint16 outer   = (prg_base << 1) & ~mask;
-         uint16 cbase   = INVERT_PRG ? 0x4000 : 0;
+         uint16 cbase         = INVERT_PRG ? 0x4000 : 0;
+         uint8 mask           = 0x3F >> prg_mode;
+         uint16 outer         = (prg_base << 1) & ~mask;
 
          setprg8(0x8000 ^ cbase, (mmc3_regs[6] & mask) | outer);
          setprg8(0xA000,         (mmc3_regs[7] & mask) | outer);
@@ -302,7 +302,7 @@ static DECLFW(WriteHi)
 
       /* Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0,
        * but MMC3 registers $46 and $47 swapped. */
-      if (UNIFchrrama && ((ROM_size << 4) > 8192))
+      if (subType == 2)
       {
          if (V == 0x46)
             V = 0x47;
@@ -399,7 +399,7 @@ static void Reset(void)
    mmc3_wram      = 0x80;
    mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
 
-   if (subtype == 1)
+   if (subType == 1)
       fk23_regs[1] = 0x20;
 
    Sync();
@@ -423,7 +423,7 @@ static void Power(void)
    mmc3_wram      = 0x80;
    mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
 
-   if (subtype == 1)
+   if (subType == 1)
       fk23_regs[1] = 0x20;
 
    Sync();
@@ -456,38 +456,16 @@ static void StateRestore(int version)
    Sync();
 }
 
-void BMCFK23C_Init(CartInfo *info)
+void GenBMCFK23C_Init(CartInfo *info)
 {
    is_bmcfk23ca = 0;
 
-   info->Power = Power;
-   info->Reset = Reset;
-   info->Close = Close;
-   GameHBIRQHook = IRQHook;
-   GameStateRestore = StateRestore;
+   info->Power       = Power;
+   info->Reset       = Reset;
+   info->Close       = Close;
+   GameHBIRQHook     = IRQHook;
+   GameStateRestore  = StateRestore;
    AddExState(StateRegs, ~0, 0, 0);
-
-   if (((ROM_size << 4) == 1024) && ((VROM_size << 3) == 1024))
-      subtype = 1;
-
-   if (info->iNES2)
-   {
-      if (!UNIFchrrama)
-         CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
-      WRAMSIZE = info->PRGRamSize + info->PRGRamSaveSize;
-   }
-   else
-   {
-      if (!UNIFchrrama)
-      {
-         /*  Rockman I - VI */
-         if (ROM_size == 128 && VROM_size == 64)
-            CHRRAMSIZE = 8 * 1024;
-      }
-
-      /* For compatibility with waixing games, set wram to 32K */
-      WRAMSIZE = 32 * 1024;
-   }
 
    if (CHRRAMSIZE)
    {
@@ -508,10 +486,70 @@ void BMCFK23C_Init(CartInfo *info)
          info->SaveGameLen[0] = info->PRGRamSaveSize ? info->PRGRamSaveSize : WRAMSIZE;
       }
    }
+
+   subType = 0;
+   if (((ROM_size * 16) == 1024) && ((VROM_size * 8) == 1024))
+      subType = 1;
+   else if (UNIFchrrama && ((ROM_size << 4) >= 8192))
+      subType = 2;
 }
+
+/* generic entry point for mapper 176 / bmcfk23c carts */
+void BMCFK23C_Init(CartInfo *info) {
+   /* prepare ROM params before loading... */
+   if (info->iNES2)
+   {
+      if (!UNIFchrrama)
+         CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
+      WRAMSIZE = info->PRGRamSize + info->PRGRamSaveSize;
+   }
+   else
+   {
+      if (!UNIFchrrama)
+      {
+         /*  Rockman I - VI uses mixed chr rom/ram */
+         if ((ROM_size * 16) == 2048 && (VROM_size * 8) == 512)
+            CHRRAMSIZE = 8 * 1024;
+      }
+
+      /* Only waixing boards has battery backed wram, so only declare
+       * size when battery is set */
+      if (info->battery)
+         WRAMSIZE = 32 * 1024;
+   }
+
+   GenBMCFK23C_Init(info);
+}
+
+/* UNIF Boards, declares so we can for chr mixed mode size and wram if any */
 
 void BMCFK23CA_Init(CartInfo *info)
 {
-   BMCFK23C_Init(info);
+   /* can use mixed chr rom/ram */
+   if (!UNIFchrrama)
+      CHRRAMSIZE = 8 * 1024;
+
+   GenBMCFK23C_Init(info);
    is_bmcfk23ca = 1;
+}
+
+/* BMC-Super24in1SC03 */
+void Super24_Init(CartInfo *info) {
+   /* can use mixed chr rom/ram */
+   if (!UNIFchrrama)
+      CHRRAMSIZE = 8 * 1024;
+
+   GenBMCFK23C_Init(info);
+}
+
+void WAIXINGFS005_Init(CartInfo *info)
+{
+   /* can have 8 or 32 KB battery-backed prg ram
+    * plus 8 KB chr for these boards */
+   if (!UNIFchrrama)
+      CHRRAMSIZE = 8 * 1024;
+
+   WRAMSIZE = 32 * 1024;
+
+   GenBMCFK23C_Init(info);
 }
