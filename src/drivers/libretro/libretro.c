@@ -989,21 +989,20 @@ static void retro_set_custom_palette(void)
    ipalette = 0;
    use_raw_palette = false;
 
-   if ((current_palette == PAL_DEFAULT) ||
-      (current_palette == PAL_CUSTOM) ||
-      (GameInfo->type == GIT_VSUNI))
-   {
-      if (current_palette == PAL_CUSTOM)
-      {
-          if (external_palette_exist && (GameInfo->type != GIT_VSUNI))
-              ipalette = 1;
-      }
+   /* VS UNISystem uses internal palette presets regardless of options */
+   if (GameInfo->type == GIT_VSUNI)
+      FCEU_ResetPalette();
 
-      FCEU_ResetPalette(); /* if ipalette is set to 1, external palette
-                            * is loaded when FCEU_ResetPalette is called,
-                            * else it will load default NES palette.
-                            * VS Unisystem should always use default palette.
-                            */
+   /* Reset and choose between default internal or external custom palette */
+   else if (current_palette == PAL_DEFAULT || current_palette == PAL_CUSTOM)
+   {
+      ipalette = external_palette_exist && (current_palette == PAL_CUSTOM);
+
+      /* if ipalette is set to 1, external palette
+       * is loaded, else it will load default NES palette.
+       * FCEUI_SetPaletteArray() both resets the palette array to
+       * internal default palette and then chooses which one to use. */
+      FCEUI_SetPaletteArray( NULL );
    }
 
    /* setup raw palette */
@@ -1020,7 +1019,7 @@ static void retro_set_custom_palette(void)
       }
    }
 
-   /* Setup this palette*/
+   /* setup palette presets */
    else
    {
       unsigned *palette_data = palettes[current_palette].data;
