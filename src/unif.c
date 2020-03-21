@@ -571,7 +571,7 @@ static BMAPPING bmap[] = {
 	{ "HP2018-A",                   260, BMCHPxx_Init,          0 },
 	{ "CHINA_ER_SAN2",               19, Mapper19_Init,         0 },
 	{ "WAIXING-FW01",               227, Mapper227_Init,        0 },
-	{ "WAIXING-FS005",              176, BMCFK23C_Init,         0 },
+	{ "WAIXING-FS005",              176, WAIXINGFS005_Init,     0 },
 	{ "80013-B",                    274, BMC80013B_Init,        0 },
 	{ "TH2131-1",                   308, UNLTH21311_Init,       0 },
 	{ "LH51",                       309, LH51_Init,             0 },
