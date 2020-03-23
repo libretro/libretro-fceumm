@@ -398,6 +398,7 @@
 	{ 0xf6b9d088,    366,        0 }, /* 4-in-1 (K-3131GS, GN-45) [p1][!] */
 	{ 0x503566b2,    366,        0 }, /* 4-in-1 (K-3131SS, GN-45) [p1][!] */
 	{ 0xDB2D2D88,    369,        -1 }, /* Super Mario Bros. Party.nes */
+	{ 0x87F83EA2,    380,        -1 }, /* 42 to 80,000 */
 	{ 0xC4B94BD5,    389,        -1 }, /* Caltron - 9 in 1 (USA) (Proto) */
 
 	/* ines mappers that uses unif boards */
