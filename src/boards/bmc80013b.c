@@ -21,7 +21,10 @@
  * Its UNIF board name is BMC-80013-B.
  * https://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_274 */
 
+ /* 2020-03-22 - Update support for Cave Story II, FIXME: Arabian does not work for some reasons... */
+
 #include "mapinc.h"
+#include "../ines.h"
 
 static uint8 regs[2], mode;
 
@@ -37,7 +40,7 @@ static void Sync(void) {
 	if (mode & 0x02)
 		setprg16(0x8000, (regs[0] & 0x0F) | (regs[1] & 0x70));
 	else
-		setprg16(0x8000, (regs[0] & 0x0F) | 0x80);
+		setprg16(0x8000, (regs[0] & ((ROM_size - 1) & 0x0F)) | 0x80);
 	setprg16(0xC000, regs[1]);
 	setmirror(((regs[0] >> 4) & 1) ^ 1);
 }
