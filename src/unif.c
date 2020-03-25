@@ -273,10 +273,10 @@ static int TVCI(FCEUFILE *fp) {
 }
 
 static int EnableBattery(FCEUFILE *fp) {
-	FCEU_printf(" Battery-backed.\n");
-	if (FCEU_fgetc(fp) == EOF)
-		return(0);
-	UNIFCart.battery = 1;
+	int ret = FCEU_fgetc(fp);
+	UNIFCart.battery = (ret > 0) ? 1 : 0;
+	if (UNIFCart.battery)
+		FCEU_printf(" Battery-backed.\n");
 	return(1);
 }
 

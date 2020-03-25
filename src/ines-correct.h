@@ -133,6 +133,7 @@
 	{ 0x4c7c1af3,	 34,		1 },	/* Caesar's Palace */
 	{ 0x932ff06e,	 34,		1 },	/* Classic Concentration */
 	{ 0xf46ef39a,	 37,	   -1 },	/* Super Mario Bros. + Tetris + Nintendo World Cup (E) [!] */
+	{ 0x4686C5DD,	 41,	   -1 },	/* Caltron - 6 in 1 (USA) (Unl).nes */
 	{ 0x090C0C17,	 42,		1 },	/* Ai Senshi Nicol (FDS Conversion) [p1][!].nes */
 	{ 0x4DF84825,	 42,		1 },	/* Ai Senshi Nicol (FDS Conversion) [p2][!].nes */
 	{ 0x579E5BC5,	 42,		1 },	/* Ai Senshi Nicol (FDS Conversion) [p3].nes */
@@ -397,6 +398,8 @@
 	{ 0xf6b9d088,    366,        0 }, /* 4-in-1 (K-3131GS, GN-45) [p1][!] */
 	{ 0x503566b2,    366,        0 }, /* 4-in-1 (K-3131SS, GN-45) [p1][!] */
 	{ 0xDB2D2D88,    369,        -1 }, /* Super Mario Bros. Party.nes */
+	{ 0x87F83EA2,    380,        -1 }, /* 42 to 80,000 */
+	{ 0xC4B94BD5,    389,        -1 }, /* Caltron - 9 in 1 (USA) (Proto) */
 
 	/* ines mappers that uses unif boards */
 
