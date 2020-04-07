@@ -38,7 +38,6 @@
 	{ 0xaf5d7aa2,    0, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Clu Clu Land (W) [o3].nes */
 	{ 0xcfb224e6,  222, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ninja (J) (PRG0) [p1][!].nes */
 	{ 0x82f204ae,  163, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Liang Shan Ying Xiong (NJ023) (Ch) [!].nes */
-	{ 0x684afccd,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Space Hunter (Japan).nes */
 	{ 0xad9c63e2,   70, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Space Shadow (Japan).nes */
 	{ 0xe1526228,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ki no Bouken - The Quest of Ki (Japan).nes */
 	{ 0xaf5d7aa2,    0, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Clu Clu Land (W) [o3].nes */
@@ -96,14 +95,21 @@
 	{ 0x28c11d24,    2, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sukeban Deka 3 (J) [b1].nes */
 	{ 0x02863604,    2, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sukeban Deka III (Japan).nes */
 	{ 0x419461d0,    2, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Cars (USA).nes */
+
+	/* CNROM by default has bus conflicts enabled, these requires no bus conflict to play correctly */	
+	{ 0x2915faf0,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Incantation (Asia) (Ja) (Unl).nes */
+	{ 0x8f154a0d,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pu Ke Jing Ling (Asia) (Unl).nes */
+	{ 0xb0c871c5,    3,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Wei Lai Xiao Zi (Joy Van).nes */
+	{ 0xb3be2f71,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Yanshan Chess (Unl).nes */
+	{ 0xd04a40e6,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bingo 75 (Asia) (Ja) (Unl).nes */
+	{ 0xe41b440f,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sidewinder (Joy Van).nes */
+	{ 0xebd0644d,    3,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Master Chu & The Drunkard Hu (Joy Van).nes */
+	{ 0xf283cf58,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Colorful Dragon (Sachen).nes */
+
 	{ 0xdbf90772,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alpha Mission (USA).nes */
 	{ 0xd858033d,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ASO - Armored Scrum Object (J).nes */
-	{ 0xf283cf58,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Colorful Dragon (Sachen).nes */
 	{ 0xd858033d,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ASO - Armored Scrum Object (J).nes */
-	{ 0x8f154a0d,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pu Ke Jing Ling (Asia) (Unl).nes */
-	{ 0xd04a40e6,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bingo 75 (Asia) (Ja) (Unl).nes */
 	{ 0x637ba508,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Adan y Eva (Spain) (Gluk Video) (Unl).nes */
-	{ 0xebd0644d,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Master Chu & The Drunkard Hu (Joy Van).nes */
 	{ 0x9bde3267,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Adventures of Dino Riki (USA).nes */
 	{ 0xd8eff0df,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Gradius (Japan).nes */
 	{ 0x1d41cc8c,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Gyruss (USA).nes */
@@ -112,6 +118,9 @@
 	{ 0x02cc3973,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ninja Kid (USA).nes */
 	{ 0xbc065fc3,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pipe Dream (U) [b1].nes */
 	{ 0xc9ee15a7,    3, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Aladdin III (1995) (Unl) [hM03].nes */
+	{ 0x8dedea07,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Shui Guo Li (Ch) [a1].nes */
+	{ 0x684afccd,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Space Hunter (Japan).nes */
+
 	{ 0x97b6cb19,    4, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Aladdin (SuperGame) (Mapper 4) [!].nes */
 	{ 0xd97c31b0,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Lasalle Ishii no Child's Quest (Japan).nes */
 	{ 0x404b2e8b,    4, DEFAULT,    MI_4, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Rad Racer II (USA).nes */
@@ -216,6 +225,7 @@
 	{ 0x2deb12b8,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Venice Beach Volleyball (Asia) (Ja) (Super Mega) (Unl).nes */
 	{ 0xd2699893,   88, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Spirit - Aratanaru Densetsu (Japan).nes */
 	{ 0xbb7c5f7a,   89, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenka no Goikenban - Mito Koumon (J) [f1].nes */
+	{ 0x082778e6,   91,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Fighter III.nes */
 	{ 0x10119e6b,   93, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Fantasy Zone (Japan) (Sunsoft).nes */
 	{ 0x2b750bf9,  101, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Urusei Yatsura - Lum no Wedding Bell (Japan) (Beta).nes */
 	{ 0x0da5e32e,  101, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Urusei Yatsura - Lum no Wedding Bell (Japan).nes */
@@ -237,6 +247,7 @@
 	{ 0xddcfb058,  121, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Street Fighter Zero 2 '97 (Unl) [!].nes */
 	{ 0xd2674b0a,  132, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Qi Wang - Chinese Chess (Asia) (Ja) (Unl).nes */
 	{ 0x5aefbc94,  133, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Jovial Race (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0xB550B627,  136, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Incantation (Dip Bin) (Joy Van).nes */
 	{ 0xc2df0a00,  140, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bio Senshi Dan - Increaser Tono Tatakai (J) [hM66][b3].nes */
 	{ 0xe46b1c5d,  140, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mississippi Satsujin Jiken (Japan).nes */
 	{ 0x3293afea,  140, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mississippi Satsujin Jiken (Japan) (Rev A).nes */
@@ -392,11 +403,7 @@
 	{ 0x6e149729,  189, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Master Fighter II (Unl) [a1].nes */
 	{ 0x60bfeb0c,   90, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mortal Kombat 2 (Unl) [!].nes */
 	{ 0x247cc73d,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Poker II (Asia) (Ja) (Unl).nes */
-	{ 0xe41b440f,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sidewinder (Joy Van).nes */
 	{ 0x1f1326d4,  121, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Sonic 5 (1997) (Unl) [!].nes */
-	{ 0xb0c871c5,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Wei Lai Xiao Zi (Joy Van).nes */
-	{ 0xb3be2f71,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Yanshan Chess (Unl).nes */
-	{ 0x8dedea07,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Shui Guo Li (Ch) [a1].nes */
 	{ 0x1a71fd06,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kujaku Ou.nes */
 	{ 0x99748230,  215, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* EarthWorm Jim 2 (SuperGame).nes */
 	{ 0x37876ac7,  215, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Golden Card 6-in-1 (Unl) [!].nes */

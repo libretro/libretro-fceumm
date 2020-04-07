@@ -288,6 +288,11 @@ static void CheckHInfo(void) {
 					iNESCart.mapper = moo[x].mapper & 0xFFF;
 				}
 			}
+			if (moo[x].submapper >= 0) {
+				if (moo[x].submapper != iNESCart.submapper) {
+					iNESCart.submapper = moo[x].submapper;
+				}
+			}
 			if (moo[x].mirror >= 0) {
 				cur_mirr = iNESCart.mirror;
 				if (moo[x].mirror == 8) {

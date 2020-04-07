@@ -118,7 +118,7 @@ void Mapper9_Init(CartInfo *info) {
 	info->Power = MMC2and4Power;
 	info->Close = MMC2and4Close;
 	PPU_hook = MMC2and4PPUHook;
-	if (info->CRC32 == 0x7b837fde) { /* Mike Tyson's Punch-Out!! (PC10) supports save ram */
+	if (info->battery) { /* Mike Tyson's Punch-Out!! (PC10) supports save ram */
 		isPC10 = 1;
 		WRAMSIZE = 8192;
 		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);

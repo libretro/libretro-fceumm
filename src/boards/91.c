@@ -109,11 +109,8 @@ static void StateRestore(int version) {
 
 void Mapper91_Init(CartInfo *info) {
 	submapper = 0;
-	if (info->CRC32 == 0x082778e6) /* Super Fighter III */
-		submapper = 1;
-	else if (info->iNES2)
-		submapper = info->submapper;
-
+	/* Super Fighter III */
+	if (info->submapper == 1) submapper = info->submapper;
 	info->Power = M91Power;
 	GameHBIRQHook = M91IRQHook;
 	GameStateRestore = StateRestore;
