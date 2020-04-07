@@ -238,7 +238,13 @@ void CheckBad(uint64 md5partial) {
 struct CHINF {
 	uint32 crc32;
 	int32 mapper;
+	int32 submapper;
 	int32 mirror;
+	int32 battery;
+	int32 prgram;  /* ines2 prgram format */
+	int32 chrram;  /* ines2 chrram format */
+	int32 region;
+	int32 extra;
 };
 
 static void CheckHInfo(void) {
@@ -286,6 +292,17 @@ static void CheckHInfo(void) {
 		0						/* Abandon all hope if the game has 0 in the lower 64-bits of its MD5 hash */
 	};
 
+#define DEFAULT (-1)
+#define NOEXTRA (-1)
+
+/* used for mirroring special overrides */
+#define MI_4      2 /* forced 4-screen mirroring */
+#define DFAULT8   8 /* anything but hard-wired (4-screen) mirroring, mapper-controlled */
+
+/* tv system/region */
+#define PAL       1
+#define DENDY     3
+
 	static struct CHINF moo[] =
 	{
 		#include "ines-correct.h"
@@ -303,7 +320,7 @@ static void CheckHInfo(void) {
 	do {
 		if (moo[x].crc32 == iNESCart.CRC32) {
 			if (moo[x].mapper >= 0) {
-				if (moo[x].mapper & 0x800 && VROM_size) {
+				if (moo[x].extra >= 0 && moo[x].extra == 0x800 && VROM_size) {
 					VROM_size = 0;
 					free(VROM);
 					VROM = NULL;
@@ -330,6 +347,12 @@ static void CheckHInfo(void) {
 														*/
 							tofix |= 2;
 					iNESCart.mirror = moo[x].mirror;
+				}
+			}
+			if (moo[x].region >= 0) {
+				if (iNESCart.region != moo[x].region) {
+					tofix |= 16;
+					iNESCart.region = moo[x].region;
 				}
 			}
 			break;
@@ -373,10 +396,21 @@ static void CheckHInfo(void) {
 			strcat(gigastr, "The battery-backed bit should be set.  ");
 		if (tofix & 8)
 			strcat(gigastr, "This game should not have any CHR ROM.  ");
+		if (tofix & 16) {
+			uint8 *rstr[4] = { (uint8*)"NTSC", (uint8*)"PAL", (uint8*)"Multi", (uint8*)"Dendy" };
+			sprintf(gigastr + strlen(gigastr), "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
+		}
 		strcat(gigastr, "\n");
 		FCEU_printf("\n", gigastr);
 		FCEU_printf("%s\n", gigastr);
 	}
+
+#undef DEFAULT
+#undef NOEXTRA
+#undef DFAULT8
+#undef MI_4
+#undef PAL
+#undef DENDY
 }
 
 typedef struct {
@@ -1010,7 +1044,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	GameInterface = iNESGI;
 
-	if (iNESCart.iNES2 == 0) {
+	/* if not ines2 header and no region override was set, then use filename keywords to set cpu/ppu timing */ 
+	if (iNESCart.iNES2 == 0 && !iNESCart.region) {
 		if (strstr(name, "(E)") || strstr(name, "(e)") ||
 			strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
 			strstr(name, "(F)") || strstr(name, "(f)") ||
