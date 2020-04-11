@@ -257,6 +257,7 @@ static void CheckHInfo(void) {
 
 /* tv system/region */
 #define PAL       1
+#define MULTI     2
 #define DENDY     3
 
 	static struct CHINF moo[] =
@@ -322,6 +323,25 @@ static void CheckHInfo(void) {
 					iNESCart.region = moo[x].region;
 				}
 			}
+			switch (moo[x].mapper) {
+				/* TODO: Eventually, all items from overrides should be considered as ines 2.0 compatible */
+				case   1:
+				case   5:
+				case 176:
+					tofix |= 32;
+					iNESCart.iNES2 = 1;
+					if (moo[x].prgram >= 0) {
+						iNESCart.PRGRamSize = (moo[x].prgram & 0x0F) ? (64 << ((moo[x].prgram >> 0) & 0xF)) : 0;
+						iNESCart.PRGRamSaveSize = (moo[x].prgram & 0xF0) ? (64 << ((moo[x].prgram >> 4) & 0xF)) : 0;
+					}
+					if (moo[x].chrram >= 0) {
+						iNESCart.CHRRamSize = (moo[x].chrram & 0x0F) ? (64 << ((moo[x].chrram >> 0) & 0xF)) : 0;
+						iNESCart.CHRRamSaveSize = (moo[x].chrram & 0xF0) ? (64 << ((moo[x].chrram >> 4) & 0xF)) : 0;
+					}
+					break;
+				default:
+					break;
+			}
 			break;
 		}
 		x++;
@@ -355,6 +375,19 @@ static void CheckHInfo(void) {
 		if (tofix & 16) {
 			uint8 *rstr[4] = { (uint8*)"NTSC", (uint8*)"PAL", (uint8*)"Multi", (uint8*)"Dendy" };
 			sprintf(gigastr + strlen(gigastr), "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
+		}
+		if (tofix & 32) {
+			unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
+			unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
+			if (PRGRAM || CHRRAM) {
+				if (iNESCart.PRGRamSaveSize == 0)
+					sprintf(gigastr + strlen(gigastr), "workram: %d KB, ", PRGRAM / 1024);
+				else if (iNESCart.PRGRamSize == 0)
+					sprintf(gigastr + strlen(gigastr), "saveram: %d KB, ", PRGRAM / 1024);
+				else
+					sprintf(gigastr + strlen(gigastr), "workram: %d KB (%dKB battery-backed), ", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
+				sprintf(gigastr + strlen(gigastr), "chrram: %d KB.", (CHRRAM + iNESCart.CHRRamSaveSize) / 1024);
+			}
 		}
 		strcat(gigastr, "\n");
 		FCEU_printf("\n", gigastr);
@@ -393,7 +426,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "MMC5",                       5, Mapper5_Init           )
 	INES_BOARD( "FFE Rev. A",                 6, Mapper6_Init           )
 	INES_BOARD( "ANROM",                      7, ANROM_Init             )
-	INES_BOARD( "",                           8, Mapper8_Init           ) /* Nogaems, it's worthless */
+	INES_BOARD( "",                           8, Mapper8_Init           ) /* no games, it's worthless */
 	INES_BOARD( "MMC2",                       9, Mapper9_Init           )
 	INES_BOARD( "MMC4",                      10, Mapper10_Init          )
 	INES_BOARD( "Color Dreams",              11, Mapper11_Init          )

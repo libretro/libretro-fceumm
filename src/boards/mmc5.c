@@ -102,54 +102,6 @@ static uint8 MMC5MemIn[5];
 static void MMC5CHRA(void);
 static void MMC5CHRB(void);
 
-typedef struct __cartdata {
-	uint32 crc32;
-	uint8 size;
-} cartdata;
-
-cartdata MMC5CartList[] =
-{
-	{ 0x6f4e4312, 4 }, /* Aoki Ookami to Shiroki Mejika - Genchou Hishi */
-	{ 0x15fe6d0f, 2 }, /* Bandit Kings of Ancient China */
-	{ 0x671f23a8, 0 }, /* Castlevania III - Dracula's Curse (E) */
-	{ 0xcd4e7430, 0 }, /* Castlevania III - Dracula's Curse (KC) */
-	{ 0xed2465be, 0 }, /* Castlevania III - Dracula's Curse (U) */
-	{ 0xfe3488d1, 2 }, /* Daikoukai Jidai */
-	{ 0x0ec6c023, 1 }, /* Gemfire */
-	{ 0x0afb395e, 0 }, /* Gun Sight */
-	{ 0x1ced086f, 2 }, /* Ishin no Arashi */
-	{ 0x9cbadc25, 1 }, /* Just Breed */
-	{ 0x6396b988, 2 }, /* L'Empereur (J) */
-	{ 0x9c18762b, 2 }, /* L'Empereur (U) */
-	{ 0xb0480ae9, 0 }, /* Laser Invasion */
-	{ 0xb4735fac, 0 }, /* Metal Slader Glory */
-	{ 0xf540677b, 4 }, /* Nobunaga no Yabou - Bushou Fuuun Roku */
-	{ 0xeee9a682, 2 }, /* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG0) */
-	{ 0xf9b4240f, 2 }, /* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG1) */
-	{ 0x8ce478db, 2 }, /* Nobunaga's Ambition 2 */
-	{ 0xf011e490, 4 }, /* Romance of The Three Kingdoms II */
-	{ 0xbc80fb52, 1 }, /* Royal Blood */
-	{ 0x184c2124, 4 }, /* Sangokushi II (J) (PRG0) */
-	{ 0xee8e6553, 4 }, /* Sangokushi II (J) (PRG1) */
-	{ 0xd532e98f, 1 }, /* Shin 4 Nin Uchi Mahjong - Yakuman Tengoku */
-	{ 0x39f2ce4b, 2 }, /* Suikoden - Tenmei no Chikai */
-	{ 0xbb7f829a, 0 }, /* Uchuu Keibitai SDF */
-	{ 0xaca15643, 2 }, /* Uncharted Waters */
-};
-
-#define MMC5_NOCARTS (sizeof(MMC5CartList) / sizeof(MMC5CartList[0]))
-int DetectMMC5WRAMSize(uint32 crc32) {
-	int x;
-	for (x = 0; x < MMC5_NOCARTS; x++) {
-		if (crc32 == MMC5CartList[x].crc32) {
-			if(MMC5CartList[x].size > 1)
-				FCEU_printf(" >8KB external WRAM present.  Use UNIF if you hack the ROM image.\n");
-			return(MMC5CartList[x].size * 8);
-		}
-	}
-	return 64;
-}
-
 static void BuildWRAMSizeTable(void) {
 	int x;
 	for (x = 0; x < 8; x++) {
@@ -842,7 +794,7 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 	AddExState(&MMC50x5130, 1, 0, "5130");
 	AddExState(MMC5_StateRegs, ~0, 0, 0);
 
-	MMC5WRAMsize = wsize / 8;
+	MMC5WRAMsize = wsize ? (wsize / 8) : 0;
 	BuildWRAMSizeTable();
 	GameStateRestore = MMC5_StateRestore;
 	info->Power = GenMMC5Reset;
@@ -865,7 +817,12 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 }
 
 void Mapper5_Init(CartInfo *info) {
-	WRAMSIZE = DetectMMC5WRAMSize(info->CRC32);
+	WRAMSIZE = 64;
+	if (info->iNES2) {
+		WRAMSIZE = (info->PRGRamSize + info->PRGRamSaveSize) / 1024;
+		if (WRAMSIZE && WRAMSIZE < 8) WRAMSIZE = 8;
+		else if (WRAMSIZE > 64) WRAMSIZE = 64;
+	}
 	GenMMC5_Init(info, WRAMSIZE, info->battery);
 }
 
