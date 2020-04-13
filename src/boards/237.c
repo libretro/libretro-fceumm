@@ -81,6 +81,12 @@ static void StateRestore(int version) {
 }
 
 void Mapper237_Init(CartInfo *info) {
+	/* The menu system used by this cart seems to be configurable as 4 different types:
+	 * 0: 42-in-1
+	 * 1: 5,000-in-1
+	 * 2: 420-in-1
+	 * 3: 10,000,000-in-1 (lol)
+	 */
 	dipswitch = 0;
 	if ((info->CRC32) == 0x272709b9) /* Teletubbies Y2K (420-in-1) */
 		dipswitch = 2;

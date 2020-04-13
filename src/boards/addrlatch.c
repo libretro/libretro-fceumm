@@ -291,8 +291,8 @@ static void M201Sync(void) {
 }
 
 void Mapper201_Init(CartInfo *info) {
-	if (info->CRC32 == 0x05658DED)
-		submapper = 15;
+	submapper = 0;
+	if (info->submapper > 0) submapper = info->submapper;
 	Latch_Init(info, M201Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 

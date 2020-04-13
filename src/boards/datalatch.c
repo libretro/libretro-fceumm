@@ -154,21 +154,10 @@ static void CNROMSync(void) {
 }
 
 void CNROM_Init(CartInfo *info) {
-	uint8 CNROM_busc = 1; /* by default, CNROM is set to emulate bus conflicts to all games */
-
-	/* TODO: move these to extended database when implemented. */
-	switch (info->CRC32) {
-	case 0xf283cf58: /* Colorful Dragon (Asia) (PAL) (Unl).nes */
-	case 0x2915faf0: /* Incantation (Asia) (Unl).nes */
-	case 0xebd0644d: /* Dao Shuai (Asia) (Unl).nes */
-	case 0x8f154a0d: /* Pu Ke Jing Ling (China) (Unl).nes */
-	case 0xd04a40e6: /* Bingo 75 (Asia) (Unl).nes */
-	case 0xe41b440f: /* Sidewinder (Joy Van) */
-	case 0xb0c871c5: /* Wei Lai Xiao Zi (Joy Van) */
-	case 0xb3be2f71: /* Yanshan Chess (Unl) */
+	uint8 CNROM_busc = 1; /* by default, CNROM is set to emulate bus conflicts to all games. */
+	if (info->submapper && info->submapper == 1) /* no bus conflict */
 		CNROM_busc = 0;
-		break;
-	}
+	FCEU_printf(" Bus Conflict: %s\n", CNROM_busc ? "Yes" : "No");
 	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, CNROM_busc);
 }
 

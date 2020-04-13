@@ -238,53 +238,26 @@ void CheckBad(uint64 md5partial) {
 struct CHINF {
 	uint32 crc32;
 	int32 mapper;
+	int32 submapper;
 	int32 mirror;
+	int32 battery;
+	int32 prgram;  /* ines2 prgram format */
+	int32 chrram;  /* ines2 chrram format */
+	int32 region;
+	int32 extra;
 };
 
 static void CheckHInfo(void) {
-	/* ROM images that have the battery-backed bit set in the header that really
-	don't have battery-backed RAM is not that big of a problem, so I'll
-	treat this differently by only listing games that should have battery-backed RAM.
+#define DEFAULT (-1)
+#define NOEXTRA (-1)
 
-	Lower 64 bits of the MD5 hash.
-	*/
+/* used for mirroring special overrides */
+#define MI_4      2 /* forced 4-screen mirroring */
+#define DFAULT8   8 /* anything but hard-wired (4-screen) mirroring, mapper-controlled */
 
-	static uint64 savie[] =
-	{
-		0xc04361e499748382LL,	/* AD&D Heroes of the Lance */
-		0xb72ee2337ced5792LL,	/* AD&D Hillsfar */
-		0x2b7103b7a27bd72fLL,	/* AD&D Pool of Radiance */
-		0x498c10dc463cfe95LL,	/* Battle Fleet */
-		0x854d7947a3177f57LL,	/* Crystalis */
-		0x4a1f5336b86851b6LL,	/* DW */
-		0xb0bcc02c843c1b79LL,	/* DW */
-		0x2dcf3a98c7937c22LL,	/* DW 2 */
-		0x98e55e09dfcc7533LL,	/* DW 4*/
-		0x733026b6b72f2470LL,	/* Dw 3 */
-		0x6917ffcaca2d8466LL,	/* Famista '90 */
-		0x8da46db592a1fcf4LL,	/* Faria */
-		0xedba17a2c4608d20LL,	/* Final Fantasy */
-		0x91a6846d3202e3d6LL,	/* Final Fantasy */
-		0x012df596e2b31174LL,	/* Final Fantasy 1+2 */
-		0xf6b359a720549ecdLL,	/* Final Fantasy 2 */
-		0x5a30da1d9b4af35dLL,	/* Final Fantasy 3 */
-		0xd63dcc68c2b20adcLL,	/* Final Fantasy J */
-		0x2ee3417ba8b69706LL,	/* Hydlide 3*/
-		0xebbce5a54cf3ecc0LL,	/* Justbreed */
-		0x6a858da551ba239eLL,	/* Kaijuu Monogatari */
-		0x2db8f5d16c10b925LL,	/* Kyonshiizu 2 */
-		0x04a31647de80fdabLL,	/* Legend of Zelda */
-		0x94b9484862a26cbaLL,	/* Legend of Zelda */
-		0xa40666740b7d22feLL,	/* Mindseeker */
-		0x82000965f04a71bbLL,	/* Mirai Shinwa Jarvas */
-		0x77b811b2760104b9LL,	/* Mouryou Senki Madara */
-		0x11b69122efe86e8cLL,	/* RPG Jinsei Game */
-		0x9aa1dc16c05e7de5LL,	/* Startropics */
-		0x1b084107d0878bd0LL,	/* Startropics 2*/
-		0xa70b495314f4d075LL,	/* Ys 3 */
-		0x836c0ff4f3e06e45LL,	/* Zelda 2 */
-		0						/* Abandon all hope if the game has 0 in the lower 64-bits of its MD5 hash */
-	};
+/* tv system/region */
+#define PAL       1
+#define DENDY     3
 
 	static struct CHINF moo[] =
 	{
@@ -303,7 +276,7 @@ static void CheckHInfo(void) {
 	do {
 		if (moo[x].crc32 == iNESCart.CRC32) {
 			if (moo[x].mapper >= 0) {
-				if (moo[x].mapper & 0x800 && VROM_size) {
+				if (moo[x].extra >= 0 && moo[x].extra == 0x800 && VROM_size) {
 					VROM_size = 0;
 					free(VROM);
 					VROM = NULL;
@@ -313,6 +286,11 @@ static void CheckHInfo(void) {
 					tofix |= 1;
 					current_mapper = iNESCart.mapper;
 					iNESCart.mapper = moo[x].mapper & 0xFFF;
+				}
+			}
+			if (moo[x].submapper >= 0) {
+				if (moo[x].submapper != iNESCart.submapper) {
+					iNESCart.submapper = moo[x].submapper;
 				}
 			}
 			if (moo[x].mirror >= 0) {
@@ -332,21 +310,22 @@ static void CheckHInfo(void) {
 					iNESCart.mirror = moo[x].mirror;
 				}
 			}
+			if (moo[x].battery >= 0) {
+				if (!(head.ROM_type & 2) && (moo[x].battery != 0)) {
+					tofix |= 4;
+					head.ROM_type |= 2;
+				}
+			}
+			if (moo[x].region >= 0) {
+				if (iNESCart.region != moo[x].region) {
+					tofix |= 16;
+					iNESCart.region = moo[x].region;
+				}
+			}
 			break;
 		}
 		x++;
 	} while (moo[x].mirror >= 0 || moo[x].mapper >= 0);
-
-	x = 0;
-	while (savie[x] != 0) {
-		if (savie[x] == partialmd5) {
-			if (!(head.ROM_type & 2)) {
-				tofix |= 4;
-				head.ROM_type |= 2;
-			}
-		}
-		x++;
-	}
 
 	/* Games that use these iNES mappers tend to have the four-screen bit set
 	when it should not be.
@@ -373,10 +352,21 @@ static void CheckHInfo(void) {
 			strcat(gigastr, "The battery-backed bit should be set.  ");
 		if (tofix & 8)
 			strcat(gigastr, "This game should not have any CHR ROM.  ");
+		if (tofix & 16) {
+			uint8 *rstr[4] = { (uint8*)"NTSC", (uint8*)"PAL", (uint8*)"Multi", (uint8*)"Dendy" };
+			sprintf(gigastr + strlen(gigastr), "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
+		}
 		strcat(gigastr, "\n");
 		FCEU_printf("\n", gigastr);
 		FCEU_printf("%s\n", gigastr);
 	}
+
+#undef DEFAULT
+#undef NOEXTRA
+#undef DFAULT8
+#undef MI_4
+#undef PAL
+#undef DENDY
 }
 
 typedef struct {
@@ -1002,6 +992,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	else
 		SetupCartMirroring(iNESCart.mirror & 1, (iNESCart.mirror & 4) >> 2, 0);
 
+	iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
+
 	if (!iNES_Init(iNESCart.mapper)) {
 		FCEU_printf("\n");
 		FCEU_PrintError(" iNES mapper #%d is not supported at all.\n", iNESCart.mapper);
@@ -1010,7 +1002,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	GameInterface = iNESGI;
 
-	if (iNESCart.iNES2 == 0) {
+	/* if not ines2 header and no region override was set, then use filename keywords to set cpu/ppu timing */ 
+	if (iNESCart.iNES2 == 0 && iNESCart.region == 0) {
 		if (strstr(name, "(E)") || strstr(name, "(e)") ||
 			strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
 			strstr(name, "(F)") || strstr(name, "(f)") ||
@@ -1023,8 +1016,6 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			strstr(name, "(Australia)") || strstr(name, "(A)") ||
 			strstr(name, "(a)")) {
 				iNESCart.region = 1;
-		} else {
-			iNESCart.region = 0;
 		}
 	}
 
