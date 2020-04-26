@@ -120,6 +120,7 @@
 	{ 0xe41b440f,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sidewinder (Joy Van).nes */
 	{ 0xebd0644d,    3,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Master Chu & The Drunkard Hu (Joy Van).nes */
 	{ 0xf283cf58,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Colorful Dragon (Sachen).nes */
+	{ 0x2deb12b8,    3,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Venice Beach Volleyball (Asia) (Ja) (Super Mega) (Unl).nes */
 
 	{ 0xdbf90772,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alpha Mission (USA).nes */
 	{ 0xd858033d,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ASO - Armored Scrum Object (J).nes */
@@ -265,7 +266,6 @@
 	{ 0x8eab381c,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Deathbots (USA) (Rev 1) (Unl).nes */
 	{ 0x1eb4a920,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Double Strike - Aerial Attack Force (USA) (v1.1) (Unl).nes */
 	{ 0x3e1271d5,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tiles of Fate (USA) (Unl).nes */
-	{ 0x2deb12b8,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Venice Beach Volleyball (Asia) (Ja) (Super Mega) (Unl).nes */
 	{ 0xd2699893,   88, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Spirit - Aratanaru Densetsu (Japan).nes */
 	{ 0xbb7c5f7a,   89, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenka no Goikenban - Mito Koumon (J) [f1].nes */
 	{ 0x082778e6,   91,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Fighter III.nes */
@@ -411,7 +411,7 @@
 	{ 0xb511c04b,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* San Xia Wu Yi - Yu Mao Chuan Qi (Ch) (ES-1071) [a2].nes */
 	{ 0x1923a8c5,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Shui Hu Shen Shou (ES-1087) (Ch) (Decrypted).nes */
 	{ 0xc043a8df,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Shu Qi Yu - Shu Xue Xiao Zhuan Yuan (Ch).nes */
-	{ 0x2cf5db05,  176, DEFAULT,    MI_H, 0, DEFAULT,        0, DEFAULT, NOEXTRA }, /* Shu Qi Yu - Zhi Li Xiao Zhuan Yuan (Ch).nes */
+	{ 0x2cf5db05,  176, DEFAULT,    MI_H, 0, DEFAULT,       0, DEFAULT, NOEXTRA }, /* Shu Qi Yu - Zhi Li Xiao Zhuan Yuan (Ch).nes */
 	{ 0x3df39ce4,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 3-in-1 (KT-4403) [p1].nes */
 	{ 0xc447b9fe,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 4-in-1 (BRC-4) [p1].nes */
 	{ 0xb5d25a20,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 4-in-1 (BS-0306M)(Unl).nes */
@@ -455,9 +455,9 @@
 	{ 0x05e43745,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 9-in-1 (YH904) (Unl).nes */
 	{ 0x5d061e04,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game YH 602 (Unl).nes */
 	{ 0x5b17fb27,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game YH 801 (Unl).nes */
-	{ 0xf9863adf,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Xi Chu Ba Wang (C) [ES-1066].nes */
-	{ 0xf1d803f3,  176, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Xi Chu Ba Wang (ES-1066) (Ch) (Decrypted).nes */
-	{ 0x94782fbd,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Xiong Ba Tian Xia (Ch).nes */
+	{ 0xf9863adf,  176, DEFAULT,    MI_V, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Xi Chu Ba Wang (C) [ES-1066].nes */
+	{ 0xf1d803f3,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Xi Chu Ba Wang (ES-1066) (Ch) (Decrypted).nes */
+	{ 0x94782fbd,  176, DEFAULT,    MI_V, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Xiong Ba Tian Xia (Ch).nes */
 	{ 0xffde0de5,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 梦幻之星4[简体](修正)一战一级.nes */
 	{ 0x88e0c48c,  176, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Rockman 6-in-1 (rev1).nes */
 	{ 0xe6d869ed,  176, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* 6-in-1 Rockman (Unl) [U][!] */
@@ -484,7 +484,7 @@
  	{ 0x8f6ab5ac,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* San Guo Zhong Lie Zhuan (Ch) (Wxn).nes */
  	{ 0xc768098b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* San Xia Wu Yi - Yu Mao Chuan Qi (Ch) (Wxn).nes */
  	{ 0xf29c8186,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shanghai Tycoon (Ch) (Wxn).nes */
- 	{ 0x8947ab85,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shao Nian You Xia (Ch) (Wxn).nes */ /* FIXME: BAD GFX */
+ 	{ 0x8947ab85,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shao Nian You Xia (Ch) (Wxn).nes */
  	{ 0x5a88b5b0,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shu Ma Bao Bei (Digimon Crystal) (Ch) (Wxn).nes */
  	{ 0x6b4cac80,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shui Hu Shen Shou (Ch) (Wxn).nes */
  	{ 0x34ac5ae9,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Shui Hu Zhuan (Ch) (Wxn).nes */
@@ -494,31 +494,29 @@
  	{ 0x8264ea52,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Xia Ke Qing - Jing He Ci Qin Wang (Ch) (Wxn).nes */
  	{ 0x99051cb5,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Xiong Ba Tian Xia (Ch) (Wxn).nes */
  	{ 0xa46353d1,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Yang Jia Jiang - Yang's Troops (Ch) (Wxn).nes */
- 	{ 0x50d5f94b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Ying Lie Qun Xia Zhuan (Ch) (Wxn).nes */ /* FIXME: BAD GFX */
+ 	{ 0x50d5f94b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Ying Lie Qun Xia Zhuan (Ch) (Wxn).nes */
  	{ 0xba29435a,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Zhan Guo Qun Xiong Chuan (Ch) (Wxn).nes */
  	{ 0x33443508,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Zheng Ba Shi Ji (Ch) (Wxn).nes */
  	{ 0xeba09ada,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 龙域天下 [外星科技汉化].nes */
  	{ 0x095d8678,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Bimonthly pass - alien technology.nes */
  	{ 0x7696573a,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* ya te lu zhan ji (c) [es-0122].nes */
  	{ 0x69a3ca5c,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* duo la a meng - chao shi kong li xian (c).nes */
- 	{ 0xee49f509,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Thief Wu You Emon world's treasures - Speaking of alien technology.nes */ /* FIXME: BAD GRAFX */
+ 	{ 0xee49f509,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Thief Wu You Emon world's treasures - Speaking of alien technology.nes */
  	{ 0x848f2d69,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Otaku no Seiza - An Adventure in the Otaku Galaxy (Japan) [CHS](0815)_.nes */
  	{ 0xeabbb630,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Monster Maker - 7 Tsu no Hihou - Part 1 (Ch).nes */
  	{ 0xf1d40f5b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Monster Maker - 7 Tsu no Hihou - Part 2 (Ch).nes */
  	{ 0x5077cac1,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Ba Bao Qi Zhu - Li Jian Ba Quan Zhuan (EverQuest) (ES-1067) (Ch).nes */
  	{ 0xbf6e95f5,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dream King - alien technology.nes */
  	{ 0xbff7c60c,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Ji Dou Sheng Zhan Shi (ES-1117) (Ch).nes */
- 	{ 0x0dbff515,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Silva Saga (J) [T+ChS].nes */ /* FIXME: Broken title gfx */
- 	{ 0xb8fcd425,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 高达骑士物语 - 外星科技汉化.nes */ /* FIXME */
- 	{ 0x3a1cfe21,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 上古神殿 - 外星科技汉化.nes */ /* FixME */
- 	{ 0xbc4ac7fe,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 高达骑士物语2 - 光之骑士 - 外星科技汉化.nes */ /* FIXME */
- 	{ 0x4bcdb970,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Gui Mei Zhan Ji (C).nes */ /* FIXME */
-	{ 0xF17E49D5,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT, DEFAULT, NOEXTRA }, /* Gui Mei Zhan Ji (C).nes */ /* FIXME */
- 	{ 0x62dde924,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Long Zhu Z3 Ren Zao Ren Lie Zhuan (ES-1130) (Ch) [f1].nes */ /* FIXME */
- 	{ 0xed481b7c,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* m199 - Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (Ch).nes */ /* FIXME */
- 	{ 0xd871d3e6,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* m199 - Dragon Ball Z II - Gekishin Freeza!! (Ch).nes */ /* FIXME */
- 	{ 0xc35e9aa8,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch) [a1].nes */ /* FIXME */
- 	{ 0xf2398802,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch) [a2].nes */ /* FIXME */
+ 	{ 0x0dbff515,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Silva Saga (J) [T+ChS].nes */
+ 	{ 0xb8fcd425,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 高达骑士物语 - 外星科技汉化.nes */
+ 	{ 0x3a1cfe21,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 上古神殿 - 外星科技汉化.nes */
+ 	{ 0xbc4ac7fe,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 高达骑士物语2 - 光之骑士 - 外星科技汉化.nes */
+ 	{ 0x4bcdb970,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Gui Mei Zhan Ji (C).nes */
+	{ 0xf17e49d5,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Gui Mei Zhan Ji (C).nes */
+ 	{ 0x62dde924,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Long Zhu Z3 Ren Zao Ren Lie Zhuan (ES-1130) (Ch) [f1].nes */
+ 	{ 0xc35e9aa8,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch) [a1].nes */
+ 	{ 0xf2398802,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch) [a2].nes */
  	{ 0xc9d968af,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Hun Dun Shi Jie (C) [ES-1115].nes */
  	{ 0x7f3dbf1b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Chaos World (Ch).nes */
  	{ 0xb616885c,  176, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Chaos World (Ch) [a1].nes */
@@ -538,7 +536,10 @@
  	{ 0xd408f0bc,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 9-in-1 (KY-9005) [p1][b1].nes */
  	{ 0x20379331,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mortal Kombat 30 Peoples (DH1043) (Ch).nes */
 
-	/* Mapper 178 */
+	/* Mapper 199 roms are mapper 176 using extended mmc3 mode */
+ 	{ 0xed481b7c,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (Ch).nes */
+ 	{ 0xd871d3e6,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch).nes */
+	{ 0x44c20420,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* San Guo Zhi 2 (Ch).nes */
 
 	{ 0x558c0dc3,  178, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 2-in-1 (Soccer Game & Crazy Dance) (Unl) [!].nes */
 	{ 0xc68363f6,  180, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crazy Climber (Japan).nes */
@@ -555,8 +556,6 @@
 	{ 0x442f1a29,  192, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Young Chivalry (Ch) [b1].nes */
 	{ 0x637134e8,  193, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Fighting Hero (Asia) (Ja) (Unl).nes */
 	{ 0xa925226c,  194, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dai-2-Ji - Super Robot Taisen (Ch) [b1].nes */
-/*	{ 0x7f3dbf1b,  195, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, */ /* Chaos World (Ch).nes */
-/*	{ 0xb616885c,  195, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, */ /* Chaos World (Ch) [a1].nes */
 	{ 0x33c5df92,  195, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Tsubasa Vol. II - Super Striker (Ch) [a1].nes */
 	{ 0x1bc0be6c,  195, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Tsubasa Vol. II - Super Striker (Ch) [a3].nes */
 	{ 0xd5224fde,  195, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* God Slayer - Haruka Tenkuu no Sonata (Ch).nes */
@@ -567,9 +566,6 @@
 	{ 0x28192599,  198, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ---- */
 	{ 0x19b9e732,  198, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenchi wo Kurau II - Shokatsu Koumei Den (J) (PRG0) [T-Chi][b6].nes */
 	{ 0xdd431ba7,  198, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenchi wo kurau 2 (c) */
-/*	{ 0xd871d3e6,  199, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, */ /* Dragon Ball Z II - Gekishin Freeza!! (Ch).nes */
-/*	{ 0xed481b7c,  199, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, */ /* Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (Ch).nes */
-	{ 0x44c20420,  199, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* San Guo Zhi 2 (Ch).nes */
 	{ 0x05658ded,  201,      15, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 21-in-1 (CF-043) (2006-V) (Unl) [p1].nes */
 	{ 0x276237b3,  206, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Karnov (Japan) (Rev 1).nes */
 	{ 0xa5e6baf9,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Slayer IV - Drasle Family (Japan).nes */

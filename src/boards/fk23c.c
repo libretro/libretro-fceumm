@@ -84,15 +84,20 @@ static SFORMAT StateRegs[] = {
 
 static void cwrap(uint16 A, uint16 V)
 {
-   /* some workaround for chr rom / ram access */
-   if (!UNIFchrrama && !CHRRAMSIZE)
-      fk23_regs[0] &= ~0x20; /* chr rom with no chr ram always write to bank 0 */
-   else if (UNIFchrrama && WRAM_EXTENDED && (mmc3_wram & 0x04))
-      fk23_regs[0] &= ~0x20;
-   else if (UNIFchrrama)
-      fk23_regs[0] &= ~0x20; /* no chr rom, then chr ram is in bank 0 through UNIFchrrama */
+   int bank = 0;
 
-   setchr1r((fk23_regs[0] & 0x20) >> 1, A, V);
+   /* some workaround for chr rom / ram access */
+   if (!VROM_size)
+      bank = 0;
+   else if (CHRRAMSIZE && fk23_regs[0] & 0x20)
+      bank = 0x10;
+
+   if (WRAM_EXTENDED) {
+      if ((mmc3_wram & 0x04) && V < 8) bank = 0x10; /* first 8K of chr bank is ram */
+      else bank = 0;
+   }
+
+   setchr1r(bank, A, V);
 }
 
 static void SyncCHR(void)
