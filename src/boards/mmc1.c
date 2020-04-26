@@ -203,44 +203,25 @@ static void MMC1CMReset(void) {
 
 static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
 	int workRAM = 8;
-	switch (info->CRC32) {
-	case 0xc6182024: /* Romance of the 3 Kingdoms */
-	case 0xabbf7217: /* ""        "" (J) (PRG0) or Sangokushi  */
-	case 0xccf35c02: /* ""        "" (J) (PRG1) */
-	case 0x2225c20f: /* Genghis Khan */
-	case 0xfb69743a: /* ""        "" (J) */
-	case 0x4642dda6: /* Nobunaga's Ambition */
-	case 0x3f7ad415: /* ""        "" (J) (PRG0) */
-	case 0x2b11e0b0: /* ""        "" (J) (PRG1) */
-		*saveRAM = 8;
-		workRAM = 16;
-		break;
-	case 0xb8747abf: /* Best Play Pro Yakyuu Special (J) (PRG0) */
-	case 0xc3de7c69: /* ""        "" (J) (PRG1) */
-	case 0xc9556b36: /* Final Fantasy I & II (J) [!] */
-		*saveRAM = 32;
-		workRAM = 32;
-		break;
-	default:
-		/* FIXME:
-		 * According to NesCartDB, the games above are the only ones using 16K / 32K wram or battery,
-		 * the rest of the roms for this mapper can either have 8KB wram or 8KB battery save or both.
-		 * Some NES 2.0 headered roms have been found to have incorrect wram size causing save issues, so we
-		 * override games here that have battery bit enabled but not listed above to ignore header and use default 8 KB battery/wram instead.
-		 * Nes 2.0 roms without battery bit can use the header to set wram size. */
-		if (info->battery) {
+	if (info->iNES2) {
+		workRAM = (info->PRGRamSize + info->PRGRamSaveSize) / 1024;
+		*saveRAM = info->PRGRamSaveSize / 1024;
+		/* we only support sizes between 8K and 32K */
+		if (workRAM > 0 && workRAM < 8)
 			workRAM = 8;
+		if (workRAM > 32)
+			workRAM = 32;
+		if (*saveRAM > 0 && *saveRAM < 8)
 			*saveRAM = 8;
+		if (*saveRAM > 32)
+			*saveRAM = 32;
+		/* save ram cannot be bigger than workram */
+		if (*saveRAM > workRAM) {
+			*saveRAM = workRAM;
+			workRAM = 0;
 		}
-		else if (info->iNES2) {
-			workRAM = (info->PRGRamSize + info->PRGRamSaveSize) / 1024;
-			/* we only support sizes between 8K and 32K */
-			if (workRAM > 0 && workRAM < 8)
-				workRAM = 8;
-			if (workRAM > 32)
-				workRAM = 32;
-		} /* the rest use default 8KB wram by default*/
-		break;
+	} else if (info->battery) {
+		*saveRAM = 8;
 	}
 	if (workRAM > 8)
 		FCEU_printf(" >8KB external WRAM present.  Use NES 2.0 if you hack the ROM image.\n");

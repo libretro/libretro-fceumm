@@ -7,33 +7,32 @@
 	*/
 	{ 0xb17574f3,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Heroes of the Lance */
 	{ 0x5de61639,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Hillsfar */
-	{ 0x25952141,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Pool of Radiance */
-	{ 0xb5ff71ab,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Battle Fleet */
-	{ 0x1335cb05,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crystalis */
 	{ 0x2545214c,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW */
 	{ 0x3b3f88f0,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW */
 	{ 0x8c5a784e,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW 2 */
 	{ 0x506e259d,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW 4*/
 	{ 0xa86a5318,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dw 3 */
-	{ 0x0c1792da,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Famista '90 */
 	{ 0x45f03d2e,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Faria */
 	{ 0xb8b88130,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy (FFE Hack) */
 	{ 0xcebd2a31,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy */
-	{ 0xc9556b36,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 1+2 */
 	{ 0xd29db3c7,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 2 */
-	{ 0x57e220d0,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 3 */
 	{ 0x466efdc2,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy J */
-	{ 0x47c2020b,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hydlide 3*/
-	{ 0xbc11e61a,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kaijuu Monogatari */
-	{ 0xde9c9c64,   80, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kyonshiizu 2 */
 	{ 0xeaf7ed72,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Legend of Zelda */
 	{ 0x3fe272fb,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Legend of Zelda */
-	{ 0xace56f39,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mindseeker */
-	{ 0x0e1683c5,   80, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mirai Shinwa Jarvas */
-	{ 0xe1383deb,   26, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mouryou Senki Madara */
+	{ 0xba322865,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Zelda 2 */
+	{ 0x25952141,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Pool of Radiance */
+	{ 0x1335cb05,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crystalis */
+	{ 0x57e220d0,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 3 */
 	{ 0x889129cb,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics */
 	{ 0xd054ffb0,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics 2*/
-	{ 0xba322865,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Zelda 2 */
+	{ 0xb5ff71ab,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Battle Fleet */
+	{ 0x0c1792da,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Famista '90 */
+	{ 0x47c2020b,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hydlide 3*/
+	{ 0xbc11e61a,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kaijuu Monogatari */
+	{ 0xace56f39,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mindseeker */
+	{ 0xe1383deb,   26, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mouryou Senki Madara */
+	{ 0xde9c9c64,   80, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kyonshiizu 2 */
+	{ 0x0e1683c5,   80, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mirai Shinwa Jarvas */
 
 	{ 0xaf5d7aa2,    0, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Clu Clu Land (W) [o3].nes */
 	{ 0xcfb224e6,  222, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ninja (J) (PRG0) [p1][!].nes */
@@ -82,6 +81,22 @@
 	{ 0x52ab2d17,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Toukyou Pachi-Slot Adventure (Japan).nes */
 	{ 0x934db14a,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* All-Pro Basketball (USA).nes */
 	{ 0xf74dfc91,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Win, Lose or Draw (USA).nes */
+	{ 0xcfe02ada,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Darkman (Europe).nes */
+	{ 0x1a71fd06,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kujaku Ou.nes */
+
+	/* MMC1 games with more than 8K wram */
+	{ 0x2225c20f,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* Genghis Khan */
+	{ 0xfb69743a,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* ""        "" (J) */
+	{ 0x4642dda6,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* Nobunaga's Ambition */
+	{ 0x3f7ad415,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* ""        "" (J) (PRG0) */
+	{ 0x2b11e0b0,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* ""        "" (J) (PRG1) */
+	{ 0xc6182024,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* Romance of the 3 Kingdoms */
+	{ 0xabbf7217,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* ""        "" (J) (PRG0) or Sangokushi  */
+	{ 0xccf35c02,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* ""        "" (J) (PRG1) */
+	{ 0xb8747abf,    1, DEFAULT, DEFAULT, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Best Play Pro Yakyuu Special (J) (PRG0) */
+	{ 0xc3de7c69,    1, DEFAULT, DEFAULT, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* ""        "" (J) (PRG1) */
+	{ 0xc9556b36,    1, DEFAULT, DEFAULT, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy 1+2 */
+
 	{ 0xe6a477b2,    2, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 3-D WorldRunner (USA).nes */
 	{ 0x9ea1dc76,    2, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Rainbow Islands (USA).nes */
 	{ 0x6d65cac6,    2, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Terra Cresta (Japan).nes */
@@ -105,6 +120,7 @@
 	{ 0xe41b440f,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sidewinder (Joy Van).nes */
 	{ 0xebd0644d,    3,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Master Chu & The Drunkard Hu (Joy Van).nes */
 	{ 0xf283cf58,    3,       1,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Colorful Dragon (Sachen).nes */
+	{ 0x2deb12b8,    3,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Venice Beach Volleyball (Asia) (Ja) (Super Mega) (Unl).nes */
 
 	{ 0xdbf90772,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alpha Mission (USA).nes */
 	{ 0xd858033d,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ASO - Armored Scrum Object (J).nes */
@@ -134,7 +150,35 @@
 	{ 0xafe03802,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pachio-kun 3 (Japan) (Rev A).nes */
 	{ 0x21a653c7,    4, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Sky Kid (VS).nes */
 	{ 0xdb7f07be,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Toki (USA) (Beta).nes */
-	{ 0x9cbadc25,    5, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Just Breed (Japan).nes */
+
+	/* MMC5 */
+	{ 0x671f23a8,    5, DEFAULT, DEFAULT, 0,       0,        0,     PAL, NOEXTRA }, /* Castlevania III - Dracula's Curse (E) */
+	{ 0xcd4e7430,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Castlevania III - Dracula's Curse (KC) */
+	{ 0xed2465be,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Castlevania III - Dracula's Curse (U) */
+	{ 0x0afb395e,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Gun Sight */
+	{ 0xb0480ae9,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Laser Invasion */
+	{ 0xb4735fac,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Metal Slader Glory */
+	{ 0xbb7f829a,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Uchuu Keibitai SDF */
+	{ 0x0ec6c023,    5, DEFAULT, DEFAULT, 1,    0x70,        0, DEFAULT, NOEXTRA }, /* Gemfire */
+	{ 0x9cbadc25,    5, DEFAULT, DEFAULT, 1,    0x70,        0, DEFAULT, NOEXTRA }, /* Just Breed */
+	{ 0xbc80fb52,    5, DEFAULT, DEFAULT, 1,    0x70,        0, DEFAULT, NOEXTRA }, /* Royal Blood */
+	{ 0xd532e98f,    5, DEFAULT, DEFAULT, 1,    0x70,        0, DEFAULT, NOEXTRA }, /* Shin 4 Nin Uchi Mahjong - Yakuman Tengoku */
+	{ 0x15fe6d0f,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Bandit Kings of Ancient China */
+	{ 0xfe3488d1,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Daikoukai Jidai */
+	{ 0x1ced086f,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Ishin no Arashi */
+	{ 0x6396b988,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* L'Empereur (J) */
+	{ 0x9c18762b,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* L'Empereur (U) */
+	{ 0xeee9a682,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG0) */
+	{ 0xf9b4240f,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Nobunaga no Yabou - Sengoku Gunyuu Den (J) (PRG1) */
+	{ 0x8ce478db,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Nobunaga's Ambition 2 */
+	{ 0x39f2ce4b,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Suikoden - Tenmei no Chikai */
+	{ 0xaca15643,    5, DEFAULT, DEFAULT, 1,    0x77,        0, DEFAULT, NOEXTRA }, /* Uncharted Waters */
+	{ 0x6f4e4312,    5, DEFAULT, DEFAULT, 1,    0x90,        0, DEFAULT, NOEXTRA }, /* Aoki Ookami to Shiroki Mejika - Genchou Hishi */
+	{ 0xf540677b,    5, DEFAULT, DEFAULT, 1,    0x90,        0, DEFAULT, NOEXTRA }, /* Nobunaga no Yabou - Bushou Fuuun Roku */
+	{ 0xf011e490,    5, DEFAULT, DEFAULT, 1,    0x90,        0, DEFAULT, NOEXTRA }, /* Romance of The Three Kingdoms II */
+	{ 0x184c2124,    5, DEFAULT, DEFAULT, 1,    0x90,        0, DEFAULT, NOEXTRA }, /* Sangokushi II (J) (PRG0) */
+	{ 0xee8e6553,    5, DEFAULT, DEFAULT, 1,    0x90,        0, DEFAULT, NOEXTRA }, /* Sangokushi II (J) (PRG1) */
+
 	{ 0xf518dd58,    7, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Skyhawk (USA).nes */
 	{ 0x6c4a9735,    7, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* WWF Wrestlemania (Europe).nes */
 	{ 0x84382231,    9, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Punch-Out!! (Japan) (Gold Edition).nes */
@@ -222,7 +266,6 @@
 	{ 0x8eab381c,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Deathbots (USA) (Rev 1) (Unl).nes */
 	{ 0x1eb4a920,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Double Strike - Aerial Attack Force (USA) (v1.1) (Unl).nes */
 	{ 0x3e1271d5,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tiles of Fate (USA) (Unl).nes */
-	{ 0x2deb12b8,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Venice Beach Volleyball (Asia) (Ja) (Super Mega) (Unl).nes */
 	{ 0xd2699893,   88, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Spirit - Aratanaru Densetsu (Japan).nes */
 	{ 0xbb7c5f7a,   89, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenka no Goikenban - Mito Koumon (J) [f1].nes */
 	{ 0x082778e6,   91,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Fighter III.nes */
@@ -296,20 +339,208 @@
 	{ 0x58152b42,  160, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pipe V (Asia) (Ja) (Unl).nes */
 	{ 0x1c098942,  162, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Xi You Ji Hou Zhuan (Ch).nes */
 	{ 0x081caaff,  163, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Commandos (Ch).nes */
-	{ 0x02c41438,  176, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Xing He Zhan Shi (Asia) (Unl).nes */
-	{ 0x409601a5,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (BS-8088) [p1][!].nes */
-	{ 0xa391549d,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8021) [p1][!].nes */
-	{ 0x06d13d9e,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8026) [p1][!].nes */
-	{ 0x2ebd5fd6,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8033) [p1][!].nes */
-	{ 0x23e4906a,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8043) [p1][!].nes */
-	{ 0x10155a92,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8045) [p1][!].nes */
-	{ 0x8baeedc0,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8052) [p1][!].nes */
-	{ 0x39307391,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8056) [p1][!].nes */
-	{ 0x72ceab1e,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8078) (Ch) [p1].nes */
-	{ 0x07d3f6cb,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8079) [p1][!].nes */
-	{ 0xc6d97331,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23Cxxxx, S-0210A PCB) [p1][!].nes */
-	{ 0x17d43af9,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 5-in-1 (K5003) [p1][!].nes */
-	{ 0x20379331,  176, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mortal Kombat 30 Peoples (DH1043) (Ch).nes */
+
+	/* Mapper 176 */
+
+	{ 0x761cf0c0,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 15-in-1 (FK008-15in1-210in1).nes */
+	{ 0xc51fa465,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 15-in-1 (KD-6032 180-in-1).nes */
+	{ 0x7642f6b6,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 18-in-1 (FK003-160in1).nes */
+	{ 0xb12ccb95,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 18-in-1 (FK028-180-in-1).nes */
+	{ 0xe650ec91,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 18-in-1 (FK032-52in1)).nes */
+	{ 0xa22de99d,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 20-in-1 (KD-6026 210in1).nes */
+	{ 0xe8bd5ac3,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 28-in-1 (FK-017).nes */
+	{ 0x4f2ccd03,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (BS-8004) (BS-0210A) (AA) (Unl) [p1].nes */
+	{ 0x24762ce8,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (FK-022) 178-in-1.nes */
+	{ 0x8c48bdba,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 4-in-1 (AA) (BS-0306M) (Unl) [p1].nes */
+	{ 0x37478f0c,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 4-in-1 (BS-8009) (BS-0306M) (Unl) [p1].nes */
+	{ 0x98c59170,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 4-in-1 (BS-8014) (Unl) [p1].nes */
+	{ 0x7ca43c89,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (BS-8117) (Unl) [p1].nes */
+	{ 0xeebee0c8,  176, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 哥伦布传 - 黄金中文版 (re-release).nes */
+	{ 0x548d72ff,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 哥伦布 冒险记 - 黄金中文版.nes */
+	{ 0x3c9df646,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 圣斗士.nes */
+	{ 0x629fbeec,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 125-in-1 [p1][!].nes */
+	{ 0x9bdf2424,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 12-in-1 Console TV Game Cartridge (Unl) [!].nes */
+	{ 0x9206b787,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 160-in-1.nes */
+	{ 0x6343e6a6,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 16 in 1 (KD-1512).nes */
+	{ 0xdc904f4c,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 3in1 (ES-Q800C)(FSS).nes */
+	{ 0x104d84df,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 3-in-1 (ES-Q800C PCB) [p1].nes */
+	{ 0xcf7c6ae0,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 3in1 (ES-Q800C)(TRS).nes */
+	{ 0x2b882971,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (15-in-1, 188-in-1, 999999-in-1) (YH478) (KY1501) (Unl) [p1].nes */
+	{ 0x576d9589,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4in1 (BS-0210A)(MMMM).nes */
+	{ 0x36c27ae8,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4in1 (BS-0306M)(TPST).nes */
+	{ 0x409601a5,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (BS-8088) [p1][!].nes */
+	{ 0xc4d1d2f8,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4in1 (ES-Q800C)(TCCC).nes */
+	{ 0x44f46bbc,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4in1 (ES-Q800C)(TPFS).nes */
+	{ 0x6ab68f4f,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 Fighter (ES-Q800C1 PCB) [p1].nes */
+	{ 0xa391549d,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8021) [p1][!].nes */
+	{ 0x06d13d9e,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8026) [p1][!].nes */
+	{ 0x2ebd5fd6,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8033) [p1][!].nes */
+	{ 0x23e4906a,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8043) [p1][!].nes */
+	{ 0x10155a92,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8045) [p1][!].nes */
+	{ 0x8baeedc0,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8052) [p1][!].nes */
+	{ 0x39307391,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8056) [p1][!].nes */
+	{ 0x72ceab1e,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8078) (Ch) [p1].nes */
+	{ 0x07d3f6cb,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8079) [p1][!].nes */
+	{ 0xc6d97331,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23Cxxxx, S-0210A PCB) [p1][!].nes */
+	{ 0x9367d1f4,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23Cxxxx, S-0210A PCB)[p1][!](Rus).nes */
+	{ 0x3907578b,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK-8008) [p1][!].nes */
+	{ 0xf66944ee,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK-8050) [p1][!].nes */
+	{ 0x8f6cc85a,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (KT-220B) [p1].nes */
+	{ 0x0163ca53,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (KT-3445AB) [p1].nes */
+	{ 0xc18a7bcb,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (KT-443B) [p1].nes */
+	{ 0xbbfbecbc,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1(SB-04,Unl).nes */
+	{ 0xd7d2123c,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (VT087) [p1][!].nes */
+	{ 0x8cb6d32c,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (VT089) [p1][!].nes */
+	{ 0x23994975,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (VT089)[p1][!] (Rus).nes */
+	{ 0x93196e95,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (VTxxx, 0208 PCB) [p1][!].nes */
+	{ 0x5f96184b,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (YH-4102) [p1].nes */
+	{ 0xfa1cb05c,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (YH4237) [p1].nes */
+	{ 0x1ef30cc8,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (YH-4253) (Unl) [p1] .nes */
+	{ 0x5d2129ac,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 YH-481 (20-in-1 KY2001, 228-in-1, 999999-in-1)(Unl)[!].nes */
+	{ 0x17d43af9,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 5-in-1 (K5003) [p1][!].nes */
+	{ 0xb3277b6c,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 6-in-1 (FK-3004) [p1][!].nes */
+	{ 0x97b82f53,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Bao Xiao San Guo (Ch) [a4].nes */
+	{ 0xd5f7aaef,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Double Moon Densetsu (Japan) [CHS](0806)_.nes */
+	{ 0x027fd794,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Jian Wuzhe - Sword Dancer.nes */
+	{ 0x09fc02c7,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Kou Dai Jing Ling - Fei Cui (Ch) [a2].nes */
+	{ 0x416c07a1,  176, DEFAULT,    MI_V, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Meng Huan Zhi Xing IV (ES-1006) (Ch).nes */
+	{ 0xab09c88b,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* New 4-in-1 Game Fighter (KT-8405) (Unl).nes */
+	{ 0x85dd49b6,  176, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pocket Monsters Red (Ch) (Decrypted) [b1].nes */
+	{ 0x977d22c3,  176, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Po Fu Chen Zhou (ES-1092) (Ch) (Decrypted).nes */
+	{ 0xf011afd6,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Rockman 4 MI (Hack).nes */
+	{ 0xb511c04b,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* San Xia Wu Yi - Yu Mao Chuan Qi (Ch) (ES-1071) [a2].nes */
+	{ 0x1923a8c5,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Shui Hu Shen Shou (ES-1087) (Ch) (Decrypted).nes */
+	{ 0xc043a8df,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Shu Qi Yu - Shu Xue Xiao Zhuan Yuan (Ch).nes */
+	{ 0x2cf5db05,  176, DEFAULT,    MI_H, 0, DEFAULT,       0, DEFAULT, NOEXTRA }, /* Shu Qi Yu - Zhi Li Xiao Zhuan Yuan (Ch).nes */
+	{ 0x3df39ce4,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 3-in-1 (KT-4403) [p1].nes */
+	{ 0xc447b9fe,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 4-in-1 (BRC-4) [p1].nes */
+	{ 0xb5d25a20,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 4-in-1 (BS-0306M)(Unl).nes */
+	{ 0xaa05c592,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 6-in-1 (KY-6011)[p1][!].nes */
+	{ 0x940933dc,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* super game 3-in-1 (yh-363) (unl).nes */
+	{ 0x0b2cf73f,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 3-in-1 (YH-8013) (Unl).nes */
+	{ 0xb55103ad,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 3-in-1 (YH-8019) (MK042) (Unl) Fix.nes */
+	{ 0xd2f5f51d,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (10-in-1, 168-in-1, 999999-in-1) (YH477) (KY1008) (Unl).nes */
+	{ 0x719cce0a,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (KT-8394) (Unl).nes */
+	{ 0xa2e2031c,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (KT-8406) (Unl).nes */
+	{ 0x25d7cb92,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (MK038) (YH-8016) (Unl).nes */
+	{ 0x18dd93bc,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 New (YH437) (Unl) Fix.nes */
+	{ 0x4d18054c,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 New (YH437) (Unl).nes */
+	{ 0x6d580074,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-4118) (Unl).nes */
+	{ 0xfa5b1d26,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-4122) (Unl).nes */
+	{ 0xc3166e11,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH4146) (Unl).nes */
+	{ 0x4d25a3a6,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-415) (Unl) Fix.nes */
+	{ 0xf019bfef,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-415) (Unl).nes */
+	{ 0x60ac647f,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH4222) (Unl).nes */
+	{ 0x63d43f22,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-451) (Unl).nes */
+	{ 0xa39c9a6b,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-467) (Unl).nes */
+	{ 0x80f1e11e,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH701) (Unl) Fix.nes */
+	{ 0x0f05c0e6,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH701) (Unl).nes */
+	{ 0x8858d3f7,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8011) (Unl) Fix.nes */
+	{ 0xc5c30efa,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8011) (Unl).nes */
+	{ 0xcd55a865,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8023) (003) (Unl).nes */
+	{ 0x18beb276,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8024) (Unl).nes */
+	{ 0xe3a0b9e5,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8027) (Unl).nes */
+	{ 0x92b52357,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8028) (009) (Unl).nes */
+	{ 0xde94b7fd,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8029) (Unl).nes */
+	{ 0x5a0e3e69,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8033) (Unl).nes */
+	{ 0x21d4484a,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8042) (Unl).nes */
+	{ 0xbeeb0b07,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8043) (MK064) (Unl) Fix.nes */
+	{ 0xe83e5726,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8043) (MK064) (Unl).nes */
+	{ 0xd56f27ae,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8046) (009) (Unl).nes */
+	{ 0x0e8766dc,  176, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 4-in-1 (YH-8049) (002) (Unl).nes */
+	{ 0xd2a4a9c6,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 6-in-1 (YH 602) (Font Hack) Fix.nes */
+	{ 0x35974f2c,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 6-in-1 (YH 602) (Font Hack).nes */
+	{ 0x0881169e,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 8-in-1 (YH 801) (Font Hack).nes */
+	{ 0x31cadef3,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 9-in-1 (YH904) (Font Hack).nes */
+	{ 0x05e43745,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game 9-in-1 (YH904) (Unl).nes */
+	{ 0x5d061e04,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game YH 602 (Unl).nes */
+	{ 0x5b17fb27,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Game YH 801 (Unl).nes */
+	{ 0xf9863adf,  176, DEFAULT,    MI_V, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Xi Chu Ba Wang (C) [ES-1066].nes */
+	{ 0xf1d803f3,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Xi Chu Ba Wang (ES-1066) (Ch) (Decrypted).nes */
+	{ 0x94782fbd,  176, DEFAULT,    MI_V, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Xiong Ba Tian Xia (Ch).nes */
+	{ 0xffde0de5,  176, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 梦幻之星4[简体](修正)一战一级.nes */
+	{ 0x88e0c48c,  176, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Rockman 6-in-1 (rev1).nes */
+	{ 0xe6d869ed,  176, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* 6-in-1 Rockman (Unl) [U][!] */
+	{ 0x8caaff73,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Bao Xiao San Guo (Ch) (Wxn).nes */
+	{ 0x852ce16b,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Chu Han Zheng Ba - The War Between Chu & Han (Ch) (Wxn).nes */
+	{ 0xe0dd8d77,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Chu Liu Xiang (Ch) (Wxn).nes */
+	{ 0x2e4f3051,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Chu Liu Xiang (Ch) (Wxn) [f1].nes */
+	{ 0x351dd533,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Di Guo Feng Bao - Napoleon's War (Ch) (Wxn).nes */
+	{ 0x5ee2ef97,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Di Guo Shi Dai (Age of Empires) (Ch) (Wxn).nes */
+	{ 0xd6ea31c0,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Dong Zhou Lie Guo Zhi (Ch) (Wxn).nes */
+	{ 0xc04d330d,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Duo Bao Xiao Ying Hao - Guang Ming yu An Hei Chuan Shuo (Ch) (Wxn).nes */
+	{ 0xfd883527,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Feng Yun (Ch) (Wxn).nes */
+	{ 0xf354d847,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Grandia (Ch) (Wxn).nes */
+	{ 0x52a5f554,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT, DEFAULT, NOEXTRA }, /* Ji Du Shan En Chou Ji - Le Comte de Monte-Cristo (Ch) (Wxn).nes */
+	{ 0x95569a86,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 甲A - China Soccer League for Division A (re-release).nes */
+	{ 0xda7d586d,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT, DEFAULT, NOEXTRA }, /* Jue Dai Ying Xiong - Peerless Hero (Ch) (Wxn).nes */
+	{ 0x2c3d4ef0,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Kou Dai Jing Ling - Fei Cui (Ch) (Wxn).nes */
+	{ 0x49f22159,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Mei Guo Fu Hao (Ch) (Wxn).nes */
+	{ 0xb16d4268,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* M&M Heroes (Ch) (Wxn).nes */
+	{ 0x3532a114,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Mo Shen Fa Shi (Ch) (Wxn).nes */
+ 	{ 0x7d9c7206,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Mo Yu Ying Xiong Chuan - Wai Xing Ke Ji (Ch) (Wxn).nes */
+ 	{ 0xa2dc64ff,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Po Fu Chen Zhou (Ch) (Wxn).nes */
+ 	{ 0x377fdb36,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Pocket Monsters Gold (Ch) (Wxn).nes */
+ 	{ 0x8f6ab5ac,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* San Guo Zhong Lie Zhuan (Ch) (Wxn).nes */
+ 	{ 0xc768098b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* San Xia Wu Yi - Yu Mao Chuan Qi (Ch) (Wxn).nes */
+ 	{ 0xf29c8186,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shanghai Tycoon (Ch) (Wxn).nes */
+ 	{ 0x8947ab85,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shao Nian You Xia (Ch) (Wxn).nes */
+ 	{ 0x5a88b5b0,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shu Ma Bao Bei (Digimon Crystal) (Ch) (Wxn).nes */
+ 	{ 0x6b4cac80,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Shui Hu Shen Shou (Ch) (Wxn).nes */
+ 	{ 0x34ac5ae9,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Shui Hu Zhuan (Ch) (Wxn).nes */
+ 	{ 0x38effd3e,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Sui Tang Yan Yi (Ch) (Wxn).nes */
+ 	{ 0x7dce29cb,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT, DEFAULT, NOEXTRA }, /* Super Daisenryaku (Ch) (Wxn).nes */
+ 	{ 0x3ff36623,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Xi Chu Ba Wang (Ch) (Wxn).nes */
+ 	{ 0x8264ea52,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Xia Ke Qing - Jing He Ci Qin Wang (Ch) (Wxn).nes */
+ 	{ 0x99051cb5,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Xiong Ba Tian Xia (Ch) (Wxn).nes */
+ 	{ 0xa46353d1,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Yang Jia Jiang - Yang's Troops (Ch) (Wxn).nes */
+ 	{ 0x50d5f94b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Ying Lie Qun Xia Zhuan (Ch) (Wxn).nes */
+ 	{ 0xba29435a,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Zhan Guo Qun Xiong Chuan (Ch) (Wxn).nes */
+ 	{ 0x33443508,  176, DEFAULT,    MI_H, 1,    0x90, DEFAULT,   DENDY, NOEXTRA }, /* Zheng Ba Shi Ji (Ch) (Wxn).nes */
+ 	{ 0xeba09ada,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 龙域天下 [外星科技汉化].nes */
+ 	{ 0x095d8678,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Bimonthly pass - alien technology.nes */
+ 	{ 0x7696573a,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* ya te lu zhan ji (c) [es-0122].nes */
+ 	{ 0x69a3ca5c,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* duo la a meng - chao shi kong li xian (c).nes */
+ 	{ 0xee49f509,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Thief Wu You Emon world's treasures - Speaking of alien technology.nes */
+ 	{ 0x848f2d69,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Otaku no Seiza - An Adventure in the Otaku Galaxy (Japan) [CHS](0815)_.nes */
+ 	{ 0xeabbb630,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Monster Maker - 7 Tsu no Hihou - Part 1 (Ch).nes */
+ 	{ 0xf1d40f5b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Monster Maker - 7 Tsu no Hihou - Part 2 (Ch).nes */
+ 	{ 0x5077cac1,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Ba Bao Qi Zhu - Li Jian Ba Quan Zhuan (EverQuest) (ES-1067) (Ch).nes */
+ 	{ 0xbf6e95f5,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dream King - alien technology.nes */
+ 	{ 0xbff7c60c,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Ji Dou Sheng Zhan Shi (ES-1117) (Ch).nes */
+ 	{ 0x0dbff515,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Silva Saga (J) [T+ChS].nes */
+ 	{ 0xb8fcd425,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 高达骑士物语 - 外星科技汉化.nes */
+ 	{ 0x3a1cfe21,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 上古神殿 - 外星科技汉化.nes */
+ 	{ 0xbc4ac7fe,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* 高达骑士物语2 - 光之骑士 - 外星科技汉化.nes */
+ 	{ 0x4bcdb970,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Gui Mei Zhan Ji (C).nes */
+	{ 0xf17e49d5,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Gui Mei Zhan Ji (C).nes */
+ 	{ 0x62dde924,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Long Zhu Z3 Ren Zao Ren Lie Zhuan (ES-1130) (Ch) [f1].nes */
+ 	{ 0xc35e9aa8,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch) [a1].nes */
+ 	{ 0xf2398802,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch) [a2].nes */
+ 	{ 0xc9d968af,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Hun Dun Shi Jie (C) [ES-1115].nes */
+ 	{ 0x7f3dbf1b,  176, DEFAULT,    MI_H, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* Chaos World (Ch).nes */
+ 	{ 0xb616885c,  176, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Chaos World (Ch) [a1].nes */
+ 	{ 0x02c41438,  176, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Xing He Zhan Shi (Asia) (Unl).nes */
+ 	{ 0xe8eafbc1,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Long Zhi Gu (ES-1137) (Ch) [f1].nes */
+ 	{ 0x6c979bac,  176, DEFAULT,    MI_H, 0, DEFAULT,    0x0b, DEFAULT, NOEXTRA }, /* 10-in-1 Omake Game (FC Mobile) [b1].nes */
+ 	{ 0x622e9e35,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT,   MULTI, NOEXTRA }, /* 126-in-1 (5-in-1, 16-in-1, 22-in-1, 42-in-1, 56-in-1, 62-in-1) [p1][b1].nes */
+ 	{ 0xe6617bf1,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT,   MULTI, NOEXTRA }, /* 18-in-1 (FK-027 180in1).nes */
+ 	{ 0x04398a9f,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 2-in-1 - Sonic 5 + Earth Worm Jim 3 (Unl) [b1].nes */
+ 	{ 0x95aca7a7,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT,   MULTI, NOEXTRA }, /* 20-in-1 (15-in-1, 80-in-1, 160-in-1) [p1][b1].nes */
+ 	{ 0x8e994bcd,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT,   MULTI, NOEXTRA }, /* 3-in-1 - Lion King 5, The (Unl) [b1].nes */
+ 	{ 0x05a1f101,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (FK23C8078) (Ch) [p1][b1].nes */
+ 	{ 0x4e5f123a,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 Digital Adventure (Unl) [b1].nes */
+ 	{ 0x9ad9a8e9,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 6-in-1 (KY-6006) [p1][b1].nes */
+ 	{ 0x521af87b,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 6-in-1 (KY-6009) [p1][b1].nes */
+ 	{ 0x205cf073,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 8-in-1 Supergame (KY8002) [p1][b1].nes */
+ 	{ 0xd408f0bc,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 9-in-1 (KY-9005) [p1][b1].nes */
+ 	{ 0x20379331,  176, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mortal Kombat 30 Peoples (DH1043) (Ch).nes */
+
+	/* Mapper 199 roms are mapper 176 using extended mmc3 mode */
+ 	{ 0xed481b7c,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (Ch).nes */
+ 	{ 0xd871d3e6,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch).nes */
+	{ 0x44c20420,  176, DEFAULT,    MI_H, 1,    0x90,    0x07, DEFAULT, NOEXTRA }, /* San Guo Zhi 2 (Ch).nes */
+
 	{ 0x558c0dc3,  178, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 2-in-1 (Soccer Game & Crazy Dance) (Unl) [!].nes */
 	{ 0xc68363f6,  180, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crazy Climber (Japan).nes */
 	{ 0x0f05ff0a,  181, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Seicross (Japan) (Rev 1).nes */
@@ -325,8 +556,6 @@
 	{ 0x442f1a29,  192, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Young Chivalry (Ch) [b1].nes */
 	{ 0x637134e8,  193, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Fighting Hero (Asia) (Ja) (Unl).nes */
 	{ 0xa925226c,  194, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dai-2-Ji - Super Robot Taisen (Ch) [b1].nes */
-	{ 0x7f3dbf1b,  195, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Chaos World (Ch).nes */
-	{ 0xb616885c,  195, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Chaos World (Ch) [a1].nes */
 	{ 0x33c5df92,  195, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Tsubasa Vol. II - Super Striker (Ch) [a1].nes */
 	{ 0x1bc0be6c,  195, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Tsubasa Vol. II - Super Striker (Ch) [a3].nes */
 	{ 0xd5224fde,  195, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* God Slayer - Haruka Tenkuu no Sonata (Ch).nes */
@@ -337,10 +566,6 @@
 	{ 0x28192599,  198, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ---- */
 	{ 0x19b9e732,  198, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenchi wo Kurau II - Shokatsu Koumei Den (J) (PRG0) [T-Chi][b6].nes */
 	{ 0xdd431ba7,  198, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenchi wo kurau 2 (c) */
-	{ 0xd871d3e6,  199, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball Z II - Gekishin Freeza!! (Ch).nes */
-	{ 0xed481b7c,  199, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball Z Gaiden - Saiya Jin Zetsumetsu Keikaku (Ch).nes */
-	{ 0x44c20420,  199, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* San Guo Zhi 2 (Ch).nes */
-	{ 0x44c20420,  199, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* San Guo Zhi 2 (Ch).nes */
 	{ 0x05658ded,  201,      15, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 21-in-1 (CF-043) (2006-V) (Unl) [p1].nes */
 	{ 0x276237b3,  206, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Karnov (Japan) (Rev 1).nes */
 	{ 0xa5e6baf9,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Slayer IV - Drasle Family (Japan).nes */
@@ -398,13 +623,11 @@
 	{ 0x4f427110,  224, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pokemon Platinum Alt title 1 (KT-008 PCB)(Ch)[!].nes */
 	{ 0xe001de16,  224, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pokemon Platinum Alt title 2 (KT-008 PCB)(Ch)[!].nes */
 	{ 0xbdbe3c96,  238, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Contra Fighter (Unl).nes */
-	{ 0xcfe02ada,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Darkman (Europe).nes */
 	{ 0xcb53c523,   11, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* King Neptune's Adventure (USA) (Unl).nes */
 	{ 0x6e149729,  189, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Master Fighter II (Unl) [a1].nes */
 	{ 0x60bfeb0c,   90, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mortal Kombat 2 (Unl) [!].nes */
 	{ 0x247cc73d,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Poker II (Asia) (Ja) (Unl).nes */
 	{ 0x1f1326d4,  121, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Sonic 5 (1997) (Unl) [!].nes */
-	{ 0x1a71fd06,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kujaku Ou.nes */
 	{ 0x99748230,  215, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* EarthWorm Jim 2 (SuperGame).nes */
 	{ 0x37876ac7,  215, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Golden Card 6-in-1 (Unl) [!].nes */
 	{ 0x1a3320a3,  215, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mortal Kombat 3 (SuperGame).nes */
