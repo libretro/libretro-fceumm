@@ -726,7 +726,7 @@ ifneq (,$(findstring msvc,$(platform)))
 COREDEFINES += -DINLINE=_inline
 endif
 
-CFLAGS += -DWANT_GRIFFIN
+CFLAGS += -DWANT_GRIFFIN -Werror=implicit-function-declaration
 
 OBJECTS := $(SOURCES_C:.c=.o)
 OBJECTS += $(RETROARCH_OBJECTS)

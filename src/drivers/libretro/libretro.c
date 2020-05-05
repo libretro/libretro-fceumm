@@ -5,6 +5,9 @@
 #include <stdarg.h>
 
 #include <libretro.h>
+#include <streams/memory_stream.h>
+#include <libretro_dipswitch.h>
+#include <libretro_core_options.h>
 
 #include "../../fceu.h"
 #include "../../fceu-endian.h"
@@ -27,11 +30,6 @@
 #if defined(RENDER_GSKIT_PS2)
 #include "libretro-common/include/libretro_gskit_ps2.h"
 #endif
-
-#include "libretro-common/include/streams/memory_stream.h"
-#include "libretro_dipswitch.h"
-
-#include "libretro_core_options.h"
 
 #define MAX_PLAYERS 4 /* max supported players */
 #define MAX_PORTS 2   /* max controller ports,
@@ -73,15 +71,66 @@ static bool use_overscan;
 static bool overscan_h;
 static bool overscan_v;
 #endif
-static bool up_down_allowed = false;
+
 static bool use_raw_palette;
 static bool use_par;
-static bool enable_4player = false;
-static unsigned turbo_enabler[MAX_PLAYERS] = {0};
-static unsigned turbo_delay = 0;
-static unsigned input_type[MAX_PLAYERS + 1] = {0}; /* 4-players + famicom expansion */
+
+/*
+ * Flags to keep track of whether turbo
+ * buttons toggled on or off.
+ *
+ * There are two values in array
+ * for Turbo A and Turbo B for
+ * each player
+ */
+
+#define MAX_BUTTONS 8
+#define TURBO_BUTTONS 2
+unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
+
+typedef struct
+{
+   unsigned retro;
+   unsigned nes;
+} keymap;
+
+static const keymap turbomap[] = {
+   { RETRO_DEVICE_ID_JOYPAD_X, JOY_A },
+   { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
+};
+
+static const keymap bindmap[] = {
+   { RETRO_DEVICE_ID_JOYPAD_A, JOY_A },
+   { RETRO_DEVICE_ID_JOYPAD_B, JOY_B },
+   { RETRO_DEVICE_ID_JOYPAD_SELECT, JOY_SELECT },
+   { RETRO_DEVICE_ID_JOYPAD_START, JOY_START },
+   { RETRO_DEVICE_ID_JOYPAD_UP, JOY_UP },
+   { RETRO_DEVICE_ID_JOYPAD_DOWN, JOY_DOWN },
+   { RETRO_DEVICE_ID_JOYPAD_LEFT, JOY_LEFT },
+   { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
+};
+
+typedef struct {
+   bool enable_4player;                /* four-score / 4-player adapter used */
+   bool up_down_allowed;               /* disabled simultaneous up+down and left+right dpad combinations */
+
+   /* turbo related */
+   uint32_t turbo_enabler[MAX_PLAYERS];
+   uint32_t turbo_delay;
+
+   uint32_t type[MAX_PLAYERS + 1];     /* 4-players + famicom expansion */
+
+   /* input data */
+   uint8_t JSReturn[MAX_PLAYERS];      /* 1-4 player data */
+   uint32_t MouseData[MAX_PORTS][3];   /* nes mouse data */
+   uint32_t FamicomData;               /* Famicom expansion port data */
+} NES_INPUT_T;
+
+static NES_INPUT_T nes_input = { 0 };
 enum RetroZapperInputModes{RetroLightgun, RetroMouse, RetroPointer};
 static enum RetroZapperInputModes zappermode = RetroLightgun;
+
+static bool libretro_supports_bitmasks = false;
 
 /* emulator-specific variables */
 
@@ -126,12 +175,8 @@ static unsigned sndvolume;
 unsigned swapDuty;
 
 static int32_t *sound = 0;
-static uint32_t JSReturn = 0;
 static uint32_t Dummy = 0;
-static uint32_t MouseData[MAX_PORTS][3] = { {0} };
-static uint32_t fc_MouseData[3] = {0};
 static uint32_t current_palette = 0;
-
 static unsigned serialize_size;
 
 int PPUViewScanline=0;
@@ -653,8 +698,6 @@ static void ResetPalette(void)
 #endif
 }
 
-static bool libretro_supports_bitmasks = false;
-
 unsigned retro_api_version(void)
 {
    return RETRO_API_VERSION;
@@ -685,7 +728,7 @@ void retro_set_input_state(retro_input_state_t cb)
 
 static void update_nes_controllers(unsigned port, unsigned device)
 {
-   input_type[port] = device;
+   nes_input.type[port] = device;
 
    if (port < 4)
    {
@@ -696,17 +739,17 @@ static void update_nes_controllers(unsigned port, unsigned device)
          FCEU_printf(" Player %u: None Connected\n", port + 1);
          break;
       case RETRO_DEVICE_ZAPPER:
-         FCEUI_SetInput(port, SI_ZAPPER, MouseData[port], 1);
+         FCEUI_SetInput(port, SI_ZAPPER, nes_input.MouseData[port], 1);
          FCEU_printf(" Player %u: Zapper\n", port + 1);
          break;
       case RETRO_DEVICE_ARKANOID:
-         FCEUI_SetInput(port, SI_ARKANOID, MouseData[port], 0);
+         FCEUI_SetInput(port, SI_ARKANOID, nes_input.MouseData[port], 0);
          FCEU_printf(" Player %u: Arkanoid\n", port + 1);
          break;
       case RETRO_DEVICE_GAMEPAD:
       default:
-         input_type[port] = RETRO_DEVICE_GAMEPAD;
-         FCEUI_SetInput(port, SI_GAMEPAD, &JSReturn, 0);
+         nes_input.type[port] = RETRO_DEVICE_GAMEPAD;
+         FCEUI_SetInput(port, SI_GAMEPAD, (uint32_t*)nes_input.JSReturn, 0);
          FCEU_printf(" Player %u: Gamepad\n", port + 1);
          break;
       }
@@ -717,19 +760,19 @@ static void update_nes_controllers(unsigned port, unsigned device)
       switch (device)
       {
       case RETRO_DEVICE_FC_ARKANOID:
-         FCEUI_SetInputFC(SIFC_ARKANOID, fc_MouseData, 0);
+         FCEUI_SetInputFC(SIFC_ARKANOID, &nes_input.FamicomData, 0);
          FCEU_printf(" Famicom Expansion: Arkanoid\n");
          break;
       case RETRO_DEVICE_FC_SHADOW:
-         FCEUI_SetInputFC(SIFC_SHADOW, fc_MouseData, 1);
+         FCEUI_SetInputFC(SIFC_SHADOW, &nes_input.FamicomData, 1);
          FCEU_printf(" Famicom Expansion: (Bandai) Hyper Shot\n");
          break;
       case RETRO_DEVICE_FC_OEKAKIDS:
-         FCEUI_SetInputFC(SIFC_OEKAKIDS, fc_MouseData, 1);
+         FCEUI_SetInputFC(SIFC_OEKAKIDS, &nes_input.FamicomData, 1);
          FCEU_printf(" Famicom Expansion: Oeka Kids Tablet\n");
          break;
       case RETRO_DEVICE_FC_4PLAYERS:
-         FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
+         FCEUI_SetInputFC(SIFC_4PLAYER, (uint32_t*)nes_input.JSReturn, 0);
          FCEU_printf(" Famicom Expansion: Famicom 4-Player Adapter\n");
          break;
       case RETRO_DEVICE_NONE:
@@ -797,18 +840,18 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
             /* This section automatically enables 4players support
              * when player 3 or 4 used */
 
-            input_type[port] = RETRO_DEVICE_NONE;
+            nes_input.type[port] = RETRO_DEVICE_NONE;
 
             if (device == RETRO_DEVICE_AUTO)
             {
-               if (enable_4player)
-                  input_type[port] = RETRO_DEVICE_GAMEPAD;
+               if (nes_input.enable_4player)
+                  nes_input.type[port] = RETRO_DEVICE_GAMEPAD;
             }
             else if (device == RETRO_DEVICE_GAMEPAD)
-               input_type[port] = RETRO_DEVICE_GAMEPAD;
+               nes_input.type[port] = RETRO_DEVICE_GAMEPAD;
 
             FCEU_printf(" Player %u: %s\n", port + 1,
-               (input_type[port] == RETRO_DEVICE_NONE) ? "None Connected" : "Gamepad");
+               (nes_input.type[port] == RETRO_DEVICE_NONE) ? "None Connected" : "Gamepad");
          }
          else /* do famicom controllers here */
          {
@@ -818,14 +861,14 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
                update_nes_controllers(4, fc_to_libretro(GameInfo->inputfc));
          }
 
-         if (input_type[2] == RETRO_DEVICE_GAMEPAD
-         || input_type[3] == RETRO_DEVICE_GAMEPAD)
+         if (nes_input.type[2] == RETRO_DEVICE_GAMEPAD
+         || nes_input.type[3] == RETRO_DEVICE_GAMEPAD)
             FCEUI_DisableFourScore(0);
          else
             FCEUI_DisableFourScore(1);
 
          /* check if famicom 4player adapter is used */
-         if (input_type[4] == RETRO_DEVICE_FC_4PLAYERS)
+         if (nes_input.type[4] == RETRO_DEVICE_FC_4PLAYERS)
             FCEUI_DisableFourScore(1);
       }
    }
@@ -1083,18 +1126,6 @@ void retro_reset(void)
    ResetNES();
 }
 
-typedef struct
-{
-   unsigned retro;
-   unsigned nes;
-} keymap;
-
-
-static const keymap turbomap[] = {
-   { RETRO_DEVICE_ID_JOYPAD_X, JOY_A },
-   { RETRO_DEVICE_ID_JOYPAD_Y, JOY_B },
-};
-
 static void set_apu_channels(int chan)
 {
    FSettings.SquareVolume[1] = (chan & 1) ? 256 : 0;
@@ -1206,11 +1237,9 @@ static void check_variables(bool startup)
    var.key = "fceumm_up_down_allowed";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      up_down_allowed = (!strcmp(var.value, "enabled")) ? true : false;
-   }
+      nes_input.up_down_allowed = (!strcmp(var.value, "enabled")) ? true : false;
    else
-      up_down_allowed = false;
+      nes_input.up_down_allowed = false;
 
    var.key = "fceumm_nospritelimit";
 
@@ -1333,32 +1362,24 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      turbo_enabler[0] = 0;
-      turbo_enabler[1] = 0;
+      nes_input.turbo_enabler[0] = 0;
+      nes_input.turbo_enabler[1] = 0;
 
       if (!strcmp(var.value, "Player 1"))
-      {
-         turbo_enabler[0] = 1;
-         turbo_enabler[1] = 0;
-      }
+         nes_input.turbo_enabler[0] = 1;
       else if (!strcmp(var.value, "Player 2"))
-      {
-         turbo_enabler[0] = 0;
-         turbo_enabler[1] = 1;
-      }
+         nes_input.turbo_enabler[1] = 1;
       else if (!strcmp(var.value, "Both"))
       {
-         turbo_enabler[0] = 1;
-         turbo_enabler[1] = 1;
+         nes_input.turbo_enabler[0] = 1;
+         nes_input.turbo_enabler[1] = 1;
       }
    }
 
    var.key = "fceumm_turbo_delay";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      turbo_delay = atoi(var.value);
-   }
+      nes_input.turbo_delay = atoi(var.value);
 
    var.key = "fceumm_region";
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1419,9 +1440,7 @@ static void check_variables(bool startup)
    {
       bool newval = (!strcmp(var.value, "enabled"));
       if (newval != swapDuty)
-      {
          swapDuty = newval;
-      }
    }
 
    var.key = key;
@@ -1434,9 +1453,7 @@ static void check_variables(bool startup)
       key[strlen("fceumm_apu_")] = '1' + i;
       var.value = NULL;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && !strcmp(var.value, "disabled"))
-      {
          enable_apu &= ~(1 << i);
-      }
    }
    set_apu_channels(enable_apu);
 
@@ -1602,33 +1619,18 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
    }
 }
 
-/*
- * Flags to keep track of whether turbo
- * buttons toggled on or off.
- *
- * There are two values in array
- * for Turbo A and Turbo B for
- * each player
- */
-
-#define MAX_BUTTONS 8
-#define TURBO_BUTTONS 2
-unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
-
 static void FCEUD_UpdateInput(void)
 {
    unsigned player, port;
 
    poll_cb();
 
-   JSReturn = 0;
-
    /* nes gamepad */
    for (player = 0; player < MAX_PLAYERS; player++)
    {
       int i              = 0;
       uint8_t input_buf  = 0;
-      int player_enabled = (input_type[player] == RETRO_DEVICE_GAMEPAD) || (input_type[player] == RETRO_DEVICE_JOYPAD);
+      int player_enabled = (nes_input.type[player] == RETRO_DEVICE_GAMEPAD) || (nes_input.type[player] == RETRO_DEVICE_JOYPAD);
 
       if (player_enabled)
       {
@@ -1657,16 +1659,6 @@ static void FCEUD_UpdateInput(void)
          }
          else
          {
-            static const keymap bindmap[] = {
-               { RETRO_DEVICE_ID_JOYPAD_A, JOY_A },
-               { RETRO_DEVICE_ID_JOYPAD_B, JOY_B },
-               { RETRO_DEVICE_ID_JOYPAD_SELECT, JOY_SELECT },
-               { RETRO_DEVICE_ID_JOYPAD_START, JOY_START },
-               { RETRO_DEVICE_ID_JOYPAD_UP, JOY_UP },
-               { RETRO_DEVICE_ID_JOYPAD_DOWN, JOY_DOWN },
-               { RETRO_DEVICE_ID_JOYPAD_LEFT, JOY_LEFT },
-               { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
-            };
             for (i = 0; i < MAX_BUTTONS; i++)
                input_buf |= input_cb(player, RETRO_DEVICE_JOYPAD, 0,
                      bindmap[i].retro) ? bindmap[i].nes : 0;
@@ -1683,7 +1675,7 @@ static void FCEUD_UpdateInput(void)
           * been reached.
           */
 
-         if (turbo_enabler[player])
+         if (nes_input.turbo_enabler[player])
          {
             /* Handle Turbo A & B buttons */
             for (i = 0; i < TURBO_BUTTONS; i++)
@@ -1693,7 +1685,7 @@ static void FCEUD_UpdateInput(void)
                   if (!turbo_button_toggle[player][i])
                      input_buf |= turbomap[i].nes;
                   turbo_button_toggle[player][i]++;
-                  turbo_button_toggle[player][i] %= turbo_delay + 1;
+                  turbo_button_toggle[player][i] %= nes_input.turbo_delay + 1;
                }
                else
                   /* If the button is not pressed, just reset the toggle */
@@ -1702,7 +1694,7 @@ static void FCEUD_UpdateInput(void)
          }
       }
 
-      if (!up_down_allowed)
+      if (!nes_input.up_down_allowed)
       {
          if (input_buf & (JOY_UP))
             if (input_buf & (JOY_DOWN))
@@ -1712,28 +1704,28 @@ static void FCEUD_UpdateInput(void)
                input_buf &= ~((JOY_LEFT ) | (JOY_RIGHT));
       }
 
-      JSReturn |= (input_buf & 0xff) << (player << 3);
+      nes_input.JSReturn[player] = input_buf;
    }
 
    /* other inputs*/
    for (port = 0; port < MAX_PORTS; port++)
    {
-      switch (input_type[port])
+      switch (nes_input.type[port])
       {
          case RETRO_DEVICE_ARKANOID:
          case RETRO_DEVICE_ZAPPER:
-            get_mouse_input(port, MouseData[port]);
+            get_mouse_input(port, nes_input.MouseData[port]);
             break;
       }
    }
 
    /* famicom inputs */
-   switch (input_type[4])
+   switch (nes_input.type[4])
    {
       case RETRO_DEVICE_FC_ARKANOID:
       case RETRO_DEVICE_FC_OEKAKIDS:
       case RETRO_DEVICE_FC_SHADOW:
-         get_mouse_input(0, fc_MouseData);
+         get_mouse_input(0, &nes_input.FamicomData);
          break;
    }
 
@@ -2370,8 +2362,8 @@ bool retro_load_game(const struct retro_game_info *game)
    }
 
    for (i = 0; i < MAX_PORTS; i++) {
-      FCEUI_SetInput(i, SI_GAMEPAD, &JSReturn, 0);
-      input_type[i] = RETRO_DEVICE_JOYPAD;
+      FCEUI_SetInput(i, SI_GAMEPAD, (uint32_t*)nes_input.JSReturn, 0);
+      nes_input.type[i] = RETRO_DEVICE_JOYPAD;
    }
 
    external_palette_exist = ipalette;
@@ -2396,7 +2388,7 @@ bool retro_load_game(const struct retro_game_info *game)
       if (fourscore_db_list[i].crc == iNESCart.CRC32)
       {
          FCEUI_DisableFourScore(0);
-         enable_4player = true;
+         nes_input.enable_4player = true;
          break;
       }
    }
@@ -2406,8 +2398,8 @@ bool retro_load_game(const struct retro_game_info *game)
       if (famicom_4p_db_list[i].crc == iNESCart.CRC32)
       {
          GameInfo->inputfc = SIFC_4PLAYER;
-         FCEUI_SetInputFC(SIFC_4PLAYER, &JSReturn, 0);
-         enable_4player = true;
+         FCEUI_SetInputFC(SIFC_4PLAYER, (uint32_t*)nes_input.JSReturn, 0);
+         nes_input.enable_4player = true;
          break;
       }
    }
