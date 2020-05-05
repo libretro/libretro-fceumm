@@ -60,6 +60,8 @@ void linearFree(void* mem);
 RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
 #endif
 
+extern void FCEU_ZapperSetTolerance(int t);
+
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
@@ -1299,6 +1301,16 @@ static void check_variables(bool startup)
       else if (!strcmp(var.value, "touchscreen")) zappermode = RetroPointer;
       else zappermode = RetroLightgun; /*default setting*/
    }
+
+   var.key = "fceumm_zapper_tolerance";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      FCEU_ZapperSetTolerance(atoi(var.value));
+   }
+
+   var.key = "fceumm_region";
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 
    var.key = "fceumm_show_crosshair";
 
