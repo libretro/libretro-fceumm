@@ -92,19 +92,6 @@ struct retro_core_option_definition option_defs_common[] = {
       },
       "disabled"
    },
-#ifdef NTSC_SCANLINES
-   {
-      "fceumm_ntsc_scanlines",
-      "NTSC Scanlines",
-      "Enable scanlines when using NTSC filters.",
-      {
-         { "disabled", NULL },
-         { "enabled",  NULL },
-         { NULL, NULL },
-      },
-      "disabled"
-   },
-#endif /* NTSC_SCANLINES */
 #endif
    {
       "fceumm_palette",

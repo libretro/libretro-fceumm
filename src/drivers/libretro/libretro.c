@@ -31,13 +31,6 @@
 #include "libretro-common/include/streams/memory_stream.h"
 #include "libretro_dipswitch.h"
 
-#ifdef HAVE_NTSC_FILTER
-#define NTSC_SCANLINES /* enables scanline effect and doubles height(required) */
-#if defined(VITA) /* do no disable double-height for these devices */
-#undef NTSC_SCANLINES
-#endif
-#endif
-
 #include "libretro_core_options.h"
 
 #define MAX_PLAYERS 4 /* max supported players */
@@ -595,7 +588,6 @@ struct st_palettes palettes[] = {
 #define NTSC_WIDTH      602
 
 static unsigned use_ntsc = 0;
-static unsigned use_ntsc_scanlines = 0;
 static unsigned burst_phase;
 static nes_ntsc_t nes_ntsc;
 static nes_ntsc_setup_t ntsc_setup;
@@ -926,28 +918,17 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-   unsigned width, height, maxwidth, maxheight;
 #ifdef PSP
-   width  = NES_WIDTH - (use_overscan ? 16 : 0);
-   height = NES_HEIGHT - (use_overscan ? 16 : 0);
+   unsigned width  = NES_WIDTH - (use_overscan ? 16 : 0);
+   unsigned height = NES_HEIGHT - (use_overscan ? 16 : 0);
 #else
-   width  = NES_WIDTH - (overscan_h ? 16 : 0);
-   height = NES_HEIGHT - (overscan_v ? 16 : 0);
-#endif
-#ifdef HAVE_NTSC_FILTER
-   maxwidth = NTSC_WIDTH;
-   maxheight = NES_HEIGHT;
-#ifdef NTSC_SCANLINES
-   maxheight = NES_HEIGHT * 2;
-#endif
-#else
-   maxwidth = NES_WIDTH;
-   maxheight = NES_HEIGHT;
+   unsigned width  = NES_WIDTH - (overscan_h ? 16 : 0);
+   unsigned height = NES_HEIGHT - (overscan_v ? 16 : 0);
 #endif
    info->geometry.base_width = width;
    info->geometry.base_height = height;
-   info->geometry.max_width = maxwidth;
-   info->geometry.max_height = maxheight;
+   info->geometry.max_width = (use_ntsc ? NTSC_WIDTH : NES_WIDTH);
+   info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
@@ -1126,8 +1107,7 @@ static void set_apu_channels(int chan)
 static void check_variables(bool startup)
 {
    struct retro_variable var = {0};
-   struct retro_system_av_info av_info;
-   bool geometry_update = false;
+   int audio_video_updated = 0;
    bool palette_updated = false;
    char key[256];
    int i, enable_apu;
@@ -1161,21 +1141,8 @@ static void check_variables(bool startup)
       else if (strcmp(var.value, "monochrome") == 0)
          use_ntsc = NTSC_MONOCHROME;
       if (use_ntsc != orig_value)
-         palette_updated = true;
+         audio_video_updated = 2;
    }
-
-#ifdef NTSC_SCANLINES
-   var.key = "fceumm_ntsc_scanlines";
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      unsigned orig_value = use_ntsc_scanlines;
-      if (strcmp(var.value, "enabled") == 0)
-         use_ntsc_scanlines = 1;
-      else
-         use_ntsc_scanlines = 0;
-   }
-#endif /* NTSC_SCANLINES */
 #endif /* HAVE_NTSC_FILTER */
 
    var.key = "fceumm_palette";
@@ -1224,11 +1191,11 @@ static void check_variables(bool startup)
          current_palette = 15;
 
       if (current_palette != orig_value)
-         palette_updated = true;
+      {
+         audio_video_updated = 1;
+         ResetPalette();
+      }  
    }
-
-   if (palette_updated)
-      ResetPalette();
 
    var.key = "fceumm_up_down_allowed";
 
@@ -1328,7 +1295,7 @@ static void check_variables(bool startup)
       if (newval != overscan_h)
       {
          overscan_h = newval;
-         geometry_update = true;
+         audio_video_updated = 1;
       }
    }
 
@@ -1340,10 +1307,21 @@ static void check_variables(bool startup)
       if (newval != overscan_v)
       {
          overscan_v = newval;
-         geometry_update = true;
+         audio_video_updated = 1;
       }
    }
 #endif
+   var.key = "fceumm_aspect";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      bool newval = (!strcmp(var.value, "8:7 PAR"));
+      if (newval != use_par)
+      {
+         use_par = newval;
+         audio_video_updated = 1;
+      }
+   }
 
    var.key = "fceumm_turbo_enable";
 
@@ -1392,18 +1370,6 @@ static void check_variables(bool startup)
          FCEUD_RegionOverride(opt_region);
    }
 
-   var.key = "fceumm_aspect";
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      bool newval = (!strcmp(var.value, "8:7 PAR"));
-      if (newval != use_par)
-      {
-         use_par = newval;
-         geometry_update = true;
-      }
-   }
-
    var.key = "fceumm_sndquality";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1428,10 +1394,14 @@ static void check_variables(bool startup)
       FCEUD_SoundToggle();
    }
 
-   if (geometry_update)
+   if (audio_video_updated && !startup)
    {
+      struct retro_system_av_info av_info;
       retro_get_system_av_info(&av_info);
-      environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
+      if (audio_video_updated == 2)  
+         environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
+      else
+         environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
    }
 
    var.key = "fceumm_swapduty";
@@ -1867,7 +1837,7 @@ static void retro_run_blit(uint8_t *gfx)
       if (ntsc_setup.merge_fields)
          burst_phase = 0;
 
-      nes_ntsc_blit(&nes_ntsc, (NES_NTSC_IN_T *)gfx, (NES_NTSC_IN_T *)XDBuf,
+      nes_ntsc_blit(&nes_ntsc, (NES_NTSC_IN_T const*)gfx, (NES_NTSC_IN_T *)XDBuf,
           NES_WIDTH, burst_phase, NES_WIDTH, NES_HEIGHT,
           ntsc_video_out, NTSC_WIDTH * sizeof(uint16));
 
@@ -1877,9 +1847,6 @@ static void retro_run_blit(uint8_t *gfx)
       height   = overscan_v ? 224 : 240;
       pitch    = width * sizeof(uint16_t);
 
-#ifdef NTSC_SCANLINES
-      if (use_ntsc_scanlines == 0)
-#endif
       {
          const uint16_t *in = ntsc_video_out + h_offset + NTSC_WIDTH * v_offset;
          uint16_t *out = fceu_video_out;
@@ -1892,31 +1859,6 @@ static void retro_run_blit(uint8_t *gfx)
             out += width;
          }
       }
-#ifdef NTSC_SCANLINES
-      else
-      {
-         int y;
-         height <<= 1;
-         for (y = (NES_HEIGHT - v_offset); --y >= v_offset;)
-         {
-            uint16_t const *in = ntsc_video_out + y * NTSC_WIDTH;
-            uint16_t *out = fceu_video_out + (y - v_offset) * 2 * width;
-            int n;
-            for (n = width; n; --n)
-            {
-               unsigned prev = *(in + h_offset);
-               unsigned next = *(in + h_offset + NTSC_WIDTH);
-               /* mix 16-bit rgb without losing low bits */
-               unsigned mixed = prev + next + ((prev ^ next) & 0x0821);
-               /* darken by 12% */
-               *out = prev;
-               *(out + width) = (mixed >> 1) - (mixed >> 4 & 0x18E3);
-               in++;
-               out++;
-            }
-         }
-      }
-#endif /* NTSC_SCANLINES */
    }
    else
 #endif /* HAVE_NTSC_FILTER */
@@ -2381,15 +2323,11 @@ bool retro_load_game(const struct retro_game_info *game)
    fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
 #elif !defined(PSP)
 #ifdef HAVE_NTSC_FILTER
-#define FB_WIDTH 602
-#ifdef NTSC_SCANLINES
-#define FB_HEIGHT 480
-#else
-#define FB_HEIGHT 240
-#endif
+#define FB_WIDTH NTSC_WIDTH
+#define FB_HEIGHT NES_HEIGHT
 #else /* !HAVE_NTSC_FILTER */
-#define FB_WIDTH 256
-#define FB_HEIGHT 240
+#define FB_WIDTH NES_WIDTH
+#define FB_HEIGHT NES_HEIGHT
 #endif
    fceu_video_out = (uint16_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(uint16_t));
 #endif
