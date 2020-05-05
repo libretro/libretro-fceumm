@@ -726,7 +726,7 @@ ifneq (,$(findstring msvc,$(platform)))
 COREDEFINES += -DINLINE=_inline
 endif
 
-CFLAGS += -DWANT_GRIFFIN -Werror=implicit-function-declaration
+CFLAGS += -DWANT_GRIFFIN
 
 OBJECTS := $(SOURCES_C:.c=.o)
 OBJECTS += $(RETROARCH_OBJECTS)
@@ -743,7 +743,7 @@ else ifneq (,$(findstring msvc,$(platform)))
 WARNING_DEFINES =
 LIBM :=
 else
-WARNING_DEFINES = -Wno-write-strings
+WARNING_DEFINES = -Wno-write-strings -Werror=implicit-function-declaration
 endif
 
 CFLAGS += $(fpic) $(WARNING_DEFINES) $(DEFINES) $(ENDIANNESS_DEFINES) 
