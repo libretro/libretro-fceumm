@@ -968,13 +968,14 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    unsigned width  = NES_WIDTH - (overscan_h ? 16 : 0);
    unsigned height = NES_HEIGHT - (overscan_v ? 16 : 0);
 #endif
-   info->geometry.base_width = width;
-   info->geometry.base_height = height;
 #ifdef HAVE_NTSC_FILTER
+   info->geometry.base_width = (use_ntsc ? NES_NTSC_OUT_WIDTH(width) : width);
    info->geometry.max_width = (use_ntsc ? NTSC_WIDTH : NES_WIDTH);
 #else
+   info->geometry.base_width = width;
    info->geometry.max_width = NES_WIDTH;
 #endif
+   info->geometry.base_height = height;
    info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
    info->timing.sample_rate = (float)sndsamplerate;
