@@ -1107,10 +1107,13 @@ static void set_apu_channels(int chan)
 static void check_variables(bool startup)
 {
    struct retro_variable var = {0};
-   int audio_video_updated = 0;
    bool palette_updated = false;
    char key[256];
    int i, enable_apu;
+
+   /* 1 = Performs only geometry update: e.g. overscans */
+   /* 2 = Performs video/geometry update when needed and timing changes: e.g. region and filter change */
+   int audio_video_updated = 0;
 
    var.key = "fceumm_ramstate";
 
@@ -1141,7 +1144,10 @@ static void check_variables(bool startup)
       else if (strcmp(var.value, "monochrome") == 0)
          use_ntsc = NTSC_MONOCHROME;
       if (use_ntsc != orig_value)
+      {
+         ResetPalette();
          audio_video_updated = 2;
+      }
    }
 #endif /* HAVE_NTSC_FILTER */
 
@@ -1282,7 +1288,7 @@ static void check_variables(bool startup)
       if (newval != use_overscan)
       {
          use_overscan = newval;
-         geometry_update = true;
+         audio_video_updated = 1;
       }
    }
 
@@ -1367,7 +1373,10 @@ static void check_variables(bool startup)
       else if (!strcmp(var.value, "Dendy"))
          opt_region = 3;
       if (opt_region != oldval)
+      {
          FCEUD_RegionOverride(opt_region);
+         audio_video_updated = 2;
+      }
    }
 
    var.key = "fceumm_sndquality";
