@@ -743,7 +743,7 @@ else ifneq (,$(findstring msvc,$(platform)))
 WARNING_DEFINES =
 LIBM :=
 else
-WARNING_DEFINES = -Wno-write-strings -Werror=implicit-function-declaration
+WARNING_DEFINES = -Wno-write-strings
 endif
 
 CFLAGS += $(fpic) $(WARNING_DEFINES) $(DEFINES) $(ENDIANNESS_DEFINES) 
