@@ -5,21 +5,22 @@
 	don't have battery-backed RAM is not that big of a problem, so I'll
 	treat this differently by only listing games that should have battery-backed RAM.
 	*/
-	{ 0xb17574f3,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Heroes of the Lance */
-	{ 0x5de61639,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Hillsfar */
-	{ 0x2545214c,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW */
-	{ 0x3b3f88f0,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW */
-	{ 0x8c5a784e,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW 2 */
-	{ 0x506e259d,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* DW 4*/
-	{ 0xa86a5318,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dw 3 */
-	{ 0x45f03d2e,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Faria */
-	{ 0xb8b88130,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy (FFE Hack) */
-	{ 0xcebd2a31,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy */
-	{ 0xd29db3c7,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 2 */
-	{ 0x466efdc2,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy J */
-	{ 0xeaf7ed72,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Legend of Zelda */
-	{ 0x3fe272fb,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Legend of Zelda */
-	{ 0xba322865,    1, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Zelda 2 */
+	/* CRC32, mapperNum, SubMapper, Mirroring, hasBattery, prgRam, chrRam, region, extra flags */
+	{ 0xb17574f3,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Heroes of the Lance */
+	{ 0x5de61639,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* AD&D Hillsfar */
+	{ 0x2545214c,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* DW */
+	{ 0x3b3f88f0,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* DW */
+	{ 0x8c5a784e,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* DW 2 */
+	{ 0x506e259d,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* DW 4*/
+	{ 0xa86a5318,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Dw 3 */
+	{ 0x45f03d2e,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Faria */
+	{ 0xb8b88130,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy (FFE Hack) */
+	{ 0xcebd2a31,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy */
+	{ 0xd29db3c7,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy 2 */
+	{ 0x466efdc2,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy J */
+	{ 0xeaf7ed72,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Legend of Zelda */
+	{ 0x3fe272fb,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Legend of Zelda */
+	{ 0xba322865,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Zelda 2 */
 	{ 0x25952141,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Pool of Radiance */
 	{ 0x1335cb05,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crystalis */
 	{ 0x57e220d0,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 3 */
@@ -58,31 +59,31 @@
 	{ 0x5b837e8d,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alien Syndrome (Japan).nes */
 	{ 0x37ba3261,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Back to the Future Part II & III (USA).nes */
 	{ 0x5b6ca654,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Barbie (USA).nes */
-	{ 0x61a852ea,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Battle Stadium - Senbatsu Pro Yakyuu (Japan).nes */
+	{ 0x61a852ea,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Battle Stadium - Senbatsu Pro Yakyuu (Japan).nes */
 	{ 0xf6fa4453,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bigfoot (U) [b4].nes */
-	{ 0x391aa1b8,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bloody Warriors - Shan-Go no Gyakushuu (Japan).nes */
+	{ 0x391aa1b8,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Bloody Warriors - Shan-Go no Gyakushuu (Japan).nes */
 	{ 0xa5e8d2cd,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* BreakThru (USA).nes */
-	{ 0x3f56a392,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain ED (Japan).nes */
-	{ 0x078ced30,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Choujin - Ultra Baseball (Japan).nes */
-	{ 0xfe364be5,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Deep Dungeon IV - Kuro no Youjutsushi (Japan).nes */
+	{ 0x3f56a392,    1, DEFAULT, DFAULT8, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Captain ED (Japan).nes */
+	{ 0x078ced30,    1, DEFAULT, DFAULT8, 1,    0x07, DEFAULT, DEFAULT, NOEXTRA }, /* Choujin - Ultra Baseball (Japan).nes */
+	{ 0xfe364be5,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Deep Dungeon IV - Kuro no Youjutsushi (Japan).nes */
 	{ 0x57c12280,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Demon Sword (U) [b1].nes */
 	{ 0xd09b74dc,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Great Tank (Japan).nes */
-	{ 0xe8baa782,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Gunhed - Aratanaru Tatakai (Japan).nes */
-	{ 0x970bd9c2,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hanjuku Eiyuu (J) [b1].nes */
-	{ 0xcd7a2fd7,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hanjuku Hero (Japan).nes */
-	{ 0x63469396,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hokuto no Ken 4 - Shichisei Haken Den - Hokuto Shinken no Kanata e (Japan).nes */
-	{ 0xe94d5181,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Future Wars - Mirai Senshi Lios (Japan).nes */
-	{ 0x7156cb4d,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Muppet Adventure - Chaos at the Carnival (USA).nes */
-	{ 0x70f67ab7,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Musashi no Bouken (Japan).nes */
+	{ 0xe8baa782,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Gunhed - Aratanaru Tatakai (Japan).nes */
+	{ 0x970bd9c2,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hanjuku Eiyuu (J) [b1].nes */
+	{ 0xcd7a2fd7,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hanjuku Hero (Japan).nes */
+	{ 0x63469396,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hokuto no Ken 4 - Shichisei Haken Den - Hokuto Shinken no Kanata e (Japan).nes */
+	{ 0xe94d5181,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Future Wars - Mirai Senshi Lios (Japan).nes */
+	{ 0x7156cb4d,    1, DEFAULT, DFAULT8, 0,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Muppet Adventure - Chaos at the Carnival (USA).nes */
+	{ 0x70f67ab7,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Musashi no Bouken (Japan).nes */
 	{ 0x958e4bae,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Orb-3D (USA).nes */
-	{ 0x291bcd7d,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pachio-kun 2 (Japan).nes */
-	{ 0xa9a4ea4c,    1, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Satomi Hakkenden (J) [b2].nes */
+	{ 0x291bcd7d,    1, DEFAULT, DFAULT8, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Pachio-kun 2 (Japan).nes */
+	{ 0xa9a4ea4c,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Satomi Hakkenden (J) [b2].nes */
 	{ 0xcc3544b0,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Triathron, The (Japan).nes */
 	{ 0x52ab2d17,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Toukyou Pachi-Slot Adventure (Japan).nes */
 	{ 0x934db14a,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* All-Pro Basketball (USA).nes */
 	{ 0xf74dfc91,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Win, Lose or Draw (USA).nes */
 	{ 0xcfe02ada,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Darkman (Europe).nes */
-	{ 0x1a71fd06,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kujaku Ou.nes */
+	{ 0x1a71fd06,    1, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Kujaku Ou.nes */
 
 	/* MMC1 games with more than 8K wram */
 	{ 0x2225c20f,    1, DEFAULT, DEFAULT, 1,    0x77,    0x07, DEFAULT, NOEXTRA }, /* Genghis Khan */
