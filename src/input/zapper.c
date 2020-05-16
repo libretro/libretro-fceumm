@@ -25,7 +25,7 @@
 
 #define ROUNDED_TARGET
 #ifdef ROUNDED_TARGET
-#define MAX_TOLERANCE 32
+#define MAX_TOLERANCE 20
 static uint32 targetExpansion[MAX_TOLERANCE+1];
 #endif
 static int tolerance;
