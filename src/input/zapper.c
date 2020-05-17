@@ -163,10 +163,12 @@ static uint32 InefficientSqrt(uint32 z) {
 }
 #endif
 
-void FCEU_ZapperSetTolerance(int t) {
+void FCEU_ZapperSetTolerance(int t)
+{
 #ifdef ROUNDED_TARGET
+	uint32_t y;
 	tolerance = t <= MAX_TOLERANCE ? t : MAX_TOLERANCE;
-	for (uint32 y = 0 ; y <= tolerance ; y++)
+	for (y = 0; y <= tolerance; y++)
 		targetExpansion[y] = InefficientSqrt(tolerance*tolerance-y*y);
 #else
 	tolerance = t;
