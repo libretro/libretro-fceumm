@@ -23,6 +23,13 @@
 
 #include        "share.h"
 
+#define ROUNDED_TARGET
+#ifdef ROUNDED_TARGET
+#define MAX_TOLERANCE 20
+static uint32 targetExpansion[MAX_TOLERANCE+1];
+#endif
+static int tolerance;
+
 typedef struct {
 	uint32 mzx, mzy, mzb;
 	int zap_readbit;
@@ -49,11 +56,19 @@ static void FP_FASTAPASS(3) ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32
 
 	if (xe > 256) xe = 256;
 
-	if (scanline >= (zy - 4) && scanline <= (zy + 4)) {
+	if (scanline >= (zy - tolerance) && scanline <= (zy + tolerance)) {
+#ifdef ROUNDED_TARGET
+		int dy = scanline - zy;
+		if (dy < 0)
+			dy = -dy;
+		int spread = targetExpansion[dy];
+#else
+		int spread = tolerance;
+#endif
 		while (xs < xe) {
 			uint8 a1, a2;
 			uint32 sum;
-			if (xs <= (zx + 4) && xs >= (zx - 4)) {
+			if (xs <= (zx + spread) && xs >= (zx - spread)) {
 				a1 = bg[xs];
 				if (spr) {
 					a2 = spr[xs];
@@ -140,6 +155,24 @@ static void FP_FASTAPASS(3) UpdateZapper(int w, void *data, int arg) {
 static INPUTC ZAPC = { ReadZapper, 0, 0, UpdateZapper, ZapperFrapper, DrawZapper };
 static INPUTC ZAPVSC = { ReadZapperVS, 0, StrobeZapperVS, UpdateZapper, ZapperFrapper, DrawZapper };
 
+#ifdef ROUNDED_TARGET
+static uint32 InefficientSqrt(uint32 z) {
+	uint32 i;
+	for (i = 0 ; i * i <= z ; i++) ;
+	return i-1;
+}
+#endif
+
+void FCEU_ZapperSetTolerance(int t) {
+#ifdef ROUNDED_TARGET
+	tolerance = t <= MAX_TOLERANCE ? t : MAX_TOLERANCE;
+	for (uint32 y = 0 ; y <= tolerance ; y++)
+		targetExpansion[y] = InefficientSqrt(tolerance*tolerance-y*y);
+#else
+	tolerance = t;
+#endif
+}
+
 INPUTC *FCEU_InitZapper(int w) {
 	memset(&ZD[w], 0, sizeof(ZAPPER));
 	if (GameInfo->type == GIT_VSUNI)
@@ -147,5 +180,4 @@ INPUTC *FCEU_InitZapper(int w) {
 	else
 		return(&ZAPC);
 }
-
 
