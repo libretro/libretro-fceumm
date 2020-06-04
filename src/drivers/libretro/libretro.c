@@ -123,7 +123,7 @@ typedef struct {
    uint32_t type[MAX_PLAYERS + 1];     /* 4-players + famicom expansion */
 
    /* input data */
-   uint8_t JSReturn[MAX_PLAYERS];      /* 1-4 player data */
+   uint32_t JSReturn;                  /* player input data, 1 byte per player (1-4) */
    uint32_t MouseData[MAX_PORTS][3];   /* nes mouse data */
    uint32_t FamicomData;               /* Famicom expansion port data */
 } NES_INPUT_T;
@@ -751,7 +751,7 @@ static void update_nes_controllers(unsigned port, unsigned device)
       case RETRO_DEVICE_GAMEPAD:
       default:
          nes_input.type[port] = RETRO_DEVICE_GAMEPAD;
-         FCEUI_SetInput(port, SI_GAMEPAD, (uint32_t*)nes_input.JSReturn, 0);
+         FCEUI_SetInput(port, SI_GAMEPAD, &nes_input.JSReturn, 0);
          FCEU_printf(" Player %u: Gamepad\n", port + 1);
          break;
       }
@@ -774,7 +774,7 @@ static void update_nes_controllers(unsigned port, unsigned device)
          FCEU_printf(" Famicom Expansion: Oeka Kids Tablet\n");
          break;
       case RETRO_DEVICE_FC_4PLAYERS:
-         FCEUI_SetInputFC(SIFC_4PLAYER, (uint32_t*)nes_input.JSReturn, 0);
+         FCEUI_SetInputFC(SIFC_4PLAYER, &nes_input.JSReturn, 0);
          FCEU_printf(" Famicom Expansion: Famicom 4-Player Adapter\n");
          break;
       case RETRO_DEVICE_NONE:
@@ -1636,6 +1636,9 @@ static void FCEUD_UpdateInput(void)
 
    poll_cb();
 
+   /* Reset input states */
+   nes_input.JSReturn = 0;
+
    /* nes gamepad */
    for (player = 0; player < MAX_PLAYERS; player++)
    {
@@ -1715,7 +1718,7 @@ static void FCEUD_UpdateInput(void)
                input_buf &= ~((JOY_LEFT ) | (JOY_RIGHT));
       }
 
-      nes_input.JSReturn[player] = input_buf;
+      nes_input.JSReturn |= (input_buf & 0xff) << (player << 3);
    }
 
    /* other inputs*/
@@ -2372,7 +2375,7 @@ bool retro_load_game(const struct retro_game_info *game)
    }
 
    for (i = 0; i < MAX_PORTS; i++) {
-      FCEUI_SetInput(i, SI_GAMEPAD, (uint32_t*)nes_input.JSReturn, 0);
+      FCEUI_SetInput(i, SI_GAMEPAD, &nes_input.JSReturn, 0);
       nes_input.type[i] = RETRO_DEVICE_JOYPAD;
    }
 
@@ -2408,7 +2411,7 @@ bool retro_load_game(const struct retro_game_info *game)
       if (famicom_4p_db_list[i].crc == iNESCart.CRC32)
       {
          GameInfo->inputfc = SIFC_4PLAYER;
-         FCEUI_SetInputFC(SIFC_4PLAYER, (uint32_t*)nes_input.JSReturn, 0);
+         FCEUI_SetInputFC(SIFC_4PLAYER, &nes_input.JSReturn, 0);
          nes_input.enable_4player = true;
          break;
       }
