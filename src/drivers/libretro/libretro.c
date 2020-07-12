@@ -2060,6 +2060,10 @@ static const struct cartridge_db fourscore_db_list[] =
       0x0939852f
    },
    {
+      "Micro Mages",
+      0x4e6b9078
+   },
+   {
       "Monster Truck Rally (USA)",
       0x2f698c4d
    },
