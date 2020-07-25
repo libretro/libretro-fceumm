@@ -125,7 +125,7 @@ typedef struct {
    /* input data */
    uint32_t JSReturn;                  /* player input data, 1 byte per player (1-4) */
    uint32_t MouseData[MAX_PORTS][3];   /* nes mouse data */
-   uint32_t FamicomData;               /* Famicom expansion port data */
+   uint32_t FamicomData[3];            /* Famicom expansion port data */
 } NES_INPUT_T;
 
 static NES_INPUT_T nes_input = { 0 };
