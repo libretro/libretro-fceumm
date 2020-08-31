@@ -1966,25 +1966,45 @@ void retro_cheat_reset(void)
 void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
    char name[256];
+   char temp[256];
+   char *codepart;
    uint16 a;
    uint8  v;
    int    c;
    int    type = 1;
+   int    ret = 0;
+
+   if (code == NULL)
+      return;
+
    sprintf(name, "N/A");
+   strcpy(temp, code);
+   codepart = strtok(temp, "+,;._ ");
 
-   if (FCEUI_DecodeGG(code, &a, &v, &c))
-      goto input_cheat;
-
-   /* Not a Game Genie code. */
-
-   if (FCEUI_DecodePAR(code, &a, &v, &c, &type))
-      goto input_cheat;
-
-   /* Not a Pro Action Replay code. */
-
-   return;
-input_cheat:
-   FCEUI_AddCheat(name, a, v, c, type);
+   while (codepart)
+   {
+      if ((strlen(codepart) == 7) && (codepart[4]==':'))
+      {
+         /* raw code format */
+         c = -1;
+         codepart[4] = '\0';
+         a = strtoul(codepart, NULL, 16);
+         v = strtoul(codepart + 5, NULL, 16);
+         FCEUI_AddCheat(name, a, v, c, type);
+         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (Raw)\n", codepart);
+      }
+      else if (FCEUI_DecodeGG(codepart, &a, &v, &c))
+      {
+         FCEUI_AddCheat(name, a, v, c, type);
+         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (GG)\n", codepart);
+      }
+      else if (FCEUI_DecodePAR(codepart, &a, &v, &c, &type))
+      {
+         FCEUI_AddCheat(name, a, v, c, type);
+         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (PAR)\n", codepart);
+      }
+      codepart = strtok(NULL,"+,;._ ");
+   }
 }
 
 typedef struct cartridge_db
