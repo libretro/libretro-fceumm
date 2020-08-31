@@ -332,27 +332,33 @@ int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
 	if (s != 6 && s != 8) return(0);
 
 	t = GGtobin(*str++);
+	if (!t) return (0);
 	V |= (t & 0x07);
 	V |= (t & 0x08) << 4;
 
 	t = GGtobin(*str++);
+	if (!t) return (0);
 	V |= (t & 0x07) << 4;
 	A |= (t & 0x08) << 4;
 
 	t = GGtobin(*str++);
+	if (!t) return (0);
 	A |= (t & 0x07) << 4;
 	/* if(t&0x08) return(0); */  /* 8-character code?! */
 
 	t = GGtobin(*str++);
+	if (!t) return (0);
 	A |= (t & 0x07) << 12;
 	A |= (t & 0x08);
 
 	t = GGtobin(*str++);
+	if (!t) return (0);
 	A |= (t & 0x07);
 	A |= (t & 0x08) << 8;
 
 	if (s == 6) {
 		t = GGtobin(*str++);
+		if (!t) return (0);
 		A |= (t & 0x07) << 8;
 		V |= (t & 0x08);
 
@@ -362,14 +368,17 @@ int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
 		return(1);
 	} else {
 		t = GGtobin(*str++);
+		if (!t) return (0);
 		A |= (t & 0x07) << 8;
 		C |= (t & 0x08);
 
 		t = GGtobin(*str++);
+		if (!t) return (0);
 		C |= (t & 0x07);
 		C |= (t & 0x08) << 4;
 
 		t = GGtobin(*str++);
+		if (!t) return (0);
 		C |= (t & 0x07) << 4;
 		V |= (t & 0x08);
 		*a = A;
@@ -388,13 +397,21 @@ int FCEUI_DecodePAR(const char *str, uint16 *a, uint8 *v, int *c, int *type) {
 
 	*c = -1;
 
-	if (1) {
+	/* 2020-08-31 - negativeExponent
+	 * Why is the top code set as default on non-debug runtime when
+	 * bottom code is what works for PAR?
+	 */
+	/* if (1) {
 		*a = (boo[3] << 8) | (boo[2] + 0x7F);
 		*v = 0;
 	} else {
 		*v = boo[3];
 		*a = boo[2] | (boo[1] << 8);
-	}
+	} */
+
+	*v = boo[3];
+	*a = boo[2] | (boo[1] << 8);
+
 	/* Zero-page addressing modes don't go through the normal read/write handlers in FCEU, so
 		we must do the old hacky method of RAM cheats.
 	*/
