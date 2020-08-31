@@ -1985,11 +1985,22 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    {
       if ((strlen(codepart) == 7) && (codepart[4]==':'))
       {
-         /* raw code format */
-         c = -1;
+         /* raw code in xxxx:xx format */
          codepart[4] = '\0';
          a = strtoul(codepart, NULL, 16);
          v = strtoul(codepart + 5, NULL, 16);
+         c = -1;
+         FCEUI_AddCheat(name, a, v, c, type);
+         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (Raw)\n", codepart);
+      }
+      else if ((strlen(codepart) == 10) && (codepart[4] == '?') && (codepart[7] == ':'))
+      {
+         /* raw code in xxxx?xx:xx */
+         codepart[4] = '\0';
+         codepart[7] = '\0';
+         a = strtoul(codepart, NULL, 16);
+         v = strtoul(codepart + 8, NULL, 16);
+         c = strtoul(codepart + 5, NULL, 16);
          FCEUI_AddCheat(name, a, v, c, type);
          log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (Raw)\n", codepart);
       }
