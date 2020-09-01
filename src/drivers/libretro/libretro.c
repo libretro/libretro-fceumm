@@ -1991,6 +1991,9 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
          a = strtoul(codepart, NULL, 16);
          v = strtoul(codepart + 5, NULL, 16);
          c = -1;
+         /* Zero-page addressing modes don't go through the normal read/write handlers in FCEU, so
+          * we must do the old hacky method of RAM cheats. */
+         if (a < 0x0100) type = 0;
          FCEUI_AddCheat(name, a, v, c, type);
       }
       else if ((strlen(codepart) == 10) && (codepart[4] == '?') && (codepart[7] == ':'))
@@ -2002,6 +2005,9 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
          a = strtoul(codepart, NULL, 16);
          v = strtoul(codepart + 8, NULL, 16);
          c = strtoul(codepart + 5, NULL, 16);
+         /* Zero-page addressing modes don't go through the normal read/write handlers in FCEU, so
+          * we must do the old hacky method of RAM cheats. */
+         if (a < 0x0100) type = 0;
          FCEUI_AddCheat(name, a, v, c, type);
       }
       else if (FCEUI_DecodeGG(codepart, &a, &v, &c))
