@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include <libretro.h>
 #include <streams/memory_stream.h>
@@ -1958,6 +1959,31 @@ bool retro_unserialize(const void * data, size_t size)
    return true;
 }
 
+static int checkGG(char c)
+{
+   static const char lets[16] = { 'A', 'P', 'Z', 'L', 'G', 'I', 'T', 'Y', 'E', 'O', 'X', 'U', 'K', 'S', 'V', 'N' };
+   int x;
+
+   for (x = 0; x < 16; x++)
+      if (lets[x] == toupper(c))
+         return 1;
+   return 0;
+}
+
+static int GGisvalid(const char *code)
+{
+   size_t len = strlen(code);
+   int i;
+   
+   if (len != 6 && len != 8)
+      return 0;
+
+   for (i = 0; i < len; i++)
+      if (!checkGG(code[i]))
+         return 0;
+   return 1;
+}
+
 void retro_cheat_reset(void)
 {
    FCEU_ResetCheats();
@@ -2010,7 +2036,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
          if (a < 0x0100) type = 0;
          FCEUI_AddCheat(name, a, v, c, type);
       }
-      else if (FCEUI_DecodeGG(codepart, &a, &v, &c))
+      else if (GGisvalid(codepart) && FCEUI_DecodeGG(codepart, &a, &v, &c))
       {
          FCEUI_AddCheat(name, a, v, c, type);
          log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (GG)\n", codepart);
@@ -2020,6 +2046,8 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
          FCEUI_AddCheat(name, a, v, c, type);
          log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (PAR)\n", codepart);
       }
+      else
+         log_cb.log(RETRO_LOG_DEBUG, "Invalid or unknown code: '%s'\n", codepart);
       codepart = strtok(NULL,"+,;._ ");
    }
 }
