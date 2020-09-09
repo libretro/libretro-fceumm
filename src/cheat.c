@@ -332,33 +332,27 @@ int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
 	if (s != 6 && s != 8) return(0);
 
 	t = GGtobin(*str++);
-	if (!t) return (0);
 	V |= (t & 0x07);
 	V |= (t & 0x08) << 4;
 
 	t = GGtobin(*str++);
-	if (!t) return (0);
 	V |= (t & 0x07) << 4;
 	A |= (t & 0x08) << 4;
 
 	t = GGtobin(*str++);
-	if (!t) return (0);
 	A |= (t & 0x07) << 4;
 	/* if(t&0x08) return(0); */  /* 8-character code?! */
 
 	t = GGtobin(*str++);
-	if (!t) return (0);
 	A |= (t & 0x07) << 12;
 	A |= (t & 0x08);
 
 	t = GGtobin(*str++);
-	if (!t) return (0);
 	A |= (t & 0x07);
 	A |= (t & 0x08) << 8;
 
 	if (s == 6) {
 		t = GGtobin(*str++);
-		if (!t) return (0);
 		A |= (t & 0x07) << 8;
 		V |= (t & 0x08);
 
@@ -368,17 +362,14 @@ int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
 		return(1);
 	} else {
 		t = GGtobin(*str++);
-		if (!t) return (0);
 		A |= (t & 0x07) << 8;
 		C |= (t & 0x08);
 
 		t = GGtobin(*str++);
-		if (!t) return (0);
 		C |= (t & 0x07);
 		C |= (t & 0x08) << 4;
 
 		t = GGtobin(*str++);
-		if (!t) return (0);
 		C |= (t & 0x07) << 4;
 		V |= (t & 0x08);
 		*a = A;
