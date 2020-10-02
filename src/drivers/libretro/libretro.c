@@ -633,7 +633,7 @@ struct st_palettes palettes[] = {
 #define NTSC_RGB        3
 #define NTSC_MONOCHROME 4
 
-#define NTSC_WIDTH      602
+#define NES_NTSC_WIDTH  (((NES_NTSC_OUT_WIDTH(256) + 3) >> 2) << 2)
 
 static unsigned use_ntsc = 0;
 static unsigned burst_phase;
@@ -652,7 +652,7 @@ static void NTSCFilter_Init(void)
 {
    memset(&nes_ntsc, 0, sizeof(nes_ntsc));
    memset(&ntsc_setup, 0, sizeof(ntsc_setup));
-   ntsc_video_out = (uint16_t *)malloc(NTSC_WIDTH * NES_HEIGHT * sizeof(uint16_t));
+   ntsc_video_out = (uint16_t *)malloc(NES_NTSC_WIDTH * NES_HEIGHT * sizeof(uint16_t));
 }
 
 static void NTSCFilter_Setup(void)
@@ -973,7 +973,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 #endif
 #ifdef HAVE_NTSC_FILTER
    info->geometry.base_width = (use_ntsc ? NES_NTSC_OUT_WIDTH(width) : width);
-   info->geometry.max_width = (use_ntsc ? NTSC_WIDTH : NES_WIDTH);
+   info->geometry.max_width = (use_ntsc ? NES_NTSC_WIDTH : NES_WIDTH);
 #else
    info->geometry.base_width = width;
    info->geometry.max_width = NES_WIDTH;
@@ -1846,34 +1846,33 @@ static void retro_run_blit(uint8_t *gfx)
 #ifdef HAVE_NTSC_FILTER
    if (use_ntsc)
    {
-      int h_offset, v_offset;
-
       burst_phase ^= 1;
       if (ntsc_setup.merge_fields)
          burst_phase = 0;
 
       nes_ntsc_blit(&nes_ntsc, (NES_NTSC_IN_T const*)gfx, (NES_NTSC_IN_T *)XDBuf,
           NES_WIDTH, burst_phase, NES_WIDTH, NES_HEIGHT,
-          ntsc_video_out, NTSC_WIDTH * sizeof(uint16));
+          ntsc_video_out, NES_NTSC_WIDTH * sizeof(uint16));
 
-      h_offset = overscan_h ?  NES_NTSC_OUT_WIDTH(8) : 0;
-      v_offset = overscan_v ? 8 : 0;
-      width    = overscan_h ? 560 : 602;
-      height   = overscan_v ? 224 : 240;
+      width    = NES_WIDTH - (overscan_h ? 16 : 0);
+      width    = NES_NTSC_OUT_WIDTH(width);
+      height   = NES_HEIGHT - (overscan_v ? 16 : 0);
       pitch    = width * sizeof(uint16_t);
 
       {
-         const uint16_t *in = ntsc_video_out + h_offset + NTSC_WIDTH * v_offset;
-         uint16_t *out = fceu_video_out;
-         int y;
+         int32_t h_offset   = overscan_h ?  NES_NTSC_OUT_WIDTH(8) : 0;
+         int32_t v_offset   = overscan_v ? 8 : 0;
+         const uint16_t *in = ntsc_video_out + h_offset + NES_NTSC_WIDTH * v_offset;
+         uint16_t *out      = fceu_video_out;
 
          for (y = 0; y < height; y++)
          {
-            memcpy(out, in, width * sizeof(uint16_t));
-            in += NTSC_WIDTH;
+            memcpy(out, in, pitch);
+            in += NES_NTSC_WIDTH;
             out += width;
          }
       }
+      video_cb(fceu_video_out, width, height, pitch);
    }
    else
 #endif /* HAVE_NTSC_FILTER */
@@ -1897,8 +1896,8 @@ static void retro_run_blit(uint8_t *gfx)
             for (x = 0; x < width; x++, gfx++)
                fceu_video_out[y * width + x] = retro_palette[*gfx];
       }
+      video_cb(fceu_video_out, width, height, pitch);
    }
-   video_cb(fceu_video_out, width, height, pitch);
 #endif
 }
 
@@ -2406,7 +2405,7 @@ bool retro_load_game(const struct retro_game_info *game)
    fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
 #elif !defined(PSP)
 #ifdef HAVE_NTSC_FILTER
-#define FB_WIDTH NTSC_WIDTH
+#define FB_WIDTH NES_NTSC_WIDTH
 #define FB_HEIGHT NES_HEIGHT
 #else /* !HAVE_NTSC_FILTER */
 #define FB_WIDTH NES_WIDTH
