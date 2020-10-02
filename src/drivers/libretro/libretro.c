@@ -69,10 +69,10 @@ static retro_input_state_t input_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
 retro_environment_t environ_cb = NULL;
 #ifdef PSP
-static bool use_overscan;
+static bool crop_overscan;
 #else
-static bool overscan_h;
-static bool overscan_v;
+static bool crop_overscan_h;
+static bool crop_overscan_v;
 #endif
 
 static bool use_raw_palette;
@@ -633,7 +633,7 @@ struct st_palettes palettes[] = {
 #define NTSC_RGB        3
 #define NTSC_MONOCHROME 4
 
-#define NTSC_WIDTH      602
+#define NES_NTSC_WIDTH  (((NES_NTSC_OUT_WIDTH(256) + 3) >> 2) << 2)
 
 static unsigned use_ntsc = 0;
 static unsigned burst_phase;
@@ -652,7 +652,7 @@ static void NTSCFilter_Init(void)
 {
    memset(&nes_ntsc, 0, sizeof(nes_ntsc));
    memset(&ntsc_setup, 0, sizeof(ntsc_setup));
-   ntsc_video_out = (uint16_t *)malloc(NTSC_WIDTH * NES_HEIGHT * sizeof(uint16_t));
+   ntsc_video_out = (uint16_t *)malloc(NES_NTSC_WIDTH * NES_HEIGHT * sizeof(uint16_t));
 }
 
 static void NTSCFilter_Setup(void)
@@ -965,15 +965,15 @@ void retro_get_system_info(struct retro_system_info *info)
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
 #ifdef PSP
-   unsigned width  = NES_WIDTH - (use_overscan ? 16 : 0);
-   unsigned height = NES_HEIGHT - (use_overscan ? 16 : 0);
+   unsigned width  = NES_WIDTH  - (crop_overscan ? 16 : 0);
+   unsigned height = NES_HEIGHT - (crop_overscan ? 16 : 0);
 #else
-   unsigned width  = NES_WIDTH - (overscan_h ? 16 : 0);
-   unsigned height = NES_HEIGHT - (overscan_v ? 16 : 0);
+   unsigned width  = NES_WIDTH  - (crop_overscan_h ? 16 : 0);
+   unsigned height = NES_HEIGHT - (crop_overscan_v ? 16 : 0);
 #endif
 #ifdef HAVE_NTSC_FILTER
    info->geometry.base_width = (use_ntsc ? NES_NTSC_OUT_WIDTH(width) : width);
-   info->geometry.max_width = (use_ntsc ? NTSC_WIDTH : NES_WIDTH);
+   info->geometry.max_width = (use_ntsc ? NES_NTSC_WIDTH : NES_WIDTH);
 #else
    info->geometry.base_width = width;
    info->geometry.max_width = NES_WIDTH;
@@ -1325,10 +1325,10 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      bool newval = (!strcmp(var.value, "disabled"));
-      if (newval != use_overscan)
+      bool newval = (!strcmp(var.value, "enabled"));
+      if (newval != crop_overscan)
       {
-         use_overscan = newval;
+         crop_overscan = newval;
          audio_video_updated = 1;
       }
    }
@@ -1339,9 +1339,9 @@ static void check_variables(bool startup)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       bool newval = (!strcmp(var.value, "enabled"));
-      if (newval != overscan_h)
+      if (newval != crop_overscan_h)
       {
-         overscan_h = newval;
+         crop_overscan_h = newval;
          audio_video_updated = 1;
       }
    }
@@ -1351,9 +1351,9 @@ static void check_variables(bool startup)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       bool newval = (!strcmp(var.value, "enabled"));
-      if (newval != overscan_v)
+      if (newval != crop_overscan_v)
       {
-         overscan_v = newval;
+         crop_overscan_v = newval;
          audio_video_updated = 1;
       }
    }
@@ -1544,10 +1544,10 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
    int min_width, min_height, max_width, max_height;
 
 #ifdef PSP
-   adjx = adjy = use_overscan ? 1 : 0;
+   adjx = adjy = crop_overscan ? 1 : 0;
 #else
-   adjx        = overscan_h ? 1 : 0;
-   adjy        = overscan_v ? 1 : 0;
+   adjx        = crop_overscan_h ? 1 : 0;
+   adjy        = crop_overscan_v ? 1 : 0;
 #endif
    max_width   = 256;
    max_height  = 240;
@@ -1780,7 +1780,7 @@ static void retro_run_blit(uint8_t *gfx)
    unsigned pitch  = 512;
 
 #ifdef PSP
-   if (!use_overscan)
+   if (crop_overscan)
    {
       width  -= 16;
       height -= 16;
@@ -1796,10 +1796,10 @@ static void retro_run_blit(uint8_t *gfx)
     * so we use GU_PSM_4444 ( 2 Bytes per pixel ) instead
     * with half the values for pitch / width / x offset
     */
-   if (use_overscan)
-      sceGuCopyImage(GU_PSM_4444, 0, 0, 128, 240, 128, XBuf, 0, 0, 128, texture_vram_p);
-   else
+   if (crop_overscan)
       sceGuCopyImage(GU_PSM_4444, 4, 4, 120, 224, 128, XBuf, 0, 0, 128, texture_vram_p);
+   else
+      sceGuCopyImage(GU_PSM_4444, 0, 0, 128, 240, 128, XBuf, 0, 0, 128, texture_vram_p);
 
    sceGuTexSync();
    sceGuTexImage(0, 256, 256, 256, texture_vram_p);
@@ -1832,10 +1832,10 @@ static void retro_run_blit(uint8_t *gfx)
       ps2->coreTexture->PSM = GS_PSM_T8;
       ps2->coreTexture->ClutPSM = GS_PSM_CT16;
       ps2->coreTexture->Filter = GS_FILTER_LINEAR;
-      ps2->padding = (struct retro_hw_ps2_insets){ overscan_v ? 8.0f : 0.0f,
-                                                   overscan_h ? 8.0f : 0.0f,
-                                                   overscan_v ? 8.0f : 0.0f,
-                                                   overscan_h ? 8.0f : 0.0f};
+      ps2->padding = (struct retro_hw_ps2_insets){ crop_overscan_v ? 8.0f : 0.0f,
+                                                   crop_overscan_h ? 8.0f : 0.0f,
+                                                   crop_overscan_v ? 8.0f : 0.0f,
+                                                   crop_overscan_h ? 8.0f : 0.0f};
    }
 
    ps2->coreTexture->Clut = (u32*)retro_palette;
@@ -1846,43 +1846,42 @@ static void retro_run_blit(uint8_t *gfx)
 #ifdef HAVE_NTSC_FILTER
    if (use_ntsc)
    {
-      int h_offset, v_offset;
-
       burst_phase ^= 1;
       if (ntsc_setup.merge_fields)
          burst_phase = 0;
 
       nes_ntsc_blit(&nes_ntsc, (NES_NTSC_IN_T const*)gfx, (NES_NTSC_IN_T *)XDBuf,
           NES_WIDTH, burst_phase, NES_WIDTH, NES_HEIGHT,
-          ntsc_video_out, NTSC_WIDTH * sizeof(uint16));
+          ntsc_video_out, NES_NTSC_WIDTH * sizeof(uint16));
 
-      h_offset = overscan_h ?  NES_NTSC_OUT_WIDTH(8) : 0;
-      v_offset = overscan_v ? 8 : 0;
-      width    = overscan_h ? 560 : 602;
-      height   = overscan_v ? 224 : 240;
+      width    = NES_WIDTH - (crop_overscan_h ? 16 : 0);
+      width    = NES_NTSC_OUT_WIDTH(width);
+      height   = NES_HEIGHT - (crop_overscan_v ? 16 : 0);
       pitch    = width * sizeof(uint16_t);
 
       {
-         const uint16_t *in = ntsc_video_out + h_offset + NTSC_WIDTH * v_offset;
-         uint16_t *out = fceu_video_out;
-         int y;
+         int32_t h_offset   = crop_overscan_h ?  NES_NTSC_OUT_WIDTH(8) : 0;
+         int32_t v_offset   = crop_overscan_v ? 8 : 0;
+         const uint16_t *in = ntsc_video_out + h_offset + NES_NTSC_WIDTH * v_offset;
+         uint16_t *out      = fceu_video_out;
 
          for (y = 0; y < height; y++)
          {
-            memcpy(out, in, width * sizeof(uint16_t));
-            in += NTSC_WIDTH;
+            memcpy(out, in, pitch);
+            in += NES_NTSC_WIDTH;
             out += width;
          }
       }
+      video_cb(fceu_video_out, width, height, pitch);
    }
    else
 #endif /* HAVE_NTSC_FILTER */
    {
-      incr   += (overscan_h ? 16 : 0);
-      width  -= (overscan_h ? 16 : 0);
-      height -= (overscan_v ? 16 : 0);
-      pitch  -= (overscan_h ? 32 : 0);
-      gfx    += (overscan_v ? ((overscan_h ? 8 : 0) + 256 * 8) : (overscan_h ? 8 : 0));
+      incr   += (crop_overscan_h ? 16 : 0);
+      width  -= (crop_overscan_h ? 16 : 0);
+      height -= (crop_overscan_v ? 16 : 0);
+      pitch  -= (crop_overscan_h ? 32 : 0);
+      gfx    += (crop_overscan_v ? ((crop_overscan_h ? 8 : 0) + 256 * 8) : (crop_overscan_h ? 8 : 0));
 
       if (use_raw_palette)
       {
@@ -1897,8 +1896,8 @@ static void retro_run_blit(uint8_t *gfx)
             for (x = 0; x < width; x++, gfx++)
                fceu_video_out[y * width + x] = retro_palette[*gfx];
       }
+      video_cb(fceu_video_out, width, height, pitch);
    }
-   video_cb(fceu_video_out, width, height, pitch);
 #endif
 }
 
@@ -2406,7 +2405,7 @@ bool retro_load_game(const struct retro_game_info *game)
    fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
 #elif !defined(PSP)
 #ifdef HAVE_NTSC_FILTER
-#define FB_WIDTH NTSC_WIDTH
+#define FB_WIDTH NES_NTSC_WIDTH
 #define FB_HEIGHT NES_HEIGHT
 #else /* !HAVE_NTSC_FILTER */
 #define FB_WIDTH NES_WIDTH
