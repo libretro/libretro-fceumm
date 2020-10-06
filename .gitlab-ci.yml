@@ -40,11 +40,6 @@ android-armeabi-v7a:
   extends:
     - .core-defs
     - .libretro-android-jni-armeabi-v7a
-    
-android-armeabi:
-  extends:
-    - .core-defs
-    - .libretro-android-jni-armeabi
 
 android-arm64-v8a:
   extends:
@@ -60,16 +55,6 @@ android-x86:
   extends:
     - .core-defs
     - .libretro-android-jni-x86
-    
-android-mips:
-  extends:
-    - .core-defs
-    - .libretro-android-jni-mips
-    
-android-mips64:
-  extends:
-    - .core-defs
-    - .libretro-android-jni-mips64
 
 # Static
 libretro-build-libnx-aarch64:
