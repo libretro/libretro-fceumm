@@ -19,11 +19,12 @@
  */
 
 /* Begin FDS sound */
-
+#include <string.h>
 #include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
 #include "sound.h"
+#include "state.h"
 
 #define FDSClock (1789772.7272727272727272 / 2)
 
