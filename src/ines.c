@@ -706,6 +706,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "82112C",                   540, Mapper540_Init         )
 	INES_BOARD( "LittleCom 160-in-1",       541, Mapper541_Init         )
 	INES_BOARD( "5-in-1 (CH-501)",          543, Mapper543_Init         )
+	INES_BOARD( "KS-7010",                  554, Mapper554_Init         )
 	INES_BOARD( "",                         550, Mapper550_Init         )
 
 	/* UNIF to NES 2.0 BOARDS */
