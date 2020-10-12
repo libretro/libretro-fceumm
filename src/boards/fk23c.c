@@ -521,6 +521,9 @@ void BMCFK23C_Init(CartInfo *info) {
        * size when battery is set */
       if (info->battery)
          WRAMSIZE = 32 * 1024;
+      else
+         /* Always enable WRAM for ines-headered roms, lets see who complains */
+         WRAMSIZE = 8 * 1024;
    }
 
    GenBMCFK23C_Init(info);
