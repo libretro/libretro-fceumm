@@ -517,10 +517,12 @@ void BMCFK23C_Init(CartInfo *info) {
             CHRRAMSIZE = 8 * 1024;
       }
 
-      /* Only waixing boards has battery backed wram, so only declare
-       * size when battery is set */
+      /* Waixing boards has 32K battery backed wram */
       if (info->battery)
          WRAMSIZE = 32 * 1024;
+      else
+         /* Always enable WRAM for ines-headered roms, lets see who complains */
+         WRAMSIZE = 8 * 1024;
    }
 
    GenBMCFK23C_Init(info);
@@ -533,6 +535,8 @@ void BMCFK23CA_Init(CartInfo *info)
    /* can use mixed chr rom/ram */
    if (!UNIFchrrama)
       CHRRAMSIZE = 8 * 1024;
+
+   WRAMSIZE = 8 * 1024;
 
    GenBMCFK23C_Init(info);
    is_bmcfk23ca = 1;
