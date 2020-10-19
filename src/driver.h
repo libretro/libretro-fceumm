@@ -35,7 +35,6 @@ void FCEU_printf(char *format, ...);
 
 /* Video interface */
 void FCEUD_SetPalette(uint8 index, uint8 r, uint8 g, uint8 b);
-void FCEUD_GetPalette(uint8 i, uint8 *r, uint8 *g, uint8 *b);
 
 /* Displays an error.  Can block or not. */
 void FCEUD_PrintError(char *s);
@@ -50,14 +49,6 @@ int FCEUI_NetplayStart(int nlocal, int divisor);
 
 /* Call when network play needs to stop. */
 void FCEUI_NetplayStop(void);
-
-/* Note:  YOU MUST NOT CALL ANY FCEUI_* FUNCTIONS WHILE IN FCEUD_SendData() or
-   FCEUD_RecvData().
-*/
-
-/* Return 0 on failure, 1 on success. */
-int FCEUD_SendData(void *data, uint32 len);
-int FCEUD_RecvData(void *data, uint32 len);
 
 /* Display text received over the network. */
 void FCEUD_NetplayText(uint8 *text);

@@ -1241,7 +1241,7 @@ int FCEUPPU_Loop(int skip) {
 
 			for (scanline = 0; scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;
-				if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
+				/* if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1); */
 				DoLine();
 				if (scanline < normal_scanlines || scanline == totalscanlines)
 					overclocked = 0;
