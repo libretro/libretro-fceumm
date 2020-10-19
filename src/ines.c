@@ -328,13 +328,15 @@ static void CheckHInfo(void) {
 				case   1:
 				case   5:
 				case 176:
-					tofix |= 32;
-					iNESCart.iNES2 = 1;
 					if (moo[x].prgram >= 0) {
+						tofix |= 32;
+						iNESCart.iNES2 = 1;
 						iNESCart.PRGRamSize = (moo[x].prgram & 0x0F) ? (64 << ((moo[x].prgram >> 0) & 0xF)) : 0;
 						iNESCart.PRGRamSaveSize = (moo[x].prgram & 0xF0) ? (64 << ((moo[x].prgram >> 4) & 0xF)) : 0;
 					}
 					if (moo[x].chrram >= 0) {
+						tofix |= 32;
+						iNESCart.iNES2 = 1;
 						iNESCart.CHRRamSize = (moo[x].chrram & 0x0F) ? (64 << ((moo[x].chrram >> 0) & 0xF)) : 0;
 						iNESCart.CHRRamSaveSize = (moo[x].chrram & 0xF0) ? (64 << ((moo[x].chrram >> 4) & 0xF)) : 0;
 					}
