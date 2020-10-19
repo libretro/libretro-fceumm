@@ -202,11 +202,6 @@ const char * GetKeyboard(void)
    return "";
 }
 
-int FCEUD_SendData(void *data, uint32 len)
-{
-   return 1;
-}
-
 #define BUILD_PIXEL_RGB565(R,G,B) (((int) ((R)&0x1f) << RED_SHIFT) | ((int) ((G)&0x3f) << GREEN_SHIFT) | ((int) ((B)&0x1f) << BLUE_SHIFT))
 
 #if defined (PSP)
@@ -266,15 +261,6 @@ void FCEUD_SetPalette(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
 #endif
 }
 
-void FCEUD_GetPalette(unsigned char i, unsigned char *r, unsigned char *g, unsigned char *b)
-{
-}
-
-bool FCEUD_ShouldDrawInputAids (void)
-{
-   return 1;
-}
-
 static struct retro_log_callback log_cb;
 
 static void default_logger(enum retro_log_level level, const char *fmt, ...) {}
@@ -303,9 +289,6 @@ void FCEUD_SoundToggle (void)
 {
    FCEUI_SetSoundVolume(sndvolume);
 }
-
-void FCEUD_VideoChanged (void)
-{ }
 
 FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 {

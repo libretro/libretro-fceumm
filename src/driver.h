@@ -35,42 +35,11 @@ void FCEU_printf(char *format, ...);
 
 /* Video interface */
 void FCEUD_SetPalette(uint8 index, uint8 r, uint8 g, uint8 b);
-void FCEUD_GetPalette(uint8 i, uint8 *r, uint8 *g, uint8 *b);
 
 /* Displays an error.  Can block or not. */
 void FCEUD_PrintError(char *s);
 void FCEUD_Message(char *s);
 void FCEUD_DispMessage(char *m);
-
-#ifdef NETWORK
-/* Network interface */
-
-/* Call only when a game is loaded. */
-int FCEUI_NetplayStart(int nlocal, int divisor);
-
-/* Call when network play needs to stop. */
-void FCEUI_NetplayStop(void);
-
-/* Note:  YOU MUST NOT CALL ANY FCEUI_* FUNCTIONS WHILE IN FCEUD_SendData() or
-   FCEUD_RecvData().
-*/
-
-/* Return 0 on failure, 1 on success. */
-int FCEUD_SendData(void *data, uint32 len);
-int FCEUD_RecvData(void *data, uint32 len);
-
-/* Display text received over the network. */
-void FCEUD_NetplayText(uint8 *text);
-
-/* Encode and send text over the network. */
-void FCEUI_NetplayText(uint8 *text);
-
-/* Called when a fatal error occurred and network play can't continue.  This function
-   should call FCEUI_NetplayStop() after it has deinitialized the network on the driver
-   side.
-*/
-void FCEUD_NetworkClose(void);
-#endif
 
 int FCEUI_BeginWaveRecord(char *fn);
 int FCEUI_EndWaveRecord(void);

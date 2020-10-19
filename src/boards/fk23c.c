@@ -32,6 +32,76 @@
  * Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0, but MMC3 registers $46 and $47 swapped.
  */
 
+/*
+Mode Register ($5xx0)
+7654 3210
+---- ----
+PCTm PMMM
+|||| ||||
+|||| |+++- Select PRG Banking Mode (ignored in Extended MMC3 Mode)
+|||| |      0: MMC3 PRG Mode, 512 KiB Outer PRG Bank Size
+|||| |      1: MMC3 PRG Mode, 256 KiB Outer PRG Bank Size
+|||| |      2: MMC3 PRG Mode, 128 KiB Outer PRG Bank Size
+|||| |      3: NROM-128 PRG Mode, 16 KiB PRG at $8000-$BFFF mirrored at $C000-$FFFF
+|||| |      4: NROM-256 PRG Mode, 32 KiB PRG at $8000-$FFFF
+|||| |      5-7: Never used
+|||| +---- PRG Base A21
+|||+------ Select Outer CHR Bank Size
+|||         0: In MMC3 CHR Mode: 256 KiB
+|||            In CNROM CHR Mode: 32 KiB
+|||         1: In MMC3 CHR Mode: 128 KiB
+|||            In CNROM CHR Mode: 16 KiB
+||+------- Select CHR Memory Type
+||          0: CHR-ROM
+||          1: CHR-RAM
+|+-------- CHR Mode
+|           0: MMC3 CHR Mode
+|           1: NROM/CNROM CHR Mode
++--------- PRG Base A22
+
+Power-on value: $00
+
+PRG Base Register ($5xx1)
+Mask: $5xx3, x determined by solder pad setting
+
+7654 3210
+---- ----
+.PPP PPPP
+ ||| ||||
+ +++-++++- PRG Base A20..A14
+
+Power-on value: $00
+CHR Base Register ($5xx2)
+Mask: $5xx3, x determined by solder pad setting
+
+7654 3210
+---- ----
+ccdC CCCC
+|||| ||||
+++++-++++- CHR Base A20..A13
+||+------- PRG Base A25
+++-------- PRG Base A24..A23
+
+Power-on value: $00
+Writing to the CHR Base Register also resets the CNROM latch.
+
+Extended Mode Register ($5xx3)
+Mask: $5xx3, x determined by solder pad setting
+
+7654 3210
+---- ----
+.C.. .CE.
+ |    || 
+ |    |+- Extended MMC3 Mode
+ |    |    0: disable
+ |    |    1: enable
+ +----+-- Select NROM/CNROM CHR Mode
+           0: NROM
+           1: CNROM
+
+Power-on value: $02 (Submapper 1), $00 (otherwise)
+*/
+
 /* 2020-3-14 - Refactoring based on latest sources */
 /* TODO: Add database for ines 1.0 headers */
 
@@ -55,7 +125,11 @@ static uint8 irq_reload       = 0;
 static uint8 cnrom_chr        = 0;
 static uint8 dipswitch        = 0;
 static uint8 subType          = 0;
-static uint8 is_bmcfk23ca     = 0;
+
+/* enable dipswitch settings for fk23/fk23ca,
+ * switchable on reset. Can enable different multicart-modes
+ * depending on address */
+static uint8 dipsw_enable    = 0;
 
 static SFORMAT StateRegs[] = {
    { fk23_regs,               4, "EXPR" },
@@ -138,12 +212,12 @@ static void SyncCHR(void)
       {
          uint16 cbase         = INVERT_CHR ? 0x1000 : 0;
          uint8 mask           = CHR_OUTER_BANK_SIZE ? 0x7F : 0xFF;
-         uint16 outer         = (fk23_regs[2] << 3) & ~mask;
+         uint16 outer         = (fk23_regs[2] << 3);
 
-         cwrap(cbase ^ 0x0000, ((mmc3_regs[0] & 0xFE) & mask) | outer);
-         cwrap(cbase ^ 0x0400, ((mmc3_regs[0] | 0x01) & mask) | outer);
-         cwrap(cbase ^ 0x0800, ((mmc3_regs[1] & 0xFE) & mask) | outer);
-         cwrap(cbase ^ 0x0C00, ((mmc3_regs[1] | 0x01) & mask) | outer);
+         cwrap(cbase ^ 0x0000, ((mmc3_regs[0] & mask) & 0xFE) | outer);
+         cwrap(cbase ^ 0x0400, ((mmc3_regs[0] & mask) | 0x01) | outer);
+         cwrap(cbase ^ 0x0800, ((mmc3_regs[1] & mask) & 0xFE) | outer);
+         cwrap(cbase ^ 0x0C00, ((mmc3_regs[1] & mask) | 0x01) | outer);
 
          cwrap(cbase ^ 0x1000, (mmc3_regs[2] & mask) | outer);
          cwrap(cbase ^ 0x1400, (mmc3_regs[3] & mask) | outer);
@@ -383,10 +457,10 @@ static void IRQHook(void)
 static void Reset(void)
 {
    /* this little hack makes sure that we try all the dip switch settings eventually, if we reset enough */
-   /*if (is_bmcfk23ca) {
+   if (dipsw_enable) {
       dipswitch = (dipswitch + 1) & 7;
-      printf("BMCFK23C dipswitch set to $%04x\n",0x5000|0x10 << dipswitch);
-   }*/
+      FCEU_printf("BMCFK23C dipswitch set to $%04x\n",0x5000|0x10 << dipswitch);
+   }
 
    fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = 0;
    mmc3_regs[0]   = 0;
@@ -463,7 +537,7 @@ static void StateRestore(int version)
 
 void GenBMCFK23C_Init(CartInfo *info)
 {
-   is_bmcfk23ca = 0;
+   dipsw_enable      = 0;
 
    info->Power       = Power;
    info->Reset       = Reset;
@@ -526,6 +600,7 @@ void BMCFK23C_Init(CartInfo *info) {
    }
 
    GenBMCFK23C_Init(info);
+   dipsw_enable = 1;
 }
 
 /* UNIF Boards, declares so we can for chr mixed mode size and wram if any */
@@ -539,7 +614,7 @@ void BMCFK23CA_Init(CartInfo *info)
    WRAMSIZE = 8 * 1024;
 
    GenBMCFK23C_Init(info);
-   is_bmcfk23ca = 1;
+   dipsw_enable = 1;
 }
 
 /* BMC-Super24in1SC03 */
