@@ -195,9 +195,6 @@ static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
 		joy[1] = *(uint32*)ptr >> 8;
 		joy[3] = *(uint32*)ptr >> 24;
 	}
-#ifdef NETWORK
-	if (FCEUnetplay) NetplayUpdate(joy);
-#endif
 	FCEUMOV_AddJoy(joy);
 }
 
