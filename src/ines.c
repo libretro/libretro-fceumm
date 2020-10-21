@@ -479,8 +479,9 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "UNLKS202",                  56, UNLKS202_Init          )
 	INES_BOARD( "SIMBPLE BMC PIRATE A",      57, Mapper57_Init          )
 	INES_BOARD( "SIMBPLE BMC PIRATE B",      58, BMCGK192_Init          )
-	INES_BOARD( "",                          59, Mapper59_Init          ) /* Check this out */
-	INES_BOARD( "SIMBPLE BMC PIRATE C",      60, BMCD1038_Init          )
+/*	INES_BOARD( "",                          59, Mapper59_Init         ) */ /* Check this out, update 2020-10-21 - formerly an incorrect implementation of T3H53 */
+	INES_BOARD( "BMC T3H53/D1038",           59, BMCD1038_Init          )
+	INES_BOARD( "Reset-based NROM-128 ",     60, Mapper60_Init          )
 	INES_BOARD( "20-in-1 KAISER Rev. A",     61, Mapper61_Init          )
 	INES_BOARD( "700-in-1",                  62, Mapper62_Init          )
 	INES_BOARD( "",                          63, Mapper63_Init          )
