@@ -68,7 +68,7 @@ static int JPAttribFC = 0;
 static int JPTypeFC = 0;
 static void *InputDataPtrFC;
 
-static INPUTC DummyJPort = { 0, 0, 0, 0, 0 };
+static INPUTC DummyJPort = { 0, 0, 0, 0, 0, 0 };
 static INPUTC *JPorts[2] = { &DummyJPort, &DummyJPort };
 static INPUTCFC *FCExp = 0;
 
