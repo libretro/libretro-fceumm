@@ -38,7 +38,7 @@ int32 Wave[2048 + 512];
 int32 WaveHi[40000];
 int32 WaveFinal[2048 + 512];
 
-EXPSOUND GameExpSound = { 0, 0, 0 };
+EXPSOUND GameExpSound = { 0, 0, 0, 0, 0, 0 };
 
 static uint8 TriCount = 0;
 static uint8 TriMode = 0;
