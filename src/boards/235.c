@@ -40,7 +40,7 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	if (type && unrom) {
-		setprg16(0x8000, 0x80 | reg & 7);
+		setprg16(0x8000, 0x80 | (reg & 7));
 		setprg16(0xC000, 0x80 | 7);
 		setchr8(0);
 		setmirror(MI_V);
