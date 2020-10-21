@@ -532,7 +532,7 @@ void GenBMCFK23C_Init(CartInfo *info)
       {
          info->SaveGame[0] = WRAM;
          if (info->iNES2 && info->PRGRamSaveSize)
-            info->SaveGameLen[0] = info->PRGRamSaveSize
+            info->SaveGameLen[0] = info->PRGRamSaveSize;
          else
             info->SaveGameLen[0] = WRAMSIZE;
       }
