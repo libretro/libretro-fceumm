@@ -346,6 +346,7 @@ static DECLFW(FDSWrite) {
 			X6502_IRQEnd(FCEU_IQEXT);
 			X6502_IRQEnd(FCEU_IQEXT2);
 		}
+		break;
 	case 0x4024:
 #ifndef USE_DINK
 		if ((InDisk != 255) && !(FDSRegs[5] & 0x4) && (FDSRegs[3] & 0x1)) {

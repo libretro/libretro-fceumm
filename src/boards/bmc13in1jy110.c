@@ -41,11 +41,13 @@ static void Sync(void) {
 	case 1:
 		setprg16(0x8000, ((8 + (bank_value & 7)) >> 1) + prgb[1]);
 		setprg16(0xC000, (bank_value & 7) >> 1);
+		break;
 	case 4:
 		setprg32(0x8000, 8 + (bank_value & 7)); break;
 	case 5:
 		setprg16(0x8000, ((8 + (bank_value & 7)) >> 1) + prgb[1]);
 		setprg16(0xC000, ((8 + (bank_value & 7)) >> 1) + prgb[3]);
+		break;
 	case 2:
 		setprg8(0x8000, prgb[0] >> 2);
 		setprg8(0xa000, prgb[1]);

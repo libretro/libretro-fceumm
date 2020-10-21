@@ -117,7 +117,7 @@ static DECLFW(UNLYOKOWrite) {
 
 static DECLFW(M83Write) {
 	switch (A) {
-	case 0x8000: is2kbank = 1;
+	case 0x8000: is2kbank = 1; M83Sync(); break;
 	case 0xB000:												/* Dragon Ball Z Party [p1] BMC */
 	case 0xB0FF:												/* Dragon Ball Z Party [p1] BMC */
 	case 0xB1FF: bank = V; mode |= 0x40; M83Sync(); break;		/* Dragon Ball Z Party [p1] BMC */
