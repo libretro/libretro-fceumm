@@ -166,7 +166,8 @@ void BMCGK192_Init(CartInfo *info) {
 
 /*------------------ Map 059 ---------------------------*/
 /* One more forgotten mapper */
-static void M59Sync(void) {
+/* Formerly, an incorrect implementation of BMC-T3H53 */
+/*static void M59Sync(void) {
 	setprg32(0x8000, (latche >> 4) & 7);
 	setchr8(latche & 0x7);
 	setmirror((latche >> 3) & 1);
@@ -181,7 +182,7 @@ static DECLFR(M59Read) {
 
 void Mapper59_Init(CartInfo *info) {
 	Latch_Init(info, M59Sync, M59Read, 0x0000, 0x8000, 0xFFFF, 0);
-}
+}*/
 
 /*------------------ Map 061 ---------------------------*/
 static void M61Sync(void) {
