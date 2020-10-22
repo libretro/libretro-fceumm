@@ -719,7 +719,7 @@ static void DoLine(void)
 		GameHBIRQHook();
 		X6502_Run(85 - 16 - 10);
 	} else {
-		X6502_Run(6);	// Tried 65, caused problems with Slalom(maybe others)
+		X6502_Run(6);	/* Tried 65, caused problems with Slalom(maybe others) */
 		Fixit2();
 		X6502_Run(85 - 6 - 16);
 
