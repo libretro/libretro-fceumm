@@ -138,6 +138,11 @@ static void ResetUNIF(void) {
 	VROM_size = 0;
 }
 
+static void Cleanup(void) {
+	FreeUNIF();
+	ResetUNIF();
+}
+
 static uint8 exntar[2048];
 
 static void MooMirroring(void) {
@@ -692,7 +697,7 @@ static int InitializeBoard(void) {
 				mirrortodo = 4;
 			MooMirroring();
 
-			UNIFCart.submapper = bmap[x].ines_mapper;
+			UNIFCart.mapper    = bmap[x].ines_mapper;
 			UNIFCart.submapper = submapper;
 			GameInfo->cspecial = cspecial;
 
@@ -701,7 +706,8 @@ static int InitializeBoard(void) {
 		}
 		x++;
 	}
-	FCEU_PrintError("Board type not supported, '%s'.", boardname);
+	FCEU_printf("\n");
+	FCEU_PrintError(" Board type not supported, '%s'.\n", boardname);
 	return(0);
 }
 
@@ -726,8 +732,8 @@ static void UNIFGI(int h) {
 
 int UNIFLoad(const char *name, FCEUFILE *fp) {
 	struct md5_context md5;
-	uint32 x = 0;
-	uint64 PRGptr = 0, CHRptr = 0;
+	uint64 prg_size_bytes = 0, chr_size_bytes = 0;
+	int x = 0;
 
 	FCEU_fseek(fp, 0, SEEK_SET);
 	FCEU_fread(&unhead, 1, 4, fp);
@@ -738,12 +744,18 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 
 	ResetExState(0, 0);
 	ResetUNIF();
-	if (!FCEU_read32le(&unhead.info, fp))
-		goto aborto;
-	if (FCEU_fseek(fp, 0x20, SEEK_SET) < 0)
-		goto aborto;
-	if (!LoadUNIFChunks(fp))
-		goto aborto;
+	if (!FCEU_read32le(&unhead.info, fp)) {
+		Cleanup();
+		return 0;
+	}
+	if (FCEU_fseek(fp, 0x20, SEEK_SET) < 0) {
+		Cleanup();
+		return 0;
+	}
+	if (!LoadUNIFChunks(fp)) {
+		Cleanup();
+		return 0;
+	}
 
 	ROM_size = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
 	ROM_size = (ROM_size >> 2) + ((ROM_size & 3) ? 1: 0);
@@ -752,73 +764,84 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		VROM_size = (VROM_size >> 3) + ((VROM_size & 7) ? 1: 0);
 	}
 
-	UNIFCart.PRGRomSize = UNIF_PRGROMSize;
-	UNIFCart.CHRRomSize = UNIF_CHRROMSize;
-
 	UNIF_PRGROMSize = FixRomSize(UNIF_PRGROMSize, 2048);
 	if (UNIF_CHRROMSize)
 		UNIF_CHRROMSize = FixRomSize(UNIF_CHRROMSize, 8192);
 
-	ROM = (uint8*)malloc(UNIF_PRGROMSize);
-	if (UNIF_CHRROMSize)
-		VROM = (uint8*)malloc(UNIF_CHRROMSize);
+	/* Note: Use rounded size for memory allocations and board mapping */
+
+	if (!(ROM = (uint8*)malloc(UNIF_PRGROMSize))) {
+		Cleanup();
+		return 0;
+	}
+	if (UNIF_CHRROMSize) {
+		if (!(VROM = (uint8*)malloc(UNIF_CHRROMSize))) {
+			Cleanup();
+			return 0;
+		}
+	}
+
+	/* combine multiple prg/chr blocks into single blocks and free memory used. */
 
 	for (x = 0; x < 16; x++) {
-		unsigned p = prg_idx[x];
-		unsigned c = 16 + chr_idx[x];
+		int p = prg_idx[x];
+		int c = 16 + chr_idx[x];
 		if (malloced[p]) {
-			memcpy(ROM + PRGptr, malloced[p], mallocedsizes[p]);
-			PRGptr += mallocedsizes[p];
+			memcpy(ROM + prg_size_bytes, malloced[p], mallocedsizes[p]);
+			prg_size_bytes += mallocedsizes[p];
 			free(malloced[p]);
 			malloced[p] = 0;
 		}
 
 		if (malloced[c]) {
-			memcpy(VROM + CHRptr, malloced[c], mallocedsizes[c]);
-			CHRptr += mallocedsizes[c];
+			memcpy(VROM + chr_size_bytes, malloced[c], mallocedsizes[c]);
+			chr_size_bytes += mallocedsizes[c];
 			free(malloced[c]);
 			malloced[c] = 0;
 		}
 	}
 
-	UNIFCart.PRGCRC32 = CalcCRC32(0, ROM, PRGptr);
-	UNIFCart.CHRCRC32 = CalcCRC32(0, VROM, CHRptr);
-	UNIFCart.CRC32    = CalcCRC32(UNIFCart.PRGCRC32, VROM, CHRptr);
+	/* Note: Use raw size in bytes for checksums */
+
+	UNIFCart.PRGRomSize = prg_size_bytes;
+	UNIFCart.CHRRomSize = chr_size_bytes;
+
+	UNIFCart.PRGCRC32   = CalcCRC32(0, ROM, prg_size_bytes);
+	UNIFCart.CHRCRC32   = CalcCRC32(0, VROM, chr_size_bytes);
+	UNIFCart.CRC32      = CalcCRC32(UNIFCart.PRGCRC32, VROM, chr_size_bytes);
 
 	md5_starts(&md5);
-	md5_update(&md5, ROM, PRGptr);
-	if (UNIF_CHRROMSize)
-		md5_update(&md5, VROM, CHRptr);
+	md5_update(&md5, ROM, prg_size_bytes);
+	if (chr_size_bytes)
+		md5_update(&md5, VROM, chr_size_bytes);
 	md5_finish(&md5, UNIFCart.MD5);
 	memcpy(GameInfo->MD5, UNIFCart.MD5, sizeof(UNIFCart.MD5));
 
 	CheckHashInfo();
 
+	/* Note: Use rounded size for board mappings */
+
 	SetupCartPRGMapping(0, ROM, UNIF_PRGROMSize, 0);
 	if (UNIF_CHRROMSize)
 		SetupCartCHRMapping(0, VROM, UNIF_CHRROMSize, 0);
 
-	if (!InitializeBoard())
-		goto aborto;
+	FCEU_printf(" PRG-ROM CRC32: 0x%08X\n", UNIFCart.PRGCRC32);
+	FCEU_printf(" PRG+CHR CRC32: 0x%08X\n", UNIFCart.CRC32);
+	FCEU_printf(" PRG+CHR MD5  : 0x%s\n", md5_asciistr(UNIFCart.MD5));
 
-	FCEU_printf(" PRG-ROM CRC32:   0x%08X\n", UNIFCart.PRGCRC32);
-	FCEU_printf(" PRG+CHR CRC32:   0x%08X\n", UNIFCart.CRC32);
-	FCEU_printf(" PRG+CHR MD5  :   0x%s\n", md5_asciistr(UNIFCart.MD5));
-	if (UNIFCart.mapper)
-		FCEU_printf(" [Unif] Mapper:    %d\n", UNIFCart.mapper);
-	FCEU_printf(" [Unif] SubMapper: %d\n", UNIFCart.submapper);
-	FCEU_printf(" [Unif] PRG ROM:   %u KiB\n", UNIFCart.PRGRomSize / 1024);
-	FCEU_printf(" [Unif] CHR ROM:   %u KiB\n", UNIFCart.CHRRomSize / 1024);
+	if (!InitializeBoard()) {
+		Cleanup();
+		return 0;
+	}
+
+	FCEU_printf(" [UNIF] PRG ROM: %u KiB\n", UNIFCart.PRGRomSize / 1024);
+	FCEU_printf(" [UNIF] CHR ROM: %u KiB\n", UNIFCart.CHRRomSize / 1024);
+	FCEU_printf(" [UNIF] iNES Mapper: %d\n", UNIFCart.mapper);
+	FCEU_printf(" [UNIF] SubMapper: %d\n", UNIFCart.submapper);
 
 	GameInterface = UNIFGI;
 
 	return 1;
-
- aborto:
-
-	FreeUNIF();
-	ResetUNIF();
-	return 0;
 }
 
 int CopyFamiLoad() {
@@ -826,15 +849,11 @@ int CopyFamiLoad() {
 	ResetExState(0, 0);
 
 	sboardname = (uint8_t*)"COPYFAMI";
-	if (!InitializeBoard())
-		goto aborto;
+	if (!InitializeBoard()) {
+		Cleanup();
+		return 0;
+	}
 
 	GameInterface = UNIFGI;
 	return 1;
-
- aborto:
-
-	FreeUNIF();
-	ResetUNIF();
-	return 0;
 }
