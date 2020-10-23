@@ -692,7 +692,7 @@ static int InitializeBoard(void) {
 				mirrortodo = 4;
 			MooMirroring();
 
-			UNIFCart.submapper = bmap[x].ines_mapper;
+			UNIFCart.mapper    = bmap[x].ines_mapper;
 			UNIFCart.submapper = submapper;
 			GameInfo->cspecial = cspecial;
 
@@ -701,7 +701,8 @@ static int InitializeBoard(void) {
 		}
 		x++;
 	}
-	FCEU_PrintError("Board type not supported, '%s'.", boardname);
+	FCEU_printf("\n");
+	FCEU_PrintError(" Board type not supported, '%s'.\n", boardname);
 	return(0);
 }
 
@@ -798,17 +799,17 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	if (UNIF_CHRROMSize)
 		SetupCartCHRMapping(0, VROM, UNIF_CHRROMSize, 0);
 
+	FCEU_printf(" PRG-ROM CRC32: 0x%08X\n", UNIFCart.PRGCRC32);
+	FCEU_printf(" PRG+CHR CRC32: 0x%08X\n", UNIFCart.CRC32);
+	FCEU_printf(" PRG+CHR MD5  : 0x%s\n", md5_asciistr(UNIFCart.MD5));
+
 	if (!InitializeBoard())
 		goto aborto;
 
-	FCEU_printf(" PRG-ROM CRC32:   0x%08X\n", UNIFCart.PRGCRC32);
-	FCEU_printf(" PRG+CHR CRC32:   0x%08X\n", UNIFCart.CRC32);
-	FCEU_printf(" PRG+CHR MD5  :   0x%s\n", md5_asciistr(UNIFCart.MD5));
-	if (UNIFCart.mapper)
-		FCEU_printf(" [Unif] Mapper:    %d\n", UNIFCart.mapper);
-	FCEU_printf(" [Unif] SubMapper: %d\n", UNIFCart.submapper);
-	FCEU_printf(" [Unif] PRG ROM:   %u KiB\n", UNIFCart.PRGRomSize / 1024);
-	FCEU_printf(" [Unif] CHR ROM:   %u KiB\n", UNIFCart.CHRRomSize / 1024);
+	FCEU_printf(" [UNIF] PRG ROM: %u KiB\n", UNIFCart.PRGRomSize / 1024);
+	FCEU_printf(" [UNIF] CHR ROM: %u KiB\n", UNIFCart.CHRRomSize / 1024);
+	FCEU_printf(" [UNIF] iNES Mapper: %d\n", UNIFCart.mapper);
+	FCEU_printf(" [UNIF] SubMapper: %d\n", UNIFCart.submapper);
 
 	GameInterface = UNIFGI;
 
