@@ -1053,7 +1053,7 @@ static void retro_set_custom_palette(void)
  * Dendy has PAL framerate and resolution, but ~NTSC timings,
  * and has 50 dummy scanlines to force 50 fps.
  */
-void FCEUD_RegionOverride(unsigned region)
+static void FCEUD_RegionOverride(unsigned region)
 {
    unsigned pal = 0;
    unsigned d = 0;
@@ -1078,8 +1078,6 @@ void FCEUD_RegionOverride(unsigned region)
    }
 
    dendy = d;
-   normal_scanlines = dendy ? 290 : 240;
-   totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
    FCEUI_SetVidSystem(pal);
    ResetPalette();
 }
