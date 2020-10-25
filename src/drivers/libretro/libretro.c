@@ -1123,7 +1123,6 @@ static void set_apu_channels(int chan)
 static void check_variables(bool startup)
 {
    struct retro_variable var = {0};
-   bool palette_updated = false;
    char key[256];
    int i, enable_apu;
 
@@ -1886,9 +1885,8 @@ static void retro_run_blit(uint8_t *gfx)
 
 void retro_run(void)
 {
-   unsigned i;
    uint8_t *gfx;
-   int32_t ssize = 0;
+   int32_t i, ssize = 0;
    bool updated = false;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
@@ -1955,7 +1953,7 @@ static int checkGG(char c)
 static int GGisvalid(const char *code)
 {
    size_t len = strlen(code);
-   int i;
+   uint32 i;
    
    if (len != 6 && len != 8)
       return 0;
@@ -1980,7 +1978,6 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    uint8  v;
    int    c;
    int    type = 1;
-   int    ret = 0;
 
    if (code == NULL)
       return;

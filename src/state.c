@@ -85,7 +85,7 @@ static int SubWrite(memstream_t *mem, SFORMAT *sf)
 
    while(sf->v)
    {
-      if(sf->s == ~0) /* Link to another struct. */
+      if(sf->s == (~(uint32)0)) /* Link to another struct. */
       {
          uint32 tmp;
 
@@ -140,7 +140,7 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
 {
    while (sf->v)
    {
-      if (sf->s == ~0)
+      if (sf->s == (~(uint32)0))
       { /* Link to another SFORMAT structure. */
          SFORMAT *tmp;
          if ((tmp = CheckS((SFORMAT*)sf->v, tsize, desc)))
@@ -162,7 +162,7 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
 static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 {
    SFORMAT *tmp;
-   int temp;
+   uint64 temp;
    temp = memstream_pos(mem);
 
    while(memstream_pos(mem) < (temp + size))

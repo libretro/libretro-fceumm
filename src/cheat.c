@@ -570,7 +570,7 @@ void FCEUI_CheatSearchBegin(void) {
 }
 
 
-static int INLINE CAbs(int x) {
+static INLINE int CAbs(int x) {
 	if (x < 0)
 		return(0 - x);
 	return x;
