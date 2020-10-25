@@ -1254,7 +1254,7 @@ void FCEUSND_LoadState(int version) {
 	/* minimal validation */
 	for (i = 0; i < 5; i++)
 	{
-		int BC_max = 15;
+		uint32 BC_max = 15;
 
 		if (FSettings.soundq == 2)
 		{
@@ -1264,7 +1264,7 @@ void FCEUSND_LoadState(int version) {
 		{
 			BC_max = 485;
 		}
-		if (ChannelBC[i] < 0 || ChannelBC[i] > BC_max)
+		if (/* ChannelBC[i] < 0 || */ ChannelBC[i] > BC_max)
 		{
 			ChannelBC[i] = 0;
 		}
@@ -1283,14 +1283,16 @@ void FCEUSND_LoadState(int version) {
 			RectDutyCount[i] = 7;
 		}
 	}
-	if (sound_timestamp < 0)
+
+	/* Comparison is always false because access to array >= 0. */
+	/* if (sound_timestamp < 0)
 	{
 		sound_timestamp = 0;
 	}
 	if (soundtsoffs < 0)
 	{
 		soundtsoffs = 0;
-	}
+	} */
 	if (soundtsoffs + sound_timestamp >= soundtsinc)
 	{
 		soundtsoffs = 0;
