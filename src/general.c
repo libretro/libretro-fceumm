@@ -69,22 +69,22 @@ void FCEUI_SetDirOverride(int which, char *n)
 
 char *FCEU_MakeFName(int type, int id1, char *cd1)
 {
-   char tmp[2048] = {0};
+   char tmp[4096 + 512] = {0}; /* +512 for no reason :D */
    char *ret      = 0;
 
    switch (type)
    {
       case FCEUMKF_GGROM:
-         sprintf(tmp, "%s"PSS "gg.rom", BaseDirectory);
+         sprintf(tmp, "%s%c%s", BaseDirectory, PS, "gg.rom");
          break;
       case FCEUMKF_FDSROM:
-         sprintf(tmp, "%s"PSS "disksys.rom", BaseDirectory);
+         sprintf(tmp, "%s%c%s", BaseDirectory, PS, "disksys.rom");
          break;
       case FCEUMKF_PALETTE:
-         sprintf(tmp, "%s"PSS "nes.pal", BaseDirectory);
+         sprintf(tmp, "%s%c%s", BaseDirectory, PS, "nes.pal");
          break;
       case FCEUMKF_FDS:
-         sprintf(tmp, "%s"PSS "%s.sav", SaveDirectory, FileBase);
+         sprintf(tmp, "%s%c%s%s", SaveDirectory, PS, FileBase, ".sav");
          break;
       default:
          break;

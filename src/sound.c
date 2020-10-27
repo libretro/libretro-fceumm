@@ -195,6 +195,8 @@ static DECLFW(Write_PSG) {
 		DoSQ1();
 		EnvUnits[0].Mode = (V & 0x30) >> 4;
 		EnvUnits[0].Speed = (V & 0xF);
+		if (swapDuty)
+			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x1:
 		DoSQ1();
@@ -214,6 +216,8 @@ static DECLFW(Write_PSG) {
 		DoSQ2();
 		EnvUnits[1].Mode = (V & 0x30) >> 4;
 		EnvUnits[1].Speed = (V & 0xF);
+		if (swapDuty)
+			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x5:
 		DoSQ2();
@@ -561,8 +565,6 @@ static INLINE void RDoSQ(int x) {
 
 		amp <<= 24;
 		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
-		if (swapDuty)
-			dutyCycle = ((dutyCycle & 2) >> 1) | ((dutyCycle & 1) << 1);
 		rthresh = RectDuties[dutyCycle];
 		currdc = RectDutyCount[x];
 		D = &WaveHi[ChannelBC[x]];
@@ -640,8 +642,6 @@ static void RDoSQLQ(void) {
 		if (!inie[x]) amp[x] = 0;	/* Correct? Buzzing in MM2, others otherwise... */
 
 		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
-		if (swapDuty)
-			dutyCycle = ((dutyCycle & 2) >> 1) | ((dutyCycle & 1) << 1);
 		rthresh[x] = RectDuties[dutyCycle];
 
 		for (y = 0; y < 8; y++) {
@@ -1254,7 +1254,7 @@ void FCEUSND_LoadState(int version) {
 	/* minimal validation */
 	for (i = 0; i < 5; i++)
 	{
-		int BC_max = 15;
+		uint32 BC_max = 15;
 
 		if (FSettings.soundq == 2)
 		{
@@ -1264,7 +1264,7 @@ void FCEUSND_LoadState(int version) {
 		{
 			BC_max = 485;
 		}
-		if (ChannelBC[i] < 0 || ChannelBC[i] > BC_max)
+		if (/* ChannelBC[i] < 0 || */ ChannelBC[i] > BC_max)
 		{
 			ChannelBC[i] = 0;
 		}
@@ -1283,14 +1283,16 @@ void FCEUSND_LoadState(int version) {
 			RectDutyCount[i] = 7;
 		}
 	}
-	if (sound_timestamp < 0)
+
+	/* Comparison is always false because access to array >= 0. */
+	/* if (sound_timestamp < 0)
 	{
 		sound_timestamp = 0;
 	}
 	if (soundtsoffs < 0)
 	{
 		soundtsoffs = 0;
-	}
+	} */
 	if (soundtsoffs + sound_timestamp >= soundtsinc)
 	{
 		soundtsoffs = 0;
