@@ -44,14 +44,25 @@ static void SyncAbG1l(void) {
 		setprg16(0xC000, (regs[1] & 0xE0) >> 5);
 	}
 
-	setchr8(regs[1]);
-	setmirror((regs[1] & 0x8) ? 0 : 1);
+	/* FIXME: 2020-10-26  */
+	switch (regs[2] & 0xC0) {
+	case 0xC0: /* Pipe Dream */
+		setchr8((regs[0] & 0x03) | (regs[1] & ~0x03));
+		break;
+	case 0x40: /* Goonies */
+		setchr8((regs[0] & 0x01) | (regs[1] & 0x07));
+		break;
+	default:
+		setchr8(regs[1]);
+		break;
+	}
 
+	setmirror((regs[1] & 0x8) ? 0 : 1);
 }
 
 static DECLFW(AbG1lWriteHi) {
 	regs[0] = V;
-	setchr8(((regs[2] & 0xC0) >> 7) << 2 | (regs[0] & 0x03));
+	/* setchr8(((regs[2] & 0xC0) >> 7) << 2 | (regs[0] & 0x03)); */
 	Sync();
 }
 
