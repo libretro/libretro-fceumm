@@ -145,7 +145,7 @@ static char DMCHaveDMA = 0;
 static uint8 DMCDMABuf = 0;
 static char DMCHaveSample = 0;
 
-static void Dummyfunc(void) { };
+static void Dummyfunc(void) { }
 static void (*DoNoise)(void) = Dummyfunc;
 static void (*DoTriangle)(void) = Dummyfunc;
 static void (*DoPCM)(void) = Dummyfunc;
