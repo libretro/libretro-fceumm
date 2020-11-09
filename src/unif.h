@@ -196,6 +196,9 @@ void AbG1l_Init(CartInfo *info);
 void KG256_Init(CartInfo *info);
 void WAIXINGFS005_Init(CartInfo *info);
 
+void BS4040R_Init(CartInfo *info);
+void BS400R_Init(CartInfo *info);
+
 #ifdef COPYFAMI
 void MapperCopyFamiMMC3_Init(CartInfo *info);
 void MapperCopyFami_Init(CartInfo *info);
