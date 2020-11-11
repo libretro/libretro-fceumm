@@ -115,6 +115,7 @@ static DECLFW(BS4XXXRLoWrite) {
 			FixMMC3CHR(MMC3_cmd);
 		}
 	}
+	CartBW(A, V);
 }
 
 static void BS4XXXRReset(void) {
@@ -127,7 +128,6 @@ static void BS4XXXRPower(void) {
 	EXPREGS[4] = 0;
 	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = 0;
 	GenMMC3Power();
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, BS4XXXRLoWrite);
 	SetWriteHandler(0x8000, 0xBFFF, BS4XXXRHiWrite);
 }
