@@ -65,7 +65,7 @@ typedef struct {
 
 static TXC txc;
 
-static void Dummyfunc(void) { };
+static void Dummyfunc(void) { }
 static void (*WSync)(void) = Dummyfunc;
 
 static SFORMAT StateRegs[] =
