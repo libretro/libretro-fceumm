@@ -328,6 +328,7 @@ static void CheckHInfo(void) {
 				case   1:
 				case   5:
 				case 176:
+				case 293:
 					if (moo[x].prgram >= 0) {
 						tofix |= 32;
 						iNESCart.iNES2 = 1;
@@ -702,6 +703,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "830928C",                  382, Mapper382_Init         )
 	INES_BOARD( "Caltron 9-in-1",           389, Mapper389_Init         )
 	INES_BOARD( "Realtec 8031",             390, Mapper390_Init         )
+	INES_BOARD( "NewStar 12-in-1/7-in-1",   293, Mapper293_Init         )
 	INES_BOARD( "Realtec 8210",             395, Mapper395_Init         )
 	INES_BOARD( "A88S-1",                   411, Mapper411_Init         )
 	INES_BOARD( "Brilliant Com Cocoma Pack", 516, Mapper516_Init        )
