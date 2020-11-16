@@ -92,5 +92,5 @@ void Mapper401_Init(CartInfo *info) {
 	info->Power = M401Power;
 	info->Reset = M401Reset;
 	AddExState(EXPREGS, 5, 0, "EXPR");
-	AddExState(dipswitch, 1, 0, "DPSW");
+	AddExState(&dipswitch, 1, 0, "DPSW");
 }

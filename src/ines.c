@@ -386,7 +386,6 @@ static void CheckHInfo(void) {
 			}
 		}
 		strcat(gigastr, "\n");
-		FCEU_printf("\n", gigastr);
 		FCEU_printf("%s\n", gigastr);
 	}
 
