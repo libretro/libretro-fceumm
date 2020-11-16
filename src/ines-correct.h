@@ -667,6 +667,7 @@
 	{ 0xdb2d2d88,  369, DEFAULT, DEFAULT, 0,    0x07, DEFAULT, DEFAULT, NOEXTRA }, /* Super Mario Bros. Party.nes */
 	{ 0x87f83ea2,  380, DEFAULT, DEFAULT, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* 42 to 80,000 */
 	{ 0xc4b94bd5,  389, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Caltron - 9 in 1 (USA) (Proto) (Unl).nes */
+	{ 0x2F497313,  401, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 19-in-1 (VIP19) */
 
 	/* ines mappers that uses unif boards */
 
