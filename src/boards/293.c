@@ -34,44 +34,49 @@ static void Sync(void) {
 	uint8 bank  = ((regs[1] << 5) & 0x20) | ((regs[1] >> 1) & 0x18);
 	uint8 block = (regs[0] & 7);
 	switch (mode) {
-    case 0: /* UNROM */
-        setprg16(0x8000, bank | block);
-	    setprg16(0xC000, bank | 7);
+	case 0: /* UNROM */
+		setprg16(0x8000, bank | block);
+		setprg16(0xC000, bank | 7);
 		break;
 	case 1:
 		setprg16(0x8000, bank | block & 0xFE);
 		setprg16(0xC000, bank | 7);
 		break;
-    case 2: /* NROM-128 */
+	case 2: /* NROM-128 */
 		setprg16(0x8000, bank | block);
-	    setprg16(0xC000, bank | block);
+		setprg16(0xC000, bank | block);
 		break;
-    case 3: /* NROM-256 */
+	case 3: /* NROM-256 */
 		setprg32(0x8000, (bank | block) >> 1);
-	    break;
-    }
-    setchr8(0);
-    setmirror(((regs[1] >> 7) & 1) ^ 1);
+		break;
+	}
+	setchr8(0);
+	setmirror(((regs[1] >> 7) & 1) ^ 1);
 }
 
 static DECLFW(M293Write1) {
-	if (A < 0xA000) regs[0] = V;
+	regs[0] = V;
 	regs[1] = V;
-    Sync();
+	Sync();
 }
 
 static DECLFW(M293Write2) {
-    if (A < 0xA000) regs[1] = V;
+	regs[1] = V;
+	Sync();
+}
+
+static DECLFW(M293Write3) {
 	regs[0] = V;
-    Sync();
+	Sync();
 }
 
 static void M293Power(void) {
 	regs[0] = regs[1] = 0;
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xBFFF, M293Write1);
-    SetWriteHandler(0xC000, 0xDFFF, M293Write2);
+	SetWriteHandler(0x8000, 0x9FFF, M293Write1);
+	SetWriteHandler(0xA000, 0xBFFF, M293Write2);
+	SetWriteHandler(0xC000, 0xDFFF, M293Write3);
 }
 
 static void StateRestore(int version) {
