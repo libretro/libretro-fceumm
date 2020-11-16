@@ -323,28 +323,21 @@ static void CheckHInfo(void) {
 					iNESCart.region = moo[x].region;
 				}
 			}
-			switch (moo[x].mapper) {
-				/* TODO: Eventually, all items from overrides should be considered as ines 2.0 compatible */
-				case   1:
-				case   5:
-				case 176:
-				case 293:
-					if (moo[x].prgram >= 0) {
-						tofix |= 32;
-						iNESCart.iNES2 = 1;
-						iNESCart.PRGRamSize = (moo[x].prgram & 0x0F) ? (64 << ((moo[x].prgram >> 0) & 0xF)) : 0;
-						iNESCart.PRGRamSaveSize = (moo[x].prgram & 0xF0) ? (64 << ((moo[x].prgram >> 4) & 0xF)) : 0;
-					}
-					if (moo[x].chrram >= 0) {
-						tofix |= 32;
-						iNESCart.iNES2 = 1;
-						iNESCart.CHRRamSize = (moo[x].chrram & 0x0F) ? (64 << ((moo[x].chrram >> 0) & 0xF)) : 0;
-						iNESCart.CHRRamSaveSize = (moo[x].chrram & 0xF0) ? (64 << ((moo[x].chrram >> 4) & 0xF)) : 0;
-					}
-					break;
-				default:
-					break;
+
+			if (moo[x].prgram >= 0) {
+				tofix |= 32;
+				iNESCart.iNES2 = 1;
+				iNESCart.PRGRamSize = (moo[x].prgram & 0x0F) ? (64 << ((moo[x].prgram >> 0) & 0xF)) : 0;
+				iNESCart.PRGRamSaveSize = (moo[x].prgram & 0xF0) ? (64 << ((moo[x].prgram >> 4) & 0xF)) : 0;
 			}
+
+			if (moo[x].chrram >= 0) {
+				tofix |= 32;
+				iNESCart.iNES2 = 1;
+				iNESCart.CHRRamSize = (moo[x].chrram & 0x0F) ? (64 << ((moo[x].chrram >> 0) & 0xF)) : 0;
+				iNESCart.CHRRamSaveSize = (moo[x].chrram & 0xF0) ? (64 << ((moo[x].chrram >> 4) & 0xF)) : 0;
+			}
+
 			break;
 		}
 		x++;
