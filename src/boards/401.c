@@ -28,13 +28,13 @@
 static uint8 dipswitch = 0;
 
 static void M401CW(uint32 A, uint8 V) {
-	uint32 mask = (0xFF >> (~EXPREGS[2] &0xF));
-	uint32 bank  = (EXPREGS[0] | ((EXPREGS[2] << 4) &0xF00));
+	uint32 mask = (0xFF >> (~EXPREGS[2] & 0xF));
+	uint32 bank  = (EXPREGS[0] | ((EXPREGS[2] << 4) & 0xF00));
 	setchr1(A, (V & mask) | bank);
 }
 
 static void M401PW(uint32 A, uint8 V) {
-	if ((dipswitch & 1) && (EXPREGS[1] &0x80)) {
+	if ((dipswitch & 1) && (EXPREGS[1] & 0x80)) {
 		/* openbus */
 	} else {
 		uint32 mask = (~EXPREGS[3] & 0x1F);
@@ -92,5 +92,5 @@ void Mapper401_Init(CartInfo *info) {
 	info->Power = M401Power;
 	info->Reset = M401Reset;
 	AddExState(EXPREGS, 5, 0, "EXPR");
-	AddExState(dipswitch, 1, 0, "DPSW");
+	AddExState(&dipswitch, 1, 0, "DPSW");
 }
