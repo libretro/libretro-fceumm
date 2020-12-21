@@ -790,11 +790,6 @@ endif
 %.o: %.c
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 
-# ifeq ($(platform), ps2)
-# %.o: %.s
-# 	mips64r5900el-ps2-elf-as -G0 $< -o $@
-# endif
-
 clean-objs:
 	rm -f $(OBJECTS)
 
