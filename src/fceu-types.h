@@ -39,7 +39,7 @@ typedef uint32_t uint32;
 typedef unsigned long long uint64;
 typedef long long int64;
 	#define GINLINE inline
-#elif MSVC
+#elif MSVC | _MSC_VER
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
 	#define GINLINE		/* Can't declare a function INLINE

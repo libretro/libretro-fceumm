@@ -844,7 +844,12 @@ static int iNES_Init(int num) {
 				AddExState(VROM, CHRRAMSize, 0, "CHRR");
 			}
 			if (head.ROM_type & 8)
-				AddExState(ExtraNTARAM, 2048, 0, "EXNR");
+			{
+				if (ExtraNTARAM != NULL)
+				{
+					AddExState(ExtraNTARAM, 2048, 0, "EXNR");
+				}
+			}
 			tmp->init(&iNESCart);
 			return 1;
 		}
