@@ -41,10 +41,15 @@ ifeq ($(shell uname -a),)
 	system_platform = win
 else ifneq ($(findstring Darwin,$(shell uname -a)),)
 	system_platform = osx
-	arch = intel
-	ifeq ($(shell uname -p),powerpc)
-		arch = ppc
+ifeq ($(shell uname -p),powerpc)
+	arch = ppc
+else
+	ifeq ($(shell uname -p),arm)
+		arch = arm
+	else
+		arch = intel
 	endif
+endif
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
 	system_platform = win
 endif
@@ -86,9 +91,11 @@ else ifeq ($(platform), osx)
 	ifeq ($(arch),ppc)
 		ENDIANNESS_DEFINES += -DMSB_FIRST -DHAVE_NO_LANGEXTRA
 	endif
+   ifneq ($(arch),arm)
+	   fpic += -mmacosx-version-min=10.1
+	endif
 	OSXVER = `sw_vers -productVersion | cut -d. -f 2`
 	OSX_LT_MAVERICKS = `(( $(OSXVER) <= 9)) && echo "YES"`
-	fpic += -mmacosx-version-min=10.1
 	ifndef ($(NOUNIVERSAL))
 		CFLAGS += $(ARCHFLAGS)
 		LDFLAGS += $(ARCHFLAGS)
