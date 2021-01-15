@@ -87,7 +87,10 @@ else ifeq ($(platform), osx)
 	ifeq ($(arch),ppc)
 		ENDIANNESS_DEFINES += -DMSB_FIRST -DHAVE_NO_LANGEXTRA
 	endif
-   ifneq ($(arch),arm)
+        ifeq ($(arch),arm)
+	        TARGET_RULE = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
+		CFLAGS   += $(TARGET_RULE)
+	else
 	   fpic += -mmacosx-version-min=10.1
 	endif
 	OSXVER = `sw_vers -productVersion | cut -d. -f 2`
