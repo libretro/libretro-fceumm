@@ -53,7 +53,7 @@
 
 #define NES_WIDTH   256
 #define NES_HEIGHT  240
-#define NES_8_7_PAR  (width / (height)
+#define NES_8_7_PAR  (width / height)
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
 
 #if defined(_3DS)
