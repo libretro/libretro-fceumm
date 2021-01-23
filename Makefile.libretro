@@ -25,10 +25,6 @@ ifeq ($(platform),)
 		platform = win
 	else ifneq ($(findstring Darwin,$(shell uname -s)),)
 		platform = osx
-		arch = intel
-		ifeq ($(shell uname -p),powerpc)
-			arch = ppc
-		endif
 	else ifneq ($(findstring win,$(shell uname -s)),)
 		platform = win
 	endif
@@ -41,10 +37,15 @@ ifeq ($(shell uname -a),)
 	system_platform = win
 else ifneq ($(findstring Darwin,$(shell uname -a)),)
 	system_platform = osx
-	arch = intel
-	ifeq ($(shell uname -p),powerpc)
-		arch = ppc
+ifeq ($(shell uname -p),powerpc)
+	arch = ppc
+else
+	ifeq ($(shell uname -p),arm)
+		arch = arm
+	else
+		arch = intel
 	endif
+endif
 else ifneq ($(findstring MINGW,$(shell uname -a)),)
 	system_platform = win
 endif
@@ -86,9 +87,14 @@ else ifeq ($(platform), osx)
 	ifeq ($(arch),ppc)
 		ENDIANNESS_DEFINES += -DMSB_FIRST -DHAVE_NO_LANGEXTRA
 	endif
+        ifeq ($(arch),arm)
+	        TARGET_RULE = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
+		CFLAGS   += $(TARGET_RULE)
+	else
+	   fpic += -mmacosx-version-min=10.1
+	endif
 	OSXVER = `sw_vers -productVersion | cut -d. -f 2`
 	OSX_LT_MAVERICKS = `(( $(OSXVER) <= 9)) && echo "YES"`
-	fpic += -mmacosx-version-min=10.1
 	ifndef ($(NOUNIVERSAL))
 		CFLAGS += $(ARCHFLAGS)
 		LDFLAGS += $(ARCHFLAGS)
@@ -147,31 +153,11 @@ else ifeq ($(platform), qnx)
 	AR = qcc -Vgcc_ntoarmv7le
 	PLATFORM_DEFINES := -D__BLACKBERRY_QNX__ -marm -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 
-# PS3
-else ifeq ($(platform), ps3)
-	TARGET := $(TARGET_NAME)_libretro_$(platform).a
-	CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
-	AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
-	PLATFORM_DEFINES := -D__CELLOS_LV2
-	ENDIANNESS_DEFINES += -DMSB_FIRST
-	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
-
-# sncps3
-else ifeq ($(platform), sncps3)
-	TARGET := $(TARGET_NAME)_libretro_ps3.a
-	CC = $(CELL_SDK)/host-win32/sn/bin/ps3ppusnc.exe
-	AR = $(CELL_SDK)/host-win32/sn/bin/ps3snarl.exe
-	PLATFORM_DEFINES := -D__CELLOS_LV2
-	ENDIANNESS_DEFINES += -DMSB_FIRST
-	STATIC_LINKING=1
-	EXTERNAL_ZLIB=1
-
 # PS2
 else ifeq ($(platform), ps2)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
-	CC = ee-gcc$(EXE_EXT)
-	AR = ee-ar$(EXE_EXT)
+	CC = mips64r5900el-ps2-elf-gcc$(EXE_EXT)
+	AR = mips64r5900el-ps2-elf-ar$(EXE_EXT)
 	FCEU_DEFINES := -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUMERIC=9813 -DHAVE_ASPRINTF
 	ENDIANNESS_DEFINES := -DLSB_FIRST -DLOCAL_LE=1
 	PLATFORM_DEFINES := -DPS2 -D_EE -G0 -DFRONTEND_SUPPORTS_ABGR1555 -DRENDER_GSKIT_PS2
@@ -241,13 +227,30 @@ else ifeq ($(platform), rpi2)
 	CFLAGS += -DARM
 	CFLAGS += -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -funsafe-math-optimizations
 	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
+	
+# Raspberry Pi 3
+else ifeq ($(platform), rpi3)
+	TARGET := $(TARGET_NAME)_libretro.so
+	fpic := -fPIC
+	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+	CFLAGS += -DARM
+	CFLAGS += -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard -funsafe-math-optimizations
+	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
+
+# Raspberry Pi 4 (64-bit)
+else ifeq ($(platform), rpi4)
+	TARGET := $(TARGET_NAME)_libretro.so
+	fpic := -fPIC
+	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+	CFLAGS += -mcpu=cortex-a72 -mtune=cortex-a72 -funsafe-math-optimizations
+	CFLAGS += -fomit-frame-pointer -fstrict-aliasing -ffast-math
 
 # Lightweight PS3 Homebrew SDK
 else ifeq ($(platform), psl1ght)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
 	AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
-	PLATFORM_DEFINES := -D__CELLOS_LV2
+	PLATFORM_DEFINES := -D__PSL1GHT__
 	ENDIANNESS_DEFINES += -DMSB_FIRST
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
@@ -377,8 +380,8 @@ else ifeq ($(platform), classic_armv8_a35)
 	ARCH = arm
 	BUILTIN_GPU = neon
 	USE_DYNAREC = 1
-	CFLAGS += -march=armv8-a
-	LDFLAGS += -static-libgcc -static-libstdc++
+	LDFLAGS += -lrt
+	LDFLAGS += -marm -mcpu=cortex-a35 -mfpu=neon-fp-armv8 -mfloat-abi=hard -Ofast -flto -fuse-linker-plugin
 #######################################
 
 # ARM
@@ -792,11 +795,6 @@ endif
 
 %.o: %.c
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
-
-ifeq ($(platform), ps2)
-%.o: %.s
-	ee-as -G0 $< -o $@
-endif
 
 clean-objs:
 	rm -f $(OBJECTS)

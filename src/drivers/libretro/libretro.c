@@ -28,6 +28,10 @@
 #include "../../vsuni.h"
 #include "../../video.h"
 
+#ifdef PSP
+#include "pspgu.h"
+#endif
+
 #if defined(RENDER_GSKIT_PS2)
 #include "libretro-common/include/libretro_gskit_ps2.h"
 #endif
@@ -159,8 +163,8 @@ static unsigned opt_showAdvSoundOptions = 0;
 static unsigned opt_showAdvSystemOptions = 0;
 
 int FCEUnetplay;
-#ifdef PSP
-#include "pspgu.h"
+
+#if defined(PSP) || defined(PS2)
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
 static uint16_t retro_palette[256];
