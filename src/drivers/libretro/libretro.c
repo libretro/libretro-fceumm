@@ -951,7 +951,7 @@ void retro_get_system_info(struct retro_system_info *info)
    info->library_name     = "FCEUmm";
    info->block_extract    = false;
 }
-float get_aspect_ratio
+static float get_aspect_ratio
 {
   if (aspect_ratio_par == 1) {
     aspect_ratio_type = NES_8_7_PAR;
