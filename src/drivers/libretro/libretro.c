@@ -951,20 +951,20 @@ void retro_get_system_info(struct retro_system_info *info)
    info->library_name     = "FCEUmm";
    info->block_extract    = false;
 }
+float get_aspect_ratio
+{
+  if (aspect_ratio_par == 1) {
+    aspect_ratio_type = NES_8_7_PAR;
+  } else if (aspect_ratio_par == 2) {
+    aspect_ratio_type = NES_4_3;
+  } else if (aspect_ratio_par == 3) {
+    aspect_ratio_type = NES_PP;
+  }
+  return aspect_ratio_type;
+}
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-  float get_aspect_ratio
-  {
-    if (aspect_ratio_par == 1) {
-      aspect_ratio_type = NES_8_7_PAR;
-    } else if (aspect_ratio_par == 2) {
-      aspect_ratio_type = NES_4_3;
-    } else if (aspect_ratio_par == 3) {
-      aspect_ratio_type = NES_PP;
-    }
-    return aspect_ratio_type;
-  }
 #ifdef PSP
    unsigned width  = NES_WIDTH  - (crop_overscan ? 16 : 0);
    unsigned height = NES_HEIGHT - (crop_overscan ? 16 : 0);
