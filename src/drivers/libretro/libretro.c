@@ -83,7 +83,7 @@ static bool crop_overscan_v;
 static bool use_raw_palette;
 static int aspect_ratio_par;
 static int last_aspect_ratio_par;
-static float aspect_ratio_mode;
+static float aspect_ratio_type;
 
 /*
  * Flags to keep track of whether turbo
