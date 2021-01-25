@@ -55,7 +55,7 @@
 #define NES_HEIGHT  240
 #define NES_8_7_PAR  ((width * (8.0 / 7.0)) / height)
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
-#define NES_PP       ((width / (height * (256.0 / 240.0))) * 8.0 / 10.0)
+#define NES_PP       ((width / (height * (256.0 / 240.0))) * 256.0 / 240.0)
 
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
