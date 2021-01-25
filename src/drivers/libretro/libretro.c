@@ -982,7 +982,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 #endif
    info->geometry.base_height = height;
    info->geometry.max_height = NES_HEIGHT;
-   info->geometry.aspect_ratio = (float)get_aspect_ratio;
+   info->geometry.aspect_ratio = get_aspect_ratio(width, height);
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
