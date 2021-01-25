@@ -53,8 +53,9 @@
 
 #define NES_WIDTH   256
 #define NES_HEIGHT  240
-#define NES_8_7_PAR  (width / height)
+#define NES_8_7_PAR  ((width * (8.0 / 7.0)) / height)
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
+#define NES_PP       (width / height)
 
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
@@ -80,7 +81,9 @@ static bool crop_overscan_v;
 #endif
 
 static bool use_raw_palette;
-static bool use_par;
+static int aspect_ratio_par;
+static int last_aspect_ratio_par;
+static float aspect_ratio_mode;
 
 /*
  * Flags to keep track of whether turbo
@@ -951,6 +954,17 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
+  float get_aspect_ratio
+  {
+    if (aspect_ratio_par == 1) {
+      aspect_ratio_type = NES_8_7_PAR;
+    } else if (aspect_ratio_par == 2) {
+      aspect_ratio_type = NES_4_3;
+    } else if (aspect_ratio_par == 3) {
+      aspect_ratio_type = NES_PP;
+    }
+    return aspect_ratio_type;
+  }
 #ifdef PSP
    unsigned width  = NES_WIDTH  - (crop_overscan ? 16 : 0);
    unsigned height = NES_HEIGHT - (crop_overscan ? 16 : 0);
@@ -967,7 +981,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 #endif
    info->geometry.base_height = height;
    info->geometry.max_height = NES_HEIGHT;
-   info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
+   info->geometry.aspect_ratio = (float)get_aspect_ratio;
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
@@ -1339,12 +1353,16 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      bool newval = (!strcmp(var.value, "8:7 PAR"));
-      if (newval != use_par)
-      {
-         use_par = newval;
+     last_aspect_ratio_par = aspect_ratio_par;
+     if (!strcmp(var.value, "8:7 PAR")) {
+       aspect_ratio_par = 1;
+     } else if (!strcmp(var.value, "4:3")) {
+       aspect_ratio_par = 2;
+     } else if (!strcmp(var.value, "PP")) {
+       aspect_ratio_par = 3;
+     }
+     if (aspect_ratio_par != last_aspect_ratio_par)
          audio_video_updated = 1;
-      }
    }
 
    var.key = "fceumm_turbo_enable";
