@@ -41,7 +41,7 @@ ifeq ($(shell uname -p),powerpc)
 	arch = ppc
 else
 	ifeq ($(shell uname -p),arm)
-		arch = arm
+		arch = arm64
 	else
 		arch = intel
 	endif
@@ -87,12 +87,13 @@ else ifeq ($(platform), osx)
 	ifeq ($(arch),ppc)
 		ENDIANNESS_DEFINES += -DMSB_FIRST -DHAVE_NO_LANGEXTRA
 	endif
-        ifeq ($(arch),arm)
-	        TARGET_RULE = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
+        ifeq ($(arch),arm64)
+	        TARGET_RULE = -arch arm64
 		CFLAGS   += $(TARGET_RULE)
 	else
 	   fpic += -mmacosx-version-min=10.1
 	endif
+	
 	OSXVER = `sw_vers -productVersion | cut -d. -f 2`
 	OSX_LT_MAVERICKS = `(( $(OSXVER) <= 9)) && echo "YES"`
 	ifndef ($(NOUNIVERSAL))
