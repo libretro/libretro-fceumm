@@ -188,6 +188,7 @@ void BMC891227_Init(CartInfo *info);		/* m350 */
 void FARIDUNROM_Init(CartInfo *info);		/* m324 */
 void BMCK3033_Init(CartInfo *info);			/* mm22 */
 void BMC830134C_Init(CartInfo *info);		/* m315 */
+void COOLGIRL_Init(CartInfo *info);			/* m342 */
 void BMCGN26_Init(CartInfo *info);			/* m344 */
 
 void BS110_Init(CartInfo *info);

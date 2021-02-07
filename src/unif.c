@@ -608,6 +608,7 @@ static BMAPPING bmap[] = {
 	{ "FARID_UNROM_8-IN-1",         324, FARIDUNROM_Init,       0 },
 	{ "K-3033",                     322, BMCK3033_Init,         0 },
 	{ "830134C",                    315, BMC830134C_Init,       0 },
+	{ "COOLGIRL",                   342, COOLGIRL_Init,         0 },
 	{ "GN-26",                      344, BMCGN26_Init,          0 },
 	{ "KG256",                  NO_INES, KG256_Init,            0 },
 	{ "T4A54A",                     134, Bs5652_Init,           0 },
