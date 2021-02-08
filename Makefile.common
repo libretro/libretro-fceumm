@@ -1,6 +1,4 @@
-ifeq ($(LIBRETRO_COMM_DIR),)
 LIBRETRO_COMM_DIR := $(CORE_DIR)/drivers/libretro/libretro-common
-endif
 INCFLAGS      := -I$(CORE_DIR)/drivers/libretro -I$(LIBRETRO_COMM_DIR)/include -I$(CORE_DIR) -I$(CORE_DIR)/input -I$(CORE_DIR)/boards
 COREDEFINES    = -D__LIBRETRO__ -DSOUND_QUALITY=0 -DPATH_MAX=1024 -DFCEU_VERSION_NUMERIC=9813 -DFRONTEND_SUPPORTS_RGB565
 
