@@ -2376,6 +2376,7 @@ bool retro_load_game(const struct retro_game_info *game)
    sndvolume = 150;
    swapDuty = 0;
    dendy = 0;
+   opt_region = 0;
 
    /* Wii: initialize this or else last variable is passed through
     * when loading another rom causing save state size change. */
