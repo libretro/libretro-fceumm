@@ -59,6 +59,10 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/ios-arm64.yml'
 
+  # iOS (armv7)
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/ios9.yml'
+
   ################################## CONSOLES ################################
   # PlayStation Portable
   - project: 'libretro-infrastructure/ci-templates'
@@ -199,6 +203,12 @@ android-x86:
 libretro-build-ios-arm64:
   extends:
     - .libretro-ios-arm64-make-default
+    - .core-defs
+
+# iOS (armv7)
+libretro-build-ios9:
+  extends:
+    - .libretro-ios9-make-default
     - .core-defs
 
 ################################### CONSOLES #################################
