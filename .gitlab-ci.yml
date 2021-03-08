@@ -205,10 +205,16 @@ libretro-build-ios-arm64:
     - .libretro-ios-arm64-make-default
     - .core-defs
 
-# iOS (armv7)
+# iOS (armv7) [iOS 9 and up]
 libretro-build-ios9:
   extends:
     - .libretro-ios9-make-default
+    - .core-defs
+    
+# tvOS
+libretro-build-tvos-arm64:
+  extends:
+    - .libretro-tvos-arm64-make-default
     - .core-defs
 
 ################################### CONSOLES #################################
