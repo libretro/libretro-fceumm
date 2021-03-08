@@ -55,9 +55,9 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/android-jni.yml'
 
-  # iOS 9
+  # iOS
   - project: 'libretro-infrastructure/ci-templates'
-    file: '/ios9.yml'
+    file: '/ios-arm64.yml'
 
   ################################## CONSOLES ################################
   # PlayStation Portable
@@ -95,6 +95,10 @@ include:
   # OpenDingux
   - project: 'libretro-infrastructure/ci-templates'
     file: '/dingux-mips32.yml'
+
+  # tvOS (AppleTV)
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/tvos-arm64.yml'
 
   #################################### MISC ##################################
   # Emscripten
@@ -191,10 +195,10 @@ android-x86:
     - .libretro-android-jni-x86
     - .core-defs
 
-# iOS 9
-libretro-build-ios-9:
+# iOS
+libretro-build-ios-arm64:
   extends:
-    - .libretro-ios9-make-default
+    - .libretro-ios-arm64-make-default
     - .core-defs
 
 ################################### CONSOLES #################################
