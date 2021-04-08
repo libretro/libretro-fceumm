@@ -187,8 +187,9 @@ static DECLFR(readALU_DIP) {
 		case 1: return (mul[0] *mul[1]) >>8;
 		case 2:	return adder;
 		case 3:	return test;
-	} else // all others
-		return X.DB;
+	}
+	// all others
+	return X.DB;
 }
 
 static DECLFW(writeALU) {
