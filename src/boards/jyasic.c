@@ -68,61 +68,81 @@ static SFORMAT JYASIC_stateRegs[] = {
 	{ 0 }
 };
 
-static uint8 rev (uint8_t val) {
+static uint8 rev (uint8_t val)
+{
 	return ((val <<6) &0x40) | ((val <<4) &0x20) | ((val <<2) &0x10) | (val &0x08) | ((val >>2) &0x04) | ((val >>4) &0x02) | ((val >>6) &0x01);
 }
 
-static void syncPRG (int AND, int OR) {
+static void syncPRG (int AND, int OR)
+{
 	uint8_t prgLast =mode[0] &0x04? prg[3]: 0xFF;
 	uint8_t prg6000 =0;
-	switch (mode[0] &0x03) {
-		case 0:	setprg32(0x8000, prgLast &AND >>2 |OR >>2);
-			prg6000 =prg[3] <<2 |3;
-			break;
-		case 1: setprg16(0x8000, prg[1]  &AND >>1 |OR >>1);
-			setprg16(0xC000, prgLast &AND >>1 |OR >>1);
-			prg6000 =prg[3] <<1 |1;
-			break;
-		case 2: setprg8(0x8000, prg[0] &AND |OR);
-			setprg8(0xA000, prg[1] &AND |OR);
-			setprg8(0xC000, prg[2] &AND |OR);
-			setprg8(0xE000, prgLast   &AND |OR);
-			prg6000 =prg[3];
-			break;
-		case 3: setprg8(0x8000, rev(prg[0]) &AND |OR);
-			setprg8(0xA000, rev(prg[1]) &AND |OR);
-			setprg8(0xC000, rev(prg[2]) &AND |OR);
-			setprg8(0xE000, rev(  prgLast) &AND |OR);
-			prg6000 =rev(prg[3]);
-			break;
-	}
+	switch (mode[0] &0x03)
+   {
+      case 0:
+         setprg32(0x8000, prgLast &AND >>2 |OR >>2);
+         prg6000 =prg[3] <<2 |3;
+         break;
+      case 1:
+         setprg16(0x8000, prg[1]  &AND >>1 |OR >>1);
+         setprg16(0xC000, prgLast &AND >>1 |OR >>1);
+         prg6000 =prg[3] <<1 |1;
+         break;
+      case 2:
+         setprg8(0x8000, prg[0] &AND |OR);
+         setprg8(0xA000, prg[1] &AND |OR);
+         setprg8(0xC000, prg[2] &AND |OR);
+         setprg8(0xE000, prgLast   &AND |OR);
+         prg6000 =prg[3];
+         break;
+      case 3:
+         setprg8(0x8000, rev(prg[0]) &AND |OR);
+         setprg8(0xA000, rev(prg[1]) &AND |OR);
+         setprg8(0xC000, rev(prg[2]) &AND |OR);
+         setprg8(0xE000, rev(  prgLast) &AND |OR);
+         prg6000 =rev(prg[3]);
+         break;
+   }
 	if (mode[0] &0x80) /* Map ROM */
 		setprg8 (0x6000, prg6000 &AND |OR);
 	else
-	if (WRAMSIZE)   /* Otherwise map WRAM if it exists */
-		setprg8r(0x10, 0x6000, 0);
+      if (WRAMSIZE)   /* Otherwise map WRAM if it exists */
+         setprg8r(0x10, 0x6000, 0);
 }
 
 static void syncCHR (int AND, int OR)
 {
-   if (mode[3] &0x80 && (mode[0] &0x18) ==0x08) /* MMC4 mode[0] with 4 KiB CHR mode[0] */
-      for (int chrBank =0; chrBank <8; chrBank +=4) setchr4(0x400 *chrBank, chr[latch[chrBank /4]&2 | chrBank] &AND >>2 | OR >>2);
+   /* MMC4 mode[0] with 4 KiB CHR mode[0] */
+   if (mode[3] &0x80 && (mode[0] &0x18) ==0x08)
+   {
+      int chrBank;
+      for (chrBank =0; chrBank <8; chrBank +=4)
+         setchr4(0x400 *chrBank, chr[latch[chrBank /4]&2 | chrBank] &AND >>2 | OR >>2);
+   }
    else
-      switch(mode[0] &0x18) {
+   {
+      int chrBank;
+      switch(mode[0] &0x18)
+      {
          case 0x00: /* 8 KiB CHR mode[0] */
             setchr8(chr[0] &AND >>3 | OR >>3);
             break;
          case 0x08: /* 4 KiB CHR mode[0] */
-            for (int chrBank =0; chrBank <8; chrBank +=4) setchr4(0x400 *chrBank, chr[chrBank] &AND >>2 | OR >>2);
+            for (chrBank =0; chrBank <8; chrBank +=4)
+               setchr4(0x400 *chrBank, chr[chrBank] &AND >>2 | OR >>2);
             break;
          case 0x10:
-            for (int chrBank =0; chrBank <8; chrBank +=2) setchr2(0x400 *chrBank, chr[chrBank] &AND >>1 | OR >>1);
+            for (chrBank =0; chrBank <8; chrBank +=2)
+               setchr2(0x400 *chrBank, chr[chrBank] &AND >>1 | OR >>1);
             break;
          case 0x18:
-            for (int chrBank =0; chrBank <8; chrBank +=1) setchr1(0x400 *chrBank, chr[chrBank] &AND     | OR    );
+            for (chrBank =0; chrBank <8; chrBank +=1)
+               setchr1(0x400 *chrBank, chr[chrBank] &AND     | OR    );
             break;
       }
-   PPUCHRRAM =mode[2] &0x40? 0xFF: 0x00; /* Write-protect or write-enable CHR-RAM */
+   }
+
+   PPUCHRRAM = (mode[2] & 0x40) ? 0xFF: 0x00; /* Write-protect or write-enable CHR-RAM */
 }
 
 static void syncNT (int AND, int OR)
@@ -133,13 +153,17 @@ static void syncNT (int AND, int OR)
       /* First, set normal CIRAM pages using extended registers ... */
       setmirrorw(nt[0] &1, nt[1] &1, nt[2] &1, nt[3] &1);
 
-      if (mode[0] &0x20) for (int ntBank =0; ntBank <4; ntBank++)
+      if (mode[0] &0x20)
       {
-         /* Then replace with ROM nametables if such are generally enabled */
-         int vromHere =(nt[ntBank] &0x80) ^(mode[2] &0x80) |(mode[0] &0x40);
-         /* ROM nametables are used either when globally enabled via D000.6 or per-bank via B00x.7 vs. D002.7 */
-         if (vromHere)
-            setntamem(CHRptr[0] +0x400*((nt[ntBank] &AND | OR) & CHRmask1[0]), 0, ntBank);
+         int ntBank;
+         for (ntBank =0; ntBank <4; ntBank++)
+         {
+            /* Then replace with ROM nametables if such are generally enabled */
+            int vromHere =(nt[ntBank] &0x80) ^(mode[2] &0x80) |(mode[0] &0x40);
+            /* ROM nametables are used either when globally enabled via D000.6 or per-bank via B00x.7 vs. D002.7 */
+            if (vromHere)
+               setntamem(CHRptr[0] +0x400*((nt[ntBank] &AND | OR) & CHRmask1[0]), 0, ntBank);
+         }
       }
    }
    else
@@ -161,18 +185,23 @@ static void syncNT (int AND, int OR)
       }
 }
 
-static void clockIRQ (void) {
+static void clockIRQ (void)
+{
 	uint8_t mask =irqControl &0x04? 0x07: 0xFF;
-	if (irqEnabled) switch (irqControl &0xC0) {
-		case 0x40:
-			irqPrescaler =(irqPrescaler &~mask) | (++irqPrescaler &mask);
-			if ((irqPrescaler &mask) ==0x00 && (irqControl &0x08? irqCounter: ++irqCounter) ==0x00) X6502_IRQBegin(FCEU_IQEXT);
-			break;
-		case 0x80:
-			irqPrescaler =(irqPrescaler &~mask) | (--irqPrescaler &mask);
-			if ((irqPrescaler &mask) ==mask && (irqControl &0x08? irqCounter: --irqCounter) ==0xFF) X6502_IRQBegin(FCEU_IQEXT);
-			break;
-	}
+	if (irqEnabled)
+      switch (irqControl &0xC0)
+      {
+         case 0x40:
+            irqPrescaler =(irqPrescaler &~mask) | (++irqPrescaler &mask);
+            if ((irqPrescaler &mask) ==0x00 && (irqControl &0x08? irqCounter: ++irqCounter) ==0x00)
+               X6502_IRQBegin(FCEU_IQEXT);
+            break;
+         case 0x80:
+            irqPrescaler =(irqPrescaler &~mask) | (--irqPrescaler &mask);
+            if ((irqPrescaler &mask) ==mask && (irqControl &0x08? irqCounter: --irqCounter) ==0xFF)
+               X6502_IRQBegin(FCEU_IQEXT);
+            break;
+      }
 }
 
 static DECLFW(trapCPUWrite)
@@ -258,22 +287,26 @@ static DECLFW(writeALU)
    }
 }
 
-static DECLFW(writePRG) {
+static DECLFW(writePRG)
+{
 	prg[A &3] = V;
 	sync();	
 }
 
-static DECLFW(writeCHRLow) {
+static DECLFW(writeCHRLow)
+{
 	chr[A &7] =chr[A &7] &0xFF00 | V;
 	sync();
 }
 
-static DECLFW(writeCHRHigh) {
+static DECLFW(writeCHRHigh)
+{
 	chr[A &7] =chr[A &7] &0x00FF | V <<8;
 	sync();
 }
 
-static DECLFW(writeNT) {
+static DECLFW(writeNT)
+{
 	if (~A &4)
 		nt[A &3] =nt[A &3] &0xFF00 | V;
 	else
