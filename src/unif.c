@@ -421,7 +421,7 @@ static void CheckHashInfo(void) {
 static BMAPPING bmap[] = {
 	{ "11160",                      299, BMC11160_Init,         0 },
 	{ "12-IN-1",                    331, BMC12IN1_Init,         0 },
-	{ "13in1JY110",                 295, BMC13in1JY110_Init,    0 },
+	{ "13in1JY110",                 295, Mapper295_Init,        0 },
 	{ "190in1",                     300, BMC190in1_Init,        0 },
 	{ "22211",                      132, Mapper132_Init,        0 },
 	{ "3D-BLOCK",                   355, UNL3DBlock_Init,       0 },
@@ -510,7 +510,7 @@ static BMAPPING bmap[] = {
 	{ "SA-NROM",                    143, TCA01_Init,            0 },
 	{ "SAROM",                        1, SAROM_Init,            0 },
 	{ "SBROM",                        1, SBROM_Init,            0 },
-	{ "SC-127",                      35, UNLSC127_Init,         0 },
+	{ "SC-127",                      35, Mapper35_Init,         0 },
 	{ "SCROM",                        1, SCROM_Init,            0 },
 	{ "SEROM",                        1, SEROM_Init,            0 },
 	{ "SGROM",                        1, SGROM_Init,            0 },
