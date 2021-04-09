@@ -35,17 +35,18 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	int prg = (preg & 7) | ((preg >> 3) & 0x08); // There is a high bit 3 of the PRG register that applies both to PRG and CHR
+	int prg = (preg & 7) | ((preg >> 3) & 0x08);		/* There is a high bit 3 of the PRG register that applies both to PRG and CHR */
+	int chr = (creg & 7) | ((preg >> 3) & 0x08);    	/* There is a high bit 3 of the PRG register that applies both to PRG and CHR */
+	int mask = (creg & 0x10)? 0: (creg & 0x20)? 1: 3;	/* There is an CNROM mode that takes either two or four inner CHR banks from a CNROM-like latch register at $8000-$FFFF. */
+
 	if (preg & 8) {
 		setprg16(0x8000, prg);
 		setprg16(0xc000, prg);
 	}
 	else
 		setprg32(0x8000, prg >> 1);
-
-	int chr = (creg & 7) | ((preg >> 3) & 0x08);    	// There is a high bit 3 of the PRG register that applies both to PRG and CHR
-	int mask = (creg & 0x10)? 0: (creg & 0x20)? 1: 3;	// There is an CNROM mode that takes either two or four inner CHR banks from a CNROM-like latch register at $8000-$FFFF.
-	setchr8((chr &~mask) | (latch &mask));          	// This "inner CHR bank" substitutes the respective bit(s) of the creg register.
+	
+	setchr8((chr &~mask) | (latch &mask));          	/* This "inner CHR bank" substitutes the respective bit(s) of the creg register. */
 	
 	setmirror(((preg >> 4) & 1) ^ 1);
 }
@@ -53,8 +54,7 @@ static void Sync(void) {
 static DECLFR(BMCWSRead) {
 	if ((creg >> 6) & (dipSwitch &3))
 		return X.DB;
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
 static DECLFW(BMCWSWrite) {
@@ -81,10 +81,11 @@ static void MBMCWSPower(void) {
 }
 
 static void BMCWSReset(void) {
-	dipSwitch++; // Soft-resetting cycles through solder pad or DIP switch settings
-	if (dipSwitch == 3) dipSwitch = 0; // Only 00b, 01b and 10b settings are valid
+	dipSwitch++;		/* Soft-resetting cycles through solder pad or DIP switch settings */
+	if (dipSwitch == 3)
+		dipSwitch = 0; 	/* Only 00b, 01b and 10b settings are valid */
 	
-	// Always reset to menu
+	/* Always reset to menu */
 	preg =0;
 	creg =0;
 	latch =0;
