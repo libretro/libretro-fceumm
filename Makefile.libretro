@@ -250,7 +250,7 @@ else ifeq ($(platform), rpi4)
 
 # Lightweight PS3 Homebrew SDK
 else ifneq (,$(filter $(platform), ps3 psl1ght))
-    ENDIANNESS_DEFINES =  -DWORDS_BIGENDIAN
+    ENDIANNESS_DEFINES =  -DMSB_FIRST
     EXTERNAL_ZLIB = 1
     STATIC_LINKING = 1
 
