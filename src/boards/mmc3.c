@@ -28,7 +28,6 @@
 #include "mmc3.h"
 
 uint8 MMC3_cmd;
-uint8 kt_extra;
 uint8 *WRAM;
 uint32 WRAMSIZE;
 uint8 *CHRRAM;
