@@ -639,7 +639,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "UNLN625092",               221, UNLN625092_Init        )
 	INES_BOARD( "",                         222, Mapper222_Init         )
 /*    INES_BOARD( "",                            223, Mapper223_Init ) */
-	INES_BOARD( "KT-008",                   224, Mapper224_Init         )
+	INES_BOARD( "KT-008",                   224, MINDKIDS_Init          ) /* The KT-008 board contains the MINDKIDS chipset */
 	INES_BOARD( "",                         225, Mapper225_Init         )
 	INES_BOARD( "BMC 22+20-in-1",           226, Mapper226_Init         )
 	INES_BOARD( "",                         227, Mapper227_Init         )
@@ -724,8 +724,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "YOKO",                     264, UNLYOKO_Init           )
 	INES_BOARD( "T-262",                    265, BMCT262_Init           )
 	INES_BOARD( "CITYFIGHT",                266, UNLCITYFIGHT_Init      )
-	INES_BOARD( "COOLBOY",                  268, COOLBOY_Init           )
-/*    INES_BOARD( "MINDKIDS",                    268, MINDKIDS_Init ) */
+	INES_BOARD( "COOLBOY/MINDKIDS",         268, Mapper268_Init         ) /* Submapper distinguishes between COOLBOY and MINDKIDS */
 	INES_BOARD( "80013-B",                  274, BMC80013B_Init         )
 	INES_BOARD( "GS-2004",                  283, BMCGS2004_Init         )
 /*    INES_BOARD( "GS-2013",                    283, BMCGS2013_Init ) */

@@ -619,10 +619,42 @@
 	{ 0x345ee51a,  245, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Yong Zhe Dou E Long - Dragon Quest VII (Ch).nes */
 	{ 0x57514c6c,  245, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Yong Zhe Dou E Long - Dragon Quest VI (Ch).nes */
 	{ 0xdb9d71b7,  114, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Donkey Kong (Unl) [o1].nes */
+	
+	/* KT-008 PCB. These require mapper 224 for having an outer bank register at $5xxx, but are usually found set to mapper 4. */
 	{ 0x61fc4d20,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* (KT-1062) 口袋怪兽꞉ 水晶版.nes */
-	{ 0x4d735cb1,  224, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pokemon Platinum (KT-008 PCB)(Ch)[!].nes */
-	{ 0x4f427110,  224, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pokemon Platinum Alt title 1 (KT-008 PCB)(Ch)[!].nes */
-	{ 0xe001de16,  224, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pokemon Platinum Alt title 2 (KT-008 PCB)(Ch)[!].nes */
+	{ 0xaa666c19,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Ys Origin: Hugo.nes */
+	{ 0xb0d011d3,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Ys Origin: Yunica.nes */
+	{ 0x16143319,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Ys VI: 纳比斯汀的方舟.nes */
+	{ 0xe05fc21f,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Ys: 菲尔盖纳之誓约.nes */
+	{ 0xf8b58b59,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志 - 蜀魏争霸.nes */
+	{ 0xcb1bab3d,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志꞉ 蜀汉风云.nes */
+	{ 0xddc122ed,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 亡灵崛起.nes */
+	{ 0x4d2811c7,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 伏魔英雄传.nes */
+	{ 0x24750e5d,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 傲视天地.nes */
+	{ 0xc658b6a8,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 刀剑英雄传.nes */
+	{ 0xea831217,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 剑侠情缘.nes */
+	{ 0x92ebad5b,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 勇者斗恶龙 III꞉ 罪恶渊源.nes */
+	{ 0x48210324,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 勇者斗恶龙꞉ 勇者的试炼.nes */
+	{ 0x3439d140,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 勇者斗恶龙꞉ 天空的新娘.nes */
+	{ 0x9a0a531a,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 勇者斗恶龙꞉ 天空篇.nes */
+	{ 0xb5fdb3cb,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 勇者黑暗世界 - 混沌世界.nes */
+	{ 0x4f427110,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋怪兽꞉ 珍珠版.nes */
+	{ 0xa46d6f4c,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋怪兽꞉ 琥珀版.nes */
+	{ 0xe001de16,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋怪兽꞉ 白金版.nes */
+	{ 0x5464d7f8,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋怪兽꞉ 翡翠版.nes */
+	{ 0x4d735cb1,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋怪兽꞉ 钻石版.nes */
+	{ 0x5d04547c,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 失落的神器.nes */
+	{ 0xcb524b42,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 征战天下.nes */
+	{ 0x5f362198,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 战神世界.nes */
+	{ 0x36de88e7,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 新魔界.nes */
+	{ 0xf8e9c9cf,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 无双乱舞.nes */
+	{ 0xa4c39535,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 神魔大陆.nes */
+	{ 0x76bbe916,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 落日征战.nes */
+	{ 0x9b518d54,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 轩辕剑꞉ 云的彼端.nes */
+	{ 0x91396b3f,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 轩辕剑꞉ 天之痕.nes */
+	{ 0xaa621fa0,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 轩辕剑꞉ 枫之舞.nes */
+	{ 0x48d1f54a,  224, DEFAULT,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 轩辕剑꞉ 王者归来.nes */
+	
 	{ 0xbdbe3c96,  238, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Contra Fighter (Unl).nes */
 	{ 0xcb53c523,   11, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* King Neptune's Adventure (USA) (Unl).nes */
 	{ 0x6e149729,  189, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Master Fighter II (Unl) [a1].nes */
