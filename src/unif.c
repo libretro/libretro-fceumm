@@ -560,6 +560,7 @@ static BMAPPING bmap[] = {
 	{ "UOROM",                        2, UNROM_Init,            0 },
 	{ "VRC7",                        85, UNLVRC7_Init,          0 },
 	{ "WELL-NO-DG450",              428, Mapper428_Init,        0 },
+	{ "TF2740",                     428, Mapper428_Init,        0 },	
 	{ "YOKO",                       264, UNLYOKO_Init,          0 },
 	{ "COOLBOY",                    268, COOLBOY_Init,          BMCFLAG_256KCHRR },
 	{ "158B",                       258, UNL158B_Init,          0 },
