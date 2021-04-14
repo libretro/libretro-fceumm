@@ -25,7 +25,6 @@
 
 static uint8 regs[4];
 static uint8 hrd_flag;
-static void(*Sync)(void);
 
 static SFORMAT StateRegs[] =
 {
@@ -34,7 +33,8 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void SyncAbG1l(void) {
+static void Sync(void) {
+	int mask = regs[2] >> 6; /* There is an CNROM mode that takes either two or four inner CHR banks from a CNROM-like latch register at $8000-$FFFF. */
 
 	if (regs[1] & 0x10)
 		setprg32(0x8000,(regs[1] & 0xC0) >> 6);
@@ -44,48 +44,36 @@ static void SyncAbG1l(void) {
 		setprg16(0xC000, (regs[1] & 0xE0) >> 5);
 	}
 
-	/* FIXME: 2020-10-26  */
-	switch (regs[2] & 0xC0) {
-	case 0xC0: /* Pipe Dream */
-		setchr8((regs[0] & 0x03) | (regs[1] & ~0x03));
-		break;
-	case 0x40: /* Goonies */
-		setchr8((regs[0] & 0x01) | (regs[1] & 0x07));
-		break;
-	default:
-		setchr8(regs[1]);
-		break;
-	}
-
+	setchr8(((regs[1] & 0x07) & ~mask) | regs[0] & mask);
+	
 	setmirror((regs[1] & 0x8) ? 0 : 1);
 }
 
-static DECLFW(AbG1lWriteHi) {
+static DECLFW(WriteHi) {
 	regs[0] = V;
-	/* setchr8(((regs[2] & 0xC0) >> 7) << 2 | (regs[0] & 0x03)); */
 	Sync();
 }
 
-static DECLFW(AbG1lWriteLo) {
+static DECLFW(WriteLo) {
 	regs[A & 0x03] = V;
 	Sync();
 }
 
-static DECLFR(AbG1lReadLo) {
+static DECLFR(ReadLo) {
 	return hrd_flag;
 }
 
-static void AbG1lPower(void) {
-	hrd_flag = 0;
+static void Power(void) {
+	hrd_flag = 0; /* Solder pad, selecting different menus */
 
 	regs[0] = 0;
 	regs[1] = 0;
 	regs[2] = 0;
 
 	Sync();
-	SetWriteHandler(0x8000, 0xFFFF, AbG1lWriteHi);
-	SetWriteHandler(0x6001, 0x6002, AbG1lWriteLo);
-	SetReadHandler(0x6000, 0x7FFF, AbG1lReadLo);
+	SetWriteHandler(0x8000, 0xFFFF, WriteHi);
+	SetWriteHandler(0x6001, 0x6002, WriteLo);
+	SetReadHandler(0x6000, 0x7FFF, ReadLo);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
@@ -93,7 +81,7 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-static void AbG1lReset(void) {
+static void Reset(void) {
 	hrd_flag++;
 	hrd_flag &= 3;
 	
@@ -104,64 +92,14 @@ static void AbG1lReset(void) {
 	Sync();
 }
 
-void AbG1l_Init(CartInfo *info) {
-
-	Sync = SyncAbG1l;
-
+void Mapper428_Init(CartInfo *info) {
 	hrd_flag = 0;
 
 	Sync();
 
-	info->Power = AbG1lPower;
-	info->Reset = AbG1lReset;
+	info->Power = Power;
+	info->Reset = Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
 	GameStateRestore = StateRestore;
 }
 
-
-static void SyncWellNoDG450(void) {
-
-	if (regs[1] & 0x10)
-		setprg32(0x8000, (regs[1]) >> 6);
-	else
-	{
-		setprg16(0x8000, (regs[1]) >> 5);
-		setprg16(0xC000, (regs[1]) >> 5);
-	}
-
-	setchr8(regs[1] & 0x0F);
-	setmirror((regs[1] & 0x8) ? 0 : 1);
-}
-
-static void WellNoDG450Power(void) {
-	hrd_flag = 0;
-
-	regs[0] = 0;
-	regs[1] = 0;
-	regs[2] = 0;
-
-	Sync();
-
-	SetWriteHandler(0x6001, 0x6002, AbG1lWriteLo);
-	SetReadHandler(0x6000, 0x7FFF, AbG1lReadLo);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-}
-
-static void WellNoDG450Reset(void) {
-	hrd_flag++;
-	hrd_flag &= 3;
-
-	regs[0] = 0;
-	regs[1] = 0;
-	regs[2] = 0;
-
-	Sync();
-}
-
-void WellNoDG450_Init(CartInfo *info) {
-	Sync = SyncWellNoDG450;
-	info->Power = WellNoDG450Power;
-	info->Reset = WellNoDG450Reset;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
-}
