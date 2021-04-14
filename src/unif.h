@@ -189,8 +189,6 @@ void BMC830134C_Init(CartInfo *info);		/* m315 */
 void BMCGN26_Init(CartInfo *info);			/* m344 */
 
 void BS110_Init(CartInfo *info);
-void WellNoDG450_Init(CartInfo *info);
-void AbG1l_Init(CartInfo *info);
 void KG256_Init(CartInfo *info);
 void WAIXINGFS005_Init(CartInfo *info);
 
