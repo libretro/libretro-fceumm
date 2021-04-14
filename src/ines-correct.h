@@ -242,6 +242,20 @@
 	{ 0x1500e835,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Jetsons, The - Cogswell's Caper (Japan).nes */
 	{ 0xe2c94bc2,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Bros 8 (Unl) [!].nes */
 	{ 0xa912b064,   51, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT,   0x800 }, /* 11-in-1 Ball Games [p1][o1].nes (has CHR ROM when it shouldn't) */
+	{ 0x2e72a5d9,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 11-in-1 (66-in-1, 86-in-1, 63-in-1).nes */
+	{ 0x39f514fd,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 18 in 1 (118-in-1, 138-in-1, 198-in-1)VTxxxx.nes */
+	{ 0xd8b1f465,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 26-in-1 (36-in-1, 46-in-1,56-in-1) VT 335.nes */
+	{ 0xcf82fae9,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 28 in 1 (38-in-1, 48-in-1, 58-in1)VTxxxx.nes */
+	{ 0xa7a98698,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 28-in-1 (46-in-1, 63-in-1, 118-in-1)VT-5116.nes */
+	{ 0x21fd7143,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 41-in-1 (5-in-1,71-in-1)  VT345.nes */
+	{ 0x49ec88d6,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 42-in-1 NT-234 Bad Game Road Fighter.nes */
+	{ 0x60306f19,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 42-in-1 PCB 3840.nes */
+	{ 0x450cd86e,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 48-in-1 (62-in-1,73-in-1,88-in-1) VTxxx.nes */
+	{ 0xd774e041,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 50-in-1 (60-in-1,70-in-1,80-in-1) NT-113.nes */
+	{ 0x3c4e94f6,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 51-in-1 (61-in-1, 71-in-1, 81-in-1) VT5310.nes */
+	{ 0x0422ed44,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 7-in-1 (32-in-1,66-in-1,119-in-1) VT15004.nes */
+	{ 0x7efc0d2c,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 7-in-1 (5000-in-1, 999999999-in-1, 10000000-in-1)NC-07N.nes */
+	{ 0x6d92dff1,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* TN 95-in-1 (6-in-1) [p1].nes */
 	{ 0x39ab0fc7,   64, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hard Drivin' (USA) (Proto) (Unl).nes */
 	{ 0xb19a55dd,   64, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Road Runner (USA) (Unl).nes */
 	{ 0xf92be3ec,   64, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Rolling Thunder (USA) (Unl).nes */

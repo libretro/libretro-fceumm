@@ -108,14 +108,32 @@ static DECLFR(BMCD1038Read) {
 		return CartBR(A);
 }
 
+static DECLFW(BMCD1038Write) {
+	/* Only recognize the latch write if the lock bit has not been set. Needed for NT-234 "Road Fighter" */
+	if (~latche & 0x200)
+		LatchWrite(A, V);
+}
+
 static void BMCD1038Reset(void) {
 	dipswitch++;
 	dipswitch &= 3;
+	
+	/* Always reset to menu */
+	latche = 0;
+	BMCD1038Sync();
+}
+
+static void BMCD1038Power(void) {
+	LatchPower();
+	
+	/* Trap latch writes to enforce the "Lock" bit */
+	SetWriteHandler(0x8000, 0xFFFF, BMCD1038Write);
 }
 
 void BMCD1038_Init(CartInfo *info) {
 	Latch_Init(info, BMCD1038Sync, BMCD1038Read, 0x0000, 0x8000, 0xFFFF, 0);
 	info->Reset = BMCD1038Reset;
+	info->Power = BMCD1038Power;
 	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
