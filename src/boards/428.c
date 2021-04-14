@@ -34,7 +34,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	int mask = reg[2] >> 6; /* There is an CNROM mode that takes either two or four inner CHR banks from a CNROM-like latch register at $8000-$FFFF. */
+	int mask = regs[2] >> 6; /* There is an CNROM mode that takes either two or four inner CHR banks from a CNROM-like latch register at $8000-$FFFF. */
 
 	if (regs[1] & 0x10)
 		setprg32(0x8000,(regs[1] & 0xC0) >> 6);
@@ -44,7 +44,7 @@ static void Sync(void) {
 		setprg16(0xC000, (regs[1] & 0xE0) >> 5);
 	}
 
-	setchr8((regs[1] & 0x07) & ~mask) | reg[0] & mask);
+	setchr8(((regs[1] & 0x07) & ~mask) | regs[0] & mask);
 	
 	setmirror((regs[1] & 0x8) ? 0 : 1);
 }
