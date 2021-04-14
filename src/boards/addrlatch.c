@@ -111,6 +111,10 @@ static DECLFR(BMCD1038Read) {
 static void BMCD1038Reset(void) {
 	dipswitch++;
 	dipswitch &= 3;
+	
+	/* Always reset to menu */
+	latche = 0;
+	BMCD1038Sync();
 }
 
 void BMCD1038_Init(CartInfo *info) {
