@@ -174,3 +174,12 @@ void MINDKIDS_Init(CartInfo *info) {
 	info->Reset = COOLBOYReset;
 	AddExState(EXPREGS, 4, 0, "EXPR");
 }
+
+void Mapper268_Init(CartInfo *info) {
+	/* Technically, the distinction between COOLBOY ($6000-$7FFF) and MINDKIDS ($5000-$5FFF) is based on a solder pad setting. */
+	/* In NES 2.0, the submapper field is used to distinguish between the two settings. */
+	if (info->submapper == 1)
+		MINDKIDS_Init(info);
+	else
+		COOLBOY_Init(info);
+}

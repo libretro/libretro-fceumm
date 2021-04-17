@@ -25,7 +25,6 @@ void AC08_Init(CartInfo *info);
 void ANROM_Init(CartInfo *info);
 void BMC11160_Init(CartInfo *info);
 void BMC12IN1_Init(CartInfo *info);
-void BMC13in1JY110_Init(CartInfo *info);
 void BMC190in1_Init(CartInfo *info);
 void BMC411120C_Init(CartInfo *info);
 void BMC64in1nr_Init(CartInfo *info);
@@ -135,7 +134,6 @@ void UNLN625092_Init(CartInfo *info);
 void UNLMaliSB_Init(CartInfo *info);
 void UNLOneBus_Init(CartInfo *info);
 void UNLPEC586Init(CartInfo *info);
-void UNLSC127_Init(CartInfo *info);
 void UNLSHeroes_Init(CartInfo *info);
 void UNLSL12_Init(CartInfo *info);
 void UNLSL1632_Init(CartInfo *info);
@@ -191,8 +189,6 @@ void BMC830134C_Init(CartInfo *info);		/* m315 */
 void BMCGN26_Init(CartInfo *info);			/* m344 */
 
 void BS110_Init(CartInfo *info);
-void WellNoDG450_Init(CartInfo *info);
-void AbG1l_Init(CartInfo *info);
 void KG256_Init(CartInfo *info);
 void WAIXINGFS005_Init(CartInfo *info);
 

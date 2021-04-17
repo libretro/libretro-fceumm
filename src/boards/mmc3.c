@@ -28,7 +28,6 @@
 #include "mmc3.h"
 
 uint8 MMC3_cmd;
-uint8 kt_extra;
 uint8 *WRAM;
 uint32 WRAMSIZE;
 uint8 *CHRRAM;
@@ -184,17 +183,6 @@ DECLFW(MMC3_IRQWrite) {
 	}
 }
 
-/* KT-008 boards hack 2-in-1, TODO assign to new ines mapper, most dump of KT-boards on the net are mapper 4, so need database or goodnes fix support */
-DECLFW(KT008HackWrite) {
-/*	FCEU_printf("%04x:%04x\n",A,V); */
-	switch (A & 3) {
-   case 0: kt_extra = V; FixMMC3PRG(MMC3_cmd); break;
-	case 1: break;	/* unk */
-	case 2: break;	/* unk */
-	case 3: break;	/* unk */
-	}
-}
-
 static void ClockMMC3Counter(void) {
 	int count = IRQCount;
 	if (!count || IRQReload) {
@@ -236,9 +224,7 @@ static void GENPWRAP(uint32 A, uint8 V) {
    /* [NJ102] Mo Dao Jie (C) has 1024Mb MMC3 BOARD, maybe something other will be broken
     * also HengGe BBC-2x boards enables this mode as default board mode at boot up
     */
-   setprg8(A, (V & 0x7F)/* | ((kt_extra & 4) << 4)*/);
-   /* KT-008 boards hack 2-in-1, TODO assign to new ines mapper, most dump of KT-boards on the net are mapper 4, so need database or goodnes fix support */
-   /* KT-008 boards should be assigned to mapper 224 */
+   setprg8(A, (V & 0x7F));
 }
 
 static void GENMWRAP(uint8 V) {
@@ -264,9 +250,6 @@ void GenMMC3Power(void) {
 	SetWriteHandler(0x8000, 0xBFFF, MMC3_CMDWrite);
 	SetWriteHandler(0xC000, 0xFFFF, MMC3_IRQWrite);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-
-   /* KT-008 boards hack 2-in-1, TODO assign to new ines mapper, most dump of KT-boards on the net are mapper 4, so need database or goodnes fix support */
-   /* SetWriteHandler(0x5000,0x5FFF, KT008HackWrite); */   /* KT-008 boards should be assigned to mapper 224 */
 
 	A001B = A000B = 0;
 	setmirror(1);
@@ -321,9 +304,6 @@ void GenMMC3_Init(CartInfo *info, int prg, int chr, int wram, int battery) {
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
 
-   /* KT-008 boards hack 2-in-1, TODO assign to new ines mapper, most dump of KT-boards on the net are mapper 4, so need database or goodnes fix support */
-   /* KT-008 boards should be assigned to mapper 224 */
-   AddExState(&kt_extra, 1, 0, "KTEX");
 	AddExState(MMC3_StateRegs, ~0, 0, 0);
 
 	info->Power = GenMMC3Power;
