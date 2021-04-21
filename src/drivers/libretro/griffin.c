@@ -7,6 +7,7 @@
 #include "drivers/libretro/libretro-common/string/stdstring.c"
 #include "drivers/libretro/libretro-common/encodings/encoding_utf.c"
 #include "drivers/libretro/libretro-common/compat/compat_strl.c"
+#include "drivers/libretro/libretro-common/compat/fopen_utf8.c"
 #endif
 
 #include "cart.c"
