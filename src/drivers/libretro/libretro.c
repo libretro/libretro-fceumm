@@ -56,6 +56,7 @@
 #define NES_HEIGHT  240
 #define NES_8_7_PAR  ((width * (8.0 / 7.0)) / height)
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
+#define NES_PP       ((width / (height * (256.0 / 240.0))) * 16.0 / 15.0)
 
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
@@ -81,7 +82,7 @@ static bool crop_overscan_v;
 #endif
 
 static bool use_raw_palette;
-static bool use_par;
+static int aspect_ratio_par;
 
 /*
  * Flags to keep track of whether turbo
@@ -957,6 +958,16 @@ void retro_get_system_info(struct retro_system_info *info)
    info->block_extract    = false;
 }
 
+static float get_aspect_ratio(unsigned width, unsigned height)
+{
+  if (aspect_ratio_par == 2)
+    return NES_4_3;
+  else if (aspect_ratio_par == 3)
+    return NES_PP;
+  else
+    return NES_8_7_PAR;
+}
+
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
 #ifdef PSP
@@ -975,7 +986,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 #endif
    info->geometry.base_height = height;
    info->geometry.max_height = NES_HEIGHT;
-   info->geometry.aspect_ratio = (float)(use_par ? NES_8_7_PAR : NES_4_3);
+   info->geometry.aspect_ratio = get_aspect_ratio(width, height);
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
@@ -1347,12 +1358,16 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      bool newval = (!strcmp(var.value, "8:7 PAR"));
-      if (newval != use_par)
-      {
-         use_par = newval;
-         audio_video_updated = 1;
+      unsigned oldval = aspect_ratio_par;
+      if (!strcmp(var.value, "8:7 PAR")) {
+        aspect_ratio_par = 1;
+      } else if (!strcmp(var.value, "4:3")) {
+        aspect_ratio_par = 2;
+      } else if (!strcmp(var.value, "PP")) {
+        aspect_ratio_par = 3;
       }
+     if (aspect_ratio_par != oldval)
+       audio_video_updated = 1;
    }
 
    var.key = "fceumm_turbo_enable";
