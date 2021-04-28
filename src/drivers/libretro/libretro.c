@@ -83,8 +83,6 @@ static bool crop_overscan_v;
 
 static bool use_raw_palette;
 static int aspect_ratio_par;
-static int last_aspect_ratio_par;
-static float aspect_ratio_type;
 
 /*
  * Flags to keep track of whether turbo
@@ -960,16 +958,15 @@ void retro_get_system_info(struct retro_system_info *info)
    info->block_extract    = false;
 }
 
-float get_aspect_ratio(unsigned width, unsigned height)
+static float get_aspect_ratio(unsigned width, unsigned height)
 {
   if (aspect_ratio_par == 1) {
-    aspect_ratio_type = NES_8_7_PAR;
+    return NES_8_7_PAR;
   } else if (aspect_ratio_par == 2) {
-    aspect_ratio_type = NES_4_3;
+    return NES_4_3;
   } else if (aspect_ratio_par == 3) {
-    aspect_ratio_type = NES_PP;
+    return NES_PP;
   }
-  return aspect_ratio_type;
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
@@ -1362,7 +1359,7 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-     last_aspect_ratio_par = aspect_ratio_par;
+     static int last_aspect_ratio_par = aspect_ratio_par;
      if (!strcmp(var.value, "8:7 PAR")) {
        aspect_ratio_par = 1;
      } else if (!strcmp(var.value, "4:3")) {
