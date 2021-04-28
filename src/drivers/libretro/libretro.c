@@ -960,13 +960,12 @@ void retro_get_system_info(struct retro_system_info *info)
 
 static float get_aspect_ratio(unsigned width, unsigned height)
 {
-  if (aspect_ratio_par == 1) {
+  if (aspect_ratio_par == 1)
     return NES_8_7_PAR;
-  } else if (aspect_ratio_par == 2) {
+  else if (aspect_ratio_par == 2)
     return NES_4_3;
-  } else if (aspect_ratio_par == 3) {
+  else if (aspect_ratio_par == 3)
     return NES_PP;
-  }
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
