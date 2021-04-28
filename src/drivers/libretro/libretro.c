@@ -961,11 +961,11 @@ void retro_get_system_info(struct retro_system_info *info)
 static float get_aspect_ratio(unsigned width, unsigned height)
 {
   if (aspect_ratio_par == 1) {
-    get_aspect_ratio = NES_8_7_PAR;
+    return NES_8_7_PAR;
   } else if (aspect_ratio_par == 2) {
-    get_aspect_ratio = NES_4_3;
+    return NES_4_3;
   } else if (aspect_ratio_par == 3) {
-    get_aspect_ratio = NES_PP;
+    return NES_PP;
   }
 }
 
@@ -1359,7 +1359,7 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-     static int last_aspect_ratio_par = aspect_ratio_par;
+     unsigned oldval = aspect_ratio_par;
      if (!strcmp(var.value, "8:7 PAR")) {
        aspect_ratio_par = 1;
      } else if (!strcmp(var.value, "4:3")) {
@@ -1367,7 +1367,7 @@ static void check_variables(bool startup)
      } else if (!strcmp(var.value, "PP")) {
        aspect_ratio_par = 3;
      }
-     if (aspect_ratio_par != last_aspect_ratio_par)
+     if (aspect_ratio_par != oldval)
          audio_video_updated = 1;
    }
 
