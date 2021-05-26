@@ -21,7 +21,7 @@
 
 /*	Mappers:
 	176 - Standard
-	523 - Jncota KT-xxx (1 KiB->2 KiB, 2 KiB->4 KiB CHR, hard-wired nametable mirroring)	
+	523 - Jncota KT-xxx, re-release of 封神榜꞉ 伏魔三太子: 1 KiB->2 KiB, 2 KiB->4 KiB CHR, hard-wired nametable mirroring)
 
 	Submappers:	
 	0 - Standard
@@ -101,15 +101,22 @@ static void cwrap(uint32 A, uint32 V)
 {
    int bank = 0;
 
-   /* some workaround for chr rom / ram access */
-   if (!VROM_size)
-      bank = 0;
-   else if (CHRRAMSIZE && fk23_regs[0] & 0x20)
-      bank = 0x10;
-
-   if (CHR_MIXED && V < 8) bank = 0x10; /* first 8K of chr bank is RAM */
-
-   setchr1r(bank, A, V);
+   if (jncota523)
+   {
+      if (~A &0x0400) setchr2r(bank, A, V);
+   }
+   else
+   {
+      /* some workaround for chr rom / ram access */
+      if (!VROM_size)
+         bank = 0;
+      else if (CHRRAMSIZE && fk23_regs[0] & 0x20)
+         bank = 0x10;
+      
+      if (CHR_MIXED && V < 8) bank = 0x10; /* first 8K of chr bank is RAM */
+      
+      setchr1r(bank, A, V);
+   }
 }
 
 static void SyncCHR(void)
@@ -241,12 +248,15 @@ static void SyncWRAM(void)
 
 static void SyncMIR(void)
 {
+   if (jncota523) /* Jncota board has hard-wired mirroring */
+      return;
+   else
    switch (mmc3_mirr & (subType == 2? 0x03 : 0x01))
    {
-   case 0: setmirror(MI_V); break;
-   case 1: setmirror(MI_H); break;
-   case 2: setmirror(MI_0); break;
-   case 3: setmirror(MI_1); break;
+      case 0: setmirror(MI_V); break;
+      case 1: setmirror(MI_H); break;
+      case 2: setmirror(MI_0); break;
+      case 3: setmirror(MI_1); break;
    }
 }
 
@@ -517,6 +527,7 @@ void BMCFK23C_Init(CartInfo *info) {
          WRAMSIZE = 8 * 1024;
    }
 
+   jncota523 = 0;
    GenBMCFK23C_Init(info);
 }
 
@@ -530,6 +541,7 @@ void BMCFK23CA_Init(CartInfo *info)
 
    WRAMSIZE = 8 * 1024;
 
+   jncota523 = 0;
    GenBMCFK23C_Init(info);
 }
 
@@ -539,6 +551,7 @@ void Super24_Init(CartInfo *info) {
    if (!UNIFchrrama)
       CHRRAMSIZE = 8 * 1024;
 
+   jncota523 = 0;
    GenBMCFK23C_Init(info);
 }
 
@@ -551,5 +564,13 @@ void WAIXINGFS005_Init(CartInfo *info)
 
    WRAMSIZE = 32 * 1024;
 
+   jncota523 = 0;
+   GenBMCFK23C_Init(info);
+}
+
+void Mapper523_Init(CartInfo *info)
+{
+   jncota523 = 1;
+   WRAMSIZE = 8 * 1024;
    GenBMCFK23C_Init(info);
 }
