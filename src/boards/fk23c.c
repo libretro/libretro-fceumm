@@ -19,91 +19,31 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* BMC-FK23C (no WRAM, no DIP switch)
- * BMC-FK23CA (no WRAM, with DIP switch)
- * BMC-Super24in1SC03 (functional duplicate of BMC-FK23C)
- * WAIXING-FS005 (alternative name: Bensheng BS-001) (32 KiB battery-backed WRAM, 8 KiB of CHR-RAM, no DIP switch)
- * WAIXING-FS006 (optional 8 KiB battery-backed WRAM, optional 8 KiB of CHR-RAM, no DIP switch)
+/*	Mappers:
+	176 - Standard
+	523 - Jncota KT-xxx (1 KiB->2 KiB, 2 KiB->4 KiB CHR, hard-wired nametable mirroring)	
 
- * Three incompatible subtypes exist that do not correspond to these UNIF board names. No submappers have been proposed, as the subtypes can be easily discerned heuristically by looking at ROM sizes:
-
- * Subtype 0, ROM size other than specified below: boot with Extended MMC3 mode disabled (boots in first 512 KiB of PRG-ROM regardless of ROM size)
- * Subtype 1, 1024 KiB PRG-ROM, 1024 KiB CHR-ROM: boot with Extended MMC3 mode enabled (boots in last 512 KiB of the first 2 MiB of PRG-ROM)
- * Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0, but MMC3 registers $46 and $47 swapped.
- */
-
-/*
-Mode Register ($5xx0)
-7654 3210
----- ----
-PCTm PMMM
-|||| ||||
-|||| |+++- Select PRG Banking Mode (ignored in Extended MMC3 Mode)
-|||| |      0: MMC3 PRG Mode, 512 KiB Outer PRG Bank Size
-|||| |      1: MMC3 PRG Mode, 256 KiB Outer PRG Bank Size
-|||| |      2: MMC3 PRG Mode, 128 KiB Outer PRG Bank Size
-|||| |      3: NROM-128 PRG Mode, 16 KiB PRG at $8000-$BFFF mirrored at $C000-$FFFF
-|||| |      4: NROM-256 PRG Mode, 32 KiB PRG at $8000-$FFFF
-|||| |      5-7: Never used
-|||| +---- PRG Base A21
-|||+------ Select Outer CHR Bank Size
-|||         0: In MMC3 CHR Mode: 256 KiB
-|||            In CNROM CHR Mode: 32 KiB
-|||         1: In MMC3 CHR Mode: 128 KiB
-|||            In CNROM CHR Mode: 16 KiB
-||+------- Select CHR Memory Type
-||          0: CHR-ROM
-||          1: CHR-RAM
-|+-------- CHR Mode
-|           0: MMC3 CHR Mode
-|           1: NROM/CNROM CHR Mode
-+--------- PRG Base A22
-
-Power-on value: $00
-
-PRG Base Register ($5xx1)
-Mask: $5xx3, x determined by solder pad setting
-
-7654 3210
----- ----
-.PPP PPPP
- ||| ||||
- +++-++++- PRG Base A20..A14
-
-Power-on value: $00
-CHR Base Register ($5xx2)
-Mask: $5xx3, x determined by solder pad setting
-
-7654 3210
----- ----
-ccdC CCCC
-|||| ||||
-++++-++++- CHR Base A20..A13
-||+------- PRG Base A25
-++-------- PRG Base A24..A23
-
-Power-on value: $00
-Writing to the CHR Base Register also resets the CNROM latch.
-
-Extended Mode Register ($5xx3)
-Mask: $5xx3, x determined by solder pad setting
-
-7654 3210
----- ----
-.C.. .CE.
- |    || 
- |    |+- Extended MMC3 Mode
- |    |    0: disable
- |    |    1: enable
- +----+-- Select NROM/CNROM CHR Mode
-           0: NROM
-           1: CNROM
-
-Power-on value: $02 (Submapper 1), $00 (otherwise)
+	Submappers:	
+	0 - Standard
+	1 - FK-xxx
+	2 - 外星 FS005/FS006
+	3 - JX9003B
+	4 - GameStar Smart Genius Deluxe
+	
+	Verified on real hardware:
+	"Legend of Kage" sets CNROM latch 1 and switches between CHR bank 0 and 1 using 5FF2, causing the wrong bank (1 instead of 0) during gameplay.
+	
+	Heuristics for NES 1.0:
+	- 1 MiB PRG+1 MiB CHR     => Submapper 1
+	- 256 KiB PRG+128 KiB CHR => Submapper 1
+	- 128 KiB PRG+64 KiB CHR  => Submapper 1
+	- A001.5 ever set         => Submapper 2
+	- 5FF5/5FF6 written-to    => Submapper 3
+	
+	Heuristic for detecting whether the DIP switch should be changed on every soft reset:
+	The first write to the $5xxx range is to $501x           => ROM always addresses $501x; changing the DIP switch on reset would break the emulation after reset, so don't do it.
+	The first write to the $5xxx range is to $5020 or higher => ROM either uses a DIP switch or writes to $5FFx for safety; changing the DIP switch on reset is possible.
 */
-
-/* 2020-3-14 - Refactoring based on latest sources */
-/* TODO: Add database for ines 1.0 headers */
 
 #include "mapinc.h"
 #include "../ines.h"
@@ -113,7 +53,7 @@ static uint8 *CHRRAM          = NULL;
 static uint32 WRAMSIZE        = 0;
 static uint32 CHRRAMSIZE      = 0;
 
-static uint8 fk23_regs[4]     = { 0 };
+static uint8 fk23_regs[8]     = { 0 }; /* JX9003B has eight registers, all others have four */
 static uint8 mmc3_regs[12]    = { 0 };
 static uint8 mmc3_ctrl        = 0;
 static uint8 mmc3_mirr        = 0;
@@ -122,19 +62,17 @@ static uint8 irq_count        = 0;
 static uint8 irq_latch        = 0;
 static uint8 irq_enabled      = 0;
 static uint8 irq_reload       = 0;
-static uint8 cnrom_chr        = 0;
+static uint8 latch            = 0;
 static uint8 dipswitch        = 0;
-static uint8 subType          = 0;
-
-/* enable dipswitch settings for fk23/fk23ca,
- * switchable on reset. Can enable different multicart-modes
- * depending on address */
-static uint8 dipsw_enable    = 0;
+static uint8 subType          = 0; /* NES 2.0 Submapper, denoting PCB variants */
+static uint8 jncota523        = 0; /* Jncota board with unusual wiring that turns 1 KiB CHR banks into 2 KiB banks, and has hard-wired nametable mirroring. */
+static uint8 dipsw_enable     = 0; /* Change the address mask on every reset? */
+static uint8 after_power      = 0; /* Used for detecting whether a DIP switch is used or not (see above) */
 
 static SFORMAT StateRegs[] = {
-   { fk23_regs,               4, "EXPR" },
+   { fk23_regs,               8, "EXPR" },
    { mmc3_regs,              12, "M3RG" },
-   { &cnrom_chr,              1, "CCHR" },
+   { &latch,                  1, "LATC" },
    { &dipswitch,              1, "DPSW" },
    { &mmc3_ctrl,              1, "M3CT" },
    { &mmc3_mirr,              1, "M3MR" },
@@ -147,14 +85,17 @@ static SFORMAT StateRegs[] = {
    { 0 }
 };
 
-#define INVERT_PRG            (mmc3_ctrl & 0x40)
-#define INVERT_CHR            (mmc3_ctrl & 0x80)
-#define WRAM_ENABLED          (mmc3_wram & 0x80)
-#define WRAM_EXTENDED         (mmc3_wram & 0x20)
-#define FK23_ENABLED          (mmc3_wram & 0x40)
-#define MMC3_EXTENDED         (fk23_regs[3] & 0x02)
-#define CHR_CNROM_MODE        (fk23_regs[0] & 0x40)
-#define CHR_OUTER_BANK_SIZE   (fk23_regs[0] & 0x10)
+#define INVERT_PRG          !!(mmc3_ctrl & 0x40)
+#define INVERT_CHR          !!(mmc3_ctrl & 0x80)
+#define WRAM_ENABLED        !!(mmc3_wram & 0x80)
+#define WRAM_EXTENDED      (!!(mmc3_wram & 0x20) && subType == 2)    /* Extended A001 register. Only available on FS005 PCB. */
+#define FK23_ENABLED       (!!(mmc3_wram & 0x40) || !WRAM_EXTENDED)  /* Enable or disable registers in the $5xxx range. Only available on FS005 PCB. */
+#define PRG_MODE              ( fk23_regs[0] & 0x07)
+#define MMC3_EXTENDED       !!( fk23_regs[3] & 0x02)                 /* Extended MMC3 mode, adding extra registers for switching the normally-fixed PRG banks C and E and for eight independent 1 KiB CHR banks. Only available on FK- and FS005 PCBs. */
+#define CHR_8K_MODE         !!( fk23_regs[0] & 0x40)                 /* MMC3 CHR registers are ignored, apply outer bank only, and CNROM latch if it exists */
+#define CHR_CNROM_MODE        (~fk23_regs[0] & 0x20 && subType == 1) /* Only subtype 1 has a CNROM latch, which can be disabled */
+#define CHR_OUTER_BANK_SIZE !!( fk23_regs[0] & 0x10)                 /* Switch between 256 and 128 KiB CHR, or 32 and 16 KiB CHR in CNROM mode */
+#define CHR_MIXED           !!(WRAM_EXTENDED && mmc3_wram &0x04)     /* First 8 KiB of CHR address space are RAM, then ROM */
 
 static void cwrap(uint32 A, uint32 V)
 {
@@ -166,20 +107,18 @@ static void cwrap(uint32 A, uint32 V)
    else if (CHRRAMSIZE && fk23_regs[0] & 0x20)
       bank = 0x10;
 
-   if (WRAM_EXTENDED) {
-      if ((mmc3_wram & 0x04) && V < 8) bank = 0x10; /* first 8K of chr bank is ram */
-      else bank = 0;
-   }
+   if (CHR_MIXED && V < 8) bank = 0x10; /* first 8K of chr bank is RAM */
 
    setchr1r(bank, A, V);
 }
 
 static void SyncCHR(void)
 {
-   if (CHR_CNROM_MODE)
+   uint32 outer = fk23_regs[2] | (subType == 3? (fk23_regs[6] << 8): 0);    /* Outer 8 KiB CHR bank. Subtype 3 has an MSB register providing more bits. */
+   if (CHR_8K_MODE)
    {
-      uint32 mask             = (fk23_regs[3] & 0x46) ? (CHR_OUTER_BANK_SIZE ? 0x01 : 0x03) : 0;
-      uint32 bank             = (fk23_regs[2] | (cnrom_chr & mask)) << 3;
+      uint32 mask = (CHR_CNROM_MODE? (CHR_OUTER_BANK_SIZE? 0x01: 0x03): 0x00);
+      uint32 bank = ((outer & ~mask) | (latch & mask)) << 3; /* Address bits are never OR'd; they either come from the outer bank or from the CNROM latch. */
 
       cwrap(0x0000, bank + 0);
       cwrap(0x0400, bank + 1);
@@ -193,78 +132,95 @@ static void SyncCHR(void)
    }
    else
    {
-      uint32 cbase            = (INVERT_CHR ? 0x1000 : 0);
-      uint32 outer            = (fk23_regs[2] << 3);
-      uint32 cmask            = (CHR_OUTER_BANK_SIZE ? 0x7F : 0xFF);
+      uint32 cbase = (INVERT_CHR? 0x1000: 0);
+      uint32 mask  = (CHR_OUTER_BANK_SIZE? 0x7F: 0xFF);
+             outer = (outer << 3) & ~mask; /* From 8 KiB to 1 KiB banks. Address bits are never OR'd; they either come from the outer bank or from the MMC3. */
 
       if (MMC3_EXTENDED)
       {
-         cwrap(cbase ^ 0x0000, mmc3_regs[0]  | outer);
-         cwrap(cbase ^ 0x0400, mmc3_regs[10] | outer);
-         cwrap(cbase ^ 0x0800, mmc3_regs[1]  | outer);
-         cwrap(cbase ^ 0x0c00, mmc3_regs[11] | outer);
+         cwrap(cbase ^ 0x0000, mmc3_regs[0]  &mask | outer);
+         cwrap(cbase ^ 0x0400, mmc3_regs[10] &mask | outer);
+         cwrap(cbase ^ 0x0800, mmc3_regs[1]  &mask | outer);
+         cwrap(cbase ^ 0x0c00, mmc3_regs[11] &mask | outer);
 
-         cwrap(cbase ^ 0x1000, mmc3_regs[2] | outer);
-         cwrap(cbase ^ 0x1400, mmc3_regs[3] | outer);
-         cwrap(cbase ^ 0x1800, mmc3_regs[4] | outer);
-         cwrap(cbase ^ 0x1c00, mmc3_regs[5] | outer);
+         cwrap(cbase ^ 0x1000, mmc3_regs[2]  &mask | outer);
+         cwrap(cbase ^ 0x1400, mmc3_regs[3]  &mask | outer);
+         cwrap(cbase ^ 0x1800, mmc3_regs[4]  &mask | outer);
+         cwrap(cbase ^ 0x1c00, mmc3_regs[5]  &mask | outer);
       }
       else
       {
-         cwrap(cbase ^ 0x0000, ((mmc3_regs[0] & cmask) & 0xFE) | outer);
-         cwrap(cbase ^ 0x0400, ((mmc3_regs[0] & cmask) | 0x01) | outer);
-         cwrap(cbase ^ 0x0800, ((mmc3_regs[1] & cmask) & 0xFE) | outer);
-         cwrap(cbase ^ 0x0C00, ((mmc3_regs[1] & cmask) | 0x01) | outer);
+         cwrap(cbase ^ 0x0000,(mmc3_regs[0] & 0xFE) & mask | outer);
+         cwrap(cbase ^ 0x0400,(mmc3_regs[0] | 0x01) & mask | outer);
+         cwrap(cbase ^ 0x0800,(mmc3_regs[1] & 0xFE) & mask | outer);
+         cwrap(cbase ^ 0x0C00,(mmc3_regs[1] | 0x01) & mask | outer);
 
-         cwrap(cbase ^ 0x1000, (mmc3_regs[2] & cmask) | outer);
-         cwrap(cbase ^ 0x1400, (mmc3_regs[3] & cmask) | outer);
-         cwrap(cbase ^ 0x1800, (mmc3_regs[4] & cmask) | outer);
-         cwrap(cbase ^ 0x1c00, (mmc3_regs[5] & cmask) | outer);
+         cwrap(cbase ^ 0x1000, mmc3_regs[2]         & mask | outer);
+         cwrap(cbase ^ 0x1400, mmc3_regs[3]         & mask | outer);
+         cwrap(cbase ^ 0x1800, mmc3_regs[4]         & mask | outer);
+         cwrap(cbase ^ 0x1c00, mmc3_regs[5]         & mask | outer);
       }
    }
 }
 
 static void SyncPRG(void)
 {
-   uint32 prg_mode            = (fk23_regs[0] & 7);
-   uint32 prg_base            = (fk23_regs[1] & 0x07F) | ((fk23_regs[0] << 4) & 0x080) |
-         ((fk23_regs[0] << 1) & 0x100) | ((fk23_regs[2] << 3) & 0x600) |
-         ((fk23_regs[2] << 6) & 0x800);
-
-   switch (prg_mode)
+   uint32 mask = 0x3F >> PRG_MODE;        /* For PRG modes 0-2, the mode# decides how many bits of the inner 8 KiB bank are used. This is greatly relevant to map the correct bank that contains the reset vectors. */
+   uint32 prg_base = fk23_regs[1] & 0x7F; /* The bits for the first 2 MiB are the same between all the variants. */
+   switch (subType)
    {
-   case 4:
-      setprg32(0x8000, (prg_base >> 1));
-      break;
-   case 3:
-      setprg16(0x8000, prg_base);
-      setprg16(0xC000, prg_base);
-      break;
-   case 0:
-   case 1:
-   case 2:
-   {
-      uint32 cbase            = (INVERT_PRG ? 0x4000 : 0);
-      uint32 mask             = (0x3F >> prg_mode);
-
-      prg_base <<= 1;
-
-      if (MMC3_EXTENDED)
-      {
-         setprg8(0x8000 ^ cbase, mmc3_regs[6] | prg_base);
-         setprg8(0xA000,         mmc3_regs[7] | prg_base);
-         setprg8(0xC000 ^ cbase, mmc3_regs[8] | prg_base);
-         setprg8(0xE000,         mmc3_regs[9] | prg_base);
-      }
-      else
-      {
-         setprg8(0x8000 ^ cbase, (mmc3_regs[6] & mask) | (prg_base & ~mask));
-         setprg8(0xA000,         (mmc3_regs[7] & mask) | (prg_base & ~mask));
-         setprg8(0xC000 ^ cbase, (0xFE & mask) | (prg_base & ~mask));
-         setprg8(0xE000,         (0xFF & mask) | (prg_base & ~mask));
-      }
-      break;
+      case 1: /* FK-xxx */
+         if (PRG_MODE == 0) mask = 0xFF;  /* Mode 0 allows the MMC3 to address 2 MiB rather than the usual 512 KiB. */
+	 break;
+      case 2: /* FS005 */
+         prg_base |= fk23_regs[0] << 4 & 0x080 | fk23_regs[0] << 1 & 0x100 | fk23_regs[2] << 3 & 0x600 | fk23_regs[2] << 6 & 0x800;   
+	 break;
+      case 3: /* JX9003B */
+         if (PRG_MODE == 0) mask = 0xFF;  /* Mode 0 allows the MMC3 to address 2 MiB rather than the usual 512 KiB. */
+         prg_base |= fk23_regs[5] << 7;
+	 break;
+      case 4: /* GameStar Smart Genius Deluxe */
+         prg_base |= fk23_regs[2] & 0x80;
+	 break;
    }
+
+   switch (PRG_MODE)
+   {
+      case 0: /* MMC3 with 512 KiB or 2 MiB addressable */
+      case 1: /* MMC3 with 256 KiB addressable */
+      case 2: /* MMC3 with 128 KiB addressable */
+      {
+         uint32 cbase = (INVERT_PRG ? 0x4000 : 0);
+      
+         prg_base =(prg_base << 1) & ~mask; /* from 16 to 8 KiB. Address bits are never OR'd; they either come from the outer bank or from the MMC3.  */
+      
+         if (MMC3_EXTENDED)
+         {
+            setprg8(0x8000 ^ cbase, mmc3_regs[6] & mask | prg_base);
+            setprg8(0xA000,         mmc3_regs[7] & mask | prg_base);
+            setprg8(0xC000 ^ cbase, mmc3_regs[8] & mask | prg_base);
+            setprg8(0xE000,         mmc3_regs[9] & mask | prg_base);
+         }
+         else
+         {
+            setprg8(0x8000 ^ cbase, (mmc3_regs[6] & mask) | prg_base);
+            setprg8(0xA000,         (mmc3_regs[7] & mask) | prg_base);
+            setprg8(0xC000 ^ cbase, (0xFE         & mask) | prg_base);
+            setprg8(0xE000,         (0xFF         & mask) | prg_base);
+         }
+         break;
+      }
+      case 3: /* NROM-128 */
+         setprg16(0x8000, prg_base);
+         setprg16(0xC000, prg_base);
+         break;
+      case 4: /* NROM-256 */
+         setprg32(0x8000, (prg_base >> 1));
+         break;
+      case 5: /* UNROM */
+         setprg16(0x8000, latch & 0x07 | prg_base &~0x07);
+	 setprg16(0xC000,         0x07 | prg_base       );
+	 break;
    }
 }
 
@@ -275,7 +231,6 @@ static void SyncWRAM(void)
    {
       if (WRAM_EXTENDED)
       {
-         /* FIXME:this does not look normal, but it works, $5000-$5fff */
          setprg8r(0x10, 0x4000, (mmc3_wram & 0x03) + 1);
          setprg8r(0x10, 0x6000, mmc3_wram & 0x03);
       }
@@ -286,7 +241,7 @@ static void SyncWRAM(void)
 
 static void SyncMIR(void)
 {
-   switch (mmc3_mirr & (WRAM_EXTENDED ? 0x03 : 0x01))
+   switch (mmc3_mirr & (subType == 2? 0x03 : 0x01))
    {
    case 0: setmirror(MI_V); break;
    case 1: setmirror(MI_H); break;
@@ -305,11 +260,14 @@ static void Sync(void)
 
 static DECLFW(Write5000)
 {
-   if (((WRAM_EXTENDED == 0) || FK23_ENABLED) && (A & (0x10 << dipswitch)))
+   if (after_power && A > 0x5010 && A != 0x5FF3) /* Ignore writes from $5000-$500F, in particular to $5008, but not $5FF3 */
+   { 
+      after_power = 0;
+      dipsw_enable = A >= 0x5020;   /* The DIP switch change on soft-reset is enabled if the first write after power-on is not to $501x */
+   }
+   if (FK23_ENABLED && (A & (0x10 << dipswitch)))
    {
-      fk23_regs[A & 3] = V;
-      if ((A & 3) == 2)
-         cnrom_chr = 0;
+      fk23_regs[A & (subType == 3? 7: 3)] = V;
       SyncPRG();
       SyncCHR();
    }
@@ -320,93 +278,79 @@ static DECLFW(Write5000)
 
 static DECLFW(Write8000)
 {
-   switch (A & 0xF000)
+   latch = V;
+   if (CHR_8K_MODE && CHR_CNROM_MODE) SyncCHR(); /* CNROM latch updated */
+   if (PRG_MODE == 5) SyncPRG(); /* UNROM latch has been updated */
+   
+   switch (A & 0xE001)
    {
-   case 0x8000:
-   case 0x9000:
-   case 0xC000:
-   case 0xD000:
-   case 0xE000:
-   case 0xF000:
-      if (!CHR_CNROM_MODE)
-         break;
-      cnrom_chr = V & 0x03;
-      if ((fk23_regs[0] & 0x07) == 0x03)
-         cnrom_chr = 0;
-
-      SyncCHR();
-      break;
-   default:
-      break;
-   }
-
-   switch (A & 0xF001)
-   {
-   case 0x8000:
-   {
-      uint8 old_ctrl = mmc3_ctrl;
-
-      /* Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0,
-       * but MMC3 registers $46 and $47 swapped. */
-      if (subType == 2)
+      case 0x8000:
       {
-         if (V == 0x46)
-            V = 0x47;
-         else if (V == 0x47)
-            V = 0x46;
-      }
-
-      mmc3_ctrl = V;
-
-      if (INVERT_PRG != (old_ctrl & 0x40))
-         SyncPRG();
-
-      if (INVERT_CHR != (old_ctrl & 0x80))
-         SyncCHR();
-
-      break;
-   }
-   case 0x8001:
-   {
-      uint8 ctrl_mask = MMC3_EXTENDED ? 0x0F : 0x07;
-
-      if ((mmc3_ctrl & ctrl_mask) < 12)
-      {
-         mmc3_regs[mmc3_ctrl & ctrl_mask] = V;
-
-         if (((mmc3_ctrl & ctrl_mask) < 6) || ((mmc3_ctrl & ctrl_mask) >= 10))
-            SyncCHR();
-         else
+         if (A & 2) return; /* Confirmed on real hardware: writes to 8002 and 8003, or 9FFE and 9FFF, are ignored. Needed for Dr. Mario on some of the "bouncing ball" multis. */
+         uint8 old_ctrl = mmc3_ctrl;
+      
+         /* Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0,
+          * but MMC3 registers $46 and $47 swapped. */
+         if (subType == 2)
+         {
+            if (V == 0x46)
+               V = 0x47;
+            else if (V == 0x47)
+               V = 0x46;
+         }
+      
+         mmc3_ctrl = V;
+      
+         if (INVERT_PRG != (old_ctrl & 0x40))
             SyncPRG();
+      
+         if (INVERT_CHR != (old_ctrl & 0x80))
+            SyncCHR();
+      
+         break;
       }
-      break;
-   }
-   case 0xA000:
-      mmc3_mirr = V;
-      SyncMIR();
-      break;
-   case 0xA001:
-      /* ignore bits when ram config register is disabled */
-      if ((V & 0x20) == 0)
-         V &= 0xC0;
-      mmc3_wram = V;
-      Sync();
-      break;
-   case 0xC000:
-      irq_latch = V;
-      break;
-   case 0xC001:
-      irq_reload = 1;
-      break;
-   case 0xE000:
-      X6502_IRQEnd(FCEU_IQEXT);
-      irq_enabled = 0;
-      break;
-   case 0xE001:
-      irq_enabled = 1;
-      break;
-   default:
-      break;
+      case 0x8001:
+      {
+         if (A & 2) return; /* Confirmed on real hardware: writes to 8002 and 8003, or 9FFE and 9FFF, are ignored. Needed for Dr. Mario on some of the "bouncing ball" multis. */
+         uint8 ctrl_mask = MMC3_EXTENDED ? 0x0F : 0x07;
+      
+         if ((mmc3_ctrl & ctrl_mask) < 12)
+         {
+            mmc3_regs[mmc3_ctrl & ctrl_mask] = V;
+      
+            if (((mmc3_ctrl & ctrl_mask) < 6) || ((mmc3_ctrl & ctrl_mask) >= 10))
+               SyncCHR();
+            else
+               SyncPRG();
+         }
+         break;
+      }
+      case 0xA000:
+         mmc3_mirr = V;
+         SyncMIR();
+         break;
+      case 0xA001:
+         /* ignore bits when ram config register is disabled */
+         if ((V & 0x20) == 0)
+            V &= 0xC0;
+         mmc3_wram = V;
+         Sync();
+         break;
+      case 0xC000:
+         irq_latch = V;
+         break;
+      case 0xC001:
+         irq_reload = 1;
+         break;
+      case 0xE000:
+         X6502_IRQEnd(FCEU_IQEXT);
+         irq_enabled = 0;
+         break;
+      case 0xE001:
+         irq_enabled = 1;
+         break;
+      default:
+         break;
    }
 }
 
@@ -447,14 +391,13 @@ static void Reset(void)
    mmc3_wram      = 0x80;
    mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
 
-   if (subType == 1)
-      fk23_regs[1] = 0x20;
-
    Sync();
 }
 
 static void Power(void)
 {
+   dipsw_enable   = 0; /* Initially zero. Will be set to 1 according to the described heuristic, causing the DIP switch to be increased on the next soft reset .*/
+   after_power    = 1;
    fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = 0;
    mmc3_regs[0]   = 0;
    mmc3_regs[1]   = 2;
@@ -471,13 +414,10 @@ static void Power(void)
    mmc3_wram      = 0x80;
    mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
 
-   if (subType == 1)
-      fk23_regs[1] = 0x20;
-
    Sync();
 
    SetReadHandler(0x8000, 0xFFFF, CartBR);
-   SetWriteHandler(0x5000, 0x5fff, Write5000);
+   SetWriteHandler(0x5000, 0x5FFF, Write5000);
    SetWriteHandler(0x8000, 0xFFFF, Write8000);
 
    if (WRAMSIZE)
@@ -506,7 +446,6 @@ static void StateRestore(int version)
 
 void GenBMCFK23C_Init(CartInfo *info)
 {
-   dipsw_enable      = 0;
 
    info->Power       = Power;
    info->Reset       = Reset;
@@ -538,11 +477,18 @@ void GenBMCFK23C_Init(CartInfo *info)
       }
    }
 
-   subType = 0;
-   if (((ROM_size * 16) == 1024) && ((VROM_size * 8) == 1024))
-      subType = 1;
-   else if (UNIFchrrama && ((ROM_size << 4) >= 8192))
-      subType = 2;
+   if (info->iNES2)
+   {
+      subType = info->submapper;
+   }
+   else
+   {
+      subType = 0;
+      if (((ROM_size * 16) == 1024) && ((VROM_size * 8) == 1024))
+         subType = 1;
+      else if (UNIFchrrama && ((ROM_size << 4) >= 8192))
+         subType = 2;
+   }
 }
 
 /* generic entry point for mapper 176 / bmcfk23c carts */
@@ -572,7 +518,6 @@ void BMCFK23C_Init(CartInfo *info) {
    }
 
    GenBMCFK23C_Init(info);
-   dipsw_enable = 1;
 }
 
 /* UNIF Boards, declares so we can for chr mixed mode size and wram if any */
@@ -586,7 +531,6 @@ void BMCFK23CA_Init(CartInfo *info)
    WRAMSIZE = 8 * 1024;
 
    GenBMCFK23C_Init(info);
-   dipsw_enable = 1;
 }
 
 /* BMC-Super24in1SC03 */
