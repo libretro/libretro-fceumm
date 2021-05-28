@@ -33,16 +33,10 @@
 	Verified on real hardware:
 	"Legend of Kage" sets CNROM latch 1 and switches between CHR bank 0 and 1 using 5FF2, causing the wrong bank (1 instead of 0) during gameplay.
 	
-	Heuristics for NES 1.0:
-	- 1 MiB PRG+1 MiB CHR     => Submapper 1
-	- 256 KiB PRG+128 KiB CHR => Submapper 1
-	- 128 KiB PRG+64 KiB CHR  => Submapper 1
-	- A001.5 ever set         => Submapper 2
-	- 5FF5/5FF6 written-to    => Submapper 3
-	
 	Heuristic for detecting whether the DIP switch should be changed on every soft reset:
 	The first write to the $5xxx range is to $501x           => ROM always addresses $501x; changing the DIP switch on reset would break the emulation after reset, so don't do it.
 	The first write to the $5xxx range is to $5020 or higher => ROM either uses a DIP switch or writes to $5FFx for safety; changing the DIP switch on reset is possible.
+	Exclude the $5FF3 address as well as $5000-$500F from this heuristic.
 */
 
 #include "mapinc.h"
@@ -512,7 +506,7 @@ void Mapper176_Init(CartInfo *info) { /* .NES file */
          WRAMSIZE = 8 * 1024;
 	 
 	 /* Distinguishing subType 1 from subType 0 is important for the correct reset vector location.
-	    It is safe to assume subType 1 except for 1024+512 KiB ROMs. */
+	    It is safe to assume subType 1 except for the following-sized ROMs. */
          subType = (ROM_size ==128 && VROM_size ==256 ||  /* 2048+2048 */
                     ROM_size ==128 && VROM_size ==128 ||  /* 2048+1024 */
                     ROM_size ==128 && VROM_size ==64  ||  /* 2048+512 */
