@@ -527,7 +527,7 @@ void Mapper176_Init(CartInfo *info) { /* .NES file */
    Init(info);
 }
 
-void BMCFK23C_Init(CartInfo *info)	/* UNIF FK23C */
+void BMCFK23C_Init(CartInfo *info)	/* UNIF FK23C. Also includes mislabelled WAIXING-FS005, recognizable by their PRG-ROM size. */
 {
    if (!UNIFchrrama)
    {
@@ -537,38 +537,26 @@ void BMCFK23C_Init(CartInfo *info)	/* UNIF FK23C */
    }
    WRAMSIZE = 8 * 1024;
 
-   /* UNIF FK23C differs from UNIF FK23CA explicitly by the absence of a DIP switch */
    dipsw_enable = 0;
-   after_power = 0;
+   after_power = 1;
    jncota523 = 0;
-
-   /* The UNIF MAPR tells us nothing about whether it is subtype 0 or 1 */
-   subType = (ROM_size ==128 && VROM_size ==256 ||  /* 2048+2048 */
-              ROM_size ==128 && VROM_size ==128 ||  /* 2048+1024 */
-              ROM_size ==128 && VROM_size ==64  ||  /* 2048+512 */
-              ROM_size ==128 && VROM_size ==0   ||  /* 2048+0 */
-              ROM_size ==64  && VROM_size ==64)?    /* 1024+512 */
-              0: 1;
+   subType =ROM_size *16 >=4096? 2: ROM_size == 64 && VROM_size == 128? 1: 0;
+   if (subType == 2) 
+      CHRRAMSIZE = 256 * 1024;
    
    Init(info);
 }
 
-void BMCFK23CA_Init(CartInfo *info)	/* UNIF FK23CA */
+void BMCFK23CA_Init(CartInfo *info)	/* UNIF FK23CA. Also includes mislabelled WAIXING-FS005, recognizable by their PRG-ROM size. */
 {
    WRAMSIZE = 8 * 1024;
 
-   /* UNIF FK23CA differs from UNIF FK23C explicitly by the presence of a DIP switch */
-   dipsw_enable = 1;
-   after_power = 0;
+   dipsw_enable = 0;
+   after_power = 1;
    jncota523 = 0;
-   
-   /* The UNIF MAPR tells us nothing about whether it is subtype 0 or 1 */
-   subType = (ROM_size ==128 && VROM_size ==256 ||  /* 2048+2048 */
-              ROM_size ==128 && VROM_size ==128 ||  /* 2048+1024 */
-              ROM_size ==128 && VROM_size ==64  ||  /* 2048+512 */
-              ROM_size ==128 && VROM_size ==0   ||  /* 2048+0 */
-              ROM_size ==64  && VROM_size ==64)?    /* 1024+512 */
-              0: 1;
+   subType =ROM_size *16 >=2048? 2: 1;
+   if (subType == 2) 
+      CHRRAMSIZE = 256 * 1024;
    
    Init(info);
 }
