@@ -290,6 +290,7 @@ static void CheckHInfo(void) {
 				}
 			}
 			if (moo[x].submapper >= 0) {
+				iNESCart.iNES2 = 1;
 				if (moo[x].submapper != iNESCart.submapper) {
 					iNESCart.submapper = moo[x].submapper;
 				}
@@ -590,7 +591,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Idea-Tek ET.xx",           173, Mapper173_Init         )
 /*    INES_BOARD( "",                            174, Mapper174_Init ) */
 	INES_BOARD( "",                         175, Mapper175_Init         )
-	INES_BOARD( "BMCFK23C",                 176, BMCFK23C_Init          ) /* zero 26-may-2012 - well, i have some WXN junk games that use 176 for instance ????. i dont know what game uses this BMCFK23C as mapper 176. we'll have to make a note when we find it. */
+	INES_BOARD( "BMCFK23C",                 176, Mapper176_Init         )
 	INES_BOARD( "",                         177, Mapper177_Init         )
 	INES_BOARD( "",                         178, Mapper178_Init         )
 /*    INES_BOARD( "",                            179, Mapper179_Init ) */

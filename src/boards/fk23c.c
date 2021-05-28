@@ -406,8 +406,6 @@ static void Reset(void)
 
 static void Power(void)
 {
-   dipsw_enable   = 0; /* Initially zero. Will be set to 1 according to the described heuristic, causing the DIP switch to be increased on the next soft reset .*/
-   after_power    = 1;
    fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = 0;
    mmc3_regs[0]   = 0;
    mmc3_regs[1]   = 2;
@@ -454,9 +452,9 @@ static void StateRestore(int version)
    Sync();
 }
 
-void GenBMCFK23C_Init(CartInfo *info)
+void Init(CartInfo *info)
 {
-
+   /* Initialization for iNES and UNIF. subType and dipsw_enable must have been set. */
    info->Power       = Power;
    info->Reset       = Reset;
    info->Close       = Close;
@@ -487,90 +485,121 @@ void GenBMCFK23C_Init(CartInfo *info)
       }
    }
 
+}
+
+void Mapper176_Init(CartInfo *info) { /* .NES file */
+   dipsw_enable = 0;
+   jncota523 = 0;
    if (info->iNES2)
    {
       subType = info->submapper;
-   }
-   else
-   {
-      subType = 0;
-      if (((ROM_size * 16) == 1024) && ((VROM_size * 8) == 1024))
-         subType = 1;
-      else if (UNIFchrrama && ((ROM_size << 4) >= 8192))
-         subType = 2;
-   }
-}
-
-/* generic entry point for mapper 176 / bmcfk23c carts */
-void BMCFK23C_Init(CartInfo *info) {
-   /* prepare ROM params before loading... */
-   if (info->iNES2)
-   {
-      if (!UNIFchrrama)
-         CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
+      after_power = subType != 2;  /* FS005 never has DIP switches, the others may have one, so use the heuristic. */
+      CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
       WRAMSIZE = info->PRGRamSize + info->PRGRamSaveSize;
    }
    else
    {
-      if (!UNIFchrrama)
-      {
-         /*  Rockman I - VI uses mixed chr rom/ram */
-         if ((ROM_size * 16) == 2048 && (VROM_size * 8) == 512)
-            CHRRAMSIZE = 8 * 1024;
-      }
-
-      /* Waixing boards has 32K battery backed wram */
+      /* Waixing boards have 32K battery backed wram */
       if (info->battery)
+      {
+         subType = 2;
+         after_power = 0;
          WRAMSIZE = 32 * 1024;
+      }
       else
-         /* Always enable WRAM for ines-headered roms, lets see who complains */
+      {
+         /* Always enable WRAM for iNES-headered files */
          WRAMSIZE = 8 * 1024;
+	 
+	 /* Distinguishing subType 1 from subType 0 is important for the correct reset vector location.
+	    It is safe to assume subType 1 except for 1024+512 KiB ROMs. */
+         subType = (ROM_size ==128 && VROM_size ==256 ||  /* 2048+2048 */
+                    ROM_size ==128 && VROM_size ==128 ||  /* 2048+1024 */
+                    ROM_size ==128 && VROM_size ==64  ||  /* 2048+512 */
+                    ROM_size ==128 && VROM_size ==0   ||  /* 2048+0 */
+                    ROM_size ==64  && VROM_size ==64)?    /* 1024+512 */
+                    0: 1;
+		    
+         /* Detect heuristically whether the address mask should be changed on every soft reset */
+         after_power = 1;
+      }
    }
-
-   jncota523 = 0;
-   GenBMCFK23C_Init(info);
+   Init(info);
 }
 
-/* UNIF Boards, declares so we can for chr mixed mode size and wram if any */
-
-void BMCFK23CA_Init(CartInfo *info)
+void BMCFK23C_Init(CartInfo *info)	/* UNIF FK23C */
 {
-   /* can use mixed chr rom/ram */
    if (!UNIFchrrama)
-      CHRRAMSIZE = 8 * 1024;
-
+   {
+      /* Rockman I-VI uses mixed chr rom/ram */
+      if ((ROM_size * 16) == 2048 && (VROM_size * 8) == 512)
+         CHRRAMSIZE = 8 * 1024;
+   }
    WRAMSIZE = 8 * 1024;
 
+   /* UNIF FK23C differs from UNIF FK23CA explicitly by the absence of a DIP switch */
+   dipsw_enable = 0;
+   after_power = 0;
    jncota523 = 0;
-   GenBMCFK23C_Init(info);
+
+   /* The UNIF MAPR tells us nothing about whether it is subtype 0 or 1 */
+   subType = (ROM_size ==128 && VROM_size ==256 ||  /* 2048+2048 */
+              ROM_size ==128 && VROM_size ==128 ||  /* 2048+1024 */
+              ROM_size ==128 && VROM_size ==64  ||  /* 2048+512 */
+              ROM_size ==128 && VROM_size ==0   ||  /* 2048+0 */
+              ROM_size ==64  && VROM_size ==64)?    /* 1024+512 */
+              0: 1;
+   
+   Init(info);
 }
 
-/* BMC-Super24in1SC03 */
-void Super24_Init(CartInfo *info) {
-   /* can use mixed chr rom/ram */
-   if (!UNIFchrrama)
-      CHRRAMSIZE = 8 * 1024;
-
-   jncota523 = 0;
-   GenBMCFK23C_Init(info);
-}
-
-void WAIXINGFS005_Init(CartInfo *info)
+void BMCFK23CA_Init(CartInfo *info)	/* UNIF FK23CA */
 {
-   /* can have 8 or 32 KB battery-backed prg ram
-    * plus 8 KB chr for these boards */
-   if (!UNIFchrrama)
-      CHRRAMSIZE = 8 * 1024;
+   WRAMSIZE = 8 * 1024;
 
+   /* UNIF FK23CA differs from UNIF FK23C explicitly by the presence of a DIP switch */
+   dipsw_enable = 1;
+   after_power = 0;
+   jncota523 = 0;
+   
+   /* The UNIF MAPR tells us nothing about whether it is subtype 0 or 1 */
+   subType = (ROM_size ==128 && VROM_size ==256 ||  /* 2048+2048 */
+              ROM_size ==128 && VROM_size ==128 ||  /* 2048+1024 */
+              ROM_size ==128 && VROM_size ==64  ||  /* 2048+512 */
+              ROM_size ==128 && VROM_size ==0   ||  /* 2048+0 */
+              ROM_size ==64  && VROM_size ==64)?    /* 1024+512 */
+              0: 1;
+   
+   Init(info);
+}
+
+void Super24_Init(CartInfo *info)	/* UNIF BMC-Super24in1SC03 */
+{
+   CHRRAMSIZE = 8 * 1024;
+   dipsw_enable = 0;
+   after_power = 0;
+   jncota523 = 0;
+   subType = 0;
+   Init(info);
+}
+
+void WAIXINGFS005_Init(CartInfo *info)	/* UNIF WAIXING-FS005 */
+{
+   CHRRAMSIZE = 8 * 1024;
    WRAMSIZE = 32 * 1024;
-
+   dipsw_enable = 0;
+   after_power = 0;
    jncota523 = 0;
-   GenBMCFK23C_Init(info);
+   subType = 2;
+   Init(info);
 }
 
-void Mapper523_Init(CartInfo *info)
+void Mapper523_Init(CartInfo *info)	/* Jncota Fengshengban */
 {
-   jncota523 = 1;
    WRAMSIZE = 8 * 1024;
-   GenBMCFK23C_Init(info);
+   dipsw_enable = 0;
+   after_power = 0;
+   jncota523 = 1;
+   subType = 1;
+   Init(info);
 }
