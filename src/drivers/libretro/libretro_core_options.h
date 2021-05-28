@@ -128,6 +128,7 @@ struct retro_core_option_definition option_defs_common[] = {
       {
          { "8:7 PAR", NULL },
          { "4:3",     NULL },
+         { "PP", NULL },
          { NULL, NULL},
       },
       "8:7 PAR",
