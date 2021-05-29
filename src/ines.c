@@ -577,7 +577,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "BANDAI 24C01",             159, Mapper159_Init         ) /* Different type of EEPROM on the  bandai board */
 	INES_BOARD( "SA009",                    160, SA009_Init             )
 /*    INES_BOARD( "",                            161, Mapper161_Init ) */
-	INES_BOARD( "",                         162, UNLFS304_Init          )
+	INES_BOARD( "",                         162, Mapper162_Init         )
 	INES_BOARD( "",                         163, Mapper163_Init         )
 	INES_BOARD( "",                         164, Mapper164_Init         )
 	INES_BOARD( "",                         165, Mapper165_Init         )
@@ -802,6 +802,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "T-230",                    529, UNLT230_Init           )
 	INES_BOARD( "AX5705",                   530, UNLAX5705_Init         )
 	INES_BOARD( "LH53",                     535, LH53_Init              )
+	INES_BOARD( "YC-03-09",                 558, Mapper558_Init         )
 INES_BOARD_END()
 
 static uint32 get_ines_version(void) {

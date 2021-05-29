@@ -118,7 +118,6 @@ void UNLCC21_Init(CartInfo *info);
 void UNLCITYFIGHT_Init(CartInfo *info);
 void UNLD2000_Init(CartInfo *info);
 void UNLEDU2000_Init(CartInfo *info);
-void UNLFS304_Init(CartInfo *info);
 void UNLH2288_Init(CartInfo *info);
 void UNLKOF97_Init(CartInfo *info);
 void UNLKS7012_Init(CartInfo *info);

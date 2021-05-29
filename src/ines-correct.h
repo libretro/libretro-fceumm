@@ -37,7 +37,8 @@
 
 	{ 0xaf5d7aa2,    0, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Clu Clu Land (W) [o3].nes */
 	{ 0xcfb224e6,  222, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ninja (J) (PRG0) [p1][!].nes */
-	{ 0x82f204ae,  163, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Liang Shan Ying Xiong (NJ023) (Ch) [!].nes */
+	{ 0x82f204ae,  162, DEFAULT,    MI_H, 0,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Liang Shan Ying Xiong (NJ023) (Ch) [!].nes */
+	{ 0x8589652D,  162, DEFAULT,    MI_H, 0,    0x70,    0x07, DEFAULT, NOEXTRA }, /* 农场小精灵.nes */
 	{ 0xad9c63e2,   70, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Space Shadow (Japan).nes */
 	{ 0xe1526228,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ki no Bouken - The Quest of Ki (Japan).nes */
 	{ 0xaf5d7aa2,    0, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Clu Clu Land (W) [o3].nes */
@@ -355,7 +356,6 @@
 	{ 0x183859d2,  159, DEFAULT, DEFAULT, 1,    0x10, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball Z - Kyoushuu! Saiya Jin (Japan).nes */
 	{ 0x58152b42,  160, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pipe V (Asia) (Ja) (Unl).nes */
 	{ 0x1c098942,  162, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Xi You Ji Hou Zhuan (Ch).nes */
-	{ 0x081caaff,  163, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Commandos (Ch).nes */
 
 	/* Mapper 176 */
 	{ 0xffde0de5,  176, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 梦幻之星4[简体](修正)一战一级.nes */

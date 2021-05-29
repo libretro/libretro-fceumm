@@ -462,7 +462,7 @@ static BMAPPING bmap[] = {
 	{ "EWROM",                        5, EWROM_Init,            0 },
 	{ "FK23C",                      176, BMCFK23C_Init,         BMCFLAG_256KCHRR },
 	{ "FK23CA",                     176, BMCFK23CA_Init,        BMCFLAG_256KCHRR },
-	{ "FS304",                      162, UNLFS304_Init,         0 },
+	{ "FS304",                      162, Mapper162_Init,        0 },
 	{ "G-146",                      349, BMCG146_Init,          0 },
 	{ "GK-192",                 NO_INES, BMCGK192_Init,         0 }, /* mapper 58? */
 	{ "GS-2004",                    283, BMCGS2004_Init,        0 },
