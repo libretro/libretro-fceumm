@@ -49,8 +49,8 @@ static void sync()
 static void hblank(void) {
    if (reg[0] &0x80 && scanline <239)
    {  /* Actual hardware cannot look at the current scanline number, but instead latches PA09 on PA13 rises. This does not seem possible with the current PPU emulation however. */
-      setchr4(0x0000, scanline>=127? 1: 0);
-      setchr4(0x1000, scanline>=127? 1: 0);
+      setchr4(0x0000, scanline >=127? 1: 0);
+      setchr4(0x1000, scanline >=127? 1: 0);
    }
    else
       setchr8(0);
@@ -96,6 +96,6 @@ void Mapper162_Init (CartInfo *info)
    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
    if (info->battery) {
       info->SaveGame[0] = WRAM;
-      info->SaveGameLen[0] = WRAMSIZE;
+      info->SaveGameLen[0] = info->PRGRamSaveSize;
    }
 }

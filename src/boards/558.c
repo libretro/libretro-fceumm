@@ -20,12 +20,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* Nanjing FC-001 PCB */
+/* Yancheng YC-03-09/Waixing FS??? PCB */
 
 #include "mapinc.h"
+#include "eeprom_93C66.h"
 #include "../ines.h"
 
 static uint8 reg[4];
+static uint8 haveEEPROM;
+static uint8 eeprom_data[512];
 static SFORMAT StateRegs[] =
 {
         { reg, 4, "REGS" },
@@ -34,10 +37,13 @@ static SFORMAT StateRegs[] =
 
 static void sync()
 {
-   setprg32(0x8000, reg[2] <<4 | reg[0] &0xF | (reg[3] &0x04? 0x00: 0x03));
+   setprg32(0x8000, reg[1] <<4 | reg[0] &0xF | (reg[3] &0x04? 0x00: 0x03));
    setprg8r(0x10, 0x6000, 0);
    if (~reg[0] &0x80)
       setchr8(0);
+
+   if (haveEEPROM)
+      eeprom_93C66_write(reg[2] &0x04, reg[2] &0x02, reg[2] &0x01);
 }
 
 static void hblank(void) {
@@ -52,29 +58,32 @@ static void hblank(void) {
 
 static DECLFR(readReg)
 {
-   return ~reg[1] &0x04;
+   if (haveEEPROM)
+      return eeprom_93C66_read()? 0x04: 0x00;
+   else
+      return reg[2] &0x04;
 }
 
 static DECLFW(writeReg)
 {
    uint8 index = A >>8 &3;
    
+   /* D0 and D1 are connected to the ASIC in reverse order, so swap once */
+   V = V &~3 | V >>1 &1 | V <<1 &2;
+   
    /* Swap bits of registers 0-2 again if the "swap bits" bit is set. Exclude register 2 on when PRG-ROM is 1 MiB. */
-   if (reg[3] &0x01 && index <= (ROM_size == 64? 1: 2))
+   if (reg[3] &0x02 && index <= (ROM_size == 64? 1: 2))
       V = V &~3 | V >>1 &1 | V <<1 &2;
    
-   if (A &1)
-   {
-      if (reg[1] &0x01 && ~V &0x01) reg[1] ^=0x04;  // If A0=1, flip feedback bit on falling edges of D0
-   }                                                // If A0=0, write to register
-   else
-      reg[index] = V;
+   reg[index] = V;
    sync();
 }
 
 static void power(void)
 {
    memset(reg, 0, sizeof(reg));
+   if (haveEEPROM)
+      eeprom_93C66_init();
    sync();
    SetReadHandler (0x5000, 0x57FF, readReg);
    SetWriteHandler(0x5000, 0x57FF, writeReg);
@@ -88,9 +97,9 @@ static void reset()
    sync();
 }
 
-void Mapper163_Init (CartInfo *info)
+void Mapper558_Init (CartInfo *info)
 {
-   uint32 WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;
+   uint32 WRAMSIZE = info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF);
    info->Power   = power;
    info->Reset   = reset;
    GameHBIRQHook = hblank;
@@ -99,8 +108,18 @@ void Mapper163_Init (CartInfo *info)
    uint8* WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
    SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
-   if (info->battery) {
+   haveEEPROM =!!(info->PRGRamSaveSize &0x200);
+   if (haveEEPROM)
+   {
+      eeprom_93C66_storage = eeprom_data;
+      info->battery = 1;
+      info->SaveGame[0] = eeprom_data;
+      info->SaveGameLen[0] = 512;
+   }
+   else
+   if (info->battery)
+   {
       info->SaveGame[0] = WRAM;
-      info->SaveGameLen[0] = info->PRGRamSaveSize;
+      info->SaveGameLen[0] = (info->PRGRamSaveSize &~0x7FF);
    }
 }

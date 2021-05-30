@@ -103,8 +103,7 @@ static void reset()
 
 void Mapper164_Init (CartInfo *info)
 {
-   uint32 WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;
-   WRAMSIZE &=~0x7FF; /* Do not include EEPROM in the WRAM size */
+   uint32 WRAMSIZE = info->iNES2? (info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF)): 8192;
    info->Power = power;
    info->Reset = reset;
    AddExState(StateRegs, ~0, 0, 0);
