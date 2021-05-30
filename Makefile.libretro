@@ -190,6 +190,7 @@ else ifeq ($(platform), vita)
 	PLATFORM_DEFINES := -DVITA
 	STATIC_LINKING=1
 	EXTERNAL_ZLIB=1
+	HAVE_NTSC = 0
 
 # DOS
 else ifeq ($(platform), dos)
