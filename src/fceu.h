@@ -23,6 +23,9 @@ extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
                            * found on some famiclones/Dendy models.
                            */
 
+extern int show_crosshair;
+extern int option_ramstate;
+
 void ResetGameLoaded(void);
 
 #define DECLFR(x) uint8 FP_FASTAPASS(1) x(uint32 A)

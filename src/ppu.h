@@ -16,6 +16,8 @@ extern void FP_FASTAPASS(1) (*PPU_hook)(uint32 A);
 extern uint8 NTARAM[0x800], *vnapage[4];
 extern uint8 PPUNTARAM;
 extern uint8 PPUCHRRAM;
+extern uint8 PALRAM[0x20];
+extern uint8 SPRAM[0x100];
 
 void FCEUPPU_SaveState(void);
 void FCEUPPU_LoadState(int version);

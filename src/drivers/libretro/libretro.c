@@ -67,8 +67,6 @@ void linearFree(void* mem);
 RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
 #endif
 
-extern void FCEU_ZapperSetTolerance(int t);
-
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
@@ -95,7 +93,7 @@ static int aspect_ratio_par;
 
 #define MAX_BUTTONS 8
 #define TURBO_BUTTONS 2
-unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
+unsigned turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
 
 typedef struct
 {
@@ -145,8 +143,6 @@ static bool libretro_supports_bitmasks = false;
 
 const size_t PPU_BIT = 1ULL << 31ULL;
 
-extern uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], PPU[4];
-
 /* overclock the console by adding dummy scanlines to PPU loop
  * disables DMC DMA and WaveHi filling for these dummies
  * doesn't work with new PPU */
@@ -158,13 +154,12 @@ unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
 unsigned dendy = 0;
+unsigned swapDuty;
 
 static unsigned systemRegion = 0;
 static unsigned opt_region = 0;
 static unsigned opt_showAdvSoundOptions = 0;
 static unsigned opt_showAdvSystemOptions = 0;
-
-int FCEUnetplay;
 
 #if defined(PSP) || defined(PS2)
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
@@ -181,23 +176,11 @@ static uint16_t* fceu_video_out;
 static unsigned sndsamplerate;
 static unsigned sndquality;
 static unsigned sndvolume;
-unsigned swapDuty;
 
 static int32_t *sound = 0;
 static uint32_t Dummy = 0;
 static uint32_t current_palette = 0;
 static unsigned serialize_size;
-
-int PPUViewScanline=0;
-int PPUViewer=0;
-
-/* extern forward decls.*/
-extern FCEUGI *GameInfo;
-extern uint8 *XBuf;
-extern CartInfo iNESCart;
-extern CartInfo UNIFCart;
-extern int show_crosshair;
-extern int option_ramstate;
 
 /* emulator-specific callback functions */
 
@@ -311,7 +294,6 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 #define PAL_CUSTOM  (PAL_TOTAL + 3)
 
 static int external_palette_exist = 0;
-extern int ipalette;
 
 /* table for currently loaded palette */
 static uint8_t base_palette[192];
