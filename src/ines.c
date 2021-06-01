@@ -1062,7 +1062,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	 * 1: RP2C07 ("Licensed PAL NES")
 	 * 2: Multiple-region
 	 * 3: UMC 6527P ("Dendy") */
-	if (iNESCart.region == 3) dendy = 1;
+	if (iNESCart.region == 3)
+		FSettings.dendy = 1;
 	FCEUI_SetVidSystem((iNESCart.region == 1) ? 1 : 0);
 
 	return 1;

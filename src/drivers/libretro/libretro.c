@@ -143,19 +143,6 @@ static bool libretro_supports_bitmasks = false;
 
 const size_t PPU_BIT = 1ULL << 31ULL;
 
-/* overclock the console by adding dummy scanlines to PPU loop
- * disables DMC DMA and WaveHi filling for these dummies
- * doesn't work with new PPU */
-unsigned overclock_enabled = -1;
-unsigned overclocked = 0;
-unsigned skip_7bit_overclocking = 1; /* 7-bit samples have priority over overclocking */
-unsigned totalscanlines = 0;
-unsigned normal_scanlines = 240;
-unsigned extrascanlines = 0;
-unsigned vblankscanlines = 0;
-unsigned dendy = 0;
-unsigned swapDuty;
-
 static unsigned systemRegion = 0;
 static unsigned opt_region = 0;
 static unsigned opt_showAdvSoundOptions = 0;
@@ -970,7 +957,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = get_aspect_ratio(width, height);
    info->timing.sample_rate = (float)sndsamplerate;
-   if (FSettings.PAL || dendy)
+   if (FSettings.PAL || FSettings.dendy)
       info->timing.fps = 838977920.0/16777215.0;
    else
       info->timing.fps = 1008307711.0/16777215.0;
@@ -1075,7 +1062,7 @@ static void FCEUD_RegionOverride(unsigned region)
          break;
    }
 
-   dendy = d;
+   FSettings.dendy = d;
    FCEUI_SetVidSystem(pal);
    ResetPalette();
 }
@@ -1131,11 +1118,11 @@ static void check_variables(bool startup)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (!strcmp(var.value, "random"))
-         option_ramstate = 2;
+         FSettings.ramstate = 2;
       else if (!strcmp(var.value, "fill $00"))
-         option_ramstate = 1;
+         FSettings.ramstate = 1;
       else
-         option_ramstate = 0;
+         FSettings.ramstate = 0;
    }
 
 #ifdef HAVE_NTSC_FILTER
@@ -1236,33 +1223,33 @@ static void check_variables(bool startup)
       bool do_reinit = false;
 
       if (!strcmp(var.value, "disabled")
-            && overclock_enabled != 0)
+            && FSettings.overclock_enabled != 0)
       {
-         skip_7bit_overclocking = 1;
-         extrascanlines         = 0;
-         vblankscanlines        = 0;
-         overclock_enabled      = 0;
+         FSettings.skip_7bit_overclocking = 1;
+         FSettings.extrascanlines         = 0;
+         FSettings.vblankscanlines        = 0;
+         FSettings.overclock_enabled      = 0;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-Postrender"))
       {
-         skip_7bit_overclocking = 1;
-         extrascanlines         = 266;
-         vblankscanlines        = 0;
-         overclock_enabled      = 1;
+         FSettings.skip_7bit_overclocking = 1;
+         FSettings.extrascanlines         = 266;
+         FSettings.vblankscanlines        = 0;
+         FSettings.overclock_enabled      = 1;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-VBlank"))
       {
-         skip_7bit_overclocking = 1;
-         extrascanlines         = 0;
-         vblankscanlines        = 266;
-         overclock_enabled      = 1;
+         FSettings.skip_7bit_overclocking = 1;
+         FSettings.extrascanlines         = 0;
+         FSettings.vblankscanlines        = 266;
+         FSettings.overclock_enabled      = 1;
          do_reinit              = true;
       }
 
-      normal_scanlines = dendy ? 290 : 240;
-      totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
+      FSettings.normal_scanlines = FSettings.dendy ? SCANLINES_DENDY : SCANLINES_NORMAL;
+      FSettings.totalscanlines = FSettings.normal_scanlines + (FSettings.overclock_enabled ? FSettings.extrascanlines : 0);
 
       if (do_reinit && startup)
       {
@@ -1294,8 +1281,10 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "enabled")) show_crosshair = 1;
-      else if (!strcmp(var.value, "disabled")) show_crosshair = 0;
+      if (!strcmp(var.value, "enabled"))
+         FSettings.show_crosshair = 1;
+      else if (!strcmp(var.value, "disabled"))
+         FSettings.show_crosshair = 0;
    }
 
 #ifdef PSP
@@ -1433,8 +1422,8 @@ static void check_variables(bool startup)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       bool newval = (!strcmp(var.value, "enabled"));
-      if (newval != swapDuty)
-         swapDuty = newval;
+      if (newval != FSettings.swapDuty)
+         FSettings.swapDuty = newval;
    }
 
    var.key = key;
@@ -2410,8 +2399,6 @@ bool retro_load_game(const struct retro_game_info *game)
 #endif
    sndquality = 0;
    sndvolume = 150;
-   swapDuty = 0;
-   dendy = 0;
    opt_region = 0;
 
    /* Wii: initialize this or else last variable is passed through
@@ -2471,7 +2458,7 @@ bool retro_load_game(const struct retro_game_info *game)
       FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
 
    /* Save region and dendy mode for region-auto detect */
-   systemRegion = (dendy << 1) | (retro_get_region() & 1);
+   systemRegion = (FSettings.dendy << 1) | (retro_get_region() & 1);
 
    current_palette = 0;
 

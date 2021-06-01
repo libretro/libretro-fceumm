@@ -37,7 +37,6 @@
 
 uint8 *XBuf = NULL;
 uint8 *XDBuf = NULL;
-int show_crosshair = 0;
 
 void FCEU_KillVirtualVideo(void)
 {
@@ -53,15 +52,15 @@ int FCEU_InitVirtualVideo(void)
 {
    /* 256 bytes per scanline, * 240 scanline maximum, +8 for alignment, */
    if (!XBuf)
-      XBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
+      XBuf = (uint8*)(FCEU_malloc(256 * (256 + FSettings.extrascanlines + 8)));
    if (!XDBuf)
-      XDBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
+      XDBuf = (uint8*)(FCEU_malloc(256 * (256 + FSettings.extrascanlines + 8)));
 
    if (!XBuf || !XDBuf)
       return 0;
 
-   memset(XBuf, 128, 256 * (256 + extrascanlines + 8));
-   memset(XDBuf, 128, 256 * (256 + extrascanlines + 8));
+   memset(XBuf, 128, 256 * (256 + FSettings.extrascanlines + 8));
+   memset(XDBuf, 128, 256 * (256 + FSettings.extrascanlines + 8));
    return 1;
 }
 
@@ -82,7 +81,7 @@ void FCEU_PutImage(void)
 			FCEU_VSUniDraw(XBuf);
 	}
 	if (howlong) howlong--;
-	if (show_crosshair)
+	if (FSettings.show_crosshair)
 		FCEU_DrawInput(XBuf);
 }
 
