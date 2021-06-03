@@ -1,6 +1,18 @@
 #ifndef _FCEU_PPU_H
 #define _FCEU_PPU_H
 
+typedef struct {
+    /* PPU Overclocking */
+	int overclock_enabled;		/* 1 : enable, 0 : disable duh! */
+	int skip_7bit_overclocking;	/* 7-bit samples have priority over overclocking */
+	int extrascanlines;
+	int vblankscanlines;
+	int normal_scanlines;		/* 240 : normal, 290 : dendy */
+	int totalscanlines;
+} FCEU_PPU;
+
+extern FCEU_PPU ppu;
+
 void FCEUPPU_Init(void);
 void FCEUPPU_Reset(void);
 void FCEUPPU_Power(void);

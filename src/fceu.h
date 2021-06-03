@@ -88,14 +88,6 @@ typedef struct {
 	int soundq;
 	int lowpass;
 
-	/* PPU Overclocking */
-	int overclock_enabled;		/* 1 : enable, 0 : disable duh! */
-	int skip_7bit_overclocking;	/* 7-bit samples have priority over overclocking */
-	int extrascanlines;
-	int vblankscanlines;
-	int normal_scanlines;		/* 240 : normal, 290 : dendy */
-	int totalscanlines;
-
 	int show_crosshair;
 	int ramstate;
 	int dendy;

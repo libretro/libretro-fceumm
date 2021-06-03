@@ -341,14 +341,14 @@ int FCEUI_Initialize(void) {
 	FSettings.UsrLastSLine[0] = 231;
 	FSettings.UsrLastSLine[1] = 239;
 	FSettings.SoundVolume = 100;
-	FSettings.overclock_enabled = 0;
-	FSettings.skip_7bit_overclocking = 1;
-	FSettings.totalscanlines = 0;
-	FSettings.normal_scanlines = SCANLINES_NORMAL;
-	FSettings.extrascanlines = 0;
-	FSettings.vblankscanlines = 0;
 	FSettings.dendy = 0;
 	FSettings.swapDuty = 0;
+	ppu.overclock_enabled = 0;
+	ppu.skip_7bit_overclocking = 1;
+	ppu.totalscanlines = 0;
+	ppu.normal_scanlines = SCANLINES_NORMAL;
+	ppu.extrascanlines = 0;
+	ppu.vblankscanlines = 0;
 	FCEUPPU_Init();
 	X6502_Init();
 	return 1;
@@ -482,8 +482,8 @@ void FCEU_ResetVidSys(void)
    if (PAL)
       FSettings.dendy = 0;
 
-   FSettings.normal_scanlines = FSettings.dendy ? SCANLINES_DENDY : SCANLINES_NORMAL;
-   FSettings.totalscanlines = FSettings.normal_scanlines + (FSettings.overclock_enabled ? FSettings.extrascanlines : 0);
+   ppu.normal_scanlines = FSettings.dendy ? SCANLINES_DENDY : SCANLINES_NORMAL;
+   ppu.totalscanlines = ppu.normal_scanlines + (ppu.overclock_enabled ? ppu.extrascanlines : 0);
 
 	FCEUPPU_SetVideoSystem(w || FSettings.dendy);
 	SetSoundVariables();

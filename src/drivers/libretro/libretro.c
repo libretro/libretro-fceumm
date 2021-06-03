@@ -1223,33 +1223,33 @@ static void check_variables(bool startup)
       bool do_reinit = false;
 
       if (!strcmp(var.value, "disabled")
-            && FSettings.overclock_enabled != 0)
+            && ppu.overclock_enabled != 0)
       {
-         FSettings.skip_7bit_overclocking = 1;
-         FSettings.extrascanlines         = 0;
-         FSettings.vblankscanlines        = 0;
-         FSettings.overclock_enabled      = 0;
+         ppu.skip_7bit_overclocking = 1;
+         ppu.extrascanlines         = 0;
+         ppu.vblankscanlines        = 0;
+         ppu.overclock_enabled      = 0;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-Postrender"))
       {
-         FSettings.skip_7bit_overclocking = 1;
-         FSettings.extrascanlines         = 266;
-         FSettings.vblankscanlines        = 0;
-         FSettings.overclock_enabled      = 1;
+         ppu.skip_7bit_overclocking = 1;
+         ppu.extrascanlines         = 266;
+         ppu.vblankscanlines        = 0;
+         ppu.overclock_enabled      = 1;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-VBlank"))
       {
-         FSettings.skip_7bit_overclocking = 1;
-         FSettings.extrascanlines         = 0;
-         FSettings.vblankscanlines        = 266;
-         FSettings.overclock_enabled      = 1;
+         ppu.skip_7bit_overclocking = 1;
+         ppu.extrascanlines         = 0;
+         ppu.vblankscanlines        = 266;
+         ppu.overclock_enabled      = 1;
          do_reinit              = true;
       }
 
-      FSettings.normal_scanlines = FSettings.dendy ? SCANLINES_DENDY : SCANLINES_NORMAL;
-      FSettings.totalscanlines = FSettings.normal_scanlines + (FSettings.overclock_enabled ? FSettings.extrascanlines : 0);
+      ppu.normal_scanlines = FSettings.dendy ? SCANLINES_DENDY : SCANLINES_NORMAL;
+      ppu.totalscanlines = ppu.normal_scanlines + (ppu.overclock_enabled ? ppu.extrascanlines : 0);
 
       if (do_reinit && startup)
       {
