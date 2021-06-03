@@ -1243,7 +1243,6 @@ int FCEUPPU_Loop(int skip) {
 
 			for (scanline = 0; scanline < ppu.totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;
-				/* if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1); */
 				DoLine();
 				if (scanline < ppu.normal_scanlines || scanline == ppu.totalscanlines)
 					overclocking = 0;

@@ -171,8 +171,6 @@ static unsigned serialize_size;
 
 /* emulator-specific callback functions */
 
-void UpdatePPUView(int refreshchr) { }
-
 const char * GetKeyboard(void)
 {
    return "";
