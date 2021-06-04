@@ -244,8 +244,6 @@ FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
    GameInfo->inputfc = -1;
    GameInfo->cspecial = 0;
 
-   FCEU_printf("Loading %s...\n\n", name);
-
    GetFileBase(name);
 
    fp = FCEU_fopen(name, NULL, "rb", 0, databuf, databufsize);
@@ -259,9 +257,9 @@ FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
       goto endlseq;
    if (NSFLoad(fp))
       goto endlseq;
-   if (UNIFLoad(name, fp))
+   if (UNIFLoad(NULL, fp))
       goto endlseq;
-   if (FDSLoad(name, fp))
+   if (FDSLoad(NULL, fp))
       goto endlseq;
 
    FCEU_PrintError("An error occurred while loading the file.\n");
