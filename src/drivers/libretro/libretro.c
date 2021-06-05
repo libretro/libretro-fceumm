@@ -188,9 +188,6 @@ static uint32_t Dummy = 0;
 static uint32_t current_palette = 0;
 static unsigned serialize_size;
 
-int PPUViewScanline=0;
-int PPUViewer=0;
-
 /* extern forward decls.*/
 extern FCEUGI *GameInfo;
 extern uint8 *XBuf;
@@ -200,8 +197,6 @@ extern int show_crosshair;
 extern int option_ramstate;
 
 /* emulator-specific callback functions */
-
-void UpdatePPUView(int refreshchr) { }
 
 const char * GetKeyboard(void)
 {
@@ -288,9 +283,6 @@ void FCEUD_DispMessage(char *m)
    environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
 }
 
-void FCEUD_NetworkClose(void)
-{ }
-
 void FCEUD_SoundToggle (void)
 {
    FCEUI_SetSoundVolume(sndvolume);
@@ -300,8 +292,7 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 {
    if (n)
       return fopen(n, m);
-   else
-      return NULL;
+   return NULL;
 }
 
 /*palette for FCEU*/
