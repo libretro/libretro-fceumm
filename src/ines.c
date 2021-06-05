@@ -851,226 +851,245 @@ static void rom_load_ines2(void) {
 	if (head.CHRRAM_size & 0xF0) iNESCart.CHRRamSaveSize = 64 << ((head.CHRRAM_size >> 4) & 0x0F);
 }
 
-int iNESLoad(const char *name, FCEUFILE *fp) {
-	const char *tv_region[] = { "NTSC", "PAL", "Multi-region", "Dendy" };
-	struct md5_context md5;
+int iNESLoad(const char *name, FCEUFILE *fp)
+{
+   const char *tv_region[] = { "NTSC", "PAL", "Multi-region", "Dendy" };
+   struct md5_context md5;
 #ifdef DEBUG
-	char* mappername        = NULL;
-	uint32 mappertest       = 0;
+   char* mappername        = NULL;
+   uint32 mappertest       = 0;
 #endif
-	uint64 filesize         = FCEU_fgetsize(fp);
-	uint64 romSize          = 0;
-	/* used for malloc and cart mapping */
-	uint32 rom_size_pow2    = 0;
-	uint32 vrom_size_pow2   = 0;
+   uint64 filesize         = FCEU_fgetsize(fp);
+   uint64 romSize          = 0;
+   /* used for malloc and cart mapping */
+   uint32 rom_size_pow2    = 0;
+   uint32 vrom_size_pow2   = 0;
 
-	if (FCEU_fread(&head, 1, 16, fp) != 16)
-		return 0;
+   if (FCEU_fread(&head, 1, 16, fp) != 16)
+      return 0;
 
-	filesize -= 16; /* remove header size from total size */
+   filesize -= 16; /* remove header size from total size */
 
-	if (memcmp(&head, "NES\x1a", 4)) {
-		FCEU_PrintError("Not an iNES file!\n");
- 		return 0;
-	}
+   if (memcmp(&head, "NES\x1a", 4))
+   {
+      FCEU_PrintError("Not an iNES file!\n");
+      return 0;
+   }
 
-	memset(&iNESCart, 0, sizeof(iNESCart));
+   memset(&iNESCart, 0, sizeof(iNESCart));
 
-	if (!memcmp((char*)(&head) + 0x7, "DiskDude", 8)) {
-		memset((char*)(&head) + 0x7, 0, 0x9);
-	}
+   if (!memcmp((char*)(&head) + 0x7, "DiskDude", 8))
+      memset((char*)(&head) + 0x7, 0, 0x9);
 
-	if (!memcmp((char*)(&head) + 0x7, "demiforce", 9)) {
-		memset((char*)(&head) + 0x7, 0, 0x9);
-	}
+   if (!memcmp((char*)(&head) + 0x7, "demiforce", 9))
+      memset((char*)(&head) + 0x7, 0, 0x9);
 
-	if (!memcmp((char*)(&head) + 0xA, "Ni03", 4)) {
-		if (!memcmp((char*)(&head) + 0x7, "Dis", 3))
-			memset((char*)(&head) + 0x7, 0, 0x9);
-		else
-			memset((char*)(&head) + 0xA, 0, 0x6);
-	}
+   if (!memcmp((char*)(&head) + 0xA, "Ni03", 4))
+   {
+      if (!memcmp((char*)(&head) + 0x7, "Dis", 3))
+         memset((char*)(&head) + 0x7, 0, 0x9);
+      else
+         memset((char*)(&head) + 0xA, 0, 0x6);
+   }
 
-	iNESCart.iNES2 = get_ines_version();
+   if ((iNESCart.iNES2 = get_ines_version()))
+      rom_load_ines2();
+   else
+      rom_load_ines();
 
-	if (!iNESCart.iNES2)
-		rom_load_ines();
-	else
-		rom_load_ines2();
+   if (!ROM_size)
+      ROM_size = 256;
 
-	if (!ROM_size)
-		ROM_size = 256;
+   /* Trainer */
+   if (head.ROM_type & 4)
+   {
+      trainerpoo = (uint8*)FCEU_gmalloc(512);
+      FCEU_fread(trainerpoo, 512, 1, fp);
+      filesize -= 512;
+   }
 
-	/* Trainer */
-	if (head.ROM_type & 4) {
-		trainerpoo = (uint8*)FCEU_gmalloc(512);
-		FCEU_fread(trainerpoo, 512, 1, fp);
-		filesize -= 512;
-	}
+   romSize = (ROM_size * 0x4000) + (VROM_size * 0x2000);
 
-	romSize = (ROM_size * 0x4000) + (VROM_size * 0x2000);
+   if (romSize > filesize)
+   {
+      FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", romSize -  filesize);
+   }
+   else if (romSize < filesize)
+      FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
-	if (romSize > filesize) {
-		FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", romSize -  filesize);
-	} else if (romSize < filesize)
-		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
+   rom_size_pow2 =  uppow2(ROM_size) * 0x4000;
 
-	rom_size_pow2 =  uppow2(ROM_size) * 0x4000;
+   if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
+      return 0;
 
-	if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
-		return 0;
+   memset(ROM, 0xFF, rom_size_pow2);
+   FCEU_fread(ROM, 0x4000, ROM_size, fp);
 
-	memset(ROM, 0xFF, rom_size_pow2);
-	FCEU_fread(ROM, 0x4000, ROM_size, fp);
+   if (VROM_size)
+   {
+      vrom_size_pow2 = uppow2(VROM_size) * 0x2000;
 
-	if (VROM_size) {
-		vrom_size_pow2 = uppow2(VROM_size) * 0x2000;
+      if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL)
+      {
+         free(ROM);
+         ROM = NULL;
+         return 0;
+      }
 
-		if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL) {
-			free(ROM);
-			ROM = NULL;
-			return 0;
-		}
+      memset(VROM, 0xFF, vrom_size_pow2);
+      FCEU_fread(VROM, 0x2000, VROM_size, fp);
+   }
 
-		memset(VROM, 0xFF, vrom_size_pow2);
-		FCEU_fread(VROM, 0x2000, VROM_size, fp);
-	}
+   iNESCart.PRGRomSize = ROM_size * 0x4000;
+   iNESCart.CHRRomSize = VROM_size * 0x2000;
 
-	iNESCart.PRGRomSize = ROM_size * 0x4000;
-	iNESCart.CHRRomSize = VROM_size * 0x2000;
+   iNESCart.PRGCRC32   = CalcCRC32(0, ROM, ROM_size * 0x4000);
+   iNESCart.CHRCRC32   = CalcCRC32(0, VROM, VROM_size * 0x2000);
+   iNESCart.CRC32      = CalcCRC32(iNESCart.PRGCRC32, VROM, VROM_size * 0x2000);
 
-	iNESCart.PRGCRC32   = CalcCRC32(0, ROM, ROM_size * 0x4000);
-	iNESCart.CHRCRC32   = CalcCRC32(0, VROM, VROM_size * 0x2000);
-	iNESCart.CRC32      = CalcCRC32(iNESCart.PRGCRC32, VROM, VROM_size * 0x2000);
+   md5_starts(&md5);
+   md5_update(&md5, ROM, ROM_size * 0x4000);
+   if (VROM_size)
+      md5_update(&md5, VROM, VROM_size * 0x2000);
+   md5_finish(&md5, iNESCart.MD5);
 
-	md5_starts(&md5);
-	md5_update(&md5, ROM, ROM_size * 0x4000);
-	if (VROM_size)
-		md5_update(&md5, VROM, VROM_size * 0x2000);
-	md5_finish(&md5, iNESCart.MD5);
-
-	memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
-
-#ifdef DEBUG
-	mappername = "Not Listed";
-
-	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
-		if (bmap[mappertest].number == iNESCart.mapper) {
-			mappername = (char*)bmap[mappertest].name;
-			break;
-		}
-	}
-#endif
-
-	if (iNESCart.iNES2 == 0) {
-		if (strstr(name, "(E)") || strstr(name, "(e)") ||
-			strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
-			strstr(name, "(F)") || strstr(name, "(f)") ||
-			strstr(name, "(G)") || strstr(name, "(g)") ||
-			strstr(name, "(I)") || strstr(name, "(i)") ||
-			strstr(name, "(S)") || strstr(name, "(s)") ||
-			strstr(name, "(France)") || strstr(name, "(Germany)") ||
-			strstr(name, "(Italy)") || strstr(name, "(Spain)") ||
-			strstr(name, "(Sweden)") || strstr(name, "(Sw)") ||
-			strstr(name, "(Australia)") || strstr(name, "(A)") ||
-			strstr(name, "(a)")) {
-				iNESCart.region = 1;
-		}
-	}
+   memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
 
 #ifdef DEBUG
-	FCEU_printf(" PRG-ROM CRC32:  0x%08X\n", iNESCart.PRGCRC32);
-	FCEU_printf(" PRG+CHR CRC32:  0x%08X\n", iNESCart.CRC32);
-	FCEU_printf(" PRG+CHR MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
-	FCEU_printf(" PRG-ROM:  %3d x 16KiB\n", ROM_size);
-	FCEU_printf(" CHR-ROM:  %3d x  8KiB\n", VROM_size);
-	FCEU_printf(" Mapper #: %3d\n", iNESCart.mapper);
-	FCEU_printf(" Mapper name: %s\n", mappername);
-	FCEU_printf(" Mirroring: %s\n", iNESCart.mirror == 2 ? "None (Four-screen)" : iNESCart.mirror ? "Vertical" : "Horizontal");
-	FCEU_printf(" Battery: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
-	FCEU_printf(" System: %s\n", tv_region[iNESCart.region]);
-	FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
+   mappername = "Not Listed";
+
+   for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++)
+   {
+      if (bmap[mappertest].number == iNESCart.mapper)
+      {
+         mappername = (char*)bmap[mappertest].name;
+         break;
+      }
+   }
 #endif
 
-	if (iNESCart.iNES2) {
-		unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
-		unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
+   if (iNESCart.iNES2 == 0) {
+      if (strstr(name, "(E)") || strstr(name, "(e)") ||
+            strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
+            strstr(name, "(F)") || strstr(name, "(f)") ||
+            strstr(name, "(G)") || strstr(name, "(g)") ||
+            strstr(name, "(I)") || strstr(name, "(i)") ||
+            strstr(name, "(S)") || strstr(name, "(s)") ||
+            strstr(name, "(France)") || strstr(name, "(Germany)") ||
+            strstr(name, "(Italy)") || strstr(name, "(Spain)") ||
+            strstr(name, "(Sweden)") || strstr(name, "(Sw)") ||
+            strstr(name, "(Australia)") || strstr(name, "(A)") ||
+            strstr(name, "(a)")) {
+         iNESCart.region = 1;
+      }
+   }
 
-		FCEU_printf(" NES 2.0 extended iNES.\n");
-		FCEU_printf(" Sub Mapper #: %3d\n", iNESCart.submapper);
-		if (PRGRAM || CHRRAM) {
-			if (head.ROM_type & 0x02) {
-				FCEU_printf(" PRG RAM: %d KB (%d KB battery-backed)\n", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
-				FCEU_printf(" CHR RAM: %d KB (%d KB battery-backed)\n", CHRRAM / 1024, iNESCart.CHRRamSaveSize / 1024);
-			} else {
-				FCEU_printf(" PRG RAM: %d KB\n", PRGRAM / 1024);
-				FCEU_printf(" CHR RAM: %d KB\n", CHRRAM / 1024);
-			}
-		}		
-	}
+#ifdef DEBUG
+   FCEU_printf(" PRG-ROM CRC32:  0x%08X\n", iNESCart.PRGCRC32);
+   FCEU_printf(" PRG+CHR CRC32:  0x%08X\n", iNESCart.CRC32);
+   FCEU_printf(" PRG+CHR MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
+   FCEU_printf(" PRG-ROM:  %3d x 16KiB\n", ROM_size);
+   FCEU_printf(" CHR-ROM:  %3d x  8KiB\n", VROM_size);
+   FCEU_printf(" Mapper #: %3d\n", iNESCart.mapper);
+   FCEU_printf(" Mapper name: %s\n", mappername);
+   FCEU_printf(" Mirroring: %s\n", iNESCart.mirror == 2 ? "None (Four-screen)" : iNESCart.mirror ? "Vertical" : "Horizontal");
+   FCEU_printf(" Battery: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
+   FCEU_printf(" System: %s\n", tv_region[iNESCart.region]);
+   FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
 
-	ResetCartMapping();
-	ResetExState(0, 0);
+   if (iNESCart.iNES2)
+   {
+      unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
+      unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
 
-	SetupCartPRGMapping(0, ROM, rom_size_pow2, 0);
+      FCEU_printf(" NES 2.0 extended iNES.\n");
+      FCEU_printf(" Sub Mapper #: %3d\n", iNESCart.submapper);
+      if (PRGRAM || CHRRAM)
+      {
+         if (head.ROM_type & 0x02)
+         {
+            FCEU_printf(" PRG RAM: %d KB (%d KB battery-backed)\n", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
+            FCEU_printf(" CHR RAM: %d KB (%d KB battery-backed)\n", CHRRAM / 1024, iNESCart.CHRRamSaveSize / 1024);
+         }
+         else
+         {
+            FCEU_printf(" PRG RAM: %d KB\n", PRGRAM / 1024);
+            FCEU_printf(" CHR RAM: %d KB\n", CHRRAM / 1024);
+         }
+      }		
+   }
+#endif
 
-	SetInput();
-	CheckHInfo();
+   ResetCartMapping();
+   ResetExState(0, 0);
 
-	{
-		int x;
-		uint64 partialmd5 = 0;
-		int mapper    = iNESCart.mapper;
-		int mirroring = iNESCart.mirror;
+   SetupCartPRGMapping(0, ROM, rom_size_pow2, 0);
 
-		for (x = 0; x < 8; x++)
-			partialmd5 |= (uint64)iNESCart.MD5[7 - x] << (x * 8);
+   SetInput();
+   CheckHInfo();
 
-		FCEU_VSUniCheck(partialmd5, &mapper, &mirroring);
+   {
+      int x;
+      uint64 partialmd5 = 0;
+      int mapper    = iNESCart.mapper;
+      int mirroring = iNESCart.mirror;
 
-		if ((mapper != iNESCart.mapper) || (mirroring != iNESCart.mirror)) {
-			FCEU_PrintError("\n");
-			FCEU_PrintError(" Incorrect VS-Unisystem header information!\n");
-			if (mapper != iNESCart.mapper)    FCEU_PrintError(" Mapper:    %d\n", mapper);
-			if (mirroring != iNESCart.mirror) FCEU_PrintError(" Mirroring: %s\n",
-					(mirroring == 2) ? "None (Four-screen)" : mirroring ? "Vertical" : "Horizontal");
-			iNESCart.mapper = mapper;
-			iNESCart.mirror = mirroring;
-		}
-	}
+      for (x = 0; x < 8; x++)
+         partialmd5 |= (uint64)iNESCart.MD5[7 - x] << (x * 8);
 
-	/* Must remain here because above functions might change value of
-	 * VROM_size and free(VROM).
-	*/
-	if (VROM_size)
-		SetupCartCHRMapping(0, VROM, vrom_size_pow2, 0);
+      FCEU_VSUniCheck(partialmd5, &mapper, &mirroring);
 
-	if (iNESCart.mirror == 2) {
-		ExtraNTARAM = (uint8*)FCEU_gmalloc(2048);
-		SetupCartMirroring(4, 1, ExtraNTARAM);
-	} else if (iNESCart.mirror >= 0x10)
-		SetupCartMirroring(2 + (iNESCart.mirror & 1), 1, 0);
-	else
-		SetupCartMirroring(iNESCart.mirror & 1, (iNESCart.mirror & 4) >> 2, 0);
+      if ((mapper != iNESCart.mapper) || (mirroring != iNESCart.mirror))
+      {
+         FCEU_PrintError("\n");
+         FCEU_PrintError(" Incorrect VS-Unisystem header information!\n");
+         if (mapper != iNESCart.mapper)
+            FCEU_PrintError(" Mapper:    %d\n", mapper);
+         if (mirroring != iNESCart.mirror)
+            FCEU_PrintError(" Mirroring: %s\n",
+                  (mirroring == 2) ? "None (Four-screen)" : mirroring ? "Vertical" : "Horizontal");
+         iNESCart.mapper = mapper;
+         iNESCart.mirror = mirroring;
+      }
+   }
 
-	iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
+   /* Must remain here because above functions might change value of
+    * VROM_size and free(VROM).
+    */
+   if (VROM_size)
+      SetupCartCHRMapping(0, VROM, vrom_size_pow2, 0);
 
-	if (!iNES_Init(iNESCart.mapper)) {
-		FCEU_printf("\n");
-		FCEU_PrintError(" iNES mapper #%d is not supported at all.\n", iNESCart.mapper);
-		return 0;
-	}
+   if (iNESCart.mirror == 2)
+   {
+      ExtraNTARAM = (uint8*)FCEU_gmalloc(2048);
+      SetupCartMirroring(4, 1, ExtraNTARAM);
+   }
+   else if (iNESCart.mirror >= 0x10)
+      SetupCartMirroring(2 + (iNESCart.mirror & 1), 1, 0);
+   else
+      SetupCartMirroring(iNESCart.mirror & 1, (iNESCart.mirror & 4) >> 2, 0);
 
-	GameInterface = iNESGI;
+   iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
 
-	/* 0: RP2C02 ("NTSC NES")
-	 * 1: RP2C07 ("Licensed PAL NES")
-	 * 2: Multiple-region
-	 * 3: UMC 6527P ("Dendy") */
-	if (iNESCart.region == 3) dendy = 1;
-	FCEUI_SetVidSystem((iNESCart.region == 1) ? 1 : 0);
+   if (!iNES_Init(iNESCart.mapper))
+   {
+      FCEU_printf("\n");
+      FCEU_PrintError(" iNES mapper #%d is not supported at all.\n",
+            iNESCart.mapper);
+      return 0;
+   }
 
-	return 1;
+   GameInterface = iNESGI;
+
+   /* 0: RP2C02 ("NTSC NES")
+    * 1: RP2C07 ("Licensed PAL NES")
+    * 2: Multiple-region
+    * 3: UMC 6527P ("Dendy") */
+   if (iNESCart.region == 3)
+      dendy = 1;
+   FCEUI_SetVidSystem((iNESCart.region == 1) ? 1 : 0);
+
+   return 1;
 }
 
 static int iNES_Init(int num) {
