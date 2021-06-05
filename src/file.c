@@ -77,7 +77,8 @@ static MEMWRAP *MakeMemWrapBuffer(uint8 *buffer, size_t bufsize)
    return tmp;
 }
 
-FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn,
+FCEUFILE * FCEU_fopen(
+      const char *path, const char *ipsfn,
       char *mode, char *ext, uint8 *buffer, size_t bufsize)
 {
    FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));

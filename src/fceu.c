@@ -222,11 +222,12 @@ void ResetGameLoaded(void)
 }
 
 int UNIFLoad(const char *name, FCEUFILE *fp);
-int iNESLoad(const char *name, FCEUFILE *fp);
+int iNESLoad(int persistent_data, const char *name, FCEUFILE *fp);
 int FDSLoad(const char *name, FCEUFILE *fp);
 int NSFLoad(FCEUFILE *fp);
 
-FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
+FCEUGI *FCEUI_LoadGame(int persistent_data,
+      const char *name, uint8_t *databuf, size_t databufsize)
 {
    FCEUFILE *fp;
 
@@ -248,12 +249,13 @@ FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
 
    fp = FCEU_fopen(name, NULL, "rb", 0, databuf, databufsize);
 
-   if (!fp) {
+   if (!fp)
+   {
       FCEU_PrintError("Error opening \"%s\"!", name);
       return 0;
    }
 
-   if (iNESLoad(name, fp))
+   if (iNESLoad(persistent_data, name, fp))
       goto endlseq;
    if (NSFLoad(fp))
       goto endlseq;

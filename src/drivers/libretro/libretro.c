@@ -69,11 +69,13 @@ RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
 
 extern void FCEU_ZapperSetTolerance(int t);
 
-static retro_video_refresh_t video_cb = NULL;
-static retro_input_poll_t poll_cb = NULL;
-static retro_input_state_t input_cb = NULL;
+static retro_video_refresh_t video_cb            = NULL;
+static retro_input_poll_t poll_cb                = NULL;
+static retro_input_state_t input_cb              = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
-retro_environment_t environ_cb = NULL;
+retro_environment_t environ_cb                   = NULL;
+
+int has_persistent_data                   = 0;
 #ifdef PSP
 static bool crop_overscan;
 #else
@@ -895,6 +897,14 @@ static void set_variables(void)
 
 void retro_set_environment(retro_environment_t cb)
 {
+   static const struct retro_system_content_info_override content_overrides[] = {
+      {
+         "fds|nes|unf|unif", /* extensions */
+         false,    /* need_fullpath */
+         true      /* persistent_data */
+      },
+      { NULL, false, false }
+   };
    static const struct retro_controller_description pads1[] = {
       { "Auto",    RETRO_DEVICE_AUTO },
       { "Gamepad", RETRO_DEVICE_GAMEPAD },
@@ -943,6 +953,9 @@ void retro_set_environment(retro_environment_t cb)
 
    environ_cb = cb;
    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+   /* Request a persistent content data buffer */
+   environ_cb(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE,
+         (void*)content_overrides);
 }
 
 void retro_get_system_info(struct retro_system_info *info)
@@ -2348,11 +2361,12 @@ static char slash = '\\';
 static char slash = '/';
 #endif
 
-bool retro_load_game(const struct retro_game_info *game)
+bool retro_load_game(const struct retro_game_info *info)
 {
    unsigned i, j;
    char* dir=NULL;
    char* sav_dir=NULL;
+   const struct retro_game_info_ext *info_ext = NULL;
    size_t fourscore_len = sizeof(fourscore_db_list)   / sizeof(fourscore_db_list[0]);
    size_t famicom_4p_len = sizeof(famicom_4p_db_list) / sizeof(famicom_4p_db_list[0]);
    enum retro_pixel_format rgb565;
@@ -2407,11 +2421,14 @@ bool retro_load_game(const struct retro_game_info *game)
 
       { 0 },
    };
-   size_t desc_base = 64;
+   size_t game_size                     = 0;
+   uint8_t *game_data                   = NULL;
+   const char *game_path                = NULL;
+   size_t desc_base                     = 64;
    struct retro_memory_descriptor descs[64 + 4];
    struct retro_memory_map        mmaps;
 
-   if (!game)
+   if (!info)
       return false;
 
 #ifdef FRONTEND_SUPPORTS_RGB565
@@ -2465,7 +2482,24 @@ bool retro_load_game(const struct retro_game_info *game)
    FCEUI_SetSoundVolume(sndvolume);
    FCEUI_Sound(sndsamplerate);
 
-   GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
+   if (environ_cb(RETRO_ENVIRONMENT_GET_GAME_INFO_EXT, &info_ext) &&
+       info_ext->persistent_data)
+   {
+      has_persistent_data = 1;
+      game_data           = info_ext->data;
+      game_size           = info_ext->size;
+      game_path           = info_ext->name;
+   }
+   else
+   {
+      game_data           = info->data;
+      game_size           = info->size;
+      game_path           = info->path;
+   }
+
+   GameInfo = (FCEUGI*)FCEUI_LoadGame(has_persistent_data,
+         game_path, game_data, game_size);
+
    if (!GameInfo)
    {
       struct retro_message msg;
@@ -2620,6 +2654,7 @@ void retro_unload_game(void)
 #ifdef HAVE_NTSC_FILTER
    NTSCFilter_Cleanup();
 #endif
+   has_persistent_data = 0;
 }
 
 unsigned retro_get_region(void)

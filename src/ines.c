@@ -41,6 +41,7 @@
 #include "vsuni.h"
 
 extern SFORMAT FCEUVSUNI_STATEINFO[];
+extern int has_persistent_data;
 
 uint8 *trainerpoo       = NULL;
 uint8 *ROM              = NULL;
@@ -77,37 +78,43 @@ static void iNES_ExecPower() {
 	}
 }
 
-static void iNESGI(int h) {
-	switch (h)
-	{
-	case GI_RESETM2:
-		if (iNESCart.Reset)
-			iNESCart.Reset();
-		break;
-	case GI_POWER:
-		iNES_ExecPower();
-		break;
-	case GI_CLOSE:
-		if (iNESCart.Close)
-			iNESCart.Close();
-		if (ROM) {
-			free(ROM);
-			ROM = NULL;
-		}
-		if (VROM) {
-			free(VROM);
-			VROM = NULL;
-		}
-		if (trainerpoo) {
-			free(trainerpoo);
-			trainerpoo = NULL;
-		}
-		if (ExtraNTARAM) {
-			free(ExtraNTARAM);
-			ExtraNTARAM = NULL;
-		}
-		break;
-	}
+static void iNESGI(int h)
+{
+   switch (h)
+   {
+      case GI_RESETM2:
+         if (iNESCart.Reset)
+            iNESCart.Reset();
+         break;
+      case GI_POWER:
+         iNES_ExecPower();
+         break;
+      case GI_CLOSE:
+         if (iNESCart.Close)
+            iNESCart.Close();
+         if (ROM)
+         {
+            if (!has_persistent_data)
+               free(ROM);
+            ROM = NULL;
+         }
+         if (VROM)
+         {
+            free(VROM);
+            VROM = NULL;
+         }
+         if (trainerpoo)
+         {
+            free(trainerpoo);
+            trainerpoo = NULL;
+         }
+         if (ExtraNTARAM)
+         {
+            free(ExtraNTARAM);
+            ExtraNTARAM = NULL;
+         }
+         break;
+   }
 }
 
 struct CRCMATCH {
@@ -858,7 +865,7 @@ static int string_is_empty(const char *data)
    return !data || (*data == '\0');
 }
 
-int iNESLoad(const char *name, FCEUFILE *fp)
+int iNESLoad(int persistent_data, const char *name, FCEUFILE *fp)
 {
 	const char *tv_region[] = { "NTSC", "PAL", "Multi-region", "Dendy" };
 	struct md5_context md5;
@@ -928,11 +935,16 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
 	rom_size_pow2 =  uppow2(ROM_size) * 0x4000;
 
-	if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
-		return 0;
+   if (persistent_data)
+      ROM = (uint8*)fp->fp->data;
+   else
+   {
+      if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
+         return 0;
+      memset(ROM, 0xFF, rom_size_pow2);
+      FCEU_fread(ROM, 0x4000, ROM_size, fp);
+   }
 
-	memset(ROM, 0xFF, rom_size_pow2);
-	FCEU_fread(ROM, 0x4000, ROM_size, fp);
 
 	if (VROM_size)
    {
@@ -940,7 +952,8 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
 		if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL)
       {
-			free(ROM);
+         if (!persistent_data)
+            free(ROM);
 			ROM = NULL;
 			return 0;
 		}

@@ -708,7 +708,8 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	char *fn = FCEU_MakeFName(FCEUMKF_FDSROM, 0, 0);
 
-	if (!(zp = FCEU_fopen(fn, 0, "rb", 0, NULL, 0))) {
+	if (!(zp = FCEU_fopen(fn, 0, "rb", 0, NULL, 0)))
+   {
 		FCEU_PrintError("FDS BIOS ROM image missing!\n");
 		free(fn);
 		return 0;
