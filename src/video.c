@@ -65,9 +65,6 @@ int FCEU_InitVirtualVideo(void)
    return 1;
 }
 
-static int howlong;
-static char errmsg[65];
-
 #include "drawing.h"
 
 void FCEUI_SaveSnapshot(void) { }
@@ -81,7 +78,6 @@ void FCEU_PutImage(void)
 		if (GameInfo->type == GIT_VSUNI)
 			FCEU_VSUniDraw(XBuf);
 	}
-	if (howlong) howlong--;
 	if (show_crosshair)
 		FCEU_DrawInput(XBuf);
 }
@@ -93,18 +89,17 @@ void FCEU_PutImageDummy(void)
 void FCEU_DispMessage(char *format, ...)
 {
    va_list ap;
+   static char errmsg[65];
 
    va_start(ap, format);
    vsprintf(errmsg, format, ap);
    va_end(ap);
 
-   howlong = 180;
    FCEUD_DispMessage(errmsg);
 }
 
 void FCEU_ResetMessages(void)
 {
-	howlong = 180;
 }
 
 int SaveSnapshot(void)
