@@ -165,8 +165,6 @@ static unsigned opt_region = 0;
 static unsigned opt_showAdvSoundOptions = 0;
 static unsigned opt_showAdvSystemOptions = 0;
 
-int FCEUnetplay;
-
 #if defined(PSP) || defined(PS2)
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
