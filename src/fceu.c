@@ -339,14 +339,6 @@ int FCEUI_Initialize(void) {
 	FSettings.UsrLastSLine[0] = 231;
 	FSettings.UsrLastSLine[1] = 239;
 	FSettings.SoundVolume = 100;
-	FSettings.dendy = 0;
-	FSettings.swapDuty = 0;
-	ppu.overclock_enabled = 0;
-	ppu.skip_7bit_overclocking = 1;
-	ppu.totalscanlines = 0;
-	ppu.normal_scanlines = SCANLINES_NORMAL;
-	ppu.extrascanlines = 0;
-	ppu.vblankscanlines = 0;
 	FCEUPPU_Init();
 	X6502_Init();
 	return 1;
@@ -387,6 +379,8 @@ void ResetNES(void)
 	X6502_Reset();
 }
 
+int option_ramstate = 0;
+
 void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 {
 	int x = 0;
@@ -401,7 +395,7 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 										/* 1942 SCORE/HISCORE is screwed... */
 #endif
 		uint8_t v = 0;
-		switch (FSettings.ramstate)
+		switch (option_ramstate)
 		{
 		case 0: v = 0xff; break;
 		case 1: v = 0x00; break;
@@ -470,7 +464,7 @@ void FCEU_ResetVidSys(void)
 	else if (GameInfo->vidsys == GIV_PAL)
    {
       w = 1;
-      FSettings.dendy = 0;
+      dendy = 0;
    }
 	else
 		w = FSettings.PAL;
@@ -478,12 +472,12 @@ void FCEU_ResetVidSys(void)
 	PAL = w ? 1 : 0;
 
    if (PAL)
-      FSettings.dendy = 0;
+      dendy = 0;
 
-   ppu.normal_scanlines = FSettings.dendy ? SCANLINES_DENDY : SCANLINES_NORMAL;
-   ppu.totalscanlines = ppu.normal_scanlines + (ppu.overclock_enabled ? ppu.extrascanlines : 0);
+   normal_scanlines = dendy ? 290 : 240;
+   totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
 
-	FCEUPPU_SetVideoSystem(w || FSettings.dendy);
+	FCEUPPU_SetVideoSystem(w || dendy);
 	SetSoundVariables();
 }
 
@@ -521,7 +515,7 @@ void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall)
 	FSettings.UsrLastSLine[0] = ntscl;
 	FSettings.UsrFirstSLine[1] = palf;
 	FSettings.UsrLastSLine[1] = pall;
-	if (PAL || FSettings.dendy)
+	if (PAL || dendy)
    {
 		FSettings.FirstSLine = FSettings.UsrFirstSLine[1];
 		FSettings.LastSLine = FSettings.UsrLastSLine[1];
@@ -565,7 +559,7 @@ void FCEUI_SetSnapName(int a)
 
 int32 FCEUI_GetDesiredFPS(void)
 {
-	if (PAL || FSettings.dendy)
+	if (PAL || dendy)
 		return(838977920);	/* ~50.007 */
 	else
 		return(1008307711);	/* ~60.1 */

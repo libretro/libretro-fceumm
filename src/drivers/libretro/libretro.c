@@ -67,6 +67,8 @@ void linearFree(void* mem);
 RETRO_HW_RENDER_INTEFACE_GSKIT_PS2 *ps2 = NULL;
 #endif
 
+extern void FCEU_ZapperSetTolerance(int t);
+
 static retro_video_refresh_t video_cb = NULL;
 static retro_input_poll_t poll_cb = NULL;
 static retro_input_state_t input_cb = NULL;
@@ -93,7 +95,7 @@ static int aspect_ratio_par;
 
 #define MAX_BUTTONS 8
 #define TURBO_BUTTONS 2
-unsigned turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
+unsigned char turbo_button_toggle[MAX_PLAYERS][TURBO_BUTTONS] = { {0} };
 
 typedef struct
 {
@@ -143,10 +145,26 @@ static bool libretro_supports_bitmasks = false;
 
 const size_t PPU_BIT = 1ULL << 31ULL;
 
+extern uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], PPU[4];
+
+/* overclock the console by adding dummy scanlines to PPU loop
+ * disables DMC DMA and WaveHi filling for these dummies
+ * doesn't work with new PPU */
+unsigned overclock_enabled = -1;
+unsigned overclocked = 0;
+unsigned skip_7bit_overclocking = 1; /* 7-bit samples have priority over overclocking */
+unsigned totalscanlines = 0;
+unsigned normal_scanlines = 240;
+unsigned extrascanlines = 0;
+unsigned vblankscanlines = 0;
+unsigned dendy = 0;
+
 static unsigned systemRegion = 0;
 static unsigned opt_region = 0;
 static unsigned opt_showAdvSoundOptions = 0;
 static unsigned opt_showAdvSystemOptions = 0;
+
+int FCEUnetplay;
 
 #if defined(PSP) || defined(PS2)
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
@@ -163,13 +181,27 @@ static uint16_t* fceu_video_out;
 static unsigned sndsamplerate;
 static unsigned sndquality;
 static unsigned sndvolume;
+unsigned swapDuty;
 
 static int32_t *sound = 0;
 static uint32_t Dummy = 0;
 static uint32_t current_palette = 0;
 static unsigned serialize_size;
 
+int PPUViewScanline=0;
+int PPUViewer=0;
+
+/* extern forward decls.*/
+extern FCEUGI *GameInfo;
+extern uint8 *XBuf;
+extern CartInfo iNESCart;
+extern CartInfo UNIFCart;
+extern int show_crosshair;
+extern int option_ramstate;
+
 /* emulator-specific callback functions */
+
+void UpdatePPUView(int refreshchr) { }
 
 const char * GetKeyboard(void)
 {
@@ -273,7 +305,13 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 }
 
 /*palette for FCEU*/
+#define PAL_TOTAL   16 /* total no. of palettes in palettes[] */
+#define PAL_DEFAULT (PAL_TOTAL + 1)
+#define PAL_RAW     (PAL_TOTAL + 2)
+#define PAL_CUSTOM  (PAL_TOTAL + 3)
+
 static int external_palette_exist = 0;
+extern int ipalette;
 
 /* table for currently loaded palette */
 static uint8_t base_palette[192];
@@ -574,11 +612,6 @@ struct st_palettes palettes[] = {
          0XB6ECF1, 0XBFBFBF, 0X000000, 0X000000 }
    }
 };
-
-#define PAL_TOTAL   (sizeof(palettes) / sizeof(palettes[0])) /* total palettes in table */
-#define PAL_DEFAULT (PAL_TOTAL + 1)
-#define PAL_RAW     (PAL_TOTAL + 2)
-#define PAL_CUSTOM  (PAL_TOTAL + 3)
 
 #ifdef HAVE_NTSC_FILTER
 /* ntsc */
@@ -955,7 +988,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = get_aspect_ratio(width, height);
    info->timing.sample_rate = (float)sndsamplerate;
-   if (FSettings.PAL || FSettings.dendy)
+   if (FSettings.PAL || dendy)
       info->timing.fps = 838977920.0/16777215.0;
    else
       info->timing.fps = 1008307711.0/16777215.0;
@@ -1060,7 +1093,7 @@ static void FCEUD_RegionOverride(unsigned region)
          break;
    }
 
-   FSettings.dendy = d;
+   dendy = d;
    FCEUI_SetVidSystem(pal);
    ResetPalette();
 }
@@ -1116,11 +1149,11 @@ static void check_variables(bool startup)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (!strcmp(var.value, "random"))
-         FSettings.ramstate = 2;
+         option_ramstate = 2;
       else if (!strcmp(var.value, "fill $00"))
-         FSettings.ramstate = 1;
+         option_ramstate = 1;
       else
-         FSettings.ramstate = 0;
+         option_ramstate = 0;
    }
 
 #ifdef HAVE_NTSC_FILTER
@@ -1159,18 +1192,38 @@ static void check_variables(bool startup)
          current_palette = PAL_RAW;
       else if (!strcmp(var.value, "custom"))
          current_palette = PAL_CUSTOM;
-      else
-      {
-         unsigned i;
-         for (i = 0; i < PAL_TOTAL; i++)
-         {
-            if (!strcmp(var.value, palettes[i].name))
-            {
-               current_palette = i;
-               break;
-            }
-         }
-      }
+      else if (!strcmp(var.value, "asqrealc"))
+         current_palette = 0;
+      else if (!strcmp(var.value, "nintendo-vc"))
+         current_palette = 1;
+      else if (!strcmp(var.value, "rgb"))
+         current_palette = 2;
+      else if (!strcmp(var.value, "yuv-v3"))
+         current_palette = 3;
+      else if (!strcmp(var.value, "unsaturated-final"))
+         current_palette = 4;
+      else if (!strcmp(var.value, "sony-cxa2025as-us"))
+         current_palette = 5;
+      else if (!strcmp(var.value, "pal"))
+         current_palette = 6;
+      else if (!strcmp(var.value, "bmf-final2"))
+         current_palette = 7;
+      else if (!strcmp(var.value, "bmf-final3"))
+         current_palette = 8;
+      else if (!strcmp(var.value, "smooth-fbx"))
+         current_palette = 9;
+      else if (!strcmp(var.value, "composite-direct-fbx"))
+         current_palette = 10;
+      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
+         current_palette = 11;
+      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
+         current_palette = 12;
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
+         current_palette = 13;
+      else if (!strcmp(var.value, "nescap"))
+         current_palette = 14;
+      else if (!strcmp(var.value, "wavebeam"))
+         current_palette = 15;
 
       if (current_palette != orig_value)
       {
@@ -1201,33 +1254,33 @@ static void check_variables(bool startup)
       bool do_reinit = false;
 
       if (!strcmp(var.value, "disabled")
-            && ppu.overclock_enabled != 0)
+            && overclock_enabled != 0)
       {
-         ppu.skip_7bit_overclocking = 1;
-         ppu.extrascanlines         = 0;
-         ppu.vblankscanlines        = 0;
-         ppu.overclock_enabled      = 0;
+         skip_7bit_overclocking = 1;
+         extrascanlines         = 0;
+         vblankscanlines        = 0;
+         overclock_enabled      = 0;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-Postrender"))
       {
-         ppu.skip_7bit_overclocking = 1;
-         ppu.extrascanlines         = 266;
-         ppu.vblankscanlines        = 0;
-         ppu.overclock_enabled      = 1;
+         skip_7bit_overclocking = 1;
+         extrascanlines         = 266;
+         vblankscanlines        = 0;
+         overclock_enabled      = 1;
          do_reinit              = true;
       }
       else if (!strcmp(var.value, "2x-VBlank"))
       {
-         ppu.skip_7bit_overclocking = 1;
-         ppu.extrascanlines         = 0;
-         ppu.vblankscanlines        = 266;
-         ppu.overclock_enabled      = 1;
+         skip_7bit_overclocking = 1;
+         extrascanlines         = 0;
+         vblankscanlines        = 266;
+         overclock_enabled      = 1;
          do_reinit              = true;
       }
 
-      ppu.normal_scanlines = FSettings.dendy ? SCANLINES_DENDY : SCANLINES_NORMAL;
-      ppu.totalscanlines = ppu.normal_scanlines + (ppu.overclock_enabled ? ppu.extrascanlines : 0);
+      normal_scanlines = dendy ? 290 : 240;
+      totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
 
       if (do_reinit && startup)
       {
@@ -1259,10 +1312,8 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "enabled"))
-         FSettings.show_crosshair = 1;
-      else if (!strcmp(var.value, "disabled"))
-         FSettings.show_crosshair = 0;
+      if (!strcmp(var.value, "enabled")) show_crosshair = 1;
+      else if (!strcmp(var.value, "disabled")) show_crosshair = 0;
    }
 
 #ifdef PSP
@@ -1400,8 +1451,8 @@ static void check_variables(bool startup)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       bool newval = (!strcmp(var.value, "enabled"));
-      if (newval != FSettings.swapDuty)
-         FSettings.swapDuty = newval;
+      if (newval != swapDuty)
+         swapDuty = newval;
    }
 
    var.key = key;
@@ -2377,6 +2428,8 @@ bool retro_load_game(const struct retro_game_info *game)
 #endif
    sndquality = 0;
    sndvolume = 150;
+   swapDuty = 0;
+   dendy = 0;
    opt_region = 0;
 
    /* Wii: initialize this or else last variable is passed through
@@ -2436,7 +2489,7 @@ bool retro_load_game(const struct retro_game_info *game)
       FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
 
    /* Save region and dendy mode for region-auto detect */
-   systemRegion = (FSettings.dendy << 1) | (retro_get_region() & 1);
+   systemRegion = (dendy << 1) | (retro_get_region() & 1);
 
    current_palette = 0;
 
