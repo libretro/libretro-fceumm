@@ -273,11 +273,6 @@ FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 }
 
 /*palette for FCEU*/
-#define PAL_TOTAL   16 /* total no. of palettes in palettes[] */
-#define PAL_DEFAULT (PAL_TOTAL + 1)
-#define PAL_RAW     (PAL_TOTAL + 2)
-#define PAL_CUSTOM  (PAL_TOTAL + 3)
-
 static int external_palette_exist = 0;
 
 /* table for currently loaded palette */
@@ -579,6 +574,11 @@ struct st_palettes palettes[] = {
          0XB6ECF1, 0XBFBFBF, 0X000000, 0X000000 }
    }
 };
+
+#define PAL_TOTAL   (sizeof(palettes) / sizeof(palettes[0])) /* total palettes in table */
+#define PAL_DEFAULT (PAL_TOTAL + 1)
+#define PAL_RAW     (PAL_TOTAL + 2)
+#define PAL_CUSTOM  (PAL_TOTAL + 3)
 
 #ifdef HAVE_NTSC_FILTER
 /* ntsc */
@@ -1159,38 +1159,18 @@ static void check_variables(bool startup)
          current_palette = PAL_RAW;
       else if (!strcmp(var.value, "custom"))
          current_palette = PAL_CUSTOM;
-      else if (!strcmp(var.value, "asqrealc"))
-         current_palette = 0;
-      else if (!strcmp(var.value, "nintendo-vc"))
-         current_palette = 1;
-      else if (!strcmp(var.value, "rgb"))
-         current_palette = 2;
-      else if (!strcmp(var.value, "yuv-v3"))
-         current_palette = 3;
-      else if (!strcmp(var.value, "unsaturated-final"))
-         current_palette = 4;
-      else if (!strcmp(var.value, "sony-cxa2025as-us"))
-         current_palette = 5;
-      else if (!strcmp(var.value, "pal"))
-         current_palette = 6;
-      else if (!strcmp(var.value, "bmf-final2"))
-         current_palette = 7;
-      else if (!strcmp(var.value, "bmf-final3"))
-         current_palette = 8;
-      else if (!strcmp(var.value, "smooth-fbx"))
-         current_palette = 9;
-      else if (!strcmp(var.value, "composite-direct-fbx"))
-         current_palette = 10;
-      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
-         current_palette = 11;
-      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
-         current_palette = 12;
-      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
-         current_palette = 13;
-      else if (!strcmp(var.value, "nescap"))
-         current_palette = 14;
-      else if (!strcmp(var.value, "wavebeam"))
-         current_palette = 15;
+      else
+      {
+         unsigned i;
+         for (i = 0; i < PAL_TOTAL; i++)
+         {
+            if (!strcmp(var.value, palettes[i].name))
+            {
+               current_palette = i;
+               break;
+            }
+         }
+      }
 
       if (current_palette != orig_value)
       {
