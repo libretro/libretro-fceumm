@@ -6,7 +6,7 @@ void FCEUPPU_Reset(void);
 void FCEUPPU_Power(void);
 int FCEUPPU_Loop(int skip);
 
-void FCEUPPU_LineUpdate();
+void FCEUPPU_LineUpdate(void);
 void FCEUPPU_SetVideoSystem(int w);
 
 extern void (*GameHBIRQHook)(void), (*GameHBIRQHook2)(void);
