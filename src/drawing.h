@@ -1,32 +1,6 @@
 #ifndef _FCEU_DRAWING_H
 #define _FCEU_DRAWING_H
 
-void DrawTextLineBG(uint8 *dest) {
-	int x, y;
-	static int otable[7] = { 81, 49, 30, 17, 8, 3, 0 };
-	for (y = 0; y < 14; y++) {
-		int offs;
-
-		if (y >= 7) offs = otable[13 - y];
-		else offs = otable[y];
-
-		for (x = offs; x < (256 - offs); x++)
-			dest[y * 256 + x] = (dest[y * 256 + x] & 0x0f) | 0xC0;
-	}
-}
-
-static void DrawMessage(void) {
-	if (howlong) {
-		uint8 *t;
-		howlong--;
-		t = XBuf + (FSettings.LastSLine - 16) * 256;
-		if (t >= XBuf) {
-			DrawTextLineBG(t);
-			DrawTextTrans(t + 256 * 3 + (128 - strlen(errmsg) * 4), 256, (uint8*)errmsg, 4);
-		}
-	}
-}
-
 uint8 fontdata2[2048] =
 {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x7e,0x81,0xa5,0x81,0xbd,0x99,0x81,0x7e,0x7e,0xff,0xdb,0xff,0xc3,0xe7,0xff,0x7e,0x36,0x7f,0x7f,0x7f,0x3e,0x1c,0x08,0x00,
