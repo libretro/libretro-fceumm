@@ -854,10 +854,12 @@ static void rom_load_ines2(void) {
 int iNESLoad(const char *name, FCEUFILE *fp) {
 	const char *tv_region[] = { "NTSC", "PAL", "Multi-region", "Dendy" };
 	struct md5_context md5;
+#ifdef DEBUG
 	char* mappername        = NULL;
+	uint32 mappertest       = 0;
+#endif
 	uint64 filesize         = FCEU_fgetsize(fp);
 	uint64 romSize          = 0;
-	uint32 mappertest       = 0;
 	/* used for malloc and cart mapping */
 	uint32 rom_size_pow2    = 0;
 	uint32 vrom_size_pow2   = 0;
@@ -949,6 +951,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
 
+#ifdef DEBUG
 	mappername = "Not Listed";
 
 	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
@@ -957,6 +960,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 			break;
 		}
 	}
+#endif
 
 	if (iNESCart.iNES2 == 0) {
 		if (strstr(name, "(E)") || strstr(name, "(e)") ||
@@ -974,6 +978,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		}
 	}
 
+#ifdef DEBUG
 	FCEU_printf(" PRG-ROM CRC32:  0x%08X\n", iNESCart.PRGCRC32);
 	FCEU_printf(" PRG+CHR CRC32:  0x%08X\n", iNESCart.CRC32);
 	FCEU_printf(" PRG+CHR MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
@@ -985,6 +990,7 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	FCEU_printf(" Battery: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
 	FCEU_printf(" System: %s\n", tv_region[iNESCart.region]);
 	FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
+#endif
 
 	if (iNESCart.iNES2) {
 		unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
@@ -1017,9 +1023,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		int mapper    = iNESCart.mapper;
 		int mirroring = iNESCart.mirror;
 
-		for (x = 0; x < 8; x++) {
+		for (x = 0; x < 8; x++)
 			partialmd5 |= (uint64)iNESCart.MD5[7 - x] << (x * 8);
-		}
 
 		FCEU_VSUniCheck(partialmd5, &mapper, &mirroring);
 
