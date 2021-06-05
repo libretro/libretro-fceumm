@@ -5,6 +5,24 @@
 
 extern int fceuindbg;
 
+/* Overclocking-related */
+extern unsigned overclock_enabled;
+extern unsigned overclocked;
+extern unsigned skip_7bit_overclocking;
+extern unsigned DMC_7bit;
+extern unsigned totalscanlines;
+extern unsigned normal_scanlines;
+extern unsigned extrascanlines;
+extern unsigned vblankscanlines;
+
+/* Region selection */
+extern unsigned dendy;
+
+/* Audio mods*/
+extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
+                           * found on some famiclones/Dendy models.
+                           */
+
 void ResetGameLoaded(void);
 
 #define DECLFR(x) uint8 FP_FASTAPASS(1) x(uint32 A)
@@ -61,9 +79,6 @@ extern uint8 PAL;
 
 #include "driver.h"
 
-#define	SCANLINES_NORMAL 240
-#define SCANLINES_DENDY  290
-
 typedef struct {
 	int PAL;
 	int NetworkPlay;
@@ -87,13 +102,6 @@ typedef struct {
 	uint32 SndRate;
 	int soundq;
 	int lowpass;
-
-	int show_crosshair;
-	int ramstate;
-	int dendy;
-	int swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
-                           * found on some famiclones/Dendy models.
-                           */
 } FCEUS;
 
 extern FCEUS FSettings;

@@ -752,8 +752,8 @@ else
 WARNING_DEFINES = -Wno-write-strings
 endif
 
-CFLAGS += $(fpic) $(WARNING_DEFINES) $(DEFINES) $(ENDIANNESS_DEFINES) -Werror=implicit-function-declaration
-LDFLAGS += $(LIBM) -Werror=implicit-function-declaration
+CFLAGS += $(fpic) $(WARNING_DEFINES) $(DEFINES) $(ENDIANNESS_DEFINES) 
+LDFLAGS += $(LIBM)
 
 ifeq ($(platform), psp1)
 	INCFLAGS += -I$(shell psp-config --pspsdk-path)/include
