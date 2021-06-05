@@ -173,7 +173,7 @@ static int32 FetchNewCHRBank(int32 slot) {
 	CHR1KGetCmd[1] = slot << 2;
 	SENDGET(CHR1KGetCmd, chr_data.buf[bank * 1024], 1024);
 	sprintf(name, "%04x.chr", bank);
-	ofile = fopen(name, "wb");
+	ofile = FCEUD_UTF8fopen(name, "wb");
 	fwrite((void*)&chr_data.buf[bank * 1024], 1, 1024, ofile);
 	fclose(ofile);
 	return bank;
@@ -186,7 +186,7 @@ static int32 FetchNewPRGBank(int32 slot) {
 	PRG8KGetCmd[1] = 0x80 + (slot << 5);
 	SENDGET(PRG8KGetCmd, prg_data.buf[bank * 8192], 8192);
 	sprintf(name, "%04x.prg", bank);
-	ofile = fopen(name, "wb");
+	ofile = FCEUD_UTF8fopen(name, "wb");
 	fwrite((void*)&prg_data.buf[bank * 8192], 1, 8192, ofile);
 	fclose(ofile);
 	return bank;

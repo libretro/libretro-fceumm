@@ -34,12 +34,6 @@
 #include "driver.h"
 #include "general.h"
 
-#include "compat/fopen_utf8.h"
-
-#ifndef __GNUC__
- #define strcasecmp strcmp
-#endif
-
 static MEMWRAP *MakeMemWrap(void *tz, int type)
 {
    MEMWRAP *tmp;
@@ -87,7 +81,7 @@ FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn,
       fceufp->fp = MakeMemWrapBuffer(buffer, bufsize);
    else
    {
-      void *t = fopen_utf8(path, mode);
+      void *t = FCEUD_UTF8fopen(path, mode);
 
       if (!t)
       {

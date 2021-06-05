@@ -6,6 +6,7 @@
 #include <ctype.h>
 
 #include <libretro.h>
+#include <compat/fopen_utf8.h>
 #include <streams/memory_stream.h>
 #include <libretro_dipswitch.h>
 #include <libretro_core_options.h>
@@ -291,7 +292,7 @@ void FCEUD_SoundToggle (void)
 FILE *FCEUD_UTF8fopen(const char *n, const char *m)
 {
    if (n)
-      return fopen(n, m);
+      return fopen_utf8(n, m);
    return NULL;
 }
 
