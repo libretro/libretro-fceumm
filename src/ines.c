@@ -829,7 +829,8 @@ static uint32 get_ines_mapper_id(void) {
 	return ret;
 }
 
-static void rom_load_ines(void) {
+static void rom_load_ines(void)
+{
 	ROM_size           = head.ROM_size;
 	VROM_size          = head.VROM_size;
 	iNESCart.mirror    = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
@@ -837,7 +838,8 @@ static void rom_load_ines(void) {
 	iNESCart.mapper    = get_ines_mapper_id();
 }
 
-static void rom_load_ines2(void) {
+static void rom_load_ines2(void)
+{
 	ROM_size           = head.ROM_size | ((head.upper_PRG_CHR_size >> 0) & 0xF) << 8;
 	VROM_size          = head.VROM_size | ((head.upper_PRG_CHR_size >> 4) & 0xF) << 8;
 	iNESCart.mirror    = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
@@ -851,7 +853,13 @@ static void rom_load_ines2(void) {
 	if (head.CHRRAM_size & 0xF0) iNESCart.CHRRamSaveSize = 64 << ((head.CHRRAM_size >> 4) & 0x0F);
 }
 
-int iNESLoad(const char *name, FCEUFILE *fp) {
+static int string_is_empty(const char *data)
+{
+   return !data || (*data == '\0');
+}
+
+int iNESLoad(const char *name, FCEUFILE *fp)
+{
 	const char *tv_region[] = { "NTSC", "PAL", "Multi-region", "Dendy" };
 	struct md5_context md5;
 #ifdef DEBUG
@@ -869,22 +877,22 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	filesize -= 16; /* remove header size from total size */
 
-	if (memcmp(&head, "NES\x1a", 4)) {
+	if (memcmp(&head, "NES\x1a", 4))
+   {
 		FCEU_PrintError("Not an iNES file!\n");
  		return 0;
 	}
 
 	memset(&iNESCart, 0, sizeof(iNESCart));
 
-	if (!memcmp((char*)(&head) + 0x7, "DiskDude", 8)) {
+	if (!memcmp((char*)(&head) + 0x7, "DiskDude", 8))
 		memset((char*)(&head) + 0x7, 0, 0x9);
-	}
 
-	if (!memcmp((char*)(&head) + 0x7, "demiforce", 9)) {
+	if (!memcmp((char*)(&head) + 0x7, "demiforce", 9))
 		memset((char*)(&head) + 0x7, 0, 0x9);
-	}
 
-	if (!memcmp((char*)(&head) + 0xA, "Ni03", 4)) {
+	if (!memcmp((char*)(&head) + 0xA, "Ni03", 4))
+   {
 		if (!memcmp((char*)(&head) + 0x7, "Dis", 3))
 			memset((char*)(&head) + 0x7, 0, 0x9);
 		else
@@ -902,7 +910,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 		ROM_size = 256;
 
 	/* Trainer */
-	if (head.ROM_type & 4) {
+	if (head.ROM_type & 4)
+   {
 		trainerpoo = (uint8*)FCEU_gmalloc(512);
 		FCEU_fread(trainerpoo, 512, 1, fp);
 		filesize -= 512;
@@ -910,9 +919,11 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 	romSize = (ROM_size * 0x4000) + (VROM_size * 0x2000);
 
-	if (romSize > filesize) {
+	if (romSize > filesize)
+   {
 		FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", romSize -  filesize);
-	} else if (romSize < filesize)
+	}
+   else if (romSize < filesize)
 		FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
 	rom_size_pow2 =  uppow2(ROM_size) * 0x4000;
@@ -923,10 +934,12 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	memset(ROM, 0xFF, rom_size_pow2);
 	FCEU_fread(ROM, 0x4000, ROM_size, fp);
 
-	if (VROM_size) {
+	if (VROM_size)
+   {
 		vrom_size_pow2 = uppow2(VROM_size) * 0x2000;
 
-		if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL) {
+		if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL)
+      {
 			free(ROM);
 			ROM = NULL;
 			return 0;
@@ -954,29 +967,32 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 #ifdef DEBUG
 	mappername = "Not Listed";
 
-	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++) {
-		if (bmap[mappertest].number == iNESCart.mapper) {
+	for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++)
+   {
+		if (bmap[mappertest].number == iNESCart.mapper)
+      {
 			mappername = (char*)bmap[mappertest].name;
 			break;
 		}
 	}
 #endif
 
-	if (iNESCart.iNES2 == 0) {
-		if (strstr(name, "(E)") || strstr(name, "(e)") ||
-			strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
-			strstr(name, "(F)") || strstr(name, "(f)") ||
-			strstr(name, "(G)") || strstr(name, "(g)") ||
-			strstr(name, "(I)") || strstr(name, "(i)") ||
-			strstr(name, "(S)") || strstr(name, "(s)") ||
-			strstr(name, "(France)") || strstr(name, "(Germany)") ||
-			strstr(name, "(Italy)") || strstr(name, "(Spain)") ||
-			strstr(name, "(Sweden)") || strstr(name, "(Sw)") ||
-			strstr(name, "(Australia)") || strstr(name, "(A)") ||
-			strstr(name, "(a)")) {
-				iNESCart.region = 1;
-		}
-	}
+   if (iNESCart.iNES2 == 0)
+   {
+      if (!string_is_empty(name))
+         if (strstr(name, "(E)") || strstr(name, "(e)") ||
+               strstr(name, "(Europe)") || strstr(name, "(PAL)") ||
+               strstr(name, "(F)") || strstr(name, "(f)") ||
+               strstr(name, "(G)") || strstr(name, "(g)") ||
+               strstr(name, "(I)") || strstr(name, "(i)") ||
+               strstr(name, "(S)") || strstr(name, "(s)") ||
+               strstr(name, "(France)") || strstr(name, "(Germany)") ||
+               strstr(name, "(Italy)") || strstr(name, "(Spain)") ||
+               strstr(name, "(Sweden)") || strstr(name, "(Sw)") ||
+               strstr(name, "(Australia)") || strstr(name, "(A)") ||
+               strstr(name, "(a)"))
+            iNESCart.region = 1;
+   }
 
 #ifdef DEBUG
 	FCEU_printf(" PRG-ROM CRC32:  0x%08X\n", iNESCart.PRGCRC32);
@@ -990,24 +1006,29 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	FCEU_printf(" Battery: %s\n", (head.ROM_type & 2) ? "Yes" : "No");
 	FCEU_printf(" System: %s\n", tv_region[iNESCart.region]);
 	FCEU_printf(" Trained: %s\n", (head.ROM_type & 4) ? "Yes" : "No");
-#endif
 
-	if (iNESCart.iNES2) {
+	if (iNESCart.iNES2)
+   {
 		unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
 		unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
 
 		FCEU_printf(" NES 2.0 extended iNES.\n");
 		FCEU_printf(" Sub Mapper #: %3d\n", iNESCart.submapper);
-		if (PRGRAM || CHRRAM) {
-			if (head.ROM_type & 0x02) {
+		if (PRGRAM || CHRRAM)
+      {
+			if (head.ROM_type & 0x02)
+         {
 				FCEU_printf(" PRG RAM: %d KB (%d KB battery-backed)\n", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
 				FCEU_printf(" CHR RAM: %d KB (%d KB battery-backed)\n", CHRRAM / 1024, iNESCart.CHRRamSaveSize / 1024);
-			} else {
+			}
+         else
+         {
 				FCEU_printf(" PRG RAM: %d KB\n", PRGRAM / 1024);
 				FCEU_printf(" CHR RAM: %d KB\n", CHRRAM / 1024);
 			}
 		}		
 	}
+#endif
 
 	ResetCartMapping();
 	ResetExState(0, 0);
@@ -1028,7 +1049,8 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 
 		FCEU_VSUniCheck(partialmd5, &mapper, &mirroring);
 
-		if ((mapper != iNESCart.mapper) || (mirroring != iNESCart.mirror)) {
+		if ((mapper != iNESCart.mapper) || (mirroring != iNESCart.mirror))
+      {
 			FCEU_PrintError("\n");
 			FCEU_PrintError(" Incorrect VS-Unisystem header information!\n");
 			if (mapper != iNESCart.mapper)    FCEU_PrintError(" Mapper:    %d\n", mapper);
@@ -1045,17 +1067,20 @@ int iNESLoad(const char *name, FCEUFILE *fp) {
 	if (VROM_size)
 		SetupCartCHRMapping(0, VROM, vrom_size_pow2, 0);
 
-	if (iNESCart.mirror == 2) {
+	if (iNESCart.mirror == 2)
+   {
 		ExtraNTARAM = (uint8*)FCEU_gmalloc(2048);
 		SetupCartMirroring(4, 1, ExtraNTARAM);
-	} else if (iNESCart.mirror >= 0x10)
+	}
+   else if (iNESCart.mirror >= 0x10)
 		SetupCartMirroring(2 + (iNESCart.mirror & 1), 1, 0);
 	else
 		SetupCartMirroring(iNESCart.mirror & 1, (iNESCart.mirror & 4) >> 2, 0);
 
 	iNESCart.battery = (head.ROM_type & 2) ? 1 : 0;
 
-	if (!iNES_Init(iNESCart.mapper)) {
+	if (!iNES_Init(iNESCart.mapper))
+   {
 		FCEU_printf("\n");
 		FCEU_PrintError(" iNES mapper #%d is not supported at all.\n", iNESCart.mapper);
 		return 0;
