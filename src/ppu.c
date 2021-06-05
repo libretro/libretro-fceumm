@@ -32,7 +32,6 @@
 #include        "general.h"
 #include        "fceu-endian.h"
 #include        "fceu-memory.h"
-#include        "ppuview.h"
 
 #include        "cart.h"
 #include        "palette.h"
