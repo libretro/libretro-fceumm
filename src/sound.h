@@ -50,6 +50,7 @@ extern int32 Wave[2048 + 512];
 extern int32 WaveFinal[2048 + 512];
 extern int32 WaveHi[];
 extern uint32 soundtsinc;
+extern uint32 DMC_7bit;
 
 extern uint32 soundtsoffs;
 #define SOUNDTS (sound_timestamp + soundtsoffs)

@@ -32,7 +32,6 @@
 #include        "general.h"
 #include        "fceu-endian.h"
 #include        "fceu-memory.h"
-#include        "ppuview.h"
 
 #include        "cart.h"
 #include        "palette.h"
@@ -63,6 +62,8 @@ static void Fixit1(void);
 static uint32 ppulut1[256];
 static uint32 ppulut2[256];
 static uint32 ppulut3[128];
+
+FCEU_PPU ppu;
 
 static void makeppulut(void) {
 	int x;
@@ -660,7 +661,7 @@ static void DoLine(void)
 	uint8 *target = NULL;
 	uint8 *dtarget = NULL;
 
-	if (scanline >= 240 && scanline != totalscanlines)
+	if (scanline >= 240 && scanline != ppu.totalscanlines)
 	{
 		X6502_Run(256 + 69);
 		scanline++;
@@ -1066,7 +1067,7 @@ static void CopySprites(uint8 *target) {
 
 void FCEUPPU_SetVideoSystem(int w) {
 	if (w) {
-		scanlines_per_frame = dendy ? 262 : 312;
+		scanlines_per_frame = FSettings.dendy ? 262 : 312;
 		FSettings.FirstSLine = FSettings.UsrFirstSLine[1];
 		FSettings.LastSLine = FSettings.UsrLastSLine[1];
 	} else {
@@ -1166,11 +1167,11 @@ int FCEUPPU_Loop(int skip) {
 				TriggerNMI();
 		}
 		X6502_Run((scanlines_per_frame - 242) * (256 + 85) - 12);
-		if (overclock_enabled && vblankscanlines) {
-			if (!DMC_7bit || !skip_7bit_overclocking) {
-				overclocked = 1;
-				X6502_Run(vblankscanlines * (256 + 85) - 12);
-				overclocked = 0;
+		if (ppu.overclock_enabled && ppu.vblankscanlines) {
+			if (!DMC_7bit || !ppu.skip_7bit_overclocking) {
+				overclocking = 1;
+				X6502_Run(ppu.vblankscanlines * (256 + 85) - 12);
+				overclocking = 0;
 			}
 		}
 		PPU_status &= 0x1f;
@@ -1203,7 +1204,7 @@ int FCEUPPU_Loop(int skip) {
 			kook ^= 1;
 		}
 		if (GameInfo->type == GIT_NSF)
-			X6502_Run((256 + 85) * normal_scanlines);
+			X6502_Run((256 + 85) * ppu.normal_scanlines);
 		#ifdef FRAMESKIP
 		else if (skip) {
 			int y;
@@ -1234,21 +1235,20 @@ int FCEUPPU_Loop(int skip) {
 			deemp = PPU[1] >> 5;
 
          /* manual samples can't play correctly with overclocking */
-			if (DMC_7bit && skip_7bit_overclocking)
-				totalscanlines = normal_scanlines;
+			if (DMC_7bit && ppu.skip_7bit_overclocking)
+				ppu.totalscanlines = ppu.normal_scanlines;
 			else
-				totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
+				ppu.totalscanlines = ppu.normal_scanlines + (ppu.overclock_enabled ? ppu.extrascanlines : 0);
 
-			for (scanline = 0; scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
+			for (scanline = 0; scanline < ppu.totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;
-				/* if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1); */
 				DoLine();
-				if (scanline < normal_scanlines || scanline == totalscanlines)
-					overclocked = 0;
+				if (scanline < ppu.normal_scanlines || scanline == ppu.totalscanlines)
+					overclocking = 0;
 				else {
-					if (DMC_7bit && skip_7bit_overclocking) /* 7bit sample started after 240th line */
+					if (DMC_7bit && ppu.skip_7bit_overclocking) /* 7bit sample started after 240th line */
 						break;
-					overclocked = 1;
+					overclocking = 1;
 				}
 			}
 

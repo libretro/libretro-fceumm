@@ -104,4 +104,7 @@ void FCEU_OpenGenie(void);
 void FCEU_CloseGenie(void);
 void FCEU_KillGenie(void);
 
+extern CartInfo iNESCart;
+extern CartInfo UNIFCart;
+
 #endif

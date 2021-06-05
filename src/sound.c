@@ -61,7 +61,7 @@ typedef struct {
 	int reloaddec;
 } ENVUNIT;
 
-unsigned DMC_7bit = 0; /* used to skip overclocking */
+uint32 DMC_7bit = 0; /* used to skip overclocking */
 static ENVUNIT EnvUnits[3];
 
 static const int RectDuties[4] = { 1, 2, 4, 6 };
@@ -195,7 +195,7 @@ static DECLFW(Write_PSG) {
 		DoSQ1();
 		EnvUnits[0].Mode = (V & 0x30) >> 4;
 		EnvUnits[0].Speed = (V & 0xF);
-		if (swapDuty)
+		if (FSettings.swapDuty)
 			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x1:
@@ -216,7 +216,7 @@ static DECLFW(Write_PSG) {
 		DoSQ2();
 		EnvUnits[1].Mode = (V & 0x30) >> 4;
 		EnvUnits[1].Speed = (V & 0xF);
-		if (swapDuty)
+		if (FSettings.swapDuty)
 			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x5:
