@@ -224,13 +224,16 @@ static struct BADINF BadROMImages[] =
 	#include "ines-bad.h"
 };
 
-void CheckBad(uint64 md5partial) {
+static void CheckBad(uint64 md5partial)
+{
 	int32 x = 0;
-	while (BadROMImages[x].name) {
-		if (BadROMImages[x].md5partial == md5partial) {
-			FCEU_PrintError("The copy game you have loaded, \"%s\", is bad, and will not work properly in FCE Ultra.", BadROMImages[x].name);
-			return;
-		}
+	while (BadROMImages[x].name)
+   {
+		if (BadROMImages[x].md5partial == md5partial)
+      {
+         FCEU_PrintError("The copy game you have loaded, \"%s\", is bad, and will not work properly in FCE Ultra.", BadROMImages[x].name);
+         return;
+      }
 		x++;
 	}
 }
@@ -247,148 +250,149 @@ struct CHINF {
 	int32 extra;
 };
 
-static void CheckHInfo(void) {
+static void CheckHInfo(void)
+{
 #define DEFAULT (-1)
 #define NOEXTRA (-1)
 
-/* used for mirroring special overrides */
+   /* used for mirroring special overrides */
 #define MI_4      2 /* forced 4-screen mirroring */
 #define DFAULT8   8 /* anything but hard-wired (4-screen) mirroring, mapper-controlled */
 
-/* tv system/region */
+   /* tv system/region */
 #define PAL       1
 #define MULTI     2
 #define DENDY     3
 
-	static struct CHINF moo[] =
-	{
-		#include "ines-correct.h"
-	};
-	int32 tofix = 0, x;
-	uint64 partialmd5 = 0;
-	int32 current_mapper = 0;
-	int32 cur_mirr = 0;
+   static struct CHINF moo[] =
+   {
+#include "ines-correct.h"
+   };
+   int32 tofix = 0, x;
+   uint64 partialmd5 = 0;
+   int32 current_mapper = 0;
+   int32 cur_mirr = 0;
 
-	for (x = 0; x < 8; x++)
-		partialmd5 |= (uint64)iNESCart.MD5[15 - x] << (x * 8);
-	CheckBad(partialmd5);
+   for (x = 0; x < 8; x++)
+      partialmd5 |= (uint64)iNESCart.MD5[15 - x] << (x * 8);
+   CheckBad(partialmd5);
 
-	x = 0;
-	do {
-		if (moo[x].crc32 == iNESCart.CRC32) {
-			if (moo[x].mapper >= 0) {
-				if (moo[x].extra >= 0 && moo[x].extra == 0x800 && VROM_size) {
-					VROM_size = 0;
-					free(VROM);
-					VROM = NULL;
-					tofix |= 8;
-				}
-				if (iNESCart.mapper != (moo[x].mapper & 0xFFF)) {
-					tofix |= 1;
-					current_mapper = iNESCart.mapper;
-					iNESCart.mapper = moo[x].mapper & 0xFFF;
-				}
-			}
-			if (moo[x].submapper >= 0) {
-				iNESCart.iNES2 = 1;
-				if (moo[x].submapper != iNESCart.submapper) {
-					iNESCart.submapper = moo[x].submapper;
-				}
-			}
-			if (moo[x].mirror >= 0) {
-				cur_mirr = iNESCart.mirror;
-				if (moo[x].mirror == 8) {
-					if (iNESCart.mirror == 2) {	/* Anything but hard-wired(four screen). */
-						tofix |= 2;
-						iNESCart.mirror = 0;
-					}
-				} else if (iNESCart.mirror != moo[x].mirror) {
-					if (iNESCart.mirror != (moo[x].mirror & ~4))
-						if ((moo[x].mirror & ~4) <= 2)	/* Don't complain if one-screen mirroring
-														needs to be set(the iNES header can't
-														hold this information).
-														*/
-							tofix |= 2;
-					iNESCart.mirror = moo[x].mirror;
-				}
-			}
-			if (moo[x].battery >= 0) {
-				if (!(head.ROM_type & 2) && (moo[x].battery != 0)) {
-					tofix |= 4;
-					head.ROM_type |= 2;
-				}
-			}
-			if (moo[x].region >= 0) {
-				if (iNESCart.region != moo[x].region) {
-					tofix |= 16;
-					iNESCart.region = moo[x].region;
-				}
-			}
+   x = 0;
+   do {
+      if (moo[x].crc32 == iNESCart.CRC32) {
+         if (moo[x].mapper >= 0) {
+            if (moo[x].extra >= 0 && moo[x].extra == 0x800 && VROM_size) {
+               VROM_size = 0;
+               free(VROM);
+               VROM = NULL;
+               tofix |= 8;
+            }
+            if (iNESCart.mapper != (moo[x].mapper & 0xFFF)) {
+               tofix |= 1;
+               current_mapper = iNESCart.mapper;
+               iNESCart.mapper = moo[x].mapper & 0xFFF;
+            }
+         }
+         if (moo[x].submapper >= 0) {
+            iNESCart.iNES2 = 1;
+            if (moo[x].submapper != iNESCart.submapper) {
+               iNESCart.submapper = moo[x].submapper;
+            }
+         }
+         if (moo[x].mirror >= 0) {
+            cur_mirr = iNESCart.mirror;
+            if (moo[x].mirror == 8) {
+               if (iNESCart.mirror == 2) {	/* Anything but hard-wired(four screen). */
+                  tofix |= 2;
+                  iNESCart.mirror = 0;
+               }
+            } else if (iNESCart.mirror != moo[x].mirror) {
+               if (iNESCart.mirror != (moo[x].mirror & ~4))
+                  if ((moo[x].mirror & ~4) <= 2)	/* Don't complain if one-screen mirroring
+                                                      needs to be set(the iNES header can't
+                                                      hold this information).
+                                                      */
+                     tofix |= 2;
+               iNESCart.mirror = moo[x].mirror;
+            }
+         }
+         if (moo[x].battery >= 0) {
+            if (!(head.ROM_type & 2) && (moo[x].battery != 0)) {
+               tofix |= 4;
+               head.ROM_type |= 2;
+            }
+         }
+         if (moo[x].region >= 0) {
+            if (iNESCart.region != moo[x].region) {
+               tofix |= 16;
+               iNESCart.region = moo[x].region;
+            }
+         }
 
-			if (moo[x].prgram >= 0) {
-				tofix |= 32;
-				iNESCart.iNES2 = 1;
-				iNESCart.PRGRamSize = (moo[x].prgram & 0x0F) ? (64 << ((moo[x].prgram >> 0) & 0xF)) : 0;
-				iNESCart.PRGRamSaveSize = (moo[x].prgram & 0xF0) ? (64 << ((moo[x].prgram >> 4) & 0xF)) : 0;
-			}
+         if (moo[x].prgram >= 0) {
+            tofix |= 32;
+            iNESCart.iNES2 = 1;
+            iNESCart.PRGRamSize = (moo[x].prgram & 0x0F) ? (64 << ((moo[x].prgram >> 0) & 0xF)) : 0;
+            iNESCart.PRGRamSaveSize = (moo[x].prgram & 0xF0) ? (64 << ((moo[x].prgram >> 4) & 0xF)) : 0;
+         }
 
-			if (moo[x].chrram >= 0) {
-				tofix |= 32;
-				iNESCart.iNES2 = 1;
-				iNESCart.CHRRamSize = (moo[x].chrram & 0x0F) ? (64 << ((moo[x].chrram >> 0) & 0xF)) : 0;
-				iNESCart.CHRRamSaveSize = (moo[x].chrram & 0xF0) ? (64 << ((moo[x].chrram >> 4) & 0xF)) : 0;
-			}
+         if (moo[x].chrram >= 0) {
+            tofix |= 32;
+            iNESCart.iNES2 = 1;
+            iNESCart.CHRRamSize = (moo[x].chrram & 0x0F) ? (64 << ((moo[x].chrram >> 0) & 0xF)) : 0;
+            iNESCart.CHRRamSaveSize = (moo[x].chrram & 0xF0) ? (64 << ((moo[x].chrram >> 4) & 0xF)) : 0;
+         }
 
-			break;
-		}
-		x++;
-	} while (moo[x].mirror >= 0 || moo[x].mapper >= 0);
+         break;
+      }
+      x++;
+   } while (moo[x].mirror >= 0 || moo[x].mapper >= 0);
 
-	/* Games that use these iNES mappers tend to have the four-screen bit set
-	when it should not be.
-	*/
-	if ((iNESCart.mapper == 118 || iNESCart.mapper == 24 || iNESCart.mapper == 26) && (iNESCart.mirror == 2)) {
-		iNESCart.mirror = 0;
-		tofix |= 2;
-	}
+   /* Games that use these iNES mappers tend to have the four-screen bit set
+      when it should not be.
+      */
+   if ((iNESCart.mapper == 118 || iNESCart.mapper == 24 || iNESCart.mapper == 26) && (iNESCart.mirror == 2)) {
+      iNESCart.mirror = 0;
+      tofix |= 2;
+   }
 
-	/* Four-screen mirroring implicitly set. */
-	if (iNESCart.mapper == 99)
-		iNESCart.mirror = 2;
+   /* Four-screen mirroring implicitly set. */
+   if (iNESCart.mapper == 99)
+      iNESCart.mirror = 2;
 
-	if (tofix) {
-		char gigastr[768];
-		strcpy(gigastr, " The iNES header contains incorrect information.  For now, the information will be corrected in RAM. ");
-		if (tofix & 1)
-			sprintf(gigastr + strlen(gigastr), "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, iNESCart.mapper);
-		if (tofix & 2) {
-			uint8 *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
-			sprintf(gigastr + strlen(gigastr), "Current mirroring is %s. Mirroring should be set to \"%s\". ", mstr[cur_mirr & 3], mstr[iNESCart.mirror & 3]);
-		}
-		if (tofix & 4)
-			strcat(gigastr, "The battery-backed bit should be set.  ");
-		if (tofix & 8)
-			strcat(gigastr, "This game should not have any CHR ROM.  ");
-		if (tofix & 16) {
-			uint8 *rstr[4] = { (uint8*)"NTSC", (uint8*)"PAL", (uint8*)"Multi", (uint8*)"Dendy" };
-			sprintf(gigastr + strlen(gigastr), "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
-		}
-		if (tofix & 32) {
-			unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
-			unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
-			if (PRGRAM || CHRRAM) {
-				if (iNESCart.PRGRamSaveSize == 0)
-					sprintf(gigastr + strlen(gigastr), "workram: %d KB, ", PRGRAM / 1024);
-				else if (iNESCart.PRGRamSize == 0)
-					sprintf(gigastr + strlen(gigastr), "saveram: %d KB, ", PRGRAM / 1024);
-				else
-					sprintf(gigastr + strlen(gigastr), "workram: %d KB (%dKB battery-backed), ", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
-				sprintf(gigastr + strlen(gigastr), "chrram: %d KB.", (CHRRAM + iNESCart.CHRRamSaveSize) / 1024);
-			}
-		}
-		strcat(gigastr, "\n");
-		FCEU_printf("%s\n", gigastr);
-	}
+   if (tofix) {
+      char gigastr[768];
+      strcpy(gigastr, " The iNES header contains incorrect information.  For now, the information will be corrected in RAM. ");
+      if (tofix & 1)
+         sprintf(gigastr + strlen(gigastr), "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, iNESCart.mapper);
+      if (tofix & 2) {
+         uint8 *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
+         sprintf(gigastr + strlen(gigastr), "Current mirroring is %s. Mirroring should be set to \"%s\". ", mstr[cur_mirr & 3], mstr[iNESCart.mirror & 3]);
+      }
+      if (tofix & 4)
+         strcat(gigastr, "The battery-backed bit should be set.  ");
+      if (tofix & 8)
+         strcat(gigastr, "This game should not have any CHR ROM.  ");
+      if (tofix & 16) {
+         uint8 *rstr[4] = { (uint8*)"NTSC", (uint8*)"PAL", (uint8*)"Multi", (uint8*)"Dendy" };
+         sprintf(gigastr + strlen(gigastr), "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
+      }
+      if (tofix & 32) {
+         unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
+         unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
+         if (PRGRAM || CHRRAM) {
+            if (iNESCart.PRGRamSaveSize == 0)
+               sprintf(gigastr + strlen(gigastr), "workram: %d KB, ", PRGRAM / 1024);
+            else if (iNESCart.PRGRamSize == 0)
+               sprintf(gigastr + strlen(gigastr), "saveram: %d KB, ", PRGRAM / 1024);
+            else
+               sprintf(gigastr + strlen(gigastr), "workram: %d KB (%dKB battery-backed), ", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
+            sprintf(gigastr + strlen(gigastr), "chrram: %d KB.", (CHRRAM + iNESCart.CHRRamSaveSize) / 1024);
+         }
+      }
+      strcat(gigastr, "\n");
+      FCEU_printf("%s\n", gigastr);
+   }
 
 #undef DEFAULT
 #undef NOEXTRA
@@ -804,13 +808,15 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "LH53",                     535, LH53_Init              )
 INES_BOARD_END()
 
-static uint32 get_ines_version(void) {
+static uint32 get_ines_version(void)
+{
 	if ((head.ROM_type2 & 0x0C) == 0x08)
 		return 1;
 	return 0;
 }
 
-static uint32 get_ines_mapper_id(void) {
+static uint32 get_ines_mapper_id(void)
+{
 	/* If byte 7 AND $0C = $08, and the size taking into account byte 9 does not exceed the actual size of the ROM image, then NES 2.0.
 	 * If byte 7 AND $0C = $00, and bytes 12-15 are all 0, then iNES.
 	 * Otherwise, archaic iNES. - nesdev*/
