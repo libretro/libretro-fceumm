@@ -781,7 +781,7 @@
 	{ 0x42161530,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 龙魂 [protection removed].nes */
 	{ 0x8F8FC9A7,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 龙魂.nes */
 	{ 0xB6984DAD,  176,       3, DEFAULT, 1,    0x07,    0x0B, DEFAULT, NOEXTRA }, /* Super Mario 160-in-1 Funny Time.nes */
-	{ 0xB6984DAD,  176,       4, DEFAULT, 1,    0x07,    0x07, DEFAULT, NOEXTRA }, /* GameStar Smart Genius Deluxe.nes */
+	{ 0xAD82BBEA,  176,       4, DEFAULT, 1,    0x07,    0x07, DEFAULT, NOEXTRA }, /* GameStar Smart Genius Deluxe.nes */
 
 	/* Nanjing games that are sometimes found erroneously set to mapper 163 even though they use other mappers */
 	{ 0x3CD15707,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ027] Fang Shi Yu (C) */
