@@ -368,6 +368,7 @@
 	/* Mapper 163: Nanjing, running with $5300=$04 */
 	{ 0xC9ABA7F0,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Chrono Trigger - 时空之轮 */
 	{ 0x143B4D30,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy VII - 最终幻想 7 */
+	{ 0x609458B6,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy VII - 最终幻想 7, English translation */
 	{ 0x3CC55A44,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* The Legend of Zelda - 塞尔达传说: 神奇的帽子 */
 	{ 0x4752BD5E,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 七國大戰 */
 	{ 0x1121C0D1,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志 之 傲视天地 */
