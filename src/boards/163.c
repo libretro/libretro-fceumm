@@ -65,8 +65,8 @@ static DECLFW(writeReg)
    
    if (A &1)
    {
-      if (reg[1] &0x01 && ~V &0x01) reg[1] ^=0x04;  // If A0=1, flip feedback bit on falling edges of D0
-   }                                                // If A0=0, write to register
+      if (reg[1] &0x01 && ~V &0x01) reg[1] ^=0x04;  /* If A0=1, flip feedback bit on falling edges of D0 */
+   }                                                /* If A0=0, write to register */
    else
       reg[index] = V;
    sync();
