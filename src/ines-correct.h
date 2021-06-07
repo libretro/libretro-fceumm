@@ -783,6 +783,13 @@
 	{ 0xB6984DAD,  176,       3, DEFAULT, 1,    0x07,    0x0B, DEFAULT, NOEXTRA }, /* Super Mario 160-in-1 Funny Time.nes */
 	{ 0xB6984DAD,  176,       4, DEFAULT, 1,    0x07,    0x07, DEFAULT, NOEXTRA }, /* GameStar Smart Genius Deluxe.nes */
 
+	/* Nanjing games that are sometimes found erroneously set to mapper 163 even though they use other mappers */
+	{ 0x3CD15707,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ027] Fang Shi Yu (C) */
+	{ 0x2779BB41,  534,       0,    MI_V, 0, DEFAULT,    0x07,   DENDY, NOEXTRA }, /* [NJ064] Shu Du (Sudoku) (C) */
+	{ 0x1DE558A1,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ085] Shan Shan De Hong Xing (C) */
+	{ 0xF814EC57,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ090] Yong Zhe Chuan Shuo (C) */
+	{ 0x53A1F436,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ091] Xian Jian Wen Qing (C) */
+
 	/* Non-Mapper 176 files that are sometimes found erroneously set to mapper 176 */
 	{ 0x60AC647F,  260,       0, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (YH-4222) Super Game 4-in-1.nes */
 
