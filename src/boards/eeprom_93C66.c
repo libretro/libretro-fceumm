@@ -87,7 +87,12 @@ void eeprom_93C66_write (uint8 CS, uint8 CLK, uint8 DAT)
                      eeprom_93C66_state = STATE_FINISHED;
                      break;
                   case OPCODE_ERASEALL:
-                     if (eeprom_93C66_writeEnabled) for (int i =0; i <512; i++) eeprom_93C66_storage[i] = 0xFF;
+                     if (eeprom_93C66_writeEnabled)
+                     {
+                        int i;
+                        for (i =0; i <512; i++)
+                           eeprom_93C66_storage[i] = 0xFF;
+                     }
                      eeprom_93C66_state = STATE_FINISHED;
                      break;
                   case OPCODE_WRITEALL:
