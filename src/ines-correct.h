@@ -37,7 +37,6 @@
 
 	{ 0xaf5d7aa2,    0, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Clu Clu Land (W) [o3].nes */
 	{ 0xcfb224e6,  222, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ninja (J) (PRG0) [p1][!].nes */
-	{ 0x82f204ae,  163, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Liang Shan Ying Xiong (NJ023) (Ch) [!].nes */
 	{ 0xad9c63e2,   70, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Space Shadow (Japan).nes */
 	{ 0xe1526228,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ki no Bouken - The Quest of Ki (Japan).nes */
 	{ 0xaf5d7aa2,    0, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Clu Clu Land (W) [o3].nes */
@@ -354,8 +353,132 @@
 	{ 0xb7f28915,  159, DEFAULT, DEFAULT, 1,    0x10, DEFAULT, DEFAULT, NOEXTRA }, /* Magical Taruruuto-kun 2 - Mahou Daibouken (Japan).nes */
 	{ 0x183859d2,  159, DEFAULT, DEFAULT, 1,    0x10, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball Z - Kyoushuu! Saiya Jin (Japan).nes */
 	{ 0x58152b42,  160, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pipe V (Asia) (Ja) (Unl).nes */
-	{ 0x1c098942,  162, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Xi You Ji Hou Zhuan (Ch).nes */
-	{ 0x081caaff,  163, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Commandos (Ch).nes */
+
+	/* Mapper 162: Waixing FS304 */
+	{ 0x08FBF3F0,  162,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Mummy - 神鬼传奇 */
+	{ 0xF5D34C8E,  162,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Zelda 传说: 三神之力 */
+	{ 0xEE3A1CA8,  162,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 法老王 - Pharaoh */
+	{ 0xCF4ADAAD,  162,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 火焰纹章 - 圣战的系谱 */
+	{ 0xB2045E9C,  162,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 聖火徽章 III */
+	{ 0x1C098942,  162,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 西游记后传 */
+	/* Mapper 162: Nanjing games that use an FS304 feature as a protection check */
+	{ 0x8589652D,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 农场小精灵 */
+	{ 0x82F204AE,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 梁山英雄 */
+	
+	/* Mapper 163: Nanjing, running with $5300=$04 */
+	{ 0xC9ABA7F0,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Chrono Trigger - 时空之轮 */
+	{ 0x143B4D30,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy VII - 最终幻想 7 */
+	{ 0x609458B6,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy VII - 最终幻想 7, English translation */
+	{ 0x3CC55A44,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* The Legend of Zelda - 塞尔达传说: 神奇的帽子 */
+	{ 0x4752BD5E,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 七國大戰 */
+	{ 0x1121C0D1,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志 之 傲视天地 */
+	{ 0x8E4294A9,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志: 曹操传 */
+	{ 0xF52468E7,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国无双: 猛将传 */
+	{ 0xEF7BA485,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 仙剑奇侠 */
+	{ 0x20E1CF44,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 仙界精灵 */
+	{ 0x9688AEEA,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 倚天传说 */
+	{ 0x04DFE0D4,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 倚天剑传奇 */
+	{ 0x6CB6D619,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋宝石 - 银 */
+	{ 0x8C73A47B,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 哪吒传奇 */
+	{ 0xE40DA18F,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 圣剑传说 */
+	{ 0xC07CD2CE,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 圣斗士星矢: 天马之幻想 */
+	{ 0x9237C200,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 大话西游 */
+	{ 0x4FB02A43,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 天龙八部 */
+	{ 0x52D7FE18,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 太空幻想 */
+	{ 0xA01CA587,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 幻世录 */
+	{ 0x89F4ACD1,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 幻想传说 */
+	{ 0x65C63CC3,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 数码战队 2 */
+	{ 0x2C01DE06,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 数码暴龙 */
+	{ 0xB614AAA2,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 暗黑破坏神 - Diablo */
+	{ 0x80A18CDC,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 机器人大战 */
+	{ 0x33DB45BA,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 核心危机 */
+	{ 0x1B74A022,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 梦幻沙漏 */
+	{ 0x695A7A70,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 楚汉风云 */
+	{ 0xD0807FD2,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 水浒 III */
+	{ 0x524AF6E8,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 水浒神兽 (南晶) */
+	{ 0x2802E40F,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 汉刘邦 */
+	{ 0xAC491507,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 游戏王 */
+	{ 0x31C1BF98,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 牧场物语 */
+	{ 0x191F7D5E,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 真 Samurai Spirits - 武士道列传: 侍魂 */
+	{ 0x1FE67BB3,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 真 Samurai Spirits - 魂之利刃 */
+	{ 0x4973B16B,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 石器时代 */
+	{ 0x09C7AED3,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 葫芦金刚 */
+	{ 0x4E3EDF88,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 超级机器人大战 A */
+	{ 0x74C1EDC7,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 轩辕剑外传 之 天之痕 */
+	{ 0x723C6345,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 金庸群侠传: 书剑江山 */
+	{ 0xDA47B05A,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 隋唐英雄 */
+	{ 0x056F2B8E,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 雷电皇: Pikachu传说 */
+	{ 0x04166E96,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 魔幻世界 */
+	{ 0x85FA53E1,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 魔界塔士 */
+	{ 0x2121DAB2,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 魔界霸主 */
+	{ 0xE3EF9739,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 黄金太阳 */	
+	/* Mapper 163: Nanjing, running with $5300=$07 */
+	{ 0x6F94C5E5,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy IV - 最终幻想 4: 光与暗 水晶纷争 */
+	{ 0xD6CBB05D,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Naruto RPG - 火影忍者 */
+	{ 0xD7A4CBA5,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 七龙珠大冒险 - Dragon Ball */
+	{ 0xDF27B96C,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国大乱斗: 战国 - Orochi */
+	{ 0x8C60CECF,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志: 吕布传 */
+	{ 0x44AC9C8E,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国群侠传 */
+	{ 0xA3193C51,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 倚天屠龙记 */
+	{ 0x98266D3A,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 傲视三国志 */
+	{ 0xA026AE52,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋宝石 - 红 */
+	{ 0xB6F72A18,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋宝石 - 蓝 */
+	{ 0x5108AB7F,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋宝石 - 金 */
+	{ 0x8EB1B4CF,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋水晶 */
+	{ 0xA66756AD,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋钻石 */
+	{ 0x3A613060,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 吞食天地 VI: 刘备传 */
+	{ 0xB35BE92F,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 圣斗士星矢: 北欧突击篇 */
+	{ 0x15E50ECD,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 宠物高达战记 */
+	{ 0xBBAB3A61,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 拳皇R-1: 最强格斗王 */
+	{ 0x2DA3A49C,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 时空斗士 - Pegasus Senya */
+	{ 0x222A136A,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 武侠天地 */
+	{ 0xEBC6E2E2,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 毁灭之神 */
+	{ 0xE08AB52E,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 魔兽世界: 恶魔猎人 */
+	/* Mapper 162: Nanjing, running with $5300=$07, but dumped without taking the D0/D1 bit swap into account.
+	               Such dumps need not be invalidated however, as they can run as mapper 162 when properly emulated. */
+	{ 0x9D8AA034,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy IV - 最终幻想4: 光与暗 水晶纷争 */
+	{ 0x5E66E6C4,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Naruto RPG - 火影忍者 */
+	{ 0x9DE10A91,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 七龙珠大冒险 - Dragon Ball */
+	{ 0xFC209609,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国大乱斗: 战国 - Orochi */
+	{ 0x696D98E3,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志: 吕布传 */
+	{ 0x9F197F2B,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国群侠传 */
+	{ 0x975F64E2,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 倚天屠龙记 */
+	{ 0x915C5179,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 傲视三国志 */
+	{ 0x852BDB36,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋宝石 - 红 */
+	{ 0xB41CF445,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋宝石 - 蓝 */
+	{ 0x7829C3A9,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋宝石 - 金 */
+	{ 0xBC383C09,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋水晶 */
+	{ 0xA9C4712A,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋钻石 */
+	{ 0xC2B02B71,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 吞食天地 VI: 刘备传 */
+	{ 0x054444A0,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 圣斗士星矢: 北欧突击篇 */
+	{ 0x9BA518BA,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 宠物高达战记 */
+	{ 0x4CE082F8,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 拳皇R-1: 最强格斗王 */
+	{ 0x99FE9AB5,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 时空斗士 - Pegasus Senya */
+	{ 0x57414FB6,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 武侠天地 */
+	{ 0x979239DE,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 毁灭之神 */
+	{ 0xEFF96E8A,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 魔兽世界: 恶魔猎人 */
+	
+	/* Mapper 164: Dongda PEC-9588 and Yancheng cy2000-3 PCB */
+	{ 0xFE31765B,  164,       0,    MI_V, 0,    0x07,    0x07,   DENDY, NOEXTRA }, /* Pyramid 金字塔 PEC-9588 家庭电脑 */
+	{ 0x0878A7EE,  164,       0,    MI_H, 1,    0x35,    0x07,   DENDY, NOEXTRA }, /* Dark Seed - 黑暗之蛊 */
+	{ 0x56A0D271,  164,       0,    MI_H, 1,    0x35,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy 太空戰士 V (rev0) */
+	{ 0xCB1EF911,  164,       0,    MI_H, 1,    0x35,    0x07,   DENDY, NOEXTRA }, /* Final Fantasy 太空戰士 V (rev1) */
+	{ 0x8209BA79,  164,       0,    MI_H, 1,    0x35,    0x07,   DENDY, NOEXTRA }, /* 櫻桃小丸子 */
+	{ 0xBC7562A6,  164,       0,    MI_H, 1,    0x35,    0x07,   DENDY, NOEXTRA }, /* 口袋精靈: 金 */
+	{ 0x65F1DB91,  164,       0,    MI_H, 1,    0x35,    0x07,   DENDY, NOEXTRA }, /* 大話西游 [restored, no good dump known] */
+	{ 0x0A244228,  164,       0,    MI_H, 1,    0x35,    0x07,   DENDY, NOEXTRA }, /* 岳飛傳 [restored, no good dump known] */
+
+	/* Mapper 558: Waixing FS??? and Yancheng YC-03-09 PCB */
+	{ 0xE65A8C08,  558,       0,    MI_H, 1,    0x30,    0x07,   DENDY, NOEXTRA }, /* 大話三國 */
+	{ 0x228559A7,  558,       0,    MI_H, 1,    0x30,    0x07,   DENDY, NOEXTRA }, /* 口袋精靈: 水晶 */
+	{ 0x8B41D49C,  558,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* Pet Evolve - 宠物进化史 */
+	{ 0x5622EC51,  558,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 三国志 II 代 */
+	{ 0xE7AEB114,  558,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋妖怪: 鑽石版 */
+	{ 0x8EB4BB51,  558,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 口袋精靈: 紅 */
+	{ 0x48244391,  558,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 宠物: 红 */
+	{ 0x01A24301,  558,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 数码宝贝 */
+	{ 0x88CB68A7,  558,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 数码暴龙 4: 水晶版 */
+	{ 0x081CAAFF,  558,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 盟军敢死队 - Commandos */
 
 	/* Mapper 176 */
 	{ 0xffde0de5,  176, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 梦幻之星4[简体](修正)一战一级.nes */
@@ -658,7 +781,14 @@
 	{ 0x42161530,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 龙魂 [protection removed].nes */
 	{ 0x8F8FC9A7,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 龙魂.nes */
 	{ 0xB6984DAD,  176,       3, DEFAULT, 1,    0x07,    0x0B, DEFAULT, NOEXTRA }, /* Super Mario 160-in-1 Funny Time.nes */
-	{ 0xB6984DAD,  176,       4, DEFAULT, 1,    0x07,    0x07, DEFAULT, NOEXTRA }, /* GameStar Smart Genius Deluxe.nes */
+	{ 0xAD82BBEA,  176,       4, DEFAULT, 1,    0x07,    0x07, DEFAULT, NOEXTRA }, /* GameStar Smart Genius Deluxe.nes */
+
+	/* Nanjing games that are sometimes found erroneously set to mapper 163 even though they use other mappers */
+	{ 0x3CD15707,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ027] Fang Shi Yu (C) */
+	{ 0x2779BB41,  534,       0,    MI_V, 0, DEFAULT,    0x07,   DENDY, NOEXTRA }, /* [NJ064] Shu Du (Sudoku) (C) */
+	{ 0x1DE558A1,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ085] Shan Shan De Hong Xing (C) */
+	{ 0xF814EC57,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ090] Yong Zhe Chuan Shuo (C) */
+	{ 0x53A1F436,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ091] Xian Jian Wen Qing (C) */
 
 	/* Non-Mapper 176 files that are sometimes found erroneously set to mapper 176 */
 	{ 0x60AC647F,  260,       0, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (YH-4222) Super Game 4-in-1.nes */
