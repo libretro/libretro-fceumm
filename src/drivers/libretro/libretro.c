@@ -927,7 +927,7 @@ void retro_set_environment(retro_environment_t cb)
       { pads2, 4 },
       { pads3, 2 },
       { pads4, 2 },
-      { pads5, 5 },
+      { pads5, 6 },
       { 0, 0 },
    };
 
