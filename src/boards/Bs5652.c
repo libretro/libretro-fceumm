@@ -62,8 +62,8 @@ void Bs5652AnalyzeReg()
 	readDIP = exRegs[0] & 0x40;
 	prgAND = exRegs[1] & 0x04 ? 0x0F : 0x1F;
 	chrAND = exRegs[1] & 0x40 ? 0x7F : 0xFF;
-	prgOR = (exRegs[1] & 0x03) << 4;
-	chrOR = (exRegs[1] & 0x30) << 3 ;
+	prgOR = (exRegs[1] & 0x03) << 4 | (exRegs[0] & 0x10) << 2;
+	chrOR = (exRegs[1] & 0x30) << 3 | (exRegs[0] & 0x20) << 4;
 	nrom = exRegs[0] & 0x08;
 	nrom128 = exRegs[1] & 0x08;
 }
