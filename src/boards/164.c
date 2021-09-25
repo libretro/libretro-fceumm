@@ -95,7 +95,7 @@ static void power(void)
    SetWriteHandler(0x6000, 0x7FFF, CartBW);
 }
 
-static void reset()
+static void reset(void)
 {
    memset(reg, 0, sizeof(reg));
    sync();
@@ -103,12 +103,13 @@ static void reset()
 
 void Mapper164_Init (CartInfo *info)
 {
+   uint8 *WRAM;
    uint32 WRAMSIZE = info->iNES2? (info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF)): 8192;
    info->Power = power;
    info->Reset = reset;
    AddExState(StateRegs, ~0, 0, 0);
 
-   uint8* WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
+   WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
    SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 

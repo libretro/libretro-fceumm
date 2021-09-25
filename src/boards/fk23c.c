@@ -290,8 +290,9 @@ static DECLFW(Write8000)
    {
       case 0x8000:
       {
+         uint8 old_ctrl;
          if (A & 2) return; /* Confirmed on real hardware: writes to 8002 and 8003, or 9FFE and 9FFF, are ignored. Needed for Dr. Mario on some of the "bouncing ball" multis. */
-         uint8 old_ctrl = mmc3_ctrl;
+         old_ctrl = mmc3_ctrl;
       
          /* Subtype 2, 8192 or more KiB PRG-ROM, no CHR-ROM: Like Subtype 0,
           * but MMC3 registers $46 and $47 swapped. */
@@ -315,8 +316,9 @@ static DECLFW(Write8000)
       }
       case 0x8001:
       {
+         uint8 ctrl_mask;
          if (A & 2) return; /* Confirmed on real hardware: writes to 8002 and 8003, or 9FFE and 9FFF, are ignored. Needed for Dr. Mario on some of the "bouncing ball" multis. */
-         uint8 ctrl_mask = MMC3_EXTENDED ? 0x0F : 0x07;
+         ctrl_mask = MMC3_EXTENDED ? 0x0F : 0x07;
       
          if ((mmc3_ctrl & ctrl_mask) < 12)
          {
