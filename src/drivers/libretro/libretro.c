@@ -141,6 +141,7 @@ enum RetroZapperInputModes{RetroLightgun, RetroMouse, RetroPointer};
 static enum RetroZapperInputModes zappermode = RetroLightgun;
 
 static bool libretro_supports_bitmasks = false;
+static bool libretro_supports_option_categories = false;
 
 /* emulator-specific variables */
 
@@ -162,8 +163,8 @@ unsigned dendy = 0;
 
 static unsigned systemRegion = 0;
 static unsigned opt_region = 0;
-static unsigned opt_showAdvSoundOptions = 0;
-static unsigned opt_showAdvSystemOptions = 0;
+static bool opt_showAdvSoundOptions = true;
+static bool opt_showAdvSystemOptions = true;
 
 #if defined(PSP) || defined(PS2)
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
@@ -615,7 +616,7 @@ struct st_palettes palettes[] = {
 #define NES_NTSC_WIDTH  (((NES_NTSC_OUT_WIDTH(256) + 3) >> 2) << 2)
 
 static unsigned use_ntsc = 0;
-static unsigned burst_phase;
+static unsigned burst_phase = 0;
 static nes_ntsc_t nes_ntsc;
 static nes_ntsc_setup_t ntsc_setup;
 static uint16_t *ntsc_video_out = NULL; /* for ntsc blit buffer */
@@ -625,6 +626,9 @@ static void NTSCFilter_Cleanup(void)
    if (ntsc_video_out)
       free(ntsc_video_out);
    ntsc_video_out = NULL;
+
+   use_ntsc = 0;
+   burst_phase = 0;
 }
 
 static void NTSCFilter_Init(void)
@@ -862,25 +866,163 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
    }
 }
 
+/* Core options 'update display' callback */
+static bool update_option_visibility(void)
+{
+   struct retro_variable var = {0};
+   bool updated              = false;
+   size_t i, size;
+
+   /* If frontend supports core option categories,
+    * then fceumm_show_adv_system_options and
+    * fceumm_show_adv_sound_options are ignored
+    * and no options should be hidden */
+   if (libretro_supports_option_categories)
+      return false;
+
+   var.key = "fceumm_show_adv_system_options";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      bool opt_showAdvSystemOptions_prev = opt_showAdvSystemOptions;
+
+      opt_showAdvSystemOptions = true;
+      if (strcmp(var.value, "disabled") == 0)
+         opt_showAdvSystemOptions = false;
+
+      if (opt_showAdvSystemOptions != opt_showAdvSystemOptions_prev)
+      {
+         struct retro_core_option_display option_display;
+         unsigned i;
+         unsigned size;
+         char options_list[][25] = {
+            "fceumm_overclocking",
+            "fceumm_ramstate",
+            "fceumm_nospritelimit",
+            "fceumm_up_down_allowed",
+            "fceumm_show_crosshair"
+         };
+
+         option_display.visible = opt_showAdvSystemOptions;
+         size = sizeof(options_list) / sizeof(options_list[0]);
+         for (i = 0; i < size; i++)
+         {
+            option_display.key = options_list[i];
+            environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+                  &option_display);
+         }
+
+         updated = true;
+      }
+   }
+
+   var.key = "fceumm_show_adv_sound_options";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      bool opt_showAdvSoundOptions_prev = opt_showAdvSoundOptions;
+
+      opt_showAdvSoundOptions = true;
+      if (strcmp(var.value, "disabled") == 0)
+         opt_showAdvSoundOptions = false;
+
+      if (opt_showAdvSoundOptions != opt_showAdvSoundOptions_prev)
+      {
+         struct retro_core_option_display option_display;
+         unsigned i;
+         unsigned size;
+         char options_list[][25] = {
+            "fceumm_sndvolume",
+            "fceumm_sndquality",
+            "fceumm_swapduty",
+            "fceumm_apu_1",
+            "fceumm_apu_2",
+            "fceumm_apu_3",
+            "fceumm_apu_4",
+            "fceumm_apu_5"
+         };
+
+         option_display.visible  = opt_showAdvSoundOptions;
+         size = sizeof(options_list) / sizeof(options_list[0]);
+         for (i = 0; i < size; i++)
+         {
+            option_display.key = options_list[i];
+            environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+                  &option_display);
+         }
+
+         updated = true;
+      }
+   }
+
+   return updated;
+}
+
 static void set_variables(void)
 {
+   struct retro_core_option_display option_display;
    unsigned i = 0, index = 0;
 
+   option_display.visible = false;
+
    /* Initialize main core option struct */
-   for (i = 0; i < MAX_CORE_OPTIONS; i++)
-      option_defs_us[i] = option_defs_empty;
+   memset(&option_defs_us, 0, sizeof(option_defs_us));
 
    /* Write common core options to main struct */
-   while (option_defs_common[index].key) {
-      option_defs_us[index] = option_defs_common[index];
+   while (option_defs_us_common[index].key) {
+      memcpy(&option_defs_us[index], &option_defs_us_common[index],
+            sizeof(struct retro_core_option_v2_definition));
       index++;
    }
 
    /* Append dipswitch settings to core options if available */
-   index += set_dipswitch_variables(index, option_defs_us);
-   option_defs_us[index] = option_defs_empty;
+   set_dipswitch_variables(index, option_defs_us);
 
-   libretro_set_core_options(environ_cb);
+   libretro_supports_option_categories = false;
+   libretro_set_core_options(environ_cb,
+         &libretro_supports_option_categories);
+
+   /* If frontend supports core option categories,
+    * fceumm_show_adv_system_options and
+    * fceumm_show_adv_sound_options are unused
+    * and should be hidden */
+   if (libretro_supports_option_categories)
+   {
+      option_display.key = "fceumm_show_adv_system_options";
+
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+            &option_display);
+
+      option_display.key = "fceumm_show_adv_sound_options";
+
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+            &option_display);
+   }
+   /* If frontend does not support core option
+    * categories, core options may be shown/hidden
+    * at runtime. In this case, register 'update
+    * display' callback, so frontend can update
+    * core options menu without calling retro_run() */
+   else
+   {
+      struct retro_core_options_update_display_callback update_display_cb;
+      update_display_cb.callback = update_option_visibility;
+
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
+            &update_display_cb);
+   }
+
+   /* VS UNISystem games use internal palette regardless
+    * of user setting, so hide fceumm_palette option */
+   if (GameInfo && (GameInfo->type == GIT_VSUNI))
+   {
+      option_display.key = "fceumm_palette";
+
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+            &option_display);
+   }
 }
 
 void retro_set_environment(retro_environment_t cb)
@@ -1461,68 +1603,7 @@ static void check_variables(bool startup)
 
    update_dipswitch();
 
-   var.key = "fceumm_show_adv_system_options";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      unsigned newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
-      if ((opt_showAdvSystemOptions != newval) || startup)
-      {
-         struct retro_core_option_display option_display;
-         unsigned i;
-         unsigned size;
-         char options_list[][25] = {
-            "fceumm_overclocking",
-            "fceumm_ramstate",
-            "fceumm_nospritelimit",
-            "fceumm_up_down_allowed",
-            "fceumm_show_crosshair"
-         };
-
-         opt_showAdvSystemOptions = newval;
-         option_display.visible = opt_showAdvSystemOptions;
-         size = sizeof(options_list) / sizeof(options_list[0]);
-         for (i = 0; i < size; i++)
-         {
-            option_display.key = options_list[i];
-            environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-         }
-      }
-   }
-
-   var.key = "fceumm_show_adv_sound_options";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      unsigned newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
-      if ((opt_showAdvSoundOptions != newval) || startup)
-      {
-         struct retro_core_option_display option_display;
-         unsigned i;
-         unsigned size;
-         char options_list[][25] = {
-            "fceumm_sndvolume",
-            "fceumm_sndquality",
-            "fceumm_swapduty",
-            "fceumm_apu_1",
-            "fceumm_apu_2",
-            "fceumm_apu_3",
-            "fceumm_apu_4",
-            "fceumm_apu_5"
-         };
-
-         opt_showAdvSoundOptions = newval;
-         option_display.visible  = opt_showAdvSoundOptions;
-         size = sizeof(options_list) / sizeof(options_list[0]);
-         for (i = 0; i < size; i++)
-         {
-            option_display.key = options_list[i];
-            environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
-         }
-      }
-   }
+   update_option_visibility();
 }
 
 static int mzx = 0, mzy = 0;
@@ -1838,12 +1919,12 @@ static void retro_run_blit(uint8_t *gfx)
 
    if (!ps2) {
       if (!environ_cb(RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE, (void **)&ps2) || !ps2) {
-         printf("Failed to get HW rendering interface!\n");
+         FCEU_printf(" Failed to get HW rendering interface!\n");
          return;
       }
 
       if (ps2->interface_version != RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION) {
-         printf("HW render interface mismatch, expected %u, got %u!\n",
+         FCEU_printf(" HW render interface mismatch, expected %u, got %u!\n",
                   RETRO_HW_RENDER_INTERFACE_GSKIT_PS2_VERSION, ps2->interface_version);
          return;
       }

@@ -3,7 +3,7 @@
 
 #include <libretro.h>
 
-size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_definition *vars);
+void set_dipswitch_variables(unsigned current_index, struct retro_core_option_v2_definition *vars);
 void update_dipswitch(void);
 void DPSW_Cleanup(void);
 
