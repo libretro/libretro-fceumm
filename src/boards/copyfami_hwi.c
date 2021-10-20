@@ -26,6 +26,8 @@
 #define NO_CACHE
 #define NO_RAM
 
+#include <streams/file_stream.h>
+
 #include "__serial.h"
 #include "mapinc.h"
 
@@ -167,28 +169,32 @@ static void GetStatus(SYNC_STATE *state) {
 }
 
 static int32 FetchNewCHRBank(int32 slot) {
-	FILE *ofile;
+	RFILE *ofile;
 	char name[256];
 	int32 bank = chr_data.count++;
 	CHR1KGetCmd[1] = slot << 2;
 	SENDGET(CHR1KGetCmd, chr_data.buf[bank * 1024], 1024);
 	sprintf(name, "%04x.chr", bank);
-	ofile = FCEUD_UTF8fopen(name, "wb");
-	fwrite((void*)&chr_data.buf[bank * 1024], 1, 1024, ofile);
-	fclose(ofile);
+	ofile = filestream_open(name,
+			RETRO_VFS_FILE_ACCESS_WRITE,
+			RETRO_VFS_FILE_ACCESS_HINT_NONE);
+	filestream_write(ofile, (void*)&chr_data.buf[bank * 1024], 1024);
+	filestream_close(ofile);
 	return bank;
 }
 
 static int32 FetchNewPRGBank(int32 slot) {
-	FILE *ofile;
+	RFILE *ofile;
 	char name[256];
 	int32 bank = prg_data.count++;
 	PRG8KGetCmd[1] = 0x80 + (slot << 5);
 	SENDGET(PRG8KGetCmd, prg_data.buf[bank * 8192], 8192);
 	sprintf(name, "%04x.prg", bank);
-	ofile = FCEUD_UTF8fopen(name, "wb");
-	fwrite((void*)&prg_data.buf[bank * 8192], 1, 8192, ofile);
-	fclose(ofile);
+	ofile = filestream_open(name,
+			RETRO_VFS_FILE_ACCESS_WRITE,
+			RETRO_VFS_FILE_ACCESS_HINT_NONE);
+	filestream_write(ofile, (void*)&prg_data.buf[bank * 8192], 8192);
+	filestream_close(ofile);
 	return bank;
 }
 

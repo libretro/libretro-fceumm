@@ -41,9 +41,6 @@ typedef unsigned __int64 uint64;
 	#define GINLINE		/* Can't declare a function INLINE
 						 * and global in MSVC.  Bummer.
 						 */
-	#define PSS_STYLE 2	/* Does MSVC compile for anything
-						 * other than Windows/DOS targets?
-						 */
 #else
 typedef unsigned long long uint64;
 typedef long long int64;
@@ -61,29 +58,6 @@ typedef long long int64;
 #define INLINE
 #endif
 #endif
-
-#if PSS_STYLE == 2
-
-#define PSS "\\"
-#define PS '\\'
-
-#elif PSS_STYLE == 1
-
-#define PSS "/"
-#define PS '/'
-
-#elif PSS_STYLE == 3
-
-#define PSS "\\"
-#define PS '\\'
-
-#elif PSS_STYLE == 4
-
-#define PSS ":"
-#define PS ':'
-
-#endif
-
 
 #ifdef __GNUC__
 	#ifdef C80x86

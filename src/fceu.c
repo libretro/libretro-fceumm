@@ -193,7 +193,7 @@ void FCEUI_CloseGame(void)
       free(GameInfo->name);
    GameInfo->name = 0;
    if (GameInfo->type != GIT_NSF)
-      FCEU_FlushGameCheats(0, 0);
+      FCEU_FlushGameCheats();
    GameInterface(GI_CLOSE);
    ResetExState(0, 0);
    FCEU_CloseGenie();
@@ -226,7 +226,7 @@ int iNESLoad(const char *name, FCEUFILE *fp);
 int FDSLoad(const char *name, FCEUFILE *fp);
 int NSFLoad(FCEUFILE *fp);
 
-FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
+FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufsize)
 {
    FCEUFILE *fp;
 
@@ -244,9 +244,7 @@ FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
    GameInfo->inputfc = -1;
    GameInfo->cspecial = 0;
 
-   GetFileBase(name);
-
-   fp = FCEU_fopen(name, NULL, "rb", 0, databuf, databufsize);
+   fp = FCEU_fopen(name, databuf, databufsize);
 
    if (!fp) {
       FCEU_PrintError("Error opening \"%s\"!", name);
@@ -278,7 +276,7 @@ endlseq:
 
    if (GameInfo->type != GIT_NSF) {
       FCEU_LoadGamePalette();
-      FCEU_LoadGameCheats(0);
+      FCEU_LoadGameCheats();
    }
 
    FCEU_ResetPalette();
@@ -321,7 +319,7 @@ FCEUGI *FCEUI_CopyFamiStart(void)
 
 	if (GameInfo->type != GIT_NSF) {
 		FCEU_LoadGamePalette();
-		FCEU_LoadGameCheats(0);
+		FCEU_LoadGameCheats();
 	}
 
 	FCEU_ResetPalette();

@@ -22,6 +22,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <string/stdstring.h>
+#include <streams/file_stream.h>
+
 #include "fceu-types.h"
 #include "fceu.h"
 #include "ppu.h"
@@ -340,7 +343,7 @@ void FixGenieMap(void);
 
 /* Called when a game(file) is opened successfully. */
 void FCEU_OpenGenie(void) {
-	FILE *fp;
+	RFILE *fp = NULL;
 	int x;
 
 	if (!GENIEROM) {
@@ -349,33 +352,38 @@ void FCEU_OpenGenie(void) {
 		if (!(GENIEROM = (uint8*)FCEU_malloc(4096 + 1024))) return;
 
 		fn = FCEU_MakeFName(FCEUMKF_GGROM, 0, 0);
-		fp = FCEUD_UTF8fopen(fn, "rb");
+
+		if (!string_is_empty(fn))
+			fp = filestream_open(fn,
+					RETRO_VFS_FILE_ACCESS_READ,
+					RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
 		if (!fp) {
 			FCEU_PrintError("Error opening Game Genie ROM image!");
 			free(GENIEROM);
 			GENIEROM = 0;
 			return;
 		}
-		if (fread(GENIEROM, 1, 16, fp) != 16) {
+		if (filestream_read(fp, GENIEROM, 16) != 16) {
  grerr:
 			FCEU_PrintError("Error reading from Game Genie ROM image!");
 			free(GENIEROM);
 			GENIEROM = 0;
-			fclose(fp);
+			filestream_close(fp);
 			return;
 		}
 		if (GENIEROM[0] == 0x4E) {	/* iNES ROM image */
-			if (fread(GENIEROM, 1, 4096, fp) != 4096)
+			if (filestream_read(fp, GENIEROM, 4096) != 4096)
 				goto grerr;
-			if (fseek(fp, 16384 - 4096, SEEK_CUR))
+			if (filestream_seek(fp, 16384 - 4096, RETRO_VFS_SEEK_POSITION_CURRENT))
 				goto grerr;
-			if (fread(GENIEROM + 4096, 1, 256, fp) != 256)
+			if (filestream_read(fp, GENIEROM + 4096, 256) != 256)
 				goto grerr;
 		} else {
-			if (fread(GENIEROM + 16, 1, 4352 - 16, fp) != (4352 - 16))
+			if (filestream_read(fp, GENIEROM + 16, 4352 - 16) != (4352 - 16))
 				goto grerr;
 		}
-		fclose(fp);
+		filestream_close(fp);
 
 		/* Workaround for the FCE Ultra CHR page size only being 1KB */
 		for (x = 0; x < 4; x++)

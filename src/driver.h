@@ -27,8 +27,6 @@ extern "C" {
 #define FCEUNPCMD_LOADCHEATS  0x82
 #define FCEUNPCMD_TEXT        0x90
 
-FILE *FCEUD_UTF8fopen(const char *fn, const char *mode);
-
 /* This makes me feel dirty for some reason. */
 void FCEU_printf(char *format, ...);
 #define FCEUI_printf FCEU_printf
@@ -101,7 +99,7 @@ void FCEUI_DisableSpriteLimitation(int a);
 /* -1 = no change, 0 = show, 1 = hide, 2 = internal toggle */
 void FCEUI_SetRenderDisable(int sprites, int bg);
 
-FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *buf, size_t bufsize);
+FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *buf, size_t bufsize);
 
 #ifdef COPYFAMI
 /* Fake UNIF board to start new CFHI instance */
@@ -140,12 +138,9 @@ void FCEUI_FrameSkip(int x);
 /* First and last scanlines to render, for ntsc and pal emulation. */
 void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall);
 
-/* Sets the base directory(save states, snapshots, etc. are saved in directories
-   below this directory. */
-void FCEUI_SetBaseDirectory(char *dir);
-
-void FCEUI_SetSaveDirectory(char *sav_dir);
-
+/* Sets the base directory (bios and palette files are saved
+   in this directory. */
+void FCEUI_SetBaseDirectory(const char *dir);
 
 /* Tells FCE Ultra to copy the palette data pointed to by pal and use it.
    Data pointed to by pal needs to be 64*3 bytes in length.
