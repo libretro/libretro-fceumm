@@ -5,8 +5,14 @@
 #include <stdarg.h>
 #include <ctype.h>
 
+#ifdef _MSC_VER
+#include <compat/msvc.h>
+#endif
+
 #include <libretro.h>
-#include <compat/fopen_utf8.h>
+#include <string/stdstring.h>
+#include <file/file_path.h>
+#include <streams/file_stream.h>
 #include <streams/memory_stream.h>
 #include <libretro_dipswitch.h>
 #include <libretro_core_options.h>
@@ -286,13 +292,6 @@ void FCEUD_DispMessage(char *m)
 void FCEUD_SoundToggle (void)
 {
    FCEUI_SetSoundVolume(sndvolume);
-}
-
-FILE *FCEUD_UTF8fopen(const char *n, const char *m)
-{
-   if (n)
-      return fopen_utf8(n, m);
-   return NULL;
 }
 
 /*palette for FCEU*/
@@ -1027,6 +1026,8 @@ static void set_variables(void)
 
 void retro_set_environment(retro_environment_t cb)
 {
+   struct retro_vfs_interface_info vfs_iface_info;
+
    static const struct retro_controller_description pads1[] = {
       { "Auto",    RETRO_DEVICE_AUTO },
       { "Gamepad", RETRO_DEVICE_GAMEPAD },
@@ -1073,13 +1074,31 @@ void retro_set_environment(retro_environment_t cb)
       { 0, 0 },
    };
 
+   static const struct retro_system_content_info_override content_overrides[] = {
+      {
+         "fds|nes|unf|unif", /* extensions */
+         false,              /* need_fullpath */
+         false               /* persistent_data */
+      },
+      { NULL, false, false }
+   };
+
    environ_cb = cb;
+
    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
+
+   vfs_iface_info.required_interface_version = 1;
+   vfs_iface_info.iface                      = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
+      filestream_vfs_init(&vfs_iface_info);
+
+   environ_cb(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE,
+         (void*)content_overrides);
 }
 
 void retro_get_system_info(struct retro_system_info *info)
 {
-   info->need_fullpath    = false;
+   info->need_fullpath    = true;
    info->valid_extensions = "fds|nes|unf|unif";
 #ifdef GIT_VERSION
    info->library_version  = "(SVN)" GIT_VERSION;
@@ -2413,17 +2432,10 @@ static const struct cartridge_db famicom_4p_db_list[] =
    }
 };
 
-#ifdef _WIN32
-static char slash = '\\';
-#else
-static char slash = '/';
-#endif
-
-bool retro_load_game(const struct retro_game_info *game)
+bool retro_load_game(const struct retro_game_info *info)
 {
    unsigned i, j;
-   char* dir=NULL;
-   char* sav_dir=NULL;
+   const char *system_dir = NULL;
    size_t fourscore_len = sizeof(fourscore_db_list)   / sizeof(fourscore_db_list[0]);
    size_t famicom_4p_len = sizeof(famicom_4p_db_list) / sizeof(famicom_4p_db_list[0]);
    enum retro_pixel_format rgb565;
@@ -2482,8 +2494,43 @@ bool retro_load_game(const struct retro_game_info *game)
    struct retro_memory_descriptor descs[64 + 4];
    struct retro_memory_map        mmaps;
 
-   if (!game)
-      return false;
+   struct retro_game_info_ext *info_ext = NULL;
+   const uint8_t *content_data          = NULL;
+   size_t content_size                  = 0;
+   char content_path[2048]              = {0};
+
+   /* Attempt to fetch extended game info */
+   if (environ_cb(RETRO_ENVIRONMENT_GET_GAME_INFO_EXT, &info_ext) && info_ext)
+   {
+      content_data = (const uint8_t *)info_ext->data;
+      content_size = info_ext->size;
+
+      if (info_ext->file_in_archive)
+      {
+         /* We don't have a 'physical' file in this
+          * case, but the core still needs a filename
+          * in order to detect the region of iNES v1.0
+          * ROMs. We therefore fake it, using the content
+          * directory, canonical content name, and content
+          * file extension */
+         snprintf(content_path, sizeof(content_path), "%s%c%s.%s",
+               info_ext->dir,
+               PATH_DEFAULT_SLASH_C(),
+               info_ext->name,
+               info_ext->ext);
+      }
+      else
+         strlcpy(content_path, info_ext->full_path,
+               sizeof(content_path));
+   }
+   else
+   {
+      if (!info || string_is_empty(info->path))
+         return false;
+
+      strlcpy(content_path, info->path,
+            sizeof(content_path));
+   }
 
 #ifdef FRONTEND_SUPPORTS_RGB565
    rgb565 = RETRO_PIXEL_FORMAT_RGB565;
@@ -2524,10 +2571,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-      FCEUI_SetBaseDirectory(dir);
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &sav_dir) && sav_dir)
-      FCEUI_SetSaveDirectory(sav_dir);
+   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
+      FCEUI_SetBaseDirectory(system_dir);
 
    memset(base_palette, 0, sizeof(base_palette));
 
@@ -2536,7 +2581,7 @@ bool retro_load_game(const struct retro_game_info *game)
    FCEUI_SetSoundVolume(sndvolume);
    FCEUI_Sound(sndsamplerate);
 
-   GameInfo = (FCEUGI*)FCEUI_LoadGame(game->path, (uint8_t*)game->data, game->size);
+   GameInfo = (FCEUGI*)FCEUI_LoadGame(content_path, content_data, content_size);
    if (!GameInfo)
    {
       struct retro_message msg;
@@ -2557,7 +2602,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    external_palette_exist = ipalette;
    if (external_palette_exist)
-      FCEU_printf(" Loading custom palette: %s%cnes.pal\n", dir, slash);
+      FCEU_printf(" Loading custom palette: %s%cnes.pal\n",
+            system_dir, PATH_DEFAULT_SLASH_C());
 
    /* Save region and dendy mode for region-auto detect */
    systemRegion = (dendy << 1) | (retro_get_region() & 1);

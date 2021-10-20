@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2020 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (utf.h).
+ * The following license statement only applies to this file (compat_strcasestr.c).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,44 +20,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _LIBRETRO_ENCODINGS_WIN32_H
-#define _LIBRETRO_ENCODINGS_WIN32_H
+#include <ctype.h>
 
-#ifndef _XBOX
-#ifdef _WIN32
-/*#define UNICODE
-#include <tchar.h>
-#include <wchar.h>*/
+#include <compat/strcasestr.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* Pretty much strncasecmp. */
+static int casencmp(const char *a, const char *b, size_t n)
+{
+   size_t i;
 
-#include <encodings/utf.h>
+   for (i = 0; i < n; i++)
+   {
+      int a_lower = tolower(a[i]);
+      int b_lower = tolower(b[i]);
+      if (a_lower != b_lower)
+         return a_lower - b_lower;
+   }
 
-#ifdef __cplusplus
+   return 0;
 }
-#endif
 
-#endif
-#endif
+char *strcasestr_retro__(const char *haystack, const char *needle)
+{
+   size_t i, search_off;
+   size_t hay_len    = strlen(haystack);
+   size_t needle_len = strlen(needle);
 
-#ifdef UNICODE
-#define CHAR_TO_WCHAR_ALLOC(s, ws) \
-   size_t ws##_size = (NULL != s && s[0] ? strlen(s) : 0) + 1; \
-   wchar_t *ws = (wchar_t*)calloc(ws##_size, 2); \
-   if (NULL != s && s[0]) \
-      MultiByteToWideChar(CP_UTF8, 0, s, -1, ws, ws##_size / sizeof(wchar_t));
+   if (needle_len > hay_len)
+      return NULL;
 
-#define WCHAR_TO_CHAR_ALLOC(ws, s) \
-   size_t s##_size = ((NULL != ws && ws[0] ? wcslen((const wchar_t*)ws) : 0) / 2) + 1; \
-   char *s = (char*)calloc(s##_size, 1); \
-   if (NULL != ws && ws[0]) \
-      utf16_to_char_string((const uint16_t*)ws, s, s##_size);
+   search_off = hay_len - needle_len;
+   for (i = 0; i <= search_off; i++)
+      if (!casencmp(haystack + i, needle, needle_len))
+         return (char*)haystack + i;
 
-#else
-#define CHAR_TO_WCHAR_ALLOC(s, ws) char *ws = (NULL != s && s[0] ? strdup(s) : NULL);
-#define WCHAR_TO_CHAR_ALLOC(ws, s) char *s = (NULL != ws && ws[0] ? strdup(ws) : NULL);
-#endif
-
-#endif
+   return NULL;
+}

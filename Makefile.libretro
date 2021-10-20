@@ -1,7 +1,5 @@
 DEBUG=0
-PSS_STYLE=1
 EXTERNAL_ZLIB=0
-HAVE_GRIFFIN=1
 STATIC_LINKING=0
 ENDIANNESS_DEFINES=
 SIGNED_CHAR=0
@@ -161,7 +159,7 @@ else ifeq ($(platform), ps2)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = mips64r5900el-ps2-elf-gcc$(EXE_EXT)
 	AR = mips64r5900el-ps2-elf-ar$(EXE_EXT)
-	FCEU_DEFINES := -DPATH_MAX=1024 -DINLINE=inline -DPSS_STYLE=1 -DFCEU_VERSION_NUMERIC=9813 -DHAVE_ASPRINTF
+	FCEU_DEFINES := -DPATH_MAX=1024 -DINLINE=inline -DFCEU_VERSION_NUMERIC=9813 -DHAVE_ASPRINTF
 	ENDIANNESS_DEFINES := -DLSB_FIRST -DLOCAL_LE=1
 	PLATFORM_DEFINES := -DPS2 -D_EE -G0 -DFRONTEND_SUPPORTS_ABGR1555 -DRENDER_GSKIT_PS2
 	PLATFORM_DEFINES += -I$(PS2SDK)/ee/include -I$(PS2SDK)/common/include -I$(PS2DEV)/gsKit/include
@@ -540,7 +538,6 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 	export INCLUDE := $(INCLUDE);$(WindowsSDKSharedIncludeDir);$(WindowsSDKUCRTIncludeDir);$(WindowsSDKUMIncludeDir)
 	export LIB := $(LIB);$(WindowsSDKUCRTLibDir);$(WindowsSDKUMLibDir)
 	TARGET := $(TARGET_NAME)_libretro.dll
-	PSS_STYLE :=2
 	LDFLAGS += -DLL
 
 # Windows MSVC 2010 x64
@@ -564,7 +561,6 @@ INCFLAGS_PLATFORM = -I"$(WindowsSDKIncludeDir)"
 export INCLUDE := $(INCLUDE);$(WindowsSDKIncludeDir);$(WindowsSDKGlIncludeDir)
 export LIB := $(LIB);$(WindowsSDKLibDir)
 TARGET := $(TARGET_NAME)_libretro.dll
-PSS_STYLE :=2
 LDFLAGS += -DLL
 
 # Windows MSVC 2010 x86
@@ -588,7 +584,6 @@ INCFLAGS_PLATFORM = -I"$(WindowsSDKIncludeDir)"
 export INCLUDE := $(INCLUDE);$(WindowsSDKIncludeDir);$(WindowsSDKGlIncludeDir)
 export LIB := $(LIB);$(WindowsSDKLibDir)
 TARGET := $(TARGET_NAME)_libretro.dll
-PSS_STYLE :=2
 LDFLAGS += -DLL
 
 # Windows MSVC 2003 Xbox 1
@@ -602,7 +597,6 @@ export INCLUDE := $(XDK)\xbox\include
 export LIB := $(XDK)\xbox\lib
 PATH := $(call unixcygpath,$(XDK)/xbox/bin/vc71):$(PATH)
 
-PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX1
 CXXFLAGS += -D_XBOX -D_XBOX1
 STATIC_LINKING=1
@@ -618,7 +612,6 @@ export INCLUDE := $(XEDK)/include/xbox
 export LIB := $(XEDK)/lib/xbox
 PATH := $(call unixcygpath,$(XEDK)/bin/win32):$(PATH)
 
-PSS_STYLE :=2
 CFLAGS   += -D_XBOX -D_XBOX360
 CXXFLAGS += -D_XBOX -D_XBOX360
 ENDIANNESS_DEFINES += -DMSB_FIRST
@@ -640,7 +633,6 @@ WindowsSdkDir := $(INETSDK)
 export INCLUDE := $(INCLUDE);$(INETSDK)/Include
 export LIB := $(LIB);$(WindowsSdkDir);$(INETSDK)/Lib
 TARGET := $(TARGET_NAME)_libretro.dll
-PSS_STYLE :=2
 LDFLAGS += -DLL
 CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 
@@ -667,7 +659,6 @@ WindowsSDKLibDir := $(shell cygpath -w "$(WindowsSdkDir)\Lib")
 export INCLUDE := $(INCLUDE);$(WindowsSDKIncludeDir);$(WindowsSDKAtlIncludeDir);$(WindowsSDKCrtIncludeDir);$(WindowsSDKGlIncludeDir);$(WindowsSDKMfcIncludeDir);libretro-common/include/compat/msvc
 export LIB := $(LIB);$(WindowsSDKLibDir)
 TARGET := $(TARGET_NAME)_libretro.dll
-PSS_STYLE :=2
 LDFLAGS += -DLL
 CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 
@@ -687,7 +678,6 @@ WindowsSdkDir := $(INETSDK)
 export INCLUDE := $(INCLUDE);$(INETSDK)/Include
 export LIB := $(LIB);$(WindowsSdkDir);$(INETSDK)/Lib
 TARGET := $(TARGET_NAME)_libretro.dll
-PSS_STYLE :=2
 LDFLAGS += -DLL
 CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 
@@ -696,7 +686,6 @@ else
 	TARGET := $(TARGET_NAME)_libretro.dll
 	CC ?= gcc
 	SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=src/drivers/libretro/link.T
-   PSS_STYLE :=2
 endif
 
 ifeq ($(DEBUG), 1)
@@ -750,8 +739,6 @@ endif
 ifneq (,$(findstring msvc,$(platform)))
 COREDEFINES += -DINLINE=_inline
 endif
-
-CFLAGS += -DWANT_GRIFFIN
 
 OBJECTS := $(SOURCES_C:.c=.o)
 OBJECTS += $(RETROARCH_OBJECTS)

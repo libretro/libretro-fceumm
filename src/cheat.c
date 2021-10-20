@@ -162,13 +162,13 @@ static int AddCheatEntry(char *name, uint32 addr, uint8 val, int compare, int st
 	return(1);
 }
 
-void FCEU_LoadGameCheats(FILE *override)
+void FCEU_LoadGameCheats(void)
 {
    numsubcheats = savecheats = 0;
    RebuildSubCheats();
 }
 
-void FCEU_FlushGameCheats(FILE *override, int nosave) {
+void FCEU_FlushGameCheats(void) {
 	if (CheatComp)
    {
 		free(CheatComp);

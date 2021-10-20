@@ -708,7 +708,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	char *fn = FCEU_MakeFName(FCEUMKF_FDSROM, 0, 0);
 
-	if (!(zp = FCEU_fopen(fn, 0, "rb", 0, NULL, 0))) {
+	if (!(zp = FCEU_fopen(fn, NULL, 0))) {
 		FCEU_PrintError("FDS BIOS ROM image missing!\n");
 		free(fn);
 		return 0;
@@ -728,13 +728,11 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		if (FDSBIOS)
 			free(FDSBIOS);
 		FDSBIOS = NULL;
-		free(zp->fp->data);
 		FCEU_fclose(zp);
 		FCEU_PrintError("Error reading FDS BIOS ROM image.\n");
 		return 0;
 	}
 
-	free(zp->fp->data);
 	FCEU_fclose(zp);
 
 	FCEU_fseek(fp, 0, SEEK_SET);
@@ -752,37 +750,6 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	}
 	
 	DiskWritten = 1;
-
-#if 0
-	/* auxillary rom loading for save file is now handled
-	 * using retro_get_memory_size/data */
-	{
-		FCEUFILE *tp;
-		char *fn = FCEU_MakeFName(FCEUMKF_FDS, 0, 0);
-
-		int x;
-		for (x = 0; x < TotalSides; x++) {
-			diskdatao[x] = (uint8*)FCEU_malloc(65500);
-			memcpy(diskdatao[x], diskdata[x], 65500);
-		}
-
-		if ((tp = FCEU_fopen(fn, 0, "rb", 0, NULL, 0))) {
-			FCEU_printf("Disk was written. Auxillary FDS file open \"%s\".\n", fn);
-			FreeFDSMemory();
-			if (!SubLoad(tp)) {
-				FCEU_PrintError("Error reading auxillary FDS file.\n");
-				if (FDSBIOS)
-					free(FDSBIOS);
-				FDSBIOS = NULL;
-				free(fn);
-				return(0);
-			}
-			FCEU_fclose(tp);
-			DiskWritten = 1;	/* For save state handling. */
-		}
-		free(fn);
-	}
-#endif
 
 	GameInfo->type = GIT_FDS;
 	GameInterface = FDSGI;

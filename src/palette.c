@@ -22,6 +22,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <string/stdstring.h>
+#include <streams/file_stream.h>
+
 #include "fceu-types.h"
 #include "fceu.h"
 #include "general.h"
@@ -187,17 +190,22 @@ int ipalette = 0;
 
 void FCEU_LoadGamePalette(void) {
 	uint8 ptmp[192];
-	FILE *fp;
-	char *fn;
+	RFILE *fp = NULL;
+	char *fn = NULL;
 
 	ipalette = 0;
 
 	fn = FCEU_MakeFName(FCEUMKF_PALETTE, 0, 0);
 
-	if ((fp = FCEUD_UTF8fopen(fn, "rb"))) {
+	if (!string_is_empty(fn))
+		fp = filestream_open(fn,
+				RETRO_VFS_FILE_ACCESS_READ,
+				RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+	if (fp) {
 		int x;
-		fread(ptmp, 1, 192, fp);
-		fclose(fp);
+		filestream_read(fp, ptmp, 192);
+		filestream_close(fp);
 		for (x = 0; x < 64; x++) {
 			palettei[x].r = ptmp[x + x + x];
 			palettei[x].g = ptmp[x + x + x + 1];
