@@ -65,6 +65,9 @@
 #define NES_4_3      ((width / (height * (256.0 / 240.0))) * 4.0 / 3.0)
 #define NES_PP       ((width / (height * (256.0 / 240.0))) * 16.0 / 15.0)
 
+#define NES_PAL_FPS  (838977920.0 / 16777215.0)
+#define NES_NTSC_FPS (1008307711.0 / 16777215.0)
+
 #if defined(_3DS)
 void* linearMemAlign(size_t size, size_t alignment);
 void linearFree(void* mem);
@@ -148,6 +151,7 @@ static enum RetroZapperInputModes zappermode = RetroLightgun;
 
 static bool libretro_supports_bitmasks = false;
 static bool libretro_supports_option_categories = false;
+static unsigned libretro_msg_interface_version = 0;
 
 /* emulator-specific variables */
 
@@ -282,11 +286,54 @@ void FCEUD_Message(char *s)
    log_cb.log(RETRO_LOG_INFO, "%s", s);
 }
 
-void FCEUD_DispMessage(char *m)
-{  struct retro_message msg;
-   msg.msg = m;
-   msg.frames = 180;
-   environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, char *str)
+{
+   if (!environ_cb)
+      return;
+
+   if (libretro_msg_interface_version >= 1)
+   {
+      struct retro_message_ext msg;
+      unsigned priority;
+
+      switch (level)
+      {
+         case RETRO_LOG_ERROR:
+            priority = 5;
+            break;
+         case RETRO_LOG_WARN:
+            priority = 4;
+            break;
+         case RETRO_LOG_INFO:
+            priority = 3;
+            break;
+         case RETRO_LOG_DEBUG:
+         default:
+            priority = 1;
+            break;
+      }
+
+      msg.msg      = str;
+      msg.duration = duration;
+      msg.priority = priority;
+      msg.level    = level;
+      msg.target   = RETRO_MESSAGE_TARGET_OSD;
+      msg.type     = RETRO_MESSAGE_TYPE_NOTIFICATION_ALT;
+      msg.progress = -1;
+
+      environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, &msg);
+   }
+   else
+   {
+      float fps       = (FSettings.PAL || dendy) ? NES_PAL_FPS : NES_NTSC_FPS;
+      unsigned frames = (unsigned)(((float)duration * fps / 1000.0f) + 0.5f);
+      struct retro_message msg;
+
+      msg.msg    = str;
+      msg.frames = frames;
+
+      environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+   }
 }
 
 void FCEUD_SoundToggle (void)
@@ -1024,6 +1071,40 @@ static void set_variables(void)
    }
 }
 
+/* Game Genie add-on must be enabled before
+ * loading content, so we cannot parse this
+ * option inside check_variables() */
+static void check_game_genie_variable(void)
+{
+   struct retro_variable var = {0};
+   int game_genie_enabled    = 0;
+
+   var.key = "fceumm_game_genie";
+
+   /* Game Genie is only enabled for regular
+    * cartridges (excludes arcade content,
+    * FDS games, etc.) */
+   if ((GameInfo->type == GIT_CART) &&
+       (iNESCart.mapper != 105) && /* Nintendo World Championship cart (Mapper 105)*/
+       environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) &&
+       var.value &&
+       !strcmp(var.value, "enabled"))
+      game_genie_enabled = 1;
+
+   FCEUI_SetGameGenie(game_genie_enabled);
+}
+
+/* Callback passed to FCEUI_LoadGame()
+ * > Required since we must set and check
+ *   core options immediately after ROM
+ *   is loaded, before FCEUI_LoadGame()
+ *   returns */
+static void frontend_post_load_init()
+{
+   set_variables();
+   check_game_genie_variable();
+}
+
 void retro_set_environment(retro_environment_t cb)
 {
    struct retro_vfs_interface_info vfs_iface_info;
@@ -1140,9 +1221,9 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.aspect_ratio = get_aspect_ratio(width, height);
    info->timing.sample_rate = (float)sndsamplerate;
    if (FSettings.PAL || dendy)
-      info->timing.fps = 838977920.0/16777215.0;
+      info->timing.fps = NES_PAL_FPS;
    else
-      info->timing.fps = 1008307711.0/16777215.0;
+      info->timing.fps = NES_NTSC_FPS;
 }
 
 static void check_system_specs(void)
@@ -1162,6 +1243,9 @@ void retro_init(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
       libretro_supports_bitmasks = true;
+
+   environ_cb(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION,
+         &libretro_msg_interface_version);
 }
 
 static void retro_set_custom_palette(void)
@@ -1232,15 +1316,15 @@ static void FCEUD_RegionOverride(unsigned region)
          pal = systemRegion & 1;
          break;
       case 1: /* ntsc */
-         FCEU_DispMessage("System: NTSC");
+         FCEUD_DispMessage(RETRO_LOG_INFO, 2000, "System: NTSC");
          break;
       case 2: /* pal */
          pal = 1;
-         FCEU_DispMessage("System: PAL");
+         FCEUD_DispMessage(RETRO_LOG_INFO, 2000, "System: PAL");
          break;
       case 3: /* dendy */
          d = 1;
-         FCEU_DispMessage("System: Dendy");
+         FCEUD_DispMessage(RETRO_LOG_INFO, 2000, "System: Dendy");
          break;
    }
 
@@ -1265,6 +1349,7 @@ void retro_deinit (void)
    ps2 = NULL;
 #endif
    libretro_supports_bitmasks = false;
+   libretro_msg_interface_version = 0;
    DPSW_Cleanup();
 #ifdef HAVE_NTSC_FILTER
    NTSCFilter_Cleanup();
@@ -1456,9 +1541,6 @@ static void check_variables(bool startup)
       FCEU_ZapperSetTolerance(atoi(var.value));
    }
 
-   var.key = "fceumm_region";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-
    var.key = "fceumm_show_crosshair";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1479,7 +1561,6 @@ static void check_variables(bool startup)
          audio_video_updated = 1;
       }
    }
-
 #else
    var.key = "fceumm_overscan_h";
 
@@ -1505,6 +1586,7 @@ static void check_variables(bool startup)
       }
    }
 #endif
+
    var.key = "fceumm_aspect";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1545,6 +1627,7 @@ static void check_variables(bool startup)
       nes_input.turbo_delay = atoi(var.value);
 
    var.key = "fceumm_region";
+
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       unsigned oldval = opt_region;
@@ -2060,6 +2143,11 @@ size_t retro_serialize_size(void)
 
 bool retro_serialize(void *data, size_t size)
 {
+   /* Cannot save state while Game Genie
+    * screen is open */
+   if (geniestage == 1)
+      return false;
+
    if (size != retro_serialize_size())
       return false;
 
@@ -2070,6 +2158,11 @@ bool retro_serialize(void *data, size_t size)
 
 bool retro_unserialize(const void * data, size_t size)
 {
+   /* Cannot load state while Game Genie
+    * screen is open */
+   if (geniestage == 1)
+      return false;
+
    if (size != retro_serialize_size())
       return false;
 
@@ -2581,17 +2674,16 @@ bool retro_load_game(const struct retro_game_info *info)
    FCEUI_SetSoundVolume(sndvolume);
    FCEUI_Sound(sndsamplerate);
 
-   GameInfo = (FCEUGI*)FCEUI_LoadGame(content_path, content_data, content_size);
+   GameInfo = (FCEUGI*)FCEUI_LoadGame(content_path, content_data, content_size,
+         frontend_post_load_init);
+
    if (!GameInfo)
    {
-      struct retro_message msg;
-      char msg_local[256];
-
-      sprintf(msg_local, "ROM loading failed...");
-      msg.msg    = msg_local;
-      msg.frames = 360;
-      if (environ_cb)
-         environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, (void*)&msg);
+#if 0
+      /* An error message here is superfluous - the frontend
+       * will report that content loading has failed */
+      FCEUD_DispMessage(RETRO_LOG_ERROR, 3000, "ROM loading failed...");
+#endif
       return false;
    }
 
@@ -2612,7 +2704,6 @@ bool retro_load_game(const struct retro_game_info *info)
 
    ResetPalette();
    FCEUD_SoundToggle();
-   set_variables();
    check_variables(true);
    PowerNES();
 

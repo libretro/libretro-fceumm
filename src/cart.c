@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include <string/stdstring.h>
+#include <file/file_path.h>
 #include <streams/file_stream.h>
 
 #include "fceu-types.h"
@@ -353,20 +354,25 @@ void FCEU_OpenGenie(void) {
 
 		fn = FCEU_MakeFName(FCEUMKF_GGROM, 0, 0);
 
-		if (!string_is_empty(fn))
+		if (!string_is_empty(fn) && path_is_valid(fn))
 			fp = filestream_open(fn,
 					RETRO_VFS_FILE_ACCESS_READ,
 					RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
+		free(fn);
+		fn = NULL;
+
 		if (!fp) {
-			FCEU_PrintError("Error opening Game Genie ROM image!");
+			FCEU_PrintError("Error opening Game Genie ROM image!\n");
+			FCEUD_DispMessage(RETRO_LOG_WARN, 3000, "Game Genie ROM image (gamegenie.nes) missing");
 			free(GENIEROM);
 			GENIEROM = 0;
 			return;
 		}
 		if (filestream_read(fp, GENIEROM, 16) != 16) {
  grerr:
-			FCEU_PrintError("Error reading from Game Genie ROM image!");
+			FCEU_PrintError("Error reading from Game Genie ROM image!\n");
+			FCEUD_DispMessage(RETRO_LOG_WARN, 3000, "Failed to read Game Genie ROM image (gamegenie.nes)");
 			free(GENIEROM);
 			GENIEROM = 0;
 			filestream_close(fp);

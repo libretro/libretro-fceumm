@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include <string/stdstring.h>
+#include <file/file_path.h>
 #include <streams/file_stream.h>
 
 #include "fceu-types.h"
@@ -197,7 +198,7 @@ void FCEU_LoadGamePalette(void) {
 
 	fn = FCEU_MakeFName(FCEUMKF_PALETTE, 0, 0);
 
-	if (!string_is_empty(fn))
+	if (!string_is_empty(fn) && path_is_valid(fn))
 		fp = filestream_open(fn,
 				RETRO_VFS_FILE_ACCESS_READ,
 				RETRO_VFS_FILE_ACCESS_HINT_NONE);
