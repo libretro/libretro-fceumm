@@ -179,12 +179,12 @@ static void FDSInit(void) {
 
 void FCEU_FDSInsert(int oride) {
 	if (InDisk == 255) {
-		FCEU_DispMessage("Disk %d of %d Side %s Inserted",
-			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Inserted",
+				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 		InDisk = SelectDisk;
 	} else {
-		FCEU_DispMessage("Disk %d of %d Side %s Ejected",
-			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Ejected",
+				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 		InDisk = 255;
 	}
 }
@@ -195,12 +195,12 @@ void FCEU_FDSEject(void) {
 
 void FCEU_FDSSelect(void) {
 	if (InDisk != 255) {
-		FCEU_DispMessage("Eject disk before selecting.");
+		FCEUD_DispMessage(RETRO_LOG_WARN, 2000, "Eject disk before selecting");
 		return;
 	}
 	SelectDisk = ((SelectDisk + 1) % TotalSides) & 3;
-	FCEU_DispMessage("Disk %d of %d Side %s Selected",
-		1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+	FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Selected",
+			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
 }
 
 /* 2018/12/15 - update irq timings */
@@ -710,6 +710,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	if (!(zp = FCEU_fopen(fn, NULL, 0))) {
 		FCEU_PrintError("FDS BIOS ROM image missing!\n");
+		FCEUD_DispMessage(RETRO_LOG_ERROR, 3000, "FDS BIOS image (disksys.rom) missing");
 		free(fn);
 		return 0;
 	}
@@ -730,6 +731,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 		FDSBIOS = NULL;
 		FCEU_fclose(zp);
 		FCEU_PrintError("Error reading FDS BIOS ROM image.\n");
+		FCEUD_DispMessage(RETRO_LOG_ERROR, 3000, "Error reading FDS BIOS image (disksys.rom)");
 		return 0;
 	}
 

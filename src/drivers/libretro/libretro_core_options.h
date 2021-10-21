@@ -17,7 +17,7 @@ extern "C" {
  ********************************
 */
 
-#define MAX_CORE_OPTIONS 34
+#define MAX_CORE_OPTIONS 35
 
 /* RETRO_LANGUAGE_ENGLISH */
 
@@ -29,6 +29,11 @@ extern "C" {
  *   frontend language definition */
 
 struct retro_core_option_v2_category option_cats_us[] = {
+   {
+      "system",
+      "System",
+      "Configure region / hardware add-on parameters."
+   },
    {
       "video",
       "Video",
@@ -68,15 +73,29 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       NULL,
       "Force core to use NTSC, PAL or Dendy region timings.",
       NULL,
-      NULL,
+      "system",
       {
          { "Auto",  NULL },
          { "NTSC",  NULL },
          { "PAL",   NULL },
          { "Dendy", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "Auto",
+   },
+   {
+      "fceumm_game_genie",
+      "Game Genie Add-On (Restart)",
+      NULL,
+      "Enable emulation of a Game Genie add-on cartridge, allowing cheat codes to be entered when launching games. The Game Genie ROM file 'gamegenie.nes' must be present in the frontend's system directory. Does not apply to FDS or arcade content.",
+      NULL,
+      "system",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled",
    },
    {
       "fceumm_show_adv_system_options",
@@ -117,7 +136,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "8:7 PAR", NULL },
          { "4:3",     NULL },
          { "PP",      "Pixel Perfect" },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "8:7 PAR",
    },
@@ -132,7 +151,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "enabled",  NULL },
          { "disabled", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -147,7 +166,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "disabled", NULL },
          { "enabled",  NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "disabled",
    },
@@ -161,7 +180,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "disabled", NULL },
          { "enabled",  NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -193,7 +212,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "wavebeam",             "nakedarthur's Wavebeam" },
          { "raw",                  "Raw" },
          { "custom",               "Custom" },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "default",
    },
@@ -227,7 +246,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "Low",       NULL },
          { "High",      NULL },
          { "Very High", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "Low",
    },
@@ -241,7 +260,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "disabled", NULL },
          { "enabled",  NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "disabled",
    },
@@ -264,7 +283,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "8",  "80%" },
          { "9",  "90%" },
          { "10", "100%" },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "7",
    },
@@ -278,7 +297,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "enabled",  NULL },
          { "disabled", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -292,7 +311,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "enabled",  NULL },
          { "disabled", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -306,7 +325,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "enabled",  NULL },
          { "disabled", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -320,7 +339,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "enabled",  NULL },
          { "disabled", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -334,7 +353,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "enabled",  NULL },
          { "disabled", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -350,7 +369,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "Player 1", NULL },
          { "Player 2", NULL },
          { "Both",     NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "None",
    },
@@ -370,7 +389,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "15", NULL },
          { "30", NULL },
          { "60", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "3",
    },
@@ -385,7 +404,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "lightgun",    "Lightgun" },
          { "touchscreen", "Touchscreen" },
          { "mouse",       "Mouse" },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "lightgun",
    },
@@ -399,7 +418,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "enabled",  NULL },
          { "disabled", NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "enabled",
    },
@@ -446,7 +465,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "disabled", NULL },
          { "enabled",  NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "disabled",
    },
@@ -460,7 +479,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       {
          { "disabled", NULL },
          { "enabled",  NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "disabled",
    },
@@ -475,7 +494,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "disabled",      NULL },
          { "2x-Postrender", NULL },
          { "2x-VBlank",     NULL },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "disabled",
    },
@@ -490,7 +509,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
          { "fill $ff", "$FF" },
          { "fill $00", "$00" },
          { "random",   "Random" },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "fill $ff",
    },

@@ -28,6 +28,7 @@
 #endif
 
 #include <string/stdstring.h>
+#include <file/file_path.h>
 #include <streams/file_stream.h>
 
 #include "fceu-types.h"
@@ -88,7 +89,7 @@ FCEUFILE * FCEU_fopen(const char *path, const uint8 *buffer, size_t bufsize)
    {
       RFILE *t = NULL;
 
-      if (!string_is_empty(path))
+      if (!string_is_empty(path) && path_is_valid(path))
          t = filestream_open(path,
                RETRO_VFS_FILE_ACCESS_READ,
                RETRO_VFS_FILE_ACCESS_HINT_NONE);

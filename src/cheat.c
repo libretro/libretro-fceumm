@@ -114,7 +114,6 @@ void RebuildSubCheats(void) {
 		if (c->type == 1 && c->status) {
 			if (GetReadHandler(c->addr) == SubCheatsRead) {
 				/* Prevent a catastrophe by this check. */
-				/* FCEU_DispMessage("oops"); */
 			} else {
 				SubCheats[numsubcheats].PrevRead = GetReadHandler(c->addr);
 				SubCheats[numsubcheats].addr = c->addr;
