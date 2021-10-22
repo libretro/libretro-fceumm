@@ -39,8 +39,8 @@ void FCEUD_SetPalette(uint8 index, uint8 r, uint8 g, uint8 b);
 void FCEUD_PrintError(char *s);
 void FCEUD_Message(char *s);
 
-void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, char *str);
-void FCEU_DispMessage(enum retro_log_level level, unsigned duration, char *format, ...);
+void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char *str);
+void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...);
 
 int FCEUI_BeginWaveRecord(char *fn);
 int FCEUI_EndWaveRecord(void);
