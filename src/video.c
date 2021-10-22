@@ -86,7 +86,7 @@ void FCEU_PutImageDummy(void)
 {
 }
 
-void FCEU_DispMessage(enum retro_log_level level, unsigned duration, char *format, ...)
+void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...)
 {
    static char msg[512] = {0};
    va_list ap;
