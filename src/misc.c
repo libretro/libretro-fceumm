@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "fceu-types.h"
 #include "fceu.h"
 

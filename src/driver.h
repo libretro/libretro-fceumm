@@ -1,7 +1,6 @@
 #ifndef _FCEU_DRIVER_H
 #define _FCEU_DRIVER_H
 
-#include <stdio.h>
 #include <libretro.h>
 
 #ifdef  __cplusplus

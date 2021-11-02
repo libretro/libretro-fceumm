@@ -21,7 +21,6 @@
 /*  Contains file I/O functions that write/read data    */
 /*  LSB first.              */
 
-#include <stdio.h>
 #include "fceu-memory.h"
 #include "fceu-types.h"
 #include "fceu-endian.h"

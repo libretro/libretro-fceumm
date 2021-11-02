@@ -19,7 +19,6 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 
 #include "fceu-types.h"
 #include "x6502.h"

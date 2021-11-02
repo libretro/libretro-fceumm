@@ -2,7 +2,7 @@
 
 #define MAX        512
 
-main()
+void main(void)
 {
  char buf[256];
  int count=0;

@@ -1,5 +1,4 @@
 #include <math.h>
-#include <stdio.h>
 #include "fceu-types.h"
 
 #include "sound.h"
