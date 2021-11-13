@@ -22,6 +22,7 @@
 
 static uint8 reg[2];
 static uint8 dip;
+static uint8 chrramvariant;
 static SFORMAT StateRegs[] =
 {
 	{ reg,  2, "REG " },
@@ -31,7 +32,15 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void)
 {
-	int prg = reg[1] &7 | reg[0] <<3;
+	int prg;
+	if (chrramvariant)
+	{
+		prg = reg[1] &7 | reg[0] <<3;
+	}
+	else
+	{
+		prg = reg[1] &15;
+	}
 	switch (reg[1] >>4 &3)
 	{
 		case 0:
@@ -47,7 +56,7 @@ static void Sync(void)
 			setprg16(0xC000, prg);
 			break;
 	}
-	setchr8(reg[0] &7);
+	setchr8(reg[0] &15);
 	setmirror((reg[0] >>5 &1) ^1);
 }
 
@@ -55,7 +64,7 @@ static void Sync(void)
 static DECLFR(M236Read)
 {
 	if ((reg[1] >>4 &3) ==1)
-		return CartBR(A &~0xF | dip);
+		return CartBR(A &~0xF | dip &0xF);
 	else
 		return CartBR(A);
 }
@@ -96,4 +105,5 @@ void Mapper236_Init(CartInfo *info)
 	info->Reset = M236Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
 	GameStateRestore = StateRestore;
+	chrramvariant = info->CHRRomSize == 0;
 }
