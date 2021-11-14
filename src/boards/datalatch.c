@@ -126,15 +126,6 @@ void NROM_Init(CartInfo *info) {
 /*------------------ Map 2 ---------------------------*/
 
 static void UNROMSync(void) {
-#if 0
-	static uint32 mirror_in_use = 0;
-	if (PRGsize[0] <= 128 * 1024) {
-		setprg16(0x8000, latche & 0x7);
-		if ((latche & 0xF8) == 0x08) mirror_in_use = 1;
-		if (mirror_in_use)
-			setmirror(((latche >> 3) & 1) ^ 1);	/* Higway Star Hacked mapper to be redefined to another mapper */
-	} else
-#endif
 	setprg8r(0x10, 0x6000, 0);
 	setprg16(0x8000, latche);
 	setprg16(0xc000, ~0);
@@ -142,7 +133,8 @@ static void UNROMSync(void) {
 }
 
 void UNROM_Init(CartInfo *info) {
-	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 1, 0);
+	/* By default, do not emulate bus conflicts except when explicitly told by a NES 2.0 header to do so. */
+	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 1, info->iNES2 && info->submapper == 2);
 }
 
 /*------------------ Map 3 ---------------------------*/
@@ -154,11 +146,8 @@ static void CNROMSync(void) {
 }
 
 void CNROM_Init(CartInfo *info) {
-	uint8 CNROM_busc = 1; /* by default, CNROM is set to emulate bus conflicts to all games. */
-	if (info->submapper && info->submapper == 1) /* no bus conflict */
-		CNROM_busc = 0;
-	FCEU_printf(" Bus Conflict: %s\n", CNROM_busc ? "Yes" : "No");
-	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, CNROM_busc);
+	/* By default, do not emulate bus conflicts except when explicitly told by a NES 2.0 header to do so. */
+	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, info->iNES2 && info->submapper == 2);
 }
 
 /*------------------ Map 7 ---------------------------*/
