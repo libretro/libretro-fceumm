@@ -54,6 +54,7 @@ static DECLFW(M57Write) {
 }
 
 static void M57Power(void) {
+	regs[1] = regs[0] = 0; /* Always reset to menu */
 	hrd_flag = 1; /* YH-xxx "Olympic" multicarts disable the menu after one selection */
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M57Write);
