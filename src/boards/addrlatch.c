@@ -495,15 +495,64 @@ void Mapper231_Init(CartInfo *info) {
 }
 
 /*------------------ Map 242 ---------------------------*/
-
+static uint8 M242TwoChips;
 static void M242Sync(void) {
+	uint32 S = latche & 1;
+	uint32 p = (latche >> 2) & 0x1F;
+	uint32 L = (latche >> 9) & 1;
+	
+	if (M242TwoChips) {
+		if (latche &0x600)
+		{	/* First chip */
+			p &= 0x1F; 
+		}
+		else
+		{	/* Second chip */
+			p &= 0x07;
+			p += 0x20;
+		}
+	}
+
+	if ((latche >> 7) & 1) {
+		if (S) {
+			setprg32(0x8000, p >> 1);
+		} else {
+			setprg16(0x8000, p);
+			setprg16(0xC000, p);
+		}
+	} else {
+		if (S) {
+			if (L) {
+				setprg16(0x8000, p & 0x3E);
+				setprg16(0xC000, p | 7);
+			} else {
+				setprg16(0x8000, p & 0x3E);
+				setprg16(0xC000, p & 0x38);
+			}
+		} else {
+			if (L) {
+				setprg16(0x8000, p);
+				setprg16(0xC000, p | 7);
+			} else {
+				setprg16(0x8000, p);
+				setprg16(0xC000, p & 0x38);
+			}
+		}
+	}
+
+	if (!hasBattery && (latche & 0x80) == 0x80)
+		/* CHR-RAM write protect hack, needed for some multicarts */
+		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
+	else
+		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
+
+	setmirror(((latche >> 1) & 1) ^ 1);
 	setchr8(0);
 	setprg8r(0x10, 0x6000, 0);
-	setprg32(0x8000, (latche >> 3) & 0xf);
-	setmirror(((latche >> 1) & 1) ^ 1);
 }
 
 void Mapper242_Init(CartInfo *info) {
+	M242TwoChips = info->PRGRomSize &0x20000 && info->PRGRomSize >0x20000;
 	Latch_Init(info, M242Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
 

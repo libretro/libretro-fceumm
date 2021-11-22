@@ -1080,13 +1080,11 @@ static void M196PW(uint32 A, uint8 V) {
 }
 
 static DECLFW(Mapper196Write) {
-	if (A >= 0xC000) {
-		A = (A & 0xFFFE) | ((A >> 2) & 1) | ((A >> 3) & 1);
+	A =A &0xF000 | (!!(A &0xE) ^(A &1));
+	if (A >= 0xC000)
 		MMC3_IRQWrite(A, V);
-	} else {
-		A = (A & 0xFFFE) | ((A >> 2) & 1) | ((A >> 3) & 1) | ((A >> 1) & 1);
+	else
 		MMC3_CMDWrite(A, V);
-	}
 }
 
 static DECLFW(Mapper196WriteLo) {

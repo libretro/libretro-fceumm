@@ -136,6 +136,11 @@ static void M178Power(void) {
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
+static void M178Reset(void) {
+	/* Always reset to menu */
+	reg[0] = reg[1] = reg[2] = reg[3] = 0;
+	Sync();
+}
 static void M178SndClk(int a) {
 	if (pcm_enable) {
 		pcm_latch -= a;
@@ -158,6 +163,7 @@ static void StateRestore(int version) {
 
 void Mapper178_Init(CartInfo *info) {
 	info->Power = M178Power;
+	info->Reset = M178Reset;
 	info->Close = M178Close;
 	GameStateRestore = StateRestore;
 	MapIRQHook = M178SndClk;
