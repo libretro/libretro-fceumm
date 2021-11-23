@@ -917,7 +917,10 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       filesize -= 512;
    }
 
-   romSize = (ROM_size * 0x4000) + (VROM_size * 0x2000);
+   iNESCart.PRGRomSize = ROM_size >=0xF00? (pow(2, head.ROM_size >>2)*((head.ROM_size &3)*2+1)): (ROM_size*0x4000);
+   iNESCart.CHRRomSize =VROM_size >=0xF00? (pow(2, head.VROM_size>>2)*((head.VROM_size&3)*2+1)): (VROM_size*0x2000);;
+
+   romSize = iNESCart.PRGRomSize + iNESCart.CHRRomSize;
 
    if (romSize > filesize)
    {
@@ -926,17 +929,17 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    else if (romSize < filesize)
       FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
-   rom_size_pow2 =  uppow2(ROM_size) * 0x4000;
+   rom_size_pow2 = uppow2(iNESCart.PRGRomSize);
 
    if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
       return 0;
 
    memset(ROM, 0xFF, rom_size_pow2);
-   FCEU_fread(ROM, 0x4000, ROM_size, fp);
+   FCEU_fread(ROM, 1, iNESCart.PRGRomSize, fp);
 
-   if (VROM_size)
+   if (iNESCart.CHRRomSize)
    {
-      vrom_size_pow2 = uppow2(VROM_size) * 0x2000;
+      vrom_size_pow2 = uppow2(iNESCart.CHRRomSize);
 
       if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL)
       {
@@ -946,20 +949,17 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       }
 
       memset(VROM, 0xFF, vrom_size_pow2);
-      FCEU_fread(VROM, 0x2000, VROM_size, fp);
+      FCEU_fread(VROM, 1, iNESCart.CHRRomSize, fp);
    }
 
-   iNESCart.PRGRomSize = ROM_size * 0x4000;
-   iNESCart.CHRRomSize = VROM_size * 0x2000;
-
-   iNESCart.PRGCRC32   = CalcCRC32(0, ROM, ROM_size * 0x4000);
-   iNESCart.CHRCRC32   = CalcCRC32(0, VROM, VROM_size * 0x2000);
-   iNESCart.CRC32      = CalcCRC32(iNESCart.PRGCRC32, VROM, VROM_size * 0x2000);
+   iNESCart.PRGCRC32   = CalcCRC32(0, ROM, iNESCart.PRGRomSize);
+   iNESCart.CHRCRC32   = CalcCRC32(0, VROM, iNESCart.CHRRomSize);
+   iNESCart.CRC32      = CalcCRC32(iNESCart.PRGCRC32, VROM, iNESCart.CHRRomSize);
 
    md5_starts(&md5);
-   md5_update(&md5, ROM, ROM_size * 0x4000);
-   if (VROM_size)
-      md5_update(&md5, VROM, VROM_size * 0x2000);
+   md5_update(&md5, ROM, iNESCart.PRGRomSize);
+   if (iNESCart.CHRRomSize)
+      md5_update(&md5, VROM, iNESCart.CHRRomSize);
    md5_finish(&md5, iNESCart.MD5);
 
    memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
@@ -997,8 +997,8 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    FCEU_printf(" PRG-ROM CRC32:  0x%08X\n", iNESCart.PRGCRC32);
    FCEU_printf(" PRG+CHR CRC32:  0x%08X\n", iNESCart.CRC32);
    FCEU_printf(" PRG+CHR MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
-   FCEU_printf(" PRG-ROM:  %3d x 16KiB\n", ROM_size);
-   FCEU_printf(" CHR-ROM:  %3d x  8KiB\n", VROM_size);
+   FCEU_printf(" PRG-ROM:  %6d KiB\n", iNESCart.PRGRomSize >> 10);
+   FCEU_printf(" CHR-ROM:  %36 KiB\n", iNESCart.CHRRomSize >> 10);
    FCEU_printf(" Mapper #: %3d\n", iNESCart.mapper);
    FCEU_printf(" Mapper name: %s\n", mappername);
    FCEU_printf(" Mirroring: %s\n", iNESCart.mirror == 2 ? "None (Four-screen)" : iNESCart.mirror ? "Vertical" : "Horizontal");
