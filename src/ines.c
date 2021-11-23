@@ -808,6 +808,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "T-230",                    529, UNLT230_Init           )
 	INES_BOARD( "AX5705",                   530, UNLAX5705_Init         )
 	INES_BOARD( "LH53",                     535, LH53_Init              )
+	INES_BOARD( "SACHEN 3013",              553, Mapper553_Init         )
 	INES_BOARD( "YC-03-09",                 558, Mapper558_Init         )
 INES_BOARD_END()
 
