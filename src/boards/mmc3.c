@@ -792,10 +792,8 @@ static void M114Reset(void) {
 
 void Mapper114_Init(CartInfo *info) {
 	isRevB = 0;
-	type_Boogerman = 0;
-	if (info->CRC32 == 0x80eb1839 ||	/* Boogerman (Sugar Softec) (Unl) [!] - submapper 1 */
-		info->CRC32 == 0x071e4ee8)		/* 114 test-rom https://forums.nesdev.com/viewtopic.php?f=3&t=17391 */
-		type_Boogerman = 1;
+	/* Use NES 2.0 submapper to identify scrambling pattern, otherwise CRC32 for Boogerman and test rom */
+	type_Boogerman = info->iNES2? (info->submapper ==1): (info->CRC32 ==0x80eb1839 || info->CRC32 ==0x071e4ee8);
 
 	GenMMC3_Init(info, 256, 256, 0, 0);
 	pwrap = M114PWRAP;
