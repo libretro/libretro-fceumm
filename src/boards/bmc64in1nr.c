@@ -33,9 +33,9 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	if (regs[0] & 0x80) { /* NROM mode */
 		if (regs[1] & 0x80)
-			setprg32(0x8000, regs[1] & 0x1F);
+			setprg32(0x8000, regs[1] & 0x3F);
 		else {
-			int bank = ((regs[1] & 0x1f) << 1) | ((regs[1] >> 6) & 1);
+			int bank = ((regs[1] & 0x3F) << 1) | ((regs[1] >> 6) & 1);
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);
 		}
