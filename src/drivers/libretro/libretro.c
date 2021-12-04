@@ -688,7 +688,7 @@ static uint32_t palette_switch_get_current_index(void)
 static void palette_switch_init(void)
 {
    size_t i;
-   struct retro_core_option_v2_definition *opt_defs      = option_defs_us_common;
+   struct retro_core_option_v2_definition *opt_defs      = option_defs;
    struct retro_core_option_v2_definition *opt_def       = NULL;
 #ifndef HAVE_NO_LANGEXTRA
    struct retro_core_option_v2_definition *opt_defs_intl = NULL;
@@ -1170,8 +1170,8 @@ static void set_variables(void)
    memset(&option_defs_us, 0, sizeof(option_defs_us));
 
    /* Write common core options to main struct */
-   while (option_defs_us_common[index].key) {
-      memcpy(&option_defs_us[index], &option_defs_us_common[index],
+   while (option_defs[index].key) {
+      memcpy(&option_defs_us[index], &option_defs[index],
             sizeof(struct retro_core_option_v2_definition));
       index++;
    }

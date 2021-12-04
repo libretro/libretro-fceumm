@@ -7,6 +7,10 @@
 #include <libretro.h>
 #include <retro_inline.h>
 
+#ifndef HAVE_NO_LANGEXTRA
+#include "libretro_core_options_intl.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,26 +36,26 @@ struct retro_core_option_v2_category option_cats_us[] = {
    {
       "system",
       "System",
-      "Configure region / hardware add-on parameters."
+      "Configure region and hardware add-on parameters."
    },
    {
       "video",
       "Video",
 #ifdef HAVE_NTSC_FILTER
-      "Configure aspect ratio / display cropping / color palette / video filter options."
+      "Configure aspect ratio, display cropping, color palette, video filter options."
 #else
-      "Configure aspect ratio / display cropping / color palette options."
+      "Configure aspect ratio, display cropping, color palette options."
 #endif
    },
    {
       "audio",
       "Audio",
-      "Configure sound quality / volume / channel enable settings."
+      "Configure sound quality, volume, channel enable settings."
    },
    {
       "input",
       "Input",
-      "Configure turbo / light gun parameters."
+      "Configure turbo and light gun parameters."
    },
    {
       "hacks",
@@ -66,7 +70,7 @@ struct retro_core_option_v2_category option_cats_us[] = {
    { NULL, NULL, NULL },
 };
 
-struct retro_core_option_v2_definition option_defs_us_common[] = {
+struct retro_core_option_v2_definition option_defs[] = {
    {
       "fceumm_region",
       "Region",
@@ -85,7 +89,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
    },
    {
       "fceumm_game_genie",
-      "Game Genie Add-On (Restart)",
+      "Game Genie Add-On (Restart Required)",
       NULL,
       "Enable emulation of a Game Genie add-on cartridge, allowing cheat codes to be entered when launching games. The Game Genie ROM file 'gamegenie.nes' must be present in the frontend's system directory. Does not apply to FDS or arcade content.",
       NULL,
@@ -401,7 +405,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       NULL,
       "input",
       {
-         { "lightgun",    "Lightgun" },
+         { "lightgun",    "Light gun" },
          { "touchscreen", "Touchscreen" },
          { "mouse",       "Mouse" },
          { NULL, NULL },
@@ -459,7 +463,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       "fceumm_up_down_allowed",
       "Allow Opposing Directions",
       NULL,
-      "Allows simultaneous UP+DOWN or LEFT+RIGHT button combinations which can create different effects in some games.",
+      "Allows simultaneous UP+DOWN or LEFT+RIGHT button combinations, which can create different effects in some games.",
       NULL,
       "input",
       {
@@ -487,7 +491,7 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
       "fceumm_overclocking",
       "Overclock",
       NULL,
-      "Enables or disables overclocking which can reduce slowdowns in some games. Postrender method is more compatible with every game with Vblank more effective for games like Contra Force.",
+      "Enables or disables overclocking, which can reduce slowdowns in some games. Postrender method is more compatible with every game, Vblank is more effective for games like Contra Force.",
       NULL,
       "hacks",
       {
@@ -500,9 +504,9 @@ struct retro_core_option_v2_definition option_defs_us_common[] = {
    },
    {
       "fceumm_ramstate",
-      "RAM Power-On Fill (Restart)",
+      "RAM Power-On Fill (Restart Required)",
       NULL,
-      "Choose RAM startup during power up. Some games rely on initial ram values for random generator as an example.",
+      "RAM values on power up. Some games rely on initial RAM values for random number generation as an example.",
       NULL,
       "hacks",
       {
@@ -532,24 +536,29 @@ struct retro_core_options_v2 options_us = {
 #ifndef HAVE_NO_LANGEXTRA
 struct retro_core_options_v2 *options_intl[RETRO_LANGUAGE_LAST] = {
    &options_us,    /* RETRO_LANGUAGE_ENGLISH */
-   NULL,           /* RETRO_LANGUAGE_JAPANESE */
-   NULL,           /* RETRO_LANGUAGE_FRENCH */
-   NULL,           /* RETRO_LANGUAGE_SPANISH */
-   NULL,           /* RETRO_LANGUAGE_GERMAN */
-   NULL,           /* RETRO_LANGUAGE_ITALIAN */
-   NULL,           /* RETRO_LANGUAGE_DUTCH */
-   NULL,           /* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
-   NULL,           /* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
-   NULL,           /* RETRO_LANGUAGE_RUSSIAN */
-   NULL,           /* RETRO_LANGUAGE_KOREAN */
-   NULL,           /* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
-   NULL,           /* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
-   NULL,           /* RETRO_LANGUAGE_ESPERANTO */
-   NULL,           /* RETRO_LANGUAGE_POLISH */
-   NULL,           /* RETRO_LANGUAGE_VIETNAMESE */
-   NULL,           /* RETRO_LANGUAGE_ARABIC */
-   NULL,           /* RETRO_LANGUAGE_GREEK */
-   NULL,           /* RETRO_LANGUAGE_TURKISH */
+   &options_ja,      /* RETRO_LANGUAGE_JAPANESE */
+   &options_fr,      /* RETRO_LANGUAGE_FRENCH */
+   &options_es,      /* RETRO_LANGUAGE_SPANISH */
+   &options_de,      /* RETRO_LANGUAGE_GERMAN */
+   &options_it,      /* RETRO_LANGUAGE_ITALIAN */
+   &options_nl,      /* RETRO_LANGUAGE_DUTCH */
+   &options_pt_br,   /* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
+   &options_pt_pt,   /* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
+   &options_ru,      /* RETRO_LANGUAGE_RUSSIAN */
+   &options_ko,      /* RETRO_LANGUAGE_KOREAN */
+   &options_cht,     /* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
+   &options_chs,     /* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
+   &options_eo,      /* RETRO_LANGUAGE_ESPERANTO */
+   &options_pl,      /* RETRO_LANGUAGE_POLISH */
+   &options_vn,      /* RETRO_LANGUAGE_VIETNAMESE */
+   &options_ar,      /* RETRO_LANGUAGE_ARABIC */
+   &options_el,      /* RETRO_LANGUAGE_GREEK */
+   &options_tr,      /* RETRO_LANGUAGE_TURKISH */
+   &options_sv,      /* RETRO_LANGUAGE_SLOVAK */
+   &options_fa,      /* RETRO_LANGUAGE_PERSIAN */
+   &options_he,      /* RETRO_LANGUAGE_HEBREW */
+   &options_ast,     /* RETRO_LANGUAGE_ASTURIAN */
+   &options_fi,      /* RETRO_LANGUAGE_FINNISH */
 };
 #endif
 
