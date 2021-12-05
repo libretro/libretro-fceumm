@@ -36,36 +36,36 @@ struct retro_core_option_v2_category option_cats_us[] = {
    {
       "system",
       "System",
-      "Configure region and hardware add-on parameters."
+      "Change region and hardware add-on settings."
    },
    {
       "video",
       "Video",
 #ifdef HAVE_NTSC_FILTER
-      "Configure aspect ratio, display cropping, color palette, video filter options."
+      "Change aspect ratio, display cropping, color palette and video filter options."
 #else
-      "Configure aspect ratio, display cropping, color palette options."
+      "Change aspect ratio, display cropping and color palette options."
 #endif
    },
    {
       "audio",
       "Audio",
-      "Configure sound quality, volume, channel enable settings."
+      "Change sound quality, volume, channel enable settings."
    },
    {
       "input",
       "Input",
-      "Configure turbo and light gun parameters."
+      "Change turbo and light gun settings."
    },
    {
       "hacks",
       "Emulation Hacks",
-      "Configure processor overclocking and emulation accuracy parameters affecting low-level performance and compatibility."
+      "Change processor overclocking and emulation accuracy settings affecting low-level performance and compatibility."
    },
    {
       "dip_switch",
       "DIP Switches",
-      "Configure arcade game settings."
+      "Change arcade game settings."
    },
    { NULL, NULL, NULL },
 };
@@ -211,7 +211,7 @@ struct retro_core_option_v2_definition option_defs[] = {
          { "composite-direct-fbx", "FBX's Composite Direct" },
          { "pvm-style-d93-fbx",    "FBX's PVM Style D93" },
          { "ntsc-hardware-fbx",    "FBX's NTSC Hardware" },
-         { "nes-classic-fbx-fs",   "FBX's NES-Classic FS" },
+         { "nes-classic-fbx-fs",   "FBX's NES Classic (fixed)" },
          { "nescap",               "RGBSource's NESCAP" },
          { "wavebeam",             "nakedarthur's Wavebeam" },
          { "raw",                  "Raw" },
@@ -401,7 +401,7 @@ struct retro_core_option_v2_definition option_defs[] = {
       "fceumm_zapper_mode",
       "Zapper Mode",
       NULL,
-      "Selects device to use for zapper games.",
+      "Selects device to use for Zapper games.",
       NULL,
       "input",
       {
@@ -416,7 +416,7 @@ struct retro_core_option_v2_definition option_defs[] = {
       "fceumm_show_crosshair",
       "Show Zapper Crosshair",
       NULL,
-      "Shows or hides on-screen crosshairs when using a zapper.",
+      "Shows or hides on-screen crosshairs when using a Zapper.",
       NULL,
       "input",
       {
