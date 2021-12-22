@@ -363,6 +363,7 @@
 	{ 0x1C098942,  162,       0,    MI_H, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 西游记后传 */
 	/* Mapper 162: Nanjing games that use an FS304 feature as a protection check */
 	{ 0x8589652D,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 农场小精灵 */
+	{ 0x99FE9AB5,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 时空斗士 - Pegasus Senya */
 	{ 0x82F204AE,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 梁山英雄 */
 	
 	/* Mapper 163: Nanjing, running with $5300=$04 */
@@ -430,7 +431,7 @@
 	{ 0xB35BE92F,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 圣斗士星矢: 北欧突击篇 */
 	{ 0x15E50ECD,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 宠物高达战记 */
 	{ 0xBBAB3A61,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 拳皇R-1: 最强格斗王 */
-	{ 0x2DA3A49C,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 时空斗士 - Pegasus Senya */
+	{ 0x2DA3A49C,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 时空斗士 - Pegasus Senya, turns out to be wrong after all, and the mapper 162 one is the correct one */
 	{ 0x222A136A,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 武侠天地 */
 	{ 0xEBC6E2E2,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 毁灭之神 */
 	{ 0xE08AB52E,  163,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 魔兽世界: 恶魔猎人 */
@@ -453,7 +454,6 @@
 	{ 0x054444A0,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 圣斗士星矢: 北欧突击篇 */
 	{ 0x9BA518BA,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 宠物高达战记 */
 	{ 0x4CE082F8,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 拳皇R-1: 最强格斗王 */
-	{ 0x99FE9AB5,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 时空斗士 - Pegasus Senya */
 	{ 0x57414FB6,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 武侠天地 */
 	{ 0x979239DE,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 毁灭之神 */
 	{ 0xEFF96E8A,  162,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* 魔兽世界: 恶魔猎人 */
