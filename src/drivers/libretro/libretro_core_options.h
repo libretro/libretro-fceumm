@@ -225,7 +225,7 @@ struct retro_core_option_v2_definition option_defs[] = {
       "fceumm_ntsc_filter",
       "NTSC Filter",
       NULL,
-      "Enable blargg NTSC filters.",
+      "Blargg's NTSC filters are used to replicate RF, Composite, S-Video, and RGB cable signals.",
       NULL,
       "video",
       {
