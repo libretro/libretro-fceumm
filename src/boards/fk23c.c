@@ -29,6 +29,7 @@
 	2 - 外星 FS005/FS006
 	3 - JX9003B
 	4 - GameStar Smart Genius Deluxe
+	5 - HST-162
 	
 	Verified on real hardware:
 	"Legend of Kage" sets CNROM latch 1 and switches between CHR bank 0 and 1 using 5FF2, causing the wrong bank (1 instead of 0) during gameplay.
@@ -183,6 +184,9 @@ static void SyncPRG(void)
       case 4: /* GameStar Smart Genius Deluxe */
          prg_base |= fk23_regs[2] & 0x80;
 	 break;
+      case 5: /* HST-162 */
+         prg_base = prg_base &0x1F | fk23_regs[5] <<5;
+	 break;
    }
 
    switch (PRG_MODE)
@@ -262,6 +266,11 @@ static void Sync(void)
    SyncMIR();
 }
 
+static DECLFW(Write4800) /* Only used by submapper 5 (HST-162) */
+{
+   fk23_regs[5] = V; /* Register 4800 is a separate register, but we use one of the ASIC registers that is otherwise unused in submapper 5 */
+   SyncPRG();
+}
 static DECLFW(Write5000)
 {
    if (after_power && A > 0x5010 && A != 0x5FF3) /* Ignore writes from $5000-$500F, in particular to $5008, but not $5FF3 */
@@ -381,7 +390,7 @@ static void Reset(void)
       FCEU_printf("BMCFK23C dipswitch set to $%04x\n",0x5000|0x10 << dipswitch);
    }
 
-   fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = 0;
+   fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = fk23_regs[4] = fk23_regs[5] = fk23_regs[6] = fk23_regs[7] = 0;
    mmc3_regs[0]   = 0;
    mmc3_regs[1]   = 2;
    mmc3_regs[2]   = 4;
@@ -402,7 +411,7 @@ static void Reset(void)
 
 static void Power(void)
 {
-   fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = 0;
+   fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = fk23_regs[4] = fk23_regs[5] = fk23_regs[6] = fk23_regs[7] = 0;
    mmc3_regs[0]   = 0;
    mmc3_regs[1]   = 2;
    mmc3_regs[2]   = 4;
@@ -423,6 +432,9 @@ static void Power(void)
    SetReadHandler(0x8000, 0xFFFF, CartBR);
    SetWriteHandler(0x5000, 0x5FFF, Write5000);
    SetWriteHandler(0x8000, 0xFFFF, Write8000);
+
+   if (subType == 5)
+      SetWriteHandler(0x4800, 0x4FFF, Write4800);
 
    if (WRAMSIZE)
    {
