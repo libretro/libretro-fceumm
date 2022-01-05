@@ -570,3 +570,20 @@ static void BMCK3046Sync(void) {
 void BMCK3046_Init(CartInfo *info) {
 	Latch_Init(info, BMCK3046Sync, 0, 0x8000, 0xFFFF, 0, 0);
 }
+
+/* Mapper 429: LIKO BBG-235-8-1B/Milowork FCFC1 */
+
+static void Mapper429_Sync(void) {
+	setprg32(0x8000, latche >>2);
+	setchr8(latche &3);
+}
+
+static void Mapper429_Reset(void) {
+	latche = 4; /* Initial CHR bank 0, initial PRG bank 1 */
+	Mapper429_Sync();
+}
+
+void Mapper429_Init(CartInfo *info) {
+	info->Reset = Mapper429_Reset;
+	Latch_Init(info, Mapper429_Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}
