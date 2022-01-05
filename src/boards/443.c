@@ -18,17 +18,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* NC7000M PCB, with incorrect UNIF MAPR BS-110 due to a mix-up. Submappers denote the setting of two solder pads that configure CHR banking. */
+/* NC3000M PCB */
 
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 pads;
 static uint8 dip;
 
-static void Mapper444_PRGWrap(uint32 A, uint8 V) {
+static void Mapper443_PRGWrap(uint32 A, uint8 V) {
 	int prgAND =0x0F;
-	int prgOR  =EXPREGS[0] <<4;
+	int prgOR  =EXPREGS[0] <<4 &0x20 | EXPREGS[0] &0x10;
 	if (EXPREGS[0] &0x04) {
 		if (~A &0x4000) {
 			setprg8(A,         (~EXPREGS[0] &0x08? ~2: ~0) &V &prgAND | prgOR &~prgAND);
@@ -38,44 +37,43 @@ static void Mapper444_PRGWrap(uint32 A, uint8 V) {
 		setprg8(A, V &prgAND | prgOR &~prgAND);
 }
 
-static void Mapper444_CHRWrap(uint32 A, uint8 V) {
-	int chrAND =pads &1? 0xFF: 0x7F;
-	int chrOR  =EXPREGS[0] <<7 &(pads &1? 0x00: 0x80) | EXPREGS[0] <<(pads &2? 4: 7) &0x100;
+static void Mapper443_CHRWrap(uint32 A, uint8 V) {
+	int chrAND =0xFF;
+	int chrOR  =EXPREGS[0] <<8;
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
-static DECLFR(Mapper444_Read) {
+static DECLFR(Mapper443_Read) {
 	return (EXPREGS[0] &0x0C) ==0x08? dip: CartBR(A);
 }
 
-static DECLFW(Mapper444_Write) {
+static DECLFW(Mapper443_Write) {
 	EXPREGS[0] =A &0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
 
-static void Mapper444_Reset(void) {
+static void Mapper443_Reset(void) {
 	dip++;
-	dip &= 3;
+	dip &= 15;
 	EXPREGS[0] =0;
 	MMC3RegReset();
 }
 
-static void Mapper444_Power(void) {
+static void Mapper443_Power(void) {
 	dip =0;
 	EXPREGS[0] =0;
 	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, Mapper444_Write);
-	SetReadHandler(0x8000, 0xFFFF, Mapper444_Read);
+	SetWriteHandler(0x6000, 0x7FFF, Mapper443_Write);
+	SetReadHandler(0x8000, 0xFFFF, Mapper443_Read);
 }
 
-void Mapper444_Init(CartInfo *info) {
-	pads = info->submapper; /* UNIF represents submapper 0 */
+void Mapper443_Init(CartInfo *info) {
 	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = Mapper444_CHRWrap;
-	pwrap = Mapper444_PRGWrap;
-	info->Power = Mapper444_Power;
-	info->Reset = Mapper444_Reset;
+	cwrap = Mapper443_CHRWrap;
+	pwrap = Mapper443_PRGWrap;
+	info->Power = Mapper443_Power;
+	info->Reset = Mapper443_Reset;
 	AddExState(EXPREGS, 1, 0, "EXPR");
 	AddExState(&dip, 1, 0, "DIPS");
 }
