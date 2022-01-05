@@ -88,7 +88,7 @@ static SFORMAT StateRegs[] = {
 #define PRG_MODE              ( fk23_regs[0] & 0x07)
 #define MMC3_EXTENDED       !!( fk23_regs[3] & 0x02)                 /* Extended MMC3 mode, adding extra registers for switching the normally-fixed PRG banks C and E and for eight independent 1 KiB CHR banks. Only available on FK- and FS005 PCBs. */
 #define CHR_8K_MODE         !!( fk23_regs[0] & 0x40)                 /* MMC3 CHR registers are ignored, apply outer bank only, and CNROM latch if it exists */
-#define CHR_CNROM_MODE        (~fk23_regs[0] & 0x20 && subType == 1) /* Only subtype 1 has a CNROM latch, which can be disabled */
+#define CHR_CNROM_MODE        (~fk23_regs[0] & 0x20 && (subType == 1 || subType == 5)) /* Only subtypes 1 and 5 have a CNROM latch, which can be disabled */
 #define CHR_OUTER_BANK_SIZE !!( fk23_regs[0] & 0x10)                 /* Switch between 256 and 128 KiB CHR, or 32 and 16 KiB CHR in CNROM mode */
 #define CHR_MIXED           !!(WRAM_EXTENDED && mmc3_wram &0x04)     /* First 8 KiB of CHR address space are RAM, then ROM */
 
@@ -120,7 +120,8 @@ static void SyncCHR(void)
    if (CHR_8K_MODE)
    {
       uint32 mask = (CHR_CNROM_MODE? (CHR_OUTER_BANK_SIZE? 0x01: 0x03): 0x00);
-      uint32 bank = ((outer & ~mask) | (latch & mask)) << 3; /* Address bits are never OR'd; they either come from the outer bank or from the CNROM latch. */
+      /* In Submapper 1, address bits come either from outer bank or from latch. In Submapper 5, they are OR'd. Both verified on original hardware. */
+      uint32 bank = ((subType ==5? outer: (outer & ~mask)) | (latch & mask)) << 3;
 
       cwrap(0x0000, bank + 0);
       cwrap(0x0400, bank + 1);
