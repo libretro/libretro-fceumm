@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "fceu-types.h"
 #include "x6502.h"
@@ -790,11 +791,20 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "YY860729C",                386, Mapper386_Init         )
 	INES_BOARD( "YY850735C",                387, Mapper387_Init         )
 	INES_BOARD( "YY850835C",                388, Mapper388_Init         )
-	INES_BOARD( "NC7000M",                  391, NC7000M_Init           )
+	INES_BOARD( "BS-110",                   391, Mapper391_Init         )
 	INES_BOARD( "YY850439C",                397, Mapper397_Init         )
 	INES_BOARD( "831019C J-2282",           402, J2282_Init             )
 	INES_BOARD( "SC871115C",                421, Mapper421_Init         )
 	INES_BOARD( "AB-G1L/WELL-NO-DG450",     428, Mapper428_Init         )
+	INES_BOARD( "LIKO BBG-235-8-1B",        429, Mapper429_Init         )
+	INES_BOARD( "S-009",                    434, Mapper434_Init         )
+	INES_BOARD( "820401/T-217",             436, Mapper436_Init         )
+	INES_BOARD( "NTDEC TH2348",             437, Mapper437_Init         )
+	INES_BOARD( "K-3071",                   438, Mapper438_Init         )
+	INES_BOARD( "NC-3000M",                 443, Mapper443_Init         )
+	INES_BOARD( "NC-7000M",                 444, Mapper444_Init         )
+	INES_BOARD( "DS-9-27",                  452, Mapper452_Init         )
+	INES_BOARD( "K6C3001A",                 456, Mapper456_Init         )
 	INES_BOARD( "SA-9602B",                 513, SA9602B_Init           )
 	INES_BOARD( "DANCE2000",                518, UNLD2000_Init          )
 	INES_BOARD( "EH8813A",                  519, UNLEH8813A_Init        )
@@ -808,6 +818,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "T-230",                    529, UNLT230_Init           )
 	INES_BOARD( "AX5705",                   530, UNLAX5705_Init         )
 	INES_BOARD( "LH53",                     535, LH53_Init              )
+	INES_BOARD( "SACHEN 3013",              553, Mapper553_Init         )
 	INES_BOARD( "YC-03-09",                 558, Mapper558_Init         )
 INES_BOARD_END()
 
@@ -917,7 +928,10 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       filesize -= 512;
    }
 
-   romSize = (ROM_size * 0x4000) + (VROM_size * 0x2000);
+   iNESCart.PRGRomSize = ROM_size >=0xF00? (pow(2, head.ROM_size >>2)*((head.ROM_size &3)*2+1)): (ROM_size*0x4000);
+   iNESCart.CHRRomSize =VROM_size >=0xF00? (pow(2, head.VROM_size>>2)*((head.VROM_size&3)*2+1)): (VROM_size*0x2000);;
+
+   romSize = iNESCart.PRGRomSize + iNESCart.CHRRomSize;
 
    if (romSize > filesize)
    {
@@ -926,17 +940,17 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    else if (romSize < filesize)
       FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
-   rom_size_pow2 =  uppow2(ROM_size) * 0x4000;
+   rom_size_pow2 = uppow2(iNESCart.PRGRomSize);
 
    if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
       return 0;
 
    memset(ROM, 0xFF, rom_size_pow2);
-   FCEU_fread(ROM, 0x4000, ROM_size, fp);
+   FCEU_fread(ROM, 1, iNESCart.PRGRomSize, fp);
 
-   if (VROM_size)
+   if (iNESCart.CHRRomSize)
    {
-      vrom_size_pow2 = uppow2(VROM_size) * 0x2000;
+      vrom_size_pow2 = uppow2(iNESCart.CHRRomSize);
 
       if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL)
       {
@@ -946,20 +960,17 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       }
 
       memset(VROM, 0xFF, vrom_size_pow2);
-      FCEU_fread(VROM, 0x2000, VROM_size, fp);
+      FCEU_fread(VROM, 1, iNESCart.CHRRomSize, fp);
    }
 
-   iNESCart.PRGRomSize = ROM_size * 0x4000;
-   iNESCart.CHRRomSize = VROM_size * 0x2000;
-
-   iNESCart.PRGCRC32   = CalcCRC32(0, ROM, ROM_size * 0x4000);
-   iNESCart.CHRCRC32   = CalcCRC32(0, VROM, VROM_size * 0x2000);
-   iNESCart.CRC32      = CalcCRC32(iNESCart.PRGCRC32, VROM, VROM_size * 0x2000);
+   iNESCart.PRGCRC32   = CalcCRC32(0, ROM, iNESCart.PRGRomSize);
+   iNESCart.CHRCRC32   = CalcCRC32(0, VROM, iNESCart.CHRRomSize);
+   iNESCart.CRC32      = CalcCRC32(iNESCart.PRGCRC32, VROM, iNESCart.CHRRomSize);
 
    md5_starts(&md5);
-   md5_update(&md5, ROM, ROM_size * 0x4000);
-   if (VROM_size)
-      md5_update(&md5, VROM, VROM_size * 0x2000);
+   md5_update(&md5, ROM, iNESCart.PRGRomSize);
+   if (iNESCart.CHRRomSize)
+      md5_update(&md5, VROM, iNESCart.CHRRomSize);
    md5_finish(&md5, iNESCart.MD5);
 
    memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
@@ -997,8 +1008,8 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    FCEU_printf(" PRG-ROM CRC32:  0x%08X\n", iNESCart.PRGCRC32);
    FCEU_printf(" PRG+CHR CRC32:  0x%08X\n", iNESCart.CRC32);
    FCEU_printf(" PRG+CHR MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
-   FCEU_printf(" PRG-ROM:  %3d x 16KiB\n", ROM_size);
-   FCEU_printf(" CHR-ROM:  %3d x  8KiB\n", VROM_size);
+   FCEU_printf(" PRG-ROM:  %6d KiB\n", iNESCart.PRGRomSize >> 10);
+   FCEU_printf(" CHR-ROM:  %36 KiB\n", iNESCart.CHRRomSize >> 10);
    FCEU_printf(" Mapper #: %3d\n", iNESCart.mapper);
    FCEU_printf(" Mapper name: %s\n", mappername);
    FCEU_printf(" Mirroring: %s\n", iNESCart.mirror == 2 ? "None (Four-screen)" : iNESCart.mirror ? "Vertical" : "Horizontal");
