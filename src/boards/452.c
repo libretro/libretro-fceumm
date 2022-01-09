@@ -68,8 +68,8 @@ static void Mapper452_Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xDFFF, Mapper452_WriteLatch);
 	SetWriteHandler(0xE000, 0xFFFF, CartBW);
-	
-	SetupCartPRGMapping(0x10, (uint8*) FCEU_gmalloc(8192), 8192, 1);
+	SetupCartPRGMapping(0x10, WRAM, 8192, 1);
+	AddExState(WRAM, 8192, 0, "WRAM")
 }
 
 void Mapper452_Init(CartInfo *info) {
