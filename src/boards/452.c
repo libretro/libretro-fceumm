@@ -62,13 +62,13 @@ static void Mapper452_Reset(void) {
 }
 
 static void Mapper452_Power(void) {
+	uint8* WRAM = (uint8*) FCEU_gmalloc(8192);
 	latch[0] =latch[1] =0;
 	Mapper452_Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xDFFF, Mapper452_WriteLatch);
 	SetWriteHandler(0xE000, 0xFFFF, CartBW);
 	
-	uint8* WRAM = (uint8*) FCEU_gmalloc(8192);
 	SetupCartPRGMapping(0x10, (uint8*) FCEU_gmalloc(8192), 8192, 1);
 }
 
