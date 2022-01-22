@@ -822,14 +822,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "YC-03-09",                 558, Mapper558_Init         )
 INES_BOARD_END()
 
-static uint32 get_ines_version(void)
-{
-	if ((head.ROM_type2 & 0x0C) == 0x08)
-		return 1;
-	return 0;
-}
-
-static uint32 get_ines_mapper_id(void)
+static uint32 iNES_get_mapper_id(void)
 {
 	/* If byte 7 AND $0C = $08, and the size taking into account byte 9 does not exceed the actual size of the ROM image, then NES 2.0.
 	 * If byte 7 AND $0C = $00, and bytes 12-15 are all 0, then iNES.
@@ -849,26 +842,25 @@ static uint32 get_ines_mapper_id(void)
 	return ret;
 }
 
-static void rom_load_ines(void) {
-	ROM_size           = head.ROM_size;
-	VROM_size          = head.VROM_size;
-	iNESCart.mirror    = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
-	iNESCart.battery   = (head.ROM_type & 2) ? 1 : 0;
-	iNESCart.mapper    = get_ines_mapper_id();
-}
+static void iNES_read_header_info(void) {
+   ROM_size           = head.ROM_size;
+   VROM_size          = head.VROM_size;
+   iNESCart.mirror    = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
+   iNESCart.battery   = (head.ROM_type & 2) ? 1 : 0;
+   iNESCart.mapper    = iNES_get_mapper_id();
+   iNESCart.iNES2     = (head.ROM_type2 & 0x0C) == 0x08;
 
-static void rom_load_ines2(void) {
-	ROM_size           = head.ROM_size | ((head.upper_PRG_CHR_size >> 0) & 0xF) << 8;
-	VROM_size          = head.VROM_size | ((head.upper_PRG_CHR_size >> 4) & 0xF) << 8;
-	iNESCart.mirror    = (head.ROM_type & 8) ? 2 : (head.ROM_type & 1);
-	iNESCart.battery   = (head.ROM_type & 2) ? 1 : 0;
-	iNESCart.mapper    = get_ines_mapper_id();
-	iNESCart.submapper = (head.ROM_type3 >> 4) & 0x0F;
-	iNESCart.region    = head.Region & 3;
-	if (head.PRGRAM_size & 0x0F) iNESCart.PRGRamSize     = 64 << ((head.PRGRAM_size >> 0) & 0x0F);
-	if (head.PRGRAM_size & 0xF0) iNESCart.PRGRamSaveSize = 64 << ((head.PRGRAM_size >> 4) & 0x0F);
-	if (head.CHRRAM_size & 0x0F) iNESCart.CHRRamSize     = 64 << ((head.CHRRAM_size >> 0) & 0x0F);
-	if (head.CHRRAM_size & 0xF0) iNESCart.CHRRamSaveSize = 64 << ((head.CHRRAM_size >> 4) & 0x0F);
+   if (iNESCart.iNES2)
+   {
+      ROM_size           |= ((head.upper_PRG_CHR_size >> 0) & 0xF) << 8;
+      VROM_size          |= ((head.upper_PRG_CHR_size >> 4) & 0xF) << 8;	
+      iNESCart.submapper = (head.ROM_type3 >> 4) & 0x0F;
+      iNESCart.region    = head.Region & 3;
+      if (head.PRGRAM_size & 0x0F) iNESCart.PRGRamSize     = 64 << ((head.PRGRAM_size >> 0) & 0x0F);
+      if (head.PRGRAM_size & 0xF0) iNESCart.PRGRamSaveSize = 64 << ((head.PRGRAM_size >> 4) & 0x0F);
+      if (head.CHRRAM_size & 0x0F) iNESCart.CHRRamSize     = 64 << ((head.CHRRAM_size >> 0) & 0x0F);
+      if (head.CHRRAM_size & 0xF0) iNESCart.CHRRamSaveSize = 64 << ((head.CHRRAM_size >> 4) & 0x0F);
+   }
 }
 
 int iNESLoad(const char *name, FCEUFILE *fp)
@@ -879,16 +871,14 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    char* mappername        = NULL;
    uint32 mappertest       = 0;
 #endif
-   uint64 filesize         = FCEU_fgetsize(fp);
-   uint64 romSize          = 0;
+   uint64 filesize         = FCEU_fgetsize(fp); /* size of file including header */
+   uint64 romSize          = 0;                 /* size of PRG + CHR rom */
    /* used for malloc and cart mapping */
    uint32 rom_size_pow2    = 0;
    uint32 vrom_size_pow2   = 0;
 
    if (FCEU_fread(&head, 1, 16, fp) != 16)
       return 0;
-
-   filesize -= 16; /* remove header size from total size */
 
    if (memcmp(&head, "NES\x1a", 4))
    {
@@ -912,13 +902,12 @@ int iNESLoad(const char *name, FCEUFILE *fp)
          memset((char*)(&head) + 0xA, 0, 0x6);
    }
 
-   if ((iNESCart.iNES2 = get_ines_version()))
-      rom_load_ines2();
-   else
-      rom_load_ines();
+   iNES_read_header_info();
 
    if (!ROM_size)
       ROM_size = 256;
+
+   filesize -= 16; /* remove header size from total size */
 
    /* Trainer */
    if (head.ROM_type & 4)
