@@ -25,6 +25,8 @@
 #include "mapinc.h"
 #include "../ines.h"
 
+static uint8 *WRAM;
+static uint32 WRAMSIZE;
 static uint8 reg[4];
 static SFORMAT StateRegs[] =
 {
@@ -88,20 +90,36 @@ static void reset(void)
    sync();
 }
 
+static void close(void)
+{
+   if (WRAM)
+      FCEU_gfree(WRAM);
+   WRAM = NULL;
+}
+
+static void StateRestore(int version)
+{
+   sync();
+}
+
 void Mapper163_Init (CartInfo *info)
 {
-   uint8 *WRAM;
-   uint32 WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;
    info->Power   = power;
    info->Reset   = reset;
+   info->Close   = close;
    GameHBIRQHook = hblank;
+
+   GameStateRestore = StateRestore;
    AddExState(StateRegs, ~0, 0, 0);
 
+   WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;
    WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
    SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+   AddExState(WRAM, WRAMSIZE, 0, "WRAM");
    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+
    if (info->battery) {
       info->SaveGame[0] = WRAM;
-      info->SaveGameLen[0] = info->PRGRamSaveSize;
+      info->SaveGameLen[0] = WRAMSIZE;
    }
 }
