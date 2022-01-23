@@ -409,6 +409,13 @@ static void JYASIC_reset (void)
 	dipSwitch = (dipSwitch +0x40) &0xC0;
 }
 
+static void JYASIC_close (void)
+{
+	if (WRAM)
+      FCEU_gfree(WRAM);
+   WRAM = NULL;
+}
+
 static void JYASIC_restore (int version)
 {
 	sync();
@@ -418,6 +425,7 @@ void JYASIC_init (CartInfo *info)
 {
    info->Reset = JYASIC_reset;
    info->Power = JYASIC_power;
+   info->Close = JYASIC_close;
    PPU_hook = trapPPUAddressChange;
    MapIRQHook = cpuCycle;
    GameHBIRQHook2 = ppuScanline;

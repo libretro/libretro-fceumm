@@ -23,6 +23,8 @@
  
 #include "mapinc.h"
 
+static uint8 *WRAM;
+static uint32 WRAMSIZE;
 static uint8 latch[2];
 
 static void Mapper452_Sync(void) {
@@ -62,18 +64,35 @@ static void Mapper452_Reset(void) {
 }
 
 static void Mapper452_Power(void) {
-	uint8* WRAM = (uint8*) FCEU_gmalloc(8192);
+	
 	latch[0] =latch[1] =0;
 	Mapper452_Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xDFFF, Mapper452_WriteLatch);
 	SetWriteHandler(0xE000, 0xFFFF, CartBW);
-	
-	SetupCartPRGMapping(0x10, (uint8*) FCEU_gmalloc(8192), 8192, 1);
+    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+}
+
+static void Mapper452_Close(void) {
+   if (WRAM)
+      FCEU_gfree(WRAM);
+   WRAM = NULL;
+}
+
+static void StateRestore(int version) {
+   Mapper452_Sync();
 }
 
 void Mapper452_Init(CartInfo *info) {
 	info->Reset = Mapper452_Reset;
 	info->Power = Mapper452_Power;
+	info->Close = Mapper452_Close;
+	GameStateRestore = StateRestore;
+
+	WRAMSIZE = 8192;
+	WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+
 	AddExState(&latch, 2, 0, "LATC");
 }

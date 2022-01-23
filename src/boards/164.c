@@ -28,6 +28,8 @@
 #include "mapinc.h"
 #include "eeprom_93C66.h"
 
+static uint8 *WRAM;
+static uint32 WRAMSIZE;
 static uint8 reg[8];
 static uint8 eeprom_data[512];
 static SFORMAT StateRegs[] =
@@ -101,16 +103,31 @@ static void reset(void)
    sync();
 }
 
+static void close(void)
+{
+   if (WRAM)
+      FCEU_gfree(WRAM);
+   WRAM = NULL;
+}
+
+static void StateRestore(int version)
+{
+   sync();
+}
+
 void Mapper164_Init (CartInfo *info)
 {
-   uint8 *WRAM;
-   uint32 WRAMSIZE = info->iNES2? (info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF)): 8192;
-   info->Power = power;
-   info->Reset = reset;
+   info->Power   = power;
+   info->Reset   = reset;
+   info->Close   = close;
+
+   GameStateRestore = StateRestore;
    AddExState(StateRegs, ~0, 0, 0);
 
+   WRAMSIZE = info->iNES2? (info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF)): 8192;
    WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
    SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+   AddExState(WRAM, WRAMSIZE, 0, "WRAM");
    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 
    eeprom_93C66_storage = eeprom_data;
