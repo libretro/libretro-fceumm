@@ -55,8 +55,13 @@ static void Mapper438_Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, Mapper438_WriteLatch);
 }
 
+static void StateRestore(void) {
+	Mapper438_Sync();
+}
+
 void Mapper438_Init(CartInfo *info) {
 	info->Reset = Mapper438_Reset;
 	info->Power = Mapper438_Power;
+	GameStateRestore = StateRestore;
 	AddExState(&latch, 2, 0, "LATC");
 }
