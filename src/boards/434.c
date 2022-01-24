@@ -55,7 +55,7 @@ static void Mapper434_Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, Mapper434_WriteInnerBank);
 }
 
-static void StateRestore(void) {
+static void StateRestore(int version) {
 	Mapper434_Sync();
 }
 
