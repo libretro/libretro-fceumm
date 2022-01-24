@@ -55,8 +55,13 @@ static void Mapper434_Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, Mapper434_WriteInnerBank);
 }
 
+static void StateRestore(void) {
+	Mapper434_Sync();
+}
+
 void Mapper434_Init(CartInfo *info) {
 	info->Reset = Mapper434_Reset;
 	info->Power = Mapper434_Power;
+	GameStateRestore = StateRestore;
 	AddExState(&latch, 2, 0, "LATC");
 }
