@@ -429,7 +429,7 @@ void JYASIC_init (CartInfo *info)
    PPU_hook = trapPPUAddressChange;
    MapIRQHook = cpuCycle;
    GameHBIRQHook2 = ppuScanline;
-   AddExState(JYASIC_stateRegs, ~0, 0, 0);
+   AddExState(&JYASIC_stateRegs, ~0, 0, 0);
    GameStateRestore = JYASIC_restore;
 
    /* WRAM is present only in iNES mapper 35, or in mappers with numbers above 255 that require NES 2.0, which explicitly denotes WRAM size */

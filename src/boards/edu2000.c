@@ -74,5 +74,5 @@ void UNLEDU2000_Init(CartInfo *info) {
 		info->SaveGameLen[0] = 32768;
 	}
 	AddExState(WRAM, 32768, 0, "WRAM");
-	AddExState(StateRegs, ~0, 0, 0);
+	AddExState(&StateRegs, ~0, 0, 0);
 }

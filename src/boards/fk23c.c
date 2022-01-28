@@ -469,7 +469,7 @@ void Init(CartInfo *info)
    info->Close       = Close;
    GameHBIRQHook     = IRQHook;
    GameStateRestore  = StateRestore;
-   AddExState(StateRegs, ~0, 0, 0);
+   AddExState(&StateRegs, ~0, 0, 0);
 
    if (CHRRAMSIZE)
    {

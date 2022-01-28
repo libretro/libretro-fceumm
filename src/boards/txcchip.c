@@ -142,7 +142,7 @@ static void GenTXC_Init(CartInfo *info, void (*proc)(void), uint32 jv001) {
 	txc.isJV001 = jv001;
 	WSync   = proc;
 	GameStateRestore = StateRestore;
-	AddExState(StateRegs, ~0, 0, 0);
+	AddExState(&StateRegs, ~0, 0, 0);
 }
 
 static int CheckHash(CartInfo *info) {

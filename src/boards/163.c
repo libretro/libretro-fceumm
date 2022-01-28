@@ -110,7 +110,7 @@ void Mapper163_Init (CartInfo *info)
    GameHBIRQHook = hblank;
 
    GameStateRestore = StateRestore;
-   AddExState(StateRegs, ~0, 0, 0);
+   AddExState(&StateRegs, ~0, 0, 0);
 
    WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;
    WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);

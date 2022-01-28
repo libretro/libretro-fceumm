@@ -30,7 +30,7 @@
  */
 
 static uint8 unromchr, lock;
-static uint32 dipswitch;
+static uint8 dipswitch;
 
 static void BMCHPxxCW(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 4) {		/* custom banking */

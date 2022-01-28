@@ -304,7 +304,7 @@ void GenMMC3_Init(CartInfo *info, int prg, int chr, int wram, int battery) {
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
 
-	AddExState(MMC3_StateRegs, ~0, 0, 0);
+	AddExState(&MMC3_StateRegs, ~0, 0, 0);
 
 	info->Power = GenMMC3Power;
 	info->Reset = MMC3RegReset;

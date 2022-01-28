@@ -792,7 +792,7 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 	AddExState(&MMC5HackSPScroll, 1, 0, "SPLS");
 	AddExState(&MMC5HackSPPage, 1, 0, "SPLP");
 	AddExState(&MMC50x5130, 1, 0, "5130");
-	AddExState(MMC5_StateRegs, ~0, 0, 0);
+	AddExState(&MMC5_StateRegs, ~0, 0, 0);
 
 	MMC5WRAMsize = wsize ? (wsize / 8) : 0;
 	BuildWRAMSizeTable();
