@@ -55,7 +55,7 @@ static void Mapper438_Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, Mapper438_WriteLatch);
 }
 
-static void StateRestore(void) {
+static void StateRestore(int version) {
 	Mapper438_Sync();
 }
 

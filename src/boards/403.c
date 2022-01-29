@@ -69,7 +69,7 @@ static void M403Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M403Write8);
 }
 
-static void StateRestore(void) {
+static void StateRestore(int version) {
 	Sync();
 }
 
