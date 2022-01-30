@@ -286,6 +286,7 @@ void FCEUSS_Load_Mem(void)
 
    uint8 header[16];
    int stateversion;
+   int totalsize;
    int x;
 
    memstream_read(mem, header, 16);
@@ -297,8 +298,10 @@ void FCEUSS_Load_Mem(void)
       stateversion = FCEU_de32lsb(header + 8);
    else
       stateversion = header[3] * 100;
+   
+   totalsize = FCEU_de32lsb(header + 4);
 
-   x = ReadStateChunks(mem, *(uint32*)(header + 4));
+   x = ReadStateChunks(mem, totalsize);
 
    if (stateversion < 9500)
       X.IRQlow = 0;
