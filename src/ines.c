@@ -999,7 +999,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    FCEU_printf(" PRG+CHR CRC32:  0x%08X\n", iNESCart.CRC32);
    FCEU_printf(" PRG+CHR MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
    FCEU_printf(" PRG-ROM:  %6d KiB\n", iNESCart.PRGRomSize >> 10);
-   FCEU_printf(" CHR-ROM:  %36 KiB\n", iNESCart.CHRRomSize >> 10);
+   FCEU_printf(" CHR-ROM:  %6d KiB\n", iNESCart.CHRRomSize >> 10);
    FCEU_printf(" Mapper #: %3d\n", iNESCart.mapper);
    FCEU_printf(" Mapper name: %s\n", mappername);
    FCEU_printf(" Mirroring: %s\n", iNESCart.mirror == 2 ? "None (Four-screen)" : iNESCart.mirror ? "Vertical" : "Horizontal");
