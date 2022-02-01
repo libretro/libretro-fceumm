@@ -41,7 +41,6 @@
 */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static uint8 *WRAM            = NULL;
 static uint8 *CHRRAM          = NULL;
@@ -63,6 +62,9 @@ static uint8 subType          = 0; /* NES 2.0 Submapper, denoting PCB variants *
 static uint8 jncota523        = 0; /* Jncota board with unusual wiring that turns 1 KiB CHR banks into 2 KiB banks, and has hard-wired nametable mirroring. */
 static uint8 dipsw_enable     = 0; /* Change the address mask on every reset? */
 static uint8 after_power      = 0; /* Used for detecting whether a DIP switch is used or not (see above) */
+
+extern uint32 ROM_size;
+extern uint32 VROM_size;
 
 static SFORMAT StateRegs[] = {
    { fk23_regs,               8, "EXPR" },
