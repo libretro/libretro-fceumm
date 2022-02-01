@@ -53,34 +53,15 @@ static int is210;	/* Lesser mapper. */
 static uint8 PRG[3];
 static uint8 CHR[8];
 
-/* TODO: Clean this up. State variables are expanded for
- * big-endian compatibility when saving and loading states */
 static SFORMAT N106_StateRegs[] = {
-	{ &PRG[0], 1, "PRG1" },
-	{ &PRG[1], 1, "PRG2" },
-	{ &PRG[2], 1, "PRG3" },
-
-	{ &CHR[0], 1, "CHR1" },
-	{ &CHR[1], 1, "CHR2" },
-	{ &CHR[2], 1, "CHR3" },
-	{ &CHR[3], 1, "CHR4" },
-	{ &CHR[4], 1, "CHR5" },
-	{ &CHR[5], 1, "CHR6" },
-	{ &CHR[6], 1, "CHR7" },
-	{ &CHR[7], 1, "CHR8" },
-
-	{ &NTAPage[0], 1, "NTA1" },
-	{ &NTAPage[1], 1, "NTA2" },
-	{ &NTAPage[2], 1, "NTA3" },
-	{ &NTAPage[3], 1, "NTA4" },
-
+	{ PRG, 3, "PRG" },
+	{ CHR, 8, "CHR" },
+	{ NTAPage, 4, "NTA" },
 	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
 	{ &IRQa, 1, "IRQA" },
-
 	{ &dopol, 1, "GORF" },
 	{ &gorfus, 1, "DOPO" },
 	{ &gorko, 1, "GORK" },
-
 	{ 0 }
 };
 
@@ -89,6 +70,15 @@ static void SyncPRG(void) {
 	setprg8(0xa000, PRG[1]);
 	setprg8(0xc000, PRG[2]);
 	setprg8(0xe000, 0x3F);
+}
+
+static void SyncMirror() {
+	switch(gorko) {
+	case 0: setmirror(MI_0); break;
+	case 1: setmirror(MI_V); break;
+	case 2: setmirror(MI_H); break;
+	case 3: setmirror(MI_0); break;
+	}
 }
 
 static void FP_FASTAPASS(1) NamcoIRQHook(int a) {
@@ -167,7 +157,10 @@ static void FixCache(int a, int V) {
 	case 0x02: FreqCache[w] &= ~0x0000FF00; FreqCache[w] |= V << 8; break;
 	case 0x04:
 		FreqCache[w] &= ~0x00030000; FreqCache[w] |= (V & 3) << 16;
-		LengthCache[w] = (8 - ((V >> 2) & 7)) << 2;
+		/* something wrong here http://www.romhacking.net/forum/index.php?topic=21907.msg306903#msg306903 */
+		/* LengthCache[w] = (8 - ((V >> 2) & 7)) << 2; */
+		/* fix be like in https://github.com/SourMesen/Mesen/blob/cda0a0bdcb5525480784f4b8c71de6fc7273b570/Core/Namco163Audio.h#L61 */
+		LengthCache[w] = 256 - (V & 0xFC);
 		break;
 	case 0x07: EnvCache[w] = (double)(V & 0xF) * 576716; break;
 	}
@@ -206,6 +199,10 @@ static DECLFW(Mapper19_write) {
 			gorko = V & 0xC0;
 			PRG[0] = V & 0x3F;
 			SyncPRG();
+			if (is210) {
+				gorko = V >> 6;
+				SyncMirror();
+			}
 			break;
 		case 0xE800:
 			gorfus = V & 0xC0;
@@ -378,6 +375,7 @@ static void DoNamcoSound(int32 *Wave, int Count) {
 static void Mapper19_StateRestore(int version) {
 	int x;
 	SyncPRG();
+	SyncMirror();
 	FixNTAR();
 	FixCRR();
 	for (x = 0x40; x < 0x80; x++)
