@@ -259,10 +259,9 @@ else ifneq (,$(filter $(platform), ps3 psl1ght))
     ENDIANNESS_DEFINES =  -DMSB_FIRST
     EXTERNAL_ZLIB = 1
     STATIC_LINKING = 1
-
-    ifneq ($(platdef),)
-        PLATFORM_DEFINES += -D$(platdef)
-    else
+    PLATFORM_DEFINES += -D__PS3__
+    
+    ifeq ($(platform), psl1ght)
         PLATFORM_DEFINES += -D__PSL1GHT__
     endif
 
