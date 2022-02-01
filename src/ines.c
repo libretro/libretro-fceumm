@@ -1116,6 +1116,7 @@ static int iNES_Init(int num) {
 			if (!VROM_size) {
 				if (iNESCart.iNES2) {
 					CHRRAMSize = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
+					if (CHRRAMSize == 0) CHRRAMSize = iNESCart.CHRRamSize = 8 * 8192;
 				} else {
 					switch (num) {	/* FIXME, mapper or game data base with the board parameters and ROM/RAM sizes */
 					case 13:  CHRRAMSize = 16 * 1024; break;
@@ -1132,7 +1133,7 @@ static int iNES_Init(int num) {
 					}
 					iNESCart.CHRRamSize = CHRRAMSize;
 				}
-				if (CHRRAMSize) { /* TODO: CHR-RAM are sometimes handled in mappers e.g. MMC1 using submapper 1/2/4 and CHR-RAM can be zero here */
+				if (CHRRAMSize > 0) { /* TODO: CHR-RAM are sometimes handled in mappers e.g. MMC1 using submapper 1/2/4 and CHR-RAM can be zero here */
 					if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
 					FCEU_MemoryRand(VROM, CHRRAMSize);
 					UNIFchrrama = VROM;
