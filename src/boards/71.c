@@ -46,6 +46,7 @@ static DECLFW(M71Write) {
 }
 
 static void M71Power(void) {
+	preg = 0;
 	mirr = 0;
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
