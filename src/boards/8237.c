@@ -17,15 +17,27 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * Super Game (Sugar Softec) protected mapper
- * Pocahontas 2 (Unl) [U][!], etc.
- * TODO: 9in1 LION KING HANGS!
+ * Submapper 0, UNIF board name UNL-8237:
+ * Earthworm Jim 2
+ * Mortal Kombat 3 (SuperGame, not Extra 60, not to be confused by similarly-named games from other developers)
+ * Mortal Kombat 3 Extra 60 (both existing ROM images are just extracts of the 2-in-1 multicart containing this game)
+ * Pocahontas Part 2
+ * 2-in-1: Aladdin, EarthWorm Jim 2 (Super 808)
+ * 2-in-1: The Lion King, Bomber Boy (GD-103)
+ * 2-in-1 Super Golden Card: EarthWorm Jim 2, Boogerman (king002)
+ * 2-in-1: Mortal Kombat 3 Extra 60, The Super Shinobi (king005)
+ * 3-in-1: Boogerman, Adventure Island 3, Double Dragon 3 (Super 308)
+ * 5-in-1 Golden Card: Aladdin, EarthWorm Jim 2, Garo Densetsu Special, Silkworm, Contra Force (SPC005)
+ * 6-in-1 Golden Card: EarthWorm Jim 2, Mortal Kombat 3, Double Dragon 3, Contra 3, The Jungle Book, Turtles Tournament Fighters (SPC009)
+ *
+ * Submapper 1, UNIF board name UNL-8237A:
+ * 9-in-1 High Standard Card: The Lion King, EarthWorm Jim 2, Aladdin, Boogerman, Somari, Turtles Tournament Fighters, Mortal Kombat 3, Captain Tsubasa 2, Taito Basketball (king001)
  */
 
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 cmdin;
+static uint8 submapper;
 
 static uint8 regperm[8][8] =
 {
@@ -52,80 +64,51 @@ static uint8 adrperm[8][8] =
 };
 
 static void UNL8237CW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x40)
-		setchr1(A, ((EXPREGS[1] & 0xc) << 6) | (V & 0x7F) | ((EXPREGS[1] & 0x20) << 2));
+	uint16 outer_bank;
+
+	if (submapper == 1)
+		outer_bank = ((EXPREGS[1] & 0xE) << 7);
 	else
-		setchr1(A, ((EXPREGS[1] & 0xc) << 6) | V);
+		outer_bank = ((EXPREGS[1] & 0xC) << 6);
+
+	if (EXPREGS[0] & 0x40)
+		setchr1(A, outer_bank | (V & 0x7F) | ((EXPREGS[1] & 0x20) << 2));
+	else
+		setchr1(A, outer_bank | V);
 }
 
 static void UNL8237PW(uint32 A, uint8 V) {
+	uint8 outer_bank = ((EXPREGS[1] & 3) << 5);
+
+	if (submapper == 1)
+		outer_bank |= ((EXPREGS[1] & 8) << 4);
+
 	if (EXPREGS[0] & 0x40) {
 		uint8 sbank = (EXPREGS[1] & 0x10);
-		if (EXPREGS[0] & 0x80) {
+		if (EXPREGS[0] & 0x80) { /* NROM */
 			uint8 bank = ((EXPREGS[1] & 3) << 4) | (EXPREGS[0] & 0x7) | (sbank >> 1);
-			if (EXPREGS[0] & 0x20)
+			if (EXPREGS[0] & 0x20) /* NROM-256 */
 				setprg32(0x8000, bank >> 1);
-			else {
+			else { /* NROM-128 */
 				setprg16(0x8000, bank);
 				setprg16(0xC000, bank);
 			}
 		} else
-			setprg8(A, ((EXPREGS[1] & 3) << 5) | (V & 0x0F) | sbank);
+			setprg8(A, outer_bank | (V & 0x0F) | sbank);
 	} else {
-		if (EXPREGS[0] & 0x80) {
+		if (EXPREGS[0] & 0x80) { /* NROM */
 			uint8 bank = ((EXPREGS[1] & 3) << 4) | (EXPREGS[0] & 0xF);
-			if (EXPREGS[0] & 0x20)
+			if (EXPREGS[0] & 0x20) /* NROM-256 */
 				setprg32(0x8000, bank >> 1);
-			else {
+			else { /* NROM-128 */
 				setprg16(0x8000, bank);
 				setprg16(0xC000, bank);
 			}
 		} else
-			setprg8(A, ((EXPREGS[1] & 3) << 5) | (V & 0x1F));
+			setprg8(A, outer_bank | (V & 0x1F));
 	}
 }
 
-static void UNL8237ACW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x40)
-		setchr1(A, ((EXPREGS[1] & 0xE) << 7) | (V & 0x7F) | ((EXPREGS[1] & 0x20) << 2));
-	else
-		setchr1(A, ((EXPREGS[1] & 0xE) << 7) | V);
-}
-
-static void UNL8237APW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x40) {
-		uint8 sbank = (EXPREGS[1] & 0x10);
-		if (EXPREGS[0] & 0x80) {
-			uint8 bank = ((EXPREGS[1] & 3) << 4) | ((EXPREGS[1] & 8) << 3) | (EXPREGS[0] & 0x7) | (sbank >> 1);
-			if (EXPREGS[0] & 0x20) {
-/*				FCEU_printf("8000:%02X\n",bank>>1); */
-				setprg32(0x8000, bank >> 1);
-			} else {
-/*				FCEU_printf("8000-C000:%02X\n",bank); */
-				setprg16(0x8000, bank);
-				setprg16(0xC000, bank);
-			}
-		} else {
-/*			FCEU_printf("%04x:%02X\n",A,((EXPREGS[1]&3)<<5)|((EXPREGS[1]&8)<<4)|(V&0x0F)|sbank); */
-			setprg8(A, ((EXPREGS[1] & 3) << 5) | ((EXPREGS[1] & 8) << 4) | (V & 0x0F) | sbank);
-		}
-	} else {
-		if (EXPREGS[0] & 0x80) {
-			uint8 bank = ((EXPREGS[1] & 3) << 4) | ((EXPREGS[1] & 8) << 3) | (EXPREGS[0] & 0xF);
-			if (EXPREGS[0] & 0x20) {
-/*				FCEU_printf("8000:%02X\n",(bank>>1)&0x07); */
-				setprg32(0x8000, bank >> 1);
-			} else {
-/*				FCEU_printf("8000-C000:%02X\n",bank&0x0F); */
-				setprg16(0x8000, bank);
-				setprg16(0xC000, bank);
-			}
-		} else {
-/*			FCEU_printf("%04X:%02X\n",A,(((EXPREGS[1]&3)<<5)|((EXPREGS[1]&8)<<4)|(V&0x1F))&0x1F); */
-			setprg8(A, ((EXPREGS[1] & 3) << 5) | ((EXPREGS[1] & 8) << 4) | (V & 0x1F));
-		}
-	}
-}
 static DECLFW(UNL8237Write) {
 	uint8 dat = V;
 	uint8 adr = adrperm[EXPREGS[2]][((A >> 12) & 6) | (A & 1)];
@@ -139,8 +122,8 @@ static DECLFW(UNL8237Write) {
 }
 
 static DECLFW(UNL8237ExWrite) {
-	switch (A) {
-	case 0x5000: EXPREGS[0] = V; FixMMC3PRG(MMC3_cmd); break;
+	switch (A & 0xF007) {
+	case 0x5000: EXPREGS[0] = V; FixMMC3PRG(MMC3_cmd); FixMMC3CHR(MMC3_cmd); break;
 	case 0x5001: EXPREGS[1] = V; FixMMC3PRG(MMC3_cmd); FixMMC3CHR(MMC3_cmd); break;
 	case 0x5007: EXPREGS[2] = V; break;
 	}
@@ -148,7 +131,7 @@ static DECLFW(UNL8237ExWrite) {
 
 static void UNL8237Power(void) {
 	EXPREGS[0] = EXPREGS[2] = 0;
-	EXPREGS[1] = 3;
+	EXPREGS[1] = 0x0F;
 	GenMMC3Power();
 	SetWriteHandler(0x8000, 0xFFFF, UNL8237Write);
 	SetWriteHandler(0x5000, 0x7FFF, UNL8237ExWrite);
@@ -160,14 +143,12 @@ void UNL8237_Init(CartInfo *info) {
 	pwrap = UNL8237PW;
 	info->Power = UNL8237Power;
 	AddExState(EXPREGS, 3, 0, "EXPR");
-	AddExState(&cmdin, 1, 0, "CMDI");
+	AddExState(&submapper, 1, 0, "SUBM");
+	if (info->iNES2)
+		submapper = info->submapper;
 }
 
 void UNL8237A_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = UNL8237ACW;
-	pwrap = UNL8237APW;
-	info->Power = UNL8237Power;
-	AddExState(EXPREGS, 3, 0, "EXPR");
-	AddExState(&cmdin, 1, 0, "CMDI");
+	UNL8237_Init(info);
+	submapper = 1;
 }
