@@ -662,7 +662,7 @@ INES_BOARD_BEGIN()
 /*    INES_BOARD( "",                            239, Mapper239_Init ) */
 	INES_BOARD( "",                         240, Mapper240_Init         )
 	INES_BOARD( "",                         241, Mapper241_Init         )
-	INES_BOARD( "",                         242, Mapper242_Init         )
+	INES_BOARD( "43272",                    242, Mapper242_Init         )
 	INES_BOARD( "SA-020A",                  243, S74LS374N_Init         )
 	INES_BOARD( "DECATHLON",                244, Mapper244_Init         )
 	INES_BOARD( "",                         245, Mapper245_Init         )

@@ -427,7 +427,7 @@ static BMAPPING bmap[] = {
 	{ "3D-BLOCK",                   355, UNL3DBlock_Init,       0 },
 	{ "411120-C",                   287, BMC411120C_Init,       0 },
 	{ "42in1ResetSwitch",           233, Mapper233_Init,        0 },
-	{ "43272",                      227, UNL43272_Init,         0 },
+	{ "43272",                      242, Mapper242_Init,        0 },
 	{ "603-5052",                   238, UNL6035052_Init,       0 },
 	{ "64in1NoRepeat",              314, BMC64in1nr_Init,       0 },
 	{ "70in1",                      236, BMC70in1_Init,         0 },
