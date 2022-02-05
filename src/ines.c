@@ -656,7 +656,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "BMC 22+20-in-1 RST",       233, Mapper233_Init         )
 	INES_BOARD( "BMC MAXI",                 234, Mapper234_Init         )
 	INES_BOARD( "Golden Game",              235, Mapper235_Init         )
-	INES_BOARD( "Realtec 8155",             236, Mapper236_Init         )
+	INES_BOARD( "Realtec 8031/8155/8099/8106", 236, Mapper236_Init         )
 	INES_BOARD( "Teletubbies / Y2K",        237, Mapper237_Init         )
 	INES_BOARD( "UNL6035052",               238, UNL6035052_Init        )
 /*    INES_BOARD( "",                            239, Mapper239_Init ) */

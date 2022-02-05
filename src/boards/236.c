@@ -33,13 +33,16 @@ static SFORMAT StateRegs[] =
 static void Sync(void)
 {
 	int prg;
+	int chr;
 	if (chrramvariant)
 	{
 		prg = reg[1] &7 | reg[0] <<3;
+		chr = 0;
 	}
 	else
 	{
-		prg = reg[1] &15;
+		prg = reg[1] & 0x0F;
+		chr = reg[0] & 0x0F;
 	}
 	switch (reg[1] >>4 &3)
 	{
@@ -56,10 +59,9 @@ static void Sync(void)
 			setprg16(0xC000, prg);
 			break;
 	}
-	setchr8(reg[0] &15);
+	setchr8(chr);
 	setmirror((reg[0] >>5 &1) ^1);
 }
-
 
 static DECLFR(M236Read)
 {

@@ -28,8 +28,6 @@ void BMC12IN1_Init(CartInfo *info);
 void BMC190in1_Init(CartInfo *info);
 void BMC411120C_Init(CartInfo *info);
 void BMC64in1nr_Init(CartInfo *info);
-void BMC70in1B_Init(CartInfo *info);
-void BMC70in1_Init(CartInfo *info);
 void BMC810544CA1_Init(CartInfo *info);
 void BMC830118C_Init(CartInfo *info);
 void BMCA65AS_Init(CartInfo *info);
