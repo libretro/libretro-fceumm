@@ -640,7 +640,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "",                         217, Mapper217_Init         ) /* Redefined to a new Discrete BMC mapper */
 	INES_BOARD( "Magic Floor",              218, Mapper218_Init         )
 	INES_BOARD( "UNLA9746",                 219, UNLA9746_Init          )
-	INES_BOARD( "Debug Mapper",             220, UNLKS7057_Init         )
+/*	INES_BOARD( "Debug Mapper",             220, Mapper220_Init         ) */
 	INES_BOARD( "UNLN625092",               221, UNLN625092_Init        )
 	INES_BOARD( "",                         222, Mapper222_Init         )
 /*    INES_BOARD( "",                            223, Mapper223_Init ) */

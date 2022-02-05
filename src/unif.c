@@ -470,10 +470,11 @@ static BMAPPING bmap[] = {
 	{ "GS-2004",                    283, Mapper283_Init,        0 },
 	{ "GS-2013",                    283, Mapper283_Init,        0 },
 	{ "Ghostbusters63in1",          226, Mapper226_Init,        0 },
+	{ "G631",                       226, Mapper226_Init,        0 }, /* duplicate, probably wrong name */
 	{ "H2288",                      123, UNLH2288_Init,         0 },
 	{ "HKROM",                        4, HKROM_Init,            0 },
 	{ "KOF97",                      263, UNLKOF97_Init,         0 },
-	{ "KONAMI-QTAI",            NO_INES, Mapper190_Init,        0 },
+/*	{ "KONAMI-QTAI",            NO_INES, Mapper190_Init,        0 }, */
 	{ "KS7012",                     346, UNLKS7012_Init,        0 },
 	{ "KS7013B",                    312, UNLKS7013B_Init,       0 },
 	{ "KS7016",                     306, UNLKS7016_Init,        0 },
@@ -563,6 +564,7 @@ static BMAPPING bmap[] = {
 	{ "VRC7",                        85, UNLVRC7_Init,          0 },
 	{ "YOKO",                       264, UNLYOKO_Init,          0 },
 	{ "COOLBOY",                    268, COOLBOY_Init,          BMCFLAG_256KCHRR },
+	{ "MINDKIDS",                   268, MINDKIDS_Init,         BMCFLAG_256KCHRR },
 	{ "158B",                       258, UNL158B_Init,          0 },
 	{ "DRAGONFIGHTER",              292, UNLBMW8544_Init,       0 },
 	{ "EH8813A",                    519, UNLEH8813A_Init,       0 },
@@ -593,14 +595,12 @@ static BMAPPING bmap[] = {
 	{ "SA005-A",                    338, BMCSA005A_Init,        0 },
 	{ "K-3006",                     339, BMCK3006_Init,         0 },
 	{ "K-3036",                     340, BMCK3036_Init,         0 },
-	{ "MINDKIDS",                   268, MINDKIDS_Init,         BMCFLAG_256KCHRR },
 	{ "KS7021A",                    525, UNLKS7021A_Init,       0 },
 	{ "KS106C",                 NO_INES, BMCKS106C_Init,        0 }, /* split roms */
 	{ "900218",                     524, BTL900218_Init,        0 },
 	{ "JC-016-2",                   205, Mapper205_Init,        0 },
 	{ "AX-40G",                     527, UNLAX40G_Init,         0 },
 	{ "STREETFIGTER-GAME4IN1",  NO_INES, BMCSFGAME4IN1_Init,    0 }, /* mapper 49? submapper 1*/
-	{ "G631",                       226, Mapper226_Init,        0 }, /* duplicate, probably wrong name */
 	{ "BJ-56",                      526, UNLBJ56_Init,          0 },
 	{ "L6IN1",                      345, BMCL6IN1_Init,         0 },
 	{ "CTC-12IN1",                  337, BMCCTC12IN1_Init,      0 },
