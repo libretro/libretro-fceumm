@@ -140,7 +140,7 @@ void BMCD1038_Init(CartInfo *info) {
 
 /*------------------ Map 058 ---------------------------*/
 
-static void BMCGK192Sync(void) {
+static void M58Sync(void) {
 	if (latche & 0x40) {
 		setprg16(0x8000, latche & 7);
 		setprg16(0xC000, latche & 7);
@@ -150,8 +150,8 @@ static void BMCGK192Sync(void) {
 	setmirror(((latche & 0x80) >> 7) ^ 1);
 }
 
-void BMCGK192_Init(CartInfo *info) {
-	Latch_Init(info, BMCGK192Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+void Mapper58_Init(CartInfo *info) {
+	Latch_Init(info, M58Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
 /*------------------ Map 059 ---------------------------*/
@@ -345,20 +345,7 @@ void Mapper212_Init(CartInfo *info) {
 
 /*------------------ Map 213 ---------------------------*/
 
-static void M213Sync(void) {
-	if(latche & 0x40) {
-		setprg16(0x8000, (latche & 7));
-		setprg16(0xC000, (latche & 7));
-	} else {
-	setprg32(0x8000, (latche >> 1) & 3);
-	}
-	setchr8((latche >> 3) & 7);
-	setmirror(((latche & 1)^((latche >> 6) & 1)) ^ 1);
-}
-
-void Mapper213_Init(CartInfo *info) {
-	Latch_Init(info, M213Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
+/*                SEE MAPPER 58                         */
 
 /*------------------ Map 214 ---------------------------*/
 

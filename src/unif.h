@@ -36,7 +36,6 @@ void BMCD1038_Init(CartInfo *info);
 void BMCFK23CA_Init(CartInfo *info);
 void BMCFK23C_Init(CartInfo *info);
 void BMCG146_Init(CartInfo *info);
-void BMCGK192_Init(CartInfo *info);
 void BMCGS2004_Init(CartInfo *info);
 void BMCGS2013_Init(CartInfo *info);
 void BMCGhostbusters63in1_Init(CartInfo *info);
