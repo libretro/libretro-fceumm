@@ -734,8 +734,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "CITYFIGHT",                266, UNLCITYFIGHT_Init      )
 	INES_BOARD( "COOLBOY/MINDKIDS",         268, Mapper268_Init         ) /* Submapper distinguishes between COOLBOY and MINDKIDS */
 	INES_BOARD( "80013-B",                  274, BMC80013B_Init         )
-	INES_BOARD( "GS-2004",                  283, BMCGS2004_Init         )
-/*    INES_BOARD( "GS-2013",                    283, BMCGS2013_Init ) */
+	INES_BOARD( "GS-2004/GS-2013",          283, Mapper283_Init         )
 	INES_BOARD( "A65AS",                    285, BMCA65AS_Init          )
 	INES_BOARD( "BS-5",                     286, BMCBS5_Init            )
 	INES_BOARD( "411120-C",                 287, BMC411120C_Init        )
