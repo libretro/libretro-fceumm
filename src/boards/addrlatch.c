@@ -19,6 +19,7 @@
  */
 
 #include "mapinc.h"
+#include "../ines.h"
 
 static uint16 latche, latcheinit;
 static uint16 addrreg0, addrreg1;
@@ -137,38 +138,9 @@ void BMCD1038_Init(CartInfo *info) {
 	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
-/*------------------ UNL43272 ---------------------------*/
-/* mapper much complex, including 16K bankswitching */
-static void UNL43272Sync(void) {
-	if ((latche & 0x81) == 0x81) {
-		setprg32(0x8000, (latche & 0x38) >> 3);
-	} else
-		FCEU_printf("unrecognized command %04!\n", latche);
-	setchr8(0);
-	setmirror(0);
-}
-
-static DECLFR(UNL43272Read) {
-	if (latche & 0x400)
-		return CartBR(A & 0xFE);
-	else
-		return CartBR(A);
-}
-
-static void UNL43272Reset(void) {
-	latche = 0;
-	UNL43272Sync();
-}
-
-void UNL43272_Init(CartInfo *info) {
-	Latch_Init(info, UNL43272Sync, UNL43272Read, 0x0081, 0x8000, 0xFFFF, 0);
-	info->Reset = UNL43272Reset;
-	AddExState(&dipswitch, 1, 0, "DIPSW");
-}
-
 /*------------------ Map 058 ---------------------------*/
 
-static void BMCGK192Sync(void) {
+static void M58Sync(void) {
 	if (latche & 0x40) {
 		setprg16(0x8000, latche & 7);
 		setprg16(0xC000, latche & 7);
@@ -178,8 +150,8 @@ static void BMCGK192Sync(void) {
 	setmirror(((latche & 0x80) >> 7) ^ 1);
 }
 
-void BMCGK192_Init(CartInfo *info) {
-	Latch_Init(info, BMCGK192Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+void Mapper58_Init(CartInfo *info) {
+	Latch_Init(info, M58Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
 /*------------------ Map 059 ---------------------------*/
@@ -373,20 +345,7 @@ void Mapper212_Init(CartInfo *info) {
 
 /*------------------ Map 213 ---------------------------*/
 
-static void M213Sync(void) {
-	if(latche & 0x40) {
-		setprg16(0x8000, (latche & 7));
-		setprg16(0xC000, (latche & 7));
-	} else {
-	setprg32(0x8000, (latche >> 1) & 3);
-	}
-	setchr8((latche >> 3) & 7);
-	setmirror(((latche & 1)^((latche >> 6) & 1)) ^ 1);
-}
-
-void Mapper213_Init(CartInfo *info) {
-	Latch_Init(info, M213Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
+/*                SEE MAPPER 58                         */
 
 /*------------------ Map 214 ---------------------------*/
 
@@ -540,7 +499,7 @@ static void M242Sync(void) {
 		}
 	}
 
-	if (!hasBattery && (latche & 0x80) == 0x80)
+	if (!hasBattery && (latche & 0x80) == 0x80 && (ROM_size * 16) > 256)
 		/* CHR-RAM write protect hack, needed for some multicarts */
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	else

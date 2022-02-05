@@ -19,6 +19,7 @@
  */
 
 #include "mapinc.h"
+#include "../ines.h"
 
 static uint8 reg, mirr;
 static SFORMAT StateRegs[] =
@@ -29,25 +30,25 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	setprg8(0x6000, 31);
+	setprg8(0x6000, (ROM_size == 17) ? 32 : 31); /* FIXME: Verify these */
 	setprg32(0x8000, reg);
 	setchr8(0);
 }
 
-static DECLFW(BMCGS2013Write) {
+static DECLFW(M283Write) {
 	reg = V;
 	Sync();
 }
 
-static void BMCGS2013Power(void) {
+static void M283Power(void) {
 	reg = 0;
 	Sync();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, BMCGS2013Write);
+	SetWriteHandler(0x8000, 0xFFFF, M283Write);
 }
 
-static void BMCGS2013Reset(void) {
+static void M283Reset(void) {
 	reg = 0;
 }
 
@@ -55,9 +56,9 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-void BMCGS2013_Init(CartInfo *info) {
-	info->Reset = BMCGS2013Reset;
-	info->Power = BMCGS2013Power;
+void Mapper283_Init(CartInfo *info) {
+	info->Reset = M283Reset;
+	info->Power = M283Power;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
