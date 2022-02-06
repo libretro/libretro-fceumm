@@ -693,6 +693,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Bitcorp 31-in-1",          360, Mapper360_Init         )
 	INES_BOARD( "OK-411",                   361, GN45_Init              ) /* OK-411 is emulated together with GN-45 */
 	INES_BOARD( "GN-45",                    366, GN45_Init              )
+	INES_BOARD( "Yung-08",                  368, Mapper368_Init              )
 	INES_BOARD( "Golden Mario Party II - Around the World 6-in-1",       370, Mapper370_Init         )
 	INES_BOARD( "MMC3 PIRATE SFC-12",       372, Mapper372_Init         )
 	INES_BOARD( "95/96 Super HiK 4-in-1",   374, Mapper374_Init         )
