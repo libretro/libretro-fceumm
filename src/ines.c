@@ -686,6 +686,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "GKCX1",                    288, Mapper288_Init         )
 	INES_BOARD( "MMC3 BMC PIRATE",          294, Bs5652_Init ) /* nesdev redirects this as mapper 134 */
 	INES_BOARD( "TXC 01-22110-000",         297, Mapper297_Init         )
+	INES_BOARD( "5/20-in-1 1993 Copyright", 334, Mapper334_Init         )
 	INES_BOARD( "Super Mario Family",       353, Mapper353_Init         )
 	INES_BOARD( "7-in-1 Rockman (JY-208)",  356, Mapper356_Init         )
 	INES_BOARD( "Bit Corp 4-in-1",          357, Mapper357_Init         )
