@@ -81,7 +81,6 @@ static void M368Power(void) {
 	SetWriteHandler(0x4022, 0x4022, M368WritePRG);
 	SetWriteHandler(0x4120, 0x4120, M368WritePRG);
 	SetWriteHandler(0x4122, 0x4122, M368WriteIRQ);
-	//SetWriteHandler(0x8000, 0xffff, M368WriteUNROM);
 }
 
 static void M368Reset(void) {
