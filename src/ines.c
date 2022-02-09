@@ -1044,7 +1044,9 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    SetupCartPRGMapping(0, ROM, rom_size_pow2, 0);
 
    SetInput();
-   CheckHInfo();
+   
+   if (iNESCart.iNES2 < 1)
+      CheckHInfo();
 
    {
       int x;
