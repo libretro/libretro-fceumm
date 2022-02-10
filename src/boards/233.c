@@ -18,52 +18,54 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 /* Updated 2019-07-12
- * Mapper 226 - Updated and combine UNIF Ghostbusters63in1 board (1.5 MB carts), different bank order
- * - some 1MB carts can switch game lists using Select
+ * Mapper 233 - UNIF 42in1ResetSwitch - reset-based switching
  */
 
 #include "mapinc.h"
 
-static uint8 reorder_banks = 0;
-static uint8 latche[2], reset;
-static uint8 banks[4] = { 0, 0, 1, 2 };
+static uint8 latche;
+static uint8 reset;
+
 static SFORMAT StateRegs[] =
 {
 	{ &reset, 1, "RST" },
-	{ latche, 2, "LATC" },
+	{ &latche, 1, "LATC" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	uint8 bank = 0;
-	uint8 base = ((latche[0] & 0x80) >> 7) | ((latche[1] & 1) << 1);
+	uint8 bank = (latche & 0x1f) | (reset << 5);
 
-	if (reorder_banks) /* for 1536 KB prg roms */
-		base = banks[base];
-	bank = (base << 5) | (latche[0] & 0x1f);
-
-	if (!(latche[0] & 0x20))
+	if (!(latche & 0x20))
 		setprg32(0x8000, bank >> 1);
 	else {
 		setprg16(0x8000, bank);
 		setprg16(0xC000, bank);
 	}
-	setmirror((latche[0] >> 6) & 1);
+
+	switch ((latche >> 6) & 3) {
+	case 0: setmirror(MI_0); break;
+	case 1: setmirror(MI_V); break;
+	case 2: setmirror(MI_H); break;
+	case 3: setmirror(MI_1); break;
+	}
+
 	setchr8(0);
 }
 
-static DECLFW(M226Write) {
-	latche[A & 1] = V;
+static DECLFW(M233Write) {
+	latche = V;
 	Sync();
 }
 
-static void M226Power(void) {
-	latche[0] = latche[1] = 0;
+static void M233Power(void) {
+	latche = reset = 0;
 	Sync();
-	SetWriteHandler(0x8000, 0xFFFF, M226Write);
+	SetWriteHandler(0x8000, 0xFFFF, M233Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
@@ -71,16 +73,15 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-static void M226Reset(void) {
-	latche[0] = latche[1] = 0;
+static void M233Reset(void) {
+	latche = 0;
+	reset ^= 1;
 	Sync();
 }
 
-void Mapper226_Init(CartInfo *info) {
-	/* 1536KiB PRG roms have different bank order */
-	reorder_banks = ((info->PRGRomSize / 1024) == 1536) ? 1 : 0;
-	info->Power = M226Power;
-	info->Reset = M226Reset;
+void Mapper233_Init(CartInfo *info) {
+	info->Power = M233Power;
+	info->Reset = M233Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
 	GameStateRestore = StateRestore;
 }
