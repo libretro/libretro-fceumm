@@ -64,6 +64,7 @@ static void M403Reset(void) {
 static void M403Power(void) {
 	reg[0] = reg[1] = reg[2] = 0;
 	Sync();
+	SetReadHandler(0x6000, 0x7FFF, CartBR); /* For TetrisA (Tetris Family 19-in-1 NO 1683) */
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x4100, 0x4103, M403Write4);
 	SetWriteHandler(0x8000, 0xFFFF, M403Write8);
