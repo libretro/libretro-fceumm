@@ -19,7 +19,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 #include "../fds_apu.h"
 
 static uint8 latche, latcheinit, bus_conflict;
@@ -586,4 +585,23 @@ static void Mapper429_Reset(void) {
 void Mapper429_Init(CartInfo *info) {
 	info->Reset = Mapper429_Reset;
 	Latch_Init(info, Mapper429_Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}
+
+/*------------------ Mapper 415 ---------------------------*/
+
+static void Mapper415_Sync(void) {
+	setprg8(0x6000, latche & 0x0F);
+	setprg32(0x8000, ~0);
+	setchr8(0);
+	setmirror(((latche >> 4) & 1) ^ 1);
+}
+
+static void M415Power(void) {
+	LatchPower();
+	SetReadHandler(0x6000, 0x7FFF, CartBR);
+}
+
+void Mapper415_Init(CartInfo *info) {
+	Latch_Init(info, Mapper415_Sync, 0, 0x8000, 0xFFFF, 0, 0);
+	info->Power = M415Power;
 }

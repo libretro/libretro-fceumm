@@ -8,12 +8,6 @@ extern uint8 A001B;
 extern uint8 EXPREGS[8];
 extern uint8 DRegBuf[8];
 
-#undef IRQCount
-#undef IRQLatch
-#undef IRQa
-extern uint8 IRQCount, IRQLatch, IRQa;
-extern uint8 IRQReload;
-
 extern void (*pwrap)(uint32 A, uint8 V);
 extern void (*cwrap)(uint32 A, uint8 V);
 extern void (*mwrap)(uint8 V);

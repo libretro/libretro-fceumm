@@ -1,7 +1,7 @@
 /* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2022 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,48 +16,57 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+
+/* NES 2.0 Mapper 433 denotes the NC-20MB PCB, used for the 20-in-1 (CA-006) multicart. It is almost identical to INES Mapper 433, except that mirroring is selected just by single bit 6 (1=Horizontal).
  */
 
 #include "mapinc.h"
 
-static uint8 reg, mirr;
+static uint8 latche;
+
 static SFORMAT StateRegs[] =
 {
-	{ &reg, 1, "REGS" },
-	{ &mirr, 1, "MIRR" },
+	{ &latche, 1, "LATC" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setprg8(0x6000, (ROM_size == 17) ? 32 : 31); /* FIXME: Verify these */
-	setprg32(0x8000, reg);
+	if (!(latche & 0x20))
+		setprg32(0x8000, (latche & 0x1f) >> 1);
+	else {
+		setprg16(0x8000, (latche & 0x1f));
+		setprg16(0xC000, (latche & 0x1f));
+	}
+    setmirror(((latche >> 6) & 1) ^ 1);
 	setchr8(0);
 }
 
-static DECLFW(M283Write) {
-	reg = V;
+static DECLFW(M433Write) {
+	latche = V;
 	Sync();
 }
 
-static void M283Power(void) {
-	reg = 0;
+static void M433Power(void) {
+	latche = 0;
 	Sync();
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
+	SetWriteHandler(0x8000, 0xFFFF, M433Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M283Write);
-}
-
-static void M283Reset(void) {
-	reg = 0;
 }
 
 static void StateRestore(int version) {
 	Sync();
 }
 
-void Mapper283_Init(CartInfo *info) {
-	info->Reset = M283Reset;
-	info->Power = M283Power;
-	GameStateRestore = StateRestore;
+static void M433Reset(void) {
+	latche = 0;
+	Sync();
+}
+
+void Mapper433_Init(CartInfo *info) {
+	info->Power = M433Power;
+	info->Reset = M433Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
+	GameStateRestore = StateRestore;
 }

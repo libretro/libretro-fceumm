@@ -20,7 +20,6 @@
 
 #include "mapinc.h"
 #include "mmc3.h"
-#include "../ines.h"
 
 /* added on 2019-5-23 - NES 2.0 Mapper 260
  * HP10xx/HP20xx - a simplified version of FK23C mapper with pretty strict and better

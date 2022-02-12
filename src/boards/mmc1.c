@@ -681,3 +681,47 @@ void Mapper550_Init(CartInfo *info) {
 	AddExState(&latch, 1, 0, "LATC");
 	AddExState(&outerBank, 1, 0, "BANK");
 }
+
+/* ---------------------------- Mapper 404 -------------------------------- */
+
+/* NES 2.0 Mapper 404 - JY012005
+ * 1998 Super HiK 8-in-1 (JY-021B)*/
+
+static uint8_t outerBank;
+
+static void M404PRG16(uint32 A, uint8 V) {
+	uint8 mask = outerBank & 0x40 ? 0x07 : 0x0F;
+	setprg16(A, (V & mask) | (outerBank << 3) & ~mask);
+}
+
+static void M404CHR4(uint32 A, uint8 V) {
+	setchr4(A, (V & 0x1F) | outerBank << 5);
+}
+
+static DECLFW(M404Write) {
+	if (!(outerBank & 0x80)) {
+		outerBank = V;
+		MMC1PRG();
+		MMC1CHR();
+	}
+}
+
+static void M404Reset(void) {
+	outerBank = 0;
+	MMC1CMReset();
+}
+
+static void M404Power(void) {
+	outerBank = 0;
+	GenMMC1Power();
+	SetWriteHandler(0x6000, 0x7FFF, M404Write);
+}
+
+void Mapper404_Init(CartInfo *info) {
+	GenMMC1Init(info, 256, 256, 0, 0);
+	info->Power = M404Power;
+	info->Reset = M404Reset;
+	MMC1CHRHook4 = M404CHR4;
+	MMC1PRGHook16 = M404PRG16;
+	AddExState(&outerBank, 1, 0, "BANK");
+}
