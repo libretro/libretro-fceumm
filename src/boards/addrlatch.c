@@ -19,7 +19,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static uint16 latche, latcheinit;
 static uint16 addrreg0, addrreg1;

@@ -19,7 +19,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static void M218Power(void) {
 	setchr8(0);

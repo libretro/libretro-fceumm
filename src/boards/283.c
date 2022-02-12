@@ -19,7 +19,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static uint8 reg, mirr;
 static SFORMAT StateRegs[] =

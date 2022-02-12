@@ -24,7 +24,6 @@
 
 #include "mapinc.h"
 #include "eeprom_93C66.h"
-#include "../ines.h"
 
 static uint8 *WRAM;
 static uint32 WRAMSIZE;

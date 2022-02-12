@@ -19,7 +19,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 #include "../fds_apu.h"
 
 static uint8 latche, latcheinit, bus_conflict;

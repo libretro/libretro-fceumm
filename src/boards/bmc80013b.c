@@ -24,7 +24,6 @@
  /* 2020-03-22 - Update support for Cave Story II, FIXME: Arabian does not work for some reasons... */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static uint8 regs[2], mode;
 

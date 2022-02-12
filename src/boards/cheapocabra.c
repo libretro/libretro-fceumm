@@ -31,7 +31,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static uint8 reg;
 static uint8 *CHRRAM = NULL;

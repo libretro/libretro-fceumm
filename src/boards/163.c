@@ -23,7 +23,6 @@
 /* Nanjing FC-001 PCB */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static uint8 *WRAM;
 static uint32 WRAMSIZE;

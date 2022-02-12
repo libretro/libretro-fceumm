@@ -20,7 +20,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static uint8 *CHRRAM;
 static uint32 CHRRAMSIZE;
