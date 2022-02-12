@@ -28,20 +28,17 @@
 #include "mmc3.h"
 
 uint8 MMC3_cmd;
-uint8 *WRAM;
-uint32 WRAMSIZE;
-uint8 *CHRRAM;
-uint32 CHRRAMSIZE;
+static uint8 *WRAM;
+static uint32 WRAMSIZE;
+static uint8 *CHRRAM;
+static uint32 CHRRAMSIZE;
 uint8 DRegBuf[8];
 uint8 EXPREGS[8];	/* For bootleg games, mostly. */
 uint8 A000B, A001B;
 uint8 mmc3opts = 0;
 
-#undef IRQCount
-#undef IRQLatch
-#undef IRQa
-uint8 IRQCount, IRQLatch, IRQa;
-uint8 IRQReload;
+static uint8 IRQCount, IRQLatch, IRQa;
+static uint8 IRQReload;
 
 static SFORMAT MMC3_StateRegs[] =
 {
