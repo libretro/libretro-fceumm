@@ -56,15 +56,11 @@ static void M121CW(uint32 A, uint8 V) {
 }
 
 static void M121PW(uint32 A, uint8 V) {
+	setprg8(A, (V & 0x1F) | ((EXPREGS[3] & 0x80) >> 2));
 	if (EXPREGS[5] & 0x3F) {
-/*		FCEU_printf("prot banks: %02x %02x %02x %02x\n",V,EXPREGS[2],EXPREGS[1],EXPREGS[0]); */
-		setprg8(A, (V & 0x1F) | ((EXPREGS[3] & 0x80) >> 2));
 		setprg8(0xE000, (EXPREGS[0]) | ((EXPREGS[3] & 0x80) >> 2));
 		setprg8(0xC000, (EXPREGS[1]) | ((EXPREGS[3] & 0x80) >> 2));
 		setprg8(0xA000, (EXPREGS[2]) | ((EXPREGS[3] & 0x80) >> 2));
-	} else {
-/*		FCEU_printf("gen banks: %04x %02x\n",A,V); */
-		setprg8(A, (V & 0x1F) | ((EXPREGS[3] & 0x80) >> 2));
 	}
 }
 
