@@ -32,7 +32,7 @@ static void Sync (void) {
 	setprg16(0x8000, reg[1] << 3 | reg[0] & 7);
 	setprg16(0xC000, reg[1] << 3 | 7);
 	setchr8(0);
-	setmirror(((reg[1] >> 6) & 1) ^ 1);
+	setmirror(reg[1] &0x60? 0: 1);
 }
 
 static DECLFW(M396WriteInnerBank) {
