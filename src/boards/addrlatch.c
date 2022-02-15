@@ -704,3 +704,14 @@ void J2282_Init(CartInfo *info)
 {
     Latch_Init(info, J2282Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
+
+/* -------------- Mapper 409 ------------------------ */
+static void M409Sync(void) {
+	setprg16(0x8000, latche);
+	setprg16(0xC000, ~0);
+	setchr8(0);
+}
+
+void Mapper409_Init(CartInfo *info) {
+	Latch_Init(info, M409Sync, NULL, 0x0000, 0xC000, 0xCFFF, 0);
+}
