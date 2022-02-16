@@ -38,7 +38,7 @@ static void Sync(void) {
 		setprg16(0xC000, latch_addr >> 1);
 	}
 	setchr8(latch_data);
-	setmirror((latch_data & 1) ^ 1);
+	setmirror((latch_addr & 1) ^ 1);
 }
 
 static DECLFW(M414Write) {

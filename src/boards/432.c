@@ -24,33 +24,43 @@
 #include "mmc3.h"
 
 static void M432CW(uint32 A, uint8 V) {
-    if (EXPREGS[0] & 4)
-        setchr1(A, (V & 0x7F) | ((EXPREGS[0] << 7) & 0x80) | ((EXPREGS[0] << 5) & 0x100));
-    else
-        setchr1(A, V | ((EXPREGS[0] << 5) & 0x100));
+    int chrAND = EXPREGS[1] &0x04? 0x7F: 0xFF;
+    int chrOR  = EXPREGS[1] <<7 &0x080 | EXPREGS[1] <<5 &0x100;
+    setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
 static void M432PW(uint32 A, uint8 V) {
-    if (EXPREGS[0] & 4)
-        setprg8(A, (V & 0x0F) | ((EXPREGS[0] << 4) & 0x10) | ((EXPREGS[0] << 1) & 0x20));
-    else
-        setprg8(A, (V & 0x1F) | ((EXPREGS[0] << 1) & 0x20));
+    int prgAND = EXPREGS[1] &0x02? 0x0F: 0x1F;
+    int prgOR  = EXPREGS[1] <<4 &0x10 | EXPREGS[1] <<1 &0x20;
+    if (A <0xC000 || ~EXPREGS[1] &0x40) setprg8(A,         V &prgAND | prgOR &~prgAND);
+    if (A <0xC000 &&  EXPREGS[1] &0x40) setprg8(A |0x4000, V &prgAND | prgOR &~prgAND);
+}
+
+static DECLFR(M432Read) {
+   if (EXPREGS[0] &1)
+      return EXPREGS[2];
+   return CartBR(A);
 }
 
 static DECLFW(M432Write) {
-    EXPREGS[0] = V;
+    EXPREGS[A &1] = V;
     FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
 
 static void M432Reset(void) {
 	EXPREGS[0] = 0;
+	EXPREGS[1] = 0;
+	EXPREGS[2] = (EXPREGS[2] +1) &3;
 	MMC3RegReset();
 }
 
 static void M432Power(void) {
 	EXPREGS[0] = 0;
+	EXPREGS[1] = 0;
+	EXPREGS[2] = 0;
 	GenMMC3Power();
+	SetReadHandler(0x8000, 0xFFFF, M432Read);
 	SetWriteHandler(0x6000, 0x7FFF, M432Write);
 }
 
@@ -60,5 +70,5 @@ void Mapper432_Init(CartInfo *info) {
 	pwrap = M432PW;
 	info->Power = M432Power;
 	info->Reset = M432Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+	AddExState(EXPREGS, 3, 0, "EXPR");
 }
