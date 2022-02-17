@@ -24,34 +24,34 @@
 #include "mmc3.h"
 
 static void M432CW(uint32 A, uint8 V) {
-    int chrAND = EXPREGS[1] &0x04? 0x7F: 0xFF;
-    int chrOR  = EXPREGS[1] <<7 &0x080 | EXPREGS[1] <<5 &0x100;
-    setchr1(A, V &chrAND | chrOR &~chrAND);
+	int chrAND = (EXPREGS[1] & 0x04) ? 0x7F : 0xFF;
+	int chrOR  = (EXPREGS[1] << 7) & 0x080 | (EXPREGS[1] << 5) & 0x100;
+	setchr1(A, (V & chrAND) | (chrOR & ~chrAND));
 }
 
 static void M432PW(uint32 A, uint8 V) {
-    int prgAND = EXPREGS[1] &0x02? 0x0F: 0x1F;
-    int prgOR  = EXPREGS[1] <<4 &0x10 | EXPREGS[1] <<1 &0x20;
-    if (A <0xC000 || ~EXPREGS[1] &0x40) setprg8(A,         V &prgAND | prgOR &~prgAND);
-    if (A <0xC000 &&  EXPREGS[1] &0x40) setprg8(A |0x4000, V &prgAND | prgOR &~prgAND);
+	int prgAND = (EXPREGS[1] & 0x02) ? 0x0F : 0x1F;
+	int prgOR  = ((EXPREGS[1] << 4) & 0x10) | (EXPREGS[1] << 1) & 0x20;
+	if ((A < 0xC000) || (~EXPREGS[1] & 0x40)) setprg8(A,          (V & prgAND) | (prgOR & ~prgAND));
+	if ((A < 0xC000) &&  (EXPREGS[1] & 0x40)) setprg8(A | 0x4000, (V & prgAND) | (prgOR & ~prgAND));
 }
 
 static DECLFR(M432Read) {
-   if (EXPREGS[0] &1)
-      return EXPREGS[2];
+   if (EXPREGS[0] & 1)
+	  return EXPREGS[2];
    return CartBR(A);
 }
 
 static DECLFW(M432Write) {
-    EXPREGS[A &1] = V;
-    FixMMC3PRG(MMC3_cmd);
+	EXPREGS[A & 1] = V;
+	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
 
 static void M432Reset(void) {
 	EXPREGS[0] = 0;
 	EXPREGS[1] = 0;
-	EXPREGS[2] = (EXPREGS[2] +1) &3;
+	EXPREGS[2] = (EXPREGS[2] +1) & 3;
 	MMC3RegReset();
 }
 
