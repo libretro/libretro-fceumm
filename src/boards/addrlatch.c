@@ -544,6 +544,21 @@ void Mapper288_Init(CartInfo *info) {
 	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
+/*------------------ Map 385 ---------------------------*/
+
+static void M385Sync(void) {
+	int32 mirror = latche & 1;
+	int32 bank = (latche >> 1) & 0x7;
+	setprg16(0x8000, bank);
+	setprg16(0xc000, bank);
+	setmirror(mirror ^ 1);
+	setchr8(0);
+}
+
+void Mapper385_Init(CartInfo *info) {
+	Latch_Init(info, M385Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+}
+
 /*------------------ Map 541 ---------------------------*/
 /* LittleCom 160-in-1 multicart */
 static void M541Sync(void) {
