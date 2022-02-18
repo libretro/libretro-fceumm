@@ -549,7 +549,7 @@ static void M297Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M297Latch);
 }
 
-static void M297StateRestore(void) {
+static void M297StateRestore(int version) {
 	Sync();
 }
 

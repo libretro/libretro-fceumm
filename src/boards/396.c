@@ -51,7 +51,7 @@ static void M396Reset(void) {
 	Sync();
 }
 
-static void StateRestore(void) {
+static void StateRestore(int version) {
 	Sync();
 }
 
