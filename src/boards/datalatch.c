@@ -460,6 +460,18 @@ void Mapper241_Init(CartInfo *info) {
 	Latch_Init(info, M241Sync, 0, 0x8000, 0xFFFF, 1, 0);
 }
 
+/*------------------ Map 271 ---------------------------*/
+
+static void M271Sync(void) {
+	setchr8(latche & 0x0F);
+	setprg32(0x8000, latche >> 4);
+	setmirror((latche >> 5) & 1);
+}
+
+void Mapper271_Init(CartInfo *info) {
+	Latch_Init(info, M271Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}
+
 /*------------------ Map 381 ---------------------------*/
 /* 2-in-1 High Standard Game (BC-019), reset-based */
 static uint8 reset = 0;

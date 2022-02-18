@@ -620,6 +620,7 @@ static BMAPPING bmap[] = {
 
 	{ "BS-400R",                    422, Mapper422_Init,        0 },
 	{ "BS-4040R",                   422, Mapper422_Init,        0 },
+	{ "22026",                      271, Mapper271_Init,        0 },
 
 #ifdef COPYFAMI
 	{ "COPYFAMI_MMC3",          NO_INES, MapperCopyFamiMMC3_Init, 0 },
