@@ -364,7 +364,7 @@ struct _unif_db {
 };
 
 static struct _unif_db unif_db[] = {
-	{ 0x8ebad077d08e6c78ULL, "A65AS",          1,   -1, -1 }, /* 3-in-1 (N080) [p1][U][!], not a real submapper */
+	{ 0x03ed6963ca50e1d8ULL, "A65AS",          1,   -1, -1 },
 	{ 0x616851e56946893bULL, "RESETNROM-XIN1", 0, MI_V, -1 }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p1].unf */
 	{ 0x4cd729b5ae23a3cfULL, "RESETNROM-XIN1", 0, MI_H, -1 }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p2].unf */
 
