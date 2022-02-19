@@ -881,49 +881,6 @@ void Mapper119_Init(CartInfo *info) {
    AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }
 
-/* ---------------------------- Mapper 134 ------------------------------ */
-/* ---------------------------- UNL-T4A54A ------------------------------ */
-
-/* UNL-T4A54A, functionally the same as mapper 134.
- * Writes @ $6801. Menu @ prg $20000, chr $00000 */
-
-static void M134PW(uint32 A, uint8 V) {
-	uint8 mask = (EXPREGS[0] & 0x04) ? 0x0F : 0x1F;
-	setprg8(A, (V & mask) | ((EXPREGS[0] & 3) << 4));
-}
-
-static void M134CW(uint32 A, uint8 V) {
-	uint8 mask = (EXPREGS[0] & 0x04) ? 0x7F : 0xFF;
-	setchr1(A, (V & mask) | ((EXPREGS[0] & 0x30) << 3));
-}
-
-static DECLFW(M134Write) {
-	EXPREGS[0] = V;
-	FixMMC3CHR(MMC3_cmd);
-	FixMMC3PRG(MMC3_cmd);
-}
-
-static void M134Power(void) {
-	EXPREGS[0] = 0x01;
-	GenMMC3Power();
-	SetWriteHandler(0x6001, 0x6001, M134Write);
-	SetWriteHandler(0x6801, 0x6801, M134Write);
-}
-
-static void M134Reset(void) {
-	EXPREGS[0] = 0x01;
-	MMC3RegReset();
-}
-
-void Mapper134_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	pwrap = M134PW;
-	cwrap = M134CW;
-	info->Power = M134Power;
-	info->Reset = M134Reset;
-	AddExState(EXPREGS, 4, 0, "EXPR");
-}
-
 /* ---------------------------- Mapper 165 ------------------------------ */
 
 static void M165CW(uint32 A, uint8 V) {

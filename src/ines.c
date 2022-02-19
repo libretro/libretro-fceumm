@@ -553,7 +553,7 @@ INES_BOARD_BEGIN()
 /*    INES_BOARD( "",                            131, Mapper131_Init ) */
 	INES_BOARD( "TXC/UNL-22211",            132, Mapper132_Init         )
 	INES_BOARD( "SA72008",                  133, SA72008_Init           )
-	INES_BOARD( "MMC3 BMC PIRATE",          134, Bs5652_Init            )
+	INES_BOARD( "MMC3 BMC PIRATE",          134, Mapper134_Init         )
 /*    INES_BOARD( "",                            135, Mapper135_Init ) */
 	INES_BOARD( "Sachen 3011",              136, Mapper136_Init         )
 	INES_BOARD( "S8259D",                   137, S8259D_Init            )
@@ -705,7 +705,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Kasheng 2-in-1 ",          291, Mapper291_Init         )
 	INES_BOARD( "DRAGONFIGHTER",            292, UNLBMW8544_Init        )
 	INES_BOARD( "NewStar 12-in-1/7-in-1",   293, Mapper293_Init         )
-	INES_BOARD( "MMC3 BMC PIRATE",          294, Bs5652_Init            ) /* nesdev redirects this as mapper 134 */
+	INES_BOARD( "MMC3 BMC PIRATE",          294, Mapper134_Init         ) /* nesdev redirects this as mapper 134 */
 	INES_BOARD( "YY860216C",                295, Mapper295_Init         )
 	INES_BOARD( "TXC 01-22110-000",         297, Mapper297_Init         )
 	INES_BOARD( "TF1201",                   298, UNLTF1201_Init         )
