@@ -1028,7 +1028,6 @@ due to that whole MegaMan 2 Game Genie thing.
 void FCEUSND_Reset(void) {
 	int x;
 
-	IRQFrameMode = 0x0;
 	fhcnt = fhinc;
 	fcnt = 0;
 	nreg = 1;
@@ -1079,6 +1078,7 @@ void FCEUSND_Power(void) {
 	for (x = 0; x < 5; x++)
 		ChannelBC[x] = 0;
 	soundtsoffs = 0;
+	IRQFrameMode = 0x0; /* Only initialized by power-on reset, not by soft reset */
 	LoadDMCPeriod(DMCFormat & 0xF);
 }
 
