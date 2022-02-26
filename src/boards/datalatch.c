@@ -460,6 +460,18 @@ void Mapper241_Init(CartInfo *info) {
 	Latch_Init(info, M241Sync, 0, 0x8000, 0xFFFF, 1, 0);
 }
 
+/*------------------ Map 271 ---------------------------*/
+
+static void M271Sync(void) {
+	setchr8(latche & 0x0F);
+	setprg32(0x8000, latche >> 4);
+	setmirror((latche >> 5) & 1);
+}
+
+void Mapper271_Init(CartInfo *info) {
+	Latch_Init(info, M271Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}
+
 /*------------------ Map 381 ---------------------------*/
 /* 2-in-1 High Standard Game (BC-019), reset-based */
 static uint8 reset = 0;
@@ -512,33 +524,34 @@ void Mapper538_Init(CartInfo *info) {
  * mode (one screen) and 32K bankswitching, second one have only
  * 16 bankswitching mode and normal mirroring... But there is no any
  * correlations between modes and they can be used in one mapper code.
+ *
+ * Submapper 0 - 3-in-1 (N068)
+ * Submapper 0 - 3-in-1 (N080)
+ * Submapper 1 - 4-in-1 (JY-066)
  */
+
 static int A65ASsubmapper;
 static void BMCA65ASSync(void) {
 	if (latche & 0x40)
 		setprg32(0x8000, (latche >> 1) & 0x0F);
 	else {
 		if (A65ASsubmapper == 1) {
-			setprg16(0x8000, ((latche & 0x38) >> 0) | (latche & 7));
-			setprg16(0xC000, ((latche & 0x38) >> 0) | 7);
-		} else {
 			setprg16(0x8000, ((latche & 0x30) >> 1) | (latche & 7));
 			setprg16(0xC000, ((latche & 0x30) >> 1) | 7);
+		} else {
+			setprg16(0x8000, latche & 0x0F);
+			setprg16(0xC000, latche & 0x0F | 7);
 		}
 	}
 	setchr8(0);
 	if (latche & 0x80)
 		setmirror(MI_0 + (((latche >> 5) & 1)));
-	else {
-		if (A65ASsubmapper == 1) /* added as workaround since games for this cart uses vertical mirroring */
-			setmirror(MI_V);
-		else
-			setmirror(((latche >> 3) & 1) ^ 1);
-	}
+	else
+		setmirror(((latche >> 3) & 1) ^ 1);
 }
 
 void BMCA65AS_Init(CartInfo *info) {
-	A65ASsubmapper = info->submapper; /* not a real submapper */
+	A65ASsubmapper = info->submapper;
 	Latch_Init(info, BMCA65ASSync, 0, 0x8000, 0xFFFF, 0, 0);
 }
 

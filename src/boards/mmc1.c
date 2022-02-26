@@ -549,11 +549,16 @@ static void M297Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M297Latch);
 }
 
+static void M297StateRestore(int version) {
+	Sync();
+}
+
 void Mapper297_Init(CartInfo *info) {
 	GenMMC1Init(info, 256, 256, 0, 0);
 	info->Power = M297Power;
 	MMC1CHRHook4 = M297CHR;
 	MMC1PRGHook16 = M297PRG;
+	GameStateRestore = M297StateRestore;
 	AddExState(&latch, 1, 0, "LATC");
 	AddExState(&mode, 1, 0, "MODE");
 }

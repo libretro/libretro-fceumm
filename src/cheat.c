@@ -387,7 +387,7 @@ int FCEUI_DecodePAR(const char *str, uint16 *a, uint8 *v, int *c, int *type) {
 
 	*c = -1;
 
-	/* 2020-08-31 - negativeExponent
+	/* 2020-08-31
 	 * Why is the top code set as default on non-debug runtime when
 	 * bottom code is what works for PAR?
 	 */
