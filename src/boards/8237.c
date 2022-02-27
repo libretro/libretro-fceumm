@@ -86,7 +86,7 @@ static void UNL8237PW(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 0x40) {
 		uint8 sbank = (EXPREGS[1] & 0x10);
 		if (EXPREGS[0] & 0x80) { /* NROM */
-			uint8 bank = ((EXPREGS[1] & 3) << 4) | (EXPREGS[0] & 0x7) | (sbank >> 1);
+			uint8 bank = (outer_bank >> 1) | (EXPREGS[0] & 0x7) | (sbank >> 1);
 			if (EXPREGS[0] & 0x20) /* NROM-256 */
 				setprg32(0x8000, bank >> 1);
 			else { /* NROM-128 */
@@ -97,7 +97,7 @@ static void UNL8237PW(uint32 A, uint8 V) {
 			setprg8(A, outer_bank | (V & 0x0F) | sbank);
 	} else {
 		if (EXPREGS[0] & 0x80) { /* NROM */
-			uint8 bank = ((EXPREGS[1] & 3) << 4) | (EXPREGS[0] & 0xF);
+			uint8 bank = (outer_bank >> 1) | (EXPREGS[0] & 0xF);
 			if (EXPREGS[0] & 0x20) /* NROM-256 */
 				setprg32(0x8000, bank >> 1);
 			else { /* NROM-128 */

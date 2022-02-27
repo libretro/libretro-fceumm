@@ -25,7 +25,7 @@
  *
  */
 
-/* 2020-3-6 - update mirroring (negativeExponent)
+/* 2020-3-6 - update mirroring
  * PRG-ROM Bank Select #1/Mirroring Select ($8000-$8FFF, write)
  * A~FEDC BA98 7654 3210
  * -------------------
