@@ -24,79 +24,51 @@
 
 #include "mapinc.h"
 
-static uint8 inner_bank, outer_bank, mode;
+static uint8 latch, reg[2];
 
 static SFORMAT StateRegs[] =
 {
-	{ &inner_bank, 1, "INB0" },
-	{ &outer_bank, 1, "OUTB" },
-	{ &mode, 1, "MODE" },
+	{ &latch, 1, "LATC" },
+	{ reg, 2, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	uint8 bbank = (mode & 4) ? 0 : (inner_bank & 7);
-	uint8 bank = outer_bank | bbank;
-	uint8 preg[2];
-
-	/* 0: NROM-128: Same inner/outer 16 KiB bank at CPU $8000-$BFFF
-	 *    and $C000-$FFFF
-	 * 1: NROM-256: 32 kiB bank at CPU $8000-$FFFF (Selected inner/outer bank SHR 1)
-	 * 2: UNROM: Inner/outer bank at CPU $8000-BFFF,
-	 *    fixed inner bank 7 within outer bank at $C000-$FFFF
-	 * 3: Unknown
-	 *
-	 * The combined inner/outer bank is simply the inner bank, selected by the
-	 * latch at $8000-$FFFF (or 0 if the latch is disabled) ORed with the
-	 * outer bank selected by $6001, without any bit shifting.
-	 */
-
-	preg[0] = bank;
-	preg[1] = 0;
-
-	switch (mode & 3) {
-	case 0x00:
-	case 0x01:
-		preg[1] = bank | ((mode & 1) ? 1 : 0);
-		break;
-	case 0x02:
-		preg[1] = outer_bank | 7;
-	case 0x03:
-		break;
+	if (reg[0] &2) { /* UNROM */
+		setprg16(0x8000, latch &7 | reg[1] &~7);
+		setprg16(0xC000,        7 | reg[1] &~7);
+	} else
+	if (reg[0] &1)   /* NROM-256 */
+		setprg32(0x8000, reg[1] >>1);
+	else {           /* NROM-128 */
+		setprg16(0x8000, reg[1]);
+		setprg16(0xC000, reg[1]);
 	}
-
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, !(reg[0] &4)); /* CHR-RAM write-protect */
 	setchr8(0);
-	setprg16(0x8000, preg[0]);
-	setprg16(0xC000, preg[1]);
-	setmirror(((mode & 8) >> 3) ^ 1);
+	setmirror(!(reg[0] &8));
 }
 
-static DECLFW(Write0) {
-	mode = V;
+static DECLFW(WriteReg) {
+	reg[A &1] =V;
 	Sync();
 }
 
-static DECLFW(Write1) {
-	outer_bank = V;
-	Sync();
-}
-
-static DECLFW(Write8) {
-	inner_bank = V;
+static DECLFW(WriteLatch) {
+	latch = V;
 	Sync();
 }
 
 static void BMC60311CPower(void) {
-	inner_bank = outer_bank = mode = 0;
+	latch =reg[0] =reg[1] =0;
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x6000, 0x6000, Write0);
-	SetWriteHandler(0x6001, 0x6001, Write1);
-	SetWriteHandler(0x8000, 0xFFFF, Write8);
+	SetWriteHandler(0x6000, 0x6001, WriteReg);
+	SetWriteHandler(0x8000, 0xFFFF, WriteLatch);
 }
 
 static void BMC60311CReset(void) {
-	inner_bank = outer_bank = mode = 0;
+	latch =reg[0] =reg[1] =0;
 	Sync();
 }
 

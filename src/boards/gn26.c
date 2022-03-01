@@ -27,26 +27,25 @@
 #include "mmc3.h"
 
 static void BMCGN26CW(uint32 A, uint8 V) {
-	uint32 base = (EXPREGS[0] & 0x03) << 7;
-	setchr1(A, base | (V & 0xFF));
+	int chrAND = EXPREGS[0]&0x04? 0xFF: 0x7F;
+	int chrOR  = EXPREGS[0] <<7;
+	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
 static void BMCGN26PW(uint32 A, uint8 V) {
-	/* Re-ordered -> 0:SF4 1:Contra Force 2:Revolution Hero */
-	uint32 table[] = { 0, 0, 1, 2 };
-	uint32 base = table[(EXPREGS[0] & 0x03)];
-
 	if (EXPREGS[0] & 4) {
 		if (A == 0x8000)
-			setprg32(0x8000, (base << 2) | (V >> 2));
+			setprg32(0x8000, (EXPREGS[0] << 2) | (V >> 2));
 	} else
-		setprg8(A, (base << 4) | (V & 0x0F));
+		setprg8(A, (EXPREGS[0] << 4) | (V & 0x0F));
 }
 
 static DECLFW(BMCGN26Write) {
-	EXPREGS[0] = A & 0x0F;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+	if (A001B &0x80 && ~A001B &0x40) {
+		EXPREGS[0] = A;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	}
 }
 
 static void BMCGN26Reset(void) {
@@ -56,7 +55,7 @@ static void BMCGN26Reset(void) {
 
 static void BMCGN26Power(void) {
 	GenMMC3Power();
-	SetWriteHandler(0x6800, 0x68FF, BMCGN26Write);
+	SetWriteHandler(0x6000, 0x7FFF, BMCGN26Write);
 }
 
 void BMCGN26_Init(CartInfo *info) {

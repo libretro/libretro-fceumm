@@ -474,27 +474,33 @@ void Mapper44_Init(CartInfo *info) {
 /* ---------------------------- Mapper 45 ------------------------------- */
 
 static void M45CW(uint32 A, uint8 V) {
-	if (!UNIFchrrama) {
-		uint32 NV = V;
-		if (EXPREGS[2] & 8)
-			NV &= (1 << ((EXPREGS[2] & 7) + 1)) - 1;
-		else
-		if (EXPREGS[2])
-			NV &= 0;	/* hack ;( don't know exactly how it should be */
-		NV |= EXPREGS[0] | ((EXPREGS[2] & 0xF0) << 4);
-		setchr1(A, NV);
-	} else
-		/* setchr8(0); */		/* i don't know what cart need this, but a new one need other lol */
+	if (CHRsize[0] ==8192)
 		setchr1(A, V);
+	else {
+		int chrAND =0xFF >>(~EXPREGS[2] &0xF);
+		int chrOR  =EXPREGS[0] | EXPREGS[2] <<4 &0xF00;
+		setchr1(A, V &chrAND | chrOR &~chrAND);
+	}
+}
+
+static DECLFR(M45ReadOB) {
+	return X.DB;
 }
 
 static void M45PW(uint32 A, uint8 V) {
-	uint32 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
-	MV |= EXPREGS[1];
-	if(UNIFchrrama)
-		MV |= ((EXPREGS[2] & 0x40) << 2);
-	setprg8(A, MV);
-/*	FCEU_printf("1:%02x 2:%02x 3:%02x A=%04x V=%03x\n",EXPREGS[1],EXPREGS[2],EXPREGS[3],A,MV); */
+	int prgAND =~EXPREGS[3] &0x3F;
+	int prgOR  =EXPREGS[1] | EXPREGS[2] <<2 &0x300;
+	setprg8(A, V &prgAND | prgOR &~prgAND);
+
+	/* Some multicarts select between five different menus by connecting one of the higher address lines to PRG /CE.
+	   The menu code selects between menus by checking which of the higher address lines disables PRG-ROM when set. */
+	if (PRGsize[0] <0x200000 && EXPREGS[5] ==1 && EXPREGS[1] &0x80 ||
+	    PRGsize[0] <0x200000 && EXPREGS[5] ==2 && EXPREGS[2] &0x40 ||
+	    PRGsize[0] <0x100000 && EXPREGS[5] ==3 && EXPREGS[1] &0x40 ||
+	    PRGsize[0] <0x100000 && EXPREGS[5] ==4 && EXPREGS[2] &0x20)
+		SetReadHandler(0x8000, 0xFFFF, M45ReadOB);
+	else
+		SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
 static DECLFW(M45Write) {
