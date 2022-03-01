@@ -32,12 +32,12 @@ static void M432CW(uint32 A, uint8 V) {
 static void M432PW(uint32 A, uint8 V) {
 	int prgAND = (EXPREGS[1] & 0x02) ? 0x0F : 0x1F;
 	int prgOR  = ((EXPREGS[1] << 4) & 0x10) | (EXPREGS[1] << 1) & 0x20;
-	if ((A < 0xC000) || (~EXPREGS[1] & 0x40)) setprg8(A,          (V & prgAND) | (prgOR & ~prgAND));
-	if ((A < 0xC000) &&  (EXPREGS[1] & 0x40)) setprg8(A | 0x4000, (V & prgAND) | (prgOR & ~prgAND));
+	if ((A < 0xC000) || (~EXPREGS[1] & 0x40)) setprg8(A,          (V & prgAND) | (prgOR & ~prgAND) & (EXPREGS[1] & 0x80?~2:~0));
+	if ((A < 0xC000) &&  (EXPREGS[1] & 0x40)) setprg8(A | 0x4000, (V & prgAND) | (prgOR & ~prgAND) | (EXPREGS[1] & 0x80? 2: 0));
 }
 
 static DECLFR(M432Read) {
-   if (EXPREGS[0] & 1)
+   if (EXPREGS[0] & 1 || EXPREGS[1] & 0x20)
 	  return EXPREGS[2];
    return CartBR(A);
 }
