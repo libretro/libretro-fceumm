@@ -126,22 +126,22 @@ static void Sync(void) {
 }
 
 static const uint8 cpuMangle[16][4] = {
-	{ 0, 1, 2, 3 }, 	// Submapper 0: Normal
-	{ 0, 1, 2, 3 }, 	// Submapper 1: Waixing VT03
-	{ 1, 0, 2, 3 }, 	// Submapper 2: Trump Grand
-	{ 0, 1, 2, 3 }, 	// Submapper 3: Zechess
-	{ 0, 1, 2, 3 }, 	// Submapper 4: Qishenglong
-	{ 0, 1, 2, 3 }, 	// Submapper 5: Waixing VT02
-	{ 0, 1, 2, 3 }, 	// Submapper 6: unused so far
-	{ 0, 1, 2, 3 }, 	// Submapper 7: unused so far
-	{ 0, 1, 2, 3 }, 	// Submapper 8: unused so far
-	{ 0, 1, 2, 3 }, 	// Submapper 9: unused so far
-	{ 0, 1, 2, 3 }, 	// Submapper A: unused so far
-	{ 0, 1, 2, 3 }, 	// Submapper B: unused so far
-	{ 0, 1, 2, 3 }, 	// Submapper C: unused so far
-	{ 0, 1, 2, 3 }, 	// Submapper D: Cube Tech (CPU opcode encryption only)
-	{ 0, 1, 2, 3 }, 	// Submapper E: Karaoto (CPU opcode encryption only)
-	{ 0, 1, 2, 3 }  	// Submapper F: Jungletac (CPU opcode encryption only)
+	{ 0, 1, 2, 3 }, 	/* Submapper 0: Normal                                  */
+	{ 0, 1, 2, 3 }, 	/* Submapper 1: Waixing VT03                            */
+	{ 1, 0, 2, 3 }, 	/* Submapper 2: Trump Grand                             */
+	{ 0, 1, 2, 3 }, 	/* Submapper 3: Zechess                                 */
+	{ 0, 1, 2, 3 }, 	/* Submapper 4: Qishenglong                             */
+	{ 0, 1, 2, 3 }, 	/* Submapper 5: Waixing VT02                            */
+	{ 0, 1, 2, 3 }, 	/* Submapper 6: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper 7: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper 8: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper 9: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper A: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper B: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper C: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only)  */
+	{ 0, 1, 2, 3 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
+	{ 0, 1, 2, 3 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
 };
 static DECLFW(UNLOneBusWriteCPU410X) {
 /*	FCEU_printf("CPU %04x:%04x\n",A,V); */
@@ -159,22 +159,22 @@ static DECLFW(UNLOneBusWriteCPU410X) {
 }
 
 static const uint8 ppuMangle[16][6] = {
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper 0: Normal
-	{ 1, 0, 5, 4, 3, 2 }, 	// Submapper 1: Waixing VT03
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper 2: Trump Grand
-	{ 5, 4, 3, 2, 0, 1 }, 	// Submapper 3: Zechess
-	{ 2, 5, 0, 4, 3, 1 }, 	// Submapper 4: Qishenglong
-	{ 1, 0, 5, 4, 3, 2 }, 	// Submapper 5: Waixing VT02
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper 6: unused so far
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper 7: unused so far
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper 8: unused so far
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper 9: unused so far
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper A: unused so far
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper B: unused so far
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper C: unused so far
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper D: Cube Tech (CPU opcode encryption only)
-	{ 0, 1, 2, 3, 4, 5 }, 	// Submapper E: Karaoto (CPU opcode encryption only)
-	{ 0, 1, 2, 3, 4, 5 }  	// Submapper F: Jungletac (CPU opcode encryption only)
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 0: Normal                                  */
+	{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 1: Waixing VT03                            */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 2: Trump Grand                             */
+	{ 5, 4, 3, 2, 0, 1 }, 	/* Submapper 3: Zechess                                 */
+	{ 2, 5, 0, 4, 3, 1 }, 	/* Submapper 4: Qishenglong                             */
+	{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 5: Waixing VT02                            */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 6: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 7: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 8: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 9: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper A: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper B: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper C: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only)  */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
+	{ 0, 1, 2, 3, 4, 5 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
 };
 static DECLFW(UNLOneBusWritePPU201X) {
 /*	FCEU_printf("PPU %04x:%04x\n",A,V); */
@@ -185,22 +185,22 @@ static DECLFW(UNLOneBusWritePPU201X) {
 }
 
 static const uint8 mmc3Mangle[16][8] = {
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 0: Normal
-	{ 5, 4, 3, 2, 1, 0, 6, 7 }, 	// Submapper 1: Waixing VT03
-	{ 0, 1, 2, 3, 4, 5, 7, 6 }, 	// Submapper 2: Trump Grand
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 3: Zechess
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 4: Qishenglong
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 5: Waixing VT02
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 6: unused so far
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 7: unused so far
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 8: unused so far
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper 9: unused so far
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper A: unused so far
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper B: unused so far
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper C: unused so far
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper D: Cube Tech (CPU opcode encryption only)
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	// Submapper E: Karaoto (CPU opcode encryption only)
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }  	// Submapper F: Jungletac (CPU opcode encryption only)
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 0: Normal                                 */
+	{ 5, 4, 3, 2, 1, 0, 6, 7 }, 	/* Submapper 1: Waixing VT03                           */
+	{ 0, 1, 2, 3, 4, 5, 7, 6 }, 	/* Submapper 2: Trump Grand                            */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 3: Zechess                                */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 4: Qishenglong                            */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 5: Waixing VT02                           */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 6: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 7: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 8: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 9: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper A: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper B: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper C: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only) */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)   */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }  	/* Submapper F: Jungletac (CPU opcode encryption only) */
 };
 static DECLFW(UNLOneBusWriteMMC3) {
 /*	FCEU_printf("MMC %04x:%04x\n",A,V); */
