@@ -65,6 +65,8 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
+static uint8 *WRAM;
+
 static void PSync(void) {
 	uint8 bankmode = cpu410x[0xb] & 7;
 	uint8 mask = (bankmode == 0x7) ? (0xff) : (0x3f >> bankmode);
@@ -263,11 +265,14 @@ static void UNLOneBusPower(void) {
 	SetReadHandler(0x4000, 0x403f, UNLOneBusReadAPU40XX);
 	SetWriteHandler(0x4000, 0x403f, UNLOneBusWriteAPU40XX);
 
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x2010, 0x201f, UNLOneBusWritePPU201X);
 	SetWriteHandler(0x4100, 0x410f, UNLOneBusWriteCPU410X);
 	SetWriteHandler(0x8000, 0xffff, UNLOneBusWriteMMC3);
 
+	FCEU_CheatAddRAM(8, 0x6000, WRAM);
+	setprg8r(0x10, 0x6000, 0);
 	Sync();
 }
 
@@ -285,9 +290,16 @@ static void StateRestore(int version) {
 	Sync();
 }
 
+void UNLOneBus_Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
+}
+
 void UNLOneBus_Init(CartInfo *info) {
 	info->Power = UNLOneBusPower;
 	info->Reset = UNLOneBusReset;
+	info->Close = UNLOneBus_Close;
 
 	if (((*(uint32*)&(info->MD5)) == 0x305fcdc3) ||	/* PowerJoy Supermax Carts */
 		((*(uint32*)&(info->MD5)) == 0x6abfce8e))
@@ -297,4 +309,8 @@ void UNLOneBus_Init(CartInfo *info) {
 	MapIRQHook = UNLOneBusCpuHook;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
+	
+	WRAM = (uint8*)FCEU_gmalloc(8192);
+	SetupCartPRGMapping(0x10, WRAM, 8192, 1);
 }
+
