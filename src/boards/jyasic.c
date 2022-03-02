@@ -240,7 +240,7 @@ static void ppuScanline(void)
    }
 }
 
-void FP_FASTAPASS(1) cpuCycle(int a)
+static void FP_FASTAPASS(1) cpuCycle(int a)
 {
    if ((irqControl &0x03) ==0x00)
       while (a--)
