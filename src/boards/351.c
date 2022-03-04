@@ -38,6 +38,7 @@ static SFORMAT stateRegs[] = {
 	{ MMC1_reg,        4, "MMC1" },
 	{ &MMC1_shift,     1, "M1SH" },
 	{ &MMC1_count,     1, "M1CN" },
+	{ &MMC1_filter,    1, "M1FI" },
 	{ MMC3_reg,        1, "MMC3" },
 	{ &MMC3_index,     1, "M3IX" },
 	{ &MMC3_mirroring, 1, "M3MI" },
@@ -239,6 +240,11 @@ static void applyMode() {
 	}
 }
 
+static void Mapper351_restore (int version) {
+	applyMode();
+	sync();
+}
+
 static DECLFR(readDIP) {
 	return dip;
 }
@@ -283,7 +289,7 @@ void Mapper351_Init (CartInfo *info) {
 	info->Power = Mapper351_power;
 	MapIRQHook = cpuCycle;
 	GameHBIRQHook = horizontalBlanking;
-	GameStateRestore = applyMode;
+	GameStateRestore = Mapper351_restore;
 	AddExState(stateRegs, ~0, 0, 0);
 }
 
