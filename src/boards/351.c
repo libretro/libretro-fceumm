@@ -20,17 +20,17 @@
 
 #include "mapinc.h"
 
-uint8 reg[4], dip;
-uint8 MMC1_reg[4], MMC1_shift, MMC1_count, MMC1_filter;
-uint8 MMC3_reg[8], MMC3_index, MMC3_mirroring, MMC3_wram, MMC3_reload, MMC3_count, MMC3_irq;
-uint8 VRC4_prg[2];
-uint8 VRC4_mirroring;
-uint8 VRC4_misc;
-uint16 VRC4_chr[8];
-uint8 VRCIRQ_latch;
-uint8 VRCIRQ_mode;
-uint8 VRCIRQ_count;
-signed short int VRCIRQ_cycles;
+static uint8 reg[4], dip;
+static uint8 MMC1_reg[4], MMC1_shift, MMC1_count, MMC1_filter;
+static uint8 MMC3_reg[8], MMC3_index, MMC3_mirroring, MMC3_wram, MMC3_reload, MMC3_count, MMC3_irq;
+static uint8 VRC4_prg[2];
+static uint8 VRC4_mirroring;
+static uint8 VRC4_misc;
+static uint16 VRC4_chr[8];
+static uint8 VRCIRQ_latch;
+static uint8 VRCIRQ_mode;
+static uint8 VRCIRQ_count;
+static signed short int VRCIRQ_cycles;
 
 static SFORMAT stateRegs[] = {
 	{ reg,             4, "REGS" },
