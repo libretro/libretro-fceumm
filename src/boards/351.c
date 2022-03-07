@@ -59,6 +59,8 @@ static SFORMAT stateRegs[] = {
 
 
 static void sync () {
+	int chrAND;
+	int chrOR;
 	int prgAND =reg[2] &0x04? 0x0F: 0x1F;
 	int prgOR  =reg[1] >>1;
 	if (reg[2] &0x80) { /* NROM mode */
@@ -94,8 +96,8 @@ static void sync () {
 			setprg32(0x8000, (MMC1_reg[3] &prgAND | prgOR &~prgAND) >>1);
 	}
 	
-	int chrAND =reg[2] &0x10? 0x1F: reg[2] &0x20? 0x7F: 0xFF;
-	int chrOR  =reg[0] <<1;
+	chrAND =reg[2] &0x10? 0x1F: reg[2] &0x20? 0x7F: 0xFF;
+	chrOR  =reg[0] <<1;
 	if (reg[2] &0x40)  /* CNROM mode */
 		setchr8(chrOR >>3);
 	else
