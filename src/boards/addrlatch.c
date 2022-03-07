@@ -730,3 +730,31 @@ static void M409Sync(void) {
 void Mapper409_Init(CartInfo *info) {
 	Latch_Init(info, M409Sync, NULL, 0x0000, 0xC000, 0xCFFF, 0);
 }
+
+/*------------------ Map 435 ---------------------------*/
+static void M435Sync(void) {
+	int p =latche >>2 &0x1F | latche >>3 &0x20 | latche >>4 &0x40;
+	if (latche &0x200) {
+		if (latche &0x001) {
+			setprg16(0x8000, p);
+			setprg16(0xC000, p);
+		} else {
+			setprg32(0x8000, p >> 1);
+		}
+	} else {
+		setprg16(0x8000, p);
+		setprg16(0xC000, p | 7);
+	}
+
+	if (latche &0x800)
+		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
+	else
+		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
+
+	setmirror(latche &0x002? MI_H: MI_V);
+	setchr8(0);
+}
+
+void Mapper435_Init(CartInfo *info) {
+	Latch_Init(info, M435Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+}
