@@ -597,7 +597,7 @@ static void M49PW(uint32 A, uint8 V) {
 		V |= (EXPREGS[0] & 0xC0) >> 2;
 		setprg8(A, V);
 	} else
-		setprg32(0x8000, (EXPREGS[0] >> 4) & 3);
+		setprg32(0x8000, (EXPREGS[0] >> 4) & 15);
 }
 
 static void M49CW(uint32 A, uint8 V) {
