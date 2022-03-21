@@ -31,6 +31,8 @@ static uint8 VRCIRQ_latch;
 static uint8 VRCIRQ_mode;
 static uint8 VRCIRQ_count;
 static signed short int VRCIRQ_cycles;
+static uint8 *CHRRAM =NULL;
+static uint8 *PRGCHR =NULL;
 
 static SFORMAT stateRegs[] = {
 	{ reg,             4, "REGS" },
@@ -63,34 +65,36 @@ static void sync () {
 	int chrOR;
 	int prgAND =reg[2] &0x04? 0x0F: 0x1F;
 	int prgOR  =reg[1] >>1;
-	if (reg[2] &0x80) { /* NROM mode */
+	int chip   =reg[2] &0x01 && CHRRAM? 0x10: 0x00;
+	
+	if (reg[2] &0x10) { /* NROM mode */
 		if (reg[2] &0x04) { /* NROM-128 */
-			setprg16(0x8000, prgOR >>1);
-			setprg16(0xC000, prgOR >>1);
+			setprg16r(chip, 0x8000, prgOR >>1);
+			setprg16r(chip, 0xC000, prgOR >>1);
 		} else      /* NROM-256 */
-			setprg32(0x8000, prgOR >>2);
+			setprg32r(chip, 0x8000, prgOR >>2);
 	} else
 	if (~reg[0] &0x02) { /* MMC3 mode */
-		setprg8(0x8000 ^(MMC3_index <<8 &0x4000), MMC3_reg[6] &prgAND | prgOR &~prgAND);
-		setprg8(0xA000,                           MMC3_reg[7] &prgAND | prgOR &~prgAND);
-		setprg8(0xC000 ^(MMC3_index <<8 &0x4000),        0xFE &prgAND | prgOR &~prgAND);
-		setprg8(0xE000,                                  0xFF &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0x8000 ^(MMC3_index <<8 &0x4000), MMC3_reg[6] &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0xA000,                           MMC3_reg[7] &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0xC000 ^(MMC3_index <<8 &0x4000),        0xFE &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0xE000,                                  0xFF &prgAND | prgOR &~prgAND);
 	} else
 	if (reg[0] &0x01) { /* VRC4 mode */
-		setprg8(0x8000 ^(VRC4_misc <<13 &0x4000), VRC4_prg[0] &prgAND | prgOR &~prgAND);
-		setprg8(0xA000,                           VRC4_prg[1] &prgAND | prgOR &~prgAND);
-		setprg8(0xC000 ^(VRC4_misc <<13 &0x4000),        0xFE &prgAND | prgOR &~prgAND);
-		setprg8(0xE000,                                  0xFF &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0x8000 ^(VRC4_misc <<13 &0x4000), VRC4_prg[0] &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0xA000,                           VRC4_prg[1] &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0xC000 ^(VRC4_misc <<13 &0x4000),        0xFE &prgAND | prgOR &~prgAND);
+		setprg8r(chip, 0xE000,                                  0xFF &prgAND | prgOR &~prgAND);
 	} else { /* MMC1 mode */
 		prgAND >>=1;
 		prgOR  >>=1;
 		if (MMC1_reg[0] &0x8) { /* 16 KiB mode */
 			if (MMC1_reg[0] &0x04) { /* OR logic */
-				setprg16(0x8000, MMC1_reg[3] &prgAND | prgOR &~prgAND);
-				setprg16(0xC000,        0xFF &prgAND | prgOR &~prgAND);
+				setprg16r(chip, 0x8000, MMC1_reg[3] &prgAND | prgOR &~prgAND);
+				setprg16r(chip, 0xC000,        0xFF &prgAND | prgOR &~prgAND);
 			} else {                 /* AND logic */
-				setprg16(0x8000,        0x00 &prgAND | prgOR &~prgAND);
-				setprg16(0xC000, MMC1_reg[3] &prgAND | prgOR &~prgAND);
+				setprg16r(chip, 0x8000,        0x00 &prgAND | prgOR &~prgAND);
+				setprg16r(chip, 0xC000, MMC1_reg[3] &prgAND | prgOR &~prgAND);
 			}
 		} else
 			setprg32(0x8000, (MMC1_reg[3] &prgAND | prgOR &~prgAND) >>1);
@@ -98,6 +102,9 @@ static void sync () {
 	
 	chrAND =reg[2] &0x10? 0x1F: reg[2] &0x20? 0x7F: 0xFF;
 	chrOR  =reg[0] <<1;
+	if (reg[2] &0x01)  /* CHR RAM mode */
+		setchr8r(0x10, 0);
+	else
 	if (reg[2] &0x40)  /* CNROM mode */
 		setchr8(chrOR >>3);
 	else
@@ -286,12 +293,34 @@ static void Mapper351_reset (void) {
 	sync();
 }
 
+static void Mapper351_close(void) {
+	if (CHRRAM) FCEU_gfree(CHRRAM);
+	if (PRGCHR) FCEU_gfree(PRGCHR);
+	CHRRAM =NULL;
+	PRGCHR =NULL;
+}
+
 void Mapper351_Init (CartInfo *info) {
+	int CHRRAMSIZE =info->CHRRamSize + info->CHRRamSaveSize;
+	
 	info->Reset = Mapper351_reset;
 	info->Power = Mapper351_power;
+	info->Close = Mapper351_close;
 	MapIRQHook = cpuCycle;
 	GameHBIRQHook = horizontalBlanking;
 	GameStateRestore = Mapper351_restore;
 	AddExState(stateRegs, ~0, 0, 0);
+	
+	if (CHRRAMSIZE) {
+		CHRRAM =(uint8 *)FCEU_gmalloc(CHRRAMSIZE);
+		SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
+		AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
+		
+		/* This crazy thing can map CHR-ROM into CPU address space. Allocate a combined PRG+CHR address space and treat it a second "chip". */
+		PRGCHR =(uint8 *)FCEU_gmalloc(PRGsize[0] +CHRsize[0]);
+		memcpy(PRGCHR, PRGptr[0], PRGsize[0]);
+		memcpy(PRGCHR +PRGsize[0], CHRptr[0], CHRsize[0]);
+		SetupCartPRGMapping(0x10, PRGCHR, PRGsize[0] +CHRsize[0], 0);
+	}
 }
 
