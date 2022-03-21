@@ -658,13 +658,12 @@ void BMCG146_Init(CartInfo *info) {
 /* NES 2.0 mapper 341 is used for a simple 4-in-1 multicart */
 
 static void BMCTJ03Sync(void) {
-	uint8 mirr = ((latche >> 1) & 1) ^ 1;
-	uint8 bank = (latche >> 8) & 7;
+	uint8 mirr = latche &(PRGsize[0] &0x40000? 0x800: 0x200)? MI_H: MI_V;
+	uint8 bank = latche >> 8;
 
 	setprg32(0x8000, bank);
 	setchr8(bank);
 
-	if (bank == 3) mirr ^= 1; /* Twin Bee has incorrect mirroring */
 	setmirror(mirr);
 }
 
