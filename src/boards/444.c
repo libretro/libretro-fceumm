@@ -18,7 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* NC7000M PCB, with incorrect UNIF MAPR BS-110 due to a mix-up. Submappers denote the setting of two solder pads that configure CHR banking. */
+/* NC7000M PCB, with incorrect UNIF MAPR BS-110 due to a mix-up. Submapper bits 0 and 1. denote the setting of two solder pads that configure CHR banking. */
+/* NC8000M PCB, indicated by submapper bit 2. */
 
 #include "mapinc.h"
 #include "mmc3.h"
@@ -27,7 +28,7 @@ static uint8 pads;
 static uint8 dip;
 
 static void Mapper444_PRGWrap(uint32 A, uint8 V) {
-	int prgAND =0x0F;
+	int prgAND =pads &4 && EXPREGS[0] &0x02? 0x1F: 0x0F;
 	int prgOR  =EXPREGS[0] <<4;
 	if (EXPREGS[0] &0x04) {
 		if (~A &0x4000) {
