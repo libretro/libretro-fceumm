@@ -565,7 +565,7 @@ static BMAPPING bmap[] = {
 	{ "YOKO",                       264, UNLYOKO_Init,          0 },
 	{ "COOLBOY",                    268, COOLBOY_Init,          BMCFLAG_256KCHRR },
 	{ "MINDKIDS",                   268, MINDKIDS_Init,         BMCFLAG_256KCHRR },
-	{ "158B",                       258, UNL158B_Init,          0 },
+	{ "158B",                       258, UNL8237_Init,          0 },
 	{ "DRAGONFIGHTER",              292, UNLBMW8544_Init,       0 },
 	{ "EH8813A",                    519, UNLEH8813A_Init,       0 },
 	{ "HP898F",                     319, BMCHP898F_Init,        0 },

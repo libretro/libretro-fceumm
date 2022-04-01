@@ -679,7 +679,7 @@ INES_BOARD_BEGIN()
 	/* NES 2.0 MAPPERS */
 
 	INES_BOARD( "OneBus",                   256, UNLOneBus_Init         )
-	INES_BOARD( "158B",                     258, UNL158B_Init           )
+	INES_BOARD( "158B",                     258, UNL8237_Init           )
 	INES_BOARD( "F-15",                     259, BMCF15_Init            )
 	INES_BOARD( "HPxx / HP2018-A",          260, BMCHPxx_Init           )
 	INES_BOARD( "810544-C-A1",              261, BMC810544CA1_Init      )
