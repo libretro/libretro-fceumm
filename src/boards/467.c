@@ -42,8 +42,8 @@ static void Mapper467_CHRWrap(uint32 A, uint8 V) {
 
 static DECLFW(Mapper467_WriteExtra) {
 	EXPREGS[0] =V;
-	FixMMC3PRG(MMC3_cmd &0x3F);
-	FixMMC3CHR(MMC3_cmd &0x3F);
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
 	setmirror(EXPREGS[0] &0x80? MI_H: MI_V);
 }
 
