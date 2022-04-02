@@ -706,7 +706,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Kasheng 2-in-1 ",          291, Mapper291_Init         )
 	INES_BOARD( "DRAGONFIGHTER",            292, UNLBMW8544_Init        )
 	INES_BOARD( "NewStar 12-in-1/7-in-1",   293, Mapper293_Init         )
-	INES_BOARD( "MMC3 BMC PIRATE",          294, Mapper134_Init         ) /* nesdev redirects this as mapper 134 */
+	INES_BOARD( "63-1601 ",                 294, Mapper294_Init         )
 	INES_BOARD( "YY860216C",                295, Mapper295_Init         )
 	INES_BOARD( "TXC 01-22110-000",         297, Mapper297_Init         )
 	INES_BOARD( "TF1201",                   298, UNLTF1201_Init         )
