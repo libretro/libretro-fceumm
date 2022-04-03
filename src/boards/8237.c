@@ -63,6 +63,17 @@ static uint8 adrperm[8][8] =
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
 };
 
+static uint8 protarray[8][8] = {
+	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* 0 Super Hang-On               */
+	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00 }, /* 1 Monkey King                 */
+	{ 0x00, 0x00, 0x00, 0x00, 0x03, 0x04, 0x00, 0x00 }, /* 2 Super Hang-On/Monkey King   */
+	{ 0x00, 0x00, 0x00, 0x01, 0x00, 0x04, 0x05, 0x00 }, /* 3 Super Hang-On/Monkey King   */
+	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* 4                             */
+	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* 5                             */
+	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* 6                             */
+	{ 0x00, 0x00, 0x00, 0x01, 0x02, 0x04, 0x0F, 0x00 }  /* 7 (default) Blood of Jurassic */
+};
+
 static void UNL8237CW(uint32 A, uint8 V) {
 	uint16 outer_bank;
 
@@ -109,6 +120,10 @@ static void UNL8237PW(uint32 A, uint8 V) {
 	}
 }
 
+static DECLFR(UNL8237ProtRead) {
+	return protarray[EXPREGS[3]][A &7] &0x0F | 0x50;
+}
+
 static DECLFW(UNL8237Write) {
 	uint8 dat = V;
 	uint8 adr = adrperm[EXPREGS[2]][((A >> 12) & 6) | (A & 1)];
@@ -125,6 +140,7 @@ static DECLFW(UNL8237ExWrite) {
 	switch (A & 0xF007) {
 	case 0x5000: EXPREGS[0] = V; FixMMC3PRG(MMC3_cmd); FixMMC3CHR(MMC3_cmd); break;
 	case 0x5001: EXPREGS[1] = V; FixMMC3PRG(MMC3_cmd); FixMMC3CHR(MMC3_cmd); break;
+	case 0x5002: EXPREGS[3] = V; break;
 	case 0x5007: EXPREGS[2] = V; break;
 	}
 }
@@ -132,9 +148,18 @@ static DECLFW(UNL8237ExWrite) {
 static void UNL8237Power(void) {
 	EXPREGS[0] = EXPREGS[2] = 0;
 	EXPREGS[1] = 0x0F;
+	EXPREGS[3] = 7;
 	GenMMC3Power();
 	SetWriteHandler(0x8000, 0xFFFF, UNL8237Write);
-	SetWriteHandler(0x5000, 0x7FFF, UNL8237ExWrite);
+	SetReadHandler (0x5000, 0x5FFF, UNL8237ProtRead);
+	SetWriteHandler(0x5000, 0x5FFF, UNL8237ExWrite);
+}
+
+static void UNL8237Reset(void) {
+	EXPREGS[0] = EXPREGS[2] = 0;
+	EXPREGS[1] = 0x0F;
+	EXPREGS[3] = 7;
+	MMC3RegReset();
 }
 
 void UNL8237_Init(CartInfo *info) {
@@ -142,8 +167,8 @@ void UNL8237_Init(CartInfo *info) {
 	cwrap = UNL8237CW;
 	pwrap = UNL8237PW;
 	info->Power = UNL8237Power;
-	AddExState(EXPREGS, 3, 0, "EXPR");
-	AddExState(&submapper, 1, 0, "SUBM");
+	info->Reset = UNL8237Reset;
+	AddExState(EXPREGS, 4, 0, "EXPR");
 	if (info->iNES2)
 		submapper = info->submapper;
 }

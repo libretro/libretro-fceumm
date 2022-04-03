@@ -18,41 +18,31 @@
  *
  */
 
-/* NES 2.0 mapper 340 is used for a 35-in-1 multicart.
- * Its UNIF board name is BMC-K-3036.
- * http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_340
- * TODO: Some games are not working...
- */
-
 #include "mapinc.h"
 
-static uint8 regs[2], mirr, mode;
+static uint8 regs[2];
 
 static SFORMAT StateRegs[] =
 {
 	{ regs,  2, "REGS" },
-	{ &mode, 1, "MODE" },
-	{ &mirr, 1, "MIRR" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (mode) {						/* NROM-128 */
-		setprg16(0x8000, regs[0]);
-		setprg16(0xC000, regs[0]);
-	} else {									/* UNROM */
-		setprg16(0x8000, regs[0] | regs[1]);
-		setprg16(0xC000, regs[0] | 0x07);
+	if (regs[0] &0x20) { /* NROM-128 */
+		setprg16(0x8000, regs[0] >>2 &0x20 | regs[0] &0x1F);
+		setprg16(0xC000, regs[0] >>2 &0x20 | regs[0] &0x1F);
+	} else {	    /* UNROM */
+		setprg16(0x8000, regs[0] >>2 &0x20 | regs[0] | regs[1] &7);
+		setprg16(0xC000, regs[0] >>2 &0x20 | regs[0] |          7);
 	}
 	setchr8(0);
-	setmirror(mirr);
+	setmirror((regs[0] &0x40 || regs[0] &0x20 && regs[0] &0x04)? MI_H: MI_V);
 }
 
 static DECLFW(M340Write) {
-	regs[0] = A & 0x1F;
-	regs[1] = V & 0x07;
-	mode = A & 0x20;
-	mirr = ((A & 0x25) == 0x25) ? 0 : 1;
+	regs[0] = A & 0xFF;
+	regs[1] = V;
 	Sync();
 }
 
@@ -63,7 +53,7 @@ static void BMCK3036Power(void) {
 }
 
 static void BMCK3036Reset(void) {
-	regs[0] = regs[1] = mode = mirr = 0;
+	regs[0] = regs[1] = 0;
 	Sync();
 }
 

@@ -139,7 +139,6 @@ void UNLYOKO_Init(CartInfo *info);
 void UNROM_Init(CartInfo *info);
 void UNROM512_Init(CartInfo *info);
 void COOLBOY_Init(CartInfo *info);
-void UNL158B_Init(CartInfo *info);
 void UNLBMW8544_Init(CartInfo *info);
 void UNLEH8813A_Init(CartInfo *info);
 void BMCHP898F_Init(CartInfo *info);
