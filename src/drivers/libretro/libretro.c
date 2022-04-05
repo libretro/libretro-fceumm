@@ -1136,6 +1136,7 @@ static bool update_option_visibility(void)
          char options_list[][25] = {
             "fceumm_sndvolume",
             "fceumm_sndquality",
+            "fceumm_sndlowpass",
             "fceumm_swapduty",
             "fceumm_apu_1",
             "fceumm_apu_2",
@@ -1820,6 +1821,14 @@ static void check_variables(bool startup)
          sndquality = 2;
       if (sndquality != oldval)
          FCEUI_SetSoundQuality(sndquality);
+   }
+
+   var.key = "fceumm_sndlowpass";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      int lowpass = (!strcmp(var.value, "enabled")) ? 1 : 0;
+      FCEUI_SetLowPass(lowpass);
    }
 
    var.key = "fceumm_sndvolume";

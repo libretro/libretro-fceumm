@@ -21,7 +21,7 @@ extern "C" {
  ********************************
 */
 
-#define MAX_CORE_OPTIONS 35
+#define MAX_CORE_OPTIONS 36
 
 /* RETRO_LANGUAGE_ENGLISH */
 
@@ -253,6 +253,20 @@ struct retro_core_option_v2_definition option_defs[] = {
          { NULL, NULL },
       },
       "Low",
+   },
+   {
+      "fceumm_sndlowpass",
+      "Audio RF Filter",
+      NULL,
+      "Apply a low pass audio filter to simulate the 'muted' sound of the NES when connected to a television via the RF modulator.",
+      NULL,
+      "audio",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled",
    },
    {
       "fceumm_swapduty",
