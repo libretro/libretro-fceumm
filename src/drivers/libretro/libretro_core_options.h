@@ -21,7 +21,7 @@ extern "C" {
  ********************************
 */
 
-#define MAX_CORE_OPTIONS 36
+#define MAX_CORE_OPTIONS 37
 
 /* RETRO_LANGUAGE_ENGLISH */
 
@@ -264,6 +264,51 @@ struct retro_core_option_v2_definition option_defs[] = {
       {
          { "disabled", NULL },
          { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled",
+   },
+   {
+      "fceumm_sndstereodelay",
+      "Stereo Sound Effect",
+      NULL,
+      "Enable a fake stereo sound effect by delaying the right audio channel when upmixing the mono signal output from the NES.",
+      NULL,
+      "audio",
+      {
+         { "disabled",    NULL },
+         { "01_ms_delay", "1ms Delay" },
+         { "02_ms_delay", "2ms Delay" },
+         { "03_ms_delay", "3ms Delay" },
+         { "04_ms_delay", "4ms Delay" },
+         { "05_ms_delay", "5ms Delay" },
+         { "06_ms_delay", "6ms Delay" },
+         { "07_ms_delay", "7ms Delay" },
+         { "08_ms_delay", "8ms Delay" },
+         { "09_ms_delay", "9ms Delay" },
+         { "10_ms_delay", "10ms Delay" },
+         { "11_ms_delay", "11ms Delay" },
+         { "12_ms_delay", "12ms Delay" },
+         { "13_ms_delay", "13ms Delay" },
+         { "14_ms_delay", "14ms Delay" },
+         { "15_ms_delay", "15ms Delay (Default)" },
+         { "16_ms_delay", "16ms Delay" },
+         { "17_ms_delay", "17ms Delay" },
+         { "18_ms_delay", "18ms Delay" },
+         { "19_ms_delay", "19ms Delay" },
+         { "20_ms_delay", "20ms Delay" },
+         { "21_ms_delay", "21ms Delay" },
+         { "22_ms_delay", "22ms Delay" },
+         { "23_ms_delay", "23ms Delay" },
+         { "24_ms_delay", "24ms Delay" },
+         { "25_ms_delay", "25ms Delay" },
+         { "26_ms_delay", "26ms Delay" },
+         { "27_ms_delay", "27ms Delay" },
+         { "28_ms_delay", "28ms Delay" },
+         { "29_ms_delay", "29ms Delay" },
+         { "30_ms_delay", "30ms Delay" },
+         { "31_ms_delay", "31ms Delay" },
+         { "32_ms_delay", "32ms Delay" },
          { NULL, NULL },
       },
       "disabled",
