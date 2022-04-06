@@ -804,6 +804,181 @@ static void palette_switch_set_index(uint32_t palette_index)
  * Palette switching END
  * ======================================== */
 
+/* ========================================
+ * Stereo Filter START
+ * ======================================== */
+
+enum stereo_filter_type
+{
+   STEREO_FILTER_NULL = 0,
+   STEREO_FILTER_DELAY
+};
+static enum stereo_filter_type current_stereo_filter = STEREO_FILTER_NULL;
+
+#define STEREO_FILTER_DELAY_MS_DEFAULT 15.0f;
+typedef struct
+{
+   int32_t *samples;
+   size_t samples_size;
+   size_t samples_pos;
+   size_t delay_count;
+} stereo_filter_delay_t;
+static stereo_filter_delay_t stereo_filter_delay;
+static float stereo_filter_delay_ms = STEREO_FILTER_DELAY_MS_DEFAULT;
+
+static void stereo_filter_apply_null(int32_t *sound_buffer, size_t size)
+{
+   size_t i;
+   /* Each element of sound_buffer is a 16 bit mono sample
+    * stored in a 32 bit value. We convert this to stereo
+    * by copying the mono sample to both the high and low
+    * 16 bit regions of the value and casting sound_buffer
+    * to int16_t when uploading to the frontend */
+   for (i = 0; i < size; i++)
+      sound_buffer[i] = (sound_buffer[i] << 16) |
+            (sound_buffer[i] & 0xFFFF);
+}
+
+static void stereo_filter_apply_delay(int32_t *sound_buffer, size_t size)
+{
+   size_t delay_capacity = stereo_filter_delay.samples_size -
+         stereo_filter_delay.samples_pos;
+   size_t i;
+
+   /* Copy current samples into the delay buffer
+    * (resizing if required) */
+   if (delay_capacity < size)
+   {
+      int32_t *tmp_buffer = NULL;
+      size_t tmp_buffer_size;
+
+      tmp_buffer_size = stereo_filter_delay.samples_size + (size - delay_capacity);
+      tmp_buffer_size = (tmp_buffer_size << 1) - (tmp_buffer_size >> 1);
+      tmp_buffer      = (int32_t *)malloc(tmp_buffer_size * sizeof(int32_t));
+
+      memcpy(tmp_buffer, stereo_filter_delay.samples,
+            stereo_filter_delay.samples_pos * sizeof(int32_t));
+
+      free(stereo_filter_delay.samples);
+
+      stereo_filter_delay.samples      = tmp_buffer;
+      stereo_filter_delay.samples_size = tmp_buffer_size;
+   }
+
+   for (i = 0; i < size; i++)
+      stereo_filter_delay.samples[i +
+            stereo_filter_delay.samples_pos] = sound_buffer[i];
+
+   stereo_filter_delay.samples_pos += size;
+
+   /* If we have enough samples in the delay
+    * buffer, mix them into the output */
+   if (stereo_filter_delay.samples_pos >
+         stereo_filter_delay.delay_count)
+   {
+      size_t delay_index    = 0;
+      size_t samples_to_mix = stereo_filter_delay.samples_pos -
+            stereo_filter_delay.delay_count;
+      samples_to_mix        = (samples_to_mix > size) ?
+            size : samples_to_mix;
+
+      /* Perform 'null' filtering for any samples for
+       * which a delay buffer entry is unavailable */
+      if (size > samples_to_mix)
+         for (i = 0; i < size - samples_to_mix; i++)
+            sound_buffer[i] = (sound_buffer[i] << 16) |
+                  (sound_buffer[i] & 0xFFFF);
+
+      /* Each element of sound_buffer is a 16 bit mono sample
+       * stored in a 32 bit value. We convert this to stereo
+       * by copying the mono sample to the high (left channel)
+       * 16 bit region and the delayed sample to the low
+       * (right channel) region, casting sound_buffer
+       * to int16_t when uploading to the frontend */
+      for (i = size - samples_to_mix; i < size; i++)
+         sound_buffer[i] = (sound_buffer[i] << 16) |
+               (stereo_filter_delay.samples[delay_index++] & 0xFFFF);
+
+      /* Remove the mixed samples from the delay buffer */
+      memmove(stereo_filter_delay.samples,
+            stereo_filter_delay.samples + samples_to_mix,
+            (stereo_filter_delay.samples_pos - samples_to_mix) *
+                  sizeof(int32_t));
+      stereo_filter_delay.samples_pos -= samples_to_mix;
+   }
+   /* Otherwise apply the regular 'null' filter */
+   else
+      for (i = 0; i < size; i++)
+            sound_buffer[i] = (sound_buffer[i] << 16) |
+                  (sound_buffer[i] & 0xFFFF);
+}
+
+static void (*stereo_filter_apply)(int32_t *sound_buffer, size_t size) = stereo_filter_apply_null;
+
+static void stereo_filter_deinit_delay(void)
+{
+   if (stereo_filter_delay.samples)
+      free(stereo_filter_delay.samples);
+
+   stereo_filter_delay.samples      = NULL;
+   stereo_filter_delay.samples_size = 0;
+   stereo_filter_delay.samples_pos  = 0;
+   stereo_filter_delay.delay_count  = 0;
+}
+
+static void stereo_filter_init_delay(void)
+{
+   size_t initial_samples_size;
+
+   /* Convert delay (ms) to number of samples */
+   stereo_filter_delay.delay_count = (size_t)(
+         (stereo_filter_delay_ms / 1000.0f) *
+               (float)sndsamplerate);
+
+   /* Preallocate delay_count + worst case expected
+    * samples per frame to minimise reallocation of
+    * the samples buffer during runtime */
+   initial_samples_size = stereo_filter_delay.delay_count +
+         (size_t)((float)sndsamplerate / NES_PAL_FPS) + 1;
+
+   stereo_filter_delay.samples      = (int32_t *)malloc(
+         initial_samples_size * sizeof(int32_t));
+   stereo_filter_delay.samples_size = initial_samples_size;
+   stereo_filter_delay.samples_pos  = 0;
+
+   /* Assign function pointer */
+   stereo_filter_apply = stereo_filter_apply_delay;
+}
+
+static void stereo_filter_deinit(void)
+{
+   /* Clean up */
+   stereo_filter_deinit_delay();
+   /* Assign default function pointer */
+   stereo_filter_apply = stereo_filter_apply_null;
+}
+
+static void stereo_filter_init(void)
+{
+   stereo_filter_deinit();
+
+   /* Use a case statement to simplify matters
+    * if more filter types are added in the
+    * future... */
+   switch (current_stereo_filter)
+   {
+      case STEREO_FILTER_DELAY:
+         stereo_filter_init_delay();
+         break;
+      default:
+         break;
+   }
+}
+
+/* ========================================
+ * Stereo Filter END
+ * ======================================== */
+
 #ifdef HAVE_NTSC_FILTER
 /* ntsc */
 #include "nes_ntsc.h"
@@ -1137,6 +1312,7 @@ static bool update_option_visibility(void)
             "fceumm_sndvolume",
             "fceumm_sndquality",
             "fceumm_sndlowpass",
+            "fceumm_sndstereodelay",
             "fceumm_swapduty",
             "fceumm_apu_1",
             "fceumm_apu_2",
@@ -1516,6 +1692,7 @@ void retro_deinit (void)
    NTSCFilter_Cleanup();
 #endif
    palette_switch_deinit();
+   stereo_filter_deinit();
 }
 
 void retro_reset(void)
@@ -1537,6 +1714,7 @@ static void check_variables(bool startup)
    struct retro_variable var = {0};
    char key[256];
    int i, enable_apu;
+   bool stereo_filter_updated = false;
 
    /* 1 = Performs only geometry update: e.g. overscans */
    /* 2 = Performs video/geometry update when needed and timing changes: e.g. region and filter change */
@@ -1830,6 +2008,45 @@ static void check_variables(bool startup)
       int lowpass = (!strcmp(var.value, "enabled")) ? 1 : 0;
       FCEUI_SetLowPass(lowpass);
    }
+
+   var.key = "fceumm_sndstereodelay";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      enum stereo_filter_type filter_type = STEREO_FILTER_NULL;
+      float filter_delay_ms               = STEREO_FILTER_DELAY_MS_DEFAULT;
+
+      if (strcmp(var.value, "disabled") &&
+          (strlen(var.value) > 1))
+      {
+         char value_str[3];
+
+         value_str[0] = var.value[0];
+         value_str[1] = var.value[1];
+         value_str[2] = '\0';
+
+         filter_type     = STEREO_FILTER_DELAY;
+         filter_delay_ms = (float)atoi(var.value);
+
+         filter_delay_ms = (filter_delay_ms < 1.0f) ?
+               1.0f : filter_delay_ms;
+         filter_delay_ms = (filter_delay_ms > 32.0f) ?
+               32.0f : filter_delay_ms;
+      }
+
+      if ((filter_type != current_stereo_filter) ||
+          ((filter_type == STEREO_FILTER_DELAY) &&
+               (filter_delay_ms != stereo_filter_delay_ms)))
+      {
+         current_stereo_filter  = filter_type;
+         stereo_filter_delay_ms = filter_delay_ms;
+         stereo_filter_updated  = true;
+      }
+   }
+
+   if ((stereo_filter_updated ||
+         (audio_video_updated == 2)) && !startup)
+      stereo_filter_init();
 
    var.key = "fceumm_sndvolume";
 
@@ -2365,12 +2582,10 @@ void retro_run(void)
    FCEUD_UpdateInput();
    FCEUI_Emulate(&gfx, &sound, &ssize, 0);
 
-   for (i = 0; i < ssize; i++)
-      sound[i] = (sound[i] << 16) | (sound[i] & 0xffff);
-
-   audio_batch_cb((const int16_t*)sound, ssize);
-
    retro_run_blit(gfx);
+
+   stereo_filter_apply(sound, ssize);
+   audio_batch_cb((const int16_t*)sound, ssize);
 }
 
 size_t retro_serialize_size(void)
@@ -3025,6 +3240,7 @@ bool retro_load_game(const struct retro_game_info *info)
    ResetPalette();
    FCEUD_SoundToggle();
    check_variables(true);
+   stereo_filter_init();
    PowerNES();
 
    FCEUI_DisableFourScore(1);
