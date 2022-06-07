@@ -166,11 +166,7 @@ void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func)
 			BWrite[x] = func;
 }
 
-#ifdef COPYFAMI
-uint8 RAM[0x4000];
-#else
 uint8 RAM[0x800];
-#endif
 
 uint8 PAL = 0;
 
@@ -184,7 +180,6 @@ static DECLFR(ARAML)
 	return RAM[A];
 }
 
-#ifndef COPYFAMI
 static DECLFW(BRAMH)
 {
 	RAM[A & 0x7FF] = V;
@@ -194,7 +189,6 @@ static DECLFR(ARAMH)
 {
 	return RAM[A & 0x7FF];
 }
-#endif
 
 void FCEUI_CloseGame(void)
 {
@@ -312,49 +306,6 @@ endlseq:
    return(GameInfo);
 }
 
-int CopyFamiLoad(void);
-
-FCEUGI *FCEUI_CopyFamiStart(void)
-{
-	ResetGameLoaded();
-
-	GameInfo = (FCEUGI*)malloc(sizeof(FCEUGI));
-	memset(GameInfo, 0, sizeof(FCEUGI));
-
-	GameInfo->soundchan = 0;
-	GameInfo->soundrate = 0;
-	GameInfo->name = (uint8_t*)"copyfami";
-	GameInfo->type = GIT_CART;
-	GameInfo->vidsys = GIV_USER;
-	GameInfo->input[0] = GameInfo->input[1] = -1;
-	GameInfo->inputfc = -1;
-	GameInfo->cspecial = 0;
-
-	FCEU_printf("Starting CopyFamicom...\n\n");
-
-	if (!CopyFamiLoad()) {
-		FCEU_PrintError("An error occurred while starting CopyFamicom.");
-		return 0;
-	}
-
-	FCEU_ResetVidSys();
-	if (GameInfo->type != GIT_NSF)
-		if (FSettings.GameGenie)
-			FCEU_OpenGenie();
-
-	PowerNES();
-
-	if (GameInfo->type != GIT_NSF) {
-		FCEU_LoadGamePalette();
-		FCEU_LoadGameCheats();
-	}
-
-	FCEU_ResetPalette();
-	FCEU_ResetMessages();	/* Save state, status messages, etc. */
-
-	return(GameInfo);
-}
-
 int FCEUI_Initialize(void) {
 	if (!FCEU_InitVirtualVideo())
 		return 0;
@@ -447,23 +398,17 @@ void PowerNES(void)
 
 	FCEU_GeniePower();
 
-#ifndef COPYFAMI
 	FCEU_MemoryRand(RAM, 0x800);
-#endif
 
 	SetReadHandler(0x0000, 0xFFFF, ANull);
 	SetWriteHandler(0x0000, 0xFFFF, BNull);
 
-#ifdef COPYFAMI
-	SetReadHandler(0, 0x3FFF, ARAML);
-	SetWriteHandler(0, 0x3FFF, BRAML);
-#else
 	SetReadHandler(0, 0x7FF, ARAML);
 	SetWriteHandler(0, 0x7FF, BRAML);
 
 	SetReadHandler(0x800, 0x1FFF, ARAMH);	/* Part of a little */
 	SetWriteHandler(0x800, 0x1FFF, BRAMH);	/* hack for a small speed boost. */
-#endif
+
 	InitializeInput();
 	FCEUSND_Power();
 	FCEUPPU_Power();

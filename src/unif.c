@@ -622,11 +622,6 @@ static BMAPPING bmap[] = {
 	{ "BS-4040R",                   422, Mapper422_Init,        0 },
 	{ "22026",                      271, Mapper271_Init,        0 },
 
-#ifdef COPYFAMI
-	{ "COPYFAMI_MMC3",          NO_INES, MapperCopyFamiMMC3_Init, 0 },
-	{ "COPYFAMI",               NO_INES, MapperCopyFami_Init,   0 },
-#endif
-
 	{ NULL, NO_INES, NULL, 0 }
 };
 
@@ -847,19 +842,5 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 
 	GameInterface = UNIFGI;
 
-	return 1;
-}
-
-int CopyFamiLoad() {
-	ResetCartMapping();
-	ResetExState(0, 0);
-
-	sboardname = (uint8_t*)"COPYFAMI";
-	if (!InitializeBoard()) {
-		Cleanup();
-		return 0;
-	}
-
-	GameInterface = UNIFGI;
 	return 1;
 }

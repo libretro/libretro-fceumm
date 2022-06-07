@@ -1096,26 +1096,6 @@ void FCEUPPU_Power(void) {
 	memset(UPALRAM, 0x00, 0x03);
 	memset(SPRAM, 0x00, 0x100);
 	FCEUPPU_Reset();
-#ifdef COPYFAMI
-	for (x = 0x2000; x < 0x2010; x += 8) {
-		ARead[x] = A200x;
-		BWrite[x] = B2000;
-		ARead[x + 1] = A200x;
-		BWrite[x + 1] = B2001;
-		ARead[x + 2] = A2002;
-		BWrite[x + 2] = B2002;
-		ARead[x + 3] = A200x;
-		BWrite[x + 3] = B2003;
-		ARead[x + 4] = A200x;			/* A2004; */
-		BWrite[x + 4] = B2004;
-		ARead[x + 5] = A200x;
-		BWrite[x + 5] = B2005;
-		ARead[x + 6] = A200x;
-		BWrite[x + 6] = B2006;
-		ARead[x + 7] = A2007;
-		BWrite[x + 7] = B2007;
-	}
-#else
 	for (x = 0x2000; x < 0x4000; x += 8) {
 		ARead[x] = A200x;
 		BWrite[x] = B2000;
@@ -1134,7 +1114,7 @@ void FCEUPPU_Power(void) {
 		ARead[x + 7] = A2007;
 		BWrite[x + 7] = B2007;
 	}
-#endif
+
 	BWrite[0x4014] = B4014;
 }
 

@@ -110,11 +110,6 @@ typedef void (*frontend_post_load_init_cb_t)(void);
 FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufsize,
       frontend_post_load_init_cb_t frontend_post_load_init_cb);
 
-#ifdef COPYFAMI
-/* Fake UNIF board to start new CFHI instance */
-FCEUGI *FCEUI_CopyFamiStart();
-#endif
-
 /* allocates memory.  0 on failure, 1 on success. */
 int FCEUI_Initialize(void);
 
