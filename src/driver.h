@@ -47,13 +47,6 @@ int FCEUI_EndWaveRecord(void);
 void FCEUI_ResetNES(void);
 void FCEUI_PowerNES(void);
 
-void FCEUI_NTSCSELHUE(void);
-void FCEUI_NTSCSELTINT(void);
-void FCEUI_NTSCDEC(void);
-void FCEUI_NTSCINC(void);
-void FCEUI_GetNTSCTH(int *tint, int *hue);
-void FCEUI_SetNTSCTH(int n, int tint, int hue);
-
 void FCEUI_SetInput(int port, int type, void *ptr, int attrib);
 void FCEUI_SetInputFC(int type, void *ptr, int attrib);
 void FCEUI_DisableFourScore(int s);
