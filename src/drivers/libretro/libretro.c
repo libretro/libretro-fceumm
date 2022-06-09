@@ -343,7 +343,7 @@ void FCEUD_SoundToggle (void)
 }
 
 /*palette for FCEU*/
-#define PAL_INTERNAL 16 /* Number of palettes in palettes[] */
+#define PAL_INTERNAL sizeof(palettes) / sizeof(palettes[0]) /* Number of palettes in palettes[] */
 #define PAL_DEFAULT  (PAL_INTERNAL + 1)
 #define PAL_RAW      (PAL_INTERNAL + 2)
 #define PAL_CUSTOM   (PAL_INTERNAL + 3)
@@ -649,6 +649,78 @@ struct st_palettes palettes[] = {
          0XEFC7FF, 0XFFC3E1, 0XFFCAC6, 0XF2DAAD,
          0XEBE3A0, 0XD2EDA2, 0XBCF4B4, 0XB5F1CE,
          0XB6ECF1, 0XBFBFBF, 0X000000, 0X000000 }
+   },
+   { "digital-prime-fbx", "FBX's Digital Prime palette",
+      { 0x616161, 0x000088, 0x1F0D99, 0x371379,
+         0x561260, 0x5D0010, 0x520E00, 0x3A2308,
+         0x21350C, 0x0D410E, 0x174417, 0x003A1F,
+         0x002F57, 0x000000, 0x000000, 0x000000,
+         0xAAAAAA, 0x0D4DC4, 0x4B24DE, 0x6912CF,
+         0x9014AD, 0x9D1C48, 0x923404, 0x735005,
+         0x5D6913, 0x167A11, 0x138008, 0x127649,
+         0x1C6691, 0x000000, 0x000000, 0x000000,
+         0xFCFCFC, 0x639AFC, 0x8A7EFC, 0xB06AFC,
+         0xDD6DF2, 0xE771AB, 0xE38658, 0xCC9E22,
+         0xA8B100, 0x72C100, 0x5ACD4E, 0x34C28E,
+         0x4FBECE, 0x424242, 0x000000, 0x000000,
+         0xFCFCFC, 0xBED4FC, 0xCACAFC, 0xD9C4FC,
+         0xECC1FC, 0xFAC3E7, 0xF7CEC3, 0xE2CDA7,
+         0xDADB9C, 0xC8E39E, 0xBFE5B8, 0xB2EBC8,
+         0xB7E5EB, 0xACACAC, 0x000000, 0x000000 }
+   },
+   { "magnum-fbx", "FBX's Magnum palette",
+      { 0x696969, 0x00148F, 0x1E029B, 0x3F008A,
+         0x600060, 0x660017, 0x570D00, 0x451B00,
+         0x243400, 0x004200, 0x004500, 0x003C1F,
+         0x00315C, 0x000000, 0x000000, 0x000000,
+         0xAFAFAF, 0x0F51DD, 0x442FF3, 0x7220E2,
+         0xA319B3, 0xAE1C51, 0xA43400, 0x884D00,
+         0x676D00, 0x208000, 0x008B00, 0x007F42,
+         0x006C97, 0x010101, 0x000000, 0x000000,
+         0xFFFFFF, 0x65AAFF, 0x8C96FF, 0xB983FF,
+         0xDD6FFF, 0xEA6FBD, 0xEB8466, 0xDCA21F,
+         0xBAB403, 0x7ECB07, 0x54D33E, 0x3CD284,
+         0x3EC7CC, 0x4B4B4B, 0x000000, 0x000000,
+         0xFFFFFF, 0xBDE2FF, 0xCECFFF, 0xE6C2FF,
+         0xF6BCFF, 0xF9C2ED, 0xFACFC6, 0xF8DEAC,
+         0xEEE9A1, 0xD0F59F, 0xBBF5AF, 0xB3F5CD,
+         0xB9EDF0, 0xB9B9B9, 0x000000, 0x000000 }
+   },
+   { "smooth-v2-fbx", "FBX's Smooth V2 palette",
+      { 0x6A6A6A, 0x00148F, 0x1E029B, 0x3F008A,
+         0x600060, 0x660017, 0x570D00, 0x3C1F00,
+         0x1B3300, 0x004200, 0x004500, 0x003C1F,
+         0x00315C, 0x000000, 0x000000, 0x000000,
+         0xB9B9B9, 0x0F4BD4, 0x412DEB, 0x6C1DD9,
+         0x9C17AB, 0xA71A4D, 0x993200, 0x7C4A00,
+         0x546400, 0x1A7800, 0x007F00, 0x00763E,
+         0x00678F, 0x010101, 0x000000, 0x000000,
+         0xFFFFFF, 0x68A6FF, 0x8C9CFF, 0xB586FF,
+         0xD975FD, 0xE377B9, 0xE58D68, 0xD49D29,
+         0xB3AF0C, 0x7BC211, 0x55CA47, 0x46CB81,
+         0x47C1C5, 0x4A4A4A, 0x000000, 0x000000,
+         0xFFFFFF, 0xCCEAFF, 0xDDDEFF, 0xECDAFF,
+         0xF8D7FE, 0xFCD6F5, 0xFDDBCF, 0xF9E7B5,
+         0xF1F0AA, 0xDAFAA9, 0xC9FFBC, 0xC3FBD7,
+         0xC4F6F6, 0xBEBEBE, 0x000000, 0x000000 }
+   },
+   { "nes-classic-fbx", "FBX's NES Classic palette",
+      { 0x616161, 0x000088, 0x1F0D99, 0x371379,
+         0x561260, 0x5D0010, 0x520E00, 0x3A2308,
+         0x21350C, 0x0D410E, 0x174417, 0x003A1F,
+         0x002F57, 0x000000, 0x000000, 0x000000,
+         0xAAAAAA, 0x0D4DC4, 0x4B24DE, 0x6912CF,
+         0x9014AD, 0x9D1C48, 0x923404, 0x735005,
+         0x5D6913, 0x167A11, 0x138008, 0x127649,
+         0x1C6691, 0x000000, 0x000000, 0x000000,
+         0xFCFCFC, 0x639AFC, 0x8A7EFC, 0xB06AFC,
+         0xDD6DF2, 0xE771AB, 0xE38658, 0xCC9E22,
+         0xA8B100, 0x72C100, 0x5ACD4E, 0x34C28E,
+         0x4FBECE, 0x424242, 0x000000, 0x000000,
+         0xFCFCFC, 0xBED4FC, 0xCACAFC, 0xD9C4FC,
+         0xECC1FC, 0xFAC3E7, 0xF7CEC3, 0xE2CDA7,
+         0xDADB9C, 0xC8E39E, 0xBFE5B8, 0xB2EBC8,
+         0xB7E5EB, 0xACACAC, 0x000000, 0x000000 }
    }
 };
 
@@ -1800,12 +1872,20 @@ static void check_variables(bool startup)
          current_palette = 14;
       else if (!strcmp(var.value, "wavebeam"))
          current_palette = 15;
+      else if (!strcmp(var.value, "digital-prime-fbx"))
+         current_palette = 16;
+      else if (!strcmp(var.value, "magnum-fbx"))
+         current_palette = 17;
+      else if (!strcmp(var.value, "smooth-v2-fbx"))
+         current_palette = 18;
+      else if (!strcmp(var.value, "nes-classic-fbx"))
+         current_palette = 19;
 
       if (current_palette != orig_value)
       {
          audio_video_updated = 1;
          ResetPalette();
-      }  
+      }
    }
 
    var.key = "fceumm_up_down_allowed";
@@ -2061,7 +2141,7 @@ static void check_variables(bool startup)
    {
       struct retro_system_av_info av_info;
       retro_get_system_av_info(&av_info);
-      if (audio_video_updated == 2)  
+      if (audio_video_updated == 2)
          environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &av_info);
       else
          environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
@@ -2357,7 +2437,7 @@ static void FCEUD_UpdateInput(void)
          toggle ^= 1;
          for (i = 0; i < 2; i++)
          {
-            
+
             if (input_cb(i, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
                nes_input.FamicomData[0] |= 0x02 << (i * 2);
             else if (input_cb(i, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y))
@@ -2649,7 +2729,7 @@ static int GGisvalid(const char *code)
 {
    size_t len = strlen(code);
    uint32 i;
-   
+
    if (len != 6 && len != 8)
       return 0;
 
