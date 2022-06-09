@@ -47,13 +47,6 @@ int FCEUI_EndWaveRecord(void);
 void FCEUI_ResetNES(void);
 void FCEUI_PowerNES(void);
 
-void FCEUI_NTSCSELHUE(void);
-void FCEUI_NTSCSELTINT(void);
-void FCEUI_NTSCDEC(void);
-void FCEUI_NTSCINC(void);
-void FCEUI_GetNTSCTH(int *tint, int *hue);
-void FCEUI_SetNTSCTH(int n, int tint, int hue);
-
 void FCEUI_SetInput(int port, int type, void *ptr, int attrib);
 void FCEUI_SetInputFC(int type, void *ptr, int attrib);
 void FCEUI_DisableFourScore(int s);
@@ -109,11 +102,6 @@ void FCEUI_SetRenderDisable(int sprites, int bg);
 typedef void (*frontend_post_load_init_cb_t)(void);
 FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufsize,
       frontend_post_load_init_cb_t frontend_post_load_init_cb);
-
-#ifdef COPYFAMI
-/* Fake UNIF board to start new CFHI instance */
-FCEUGI *FCEUI_CopyFamiStart();
-#endif
 
 /* allocates memory.  0 on failure, 1 on success. */
 int FCEUI_Initialize(void);

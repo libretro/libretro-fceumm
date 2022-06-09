@@ -33,20 +33,10 @@
 #include "palette.h"
 #include "palettes/palettes.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-static int ntsccol = 0;
-static int ntsctint = 46 + 10;
-static int ntschue = 72;
-
 /* These are dynamically filled/generated palettes: */
 pal palettei[64];		/* Custom palette for an individual game. */
 pal palettec[64];		/* Custom "global" palette. */
-pal paletten[64];		/* Mathematically generated palette. */
 
-static void CalculatePalette(void);
 static void ChoosePalette(void);
 static void WritePalette(void);
 uint8 pale = 0;
@@ -74,14 +64,6 @@ void FCEUI_SetPaletteArray(uint8 *pal) {
 			palpoint[0][x].b = *((uint8*)pal + x + x + x + 2);
 		}
 	}
-	FCEU_ResetPalette();
-}
-
-
-void FCEUI_SetNTSCTH(int n, int tint, int hue) {
-	ntsctint = tint;
-	ntschue = hue;
-	ntsccol = n;
 	FCEU_ResetPalette();
 }
 
@@ -142,50 +124,6 @@ void SetNESDeemph(uint8 d, int force) {
 	lastd = d;
 }
 
-/* Converted from Kevin Horton's qbasic palette generator. */
-static void CalculatePalette(void) {
-	int x, z;
-	int r, g, b;
-	double s, luma, theta;
-	static uint8 cols[16] = { 0, 24, 21, 18, 15, 12, 9, 6, 3, 0, 33, 30, 27, 0, 0, 0 };
-	static uint8 br1[4] = { 6, 9, 12, 12 };
-	static double br2[4] = { .29, .45, .73, .9 };
-	static double br3[4] = { 0, .24, .47, .77 };
-
-	for (x = 0; x <= 3; x++)
-		for (z = 0; z < 16; z++) {
-			s = (double)ntsctint / 128;
-			luma = br2[x];
-			if (z == 0) {
-				s = 0; luma = ((double)br1[x]) / 12;
-			}
-
-			if (z >= 13) {
-				s = luma = 0;
-				if (z == 13)
-					luma = br3[x];
-			}
-
-			theta = (double)M_PI * (double)(((double)cols[z] * 10 + (((double)ntschue / 2) + 300)) / (double)180);
-			r = (int)((luma + s * sin(theta)) * 256);
-			g = (int)((luma - (double)27 / 53 * s * sin(theta) + (double)10 / 53 * s * cos(theta)) * 256);
-			b = (int)((luma - s * cos(theta)) * 256);
-
-
-			if (r > 255) r = 255;
-			if (g > 255) g = 255;
-			if (b > 255) b = 255;
-			if (r < 0) r = 0;
-			if (g < 0) g = 0;
-			if (b < 0) b = 0;
-
-			paletten[(x << 4) + z].r = r;
-			paletten[(x << 4) + z].g = g;
-			paletten[(x << 4) + z].b = b;
-		}
-	WritePalette();
-}
-
 int ipalette = 0;
 
 void FCEU_LoadGamePalette(void) {
@@ -228,10 +166,7 @@ static void ChoosePalette(void) {
 		palo = 0;
 	else if (ipalette)
 		palo = palettei;
-	else if (ntsccol && !PAL && GameInfo->type != GIT_VSUNI) {
-		palo = paletten;
-		CalculatePalette();
-	} else
+	else
 		palo = palpoint[pale];
 }
 
@@ -245,91 +180,5 @@ void WritePalette(void) {
 		for (x = 0; x < 64; x++)
 			FCEUD_SetPalette(128 + x, palo[x].r, palo[x].g, palo[x].b);
 		SetNESDeemph(lastd, 1);
-	}
-}
-
-void FCEUI_GetNTSCTH(int *tint, int *hue) {
-	*tint = ntsctint;
-	*hue = ntschue;
-}
-
-static int controlselect = 0;
-static int controllength = 0;
-
-void FCEUI_NTSCDEC(void) {
-	if (ntsccol && GameInfo->type != GIT_VSUNI && !PAL && GameInfo->type != GIT_NSF) {
-		int which;
-		if (controlselect) {
-			if (controllength) {
-				which = controlselect == 1 ? ntschue : ntsctint;
-				which--;
-				if (which < 0) which = 0;
-				if (controlselect == 1)
-					ntschue = which;
-				else ntsctint = which;
-				CalculatePalette();
-			}
-			controllength = 360;
-		}
-	}
-}
-
-void FCEUI_NTSCINC(void) {
-	if (ntsccol && GameInfo->type != GIT_VSUNI && !PAL && GameInfo->type != GIT_NSF)
-		if (controlselect) {
-			if (controllength) {
-				switch (controlselect) {
-				case 1: ntschue++;
-					if (ntschue > 128) ntschue = 128;
-					CalculatePalette();
-					break;
-				case 2: ntsctint++;
-					if (ntsctint > 128) ntsctint = 128;
-					CalculatePalette();
-					break;
-				}
-			}
-			controllength = 360;
-		}
-}
-
-void FCEUI_NTSCSELHUE(void) {
-	if (ntsccol && GameInfo->type != GIT_VSUNI && !PAL && GameInfo->type != GIT_NSF) {
-		controlselect = 1; controllength = 360;
-	}
-}
-
-void FCEUI_NTSCSELTINT(void) {
-	if (ntsccol && GameInfo->type != GIT_VSUNI && !PAL && GameInfo->type != GIT_NSF) {
-		controlselect = 2; controllength = 360;
-	}
-}
-
-void FCEU_DrawNTSCControlBars(uint8 *XBuf) {
-	uint8 *XBaf;
-	int which = 0;
-	int x, x2;
-
-	if (!controllength) return;
-	controllength--;
-	if (!XBuf) return;
-
-	if (controlselect == 1) {
-		DrawTextTrans(XBuf + 128 - 12 + 180 * 256, 256, (uint8*)"Hue", 0x85);
-		which = ntschue << 1;
-	} else if (controlselect == 2) {
-		DrawTextTrans(XBuf + 128 - 16 + 180 * 256, 256, (uint8*)"Tint", 0x85);
-		which = ntsctint << 1;
-	}
-
-	XBaf = XBuf + 200 * 256;
-	for (x = 0; x < which; x += 2) {
-		for (x2 = 6; x2 >= -6; x2--) {
-			XBaf[x - 256 * x2] = 0x85;
-		}
-	}
-	for (; x < 256; x += 2) {
-		for (x2 = 2; x2 >= -2; x2--)
-			XBaf[x - 256 * x2] = 0x85;
 	}
 }

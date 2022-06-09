@@ -61,11 +61,7 @@ SFORMAT SFCPU[] = {
    { &X.S, 1, "S\0\0" },
    { &X.P, 1, "P\0\0" },
    { &X.DB, 1, "DB"},
-#ifdef COPYFAMI
-   { RAM, 0x4000, "RAM" },
-#else
    { RAM, 0x800, "RAM" },
-#endif
    { 0 }
 };
 
