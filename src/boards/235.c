@@ -25,22 +25,24 @@ static uint8 *CHRRAM;
 static uint32 CHRRAMSIZE;
 
 static uint16 cmdreg;
-static uint8 unrom, reg, type, openbus;
+static uint8 unrom, reg, openbus;
+
+static uint32 PRGROMSize;
 
 static SFORMAT StateRegs[] =
 {
 	{ &cmdreg,  2 | FCEUSTATE_RLSB, "CREG" },
 	{ &unrom,   1, "UNRM" },
 	{ &reg,     1, "UNRG" },
-	{ &type,    1, "TYPE" },
 	{ &openbus, 1, "OPNB" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (type && unrom) {
-		setprg16(0x8000, 0x80 | (reg & 7));
-		setprg16(0xC000, 0x80 | 7);
+	if (unrom) {
+		uint8 PRGPageSize = PRGROMSize / 16384;
+		setprg16(0x8000, (PRGPageSize & 0xC0) | (reg & 7));
+		setprg16(0xC000, (PRGPageSize & 0xC0) | 7);
 		setchr8(0);
 		setmirror(MI_V);
 	} else {
@@ -49,7 +51,7 @@ static void Sync(void) {
 			setmirror(MI_0);
 		else
 			setmirror(((cmdreg >> 13) & 1) ^ 1);
-		if (bank >= PRGsize[0] / 32768)
+		if (bank >= PRGROMSize / 32768)
 			openbus = 1;
 		else if (cmdreg & 0x800) {
 			setprg16(0x8000, (bank << 1) | ((cmdreg >> 12) & 1));
@@ -74,15 +76,11 @@ static DECLFW(M235Write) {
 	Sync();
 }
 
-static void M235Close(void) {
-	if (CHRRAM)
-		FCEU_free(CHRRAM);
-	CHRRAM = NULL;
-}
-
 static void M235Reset(void) {
 	cmdreg = 0;
-	unrom = (unrom + type) & 1;
+	reg = 0;
+	if (PRGROMSize & 0x20000)
+		unrom = (unrom + 1) & 1;
 	Sync();
 }
 
@@ -90,6 +88,7 @@ static void M235Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M235Write);
 	SetReadHandler(0x8000, 0xFFFF, M235Read);
 	cmdreg = 0;
+	reg = 0;
 	Sync();
 }
 
@@ -100,22 +99,7 @@ static void M235Restore(int version) {
 void Mapper235_Init(CartInfo *info) {
 	info->Reset = M235Reset;
 	info->Power = M235Power;
-	info->Close = M235Close;
 	GameStateRestore = M235Restore;
 	AddExState(&StateRegs, ~0, 0, 0);
-
-	/* some nes 2.0 header do can have no chr-ram.
-	 * one such cart is 210-in-1 and Contra 4-in-1 (212-in-1,212 Hong Kong,Reset Based)(Unl).nes (0x745A6791)
-	 */
-	if (CHRsize[0] == 0) {
-		CHRRAMSIZE = 8192;
-		CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
-		SetupCartCHRMapping(0, CHRRAM, CHRRAMSIZE, 1);
-		AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
-	}
-
-	type = 0;
-	/* carts with unrom game, reset-based */
-	if ((info->CRC32) == 0x745A6791) /* 210-in-1 and Contra 4-in-1 (212-in-1,212 Hong Kong,Reset Based)(Unl).nes */
-		type = 1;
+	PRGROMSize = info->PRGRomSize;
 }
