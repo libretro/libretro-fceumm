@@ -322,12 +322,6 @@ case 0x50: JR(!(_P&V_FLAG)); break;
 /* BVS */
 case 0x70: JR(_P&V_FLAG); break;
 
-/* default: printf("Bad %02x at $%04x\n",b1,X.PC);break; */
-/* ifdef moo */
-/* Here comes the undocumented instructions block.  Note that this implementation
-		may be "wrong".  If so, please tell me.
-*/
-
 /* AAC */
 case 0x2B:
 case 0x0B: LD_IM(AND;_P&=~C_FLAG;_P|=_A>>7);

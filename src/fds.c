@@ -256,9 +256,6 @@ static DECLFR(FDSRead4031) {
 					break;
 				case 14:
 					mapperFDS_filesize |= ret << 8;
-					/* char fdsfile[10]; */
-					/* strncpy(fdsfile, (char*)&diskdata[InDisk][mapperFDS_blockstart + 3], 8); */
-					/* printf("Read file: %s (size: %d)\n"), fdsfile, mapperFDS_filesize); */
 					break;
 				}
 				mapperFDS_diskaddr++;
@@ -338,9 +335,6 @@ static DECLFW(FDSWrite) {
 							case 13: mapperFDS_filesize = V; break;
 							case 14:
 								mapperFDS_filesize |= V << 8;
-								/* char fdsfile[10]; */
-								/* strncpy(fdsfile, (char*)&diskdata[InDisk][mapperFDS_blockstart + 3], 8); */
-								/* printf("Write file: %s (size: %d)\n"), fdsfile, mapperFDS_filesize); */
 								break;
 						}
 						mapperFDS_diskaddr++;

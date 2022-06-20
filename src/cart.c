@@ -139,7 +139,6 @@ DECLFR(CartBR) {
 }
 
 DECLFW(CartBW) {
-	/* printf("Ok: %04x:%02x, %d\n",A,V,PRGIsRAM[A>>11]); */
 	if (PRGIsRAM[A >> 11] && Page[A >> 11])
 		Page[A >> 11][A] = V;
 }
@@ -493,7 +492,6 @@ void FixGenieMap(void) {
 
 	VPageR = VPage;
 	FlushGenieRW();
-	/* printf("Rightyo\n"); */
 	for (x = 0; x < 3; x++)
 		if ((modcon >> (4 + x)) & 1) {
 			readfunc tmp[3] = { GenieFix1, GenieFix2, GenieFix3 };

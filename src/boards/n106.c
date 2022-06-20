@@ -130,8 +130,6 @@ static void FixNTAR(void) {
 static void FASTAPASS(2) DoCHRRAMROM(int x, uint8 V) {
 	CHR[x] = V;
 	if (!is210 && !((gorfus >> ((x >> 2) + 6)) & 1) && (V >= 0xE0)) {
-/*		printf("BLAHAHA: %d, %02x\n",x,V); */
-/*		setchr1r(0x10,x<<10,V&7); */
 	} else
 		setchr1(x << 10, V);
 }
@@ -338,9 +336,8 @@ static void DoNamcoSound(int32 *Wave, int Count) {
 			envelope = EnvCache[P];
 			lengo = LengthCache[P];
 
-			if (!freq) {	/*printf("Ack");*/
+			if (!freq)
 				continue;
-			}
 
 			{
 				int c = ((IRAM[0x7F] >> 4) & 7) + 1;

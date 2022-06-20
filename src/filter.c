@@ -21,7 +21,6 @@ void SexyFilter2(int32 *in, int32 count) {
 	p = ((double)2 - cos(x)) - sqrt(pow((double)2 - cos(x), 2) - 1);
 
 	c = p * 0x100000;
-	/* printf("%f\n",(double)c/0x100000); */
  #endif
 	static int64 acc = 0;
 
@@ -58,11 +57,9 @@ void SexyFilter(int32 *in, int32 *out, int32 count) {
 		int64 ino = (int64) * in * vmul;
 		sexyfilter_acc1 += ((ino - sexyfilter_acc1) * mul1) >> 16;
 		sexyfilter_acc2 += ((ino - sexyfilter_acc1 - sexyfilter_acc2) * mul2) >> 16;
-		/* printf("%d ",*in); */
 		*in = 0;
 		{
 			int32 t = (sexyfilter_acc1 - ino + sexyfilter_acc2) >> 16;
-			/* if(t>32767 || t<-32768) printf("Flow: %d\n",t); */
 			if (t > 32767) t = 32767;
 			if (t < -32768) t = -32768;
 			*out = t;
@@ -87,17 +84,9 @@ void SexyFilter(int32 *in, int32 *out, int32 count) {
 
 int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 	uint32 x;
-	uint32 max;
 	int32 *outsave = out;
 	int32 count = 0;
-
-#if 0
-  for(x=0;x<inlen;x++)
-  {
-   if(in[x]>mva) { mva=in[x]; printf("%ld\n",in[x]);}
-  }
-#endif
-	max = (inlen - 1) << 16;
+	uint32 max = (inlen - 1) << 16;
 
 	if (FSettings.soundq == 2) {
 		for (x = mrindex; x < max; x += mrratio) {
@@ -181,15 +170,4 @@ void MakeFilters(int32 rate) {
 	else
 		for (x = 0; x < (NCOEFFS >> 1); x++)
 			coeffs[x] = coeffs[NCOEFFS - 1 - x] = tmp[x];
-
- #ifdef MOO
-	/* Some tests involving precision and error. */
-	{
-		static int64 acc = 0;
-		int x;
-		for (x = 0; x < SQ2NCOEFFS; x++)
-			acc += (int64)32767 * sq2coeffs[x];
-		printf("Foo: %lld\n", acc);
-	}
- #endif
 }

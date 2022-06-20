@@ -26,18 +26,10 @@ static uint8 FunkyMode;
 
 static uint8 FP_FASTAPASS(2) QZ_Read(int w, uint8 ret) {
 	if (w) {
-		/* if(X.PC==0xdc7d) return(0xFF);
-		printf("Blah: %04x\n",X.PC);
-		FCEUI_DumpMem("dmp2",0xc000,0xffff);
-		*/
-
 		ret |= (QZValR & 0x7) << 2;
 		QZValR = QZValR >> 3;
 
 		if (FunkyMode) {
-			/*ret=0x14;
-			puts("Funky");
-			*/
 			QZValR |= 0x28;
 		} else {
 			QZValR |= 0x38;
@@ -48,11 +40,9 @@ static uint8 FP_FASTAPASS(2) QZ_Read(int w, uint8 ret) {
 
 static void QZ_Strobe(void) {
 	QZValR = QZVal;
-	/* puts("Strobe"); */
 }
 
 static void FP_FASTAPASS(1) QZ_Write(uint8 V) {
-	/* printf("Wr: %02x\n",V); */
 	FunkyMode = V & 4;
 }
 
