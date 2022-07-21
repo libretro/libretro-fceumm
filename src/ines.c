@@ -362,9 +362,10 @@ static void CheckHInfo(void)
       iNESCart.mirror = 2;
 
    if (tofix) {
+      size_t gigastr_len;
       char gigastr[768];
       strcpy(gigastr, " The iNES header contains incorrect information.  For now, the information will be corrected in RAM. ");
-      size_t gigastr_len = strlen(gigastr);
+      gigastr_len = strlen(gigastr);
       if (tofix & 1)
          sprintf(gigastr + gigastr_len, "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, iNESCart.mapper);
       if (tofix & 2) {
