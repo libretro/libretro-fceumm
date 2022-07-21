@@ -364,11 +364,12 @@ static void CheckHInfo(void)
    if (tofix) {
       char gigastr[768];
       strcpy(gigastr, " The iNES header contains incorrect information.  For now, the information will be corrected in RAM. ");
+      size_t gigastr_len = strlen(gigastr);
       if (tofix & 1)
-         sprintf(gigastr + strlen(gigastr), "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, iNESCart.mapper);
+         sprintf(gigastr + gigastr_len, "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, iNESCart.mapper);
       if (tofix & 2) {
          uint8 *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
-         sprintf(gigastr + strlen(gigastr), "Current mirroring is %s. Mirroring should be set to \"%s\". ", mstr[cur_mirr & 3], mstr[iNESCart.mirror & 3]);
+         sprintf(gigastr + gigastr_len, "Current mirroring is %s. Mirroring should be set to \"%s\". ", mstr[cur_mirr & 3], mstr[iNESCart.mirror & 3]);
       }
       if (tofix & 4)
          strcat(gigastr, "The battery-backed bit should be set.  ");
@@ -376,19 +377,19 @@ static void CheckHInfo(void)
          strcat(gigastr, "This game should not have any CHR ROM.  ");
       if (tofix & 16) {
          uint8 *rstr[4] = { (uint8*)"NTSC", (uint8*)"PAL", (uint8*)"Multi", (uint8*)"Dendy" };
-         sprintf(gigastr + strlen(gigastr), "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
+         sprintf(gigastr + gigastr_len, "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
       }
       if (tofix & 32) {
          unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
          unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
          if (PRGRAM || CHRRAM) {
             if (iNESCart.PRGRamSaveSize == 0)
-               sprintf(gigastr + strlen(gigastr), "workram: %d KB, ", PRGRAM / 1024);
+               sprintf(gigastr + gigastr_len, "workram: %d KB, ", PRGRAM / 1024);
             else if (iNESCart.PRGRamSize == 0)
-               sprintf(gigastr + strlen(gigastr), "saveram: %d KB, ", PRGRAM / 1024);
+               sprintf(gigastr + gigastr_len, "saveram: %d KB, ", PRGRAM / 1024);
             else
-               sprintf(gigastr + strlen(gigastr), "workram: %d KB (%dKB battery-backed), ", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
-            sprintf(gigastr + strlen(gigastr), "chrram: %d KB.", (CHRRAM + iNESCart.CHRRamSaveSize) / 1024);
+               sprintf(gigastr + gigastr_len, "workram: %d KB (%dKB battery-backed), ", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
+            sprintf(gigastr + gigastr_len, "chrram: %d KB.", (CHRRAM + iNESCart.CHRRamSaveSize) / 1024);
          }
       }
       strcat(gigastr, "\n");

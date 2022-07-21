@@ -2763,7 +2763,8 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 
    while (codepart)
    {
-      if ((strlen(codepart) == 7) && (codepart[4]==':'))
+      size_t codepart_len = strlen(codepart);
+      if ((codepart_len == 7) && (codepart[4]==':'))
       {
          /* raw code in xxxx:xx format */
          log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (Raw)\n", codepart);
@@ -2776,7 +2777,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
          if (a < 0x0100) type = 0;
          FCEUI_AddCheat(name, a, v, c, type);
       }
-      else if ((strlen(codepart) == 10) && (codepart[4] == '?') && (codepart[7] == ':'))
+      else if ((codepart_len == 10) && (codepart[4] == '?') && (codepart[7] == ':'))
       {
          /* raw code in xxxx?xx:xx */
          log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (Raw)\n", codepart);
