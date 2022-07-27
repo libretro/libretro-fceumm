@@ -757,3 +757,21 @@ static void M435Sync(void) {
 void Mapper435_Init(CartInfo *info) {
 	Latch_Init(info, M435Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
+
+/*------------------ Map 464 ---------------------------*/
+static void M464Sync(void) {
+	int p =latche >>7;
+	int c =latche &0x1F;
+	if (latche &0x40) {
+		setprg32(0x8000, p >> 1);
+	} else {
+		setprg16(0x8000, p);
+		setprg16(0xC000, p);
+	}
+	setchr8(c);
+	setmirror(latche &0x20? MI_H: MI_V);
+}
+
+void Mapper464_Init(CartInfo *info) {
+	Latch_Init(info, M464Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+}
