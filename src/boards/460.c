@@ -30,7 +30,7 @@ static DECLFR(Mapper460_ReadOB)
 static void Mapper460_PRGWrap(uint32 A, uint8 V) {
 	int prgAND =0x0F;
 	int prgOR  =EXPREGS[0] <<4;
-	if (EXPREGS[0] &0x20) {
+	if (EXPREGS[0] &0x20 && (EXPREGS[0] !=0x20 || ~EXPREGS[1] &1)) { /* Menu selection by selectively connecting CPU D7 to reg or not */
 		if (~A &0x4000) {
 			setprg8(A,         (EXPREGS[0] &0x10? ~2: ~0) &V &prgAND | prgOR &~prgAND);
 			setprg8(A |0x4000, (EXPREGS[0] &0x10?  2:  0) |V &prgAND | prgOR &~prgAND);
