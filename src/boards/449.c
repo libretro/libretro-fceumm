@@ -22,11 +22,13 @@
 
 static uint16 latchAddr;
 static uint8  latchData;
+static uint8  dipswitch;
 
 static SFORMAT StateRegs[] =
 {
    { &latchAddr, 2, "ADDR" },
    { &latchData, 1, "DATA" },
+   { &latchData, 1, "DIPS" },
    { 0 }
 };
 
@@ -54,6 +56,14 @@ static void Mapper449_Sync(void)
    setmirror(latchAddr &0x002? MI_H: MI_V);
 }
 
+static DECLFR(Mapper449_Read)
+{
+   if (latchAddr &0x200)
+      return CartBR(A | dipswitch);
+   else
+      return CartBR(A);
+}
+
 static DECLFW(Mapper449_WriteLatch)
 {
    latchData =V;
@@ -63,16 +73,18 @@ static DECLFW(Mapper449_WriteLatch)
 
 static void Mapper449_Reset(void)
 {
+   dipswitch =(dipswitch +1) &0xF;
    latchAddr =latchData =0;
    Mapper449_Sync();
 }
 
 static void Mapper449_Power(void)
 {
-   latchAddr =latchData =0;
+   dipswitch =latchAddr =latchData =0;
    Mapper449_Sync();
    SetWriteHandler(0x8000, 0xFFFF, Mapper449_WriteLatch);
-   SetReadHandler(0x6000, 0xFFFF, CartBR);
+   SetReadHandler(0x6000, 0x7FFF, CartBR);
+   SetReadHandler(0x8000, 0xFFFF, Mapper449_Read);
 }
 
 void Mapper449_Init(CartInfo *info)
