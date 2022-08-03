@@ -117,6 +117,7 @@ static void Mapper268_Power(void) {
 static void Mapper268_close(void) {
 	if (CHRRAM) FCEU_gfree(CHRRAM);
 	CHRRAM =NULL;
+	GenMMC3Close();
 }
 
 void Mapper268_Init(CartInfo *info) {
