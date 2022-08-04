@@ -50,7 +50,7 @@ static void Mapper268_PRGWrap(uint32 A, uint8 V) {
 			     |EXPREGS[0] <<6 &0xC00;
 		break;
 	case 4:		/* LD622D: PRG A20-21 moved to register 0 */
-		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x10? 0x01: 0x03): 0x00;
+		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x02? 0x03: 0x01): 0x00;
 		prgOffset    =EXPREGS[3]     &0x00E
 		             |EXPREGS[0] <<4 &0x070
 			     |EXPREGS[0] <<3 &0x180;
@@ -90,8 +90,13 @@ static DECLFW(Mapper268_WriteWRAM) {
 }
 
 static DECLFW(Mapper268_WriteReg) {
-	if (~EXPREGS[3] &0x80 || EXPREGS[3] &0x10) {
-		EXPREGS[A &7] =V;
+	int index =A &7;
+	if (~EXPREGS[3] &0x80 || index ==2) {
+		if (index ==2) {
+			if (EXPREGS[2] &0x80) V =V &0x0F | EXPREGS[2] &~0x0F;
+			V &=~EXPREGS[2] >>3 &0xE |0xF1;
+		}		
+		EXPREGS[index] =V;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
 	}
