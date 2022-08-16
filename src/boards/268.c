@@ -26,11 +26,11 @@ static uint8 submapper;
 static void Mapper268_PRGWrap(uint32 A, uint8 V) {
 	int prgMaskMMC3, prgMaskGNROM, prgOffset;
 	
-	prgMaskMMC3 =(EXPREGS[3] &0x10? 0x00: 0x0F) // PRG A13-A16
-	            |(EXPREGS[0] &0x40? 0x00: 0x10) // PRG A17
-	            |(EXPREGS[1] &0x80? 0x00: 0x20) // PRG A18
-	            |(EXPREGS[1] &0x40? 0x40: 0x00) // PRG A19
-	            |(EXPREGS[1] &0x20? 0x80: 0x00) // PRG A20
+	prgMaskMMC3 =(EXPREGS[3] &0x10? 0x00: 0x0F) /* PRG A13-A16 */
+	            |(EXPREGS[0] &0x40? 0x00: 0x10) /* PRG A17     */
+	            |(EXPREGS[1] &0x80? 0x00: 0x20) /* PRG A18     */
+	            |(EXPREGS[1] &0x40? 0x40: 0x00) /* PRG A19     */
+	            |(EXPREGS[1] &0x20? 0x80: 0x00) /* PRG A20     */
 	;
 	switch(submapper &~1) {
 	default:	/* Original implementation */
