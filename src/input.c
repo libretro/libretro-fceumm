@@ -34,6 +34,7 @@
 #include "fds.h"
 
 extern INPUTC *FCEU_InitZapper(int w);
+extern INPUTC *FCEU_InitHWLightgun(int w);
 extern INPUTC *FCEU_InitMouse(int w);
 extern INPUTC *FCEU_InitPowerpadA(int w);
 extern INPUTC *FCEU_InitPowerpadB(int w);
@@ -295,6 +296,9 @@ static void FASTAPASS(1) SetInputStuff(int x)
          break;
       case SI_ZAPPER:
          JPorts[x] = FCEU_InitZapper(x);
+         break;
+      case SI_HWLIGHTGUN:
+         JPorts[x] = FCEU_InitHWLightgun(x);
          break;
       case SI_POWERPADA:
          JPorts[x] = FCEU_InitPowerpadA(x);

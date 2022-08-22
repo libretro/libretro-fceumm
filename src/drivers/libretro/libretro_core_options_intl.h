@@ -154,6 +154,10 @@ extern "C" {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_AR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_AR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_AR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_AR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_AR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_AR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_AR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_AR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_AR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_AR NULL
@@ -595,6 +599,34 @@ struct retro_core_option_v2_definition option_defs_ar[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_AR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_AR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_AR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_AR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_AR,
       NULL,
@@ -776,6 +808,10 @@ struct retro_core_options_v2 options_ar = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_AST NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_AST NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_AST NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_AST NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_AST NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_AST NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_AST NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_AST NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_AST NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_AST NULL
@@ -1217,6 +1253,34 @@ struct retro_core_option_v2_definition option_defs_ast[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_AST,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_AST,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_AST,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_AST,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_AST,
       NULL,
@@ -1398,6 +1462,10 @@ struct retro_core_options_v2 options_ast = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CA NULL
@@ -1839,6 +1907,34 @@ struct retro_core_option_v2_definition option_defs_ca[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_CA,
       NULL,
@@ -2020,6 +2116,10 @@ struct retro_core_options_v2 options_ca = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CHS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CHS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CHS NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CHS NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CHS NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CHS NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CHS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CHS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CHS NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CHS NULL
@@ -2461,6 +2561,34 @@ struct retro_core_option_v2_definition option_defs_chs[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CHS,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CHS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CHS,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CHS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_CHS,
       NULL,
@@ -2642,6 +2770,10 @@ struct retro_core_options_v2 options_chs = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CHT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CHT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CHT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CHT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CHT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CHT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CHT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CHT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CHT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CHT NULL
@@ -3083,6 +3215,34 @@ struct retro_core_option_v2_definition option_defs_cht[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CHT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CHT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CHT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CHT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_CHT,
       NULL,
@@ -3264,6 +3424,10 @@ struct retro_core_options_v2 options_cht = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CS NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CS NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CS NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CS NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CS NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CS NULL
@@ -3705,6 +3869,34 @@ struct retro_core_option_v2_definition option_defs_cs[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CS,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CS,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_CS,
       NULL,
@@ -3886,6 +4078,10 @@ struct retro_core_options_v2 options_cs = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CY NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CY NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CY NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CY NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CY NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CY NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CY NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CY NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CY NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CY NULL
@@ -4327,6 +4523,34 @@ struct retro_core_option_v2_definition option_defs_cy[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_CY,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_CY,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_CY,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_CY,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_CY,
       NULL,
@@ -4508,6 +4732,10 @@ struct retro_core_options_v2 options_cy = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_DA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_DA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_DA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_DA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_DA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_DA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_DA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_DA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_DA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_DA NULL
@@ -4949,6 +5177,34 @@ struct retro_core_option_v2_definition option_defs_da[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_DA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_DA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_DA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_DA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_DA,
       NULL,
@@ -5130,6 +5386,10 @@ struct retro_core_options_v2 options_da = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_DE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_DE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_DE NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_DE NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_DE NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_DE NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_DE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_DE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_DE NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_DE NULL
@@ -5571,6 +5831,34 @@ struct retro_core_option_v2_definition option_defs_de[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_DE,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_DE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_DE,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_DE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_DE,
       NULL,
@@ -5752,6 +6040,10 @@ struct retro_core_options_v2 options_de = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_EL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_EL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_EL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_EL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_EL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_EL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_EL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_EL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_EL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_EL NULL
@@ -6193,6 +6485,34 @@ struct retro_core_option_v2_definition option_defs_el[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_EL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_EL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_EL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_EL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_EL,
       NULL,
@@ -6374,6 +6694,10 @@ struct retro_core_options_v2 options_el = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_EO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_EO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_EO NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_EO NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_EO NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_EO NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_EO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_EO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_EO NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_EO NULL
@@ -6815,6 +7139,34 @@ struct retro_core_option_v2_definition option_defs_eo[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_EO,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_EO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_EO,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_EO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_EO,
       NULL,
@@ -6996,6 +7348,10 @@ struct retro_core_options_v2 options_eo = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_ES NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_ES NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_ES NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_ES NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_ES NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_ES NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_ES NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_ES NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_ES NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_ES NULL
@@ -7437,6 +7793,34 @@ struct retro_core_option_v2_definition option_defs_es[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_ES,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_ES,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_ES,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_ES,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_ES,
       NULL,
@@ -7618,6 +8002,10 @@ struct retro_core_options_v2 options_es = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_FA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_FA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_FA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_FA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_FA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_FA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_FA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_FA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_FA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_FA NULL
@@ -8059,6 +8447,34 @@ struct retro_core_option_v2_definition option_defs_fa[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_FA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_FA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_FA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_FA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_FA,
       NULL,
@@ -8240,6 +8656,10 @@ struct retro_core_options_v2 options_fa = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_FI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_FI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_FI NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_FI NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_FI NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_FI NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_FI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_FI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_FI NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_FI NULL
@@ -8681,6 +9101,34 @@ struct retro_core_option_v2_definition option_defs_fi[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_FI,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_FI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_FI,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_FI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_FI,
       NULL,
@@ -8862,6 +9310,10 @@ struct retro_core_options_v2 options_fi = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_FR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_FR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_FR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_FR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_FR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_FR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_FR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_FR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_FR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_FR NULL
@@ -9303,6 +9755,34 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_FR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_FR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_FR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_FR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_FR,
       NULL,
@@ -9484,6 +9964,10 @@ struct retro_core_options_v2 options_fr = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_GL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_GL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_GL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_GL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_GL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_GL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_GL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_GL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_GL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_GL NULL
@@ -9925,6 +10409,34 @@ struct retro_core_option_v2_definition option_defs_gl[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_GL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_GL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_GL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_GL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_GL,
       NULL,
@@ -10106,6 +10618,10 @@ struct retro_core_options_v2 options_gl = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_HE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_HE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_HE NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_HE NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_HE NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_HE NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_HE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_HE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_HE NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_HE NULL
@@ -10547,6 +11063,34 @@ struct retro_core_option_v2_definition option_defs_he[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_HE,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_HE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_HE,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_HE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_HE,
       NULL,
@@ -10728,6 +11272,10 @@ struct retro_core_options_v2 options_he = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_HU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_HU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_HU NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_HU NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_HU NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_HU NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_HU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_HU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_HU NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_HU NULL
@@ -11169,6 +11717,34 @@ struct retro_core_option_v2_definition option_defs_hu[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_HU,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_HU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_HU,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_HU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_HU,
       NULL,
@@ -11350,6 +11926,10 @@ struct retro_core_options_v2 options_hu = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_ID NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_ID NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_ID NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_ID NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_ID NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_ID NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_ID NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_ID NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_ID NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_ID NULL
@@ -11791,6 +12371,34 @@ struct retro_core_option_v2_definition option_defs_id[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_ID,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_ID,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_ID,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_ID,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_ID,
       NULL,
@@ -11972,6 +12580,10 @@ struct retro_core_options_v2 options_id = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_IT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_IT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_IT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_IT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_IT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_IT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_IT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_IT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_IT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_IT NULL
@@ -12413,6 +13025,34 @@ struct retro_core_option_v2_definition option_defs_it[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_IT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_IT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_IT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_IT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_IT,
       NULL,
@@ -12594,6 +13234,10 @@ struct retro_core_options_v2 options_it = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_JA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_JA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_JA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_JA NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_JA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_JA NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_JA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_JA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_JA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_JA NULL
@@ -13035,6 +13679,34 @@ struct retro_core_option_v2_definition option_defs_ja[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_JA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_JA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_JA,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_JA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_JA,
       NULL,
@@ -13216,6 +13888,10 @@ struct retro_core_options_v2 options_ja = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_KO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_KO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_KO NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_KO NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_KO NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_KO NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_KO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_KO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_KO NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_KO NULL
@@ -13657,6 +14333,34 @@ struct retro_core_option_v2_definition option_defs_ko[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_KO,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_KO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_KO,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_KO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_KO,
       NULL,
@@ -13838,6 +14542,10 @@ struct retro_core_options_v2 options_ko = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_MT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_MT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_MT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_MT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_MT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_MT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_MT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_MT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_MT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_MT NULL
@@ -14279,6 +14987,34 @@ struct retro_core_option_v2_definition option_defs_mt[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_MT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_MT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_MT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_MT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_MT,
       NULL,
@@ -14460,6 +15196,10 @@ struct retro_core_options_v2 options_mt = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_NL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_NL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_NL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_NL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_NL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_NL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_NL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_NL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_NL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_NL NULL
@@ -14901,6 +15641,34 @@ struct retro_core_option_v2_definition option_defs_nl[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_NL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_NL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_NL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_NL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_NL,
       NULL,
@@ -15082,6 +15850,10 @@ struct retro_core_options_v2 options_nl = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_OC NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_OC NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_OC NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_OC NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_OC NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_OC NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_OC NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_OC NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_OC NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_OC NULL
@@ -15523,6 +16295,34 @@ struct retro_core_option_v2_definition option_defs_oc[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_OC,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_OC,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_OC,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_OC,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_OC,
       NULL,
@@ -15704,6 +16504,10 @@ struct retro_core_options_v2 options_oc = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_PL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_PL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_PL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_PL NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_PL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_PL NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_PL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_PL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_PL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_PL NULL
@@ -16145,6 +16949,34 @@ struct retro_core_option_v2_definition option_defs_pl[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_PL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_PL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_PL,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_PL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_PL,
       NULL,
@@ -16326,6 +17158,10 @@ struct retro_core_options_v2 options_pl = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_PT_BR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_PT_BR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_PT_BR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_PT_BR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_PT_BR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_PT_BR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_PT_BR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_PT_BR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_PT_BR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_PT_BR NULL
@@ -16767,6 +17603,34 @@ struct retro_core_option_v2_definition option_defs_pt_br[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_PT_BR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_PT_BR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_PT_BR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_PT_BR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_PT_BR,
       NULL,
@@ -16948,6 +17812,10 @@ struct retro_core_options_v2 options_pt_br = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_PT_PT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_PT_PT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_PT_PT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_PT_PT NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_PT_PT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_PT_PT NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_PT_PT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_PT_PT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_PT_PT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_PT_PT NULL
@@ -17389,6 +18257,34 @@ struct retro_core_option_v2_definition option_defs_pt_pt[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_PT_PT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_PT_PT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_PT_PT,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_PT_PT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_PT_PT,
       NULL,
@@ -17570,6 +18466,10 @@ struct retro_core_options_v2 options_pt_pt = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_RO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_RO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_RO NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_RO NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_RO NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_RO NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_RO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_RO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_RO NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_RO NULL
@@ -18011,6 +18911,34 @@ struct retro_core_option_v2_definition option_defs_ro[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_RO,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_RO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_RO,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_RO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_RO,
       NULL,
@@ -18192,6 +19120,10 @@ struct retro_core_options_v2 options_ro = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_RU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_RU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_RU NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_RU NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_RU NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_RU NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_RU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_RU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_RU NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_RU NULL
@@ -18633,6 +19565,34 @@ struct retro_core_option_v2_definition option_defs_ru[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_RU,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_RU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_RU,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_RU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_RU,
       NULL,
@@ -18814,6 +19774,10 @@ struct retro_core_options_v2 options_ru = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SI NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SI NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SI NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SI NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SI NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SI NULL
@@ -19255,6 +20219,34 @@ struct retro_core_option_v2_definition option_defs_si[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SI,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SI,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_SI,
       NULL,
@@ -19436,6 +20428,10 @@ struct retro_core_options_v2 options_si = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SK NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SK NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SK NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SK NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SK NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SK NULL
@@ -19877,6 +20873,34 @@ struct retro_core_option_v2_definition option_defs_sk[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SK,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SK,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_SK,
       NULL,
@@ -20058,6 +21082,10 @@ struct retro_core_options_v2 options_sk = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SR NULL
@@ -20499,6 +21527,34 @@ struct retro_core_option_v2_definition option_defs_sr[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_SR,
       NULL,
@@ -20680,6 +21736,10 @@ struct retro_core_options_v2 options_sr = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SV NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SV NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SV NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SV NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SV NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SV NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SV NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SV NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SV NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SV NULL
@@ -21121,6 +22181,34 @@ struct retro_core_option_v2_definition option_defs_sv[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_SV,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_SV,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_SV,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_SV,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_SV,
       NULL,
@@ -21302,6 +22390,10 @@ struct retro_core_options_v2 options_sv = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_TR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_TR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_TR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_TR NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_TR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_TR NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_TR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_TR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_TR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_TR NULL
@@ -21743,6 +22835,34 @@ struct retro_core_option_v2_definition option_defs_tr[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_TR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_TR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_TR,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_TR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_TR,
       NULL,
@@ -21924,6 +23044,10 @@ struct retro_core_options_v2 options_tr = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_UK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_UK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_UK NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_UK NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_UK NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_UK NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_UK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_UK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_UK NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_UK NULL
@@ -22365,6 +23489,34 @@ struct retro_core_option_v2_definition option_defs_uk[] = {
       "6",
    },
    {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_UK,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_UK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_UK,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_UK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
       "fceumm_up_down_allowed",
       FCEUMM_UP_DOWN_ALLOWED_LABEL_UK,
       NULL,
@@ -22546,6 +23698,10 @@ struct retro_core_options_v2 options_uk = {
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_VN NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_VN NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_VN NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_VN NULL
+#define FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_VN NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_VN NULL
+#define FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_VN NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_VN NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_VN NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_VN NULL
@@ -22985,6 +24141,34 @@ struct retro_core_option_v2_definition option_defs_vn[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_hwlightgun_trigger_invert",
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_LABEL_VN,
+      NULL,
+      FCEUMM_HWLIGHTGUN_TRIGGER_INVERT_INFO_0_VN,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_hwlightgun_sensor_invert",
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_LABEL_VN,
+      NULL,
+      FCEUMM_HWLIGHTGUN_SENSOR_INVERT_INFO_0_VN,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",

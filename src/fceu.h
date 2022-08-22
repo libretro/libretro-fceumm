@@ -124,4 +124,7 @@ extern uint8 vsdip;
 #define JOY_LEFT     0x40
 #define JOY_RIGHT    0x80
 
+#define LIGHTGUN_TRIGGER		0
+#define LIGHTGUN_DETECT		1
+
 #endif
