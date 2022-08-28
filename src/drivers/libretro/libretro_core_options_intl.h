@@ -147,13 +147,18 @@ extern "C" {
 #define FCEUMM_TURBO_DELAY_INFO_0_AR NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_AR NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_AR NULL
-#define OPTION_VAL_LIGHTGUN_AR NULL
+#define OPTION_VAL_C_LIGHTGUN_AR NULL
+#define OPTION_VAL_ST_LIGHTGUN_AR NULL
 #define OPTION_VAL_TOUCHSCREEN_AR NULL
 #define OPTION_VAL_MOUSE_AR NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_AR NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_AR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_AR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_AR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_AR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_AR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_AR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_AR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_AR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_AR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_AR NULL
@@ -540,12 +545,13 @@ struct retro_core_option_v2_definition option_defs_ar[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_AR },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_AR },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_AR },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_AR },
          { "mouse",       OPTION_VAL_MOUSE_AR },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -593,6 +599,34 @@ struct retro_core_option_v2_definition option_defs_ar[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_AR,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_AR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_AR,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_AR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -769,13 +803,18 @@ struct retro_core_options_v2 options_ar = {
 #define FCEUMM_TURBO_DELAY_INFO_0_AST NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_AST NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_AST NULL
-#define OPTION_VAL_LIGHTGUN_AST NULL
+#define OPTION_VAL_C_LIGHTGUN_AST NULL
+#define OPTION_VAL_ST_LIGHTGUN_AST NULL
 #define OPTION_VAL_TOUCHSCREEN_AST NULL
 #define OPTION_VAL_MOUSE_AST NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_AST NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_AST NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_AST NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_AST NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_AST NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_AST NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_AST NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_AST NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_AST NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_AST NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_AST NULL
@@ -1162,12 +1201,13 @@ struct retro_core_option_v2_definition option_defs_ast[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_AST },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_AST },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_AST },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_AST },
          { "mouse",       OPTION_VAL_MOUSE_AST },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -1215,6 +1255,34 @@ struct retro_core_option_v2_definition option_defs_ast[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_AST,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_AST,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_AST,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_AST,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -1391,13 +1459,18 @@ struct retro_core_options_v2 options_ast = {
 #define FCEUMM_TURBO_DELAY_INFO_0_CA NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_CA NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_CA NULL
-#define OPTION_VAL_LIGHTGUN_CA NULL
+#define OPTION_VAL_C_LIGHTGUN_CA NULL
+#define OPTION_VAL_ST_LIGHTGUN_CA NULL
 #define OPTION_VAL_TOUCHSCREEN_CA NULL
 #define OPTION_VAL_MOUSE_CA NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_CA NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CA NULL
@@ -1784,12 +1857,13 @@ struct retro_core_option_v2_definition option_defs_ca[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_CA },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_CA },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_CA },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_CA },
          { "mouse",       OPTION_VAL_MOUSE_CA },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -1837,6 +1911,34 @@ struct retro_core_option_v2_definition option_defs_ca[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CA,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CA,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -2013,13 +2115,18 @@ struct retro_core_options_v2 options_ca = {
 #define FCEUMM_TURBO_DELAY_INFO_0_CHS NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_CHS NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_CHS NULL
-#define OPTION_VAL_LIGHTGUN_CHS NULL
+#define OPTION_VAL_C_LIGHTGUN_CHS NULL
+#define OPTION_VAL_ST_LIGHTGUN_CHS NULL
 #define OPTION_VAL_TOUCHSCREEN_CHS NULL
 #define OPTION_VAL_MOUSE_CHS NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_CHS NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CHS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CHS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CHS NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CHS NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CHS NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CHS NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CHS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CHS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CHS NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CHS NULL
@@ -2406,12 +2513,13 @@ struct retro_core_option_v2_definition option_defs_chs[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_CHS },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_CHS },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_CHS },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_CHS },
          { "mouse",       OPTION_VAL_MOUSE_CHS },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -2459,6 +2567,34 @@ struct retro_core_option_v2_definition option_defs_chs[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CHS,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CHS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CHS,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CHS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -2635,13 +2771,18 @@ struct retro_core_options_v2 options_chs = {
 #define FCEUMM_TURBO_DELAY_INFO_0_CHT NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_CHT NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_CHT NULL
-#define OPTION_VAL_LIGHTGUN_CHT NULL
+#define OPTION_VAL_C_LIGHTGUN_CHT NULL
+#define OPTION_VAL_ST_LIGHTGUN_CHT NULL
 #define OPTION_VAL_TOUCHSCREEN_CHT NULL
 #define OPTION_VAL_MOUSE_CHT NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_CHT NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CHT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CHT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CHT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CHT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CHT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CHT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CHT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CHT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CHT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CHT NULL
@@ -3028,12 +3169,13 @@ struct retro_core_option_v2_definition option_defs_cht[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_CHT },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_CHT },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_CHT },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_CHT },
          { "mouse",       OPTION_VAL_MOUSE_CHT },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -3081,6 +3223,34 @@ struct retro_core_option_v2_definition option_defs_cht[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CHT,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CHT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CHT,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CHT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -3257,13 +3427,18 @@ struct retro_core_options_v2 options_cht = {
 #define FCEUMM_TURBO_DELAY_INFO_0_CS NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_CS NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_CS NULL
-#define OPTION_VAL_LIGHTGUN_CS NULL
+#define OPTION_VAL_C_LIGHTGUN_CS NULL
+#define OPTION_VAL_ST_LIGHTGUN_CS NULL
 #define OPTION_VAL_TOUCHSCREEN_CS NULL
 #define OPTION_VAL_MOUSE_CS NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_CS NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CS NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CS NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CS NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CS NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CS NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CS NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CS NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CS NULL
@@ -3650,12 +3825,13 @@ struct retro_core_option_v2_definition option_defs_cs[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_CS },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_CS },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_CS },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_CS },
          { "mouse",       OPTION_VAL_MOUSE_CS },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -3703,6 +3879,34 @@ struct retro_core_option_v2_definition option_defs_cs[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CS,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CS,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CS,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -3879,13 +4083,18 @@ struct retro_core_options_v2 options_cs = {
 #define FCEUMM_TURBO_DELAY_INFO_0_CY NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_CY NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_CY NULL
-#define OPTION_VAL_LIGHTGUN_CY NULL
+#define OPTION_VAL_C_LIGHTGUN_CY NULL
+#define OPTION_VAL_ST_LIGHTGUN_CY NULL
 #define OPTION_VAL_TOUCHSCREEN_CY NULL
 #define OPTION_VAL_MOUSE_CY NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_CY NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_CY NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_CY NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_CY NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CY NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CY NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CY NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CY NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_CY NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_CY NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_CY NULL
@@ -4272,12 +4481,13 @@ struct retro_core_option_v2_definition option_defs_cy[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_CY },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_CY },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_CY },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_CY },
          { "mouse",       OPTION_VAL_MOUSE_CY },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -4325,6 +4535,34 @@ struct retro_core_option_v2_definition option_defs_cy[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_CY,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_CY,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_CY,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_CY,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -4501,13 +4739,18 @@ struct retro_core_options_v2 options_cy = {
 #define FCEUMM_TURBO_DELAY_INFO_0_DA NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_DA NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_DA NULL
-#define OPTION_VAL_LIGHTGUN_DA NULL
+#define OPTION_VAL_C_LIGHTGUN_DA NULL
+#define OPTION_VAL_ST_LIGHTGUN_DA NULL
 #define OPTION_VAL_TOUCHSCREEN_DA NULL
 #define OPTION_VAL_MOUSE_DA NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_DA NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_DA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_DA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_DA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_DA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_DA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_DA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_DA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_DA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_DA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_DA NULL
@@ -4894,12 +5137,13 @@ struct retro_core_option_v2_definition option_defs_da[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_DA },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_DA },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_DA },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_DA },
          { "mouse",       OPTION_VAL_MOUSE_DA },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -4947,6 +5191,34 @@ struct retro_core_option_v2_definition option_defs_da[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_DA,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_DA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_DA,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_DA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -5123,13 +5395,18 @@ struct retro_core_options_v2 options_da = {
 #define FCEUMM_TURBO_DELAY_INFO_0_DE NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_DE NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_DE NULL
-#define OPTION_VAL_LIGHTGUN_DE NULL
+#define OPTION_VAL_C_LIGHTGUN_DE NULL
+#define OPTION_VAL_ST_LIGHTGUN_DE NULL
 #define OPTION_VAL_TOUCHSCREEN_DE NULL
 #define OPTION_VAL_MOUSE_DE NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_DE NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_DE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_DE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_DE NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_DE NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_DE NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_DE NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_DE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_DE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_DE NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_DE NULL
@@ -5516,12 +5793,13 @@ struct retro_core_option_v2_definition option_defs_de[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_DE },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_DE },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_DE },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_DE },
          { "mouse",       OPTION_VAL_MOUSE_DE },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -5569,6 +5847,34 @@ struct retro_core_option_v2_definition option_defs_de[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_DE,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_DE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_DE,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_DE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -5745,13 +6051,18 @@ struct retro_core_options_v2 options_de = {
 #define FCEUMM_TURBO_DELAY_INFO_0_EL NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_EL NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_EL NULL
-#define OPTION_VAL_LIGHTGUN_EL NULL
+#define OPTION_VAL_C_LIGHTGUN_EL NULL
+#define OPTION_VAL_ST_LIGHTGUN_EL NULL
 #define OPTION_VAL_TOUCHSCREEN_EL NULL
 #define OPTION_VAL_MOUSE_EL NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_EL NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_EL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_EL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_EL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_EL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_EL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_EL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_EL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_EL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_EL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_EL NULL
@@ -6138,12 +6449,13 @@ struct retro_core_option_v2_definition option_defs_el[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_EL },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_EL },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_EL },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_EL },
          { "mouse",       OPTION_VAL_MOUSE_EL },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -6191,6 +6503,34 @@ struct retro_core_option_v2_definition option_defs_el[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_EL,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_EL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_EL,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_EL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -6367,13 +6707,18 @@ struct retro_core_options_v2 options_el = {
 #define FCEUMM_TURBO_DELAY_INFO_0_EO NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_EO NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_EO NULL
-#define OPTION_VAL_LIGHTGUN_EO NULL
+#define OPTION_VAL_C_LIGHTGUN_EO NULL
+#define OPTION_VAL_ST_LIGHTGUN_EO NULL
 #define OPTION_VAL_TOUCHSCREEN_EO NULL
 #define OPTION_VAL_MOUSE_EO NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_EO NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_EO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_EO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_EO NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_EO NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_EO NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_EO NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_EO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_EO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_EO NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_EO NULL
@@ -6760,12 +7105,13 @@ struct retro_core_option_v2_definition option_defs_eo[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_EO },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_EO },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_EO },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_EO },
          { "mouse",       OPTION_VAL_MOUSE_EO },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -6813,6 +7159,34 @@ struct retro_core_option_v2_definition option_defs_eo[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_EO,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_EO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_EO,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_EO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -6989,13 +7363,18 @@ struct retro_core_options_v2 options_eo = {
 #define FCEUMM_TURBO_DELAY_INFO_0_ES NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_ES NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_ES NULL
-#define OPTION_VAL_LIGHTGUN_ES NULL
+#define OPTION_VAL_C_LIGHTGUN_ES NULL
+#define OPTION_VAL_ST_LIGHTGUN_ES NULL
 #define OPTION_VAL_TOUCHSCREEN_ES NULL
 #define OPTION_VAL_MOUSE_ES NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_ES NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_ES NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_ES NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_ES NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_ES NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_ES NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_ES NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_ES NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_ES NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_ES NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_ES NULL
@@ -7382,12 +7761,13 @@ struct retro_core_option_v2_definition option_defs_es[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_ES },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_ES },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_ES },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_ES },
          { "mouse",       OPTION_VAL_MOUSE_ES },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -7435,6 +7815,34 @@ struct retro_core_option_v2_definition option_defs_es[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_ES,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_ES,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_ES,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_ES,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -7611,13 +8019,18 @@ struct retro_core_options_v2 options_es = {
 #define FCEUMM_TURBO_DELAY_INFO_0_FA NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_FA NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_FA NULL
-#define OPTION_VAL_LIGHTGUN_FA NULL
+#define OPTION_VAL_C_LIGHTGUN_FA NULL
+#define OPTION_VAL_ST_LIGHTGUN_FA NULL
 #define OPTION_VAL_TOUCHSCREEN_FA NULL
 #define OPTION_VAL_MOUSE_FA NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_FA NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_FA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_FA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_FA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_FA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_FA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_FA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_FA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_FA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_FA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_FA NULL
@@ -8004,12 +8417,13 @@ struct retro_core_option_v2_definition option_defs_fa[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_FA },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_FA },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_FA },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_FA },
          { "mouse",       OPTION_VAL_MOUSE_FA },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -8057,6 +8471,34 @@ struct retro_core_option_v2_definition option_defs_fa[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_FA,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_FA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_FA,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_FA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -8233,13 +8675,18 @@ struct retro_core_options_v2 options_fa = {
 #define FCEUMM_TURBO_DELAY_INFO_0_FI NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_FI NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_FI NULL
-#define OPTION_VAL_LIGHTGUN_FI NULL
+#define OPTION_VAL_C_LIGHTGUN_FI NULL
+#define OPTION_VAL_ST_LIGHTGUN_FI NULL
 #define OPTION_VAL_TOUCHSCREEN_FI NULL
 #define OPTION_VAL_MOUSE_FI NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_FI NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_FI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_FI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_FI NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_FI NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_FI NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_FI NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_FI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_FI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_FI NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_FI NULL
@@ -8626,12 +9073,13 @@ struct retro_core_option_v2_definition option_defs_fi[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_FI },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_FI },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_FI },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_FI },
          { "mouse",       OPTION_VAL_MOUSE_FI },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -8679,6 +9127,34 @@ struct retro_core_option_v2_definition option_defs_fi[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_FI,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_FI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_FI,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_FI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -8855,13 +9331,18 @@ struct retro_core_options_v2 options_fi = {
 #define FCEUMM_TURBO_DELAY_INFO_0_FR NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_FR NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_FR NULL
-#define OPTION_VAL_LIGHTGUN_FR NULL
+#define OPTION_VAL_C_LIGHTGUN_FR NULL
+#define OPTION_VAL_ST_LIGHTGUN_FR NULL
 #define OPTION_VAL_TOUCHSCREEN_FR NULL
 #define OPTION_VAL_MOUSE_FR NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_FR NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_FR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_FR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_FR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_FR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_FR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_FR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_FR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_FR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_FR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_FR NULL
@@ -9248,12 +9729,13 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_FR },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_FR },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_FR },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_FR },
          { "mouse",       OPTION_VAL_MOUSE_FR },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -9301,6 +9783,34 @@ struct retro_core_option_v2_definition option_defs_fr[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_FR,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_FR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_FR,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_FR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -9477,13 +9987,18 @@ struct retro_core_options_v2 options_fr = {
 #define FCEUMM_TURBO_DELAY_INFO_0_GL NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_GL NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_GL NULL
-#define OPTION_VAL_LIGHTGUN_GL NULL
+#define OPTION_VAL_C_LIGHTGUN_GL NULL
+#define OPTION_VAL_ST_LIGHTGUN_GL NULL
 #define OPTION_VAL_TOUCHSCREEN_GL NULL
 #define OPTION_VAL_MOUSE_GL NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_GL NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_GL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_GL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_GL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_GL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_GL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_GL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_GL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_GL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_GL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_GL NULL
@@ -9870,12 +10385,13 @@ struct retro_core_option_v2_definition option_defs_gl[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_GL },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_GL },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_GL },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_GL },
          { "mouse",       OPTION_VAL_MOUSE_GL },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -9923,6 +10439,34 @@ struct retro_core_option_v2_definition option_defs_gl[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_GL,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_GL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_GL,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_GL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -10099,13 +10643,18 @@ struct retro_core_options_v2 options_gl = {
 #define FCEUMM_TURBO_DELAY_INFO_0_HE NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_HE NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_HE NULL
-#define OPTION_VAL_LIGHTGUN_HE NULL
+#define OPTION_VAL_C_LIGHTGUN_HE NULL
+#define OPTION_VAL_ST_LIGHTGUN_HE NULL
 #define OPTION_VAL_TOUCHSCREEN_HE NULL
 #define OPTION_VAL_MOUSE_HE NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_HE NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_HE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_HE NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_HE NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_HE NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_HE NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_HE NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_HE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_HE NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_HE NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_HE NULL
@@ -10492,12 +11041,13 @@ struct retro_core_option_v2_definition option_defs_he[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_HE },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_HE },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_HE },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_HE },
          { "mouse",       OPTION_VAL_MOUSE_HE },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -10545,6 +11095,34 @@ struct retro_core_option_v2_definition option_defs_he[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_HE,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_HE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_HE,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_HE,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -10721,13 +11299,18 @@ struct retro_core_options_v2 options_he = {
 #define FCEUMM_TURBO_DELAY_INFO_0_HU NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_HU NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_HU NULL
-#define OPTION_VAL_LIGHTGUN_HU NULL
+#define OPTION_VAL_C_LIGHTGUN_HU NULL
+#define OPTION_VAL_ST_LIGHTGUN_HU NULL
 #define OPTION_VAL_TOUCHSCREEN_HU NULL
 #define OPTION_VAL_MOUSE_HU NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_HU NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_HU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_HU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_HU NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_HU NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_HU NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_HU NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_HU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_HU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_HU NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_HU NULL
@@ -11114,12 +11697,13 @@ struct retro_core_option_v2_definition option_defs_hu[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_HU },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_HU },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_HU },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_HU },
          { "mouse",       OPTION_VAL_MOUSE_HU },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -11167,6 +11751,34 @@ struct retro_core_option_v2_definition option_defs_hu[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_HU,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_HU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_HU,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_HU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -11343,13 +11955,18 @@ struct retro_core_options_v2 options_hu = {
 #define FCEUMM_TURBO_DELAY_INFO_0_ID NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_ID NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_ID NULL
-#define OPTION_VAL_LIGHTGUN_ID NULL
+#define OPTION_VAL_C_LIGHTGUN_ID NULL
+#define OPTION_VAL_ST_LIGHTGUN_ID NULL
 #define OPTION_VAL_TOUCHSCREEN_ID NULL
 #define OPTION_VAL_MOUSE_ID NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_ID NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_ID NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_ID NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_ID NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_ID NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_ID NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_ID NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_ID NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_ID NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_ID NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_ID NULL
@@ -11736,12 +12353,13 @@ struct retro_core_option_v2_definition option_defs_id[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_ID },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_ID },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_ID },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_ID },
          { "mouse",       OPTION_VAL_MOUSE_ID },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -11789,6 +12407,34 @@ struct retro_core_option_v2_definition option_defs_id[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_ID,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_ID,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_ID,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_ID,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -11965,13 +12611,18 @@ struct retro_core_options_v2 options_id = {
 #define FCEUMM_TURBO_DELAY_INFO_0_IT NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_IT NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_IT NULL
-#define OPTION_VAL_LIGHTGUN_IT NULL
+#define OPTION_VAL_C_LIGHTGUN_IT NULL
+#define OPTION_VAL_ST_LIGHTGUN_IT NULL
 #define OPTION_VAL_TOUCHSCREEN_IT NULL
 #define OPTION_VAL_MOUSE_IT NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_IT NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_IT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_IT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_IT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_IT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_IT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_IT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_IT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_IT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_IT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_IT NULL
@@ -12358,12 +13009,13 @@ struct retro_core_option_v2_definition option_defs_it[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_IT },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_IT },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_IT },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_IT },
          { "mouse",       OPTION_VAL_MOUSE_IT },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -12411,6 +13063,34 @@ struct retro_core_option_v2_definition option_defs_it[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_IT,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_IT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_IT,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_IT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -12587,13 +13267,18 @@ struct retro_core_options_v2 options_it = {
 #define FCEUMM_TURBO_DELAY_INFO_0_JA NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_JA NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_JA NULL
-#define OPTION_VAL_LIGHTGUN_JA NULL
+#define OPTION_VAL_C_LIGHTGUN_JA NULL
+#define OPTION_VAL_ST_LIGHTGUN_JA NULL
 #define OPTION_VAL_TOUCHSCREEN_JA NULL
 #define OPTION_VAL_MOUSE_JA NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_JA NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_JA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_JA NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_JA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_JA NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_JA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_JA NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_JA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_JA NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_JA NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_JA NULL
@@ -12980,12 +13665,13 @@ struct retro_core_option_v2_definition option_defs_ja[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_JA },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_JA },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_JA },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_JA },
          { "mouse",       OPTION_VAL_MOUSE_JA },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -13033,6 +13719,34 @@ struct retro_core_option_v2_definition option_defs_ja[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_JA,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_JA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_JA,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_JA,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -13209,13 +13923,18 @@ struct retro_core_options_v2 options_ja = {
 #define FCEUMM_TURBO_DELAY_INFO_0_KO NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_KO NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_KO NULL
-#define OPTION_VAL_LIGHTGUN_KO NULL
+#define OPTION_VAL_C_LIGHTGUN_KO NULL
+#define OPTION_VAL_ST_LIGHTGUN_KO NULL
 #define OPTION_VAL_TOUCHSCREEN_KO NULL
 #define OPTION_VAL_MOUSE_KO NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_KO NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_KO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_KO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_KO NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_KO NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_KO NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_KO NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_KO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_KO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_KO NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_KO NULL
@@ -13602,12 +14321,13 @@ struct retro_core_option_v2_definition option_defs_ko[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_KO },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_KO },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_KO },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_KO },
          { "mouse",       OPTION_VAL_MOUSE_KO },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -13655,6 +14375,34 @@ struct retro_core_option_v2_definition option_defs_ko[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_KO,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_KO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_KO,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_KO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -13831,13 +14579,18 @@ struct retro_core_options_v2 options_ko = {
 #define FCEUMM_TURBO_DELAY_INFO_0_MT NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_MT NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_MT NULL
-#define OPTION_VAL_LIGHTGUN_MT NULL
+#define OPTION_VAL_C_LIGHTGUN_MT NULL
+#define OPTION_VAL_ST_LIGHTGUN_MT NULL
 #define OPTION_VAL_TOUCHSCREEN_MT NULL
 #define OPTION_VAL_MOUSE_MT NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_MT NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_MT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_MT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_MT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_MT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_MT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_MT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_MT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_MT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_MT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_MT NULL
@@ -14224,12 +14977,13 @@ struct retro_core_option_v2_definition option_defs_mt[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_MT },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_MT },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_MT },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_MT },
          { "mouse",       OPTION_VAL_MOUSE_MT },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -14277,6 +15031,34 @@ struct retro_core_option_v2_definition option_defs_mt[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_MT,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_MT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_MT,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_MT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -14453,13 +15235,18 @@ struct retro_core_options_v2 options_mt = {
 #define FCEUMM_TURBO_DELAY_INFO_0_NL NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_NL NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_NL NULL
-#define OPTION_VAL_LIGHTGUN_NL NULL
+#define OPTION_VAL_C_LIGHTGUN_NL NULL
+#define OPTION_VAL_ST_LIGHTGUN_NL NULL
 #define OPTION_VAL_TOUCHSCREEN_NL NULL
 #define OPTION_VAL_MOUSE_NL NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_NL NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_NL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_NL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_NL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_NL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_NL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_NL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_NL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_NL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_NL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_NL NULL
@@ -14846,12 +15633,13 @@ struct retro_core_option_v2_definition option_defs_nl[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_NL },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_NL },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_NL },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_NL },
          { "mouse",       OPTION_VAL_MOUSE_NL },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -14899,6 +15687,34 @@ struct retro_core_option_v2_definition option_defs_nl[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_NL,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_NL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_NL,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_NL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -15075,13 +15891,18 @@ struct retro_core_options_v2 options_nl = {
 #define FCEUMM_TURBO_DELAY_INFO_0_OC NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_OC NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_OC NULL
-#define OPTION_VAL_LIGHTGUN_OC NULL
+#define OPTION_VAL_C_LIGHTGUN_OC NULL
+#define OPTION_VAL_ST_LIGHTGUN_OC NULL
 #define OPTION_VAL_TOUCHSCREEN_OC NULL
 #define OPTION_VAL_MOUSE_OC NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_OC NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_OC NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_OC NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_OC NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_OC NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_OC NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_OC NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_OC NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_OC NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_OC NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_OC NULL
@@ -15468,12 +16289,13 @@ struct retro_core_option_v2_definition option_defs_oc[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_OC },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_OC },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_OC },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_OC },
          { "mouse",       OPTION_VAL_MOUSE_OC },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -15521,6 +16343,34 @@ struct retro_core_option_v2_definition option_defs_oc[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_OC,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_OC,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_OC,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_OC,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -15697,13 +16547,18 @@ struct retro_core_options_v2 options_oc = {
 #define FCEUMM_TURBO_DELAY_INFO_0_PL NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_PL NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_PL NULL
-#define OPTION_VAL_LIGHTGUN_PL NULL
+#define OPTION_VAL_C_LIGHTGUN_PL NULL
+#define OPTION_VAL_ST_LIGHTGUN_PL NULL
 #define OPTION_VAL_TOUCHSCREEN_PL NULL
 #define OPTION_VAL_MOUSE_PL NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_PL NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_PL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_PL NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_PL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_PL NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_PL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_PL NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_PL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_PL NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_PL NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_PL NULL
@@ -16090,12 +16945,13 @@ struct retro_core_option_v2_definition option_defs_pl[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_PL },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_PL },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_PL },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_PL },
          { "mouse",       OPTION_VAL_MOUSE_PL },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -16143,6 +16999,34 @@ struct retro_core_option_v2_definition option_defs_pl[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_PL,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_PL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_PL,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_PL,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -16319,13 +17203,18 @@ struct retro_core_options_v2 options_pl = {
 #define FCEUMM_TURBO_DELAY_INFO_0_PT_BR NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_PT_BR NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_PT_BR NULL
-#define OPTION_VAL_LIGHTGUN_PT_BR NULL
+#define OPTION_VAL_C_LIGHTGUN_PT_BR NULL
+#define OPTION_VAL_ST_LIGHTGUN_PT_BR NULL
 #define OPTION_VAL_TOUCHSCREEN_PT_BR NULL
 #define OPTION_VAL_MOUSE_PT_BR NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_PT_BR NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_PT_BR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_PT_BR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_PT_BR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_BR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_BR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_PT_BR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_PT_BR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_PT_BR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_PT_BR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_PT_BR NULL
@@ -16712,12 +17601,13 @@ struct retro_core_option_v2_definition option_defs_pt_br[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_PT_BR },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_PT_BR },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_PT_BR },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_PT_BR },
          { "mouse",       OPTION_VAL_MOUSE_PT_BR },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -16765,6 +17655,34 @@ struct retro_core_option_v2_definition option_defs_pt_br[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_BR,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_BR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_PT_BR,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_PT_BR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -16941,13 +17859,18 @@ struct retro_core_options_v2 options_pt_br = {
 #define FCEUMM_TURBO_DELAY_INFO_0_PT_PT NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_PT_PT NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_PT_PT NULL
-#define OPTION_VAL_LIGHTGUN_PT_PT NULL
+#define OPTION_VAL_C_LIGHTGUN_PT_PT NULL
+#define OPTION_VAL_ST_LIGHTGUN_PT_PT NULL
 #define OPTION_VAL_TOUCHSCREEN_PT_PT NULL
 #define OPTION_VAL_MOUSE_PT_PT NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_PT_PT NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_PT_PT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_PT_PT NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_PT_PT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_PT NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_PT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_PT_PT NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_PT_PT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_PT_PT NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_PT_PT NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_PT_PT NULL
@@ -17334,12 +18257,13 @@ struct retro_core_option_v2_definition option_defs_pt_pt[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_PT_PT },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_PT_PT },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_PT_PT },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_PT_PT },
          { "mouse",       OPTION_VAL_MOUSE_PT_PT },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -17387,6 +18311,34 @@ struct retro_core_option_v2_definition option_defs_pt_pt[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_PT,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_PT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_PT_PT,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_PT_PT,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -17563,13 +18515,18 @@ struct retro_core_options_v2 options_pt_pt = {
 #define FCEUMM_TURBO_DELAY_INFO_0_RO NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_RO NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_RO NULL
-#define OPTION_VAL_LIGHTGUN_RO NULL
+#define OPTION_VAL_C_LIGHTGUN_RO NULL
+#define OPTION_VAL_ST_LIGHTGUN_RO NULL
 #define OPTION_VAL_TOUCHSCREEN_RO NULL
 #define OPTION_VAL_MOUSE_RO NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_RO NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_RO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_RO NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_RO NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_RO NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_RO NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_RO NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_RO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_RO NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_RO NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_RO NULL
@@ -17956,12 +18913,13 @@ struct retro_core_option_v2_definition option_defs_ro[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_RO },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_RO },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_RO },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_RO },
          { "mouse",       OPTION_VAL_MOUSE_RO },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -18009,6 +18967,34 @@ struct retro_core_option_v2_definition option_defs_ro[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_RO,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_RO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_RO,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_RO,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -18185,13 +19171,18 @@ struct retro_core_options_v2 options_ro = {
 #define FCEUMM_TURBO_DELAY_INFO_0_RU NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_RU NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_RU NULL
-#define OPTION_VAL_LIGHTGUN_RU NULL
+#define OPTION_VAL_C_LIGHTGUN_RU NULL
+#define OPTION_VAL_ST_LIGHTGUN_RU NULL
 #define OPTION_VAL_TOUCHSCREEN_RU NULL
 #define OPTION_VAL_MOUSE_RU NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_RU NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_RU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_RU NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_RU NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_RU NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_RU NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_RU NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_RU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_RU NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_RU NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_RU NULL
@@ -18578,12 +19569,13 @@ struct retro_core_option_v2_definition option_defs_ru[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_RU },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_RU },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_RU },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_RU },
          { "mouse",       OPTION_VAL_MOUSE_RU },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -18631,6 +19623,34 @@ struct retro_core_option_v2_definition option_defs_ru[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_RU,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_RU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_RU,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_RU,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -18807,13 +19827,18 @@ struct retro_core_options_v2 options_ru = {
 #define FCEUMM_TURBO_DELAY_INFO_0_SI NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_SI NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_SI NULL
-#define OPTION_VAL_LIGHTGUN_SI NULL
+#define OPTION_VAL_C_LIGHTGUN_SI NULL
+#define OPTION_VAL_ST_LIGHTGUN_SI NULL
 #define OPTION_VAL_TOUCHSCREEN_SI NULL
 #define OPTION_VAL_MOUSE_SI NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_SI NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SI NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SI NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SI NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SI NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SI NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SI NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SI NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SI NULL
@@ -19200,12 +20225,13 @@ struct retro_core_option_v2_definition option_defs_si[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_SI },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_SI },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_SI },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_SI },
          { "mouse",       OPTION_VAL_MOUSE_SI },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -19253,6 +20279,34 @@ struct retro_core_option_v2_definition option_defs_si[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SI,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SI,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SI,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -19429,13 +20483,18 @@ struct retro_core_options_v2 options_si = {
 #define FCEUMM_TURBO_DELAY_INFO_0_SK NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_SK NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_SK NULL
-#define OPTION_VAL_LIGHTGUN_SK NULL
+#define OPTION_VAL_C_LIGHTGUN_SK NULL
+#define OPTION_VAL_ST_LIGHTGUN_SK NULL
 #define OPTION_VAL_TOUCHSCREEN_SK NULL
 #define OPTION_VAL_MOUSE_SK NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_SK NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SK NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SK NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SK NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SK NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SK NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SK NULL
@@ -19822,12 +20881,13 @@ struct retro_core_option_v2_definition option_defs_sk[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_SK },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_SK },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_SK },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_SK },
          { "mouse",       OPTION_VAL_MOUSE_SK },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -19875,6 +20935,34 @@ struct retro_core_option_v2_definition option_defs_sk[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SK,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SK,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -20051,13 +21139,18 @@ struct retro_core_options_v2 options_sk = {
 #define FCEUMM_TURBO_DELAY_INFO_0_SR NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_SR NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_SR NULL
-#define OPTION_VAL_LIGHTGUN_SR NULL
+#define OPTION_VAL_C_LIGHTGUN_SR NULL
+#define OPTION_VAL_ST_LIGHTGUN_SR NULL
 #define OPTION_VAL_TOUCHSCREEN_SR NULL
 #define OPTION_VAL_MOUSE_SR NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_SR NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SR NULL
@@ -20444,12 +21537,13 @@ struct retro_core_option_v2_definition option_defs_sr[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_SR },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_SR },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_SR },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_SR },
          { "mouse",       OPTION_VAL_MOUSE_SR },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -20497,6 +21591,34 @@ struct retro_core_option_v2_definition option_defs_sr[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SR,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SR,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -20673,13 +21795,18 @@ struct retro_core_options_v2 options_sr = {
 #define FCEUMM_TURBO_DELAY_INFO_0_SV NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_SV NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_SV NULL
-#define OPTION_VAL_LIGHTGUN_SV NULL
+#define OPTION_VAL_C_LIGHTGUN_SV NULL
+#define OPTION_VAL_ST_LIGHTGUN_SV NULL
 #define OPTION_VAL_TOUCHSCREEN_SV NULL
 #define OPTION_VAL_MOUSE_SV NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_SV NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_SV NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_SV NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_SV NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SV NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SV NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SV NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SV NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_SV NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_SV NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_SV NULL
@@ -21066,12 +22193,13 @@ struct retro_core_option_v2_definition option_defs_sv[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_SV },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_SV },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_SV },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_SV },
          { "mouse",       OPTION_VAL_MOUSE_SV },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -21119,6 +22247,34 @@ struct retro_core_option_v2_definition option_defs_sv[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_SV,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_SV,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_SV,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_SV,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -21295,13 +22451,18 @@ struct retro_core_options_v2 options_sv = {
 #define FCEUMM_TURBO_DELAY_INFO_0_TR NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_TR NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_TR NULL
-#define OPTION_VAL_LIGHTGUN_TR NULL
+#define OPTION_VAL_C_LIGHTGUN_TR NULL
+#define OPTION_VAL_ST_LIGHTGUN_TR NULL
 #define OPTION_VAL_TOUCHSCREEN_TR NULL
 #define OPTION_VAL_MOUSE_TR NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_TR NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_TR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_TR NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_TR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_TR NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_TR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_TR NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_TR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_TR NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_TR NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_TR NULL
@@ -21688,12 +22849,13 @@ struct retro_core_option_v2_definition option_defs_tr[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_TR },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_TR },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_TR },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_TR },
          { "mouse",       OPTION_VAL_MOUSE_TR },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -21741,6 +22903,34 @@ struct retro_core_option_v2_definition option_defs_tr[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_TR,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_TR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_TR,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_TR,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -21917,13 +23107,18 @@ struct retro_core_options_v2 options_tr = {
 #define FCEUMM_TURBO_DELAY_INFO_0_UK NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_UK NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_UK NULL
-#define OPTION_VAL_LIGHTGUN_UK NULL
+#define OPTION_VAL_C_LIGHTGUN_UK NULL
+#define OPTION_VAL_ST_LIGHTGUN_UK NULL
 #define OPTION_VAL_TOUCHSCREEN_UK NULL
 #define OPTION_VAL_MOUSE_UK NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_UK NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_UK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_UK NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_UK NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_UK NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_UK NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_UK NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_UK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_UK NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_UK NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_UK NULL
@@ -22310,12 +23505,13 @@ struct retro_core_option_v2_definition option_defs_uk[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_UK },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_UK },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_UK },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_UK },
          { "mouse",       OPTION_VAL_MOUSE_UK },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -22363,6 +23559,34 @@ struct retro_core_option_v2_definition option_defs_uk[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_UK,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_UK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_UK,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_UK,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
@@ -22539,13 +23763,18 @@ struct retro_core_options_v2 options_uk = {
 #define FCEUMM_TURBO_DELAY_INFO_0_VN NULL
 #define FCEUMM_ZAPPER_MODE_LABEL_VN NULL
 #define FCEUMM_ZAPPER_MODE_INFO_0_VN NULL
-#define OPTION_VAL_LIGHTGUN_VN NULL
+#define OPTION_VAL_C_LIGHTGUN_VN NULL
+#define OPTION_VAL_ST_LIGHTGUN_VN NULL
 #define OPTION_VAL_TOUCHSCREEN_VN NULL
 #define OPTION_VAL_MOUSE_VN NULL
 #define FCEUMM_SHOW_CROSSHAIR_LABEL_VN NULL
 #define FCEUMM_SHOW_CROSSHAIR_INFO_0_VN NULL
 #define FCEUMM_ZAPPER_TOLERANCE_LABEL_VN NULL
 #define FCEUMM_ZAPPER_TOLERANCE_INFO_0_VN NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_VN NULL
+#define FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_VN NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_VN NULL
+#define FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_VN NULL
 #define FCEUMM_UP_DOWN_ALLOWED_LABEL_VN NULL
 #define FCEUMM_UP_DOWN_ALLOWED_INFO_0_VN NULL
 #define FCEUMM_NOSPRITELIMIT_LABEL_VN NULL
@@ -22932,12 +24161,13 @@ struct retro_core_option_v2_definition option_defs_vn[] = {
       NULL,
       "input",
       {
-         { "lightgun",    OPTION_VAL_LIGHTGUN_VN },
+         { "clightgun",   OPTION_VAL_C_LIGHTGUN_VN },
+         { "stlightgun",  OPTION_VAL_ST_LIGHTGUN_VN },
          { "touchscreen", OPTION_VAL_TOUCHSCREEN_VN },
          { "mouse",       OPTION_VAL_MOUSE_VN },
          { NULL, NULL },
       },
-      "lightgun",
+      "clightgun",
    },
    {
       "fceumm_show_crosshair",
@@ -22985,6 +24215,34 @@ struct retro_core_option_v2_definition option_defs_vn[] = {
          { NULL, NULL },
       },
       "6",
+   },
+   {
+      "fceumm_zapper_trigger_invert",
+      FCEUMM_ZAPPER_TRIGGER_INVERT_LABEL_VN,
+      NULL,
+      FCEUMM_ZAPPER_TRIGGER_INVERT_INFO_0_VN,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
+   },
+   {
+      "fceumm_zapper_sensor_invert",
+      FCEUMM_ZAPPER_SENSOR_INVERT_LABEL_VN,
+      NULL,
+      FCEUMM_ZAPPER_SENSOR_INVERT_INFO_0_VN,
+      NULL,
+      "input",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled",
    },
    {
       "fceumm_up_down_allowed",
