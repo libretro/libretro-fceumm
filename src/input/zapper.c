@@ -119,7 +119,7 @@ static uint8 FP_FASTAPASS(1) ReadZapperVS(int w) {
 	if (ZD[w].zap_readbit == 4) ret = 1;
 
 	if (ZD[w].zap_readbit == 7) {
-		if (ZD[w].bogo)
+		if (!ZD[w].bogo)
 			ret |= 0x1;	
 	}
 
