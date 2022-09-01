@@ -47,17 +47,17 @@
 #define MAX_PORTS 2   /* max controller ports,
                        * port 0 for player 1/3, port 1 for player 2/4 */
 
-#define RETRO_DEVICE_AUTO        RETRO_DEVICE_JOYPAD
-#define RETRO_DEVICE_GAMEPAD     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1)
-#define RETRO_DEVICE_ZAPPER      RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  0)
-#define RETRO_DEVICE_ARKANOID    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  1)
+#define RETRO_DEVICE_AUTO         RETRO_DEVICE_JOYPAD
+#define RETRO_DEVICE_GAMEPAD      RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1)
+#define RETRO_DEVICE_ZAPPER       RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  0)
+#define RETRO_DEVICE_ARKANOID     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  1)
 
-#define RETRO_DEVICE_FC_ARKANOID RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  2)
-#define RETRO_DEVICE_FC_OEKAKIDS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  3)
-#define RETRO_DEVICE_FC_SHADOW   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
-#define RETRO_DEVICE_FC_4PLAYERS RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 2)
+#define RETRO_DEVICE_FC_ARKANOID  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  2)
+#define RETRO_DEVICE_FC_OEKAKIDS  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  3)
+#define RETRO_DEVICE_FC_SHADOW    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
+#define RETRO_DEVICE_FC_4PLAYERS  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 2)
 #define RETRO_DEVICE_FC_HYPERSHOT RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 3)
-#define RETRO_DEVICE_FC_AUTO     RETRO_DEVICE_JOYPAD
+#define RETRO_DEVICE_FC_AUTO      RETRO_DEVICE_JOYPAD
 
 #define NES_WIDTH   256
 #define NES_HEIGHT  240
@@ -141,14 +141,15 @@ typedef struct {
    uint32_t type[MAX_PLAYERS + 1];     /* 4-players + famicom expansion */
 
    /* input data */
-   uint32_t JSReturn;                  /* player input data, 1 byte per player (1-4) */
-   uint32_t MouseData[MAX_PORTS][3];   /* nes mouse data */
-   uint32_t FamicomData[3];            /* Famicom expansion port data */
+   uint32_t JSReturn;                     /* player input data, 1 byte per player (1-4) */
+   uint32_t MouseData[MAX_PORTS][4];      /* nes mouse data */
+   uint32_t FamicomData[3];               /* Famicom expansion port data */
 } NES_INPUT_T;
 
 static NES_INPUT_T nes_input = { 0 };
-enum RetroZapperInputModes{RetroLightgun, RetroMouse, RetroPointer};
-static enum RetroZapperInputModes zappermode = RetroLightgun;
+enum RetroZapperInputModes{RetroCLightgun, RetroSTLightgun, RetroMouse, RetroPointer};
+enum RetroZapperInputModes zappermode = RetroCLightgun;
+extern int switchZapper;
 
 static bool libretro_supports_bitmasks = false;
 static bool libretro_supports_option_categories = false;
@@ -206,6 +207,8 @@ extern CartInfo iNESCart;
 extern CartInfo UNIFCart;
 extern int show_crosshair;
 extern int option_ramstate;
+extern int zapper_trigger_invert_option;
+extern int zapper_sensor_invert_option;
 
 /* emulator-specific callback functions */
 
@@ -1949,9 +1952,22 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      if (!strcmp(var.value, "mouse")) zappermode = RetroMouse;
-      else if (!strcmp(var.value, "touchscreen")) zappermode = RetroPointer;
-      else zappermode = RetroLightgun; /*default setting*/
+      if (!strcmp(var.value, "mouse")) {
+         zappermode = RetroMouse;
+         switchZapper = 0;
+      }
+      else if (!strcmp(var.value, "touchscreen")) {
+         zappermode = RetroPointer;
+         switchZapper = 0;
+      }
+      else if (!strcmp(var.value, "stlightgun")) {
+         zappermode = RetroSTLightgun;
+         switchZapper = 1;
+      }
+      else {
+         zappermode = RetroCLightgun; /*default setting*/
+         switchZapper = 0;
+      }
    }
 
    var.key = "fceumm_zapper_tolerance";
@@ -1967,6 +1983,22 @@ static void check_variables(bool startup)
    {
       if (!strcmp(var.value, "enabled")) show_crosshair = 1;
       else if (!strcmp(var.value, "disabled")) show_crosshair = 0;
+   }
+
+   var.key = "fceumm_zapper_trigger";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled")) zapper_trigger_invert_option = 1;
+      else if (!strcmp(var.value, "disabled")) zapper_trigger_invert_option = 0;
+   }
+
+   var.key = "fceumm_zapper_sensor";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "enabled")) zapper_sensor_invert_option = 1;
+      else if (!strcmp(var.value, "disabled")) zapper_sensor_invert_option = 0;
    }
 
 #ifdef PSP
@@ -2195,6 +2227,9 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
 
    if (zappermode == RetroMouse) /* mouse device */
    {
+      int mouse_Lbutton;
+      int mouse_Rbutton;
+
       min_width   = (adjx ? 8 : 0) + 1;
       min_height  = (adjy ? 8 : 0) + 1;
       max_width  -= (adjx ? 8 : 0);
@@ -2213,10 +2248,13 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
 
       zapdata[0] = mzx;
       zapdata[1] = mzy;
+      
+      mouse_Lbutton = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+      mouse_Rbutton = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
 
-      if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT))
+      if (mouse_Lbutton)
          zapdata[2] |= 0x1;
-      if (input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT))
+      if (mouse_Rbutton)
          zapdata[2] |= 0x2;
    }
    else if (zappermode == RetroPointer) {
@@ -2240,7 +2278,7 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
       if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
          zapdata[2] |= 0x1;
    }
-   else /* lightgun device */
+   else  if (zappermode == RetroCLightgun) /* Crosshair lightgun device */
    {
       int offset_x = (adjx ? 0X8FF : 0);
       int offset_y = (adjy ? 0X999 : 0);
@@ -2259,8 +2297,8 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
       }
       else
       {
-         int _x = input_cb(port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X);
-         int _y = input_cb(port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y);
+         int _x = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X );
+         int _y = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y );
 
          zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
          zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
@@ -2268,6 +2306,11 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
 
       if ( trigger || offscreen_shot )
          zapdata[2] |= 0x1;
+   }
+   else /* Sequential targets lightgun device integration */
+   {
+      zapdata[2] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER );
+      zapdata[3] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_AUX_A );
    }
 }
 
@@ -2415,7 +2458,7 @@ static void FCEUD_UpdateInput(void)
       {
          case RETRO_DEVICE_ARKANOID:
          case RETRO_DEVICE_ZAPPER:
-            get_mouse_input(port, nes_input.MouseData[port]);
+               get_mouse_input(port, nes_input.MouseData[port]);
             break;
       }
    }
