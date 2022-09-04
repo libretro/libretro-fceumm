@@ -69,7 +69,6 @@ extern void (*GameStateRestore)(int version);
 
 #include "git.h"
 extern FCEUGI *GameInfo;
-extern int GameAttributes;
 
 extern uint8 PAL;
 
@@ -93,7 +92,6 @@ typedef struct {
 	 */
 	int UsrFirstSLine[2];
 	int UsrLastSLine[2];
-	int SnapName;
 	uint32 SndRate;
 	int soundq;
 	int lowpass;

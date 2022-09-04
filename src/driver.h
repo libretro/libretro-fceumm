@@ -82,9 +82,6 @@ void FCEUI_DisableFourScore(int s);
 
 /* New interface functions */
 
-/* 0 to order screen snapshots numerically(0.png), 1 to order them file base-numerically(smb3-0.png). */
-void FCEUI_SetSnapName(int a);
-
 /* 0 to keep 8-sprites limitation, 1 to remove it */
 void FCEUI_DisableSpriteLimitation(int a);
 

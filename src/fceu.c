@@ -522,11 +522,6 @@ void FCEUI_SetGameGenie(int a)
 	FSettings.GameGenie = a ? 1 : 0;
 }
 
-void FCEUI_SetSnapName(int a)
-{
-	FSettings.SnapName = a;
-}
-
 int32 FCEUI_GetDesiredFPS(void)
 {
 	if (PAL || dendy)
