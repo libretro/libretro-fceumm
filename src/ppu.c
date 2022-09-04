@@ -384,12 +384,7 @@ void FCEUPPU_LineUpdate(void) {
 	}
 }
 
-static int tileview = 0;
 static int rendis = 0;
-
-void FCEUI_ToggleTileView(void) {
-	tileview ^= 1;
-}
 
 void FCEUI_SetRenderDisable(int sprites, int bg) {
 	if (sprites >= 0) {

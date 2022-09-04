@@ -50,13 +50,6 @@ void FCEUI_SetBaseDirectory(const char *dir)
 	BaseDirectory[2047] = 0;
 }
 
-static char *odirs[FCEUIOD__COUNT] = { 0, 0, 0, 0, 0, 0 };		/* odirs, odors. ^_^ */
-
-void FCEUI_SetDirOverride(int which, char *n)
-{
-	odirs[which] = n;
-}
-
 char *FCEU_MakeFName(int type, int id1, char *cd1)
 {
    char tmp[4096 + 512] = {0}; /* +512 for no reason :D */

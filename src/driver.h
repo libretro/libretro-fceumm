@@ -147,14 +147,7 @@ void FCEUI_Sound(int Rate);
 void FCEUI_SetSoundVolume(uint32 volume);
 void FCEUI_SetSoundQuality(int quality);
 
-void FCEUI_SelectState(int);
-
-/* "fname" overrides the default save state filename code if non-NULL. */
-void FCEUI_SaveState(char *fname);
-void FCEUI_LoadState(char *fname);
-
 int32 FCEUI_GetDesiredFPS(void);
-void FCEUI_SaveSnapshot(void);
 
 int FCEUI_DecodePAR(const char *code, uint16 *a, uint8 *v, int *c, int *type);
 int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c);
@@ -175,17 +168,7 @@ int FCEUI_SetCheat(uint32 which, const char *name, int32 a, int32 v, int compare
 void FCEUI_CheatSearchShowExcluded(void);
 void FCEUI_CheatSearchSetCurrentAsOriginal(void);
 
-#define FCEUIOD_STATE   0
-#define FCEUIOD_SNAPS   1
-#define FCEUIOD_NV      2
-#define FCEUIOD_CHEATS  3
-#define FCEUIOD_MISC    4
-#define FCEUIOD_MOVIE  5
-
-#define FCEUIOD__COUNT  6
-
-void FCEUI_SetDirOverride(int which, char *n);
-
+#ifdef FCEUDEF_DEBUGGER
 void FCEUI_MemDump(uint16 a, int32 len, void (*callb)(uint16 a, uint8 v));
 uint8 FCEUI_MemSafePeek(uint16 A);
 void FCEUI_MemPoke(uint16 a, uint8 v, int hl);
@@ -193,10 +176,8 @@ void FCEUI_NMI(void);
 void FCEUI_IRQ(void);
 uint16 FCEUI_Disassemble(void *XA, uint16 a, char *stringo);
 void FCEUI_GetIVectors(uint16 *reset, uint16 *irq, uint16 *nmi);
+#endif
 
-uint32 FCEUI_CRC32(uint32 crc, uint8 *buf, uint32 len);
-
-/* void FCEUI_ToggleTileView(void); */
 void FCEUI_SetLowPass(int q);
 
 void FCEUI_NSFSetVis(int mode);
