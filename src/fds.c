@@ -51,12 +51,6 @@ static DECLFR(FDSRead4033);
 
 static DECLFW(FDSWrite);
 
-static DECLFW(FDSWaveWrite);
-static DECLFR(FDSWaveRead);
-
-static DECLFR(FDSSRead);
-static DECLFW(FDSSWrite);
-
 static void FDSInit(void);
 static void FDSClose(void);
 
