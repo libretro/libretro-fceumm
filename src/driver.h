@@ -41,9 +41,6 @@ void FCEUD_Message(char *s);
 void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char *str);
 void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...);
 
-int FCEUI_BeginWaveRecord(char *fn);
-int FCEUI_EndWaveRecord(void);
-
 void FCEUI_ResetNES(void);
 void FCEUI_PowerNES(void);
 
@@ -158,10 +155,6 @@ void FCEUI_SelectState(int);
 /* "fname" overrides the default save state filename code if non-NULL. */
 void FCEUI_SaveState(char *fname);
 void FCEUI_LoadState(char *fname);
-
-void FCEUI_SelectMovie(int);
-void FCEUI_SaveMovie(char *fname);
-void FCEUI_LoadMovie(char *fname);
 
 int32 FCEUI_GetDesiredFPS(void);
 void FCEUI_SaveSnapshot(void);

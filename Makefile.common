@@ -38,7 +38,6 @@ SOURCES_C += \
 	$(CORE_DIR)/crc32.c \
 	$(CORE_DIR)/fceu-endian.c \
 	$(CORE_DIR)/fceu-memory.c \
-	$(CORE_DIR)/misc.c \
 	$(CORE_DIR)/fceu.c \
 	$(CORE_DIR)/fds.c \
 	$(CORE_DIR)/fds_apu.c \

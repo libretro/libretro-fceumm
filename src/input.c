@@ -195,7 +195,6 @@ static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
 		joy[1] = *(uint32*)ptr >> 8;
 		joy[3] = *(uint32*)ptr >> 24;
 	}
-	FCEUMOV_AddJoy(joy);
 }
 
 static void FP_FASTAPASS(1) StrobeGP(int w) {
