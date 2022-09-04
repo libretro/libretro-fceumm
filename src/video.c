@@ -98,7 +98,3 @@ void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char 
 
    FCEUD_DispMessage(level, duration, msg);
 }
-
-void FCEU_ResetMessages(void)
-{
-}

@@ -301,7 +301,6 @@ endlseq:
    }
 
    FCEU_ResetPalette();
-   FCEU_ResetMessages();	/* Save state, status messages, etc. */
 
    return(GameInfo);
 }
