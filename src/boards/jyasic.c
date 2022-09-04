@@ -689,8 +689,6 @@ void Mapper421_Init(CartInfo *info)
 static uint8 HSK007Reg[4];
 void sync394 (void) /* Called when J.Y. ASIC is active */
 {
-	int prgAND =HSK007Reg[3] &0x10? 0x1F: 0x0F;
-	int chrAND =HSK007Reg[3] &0x80? 0xFF: 0x7F;
 	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x020;
 	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100;
 	syncPRG(0x1F, prgOR);

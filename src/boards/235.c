@@ -21,9 +21,6 @@
 
 #include "mapinc.h"
 
-static uint8 *CHRRAM;
-static uint32 CHRRAMSIZE;
-
 static uint16 cmdreg;
 static uint8 unrom, reg, openbus;
 

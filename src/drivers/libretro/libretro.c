@@ -1321,7 +1321,6 @@ static bool update_option_visibility(void)
 {
    struct retro_variable var = {0};
    bool updated              = false;
-   size_t i, size;
 
    /* If frontend supports core option categories,
     * then fceumm_show_adv_system_options and
@@ -1415,7 +1414,7 @@ static bool update_option_visibility(void)
 static void set_variables(void)
 {
    struct retro_core_option_display option_display;
-   unsigned i = 0, index = 0;
+   unsigned index = 0;
 
    option_display.visible = false;
 
@@ -2696,8 +2695,8 @@ static void retro_run_blit(uint8_t *gfx)
 void retro_run(void)
 {
    uint8_t *gfx;
-   int32_t i, ssize = 0;
-   bool updated = false;
+   int32_t ssize = 0;
+   bool updated  = false;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       check_variables(false);

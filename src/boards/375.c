@@ -73,10 +73,6 @@ static void Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
-static DECLFR(M375Read) {
-	return CartBR(A);
-}
-
 static DECLFW(M375Write) {
 	if (addrlatch & 0x800)
 		datalatch = V;

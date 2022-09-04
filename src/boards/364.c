@@ -44,11 +44,6 @@ static void M364Power(void) {
 	SetWriteHandler(0x7000, 0x7FFF, M364Write);
 }
 
-static void M364Reset(void) {
-	EXPREGS[0] = 0;
-	MMC3RegReset();
-}
-
 void Mapper364_Init(CartInfo *info) {
 	GenMMC3_Init(info, 512, 512, 8, 0);
 	pwrap = M364PW;

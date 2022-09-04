@@ -48,13 +48,6 @@ static DECLFW(HP898FWrite) {
 	}
 }
 
-static DECLFW(HP898FWriteEx) {
-	switch (A & 4) {
-	case 0:	regs[0] = V; break; /* CHR */
-	case 4:	regs[1] = (V & 0xC0) | ((V >> 2) & 6) | ((V & 0x20) ? 1 : 0); break; /* PRG */
-	}
-	Sync();
-}
 static void HP898FPower(void) {
 	regs[0] = regs[1] = 0;
 	Sync();
