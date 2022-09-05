@@ -68,6 +68,12 @@ static void sync () {
 	int chip   =reg[2] &0x01 && CHRRAM? 0x10: 0x00;
 	
 	if (reg[2] &0x10) { /* NROM mode */
+		if (reg[2] &0x08) { /* NROM-64 */
+			setprg8r(chip, 0x8000, prgOR);
+			setprg8r(chip, 0xA000, prgOR);
+			setprg8r(chip, 0xC000, prgOR);
+			setprg8r(chip, 0xE000, prgOR);
+		} else
 		if (reg[2] &0x04) { /* NROM-128 */
 			setprg16r(chip, 0x8000, prgOR >>1);
 			setprg16r(chip, 0xC000, prgOR >>1);

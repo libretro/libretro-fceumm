@@ -25,26 +25,26 @@
 
 static void M432CW(uint32 A, uint8 V) {
 	int chrAND = (EXPREGS[1] & 0x04) ? 0x7F : 0xFF;
-	int chrOR  = (EXPREGS[1] << 7) & 0x080 | (EXPREGS[1] << 5) & 0x100;
+	int chrOR  = (EXPREGS[1] << 7) & 0x080 | (EXPREGS[1] << 5) & 0x100 | (EXPREGS[1] << 4) & 0x200;
 	setchr1(A, (V & chrAND) | (chrOR & ~chrAND));
 }
 
 static void M432PW(uint32 A, uint8 V) {
 	int prgAND = (EXPREGS[1] & 0x02) ? 0x0F : 0x1F;
-	int prgOR  = ((EXPREGS[1] << 4) & 0x10) | (EXPREGS[1] << 1) & 0x20;
+	int prgOR  = ((EXPREGS[1] << 4) & 0x10) | (EXPREGS[1] << 1) & 0x60;
 	if ((A < 0xC000) || (~EXPREGS[1] & 0x40)) setprg8(A,          (V & prgAND) | (prgOR & ~prgAND) & (EXPREGS[1] & 0x80?~2:~0));
 	if ((A < 0xC000) &&  (EXPREGS[1] & 0x40)) setprg8(A | 0x4000, (V & prgAND) | (prgOR & ~prgAND) | (EXPREGS[1] & 0x80? 2: 0));
 }
 
 static DECLFR(M432Read) {
-   if (EXPREGS[0] & 1 || EXPREGS[1] & 0x20)
+   if (EXPREGS[0] & 1 || EXPREGS[1] & 0x20 && ROM_size <64)
 	  return EXPREGS[2];
    return CartBR(A);
 }
 
 static DECLFW(M432Write) {
 	EXPREGS[A & 1] = V;
-	if (~A &1 && ~V &1) EXPREGS[1] &=~0x20; /* Writing 0 to register 0 clears register 1's DIP bit */
+	if (~A &1 && ~V &1 && ROM_size <64) EXPREGS[1] &=~0x20; /* Writing 0 to register 0 clears register 1's DIP bit */
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }

@@ -25,7 +25,7 @@
 
 static uint8 *WRAM;
 static uint32 WRAMSIZE;
-static uint8 latch[2];
+static uint16 latch[2];
 
 static void Mapper452_Sync(void) {
 	uint8 wramBank = latch[1] >>3 &6 |8;
@@ -37,10 +37,10 @@ static void Mapper452_Sync(void) {
 		setprg8r(0x10, (wramBank ^4) <<12, 0);
 	} else
 	if (latch[1] &8) {
-		setprg8(0x8000, latch[0] >>1 |0);
-		setprg8(0xA000, latch[0] >>1 |1);
-		setprg8(0xC000, latch[0] >>1 |2);
-		setprg8(0xE000, latch[0] >>1 |3 | latch[1] &4);
+		setprg8(0x8000, latch[0] >>1 &~1 |0);
+		setprg8(0xA000, latch[0] >>1 &~1 |1);
+		setprg8(0xC000, latch[0] >>1 &~1 |2);
+		setprg8(0xE000, latch[0] >>1 &~1 |3 | latch[1] &4 | (latch[1] &0x04 && latch[1] &0x40? 8: 0));
 	} else {
 		setprg16(0x8000, latch[0] >>2);
 		setprg16(0xC000, 0);
@@ -52,7 +52,7 @@ static void Mapper452_Sync(void) {
 }
 
 static DECLFW(Mapper452_WriteLatch) {
-	latch[0] =A &0xFF;
+	latch[0] =A &0xFFF;
 	latch[1] =V;
 	Mapper452_Sync();
 	/* Do not relay to CartBW, as RAM mapped to locations other than $8000-$DFFF are not write-enabled. */
@@ -94,5 +94,5 @@ void Mapper452_Init(CartInfo *info) {
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
-	AddExState(&latch, 2, 0, "LATC");
+	AddExState(&latch, 4, 0, "LATC");
 }
