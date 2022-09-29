@@ -91,6 +91,7 @@ static DECLFW(Mapper268_WriteWRAM) {
 
 static DECLFW(Mapper268_WriteReg) {
 	int index =A &7;
+	if (~submapper &1) Mapper268_WriteWRAM(A, V);
 	if (~EXPREGS[3] &0x80 || index ==2) {
 		if (index ==2) {
 			if (EXPREGS[2] &0x80) V =V &0x0F | EXPREGS[2] &~0x0F;
@@ -100,7 +101,6 @@ static DECLFW(Mapper268_WriteReg) {
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
 	}
-	if (~submapper &1) Mapper268_WriteWRAM(A, V);
 }
 
 static void Mapper268_Reset(void) {
