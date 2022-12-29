@@ -46,7 +46,8 @@ static void Mapper268_PRGWrap(uint32 A, uint8 V) {
 		prgOffset    =EXPREGS[3]     &0x00E
 		             |EXPREGS[0] <<4 &0x070
 			     |EXPREGS[1] <<4 &0x080
-			     |EXPREGS[1] <<7 &0x300
+			     |EXPREGS[1] <<6 &0x100
+			     |EXPREGS[1] <<8 &0x200
 			     |EXPREGS[0] <<6 &0xC00;
 		break;
 	case 4:		/* LD622D: PRG A20-21 moved to register 0 */
@@ -67,7 +68,10 @@ static void Mapper268_PRGWrap(uint32 A, uint8 V) {
 		break;
 	}
 	prgOffset &=~(prgMaskMMC3 | prgMaskGNROM);
-	setprg8(A, V &prgMaskMMC3 | prgOffset | A >>13 &prgMaskGNROM);	
+	setprg8(A, V &prgMaskMMC3 | prgOffset | A >>13 &prgMaskGNROM);
+
+	/* CHR-RAM write protect on submapper 8/9) */
+	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], (submapper &~1) ==8 && EXPREGS[0] &0x10? 0: 1);
 }
 
 static void Mapper268_CHRWrap(uint32 A, uint8 V) {
