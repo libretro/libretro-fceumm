@@ -28,6 +28,7 @@ static readfunc defread;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 static uint32 hasBattery;
+static uint32 submapper = 0;
 
 static DECLFW(LatchWrite) {
 	latche = A;
@@ -267,7 +268,6 @@ void Mapper200_Init(CartInfo *info) {
 /* 2020-3-6 - Support for 21-in-1 (CF-043) (2006-V) (Unl) [p1].nes which has mixed mirroring
  * found at the time labeled as submapper 15
  * 0x05658DED 128K PRG, 32K CHR */
-static uint32 submapper = 0;
 static void M201Sync(void) {
 	if (latche & 8 || submapper == 15) {
 		setprg32(0x8000, latche & 3);
@@ -281,8 +281,7 @@ static void M201Sync(void) {
 }
 
 void Mapper201_Init(CartInfo *info) {
-	submapper = 0;
-	if (info->submapper > 0) submapper = info->submapper;
+	submapper = info->submapper;
 	Latch_Init(info, M201Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 
@@ -398,7 +397,7 @@ static void M227Sync(void) {
 				setprg16(0xC000, p | 7);
 			} else {
 				setprg16(0x8000, p);
-				setprg16(0xC000, p & 0x38);
+				setprg16(0xC000, submapper ==2? 0: p & 0x38);
 			}
 		}
 	}
@@ -415,6 +414,7 @@ static void M227Sync(void) {
 }
 
 void Mapper227_Init(CartInfo *info) {
+	submapper =info->submapper;
 	Latch_Init(info, M227Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
 
