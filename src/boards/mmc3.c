@@ -1007,31 +1007,6 @@ void Mapper194_Init(CartInfo *info) {
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }
 
-/* ---------------------------- Mapper 195 ------------------------------- */
-static void M195CW(uint32 A, uint8 V) {
-	if (V <= 3)	/* Crystalis (c).nes, Captain Tsubasa Vol 2 - Super Striker (C) */
-		setchr1r(0x10, A, V);
-	else
-		setchr1r(0, A, V);
-}
-
-static void M195Power(void) {
-	GenMMC3Power();
-	setprg4r(0x10, 0x5000, 2);
-	SetWriteHandler(0x5000, 0x5fff, CartBW);
-	SetReadHandler(0x5000, 0x5fff, CartBR);
-}
-
-void Mapper195_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 256, 16, info->battery);
-	cwrap = M195CW;
-	info->Power = M195Power;
-	CHRRAMSIZE = 4096;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
-	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
-	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
-}
-
 /* ---------------------------- Mapper 196 ------------------------------- */
 /* MMC3 board with optional command address line connection, allows to
  * make three-four different wirings to IRQ address lines and separately to
@@ -1127,6 +1102,13 @@ void Mapper197_Init(CartInfo *info) {
 
 /* ---------------------------- Mapper 198 ------------------------------- */
 
+static void M198Power(void) {
+	GenMMC3Power();
+	setprg4r(0x10, 0x5000, 2);
+	SetWriteHandler(0x5000, 0x5fff, CartBW);
+	SetReadHandler(0x5000, 0x5fff, CartBR);
+}
+
 static void M198PW(uint32 A, uint8 V) {
 	if (V >= 0x50)	/* Tenchi o Kurau II - Shokatsu Koumei Den (J) (C).nes */
 		setprg8(A, V & 0x4F);
@@ -1137,7 +1119,7 @@ static void M198PW(uint32 A, uint8 V) {
 void Mapper198_Init(CartInfo *info) {
 	GenMMC3_Init(info, 1024, 0, 16, info->battery);
 	pwrap = M198PW;
-	info->Power = M195Power;
+	info->Power = M198Power;
 }
 
 /* ---------------------------- Mapper 205 ------------------------------ */
