@@ -76,11 +76,18 @@ static void Mapper195_Power(void) {
 	}
 }
 
+void Mapper195_Close(void) {
+	if (CHRRAM)
+		FCEU_gfree(CHRRAM);
+	CHRRAM = NULL;
+}
+
 void Mapper195_Init(CartInfo *info) {
 	GenMMC3_Init(info, 512, 256, 16, info->battery);
 	cwrap = Mapper195_CHRWrap;
 	info->Power = Mapper195_Power;
 	info->Reset = MMC3RegReset;
+	info->Close = Mapper195_Close;
 	CHRRAMSIZE =4096;
 	CHRRAM =(uint8*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
