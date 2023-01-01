@@ -1,8 +1,6 @@
 #ifndef __SERIAL_H
 #define __SERIAL_H
 
-#include <stdio.h>
-
 typedef int BOOL;
 
 #ifndef TRUE

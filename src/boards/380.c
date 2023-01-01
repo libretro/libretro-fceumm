@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- * Copyright (C) 2020 negativeExponent
+ * Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@
 
 static uint16 latche;
 static uint8 dipswitch;
+static uint8 isKN35A;
 
 static SFORMAT StateRegs[] = {
    { &latche, 2 | FCEUSTATE_RLSB, "LATC" },
@@ -47,14 +48,14 @@ static void Sync(void)
    else /* UxROM */
    {
       setprg16(0x8000, latche >> 2);
-      setprg16(0xC000, (latche >> 2) | 7);
+      setprg16(0xC000, (latche >> 2) | 7 | (isKN35A && latche &0x100? 8: 0));
    }
    setmirror(((latche >> 1) & 1) ^ 1);
 }
 
 static DECLFR(M380Read)
 {
-   if (latche & 0x100)
+   if (latche & 0x100 && !isKN35A)
       return dipswitch;
    return CartBR(A);
 }
@@ -89,6 +90,7 @@ static void StateRestore(int version)
 
 void Mapper380_Init(CartInfo *info)
 {
+   isKN35A = info->iNES2 && info->submapper == 1;
    info->Power = M380Power;
    info->Reset = M380Reset;
    GameStateRestore = StateRestore;

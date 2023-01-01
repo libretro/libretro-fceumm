@@ -3,7 +3,7 @@
  * Copyright notice for this file:
  *  Copyright (C) 2011 CaH4e3
   * Copyright (C) 2019 Libretro Team
- *  Copyright (C) 2020 negativeExponent
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

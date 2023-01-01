@@ -35,7 +35,6 @@
 */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 /* Workaround for libretro api compatibility */
 #define ROM_size_max                32

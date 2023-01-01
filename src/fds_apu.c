@@ -19,11 +19,12 @@
  */
 
 /* Begin FDS sound */
-
+#include <string.h>
 #include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
 #include "sound.h"
+#include "state.h"
 
 #define FDSClock (1789772.7272727272727272 / 2)
 
@@ -281,13 +282,13 @@ void FDSSoundReset(void) {
 	GameExpSound.RChange = FDS_ESI;
 }
 
-DECLFR(FDSSoundRead) {
+uint8 FDSSoundRead(uint32 A) {
 	if (A >= 0x4040 && A < 0x4080) return FDSWaveRead(A);
 	if (A >= 0x4090 && A < 0x4093) return FDSSRead(A);
 	return X.DB;
 }
 
-DECLFW(FDSSoundWrite) {
+void FDSSoundWrite(uint32 A, uint8 V) {
 	if (A >= 0x4040 && A < 0x4080) FDSWaveWrite(A, V);
 	else if (A >= 0x4080 && A < 0x408B) FDSSWrite(A, V);
 }

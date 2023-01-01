@@ -68,7 +68,7 @@ static int JPAttribFC = 0;
 static int JPTypeFC = 0;
 static void *InputDataPtrFC;
 
-static INPUTC DummyJPort = { 0, 0, 0, 0, 0 };
+static INPUTC DummyJPort = { 0, 0, 0, 0, 0, 0 };
 static INPUTC *JPorts[2] = { &DummyJPort, &DummyJPort };
 static INPUTCFC *FCExp = 0;
 
@@ -195,10 +195,6 @@ static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
 		joy[1] = *(uint32*)ptr >> 8;
 		joy[3] = *(uint32*)ptr >> 24;
 	}
-#ifdef NETWORK
-	if (FCEUnetplay) NetplayUpdate(joy);
-#endif
-	FCEUMOV_AddJoy(joy);
 }
 
 static void FP_FASTAPASS(1) StrobeGP(int w) {

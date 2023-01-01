@@ -9,7 +9,6 @@
 #include "../palette.h"
 #include "../state.h"
 
-void FCEUMOV_AddJoy(uint8 *js);
 void FCEU_DrawCursor(uint8 *buf, int xc, int yc);
 void FCEU_DrawGunSight(uint8 *buf, int xc, int yc);
 

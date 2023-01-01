@@ -20,7 +20,6 @@
  */
 
 #include        <string.h>
-#include        <stdio.h>
 #include        <stdlib.h>
 
 #include        "fceu-types.h"
@@ -32,7 +31,6 @@
 #include        "general.h"
 #include        "fceu-endian.h"
 #include        "fceu-memory.h"
-#include        "ppuview.h"
 
 #include        "cart.h"
 #include        "palette.h"
@@ -386,12 +384,7 @@ void FCEUPPU_LineUpdate(void) {
 	}
 }
 
-static int tileview = 0;
 static int rendis = 0;
-
-void FCEUI_ToggleTileView(void) {
-	tileview ^= 1;
-}
 
 void FCEUI_SetRenderDisable(int sprites, int bg) {
 	if (sprites >= 0) {
@@ -719,7 +712,7 @@ static void DoLine(void)
 		GameHBIRQHook();
 		X6502_Run(85 - 16 - 10);
 	} else {
-		X6502_Run(6);	// Tried 65, caused problems with Slalom(maybe others)
+		X6502_Run(6);	/* Tried 65, caused problems with Slalom(maybe others) */
 		Fixit2();
 		X6502_Run(85 - 6 - 16);
 
@@ -1098,26 +1091,6 @@ void FCEUPPU_Power(void) {
 	memset(UPALRAM, 0x00, 0x03);
 	memset(SPRAM, 0x00, 0x100);
 	FCEUPPU_Reset();
-#ifdef COPYFAMI
-	for (x = 0x2000; x < 0x2010; x += 8) {
-		ARead[x] = A200x;
-		BWrite[x] = B2000;
-		ARead[x + 1] = A200x;
-		BWrite[x + 1] = B2001;
-		ARead[x + 2] = A2002;
-		BWrite[x + 2] = B2002;
-		ARead[x + 3] = A200x;
-		BWrite[x + 3] = B2003;
-		ARead[x + 4] = A200x;			/* A2004; */
-		BWrite[x + 4] = B2004;
-		ARead[x + 5] = A200x;
-		BWrite[x + 5] = B2005;
-		ARead[x + 6] = A200x;
-		BWrite[x + 6] = B2006;
-		ARead[x + 7] = A2007;
-		BWrite[x + 7] = B2007;
-	}
-#else
 	for (x = 0x2000; x < 0x4000; x += 8) {
 		ARead[x] = A200x;
 		BWrite[x] = B2000;
@@ -1136,7 +1109,7 @@ void FCEUPPU_Power(void) {
 		ARead[x + 7] = A2007;
 		BWrite[x + 7] = B2007;
 	}
-#endif
+
 	BWrite[0x4014] = B4014;
 }
 
@@ -1241,7 +1214,6 @@ int FCEUPPU_Loop(int skip) {
 
 			for (scanline = 0; scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;
-				if ((PPUViewer) && (scanline == PPUViewScanline)) UpdatePPUView(1);
 				DoLine();
 				if (scanline < normal_scanlines || scanline == totalscanlines)
 					overclocked = 0;

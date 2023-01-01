@@ -2,7 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
- *  Copyright (C) 2020 negativeExponent
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -326,4 +326,19 @@ void S74LS374N_Init(CartInfo *info) {
 	GameStateRestore = S74LS374NRestore;
 	AddExState(latch, 8, 0, "LATC");
 	AddExState(&cmd, 1, 0, "CMD");
+}
+
+static DECLFR(Mapper553Read) {
+	return 0x3A;
+}
+
+static void Mapper553Power(void) {
+	setprg16(0xC000, 0);
+	setchr8(0);
+	SetReadHandler(0x8000, 0xBFFF, Mapper553Read);
+	SetReadHandler(0xC000, 0xFFFF, CartBR);
+}
+
+void Mapper553_Init(CartInfo *info) {
+	info->Power = Mapper553Power;
 }

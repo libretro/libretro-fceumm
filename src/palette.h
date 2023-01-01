@@ -10,8 +10,6 @@ extern int ipalette;
 void FCEU_ResetPalette(void);
 
 void FCEU_ResetPalette(void);
-void FCEU_ResetMessages();
 void FCEU_LoadGamePalette(void);
-void FCEU_DrawNTSCControlBars(uint8 *XBuf);
 
 #endif

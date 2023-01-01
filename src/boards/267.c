@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- * Copyright (C) 2020 negativeExponent
+ * Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,9 +34,11 @@ static void M267PW(uint32 A, uint8 V) {
 }
 
 static DECLFW(M267Write) {
-	EXPREGS[0] = V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+	if (!(EXPREGS[0] & 0x80)) {
+		EXPREGS[0] = V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	}
 }
 
 static void M267Reset(void) {
@@ -47,14 +49,14 @@ static void M267Reset(void) {
 static void M267Power(void) {
 	EXPREGS[0] = 0;
 	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x6FFF, M267Write);
+	SetWriteHandler(0x6000, 0x7FFF, M267Write);
 }
 
 void Mapper267_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 0, 0);
+	GenMMC3_Init(info, 256, 128, 0, 0);
 	cwrap = M267CW;
 	pwrap = M267PW;
 	info->Reset = M267Reset;
 	info->Power = M267Power;
-	AddExState(EXPREGS, 4, 0, "EXPR");
+	AddExState(EXPREGS, 1, 0, "EXPR");
 }

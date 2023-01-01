@@ -55,11 +55,7 @@ extern uint8 MMC50x5130;
 extern uint8 MMC5HackSPScroll;
 extern uint8 MMC5HackSPPage;
 
-#ifdef COPYFAMI
-extern uint8 RAM[0x4000];
-#else
 extern uint8 RAM[0x800];
-#endif
 
 extern readfunc ARead[0x10000];
 extern writefunc BWrite[0x10000];
@@ -73,7 +69,6 @@ extern void (*GameStateRestore)(int version);
 
 #include "git.h"
 extern FCEUGI *GameInfo;
-extern int GameAttributes;
 
 extern uint8 PAL;
 
@@ -81,7 +76,6 @@ extern uint8 PAL;
 
 typedef struct {
 	int PAL;
-	int NetworkPlay;
 	int SoundVolume;
 	int TriangleVolume;
 	int SquareVolume[2];
@@ -98,7 +92,6 @@ typedef struct {
 	 */
 	int UsrFirstSLine[2];
 	int UsrLastSLine[2];
-	int SnapName;
 	uint32 SndRate;
 	int soundq;
 	int lowpass;
@@ -108,7 +101,6 @@ extern FCEUS FSettings;
 
 void FCEU_PrintError(char *format, ...);
 void FCEU_printf(char *format, ...);
-void FCEU_DispMessage(char *format, ...);
 
 void SetNESDeemph(uint8 d, int force);
 void DrawTextTrans(uint8 *dest, uint32 width, uint8 *textmsg, uint8 fgcolor);

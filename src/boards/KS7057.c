@@ -85,8 +85,13 @@ static void UNLKS7057Reset(void) {
 	Sync();
 }
 
+static void StateRestore(int version) {
+	Sync();
+}
+
 void UNLKS7057_Init(CartInfo *info) {
 	info->Power = UNLKS7057Power;
 	info->Reset = UNLKS7057Reset;
+	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

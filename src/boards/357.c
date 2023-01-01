@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020 negativeExponent
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,15 +29,16 @@
 
 static uint8 preg[4];
 static uint8 dipswitch;
-static uint32 IRQCount, IRQa;
+static uint8 IRQa;
+static uint16 IRQCount;
 
 static const uint8 banks[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };
 static const uint8 outer_bank[4] = { 0x00, 0x08, 0x10, 0x18 };
 
 static SFORMAT StateRegs[] =
 {
-	{ &IRQCount, 4 | FCEUSTATE_RLSB, "IRQC" },
-	{ &IRQa, 4 | FCEUSTATE_RLSB, "IRQA" },
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
+	{ &IRQa, 1 | FCEUSTATE_RLSB, "IRQA" },
 	{ &dipswitch, 1, "DPSW" },
 	{ &preg, 4, "REG" },
 	{ 0 }

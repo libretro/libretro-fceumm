@@ -19,7 +19,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 #include "../fds_apu.h"
 
 static uint8 latche, latcheinit, bus_conflict;
@@ -126,15 +125,6 @@ void NROM_Init(CartInfo *info) {
 /*------------------ Map 2 ---------------------------*/
 
 static void UNROMSync(void) {
-#if 0
-	static uint32 mirror_in_use = 0;
-	if (PRGsize[0] <= 128 * 1024) {
-		setprg16(0x8000, latche & 0x7);
-		if ((latche & 0xF8) == 0x08) mirror_in_use = 1;
-		if (mirror_in_use)
-			setmirror(((latche >> 3) & 1) ^ 1);	/* Higway Star Hacked mapper to be redefined to another mapper */
-	} else
-#endif
 	setprg8r(0x10, 0x6000, 0);
 	setprg16(0x8000, latche);
 	setprg16(0xc000, ~0);
@@ -142,7 +132,8 @@ static void UNROMSync(void) {
 }
 
 void UNROM_Init(CartInfo *info) {
-	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 1, 0);
+	/* By default, do not emulate bus conflicts except when explicitly told by a NES 2.0 header to do so. */
+	Latch_Init(info, UNROMSync, 0, 0x8000, 0xFFFF, 1, info->iNES2 && info->submapper == 2);
 }
 
 /*------------------ Map 3 ---------------------------*/
@@ -154,11 +145,8 @@ static void CNROMSync(void) {
 }
 
 void CNROM_Init(CartInfo *info) {
-	uint8 CNROM_busc = 1; /* by default, CNROM is set to emulate bus conflicts to all games. */
-	if (info->submapper && info->submapper == 1) /* no bus conflict */
-		CNROM_busc = 0;
-	FCEU_printf(" Bus Conflict: %s\n", CNROM_busc ? "Yes" : "No");
-	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, CNROM_busc);
+	/* By default, do not emulate bus conflicts except when explicitly told by a NES 2.0 header to do so. */
+	Latch_Init(info, CNROMSync, 0, 0x8000, 0xFFFF, 1, info->iNES2 && info->submapper == 2);
 }
 
 /*------------------ Map 7 ---------------------------*/
@@ -472,6 +460,18 @@ void Mapper241_Init(CartInfo *info) {
 	Latch_Init(info, M241Sync, 0, 0x8000, 0xFFFF, 1, 0);
 }
 
+/*------------------ Map 271 ---------------------------*/
+
+static void M271Sync(void) {
+	setchr8(latche & 0x0F);
+	setprg32(0x8000, latche >> 4);
+	setmirror((latche >> 5) & 1);
+}
+
+void Mapper271_Init(CartInfo *info) {
+	Latch_Init(info, M271Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}
+
 /*------------------ Map 381 ---------------------------*/
 /* 2-in-1 High Standard Game (BC-019), reset-based */
 static uint8 reset = 0;
@@ -524,33 +524,34 @@ void Mapper538_Init(CartInfo *info) {
  * mode (one screen) and 32K bankswitching, second one have only
  * 16 bankswitching mode and normal mirroring... But there is no any
  * correlations between modes and they can be used in one mapper code.
+ *
+ * Submapper 0 - 3-in-1 (N068)
+ * Submapper 0 - 3-in-1 (N080)
+ * Submapper 1 - 4-in-1 (JY-066)
  */
+
 static int A65ASsubmapper;
 static void BMCA65ASSync(void) {
 	if (latche & 0x40)
 		setprg32(0x8000, (latche >> 1) & 0x0F);
 	else {
 		if (A65ASsubmapper == 1) {
-			setprg16(0x8000, ((latche & 0x38) >> 0) | (latche & 7));
-			setprg16(0xC000, ((latche & 0x38) >> 0) | 7);
-		} else {
 			setprg16(0x8000, ((latche & 0x30) >> 1) | (latche & 7));
 			setprg16(0xC000, ((latche & 0x30) >> 1) | 7);
+		} else {
+			setprg16(0x8000, latche & 0x0F);
+			setprg16(0xC000, latche & 0x0F | 7);
 		}
 	}
 	setchr8(0);
 	if (latche & 0x80)
 		setmirror(MI_0 + (((latche >> 5) & 1)));
-	else {
-		if (A65ASsubmapper == 1) /* added as workaround since games for this cart uses vertical mirroring */
-			setmirror(MI_V);
-		else
-			setmirror(((latche >> 3) & 1) ^ 1);
-	}
+	else
+		setmirror(((latche >> 3) & 1) ^ 1);
 }
 
 void BMCA65AS_Init(CartInfo *info) {
-	A65ASsubmapper = info->submapper; /* not a real submapper */
+	A65ASsubmapper = info->submapper;
 	Latch_Init(info, BMCA65ASSync, 0, 0x8000, 0xFFFF, 0, 0);
 }
 
@@ -580,4 +581,40 @@ static void BMCK3046Sync(void) {
 
 void BMCK3046_Init(CartInfo *info) {
 	Latch_Init(info, BMCK3046Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}
+
+/* Mapper 429: LIKO BBG-235-8-1B/Milowork FCFC1 */
+
+static void Mapper429_Sync(void) {
+	setprg32(0x8000, latche >>2);
+	setchr8(latche);
+}
+
+static void Mapper429_Reset(void) {
+	latche = 4; /* Initial CHR bank 0, initial PRG bank 1 */
+	Mapper429_Sync();
+}
+
+void Mapper429_Init(CartInfo *info) {
+	info->Reset = Mapper429_Reset;
+	Latch_Init(info, Mapper429_Sync, 0, 0x8000, 0xFFFF, 0, 0);
+}
+
+/*------------------ Mapper 415 ---------------------------*/
+
+static void Mapper415_Sync(void) {
+	setprg8(0x6000, latche & 0x0F);
+	setprg32(0x8000, ~0);
+	setchr8(0);
+	setmirror(((latche >> 4) & 1) ^ 1);
+}
+
+static void M415Power(void) {
+	LatchPower();
+	SetReadHandler(0x6000, 0x7FFF, CartBR);
+}
+
+void Mapper415_Init(CartInfo *info) {
+	Latch_Init(info, Mapper415_Sync, 0, 0x8000, 0xFFFF, 0, 0);
+	info->Power = M415Power;
 }

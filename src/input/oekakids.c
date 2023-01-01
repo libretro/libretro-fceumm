@@ -36,7 +36,6 @@ static void FP_FASTAPASS(1) OK_Write(uint8 V) {
 	if (!(V & 0x1)) {
 		int32 vx, vy;
 
-		/* puts("Redo"); */
 		OKValR = OKData = 0;
 
 		if (OKB) OKData |= 1;
@@ -66,7 +65,6 @@ static void FP_FASTAPASS(1) OK_Write(uint8 V) {
 }
 
 static void FP_FASTAPASS(2) OK_Update(void *data, int arg) {
-	/* puts("Sync"); */
 	OKX = ((uint32*)data)[0];
 	OKY = ((uint32*)data)[1];
 	OKB = ((uint32*)data)[2];

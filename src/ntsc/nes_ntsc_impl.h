@@ -159,15 +159,6 @@ static void init_filters( init_t* impl, nes_ntsc_setup_t const* setup )
 		}
 	}
 	
-	/*
-	printf( "luma:\n" );
-	for ( i = kernel_size; i < kernel_size * 2; i++ )
-		printf( "%f\n", kernels [i] );
-	printf( "chroma:\n" );
-	for ( i = 0; i < kernel_size; i++ )
-		printf( "%f\n", kernels [i] );
-	*/
-	
 	/* generate linear rescale kernels */
 	#if rescale_out > 1
 	{

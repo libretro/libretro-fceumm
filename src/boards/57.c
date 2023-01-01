@@ -54,8 +54,8 @@ static DECLFW(M57Write) {
 }
 
 static void M57Power(void) {
-	regs[1] = regs[0] = 0;
-	hrd_flag = 0;
+	regs[1] = regs[0] = 0; /* Always reset to menu */
+	hrd_flag = 1; /* YH-xxx "Olympic" multicarts disable the menu after one selection */
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M57Write);
 	SetReadHandler(0x6000, 0x6000, M57Read);
@@ -63,9 +63,11 @@ static void M57Power(void) {
 }
 
 static void M57Reset(void) {
+	regs[1] = regs[0] = 0; /* Always reset to menu */
 	hrd_flag++;
 	hrd_flag &= 3;
 	FCEU_printf("Select Register = %02x\n", hrd_flag);
+	Sync();
 }
 
 static void StateRestore(int version) {

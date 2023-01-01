@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- * Copyright (C) 2020 negativeExponent
+ * Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
  */
 
 #include "mapinc.h"
-#include "../ines.h"
 
 static void M218Power(void) {
 	setchr8(0);

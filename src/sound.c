@@ -19,7 +19,6 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 
 #include <string.h>
 
@@ -38,7 +37,7 @@ int32 Wave[2048 + 512];
 int32 WaveHi[40000];
 int32 WaveFinal[2048 + 512];
 
-EXPSOUND GameExpSound = { 0, 0, 0 };
+EXPSOUND GameExpSound = { 0, 0, 0, 0, 0, 0 };
 
 static uint8 TriCount = 0;
 static uint8 TriMode = 0;
@@ -145,7 +144,7 @@ static char DMCHaveDMA = 0;
 static uint8 DMCDMABuf = 0;
 static char DMCHaveSample = 0;
 
-static void Dummyfunc(void) { };
+static void Dummyfunc(void) { }
 static void (*DoNoise)(void) = Dummyfunc;
 static void (*DoTriangle)(void) = Dummyfunc;
 static void (*DoPCM)(void) = Dummyfunc;
@@ -188,13 +187,14 @@ static void SQReload(int x, uint8 V) {
 }
 
 static DECLFW(Write_PSG) {
-/* FCEU_printf("APU1 %04x:%04x\n",A,V); */
 	A &= 0x1F;
 	switch (A) {
 	case 0x0:
 		DoSQ1();
 		EnvUnits[0].Mode = (V & 0x30) >> 4;
 		EnvUnits[0].Speed = (V & 0xF);
+		if (swapDuty)
+			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x1:
 		DoSQ1();
@@ -214,6 +214,8 @@ static DECLFW(Write_PSG) {
 		DoSQ2();
 		EnvUnits[1].Mode = (V & 0x30) >> 4;
 		EnvUnits[1].Speed = (V & 0xF);
+		if (swapDuty)
+			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
 		break;
 	case 0x5:
 		DoSQ2();
@@ -268,7 +270,6 @@ static DECLFW(Write_PSG) {
 }
 
 static DECLFW(Write_DMCRegs) {
-/*  FCEU_printf("APU1 %04x:%04x\n",A,V); */
 	A &= 0xF;
 
 	switch (A) {
@@ -303,7 +304,6 @@ static DECLFW(Write_DMCRegs) {
 
 static DECLFW(StatusWrite) {
 	int x;
-/*  FCEU_printf("APU1 %04x:%04x\n",A,V); */
 
 	DoSQ1();
 	DoSQ2();
@@ -549,7 +549,6 @@ static INLINE void RDoSQ(int x) {
 			amp = EnvUnits[x].Speed;
 		else
 			amp = EnvUnits[x].decvolume;
-		/*   printf("%d\n",amp); */
 
 		/* Modify Square wave volume based on channel volume modifiers
 		 * Note: the formulat x = x * y /100 does not yield exact results,
@@ -561,8 +560,6 @@ static INLINE void RDoSQ(int x) {
 
 		amp <<= 24;
 		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
-		if (swapDuty)
-			dutyCycle = ((dutyCycle & 2) >> 1) | ((dutyCycle & 1) << 1);
 		rthresh = RectDuties[dutyCycle];
 		currdc = RectDutyCount[x];
 		D = &WaveHi[ChannelBC[x]];
@@ -640,8 +637,6 @@ static void RDoSQLQ(void) {
 		if (!inie[x]) amp[x] = 0;	/* Correct? Buzzing in MM2, others otherwise... */
 
 		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
-		if (swapDuty)
-			dutyCycle = ((dutyCycle & 2) >> 1) | ((dutyCycle & 1) << 1);
 		rthresh[x] = RectDuties[dutyCycle];
 
 		for (y = 0; y < 8; y++) {
@@ -696,9 +691,7 @@ static void RDoSQLQ(void) {
 
 static void RDoTriangle(void) {
 	int32 V;
-	int32 tcout, cout;
-
-	tcout = (tristep & 0xF);
+	int32 tcout = (tristep & 0xF);
 	if (!(tristep & 0x10)) tcout ^= 0xF;
 	tcout = (tcout * 3) << 16;	/* (tcout<<1); */
 
@@ -993,8 +986,8 @@ int FlushEmulateSound(void) {
 
 		SexyFilter(Wave, WaveFinal, end >> 4);
 
-		/* if (FSettings.lowpass)
-			SexyFilter2(WaveFinal, end >> 4); */
+		if (FSettings.lowpass)
+			SexyFilter2(WaveFinal, end >> 4);
 
 		if (end & 0xF)
 			Wave[0] = Wave[(end >> 4)];
@@ -1012,9 +1005,7 @@ int FlushEmulateSound(void) {
 	}
 	inbuf = end;
 
-	/* FCEU_WriteWaveData(WaveFinal, end);	 This function will just return
-										if sound recording is off. */
-	return(end);
+	return end;
 }
 
 int GetSoundBuffer(int32 **W) {
@@ -1029,7 +1020,6 @@ due to that whole MegaMan 2 Game Genie thing.
 void FCEUSND_Reset(void) {
 	int x;
 
-	IRQFrameMode = 0x0;
 	fhcnt = fhinc;
 	fcnt = 0;
 	nreg = 1;
@@ -1080,6 +1070,7 @@ void FCEUSND_Power(void) {
 	for (x = 0; x < 5; x++)
 		ChannelBC[x] = 0;
 	soundtsoffs = 0;
+	IRQFrameMode = 0x0; /* Only initialized by power-on reset, not by soft reset */
 	LoadDMCPeriod(DMCFormat & 0xF);
 }
 
@@ -1254,7 +1245,7 @@ void FCEUSND_LoadState(int version) {
 	/* minimal validation */
 	for (i = 0; i < 5; i++)
 	{
-		int BC_max = 15;
+		uint32 BC_max = 15;
 
 		if (FSettings.soundq == 2)
 		{
@@ -1264,7 +1255,7 @@ void FCEUSND_LoadState(int version) {
 		{
 			BC_max = 485;
 		}
-		if (ChannelBC[i] < 0 || ChannelBC[i] > BC_max)
+		if (/* ChannelBC[i] < 0 || */ ChannelBC[i] > BC_max)
 		{
 			ChannelBC[i] = 0;
 		}
@@ -1283,14 +1274,16 @@ void FCEUSND_LoadState(int version) {
 			RectDutyCount[i] = 7;
 		}
 	}
-	if (sound_timestamp < 0)
+
+	/* Comparison is always false because access to array >= 0. */
+	/* if (sound_timestamp < 0)
 	{
 		sound_timestamp = 0;
 	}
 	if (soundtsoffs < 0)
 	{
 		soundtsoffs = 0;
-	}
+	} */
 	if (soundtsoffs + sound_timestamp >= soundtsinc)
 	{
 		soundtsoffs = 0;

@@ -18,7 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
@@ -27,6 +26,10 @@
 #include <unistd.h>
 #endif
 
+#include <string/stdstring.h>
+#include <file/file_path.h>
+#include <streams/file_stream.h>
+
 #include "fceu-types.h"
 #include "file.h"
 #include "fceu-endian.h"
@@ -34,34 +37,33 @@
 #include "driver.h"
 #include "general.h"
 
-#ifndef __GNUC__
- #define strcasecmp strcmp
-#endif
-
-static MEMWRAP *MakeMemWrap(void *tz, int type)
+static MEMWRAP *MakeMemWrap(RFILE *tz)
 {
-   MEMWRAP *tmp;
+   MEMWRAP *tmp = NULL;
 
    if (!(tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP))))
       goto doret;
    tmp->location = 0;
 
-   fseek((FILE*)tz, 0, SEEK_END);
-   tmp->size = ftell((FILE*)tz);
-   fseek((FILE*)tz, 0, SEEK_SET);
-   if (!(tmp->data = (uint8*)FCEU_malloc(tmp->size)))
+   filestream_seek(tz, 0, RETRO_VFS_SEEK_POSITION_END);
+   tmp->size = filestream_tell(tz);
+   filestream_seek(tz, 0, RETRO_VFS_SEEK_POSITION_START);
+
+   if (!(tmp->data_int = (uint8*)FCEU_malloc(tmp->size)))
    {
       free(tmp);
-      tmp = 0;
+      tmp = NULL;
       goto doret;
    }
-   fread(tmp->data, 1, tmp->size, (FILE*)tz);
+
+   filestream_read(tz, tmp->data_int, tmp->size);
+   tmp->data = tmp->data_int;
 
 doret:
    return tmp;
 }
 
-static MEMWRAP *MakeMemWrapBuffer(const char *tz, int type, uint8 *buffer, size_t bufsize)
+static MEMWRAP *MakeMemWrapBuffer(const uint8 *buffer, size_t bufsize)
 {
    MEMWRAP *tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP));
 
@@ -69,44 +71,58 @@ static MEMWRAP *MakeMemWrapBuffer(const char *tz, int type, uint8 *buffer, size_
       return NULL;
 
    tmp->location = 0;
-   tmp->size = bufsize;
-   tmp->data = buffer;
+   tmp->size     = bufsize;
+   tmp->data_int = NULL;
+   tmp->data     = buffer;
 
    return tmp;
 }
 
-FCEUFILE * FCEU_fopen(const char *path, const char *ipsfn,
-      char *mode, char *ext, uint8 *buffer, size_t bufsize)
+FCEUFILE * FCEU_fopen(const char *path, const uint8 *buffer, size_t bufsize)
 {
    FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
 
-   fceufp->type = 0;
    if (buffer)
-      fceufp->fp = MakeMemWrapBuffer(path, 0, buffer, bufsize);
+      fceufp->fp = MakeMemWrapBuffer(buffer, bufsize);
    else
    {
-      void *t = fopen(path, mode);
+      RFILE *t = NULL;
+
+      if (!string_is_empty(path) && path_is_valid(path))
+         t = filestream_open(path,
+               RETRO_VFS_FILE_ACCESS_READ,
+               RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
       if (!t)
       {
          free(fceufp);
-         return 0;
+         return NULL;
       }
 
-      fseek((FILE*)t, 0, SEEK_SET);
-      fceufp->fp = MakeMemWrap(t, 0);
-      fclose((FILE*)t);
+      fceufp->fp = MakeMemWrap(t);
+      filestream_close(t);
    }
    return fceufp;
 }
 
 int FCEU_fclose(FCEUFILE *fp)
 {
+   if (!fp)
+      return 0;
+
    if (fp->fp)
+   {
+      if (fp->fp->data_int)
+         free(fp->fp->data_int);
+      fp->fp->data_int = NULL;
+
       free(fp->fp);
+   }
    fp->fp = NULL;
+
 	free(fp);
-	fp = 0;
+	fp = NULL;
+
 	return 1;
 }
 

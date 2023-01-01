@@ -18,8 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include  <string.h>
 #include  <stdio.h>
+#include  <string.h>
 #include  <stdlib.h>
 #include  <stdarg.h>
 
@@ -56,8 +56,8 @@ void (*GameStateRestore)(int version);
 
 readfunc ARead[0x10000];
 writefunc BWrite[0x10000];
-static readfunc *AReadG;
-static writefunc *BWriteG;
+static readfunc *AReadG = NULL;
+static writefunc *BWriteG = NULL;
 static int RWWrap = 0;
 
 static DECLFW(BNull)
@@ -71,12 +71,24 @@ static DECLFR(ANull)
 
 int AllocGenieRW(void)
 {
-	if (!(AReadG = (readfunc*)FCEU_malloc(0x8000 * sizeof(readfunc))))
-		return 0;
-	if (!(BWriteG = (writefunc*)FCEU_malloc(0x8000 * sizeof(writefunc))))
-		return 0;
-	RWWrap = 1;
-	return 1;
+   if (!AReadG)
+   {
+      if (!(AReadG = (readfunc*)FCEU_malloc(0x8000 * sizeof(readfunc))))
+         return 0;
+   }
+   else
+      memset(AReadG, 0, 0x8000 * sizeof(readfunc));
+
+   if (!BWriteG)
+   {
+      if (!(BWriteG = (writefunc*)FCEU_malloc(0x8000 * sizeof(writefunc))))
+         return 0;
+   }
+   else
+      memset(BWriteG, 0, 0x8000 * sizeof(writefunc));
+
+   RWWrap = 1;
+   return 1;
 }
 
 void FlushGenieRW(void)
@@ -92,8 +104,8 @@ void FlushGenieRW(void)
       }
       free(AReadG);
       free(BWriteG);
-      AReadG = 0;
-      BWriteG = 0;
+      AReadG = NULL;
+      BWriteG = NULL;
    }
    RWWrap = 0;
 }
@@ -154,11 +166,7 @@ void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func)
 			BWrite[x] = func;
 }
 
-#ifdef COPYFAMI
-uint8 RAM[0x4000];
-#else
 uint8 RAM[0x800];
-#endif
 
 uint8 PAL = 0;
 
@@ -172,7 +180,6 @@ static DECLFR(ARAML)
 	return RAM[A];
 }
 
-#ifndef COPYFAMI
 static DECLFW(BRAMH)
 {
 	RAM[A & 0x7FF] = V;
@@ -182,7 +189,6 @@ static DECLFR(ARAMH)
 {
 	return RAM[A & 0x7FF];
 }
-#endif
 
 void FCEUI_CloseGame(void)
 {
@@ -193,7 +199,7 @@ void FCEUI_CloseGame(void)
       free(GameInfo->name);
    GameInfo->name = 0;
    if (GameInfo->type != GIT_NSF)
-      FCEU_FlushGameCheats(0, 0);
+      FCEU_FlushGameCheats();
    GameInterface(GI_CLOSE);
    ResetExState(0, 0);
    FCEU_CloseGenie();
@@ -226,7 +232,8 @@ int iNESLoad(const char *name, FCEUFILE *fp);
 int FDSLoad(const char *name, FCEUFILE *fp);
 int NSFLoad(FCEUFILE *fp);
 
-FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
+FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufsize,
+      frontend_post_load_init_cb_t frontend_post_load_init_cb)
 {
    FCEUFILE *fp;
 
@@ -244,32 +251,42 @@ FCEUGI *FCEUI_LoadGame(const char *name, uint8_t *databuf, size_t databufsize)
    GameInfo->inputfc = -1;
    GameInfo->cspecial = 0;
 
-   FCEU_printf("Loading %s...\n\n", name);
-
-   GetFileBase(name);
-
-   fp = FCEU_fopen(name, NULL, "rb", 0, databuf, databufsize);
+   fp = FCEU_fopen(name, databuf, databufsize);
 
    if (!fp) {
       FCEU_PrintError("Error opening \"%s\"!", name);
-      return 0;
+
+      free(GameInfo);
+      GameInfo = NULL;
+
+      return NULL;
    }
 
    if (iNESLoad(name, fp))
       goto endlseq;
    if (NSFLoad(fp))
       goto endlseq;
-   if (UNIFLoad(name, fp))
+   if (UNIFLoad(NULL, fp))
       goto endlseq;
-   if (FDSLoad(name, fp))
+   if (FDSLoad(NULL, fp))
       goto endlseq;
 
    FCEU_PrintError("An error occurred while loading the file.\n");
    FCEU_fclose(fp);
-   return 0;
+
+   if (GameInfo->name)
+      free(GameInfo->name);
+   GameInfo->name = NULL;
+   free(GameInfo);
+   GameInfo = NULL;
+
+   return NULL;
 
 endlseq:
    FCEU_fclose(fp);
+
+   if (frontend_post_load_init_cb)
+      (*frontend_post_load_init_cb)();
 
    FCEU_ResetVidSys();
    if (GameInfo->type != GIT_NSF)
@@ -280,56 +297,12 @@ endlseq:
 
    if (GameInfo->type != GIT_NSF) {
       FCEU_LoadGamePalette();
-      FCEU_LoadGameCheats(0);
+      FCEU_LoadGameCheats();
    }
 
    FCEU_ResetPalette();
-   FCEU_ResetMessages();	/* Save state, status messages, etc. */
 
    return(GameInfo);
-}
-
-int CopyFamiLoad(void);
-
-FCEUGI *FCEUI_CopyFamiStart(void)
-{
-	ResetGameLoaded();
-
-	GameInfo = (FCEUGI*)malloc(sizeof(FCEUGI));
-	memset(GameInfo, 0, sizeof(FCEUGI));
-
-	GameInfo->soundchan = 0;
-	GameInfo->soundrate = 0;
-	GameInfo->name = (uint8_t*)"copyfami";
-	GameInfo->type = GIT_CART;
-	GameInfo->vidsys = GIV_USER;
-	GameInfo->input[0] = GameInfo->input[1] = -1;
-	GameInfo->inputfc = -1;
-	GameInfo->cspecial = 0;
-
-	FCEU_printf("Starting CopyFamicom...\n\n");
-
-	if (!CopyFamiLoad()) {
-		FCEU_PrintError("An error occurred while starting CopyFamicom.");
-		return 0;
-	}
-
-	FCEU_ResetVidSys();
-	if (GameInfo->type != GIT_NSF)
-		if (FSettings.GameGenie)
-			FCEU_OpenGenie();
-
-	PowerNES();
-
-	if (GameInfo->type != GIT_NSF) {
-		FCEU_LoadGamePalette();
-		FCEU_LoadGameCheats(0);
-	}
-
-	FCEU_ResetPalette();
-	FCEU_ResetMessages();	/* Save state, status messages, etc. */
-
-	return(GameInfo);
 }
 
 int FCEUI_Initialize(void) {
@@ -424,23 +397,17 @@ void PowerNES(void)
 
 	FCEU_GeniePower();
 
-#ifndef COPYFAMI
 	FCEU_MemoryRand(RAM, 0x800);
-#endif
 
 	SetReadHandler(0x0000, 0xFFFF, ANull);
 	SetWriteHandler(0x0000, 0xFFFF, BNull);
 
-#ifdef COPYFAMI
-	SetReadHandler(0, 0x3FFF, ARAML);
-	SetWriteHandler(0, 0x3FFF, BRAML);
-#else
 	SetReadHandler(0, 0x7FF, ARAML);
 	SetWriteHandler(0, 0x7FF, BRAML);
 
 	SetReadHandler(0x800, 0x1FFF, ARAMH);	/* Part of a little */
 	SetWriteHandler(0x800, 0x1FFF, BRAMH);	/* hack for a small speed boost. */
-#endif
+
 	InitializeInput();
 	FCEUSND_Power();
 	FCEUPPU_Power();
@@ -552,11 +519,6 @@ int FCEUI_GetCurrentVidSystem(int *slstart, int *slend)
 void FCEUI_SetGameGenie(int a)
 {
 	FSettings.GameGenie = a ? 1 : 0;
-}
-
-void FCEUI_SetSnapName(int a)
-{
-	FSettings.SnapName = a;
 }
 
 int32 FCEUI_GetDesiredFPS(void)

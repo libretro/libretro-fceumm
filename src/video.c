@@ -18,8 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -65,12 +65,7 @@ int FCEU_InitVirtualVideo(void)
    return 1;
 }
 
-static int howlong;
-static char errmsg[65];
-
 #include "drawing.h"
-
-void FCEUI_SaveSnapshot(void) { }
 
 void FCEU_PutImage(void)
 {
@@ -81,7 +76,6 @@ void FCEU_PutImage(void)
 		if (GameInfo->type == GIT_VSUNI)
 			FCEU_VSUniDraw(XBuf);
 	}
-	if (howlong) howlong--;
 	if (show_crosshair)
 		FCEU_DrawInput(XBuf);
 }
@@ -90,24 +84,17 @@ void FCEU_PutImageDummy(void)
 {
 }
 
-void FCEU_DispMessage(char *format, ...)
+void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...)
 {
+   static char msg[512] = {0};
    va_list ap;
 
+   if (!format || (*format == '\0'))
+      return;
+
    va_start(ap, format);
-   vsprintf(errmsg, format, ap);
+   vsprintf(msg, format, ap);
    va_end(ap);
 
-   howlong = 180;
-   FCEUD_DispMessage(errmsg);
-}
-
-void FCEU_ResetMessages(void)
-{
-	howlong = 180;
-}
-
-int SaveSnapshot(void)
-{
-	return(0);
+   FCEUD_DispMessage(level, duration, msg);
 }

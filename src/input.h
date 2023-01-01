@@ -19,8 +19,6 @@ typedef struct {
 	void FP_FASTAPASS(2) (*Draw)(uint8 *buf, int arg);
 } INPUTCFC;
 
-void FCEUMOV_AddJoy(uint8 *js);
-
 void FCEU_DrawInput(uint8 *buf);
 void FCEU_UpdateInput(void);
 void InitializeInput(void);

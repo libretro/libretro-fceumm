@@ -72,16 +72,21 @@ static DECLFW(UNLTF1201Write) {
 		int sar = ((A & 2) << 1);
 		chr[ind] = (chr[ind] & (0xF0 >> sar)) | ((V & 0x0F) << sar);
 		SyncChr();
-	} else switch (A & 0xF003) {
-		case 0x8000: prg0 = V; SyncPrg(); break;
-		case 0xA000: prg1 = V; SyncPrg(); break;
-		case 0x9000: mirr = V & 1; SyncChr(); break;
-		case 0x9001: swap = V & 3; SyncPrg(); break;
-		case 0xF000: IRQCount = ((IRQCount & 0xF0) | (V & 0xF)); break;
-		case 0xF002: IRQCount = ((IRQCount & 0x0F) | ((V & 0xF) << 4)); break;
-		case 0xF001:
-		case 0xF003: IRQa = V & 2; X6502_IRQEnd(FCEU_IQEXT); if (scanline < 240) IRQCount -= 8; break;
+	}
+	else
+	{
+		switch (A & 0xF003)
+		{
+			case 0x8000: prg0 = V; SyncPrg(); break;
+			case 0xA000: prg1 = V; SyncPrg(); break;
+			case 0x9000: mirr = V & 1; SyncChr(); break;
+			case 0x9001: swap = V & 3; SyncPrg(); break;
+			case 0xF000: IRQCount = ((IRQCount & 0xF0) | (V & 0xF)); break;
+			case 0xF002: IRQCount = ((IRQCount & 0x0F) | ((V & 0xF) << 4)); break;
+			case 0xF001:
+			case 0xF003: IRQa = V & 2; X6502_IRQEnd(FCEU_IQEXT); if (scanline < 240) IRQCount -= 8; break;
 		}
+	}
 }
 
 static void UNLTF1201IRQCounter(void) {

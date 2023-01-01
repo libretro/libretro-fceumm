@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020 negativeExponent
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -80,7 +80,7 @@ static uint8 unscrambleCHR(uint8 data) {
 }
 
 void Mapper269_Init(CartInfo *info) {
-	int i;
+	uint32 i;
 	GenMMC3_Init(info, 512, 0, 8, 0);
 	cwrap = M269CW;
 	pwrap = M269PW;

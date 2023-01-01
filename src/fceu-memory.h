@@ -29,27 +29,9 @@
 
 #define FCEU_dwmemset(d, c, n) { int _x; for (_x = n - 4; _x >= 0; _x -= 4) *(uint32*)& (d)[_x] = c; }
 
-#if defined(STATE_LIBRETRO) || defined(ENDIAN_LIBRETRO) || defined(GENERAL_LIBRETRO)
-#include "drivers/libretro/libretro-common/include/streams/memstream.h"
-
-#define HAVE_MEMSTREAM
-#define MEM_TYPE memstream_t
-
-#define fwrite(ptr, size, nmemb, stream) memstream_write((stream), (ptr), (nmemb))
-#define fclose(fp) memstream_close((fp))
-#define fgetc(stream) memstream_getc((stream))
-#define fputc(c, stream) memstream_putc((stream), (c))
-#define ftell(a) memstream_pos((a))
-#define fread(ptr, size, nmemb, stream) memstream_read((stream), (ptr), (nmemb))
-#define fseek(stream, offset, whence) memstream_seek((stream), (offset), (whence))
-#else
-#define MEM_TYPE FILE
-#endif
-
 void *FCEU_malloc(uint32 size);
 void *FCEU_gmalloc(uint32 size);
 void FCEU_gfree(void *ptr);
 void FCEU_free(void *ptr);
-void FASTAPASS(3) FCEU_memmove(void *d, void *s, uint32 l);
 
 #endif

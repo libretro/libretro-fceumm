@@ -35,7 +35,6 @@ static uint8 FP_FASTAPASS(2) FT_Read(int w, uint8 ret) {
 static void FP_FASTAPASS(1) FT_Write(uint8 V) {
 	FTValR = 0;
 
-	/* printf("%08x\n",FTVal); */
 	if (!(V & 0x1))
 		FTValR = (FTVal >> 8);
 	else if (!(V & 0x2))

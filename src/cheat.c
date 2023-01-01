@@ -18,9 +18,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <ctype.h>
 
 #include "fceu-types.h"
@@ -114,7 +114,6 @@ void RebuildSubCheats(void) {
 		if (c->type == 1 && c->status) {
 			if (GetReadHandler(c->addr) == SubCheatsRead) {
 				/* Prevent a catastrophe by this check. */
-				/* FCEU_DispMessage("oops"); */
 			} else {
 				SubCheats[numsubcheats].PrevRead = GetReadHandler(c->addr);
 				SubCheats[numsubcheats].addr = c->addr;
@@ -162,13 +161,13 @@ static int AddCheatEntry(char *name, uint32 addr, uint8 val, int compare, int st
 	return(1);
 }
 
-void FCEU_LoadGameCheats(FILE *override)
+void FCEU_LoadGameCheats(void)
 {
    numsubcheats = savecheats = 0;
    RebuildSubCheats();
 }
 
-void FCEU_FlushGameCheats(FILE *override, int nosave) {
+void FCEU_FlushGameCheats(void) {
 	if (CheatComp)
    {
 		free(CheatComp);
@@ -203,8 +202,8 @@ void FCEU_ResetCheats(void)
 
 int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int type) {
 	char *t;
-
-	if (!(t = (char*)malloc(strlen(name) + 1))) {
+	if (!(t = (char*)malloc(strlen(name) + 1)))
+	{
 		CheatMemErr();
 		return(0);
 	}
@@ -319,16 +318,11 @@ static int GGtobin(char c) {
 
 /* Returns 1 on success, 0 on failure. Sets *a,*v,*c. */
 int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
-	uint16 A;
-	uint8 V, C;
 	uint8 t;
-	int s;
-
-	A = 0x8000;
-	V = 0;
-	C = 0;
-
-	s = strlen(str);
+	uint16 A = 0x8000;
+	uint8 V = 0;
+	uint8 C = 0;
+	int s = strlen(str);
 	if (s != 6 && s != 8) return(0);
 
 	t = GGtobin(*str++);
@@ -388,13 +382,21 @@ int FCEUI_DecodePAR(const char *str, uint16 *a, uint8 *v, int *c, int *type) {
 
 	*c = -1;
 
-	if (1) {
+	/* 2020-08-31
+	 * Why is the top code set as default on non-debug runtime when
+	 * bottom code is what works for PAR?
+	 */
+	/* if (1) {
 		*a = (boo[3] << 8) | (boo[2] + 0x7F);
 		*v = 0;
 	} else {
 		*v = boo[3];
 		*a = boo[2] | (boo[1] << 8);
-	}
+	} */
+
+	*v = boo[3];
+	*a = boo[2] | (boo[1] << 8);
+
 	/* Zero-page addressing modes don't go through the normal read/write handlers in FCEU, so
 		we must do the old hacky method of RAM cheats.
 	*/
@@ -562,7 +564,7 @@ void FCEUI_CheatSearchBegin(void) {
 }
 
 
-static int INLINE CAbs(int x) {
+static INLINE int CAbs(int x) {
 	if (x < 0)
 		return(0 - x);
 	return x;

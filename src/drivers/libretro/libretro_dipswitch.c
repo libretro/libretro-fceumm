@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1069,11 +1070,7 @@ enum {
    DPSW_NWC,
 };
 
-static struct retro_core_option_definition option_defs_empty = {
-   NULL, NULL, NULL, { {0} }, NULL
-};
-
-static struct retro_core_option_definition vscoreopt[MAX_CORE_OPTIONS];
+static struct retro_core_option_v2_definition vscoreopt[MAX_CORE_OPTIONS];
 static VSUNIGAME *vsgame = NULL;
 
 static char *core_key[MAX_CORE_OPTIONS];
@@ -1098,16 +1095,18 @@ static const char *str_to_corekey(char *s)
    return str;
 }
 
-static void make_core_options(struct retro_core_option_definition *vs_core_options)
+static void make_core_options(struct retro_core_option_v2_definition *vs_core_options)
 {
    unsigned i, j;
 
    for (i = 0; i < numCoreOptions; i++)
    {
-      struct retro_core_option_value vars_empty = { NULL, NULL };
-      const char *game_name = vsgame->game_name;
+      const char *game_name   = vsgame->game_name;
       const char *option_name = vsgame->core_options[i].option_name;
-      char key[100] = {0};
+      char key[100]           = {0};
+
+      memset(&vs_core_options[i], 0,
+            sizeof(struct retro_core_option_v2_definition));
 
       /* Set core key and sanitize string */
       sprintf(key, "fceumm_dipswitch_%s-%s", game_name, option_name);
@@ -1118,16 +1117,14 @@ static void make_core_options(struct retro_core_option_definition *vs_core_optio
       /* Set desc */
       vs_core_options[i].desc = option_name;
 
-      /* Set info */
-      vs_core_options[i].info = NULL;
+      /* Set category_key */
+      vs_core_options[i].category_key = "dip_switch";
 
       /* Set core values */
       for (j = 0; j < numValues[i]; j++) {
          const char *var_value = vsgame->core_options[i].settings[j].name;
          vs_core_options[i].values[j].value = var_value;
       }
-
-      vs_core_options[i].values[j] = vars_empty;
 
       /* Set default value. Top entry used as default */
       vs_core_options[i].default_value = vsgame->core_options[i].settings[0].name;
@@ -1241,11 +1238,14 @@ static void update_dipswitch_vsuni(void)
 }
 
 /* Nintendo World Championships 1990 */
-static struct retro_core_option_definition dipswitch_nwc[] = {
+static struct retro_core_option_v2_definition dipswitch_nwc[] = {
    {
       "fceumm_dipswitch_nwc",
       "Gameplay Duration in minutes (Restart)",
+      NULL,
       "Sets the game timer in minutes.",
+      NULL,
+      "dip_switch",
       {
          { "0",  "5:00" },
          { "1",  "5:19" },
@@ -1258,17 +1258,16 @@ static struct retro_core_option_definition dipswitch_nwc[] = {
          { "8",  "7:30" },
          { "9",  "7:49" },
          { "10", "8:08" },
-         { "11"  "8:27" },
+         { "11", "8:27" },
          { "12", "8:45" },
          { "13", "9:04" },
          { "14", "9:23" },
          { "15", "9:42" },
-         { NULL, NULL},
+         { NULL, NULL },
       },
       "4",
    },
-
-   { NULL, NULL, NULL, { {0} }, NULL },
+   { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
 };
 
 static void update_dipswitch_nwc(void)
@@ -1292,7 +1291,7 @@ static void update_dipswitch_nwc(void)
    }
 }
 
-size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_definition *vars)
+void set_dipswitch_variables(unsigned current_index, struct retro_core_option_v2_definition *vars)
 {
    unsigned index = current_index;
    int dipsw_size = 0;
@@ -1310,8 +1309,7 @@ size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_
          dipswitch_type = DPSW_VSUNI;
 
          /* Initialize dipswitch struct with empty values */
-         for (i = 0; i < MAX_CORE_OPTIONS; i++)
-            vscoreopt[i] = option_defs_empty;
+         memset(&vscoreopt, 0, sizeof(vscoreopt));
 
          /* Count number of core options and the number of values for each */
          for (i = 0; i < MAX_CORE_OPTIONS; i++) {
@@ -1328,12 +1326,13 @@ size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_
 
          /* Append dipswitch struct to main core options struct */
          while (vscoreopt[dipsw_size].key) {
-            vars[index] = vscoreopt[dipsw_size];
+            memcpy(&vars[index], &vscoreopt[dipsw_size],
+                  sizeof(struct retro_core_option_v2_definition));
             index++;
             dipsw_size++;
          }
       }
-      return (dipsw_size);
+      return;
    }
 
    /* Nintendo World Championship cart (Mapper 105)*/
@@ -1342,15 +1341,16 @@ size_t set_dipswitch_variables(unsigned current_index, struct retro_core_option_
       dipswitch_type = DPSW_NWC;
 
       while (dipswitch_nwc[dipsw_size].key) {
-         vars[index] = dipswitch_nwc[dipsw_size];
+         memcpy(&vars[index], &dipswitch_nwc[dipsw_size],
+               sizeof(struct retro_core_option_v2_definition));
          index++;
          dipsw_size++;
       }
-      return (dipsw_size);
+      return;
    }
 
    dipswitch_type = DPSW_NONE;
-   return (0);
+   return;
 }
 
 void update_dipswitch(void)

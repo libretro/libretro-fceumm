@@ -139,6 +139,12 @@ static void UNLKS7032Power(void) {
 	}
 }
 
+static void UNLKS7032Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
+}
+
 static void StateRestore(int version) {
 	Sync();
 }
@@ -146,6 +152,7 @@ static void StateRestore(int version) {
 void UNLKS7032_Init(CartInfo *info) {
 	KS7032 = 1;
 	info->Power = UNLKS7032Power;
+	info->Close = UNLKS7032Close;
 	MapIRQHook = UNLSMB2JIRQHook;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegsKS7032, ~0, 0, 0);
@@ -154,6 +161,7 @@ void UNLKS7032_Init(CartInfo *info) {
 void UNLKS202_Init(CartInfo *info) {
 	KS7032 = 0;
 	info->Power = UNLKS7032Power;
+	info->Close = UNLKS7032Close;
 	MapIRQHook = UNLSMB2JIRQHook;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegsKS7032, ~0, 0, 0);

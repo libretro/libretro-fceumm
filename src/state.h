@@ -23,11 +23,6 @@
 
 #include "fceu-memory.h"
 
-void FCEUSS_Save(char *);
-int FCEUSS_Load(char *);
-int FCEUSS_SaveFP(MEM_TYPE *);
-int FCEUSS_LoadFP(MEM_TYPE *);
-
 void FCEUSS_Load_Mem(void);
 void FCEUSS_Save_Mem(void);
 

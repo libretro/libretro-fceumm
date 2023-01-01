@@ -20,7 +20,10 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
+
+#include <string/stdstring.h>
+#include <file/file_path.h>
+#include <streams/file_stream.h>
 
 #include "fceu-types.h"
 #include "fceu.h"
@@ -136,7 +139,6 @@ DECLFR(CartBR) {
 }
 
 DECLFW(CartBW) {
-	/* printf("Ok: %04x:%02x, %d\n",A,V,PRGIsRAM[A>>11]); */
 	if (PRGIsRAM[A >> 11] && Page[A >> 11])
 		Page[A >> 11][A] = V;
 }
@@ -340,7 +342,7 @@ void FixGenieMap(void);
 
 /* Called when a game(file) is opened successfully. */
 void FCEU_OpenGenie(void) {
-	FILE *fp;
+	RFILE *fp = NULL;
 	int x;
 
 	if (!GENIEROM) {
@@ -349,33 +351,43 @@ void FCEU_OpenGenie(void) {
 		if (!(GENIEROM = (uint8*)FCEU_malloc(4096 + 1024))) return;
 
 		fn = FCEU_MakeFName(FCEUMKF_GGROM, 0, 0);
-		fp = FCEUD_UTF8fopen(fn, "rb");
+
+		if (!string_is_empty(fn) && path_is_valid(fn))
+			fp = filestream_open(fn,
+					RETRO_VFS_FILE_ACCESS_READ,
+					RETRO_VFS_FILE_ACCESS_HINT_NONE);
+
+		free(fn);
+		fn = NULL;
+
 		if (!fp) {
-			FCEU_PrintError("Error opening Game Genie ROM image!");
+			FCEU_PrintError("Error opening Game Genie ROM image!\n");
+			FCEUD_DispMessage(RETRO_LOG_WARN, 3000, "Game Genie ROM image (gamegenie.nes) missing");
 			free(GENIEROM);
 			GENIEROM = 0;
 			return;
 		}
-		if (fread(GENIEROM, 1, 16, fp) != 16) {
+		if (filestream_read(fp, GENIEROM, 16) != 16) {
  grerr:
-			FCEU_PrintError("Error reading from Game Genie ROM image!");
+			FCEU_PrintError("Error reading from Game Genie ROM image!\n");
+			FCEUD_DispMessage(RETRO_LOG_WARN, 3000, "Failed to read Game Genie ROM image (gamegenie.nes)");
 			free(GENIEROM);
 			GENIEROM = 0;
-			fclose(fp);
+			filestream_close(fp);
 			return;
 		}
 		if (GENIEROM[0] == 0x4E) {	/* iNES ROM image */
-			if (fread(GENIEROM, 1, 4096, fp) != 4096)
+			if (filestream_read(fp, GENIEROM, 4096) != 4096)
 				goto grerr;
-			if (fseek(fp, 16384 - 4096, SEEK_CUR))
+			if (filestream_seek(fp, 16384 - 4096, RETRO_VFS_SEEK_POSITION_CURRENT))
 				goto grerr;
-			if (fread(GENIEROM + 4096, 1, 256, fp) != 256)
+			if (filestream_read(fp, GENIEROM + 4096, 256) != 256)
 				goto grerr;
 		} else {
-			if (fread(GENIEROM + 16, 1, 4352 - 16, fp) != (4352 - 16))
+			if (filestream_read(fp, GENIEROM + 16, 4352 - 16) != (4352 - 16))
 				goto grerr;
 		}
-		fclose(fp);
+		filestream_close(fp);
 
 		/* Workaround for the FCE Ultra CHR page size only being 1KB */
 		for (x = 0; x < 4; x++)
@@ -480,7 +492,6 @@ void FixGenieMap(void) {
 
 	VPageR = VPage;
 	FlushGenieRW();
-	/* printf("Rightyo\n"); */
 	for (x = 0; x < 3; x++)
 		if ((modcon >> (4 + x)) & 1) {
 			readfunc tmp[3] = { GenieFix1, GenieFix2, GenieFix3 };
