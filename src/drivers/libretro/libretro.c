@@ -1566,6 +1566,8 @@ void retro_set_environment(retro_environment_t cb)
    static const struct retro_controller_description pads3[] = {
       { "Auto",     RETRO_DEVICE_AUTO },
       { "Gamepad",  RETRO_DEVICE_GAMEPAD },
+      { "PowerPad A",   RETRO_DEVICE_POWERPADA },
+      { "PowerPad B",   RETRO_DEVICE_POWERPADB },
       { 0, 0 },
    };
 
@@ -1588,7 +1590,7 @@ void retro_set_environment(retro_environment_t cb)
    static const struct retro_controller_info ports[] = {
       { pads1, 3 },
       { pads2, 6 },
-      { pads3, 2 },
+      { pads3, 4 },
       { pads4, 2 },
       { pads5, 6 },
       { 0, 0 },
@@ -2236,9 +2238,8 @@ static void check_variables(bool startup)
    update_option_visibility();
 }
 
-void get_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) 
+void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) 
 {
-   *ppdata = 0;
    const uint32_t* map = (variant == RETRO_DEVICE_POWERPADA) ? powerpadamap : powerpadbmap;
    for (unsigned k = 0 ; k < 12 ; k++)
    	if (input_cb(0, RETRO_DEVICE_KEYBOARD, 0, map[k]))
@@ -2501,13 +2502,14 @@ static void FCEUD_UpdateInput(void)
       }
    }
 
+   nes_input.PowerPadData = 0;
    for (port = 0; port < MAX_PORTS; port++)
    {
       switch (nes_input.type[port])
       {
          case RETRO_DEVICE_POWERPADB:
          case RETRO_DEVICE_POWERPADA:
-               get_powerpad_input(port, nes_input.type[port], &nes_input.PowerPadData);
+            add_powerpad_input(port, nes_input.type[port], &nes_input.PowerPadData);
             break;
       }
    }
