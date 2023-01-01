@@ -1201,12 +1201,12 @@ static void update_nes_controllers(unsigned port, unsigned device)
       case RETRO_DEVICE_POWERPADA:
          nes_input.type[port] = RETRO_DEVICE_POWERPADA;
          FCEUI_SetInput(port, SI_POWERPADA, &nes_input.PowerPadData, 0);
-         FCEU_printf(" Player %u: Powerpad\n", port + 1);
+         FCEU_printf(" Player %u: Power Pad\n", port + 1);
          break;
       case RETRO_DEVICE_POWERPADB:
          nes_input.type[port] = RETRO_DEVICE_POWERPADB;
          FCEUI_SetInput(port, SI_POWERPADB, &nes_input.PowerPadData, 0);
-         FCEU_printf(" Player %u: Powerpad\n", port + 1);
+         FCEU_printf(" Player %u: Power Pad\n", port + 1);
          break;
       case RETRO_DEVICE_GAMEPAD:
       default:
@@ -1558,16 +1558,16 @@ void retro_set_environment(retro_environment_t cb)
       { "Gamepad",  RETRO_DEVICE_GAMEPAD },
       { "Arkanoid", RETRO_DEVICE_ARKANOID },
       { "Zapper",   RETRO_DEVICE_ZAPPER },
-      { "PowerPad A",   RETRO_DEVICE_POWERPADA },
-      { "PowerPad B",   RETRO_DEVICE_POWERPADB },
+      { "Power Pad A",   RETRO_DEVICE_POWERPADA },
+      { "Power Pad B",   RETRO_DEVICE_POWERPADB },
       { 0, 0 },
    };
 
    static const struct retro_controller_description pads3[] = {
       { "Auto",     RETRO_DEVICE_AUTO },
       { "Gamepad",  RETRO_DEVICE_GAMEPAD },
-      { "PowerPad A",   RETRO_DEVICE_POWERPADA },
-      { "PowerPad B",   RETRO_DEVICE_POWERPADB },
+      { "Power Pad A",   RETRO_DEVICE_POWERPADA },
+      { "Power Pad B",   RETRO_DEVICE_POWERPADB },
       { 0, 0 },
    };
 
