@@ -51,6 +51,8 @@
 #define RETRO_DEVICE_GAMEPAD      RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 1)
 #define RETRO_DEVICE_ZAPPER       RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  0)
 #define RETRO_DEVICE_ARKANOID     RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  1)
+#define RETRO_DEVICE_POWERPADA    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 0)
+#define RETRO_DEVICE_POWERPADB    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 1)
 
 #define RETRO_DEVICE_FC_ARKANOID  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  2)
 #define RETRO_DEVICE_FC_OEKAKIDS  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  3)
@@ -130,6 +132,19 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
 };
 
+static const uint32_t powerpadamap[] = {
+   RETROK_r, RETROK_e, RETROK_w, RETROK_q,
+   RETROK_f, RETROK_d, RETROK_s, RETROK_a,
+   RETROK_v, RETROK_c, RETROK_x, RETROK_z,
+};
+
+static const uint32_t powerpadbmap[] = {
+   RETROK_q, RETROK_w, RETROK_e, RETROK_r,
+   RETROK_a, RETROK_s, RETROK_d, RETROK_f,
+   RETROK_z, RETROK_x, RETROK_c, RETROK_v,
+};
+
+
 typedef struct {
    bool enable_4player;                /* four-score / 4-player adapter used */
    bool up_down_allowed;               /* disabled simultaneous up+down and left+right dpad combinations */
@@ -144,6 +159,7 @@ typedef struct {
    uint32_t JSReturn;                     /* player input data, 1 byte per player (1-4) */
    uint32_t MouseData[MAX_PORTS][4];      /* nes mouse data */
    uint32_t FamicomData[3];               /* Famicom expansion port data */
+   uint32_t PowerPadData;
 } NES_INPUT_T;
 
 static NES_INPUT_T nes_input = { 0 };
@@ -1182,6 +1198,16 @@ static void update_nes_controllers(unsigned port, unsigned device)
          FCEUI_SetInput(port, SI_ARKANOID, nes_input.MouseData[port], 0);
          FCEU_printf(" Player %u: Arkanoid\n", port + 1);
          break;
+      case RETRO_DEVICE_POWERPADA:
+         nes_input.type[port] = RETRO_DEVICE_POWERPADA;
+         FCEUI_SetInput(port, SI_POWERPADA, &nes_input.PowerPadData, 0);
+         FCEU_printf(" Player %u: Powerpad\n", port + 1);
+         break;
+      case RETRO_DEVICE_POWERPADB:
+         nes_input.type[port] = RETRO_DEVICE_POWERPADB;
+         FCEUI_SetInput(port, SI_POWERPADB, &nes_input.PowerPadData, 0);
+         FCEU_printf(" Player %u: Powerpad\n", port + 1);
+         break;
       case RETRO_DEVICE_GAMEPAD:
       default:
          nes_input.type[port] = RETRO_DEVICE_GAMEPAD;
@@ -1237,6 +1263,8 @@ static unsigned nes_to_libretro(int d)
       return RETRO_DEVICE_ZAPPER;
    case SI_ARKANOID:
       return RETRO_DEVICE_ARKANOID;
+   case SI_POWERPADB:
+      return RETRO_DEVICE_POWERPADB;
    }
 
    return (RETRO_DEVICE_GAMEPAD);
@@ -1530,6 +1558,8 @@ void retro_set_environment(retro_environment_t cb)
       { "Gamepad",  RETRO_DEVICE_GAMEPAD },
       { "Arkanoid", RETRO_DEVICE_ARKANOID },
       { "Zapper",   RETRO_DEVICE_ZAPPER },
+      { "PowerPad A",   RETRO_DEVICE_POWERPADA },
+      { "PowerPad B",   RETRO_DEVICE_POWERPADB },
       { 0, 0 },
    };
 
@@ -1557,7 +1587,7 @@ void retro_set_environment(retro_environment_t cb)
 
    static const struct retro_controller_info ports[] = {
       { pads1, 3 },
-      { pads2, 4 },
+      { pads2, 6 },
       { pads3, 2 },
       { pads4, 2 },
       { pads5, 6 },
@@ -2206,6 +2236,15 @@ static void check_variables(bool startup)
    update_option_visibility();
 }
 
+void get_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) 
+{
+   *ppdata = 0;
+   const uint32_t* map = (variant == RETRO_DEVICE_POWERPADA) ? powerpadamap : powerpadbmap;
+   for (unsigned k = 0 ; k < 12 ; k++)
+   	if (input_cb(0, RETRO_DEVICE_KEYBOARD, 0, map[k]))
+            *ppdata |= (1 << k);
+}
+
 static int mzx = 0, mzy = 0;
 
 void get_mouse_input(unsigned port, uint32_t *zapdata)
@@ -2458,6 +2497,17 @@ static void FCEUD_UpdateInput(void)
          case RETRO_DEVICE_ARKANOID:
          case RETRO_DEVICE_ZAPPER:
                get_mouse_input(port, nes_input.MouseData[port]);
+            break;
+      }
+   }
+
+   for (port = 0; port < MAX_PORTS; port++)
+   {
+      switch (nes_input.type[port])
+      {
+         case RETRO_DEVICE_POWERPADB:
+         case RETRO_DEVICE_POWERPADA:
+               get_powerpad_input(port, nes_input.type[port], &nes_input.PowerPadData);
             break;
       }
    }
