@@ -2240,8 +2240,9 @@ static void check_variables(bool startup)
 
 void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) 
 {
+   unsigned k;
    const uint32_t* map = (variant == RETRO_DEVICE_POWERPADA) ? powerpadamap : powerpadbmap;
-   for (unsigned k = 0 ; k < 12 ; k++)
+   for (k = 0 ; k < 12 ; k++)
    	if (input_cb(0, RETRO_DEVICE_KEYBOARD, 0, map[k]))
             *ppdata |= (1 << k);
 }
