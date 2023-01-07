@@ -132,13 +132,7 @@ static const keymap bindmap[] = {
    { RETRO_DEVICE_ID_JOYPAD_RIGHT, JOY_RIGHT },
 };
 
-static const uint32_t powerpadamap[] = {
-   RETROK_r, RETROK_e, RETROK_w, RETROK_q,
-   RETROK_f, RETROK_d, RETROK_s, RETROK_a,
-   RETROK_v, RETROK_c, RETROK_x, RETROK_z,
-};
-
-static const uint32_t powerpadbmap[] = {
+static const uint32_t powerpadmap[] = {
    RETROK_q, RETROK_w, RETROK_e, RETROK_r,
    RETROK_a, RETROK_s, RETROK_d, RETROK_f,
    RETROK_z, RETROK_x, RETROK_c, RETROK_v,
@@ -2241,7 +2235,7 @@ static void check_variables(bool startup)
 void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) 
 {
    unsigned k;
-   const uint32_t* map = (variant == RETRO_DEVICE_POWERPADA) ? powerpadamap : powerpadbmap;
+   const uint32_t* map = powerpadmap;
    for (k = 0 ; k < 12 ; k++)
    	if (input_cb(0, RETRO_DEVICE_KEYBOARD, 0, map[k]))
             *ppdata |= (1 << k);
