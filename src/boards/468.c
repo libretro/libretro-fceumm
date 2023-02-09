@@ -95,7 +95,7 @@ static SFORMAT stateRegs[] = {
 	{ &prgOR,           2, "SUP4" },
 	{ &prgAND,          1, "SUP5" },
 	{  eeprom,          16,"EEPR" },
-	{ &eep_clock,           1, "EEP0" },
+	{ &eep_clock,       1, "EEP0" },
 	{ &state,           1, "EEP1" },
 	{ &command,         1, "EEP2" },
 	{ &output,          1, "EEP3" },	
