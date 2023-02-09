@@ -52,7 +52,7 @@
 #include "state.h"
 
 static uint8 submapper;
-static uint8 eeprom[16], clock, state, command, output; /* Some strange serial EEPROM */
+static uint8 eeprom[16], eep_clock, state, command, output; /* Some strange serial EEPROM */
 static uint8 *WRAM;
 static uint32 WRAMSIZE;
 
@@ -95,7 +95,7 @@ static SFORMAT stateRegs[] = {
 	{ &prgOR,           2, "SUP4" },
 	{ &prgAND,          1, "SUP5" },
 	{  eeprom,          16,"EEPR" },
-	{ &clock,           1, "EEP0" },
+	{ &eep_clock,           1, "EEP0" },
 	{ &state,           1, "EEP1" },
 	{ &command,         1, "EEP2" },
 	{ &output,          1, "EEP3" },	
@@ -124,7 +124,7 @@ void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
 	if (select)
 		state =0;
 	else
-	if (!clock && !!newClock) {
+	if (!eep_clock && !!newClock) {
 		if (state <8) {
 			command =command <<1 | !!(newData)*1;
 			if (++state ==8 && (command &0xF0) !=0x50 && (command &0xF0) !=0xA0) state =0;
@@ -142,7 +142,7 @@ void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
 			if (++state ==16) state =0;
 		}
 	}
-	clock =newClock;
+	eep_clock =newClock;
 }
 
 static DECLFR(readReg);
@@ -235,7 +235,7 @@ static void reset(void) {
 	misc =0;
 	misc2 =0;
 	prgOR =0x7FF0;
-	clock =command =output =1;
+	eep_clock =command =output =1;
 	command =state =0;
 	setMapper(1);
 }
