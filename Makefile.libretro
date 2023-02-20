@@ -262,7 +262,7 @@ else ifneq (,$(filter $(platform), ps3 psl1ght))
     PLATFORM_DEFINES += -D__PS3__
     
     ifeq ($(platform), psl1ght)
-        PLATFORM_DEFINES += -D__PSL1GHT__
+        PLATFORM_DEFINES += -D__PSL1GHT__ -I$(PS3DEV)/ppu/include
     endif
 
     TARGET := $(TARGET_NAME)_libretro_$(platform).a
