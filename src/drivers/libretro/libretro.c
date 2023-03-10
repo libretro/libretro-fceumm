@@ -159,7 +159,7 @@ typedef struct {
 static NES_INPUT_T nes_input = { 0 };
 enum RetroZapperInputModes{RetroCLightgun, RetroSTLightgun, RetroMouse, RetroPointer};
 enum RetroZapperInputModes zappermode = RetroCLightgun;
-enum RetroArkanoidInputModes{RetroArkanoidMouse, RetroArkanoidPointer, RetroArkanoidSpinner, RetroArkanoidStelladaptor};
+enum RetroArkanoidInputModes{RetroArkanoidMouse, RetroArkanoidPointer, RetroArkanoidAbsMouse, RetroArkanoidStelladaptor};
 enum RetroArkanoidInputModes arkanoidmode = RetroArkanoidMouse;
 static int mouseSensitivity = 100;
 extern int switchZapper;
@@ -2005,8 +2005,8 @@ static void check_variables(bool startup)
       if (!strcmp(var.value, "touchscreen")) {
          arkanoidmode = RetroArkanoidPointer;
       }
-      else if (!strcmp(var.value, "spinner")) {
-         arkanoidmode = RetroArkanoidSpinner;
+      else if (!strcmp(var.value, "abs_mouse")) {
+         arkanoidmode = RetroArkanoidAbsMouse;
       }
       else if (!strcmp(var.value, "stelladaptor")) {
          arkanoidmode = RetroArkanoidStelladaptor;
@@ -2352,7 +2352,7 @@ void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
       if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
          mousedata[2] |= 0x1;
    }
-   else if (variant == RETRO_DEVICE_ARKANOID && (arkanoidmode == RetroArkanoidSpinner || arkanoidmode == RetroArkanoidPointer)) {
+   else if (variant == RETRO_DEVICE_ARKANOID && (arkanoidmode == RetroArkanoidAbsMouse || arkanoidmode == RetroArkanoidPointer)) {
       int offset_x = (adjx ? 0X8FF : 0);
 
       int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
@@ -2360,16 +2360,23 @@ void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
 
       if (_x != 0 || _y != 0)
       {
-         mousedata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
-         if (arkanoidmode == RetroArkanoidSpinner) {
+         int32 raw = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         if (arkanoidmode == RetroArkanoidAbsMouse) {
              // remap so full screen movement ends up within the encoder range 0-240
              // game board: 176 wide
              // paddle: 32
              // range of movement: 176-32 = 144
              // left edge: 16
              // right edge: 64
+             
+             // increase movement by 10 to allow edges to be reached in case of problems
+             raw = (raw - 128) * 140 / 128 + 128;
+             if (raw < 0)
+                 raw = 0;
+             else if (raw > 255)
+                 raw = 255;
               
-             mousedata[0] = mousedata[0] * 240 / 255;
+             mousedata[0] = raw * 240 / 255;
          }
          else {
              // remap so full board movement ends up within the encoder range 0-240
@@ -2379,7 +2386,7 @@ void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
                  mousedata[0] -= 16+(32/2);
              if (mousedata[0] > 144)
                  mousedata[0] = 144;
-             mousedata[0] = mousedata[0] * 240 / 144;
+             mousedata[0] = raw * 240 / 144;
          }
       }
       

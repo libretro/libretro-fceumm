@@ -559,7 +559,7 @@ struct retro_core_option_v2_definition option_defs[] = {
       NULL,
       "input",
       {
-         { "spinner",        "Arcade Spinner" },
+         { "abs_mouse",      "Absolute mouse" },
          { "mouse",          "Mouse" },
          { "stelladaptor",   "Stelladaptor" },
          { "touchscreen",    "Touchscreen" },
