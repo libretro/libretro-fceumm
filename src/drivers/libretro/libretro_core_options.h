@@ -583,6 +583,7 @@ struct retro_core_option_v2_definition option_defs[] = {
          { "70", NULL },
          { "80", NULL },
          { "90", NULL },
+         { "100", NULL },
          { "110", NULL },
          { "120", NULL },
          { "130", NULL },
