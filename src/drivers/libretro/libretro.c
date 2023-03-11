@@ -159,6 +159,9 @@ typedef struct {
 static NES_INPUT_T nes_input = { 0 };
 enum RetroZapperInputModes{RetroCLightgun, RetroSTLightgun, RetroMouse, RetroPointer};
 enum RetroZapperInputModes zappermode = RetroCLightgun;
+enum RetroArkanoidInputModes{RetroArkanoidMouse, RetroArkanoidPointer, RetroArkanoidAbsMouse, RetroArkanoidStelladaptor};
+enum RetroArkanoidInputModes arkanoidmode = RetroArkanoidMouse;
+static int mouseSensitivity = 100;
 extern int switchZapper;
 
 static bool libretro_supports_bitmasks = false;
@@ -1995,11 +1998,36 @@ static void check_variables(bool startup)
       }
    }
 
+   var.key = "fceumm_arkanoid_mode";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "touchscreen")) {
+         arkanoidmode = RetroArkanoidPointer;
+      }
+      else if (!strcmp(var.value, "abs_mouse")) {
+         arkanoidmode = RetroArkanoidAbsMouse;
+      }
+      else if (!strcmp(var.value, "stelladaptor")) {
+         arkanoidmode = RetroArkanoidStelladaptor;
+      }
+      else {
+         arkanoidmode = RetroArkanoidMouse; /*default setting*/
+      }
+   }
+
    var.key = "fceumm_zapper_tolerance";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       FCEU_ZapperSetTolerance(atoi(var.value));
+   }
+
+   var.key = "fceumm_mouse_sensitivity";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      mouseSensitivity = atoi(var.value);
    }
 
    var.key = "fceumm_show_crosshair";
@@ -2243,7 +2271,7 @@ void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata)
 
 static int mzx = 0, mzy = 0;
 
-void get_mouse_input(unsigned port, uint32_t *zapdata)
+void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
 {
    bool adjx = false;
    bool adjy = false;
@@ -2257,41 +2285,54 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
 #endif
    max_width   = 256;
    max_height  = 240;
-   zapdata[2]  = 0; /* reset click state */
+   mousedata[2]  = 0; /* reset click state */
+   
+   if (variant == RETRO_DEVICE_FC_ARKANOID)
+       variant = RETRO_DEVICE_ARKANOID;
 
-   if (zappermode == RetroMouse) /* mouse device */
+   if ((variant != RETRO_DEVICE_ARKANOID && zappermode == RetroMouse) || 
+       (variant == RETRO_DEVICE_ARKANOID && arkanoidmode == RetroArkanoidMouse)) /* mouse device */
    {
       int mouse_Lbutton;
       int mouse_Rbutton;
-
+      
       min_width   = (adjx ? 8 : 0) + 1;
       min_height  = (adjy ? 8 : 0) + 1;
       max_width  -= (adjx ? 8 : 0);
       max_height -= (adjy ? 8 : 0);
 
-      /* TODO: Add some sort of mouse sensitivity */
-      mzx += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-      mzy += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+      mzx += mouseSensitivity * input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X) / 100;
+      mzy += mouseSensitivity * input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y) / 100;      
 
-      /* Set crosshair within the limits of current screen resolution */
-      if (mzx < min_width) mzx = min_width;
-      else if (mzx > max_width) mzx = max_width;
+      switch(variant) {
+        case RETRO_DEVICE_ARKANOID:
+            if (mzx < 0) mzx = 0;
+            else if (mzx > 240) mzx = 240;
+            if (mzy < min_height) mzy = min_height;
+            else if (mzy > max_height) mzy = max_height;
+            mousedata[1] = mzy;
+            break; 
+        
+        case RETRO_DEVICE_ZAPPER:
+        default:
+            /* Set crosshair within the limits of current screen resolution */
+            if (mzx < min_width) mzx = min_width;
+            else if (mzx > max_width) mzx = max_width;
+            break;
+      }
 
-      if (mzy < min_height) mzy = min_height;
-      else if (mzy > max_height) mzy = max_height;
-
-      zapdata[0] = mzx;
-      zapdata[1] = mzy;
+      mousedata[0] = mzx;
+      
       
       mouse_Lbutton = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
       mouse_Rbutton = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
 
       if (mouse_Lbutton)
-         zapdata[2] |= 0x1;
+         mousedata[2] |= 0x1;
       if (mouse_Rbutton)
-         zapdata[2] |= 0x2;
+         mousedata[2] |= 0x2;
    }
-   else if (zappermode == RetroPointer) {
+   else if (variant != RETRO_DEVICE_ARKANOID && zappermode == RetroPointer) {
       int offset_x = (adjx ? 0X8FF : 0);
       int offset_y = (adjy ? 0X999 : 0);
 
@@ -2300,17 +2341,64 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
 
       if (_x == 0 && _y == 0)
       {
-         zapdata[0] = 0;
-         zapdata[1] = 0;
+         mousedata[0] = 0;
       }
       else
       {
-         zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
-         zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
+         mousedata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         mousedata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
       }
 
       if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
-         zapdata[2] |= 0x1;
+         mousedata[2] |= 0x1;
+   }
+   else if (variant == RETRO_DEVICE_ARKANOID && (arkanoidmode == RetroArkanoidAbsMouse || arkanoidmode == RetroArkanoidPointer)) {
+      int offset_x = (adjx ? 0X8FF : 0);
+
+      int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+      int _y = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+
+      if (_x != 0 || _y != 0)
+      {
+         int32 raw = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         if (arkanoidmode == RetroArkanoidAbsMouse) {
+             // remap so full screen movement ends up within the encoder range 0-240
+             // game board: 176 wide
+             // paddle: 32
+             // range of movement: 176-32 = 144
+             // left edge: 16
+             // right edge: 64
+             
+             // increase movement by 10 to allow edges to be reached in case of problems
+             raw = (raw - 128) * 140 / 128 + 128;
+             if (raw < 0)
+                 raw = 0;
+             else if (raw > 255)
+                 raw = 255;
+              
+             mousedata[0] = raw * 240 / 255;
+         }
+         else {
+             // remap so full board movement ends up within the encoder range 0-240
+             if (mousedata[0] < 16+(32/2))
+                 mousedata[0] = 0;
+             else
+                 mousedata[0] -= 16+(32/2);
+             if (mousedata[0] > 144)
+                 mousedata[0] = 144;
+             mousedata[0] = raw * 240 / 144;
+         }
+      }
+      
+
+      if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
+         mousedata[2] |= 0x1;
+   }
+   else if (variant == RETRO_DEVICE_ARKANOID && arkanoidmode == RetroArkanoidStelladaptor) {
+      int x = input_cb(port, RETRO_DEVICE_ANALOG, 0, RETRO_DEVICE_ID_ANALOG_X);
+      mousedata[0] = (x+32768)*240/65535;
+      if (input_cb(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A) || input_cb(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+         mousedata[2] |= 0x1;
    }
    else  if (zappermode == RetroCLightgun) /* Crosshair lightgun device */
    {
@@ -2326,25 +2414,25 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
 
       if ( offscreen || offscreen_shot )
       {
-         zapdata[0] = 0;
-         zapdata[1] = 0;
+         mousedata[0] = 0;
+         mousedata[1] = 0;
       }
       else
       {
          int _x = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X );
          int _y = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y );
 
-         zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
-         zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
+         mousedata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         mousedata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
       }
 
       if ( trigger || offscreen_shot )
-         zapdata[2] |= 0x1;
+         mousedata[2] |= 0x1;
    }
    else /* Sequential targets lightgun device integration */
    {
-      zapdata[2] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER );
-      zapdata[3] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_AUX_A );
+      mousedata[2] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER );
+      mousedata[3] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_AUX_A );
    }
 }
 
@@ -2491,8 +2579,9 @@ static void FCEUD_UpdateInput(void)
       switch (nes_input.type[port])
       {
          case RETRO_DEVICE_ARKANOID:
+         case RETRO_DEVICE_FC_ARKANOID:
          case RETRO_DEVICE_ZAPPER:
-               get_mouse_input(port, nes_input.MouseData[port]);
+               get_mouse_input(port, nes_input.type[port], nes_input.MouseData[port]);
             break;
       }
    }
@@ -2515,7 +2604,7 @@ static void FCEUD_UpdateInput(void)
       case RETRO_DEVICE_FC_ARKANOID:
       case RETRO_DEVICE_FC_OEKAKIDS:
       case RETRO_DEVICE_FC_SHADOW:
-         get_mouse_input(0, nes_input.FamicomData);
+         get_mouse_input(0, nes_input.type[4], nes_input.FamicomData);
          break;
       case RETRO_DEVICE_FC_HYPERSHOT:
       {
