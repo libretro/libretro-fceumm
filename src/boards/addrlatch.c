@@ -745,7 +745,7 @@ static void M435Sync(void) {
 		setprg16(0xC000, p | 7);
 	}
 
-	if (latche &0x800)
+	if (latche &0x200)
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	else
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
