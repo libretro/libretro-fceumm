@@ -1095,18 +1095,79 @@ void UNLMaliSB_Init(CartInfo *info) {
 
 /* ---------------------------- Mapper 197 ------------------------------- */
 
-static void M197CW(uint32 A, uint8 V) {
-	if (A == 0x0000)
-		setchr4(0x0000, V >> 1);
-	else if (A == 0x1000)
-		setchr2(0x1000, V);
-	else if (A == 0x1400)
-		setchr2(0x1800, V);
+static void M197S0CW(uint32 A, uint8 V) {
+	switch(A) {
+	case 0x0000: setchr2(0x0000, V); break;
+	case 0x0400: setchr2(0x0800, V); break;
+	case 0x1000: setchr2(0x1000, V); break;
+	case 0x1400: setchr2(0x1800, V); break;
+	}
+}
+
+static void M197S1CW(uint32 A, uint8 V) {
+	switch(A) {
+	case 0x0800: setchr2(0x0000, V); break;
+	case 0x0C00: setchr2(0x0800, V); break;
+	case 0x1800: setchr2(0x1000, V); break;
+	case 0x1C00: setchr2(0x1800, V); break;
+	}
+}
+
+static void M197S2CW(uint32 A, uint8 V) {
+	switch(A) {
+	case 0x0000: setchr2(0x0000, V); break;
+	case 0x0C00: setchr2(0x0800, V); break;
+	case 0x1000: setchr2(0x1000, V); break;
+	case 0x1C00: setchr2(0x1800, V); break;
+	}
+}
+
+static void M197S3CW(uint32 A, uint8 V) {
+	switch(A) {
+	case 0x0000: setchr2(0x0000, V | EXPREGS[0] <<7 &0x100); break;
+	case 0x0400: setchr2(0x0800, V | EXPREGS[0] <<7 &0x100); break;
+	case 0x1000: setchr2(0x1000, V | EXPREGS[0] <<7 &0x100); break;
+	case 0x1400: setchr2(0x1800, V | EXPREGS[0] <<7 &0x100); break;
+	}
+}
+
+static void M197S3PW(uint32 A, uint8 V) {
+	setprg8(A, V &(EXPREGS[0] &8? 0x0F: 0x1F) | EXPREGS[0] <<4);
+}
+
+static DECLFW(Mapper197S3Write) {
+	if (A001B &0x80) {
+		EXPREGS[0] =V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	}
+}
+
+static void Mapper197S3_Reset(void) {
+	EXPREGS[0] =0;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
+}
+
+static void Mapper197S3_Power(void) {
+	EXPREGS[0] =0;
+	GenMMC3Power();
+	SetWriteHandler(0x6000, 0x7fff, Mapper197S3Write);
 }
 
 void Mapper197_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 512, 8, 0);
-	cwrap = M197CW;
+	GenMMC3_Init(info, 128, 512, 8, 0);	
+	switch(info->submapper) {
+		case 0: cwrap =M197S0CW; break;
+		case 1: cwrap =M197S1CW; break;
+		case 2: cwrap =M197S2CW; break;
+		case 3: cwrap =M197S3CW;
+		        pwrap =M197S3PW;
+			info->Power = Mapper197S3_Power;
+			info->Reset = Mapper197S3_Reset;
+			break;
+	}
+	AddExState(EXPREGS, 1, 0, "EXPR");
 }
 
 /* ---------------------------- Mapper 198 ------------------------------- */
