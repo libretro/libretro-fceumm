@@ -194,33 +194,34 @@ void Mapper61_Init(CartInfo *info) {
  * Mapper 63 NTDEC-Multicart
  * http://wiki.nesdev.com/w/index.php/INES_Mapper_063
  * - Powerful 250-in-1
- * - Hello Kitty 255-in-1 */
+ * - Hello Kitty 255-in-1
+ * Submapper 1:
+ * - NTDEC 82-in-1 */
 
 static uint16 openBus;
 
 static DECLFR(M63Read) {
-	if (A < 0xC000)
-		if (openBus)
-			return X.DB;
+	if (openBus)
+		return X.DB;
 	return CartBR(A);
 }
 
 static void M63Sync(void) {
-	uint16 mode = latche & 2;
-	uint16 prg_bank = (latche & 0x3F8) >> 1;
-	uint16 prg16 = (latche & 4) >> 1;
-
-	openBus = ((latche & 0x300) == 0x300);
-	setprg8(0x8000, (prg_bank | (mode ? 0 : prg16 | 0)));
-	setprg8(0xA000, (prg_bank | (mode ? 1 : prg16 | 1)));
-	setprg8(0xC000, (prg_bank | (mode ? 2 : prg16 | 0)));
-	setprg8(0xE000, ((latche & 0x800) ? ((latche & 0x7C) | ((latche & 6) ? 3 : 1)) :
-					(prg_bank | (mode ? 3 : (prg16 | 1)))));
+	uint16 prg =latche >>2 &(submapper ==1? 0x7F: 0xFF);
+	if (latche &2)
+		setprg32(0x8000, prg >>1);
+	else {
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
+	}
+	openBus =prg >=ROM_size;
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, latche &(submapper ==1? 0x200: 0x400)? 0: 1);
 	setchr8(0);
-	setmirror((latche & 1) ^ 1);
+	setmirror(latche &1? MI_H: MI_V);
 }
 
 void Mapper63_Init(CartInfo *info) {
+	submapper = info->submapper;
 	Latch_Init(info, M63Sync, M63Read, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
