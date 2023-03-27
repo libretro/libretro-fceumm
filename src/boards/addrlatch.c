@@ -194,33 +194,34 @@ void Mapper61_Init(CartInfo *info) {
  * Mapper 63 NTDEC-Multicart
  * http://wiki.nesdev.com/w/index.php/INES_Mapper_063
  * - Powerful 250-in-1
- * - Hello Kitty 255-in-1 */
+ * - Hello Kitty 255-in-1
+ * Submapper 1:
+ * - NTDEC 82-in-1 */
 
 static uint16 openBus;
 
 static DECLFR(M63Read) {
-	if (A < 0xC000)
-		if (openBus)
-			return X.DB;
+	if (openBus)
+		return X.DB;
 	return CartBR(A);
 }
 
 static void M63Sync(void) {
-	uint16 mode = latche & 2;
-	uint16 prg_bank = (latche & 0x3F8) >> 1;
-	uint16 prg16 = (latche & 4) >> 1;
-
-	openBus = ((latche & 0x300) == 0x300);
-	setprg8(0x8000, (prg_bank | (mode ? 0 : prg16 | 0)));
-	setprg8(0xA000, (prg_bank | (mode ? 1 : prg16 | 1)));
-	setprg8(0xC000, (prg_bank | (mode ? 2 : prg16 | 0)));
-	setprg8(0xE000, ((latche & 0x800) ? ((latche & 0x7C) | ((latche & 6) ? 3 : 1)) :
-					(prg_bank | (mode ? 3 : (prg16 | 1)))));
+	uint16 prg =latche >>2 &(submapper ==1? 0x7F: 0xFF);
+	if (latche &2)
+		setprg32(0x8000, prg >>1);
+	else {
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
+	}
+	openBus =prg >=ROM_size;
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, latche &(submapper ==1? 0x200: 0x400)? 0: 1);
 	setchr8(0);
-	setmirror((latche & 1) ^ 1);
+	setmirror(latche &1? MI_H: MI_V);
 }
 
 void Mapper63_Init(CartInfo *info) {
+	submapper = info->submapper;
 	Latch_Init(info, M63Sync, M63Read, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
@@ -254,13 +255,14 @@ void Mapper92_Init(CartInfo *info) {
 /*------------------ Map 200 ---------------------------*/
 
 static void M200Sync(void) {
-	setprg16(0x8000, latche & 7);
-	setprg16(0xC000, latche & 7);
-	setchr8(latche & 7);
-	setmirror(((latche >> 3) & 1) ^ 1);
+	setprg16(0x8000, latche);
+	setprg16(0xC000, latche);
+	setchr8(latche);
+	setmirror(latche &(submapper ==1? 4: 8)? MI_H: MI_V);
 }
 
 void Mapper200_Init(CartInfo *info) {
+	submapper = info->submapper;
 	Latch_Init(info, M200Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 
@@ -413,9 +415,25 @@ static void M227Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
+static DECLFR(M227Read) {
+	if (latche &0x0400)
+		return CartBR(A | dipswitch);
+	else
+		return CartBR(A);
+}
+
+static void Mapper227_Reset(void) {
+	dipswitch++;
+	dipswitch &= 15;
+	latche = 0;
+	M227Sync();
+}
+
 void Mapper227_Init(CartInfo *info) {
 	submapper =info->submapper;
-	Latch_Init(info, M227Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+	Latch_Init(info, M227Sync, M227Read, 0x0000, 0x8000, 0xFFFF, info->iNES2 && (info->PRGRamSize || info->PRGRamSaveSize) || info->battery);
+	info->Reset = Mapper227_Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
 /*------------------ Map 229 ---------------------------*/
@@ -509,9 +527,25 @@ static void M242Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
+static DECLFR(M242Read) {
+	if (latche &0x0100)
+		return CartBR(A | dipswitch);
+	else
+		return CartBR(A);
+}
+
+static void Mapper242_Reset(void) {
+	dipswitch++;
+	dipswitch &= 31;
+	latche = 0;
+	M242Sync();
+}
+
 void Mapper242_Init(CartInfo *info) {
 	M242TwoChips = info->PRGRomSize &0x20000 && info->PRGRomSize >0x20000;
-	Latch_Init(info, M242Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+	Latch_Init(info, M242Sync, M242Read, 0x0000, 0x8000, 0xFFFF,  info->iNES2 && (info->PRGRamSize || info->PRGRamSaveSize) || info->battery);
+	info->Reset = Mapper242_Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
 /*------------------ Map 288 ---------------------------*/
@@ -745,7 +779,7 @@ static void M435Sync(void) {
 		setprg16(0xC000, p | 7);
 	}
 
-	if (latche &0x800)
+	if (latche &0x200)
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	else
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);

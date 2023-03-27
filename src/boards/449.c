@@ -23,12 +23,14 @@
 static uint16 latchAddr;
 static uint8  latchData;
 static uint8  dipswitch;
+static uint8  dipselect;
 
 static SFORMAT StateRegs[] =
 {
    { &latchAddr, 2, "ADDR" },
    { &latchData, 1, "DATA" },
    { &latchData, 1, "DIPS" },
+   { &dipselect, 1, "DSEL" },
    { 0 }
 };
 
@@ -58,10 +60,18 @@ static void Mapper449_Sync(void)
 
 static DECLFR(Mapper449_Read)
 {
+   if (dipselect)
+      return dipswitch &0x3;
+   else
    if (latchAddr &0x200)
-      return CartBR(A | dipswitch);
+      return CartBR(A | dipswitch &0xF);
    else
       return CartBR(A);
+}
+
+static DECLFW(Mapper449_WriteDIPSelect)
+{
+   dipselect =V &1;
 }
 
 static DECLFW(Mapper449_WriteLatch)
@@ -73,15 +83,16 @@ static DECLFW(Mapper449_WriteLatch)
 
 static void Mapper449_Reset(void)
 {
-   dipswitch =(dipswitch +1) &0xF;
+   dipswitch++;
    latchAddr =latchData =0;
    Mapper449_Sync();
 }
 
 static void Mapper449_Power(void)
 {
-   dipswitch =latchAddr =latchData =0;
+   dipselect =dipswitch =latchAddr =latchData =0;
    Mapper449_Sync();
+   SetWriteHandler(0x6000, 0x7FFF, Mapper449_WriteDIPSelect);
    SetWriteHandler(0x8000, 0xFFFF, Mapper449_WriteLatch);
    SetReadHandler(0x6000, 0x7FFF, CartBR);
    SetReadHandler(0x8000, 0xFFFF, Mapper449_Read);
