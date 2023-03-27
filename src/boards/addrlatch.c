@@ -415,9 +415,25 @@ static void M227Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
+static DECLFR(M227Read) {
+	if (latche &0x0400)
+		return CartBR(A | dipswitch);
+	else
+		return CartBR(A);
+}
+
+static void Mapper227_Reset(void) {
+	dipswitch++;
+	dipswitch &= 15;
+	latche = 0;
+	M227Sync();
+}
+
 void Mapper227_Init(CartInfo *info) {
 	submapper =info->submapper;
-	Latch_Init(info, M227Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+	Latch_Init(info, M227Sync, M227Read, 0x0000, 0x8000, 0xFFFF, info->iNES2 && (info->PRGRamSize || info->PRGRamSaveSize) || info->battery);
+	info->Reset = Mapper227_Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
 /*------------------ Map 229 ---------------------------*/
@@ -511,9 +527,25 @@ static void M242Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
+static DECLFR(M242Read) {
+	if (latche &0x0100)
+		return CartBR(A | dipswitch);
+	else
+		return CartBR(A);
+}
+
+static void Mapper242_Reset(void) {
+	dipswitch++;
+	dipswitch &= 31;
+	latche = 0;
+	M242Sync();
+}
+
 void Mapper242_Init(CartInfo *info) {
 	M242TwoChips = info->PRGRomSize &0x20000 && info->PRGRomSize >0x20000;
-	Latch_Init(info, M242Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+	Latch_Init(info, M242Sync, M242Read, 0x0000, 0x8000, 0xFFFF,  info->iNES2 && (info->PRGRamSize || info->PRGRamSaveSize) || info->battery);
+	info->Reset = Mapper242_Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
 /*------------------ Map 288 ---------------------------*/
