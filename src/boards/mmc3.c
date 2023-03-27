@@ -697,6 +697,7 @@ static void M52Power(void) {
 
 void Mapper52_Init(CartInfo *info) {
 	GenMMC3_Init(info, 256, 256, 8, info->battery);
+	isRevB = 0; /* For Aladdin in NT-8062 */
 	cwrap = info->submapper ==14? M52S14CW: M52CW;
 	pwrap = M52PW;
 	info->Reset = M52Reset;
