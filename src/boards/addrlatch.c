@@ -254,13 +254,14 @@ void Mapper92_Init(CartInfo *info) {
 /*------------------ Map 200 ---------------------------*/
 
 static void M200Sync(void) {
-	setprg16(0x8000, latche & 7);
-	setprg16(0xC000, latche & 7);
-	setchr8(latche & 7);
-	setmirror(((latche >> 3) & 1) ^ 1);
+	setprg16(0x8000, latche);
+	setprg16(0xC000, latche);
+	setchr8(latche);
+	setmirror(latche &(submapper ==1? 4: 8)? MI_H: MI_V);
 }
 
 void Mapper200_Init(CartInfo *info) {
+	submapper = info->submapper;
 	Latch_Init(info, M200Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 }
 
