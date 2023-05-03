@@ -2378,14 +2378,15 @@ void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
       {
          int32 raw = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
          if (arkanoidmode == RetroArkanoidAbsMouse) {
-             // remap so full screen movement ends up within the encoder range 0-240
-             // game board: 176 wide
-             // paddle: 32
-             // range of movement: 176-32 = 144
-             // left edge: 16
-             // right edge: 64
+             /* remap so full screen movement ends up within the encoder range 0-240
+                game board: 176 wide
+                paddle: 32
+                range of movement: 176-32 = 144
+                left edge: 16
+                right edge: 64
              
-             // increase movement by 10 to allow edges to be reached in case of problems
+                increase movement by 10 to allow edges to be reached in case of problems
+	     */
              raw = (raw - 128) * 140 / 128 + 128;
              if (raw < 0)
                  raw = 0;
@@ -2395,7 +2396,7 @@ void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
              mousedata[0] = raw * 240 / 255;
          }
          else {
-             // remap so full board movement ends up within the encoder range 0-240
+             /* remap so full board movement ends up within the encoder range 0-240 */
              if (mousedata[0] < 16+(32/2))
                  mousedata[0] = 0;
              else

@@ -715,7 +715,7 @@ else
       CFLAGS     += -MT
       CXXFLAGS   += -MT
 	endif
-      CFLAGS     += -O2 -DNDEBUG
+      CFLAGS     += -O2 -DNDEBUG -std=c89
       CXXFLAGS   += -O2 -DNDEBUG
 endif
 
