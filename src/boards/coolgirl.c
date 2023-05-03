@@ -331,15 +331,16 @@ static INLINE uint32 set_bits(uint32 V, char* bitsstr, uint32 new_bits)
 }
 
 static void COOLGIRL_Sync_PRG(void) {
+	uint8 REG_A_CHIP, REG_B_CHIP, REG_C_CHIP, REG_D_CHIP;
 	prg_bank_6000_mapped = (prg_base >> 13) | (prg_bank_6000 & ((~(prg_mask >> 13) & 0xFE) | 1));
 	prg_bank_a_mapped = (prg_base >> 13) | (prg_bank_a & ((~(prg_mask >> 13) & 0xFE) | 1));
 	prg_bank_b_mapped = (prg_base >> 13) | (prg_bank_b & ((~(prg_mask >> 13) & 0xFE) | 1));
 	prg_bank_c_mapped = (prg_base >> 13) | (prg_bank_c & ((~(prg_mask >> 13) & 0xFE) | 1));
 	prg_bank_d_mapped = (prg_base >> 13) | (prg_bank_d & ((~(prg_mask >> 13) & 0xFE) | 1));
-	uint8 REG_A_CHIP = (SAVE_FLASH != NULL && prg_bank_a_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
-	uint8 REG_B_CHIP = (SAVE_FLASH != NULL && prg_bank_b_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
-	uint8 REG_C_CHIP = (SAVE_FLASH != NULL && prg_bank_c_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
-	uint8 REG_D_CHIP = (SAVE_FLASH != NULL && prg_bank_d_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
+	REG_A_CHIP = (SAVE_FLASH != NULL && prg_bank_a_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
+	REG_B_CHIP = (SAVE_FLASH != NULL && prg_bank_b_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
+	REG_C_CHIP = (SAVE_FLASH != NULL && prg_bank_c_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
+	REG_D_CHIP = (SAVE_FLASH != NULL && prg_bank_d_mapped >= 0x20000 - SAVE_FLASH_SIZE / 1024 / 8) ? FLASH_CHIP : ROM_CHIP;
 
 	if (!cfi_mode || !SAVE_FLASH)
 	{
