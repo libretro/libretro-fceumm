@@ -124,7 +124,7 @@ static uint8 four_screen = 0;
 static uint8 lockout = 0;
 
 static uint32 prg_base = 0;		/* [26:14] */
-static uint32 prg_mask = 4063232 << 14; /* 11111000, 128KB		[20:14] */
+static uint32 prg_mask = 0xF8 << 14; /* 11111000, 128KB		[20:14] */
 static uint8 prg_mode = 0;		/* [2:0] */
 static uint8 prg_bank_6000 = 0;	/* [7:0] */
 static uint8 prg_bank_a = 0;	/* [7:0] */
@@ -192,12 +192,12 @@ static uint16 mapper18_irq_latch = 0;			/* [15:0], stores counter reload latch v
 /* for mapper #65 */
 static uint8 mapper65_irq_enabled = 0;			/* register to enable/disable IRQ */
 static uint16 mapper65_irq_value = 0;			/* [15:0], counter itself (downcounting) */
-static uint16 mapper65_irq_latch = 0;			/* [15:0], stores counter reload latch value  */
+static uint16 mapper65_irq_latch = 0;			/* [15:0], stores counter reload latch value */
 /* reg mapper65_irq_out = 0;
  * for Sunsoft FME-7 */
 static uint8 mapper69_irq_enabled = 0;			/* register to enable/disable IRQ */
-static uint8 mapper69_counter_enabled = 0;			/* register to enable/disable counter */
-static uint16 mapper69_irq_value = 0;				/* counter itself (downcounting) */
+static uint8 mapper69_counter_enabled = 0;		/* register to enable/disable counter */
+static uint16 mapper69_irq_value = 0;			/* counter itself (downcounting) */
 /* for VRC4 CPU-based interrupts */
 static uint8 vrc4_irq_value = 0;				/* [7:0], counter itself (upcounting) */
 static uint8 vrc4_irq_control = 0;				/* [2:0]� IRQ settings */
@@ -268,7 +268,6 @@ static INLINE uint8 string_to_bits(char* bitsstr, int* bits)
 			}
 			if (*bitsstr == ':')
 			{
-				int i;
 				bitsstr++;
 				while (isdigit(*bitsstr))
 				{
@@ -387,10 +386,7 @@ static void COOLGIRL_Sync_PRG(void) {
 
 static void COOLGIRL_Sync_CHR(void) {
 	/* calculate CHR shift */
-#if 0
-	wire shift_chr_right = ENABLE_MAPPER_021_022_023_025 && ENABLE_MAPPER_022 && (mapper == 6'b011000) && flags[1];
-#endif
-	int chr_shift_right = ((mapper == 0b011000) && (flags & 0b010)) ? 1 : 0;
+	int chr_shift_right = ((mapper == 0x18) && (flags & 0x02)) ? 1 : 0;
 	int chr_shift_left = 0;
 
 	/* enable or disable writes to CHR RAM, setup CHR mask */
@@ -470,10 +466,11 @@ static void COOLGIRL_Sync_CHR(void) {
 static void COOLGIRL_Sync_Mirroring(void) {
 	if (!four_screen)
 	{
-		if (!((mapper == 0b010100) && (flags & 1))) /* Mapper #189? */
+		if (!((mapper == 0x14) && (flags & 1))) /* Mapper #189? */
 			setmirror((mirroring < 2) ? (mirroring ^ 1) : mirroring);
 	}
-	else { /* four screen mode */
+	else {
+		/* four screen mode */
 		vnapage[0] = UNIFchrrama + 0x3F000;
 		vnapage[1] = UNIFchrrama + 0x3F400;
 		vnapage[2] = UNIFchrrama + 0x3F800;
@@ -488,6 +485,8 @@ static void COOLGIRL_Sync(void) {
 }
 
 static DECLFW(COOLGIRL_Flash_Write) {
+	int sector;
+	uint32 i, flash_addr;
 	if (flash_state < sizeof(flash_buffer_a) / sizeof(flash_buffer_a[0]))
 	{
 		flash_buffer_a[flash_state] = A & 0xFFF;
@@ -511,12 +510,10 @@ static DECLFW(COOLGIRL_Flash_Write) {
 			(flash_buffer_a[4] == 0x0555) && (flash_buffer_v[4] == 0x55) &&
 			(flash_buffer_v[5] == 0x30))
 		{
-			uint32 i;
-			int sector = prg_bank_a_mapped * 0x2000 / FLASH_SECTOR_SIZE;
-			uint32 sector_address = sector * FLASH_SECTOR_SIZE;
-			for (i = sector_address; i < sector_address + FLASH_SECTOR_SIZE; i++)
+			sector = prg_bank_a_mapped * 0x2000 / FLASH_SECTOR_SIZE;
+			flash_addr = sector * FLASH_SECTOR_SIZE;
+			for (i = flash_addr; i < flash_addr + FLASH_SECTOR_SIZE; i++)
 				SAVE_FLASH[i % SAVE_FLASH_SIZE] = 0xFF;
-			FCEU_printf("Flash sector #%d is erased: 0x%08x - 0x%08x.\n", sector, sector_address, sector_address + FLASH_SECTOR_SIZE - 1);
 			flash_state = 0;
 		}	
 
@@ -526,10 +523,8 @@ static DECLFW(COOLGIRL_Flash_Write) {
 			(flash_buffer_a[1] == 0x0555) && (flash_buffer_v[1] == 0x55) &&
 			(flash_buffer_a[2] == 0x0AAA) && (flash_buffer_v[2] == 0xA0))
 		{
-#if 0
-			int sector = prg_bank_a_mapped * 0x2000 / FLASH_SECTOR_SIZE;
-#endif
-			uint32 flash_addr = prg_bank_a_mapped * 0x2000 + (A % 0x8000);
+			sector = prg_bank_a_mapped * 0x2000 / FLASH_SECTOR_SIZE;
+			flash_addr = prg_bank_a_mapped * 0x2000 + (A % 0x8000);
 			if (SAVE_FLASH[flash_addr % SAVE_FLASH_SIZE] != 0xFF) {
 				FCEU_PrintError("Error: can't write to 0x%08x, flash sector is not erased.\n", flash_addr);
 			}
@@ -555,6 +550,8 @@ static DECLFW(COOLGIRL_Flash_Write) {
 }
 
 static DECLFW(COOLGIRL_WRITE) {
+	uint8 vrc_2b_hi, vrc_2b_low;
+
 	if (sram_enabled && A >= 0x6000 && A < 0x8000 && !map_rom_on_6000)
 		CartBW(A, V); /* SRAM is enabled and writable */
 	if (SAVE_FLASH && can_write_flash && A >= 0x8000) /* writing flash */
@@ -566,7 +563,6 @@ static DECLFW(COOLGIRL_WRITE) {
 
 	if (A >= 0x5000 && A < 0x6000 && !lockout)
 	{
-		/*FCEU_printf("Write: %02x => %04x\n", V, A); */
 		switch (A & 7)
 		{
 		case 0:
@@ -582,9 +578,6 @@ static DECLFW(COOLGIRL_WRITE) {
 			/* {chr_mask[18], prg_mask[20:14]} = cpu_data_in[7:0]; */
 			SET_BITS(chr_mask, "18", V, "7");
 			SET_BITS(prg_mask, "20:14", V, "6:0");
-#if 0
-			FCEU_printf("REG_prg_mask: %02x\n", REG_prg_mask);
-#endif
 			break;
 		case 3:
 			/* {prg_mode[2:0], chr_bank_a[7:3]} = cpu_data_in[7:0]; */
@@ -616,9 +609,9 @@ static DECLFW(COOLGIRL_WRITE) {
 			SET_BITS(can_write_flash, "0", V, "2");
 			SET_BITS(can_write_chr, "0", V, "1");
 			SET_BITS(sram_enabled, "0", V, "0");
-			if (mapper == 0b010001) prg_bank_b = ~2; /* if (USE_MAPPER_009_010 && mapper == 6'b010001) prg_bank_b = 8'b11111101; */
-			if (mapper == 0b010111) map_rom_on_6000 = 1; /* if (ENABLE_MAPPER_042 && (mapper == 6'b010111)) map_rom_on_6000 <= 1; */
-			if (mapper == 0b001110) prg_bank_b = 1; /* if (USE_MAPPER_065 && mapper == 6'b001110) prg_bank_b = 1; */
+			if (mapper == 0x11) prg_bank_b = ~2; /* if (USE_MAPPER_009_010 && mapper == 6'b010001) prg_bank_b = 8'b11111101; */
+			if (mapper == 0x17) map_rom_on_6000 = 1; /* if (ENABLE_MAPPER_042 && (mapper == 6'b010111)) map_rom_on_6000 <= 1; */
+			if (mapper == 0x0E) prg_bank_b = 1; /* if (USE_MAPPER_065 && mapper == 6'b001110) prg_bank_b = 1; */
 			break;
 		}
 	}
@@ -626,7 +619,7 @@ static DECLFW(COOLGIRL_WRITE) {
 	if (A < 0x8000) /* $0000-$7FFF */
 	{
 		/* Mapper #163 */
-		if (mapper == 0b000110)
+		if (mapper == 0x06)
 		{
 			if (A == 0x5101) /* if (cpu_addr_in[14:0] == 15'h5101) */
 			{
@@ -637,10 +630,10 @@ static DECLFW(COOLGIRL_WRITE) {
 			else if (A == 0x5100 && V == 6) /* if ((cpu_addr_in[14:0] == 15'h5100) && (cpu_data_in == 6)) */
 			{
 				SET_BITS(prg_mode, "0", 0, "0"); /* prg_mode[0] = 0; */
-				prg_bank_b = 0b1100; /* prb_bank_b = 4'b1100; */
+				prg_bank_b = 0x0C; /* prb_bank_b = 4'b1100; */
 			}
 			else {
-				if (get_bits(A, "14:12") == 0b101) /* if (cpu_addr_in[14:12] == 3'b101) begin */
+				if (get_bits(A, "14:12") == 0x05) /* if (cpu_addr_in[14:12] == 3'b101) begin */
 				{
 					switch (get_bits(A, "9:8")) /* case (cpu_addr_in[9:8]) */
 					{
@@ -667,9 +660,9 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #87 */
-		if (mapper == 0b001100)
+		if (mapper == 0x0C)
 		{
-			if (get_bits(A, "14:13") == 0b11) /* if (cpu_addr_in[14:13] == 2'b11) // $6000-$7FFF */
+			if (get_bits(A, "14:13") == 0x03) /* if (cpu_addr_in[14:13] == 2'b11) // $6000-$7FFF */
 			{
 				/* chr_bank_a[4:3] = {cpu_data_in[0], cpu_data_in[1]}; */
 				SET_BITS(chr_bank_a, "4:3", V, "0,1");
@@ -677,8 +670,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #90 - JY */
-		/*
-		if (mapper == 0b001101)
+		if (mapper == 0x0D)
 		{
 			switch (A)
 			{
@@ -686,10 +678,9 @@ static DECLFW(COOLGIRL_WRITE) {
 			case 0x5801: mul2 = V; break;
 			}
 		}
-		*/
 
 		/* MMC5 (not really) */
-		if (mapper == 0b001111)
+		if (mapper == 0x0F)
 		{
 			/* case (cpu_addr_in[14:0]) */
 			switch (get_bits(A, "14:0"))
@@ -704,14 +695,14 @@ static DECLFW(COOLGIRL_WRITE) {
 					/* case ({cpu_data_in[4], cpu_data_in[2]}) */
 					switch (get_bits(V, "4,2"))
 					{
-					case 0b00: /* 2'b00: mirroring = 2'b10; */
-						mirroring = 0b10; break;
-					case 0b01: /* 2'b01: mirroring = 2'b00; */
-						mirroring = 0b00; break;
-					case 0b10: /* 2'b10: mirroring = 2'b01; */
-						mirroring = 0b01; break;
-					case 0b11: /* 2'b11: mirroring = 2'b11; */
-						mirroring = 0b11; break;
+					case 0x00: /* 2'b00: mirroring = 2'b10; */
+						mirroring = 0x02; break;
+					case 0x01: /* 2'b01: mirroring = 2'b00; */
+						mirroring = 0x00; break;
+					case 0x02: /* 2'b10: mirroring = 2'b01; */
+						mirroring = 0x01; break;
+					case 0x03: /* 2'b11: mirroring = 2'b11; */
+						mirroring = 0x03; break;
 					}
 				}
 				break;
@@ -781,7 +772,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #189 */
-		if ((mapper == 0b010100) && (flags & 2))
+		if ((mapper == 0x14) && (flags & 2))
 		{
 			if (A >= 0x4120) /* if (cpu_addr_in[14:0] >= 15'h4120) // $4120-$7FFF */
 			{
@@ -792,10 +783,10 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mappers #79 and #146 - NINA-03/06 and Sachen 3015: (flag0 = 1) */
-		if (mapper == 0b011011)
+		if (mapper == 0x1B)
 		{
 			/* if ({cpu_addr_in[14:13], cpu_addr_in[8]} == 3'b101) */
-			if (get_bits(A, "14:13,8") == 0b101)
+			if (get_bits(A, "14:13,8") == 0x05)
 			{
 				/*chr_bank_a[5:3] = cpu_data_in[2:0]; */
 				SET_BITS(chr_bank_a, "5:3", V, "2:0");
@@ -805,10 +796,10 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #133 */
-		if (mapper == 0b011100)
+		if (mapper == 0x1C)
 		{
 			/* if ({cpu_addr_in[14:13], cpu_addr_in[8]} == 3'b101) */
-			if (get_bits(A, "14:13,8") == 0b101)
+			if (get_bits(A, "14:13,8") == 0x05)
 			{
 				/*chr_bank_a[4:3] = cpu_data_in[1:0]; */
 				SET_BITS(chr_bank_a, "4:3", V, "1:0");
@@ -818,9 +809,9 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #184 */
-		if (mapper == 0b011111)
+		if (mapper == 0x1F)
 		{
-			if (get_bits(A, "14:13") == 0b11) /* if (cpu_addr_in[14:13] == 2'b11) */
+			if (get_bits(A, "14:13") == 0x03) /* if (cpu_addr_in[14:13] == 2'b11) */
 			{
 				/* chr_bank_a[4:2] = cpu_data_in[2:0]; */
 				SET_BITS(chr_bank_a, "4:2", V, "2:0");
@@ -831,10 +822,10 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #38 */
-		if (mapper == 0b100000)
+		if (mapper == 0x20)
 		{
 			/* if (cpu_addr_in[14:12] == 3'b111) */
-			if (get_bits(A, "14:12") == 0b111)
+			if (get_bits(A, "14:12") == 0x07)
 			{
 				/* prg_bank_a[3:2] = cpu_data_in[1:0]; */
 				SET_BITS(prg_bank_a, "3:2", V, "1:0");
@@ -847,11 +838,12 @@ static DECLFW(COOLGIRL_WRITE) {
 	{
 		/* Mapper #2 - UxROM
 		 * flag0 - mapper #71 - for Fire Hawk only.
-		 * other mapper-#71 games are UxROM */
-		if (mapper == 0b000001)
+		 * other mapper-#71 games are UxROM 
+		 * flag1 - UNROM-512 partial support */
+		if (mapper == 0x01)
 		{
 			/* if (!ENABLE_MAPPER_071 | ~flags[0] | (cpu_addr_in[14:12] != 3'b001)) */
-			if (!(flags & 1) || (get_bits(A, "14:12") != 0b001))
+			if (!(flags & 1) || (get_bits(A, "14:12") != 0x01))
 			{
 				/* prg_bank_a[UxROM_BITSIZE+1:1] = cpu_data_in[UxROM_BITSIZE:0];
 				 * UxROM_BITSIZE = 4 */
@@ -876,14 +868,14 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #3 - CNROM */
-		if (mapper == 0b000010)
+		if (mapper == 0x02)
 		{
 			/* chr_bank_a[7:3] = cpu_data_in[4:0]; */
 			SET_BITS(chr_bank_a, "7:3", V, "4:0");
 		}
 
 		/* Mapper #78 - Holy Diver */
-		if (mapper == 0b000011)
+		if (mapper == 0x03)
 		{
 			/* prg_bank_a[3:1] = cpu_data_in[2:0]; */
 			SET_BITS(prg_bank_a, "3:1", V, "2:0");
@@ -894,7 +886,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #97 - Irem's TAM-S1 */
-		if (mapper == 0b000100)
+		if (mapper == 0x04)
 		{
 			/* prg_bank_a[5:1] = cpu_data_in[4:0]; */
 			SET_BITS(chr_bank_a, "5:1", V, "4:0");
@@ -903,7 +895,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #93 - Sunsoft-2 */
-		if (mapper == 0b000101)
+		if (mapper == 0x05)
 		{
 			/* prg_bank_a[3:1] = { cpu_data_in[6:4] }; */
 			SET_BITS(prg_bank_a, "3:1", V, "6:4");
@@ -912,90 +904,90 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #18 */
-		if (mapper == 0b000111)
+		if (mapper == 0x07)
 		{
 			/* case ({cpu_addr_in[14:12], cpu_addr_in[1:0]}) */
 			switch (get_bits(A, "14:12,1:0"))
 			{
-			case 0b00000: /* 5'b00000: prg_bank_a[3:0] = cpu_data_in[3:0]; // $8000 */
+			case 0x00: /* 5'b00000: prg_bank_a[3:0] = cpu_data_in[3:0]; // $8000 */
 				SET_BITS(prg_bank_a, "3:0", V, "3:0"); break;
-			case 0b00001: /* 5'b00001: prg_bank_a[7:4] = cpu_data_in[3:0]; // $8001 */
+			case 0x01: /* 5'b00001: prg_bank_a[7:4] = cpu_data_in[3:0]; // $8001 */
 				SET_BITS(prg_bank_a, "7:4", V, "3:0"); break;
-			case 0b00010: /* 5'b00010: prg_bank_b[3:0] = cpu_data_in[3:0]; // $8002 */
+			case 0x02: /* 5'b00010: prg_bank_b[3:0] = cpu_data_in[3:0]; // $8002 */
 				SET_BITS(prg_bank_b, "3:0", V, "3:0"); break;
-			case 0b00011: /* 5'b00011: prg_bank_b[7:4] = cpu_data_in[3:0]; // $8003 */
+			case 0x03: /* 5'b00011: prg_bank_b[7:4] = cpu_data_in[3:0]; // $8003 */
 				SET_BITS(prg_bank_b, "7:4", V, "3:0"); break;
-			case 0b00100: /* 5'b00100: prg_bank_c[3:0] = cpu_data_in[3:0]; // $9000 */
+			case 0x04: /* 5'b00100: prg_bank_c[3:0] = cpu_data_in[3:0]; // $9000 */
 				SET_BITS(prg_bank_c, "3:0", V, "3:0"); break;
-			case 0b00101: /* 5'b00101: prg_bank_c[7:4] = cpu_data_in[3:0]; // $9001 */
+			case 0x05: /* 5'b00101: prg_bank_c[7:4] = cpu_data_in[3:0]; // $9001 */
 				SET_BITS(prg_bank_c, "7:4", V, "3:0"); break;
-			case 0b00110:
+			case 0x06:
 				break;
-			case 0b00111:
+			case 0x07:
 				break;
-			case 0b01000: /* 5'b01000: chr_bank_a[3:0] = cpu_data_in[3:0]; // $A000 */
+			case 0x08: /* 5'b01000: chr_bank_a[3:0] = cpu_data_in[3:0]; // $A000 */
 				SET_BITS(chr_bank_a, "3:0", V, "3:0"); break;
-			case 0b01001: /* 5'b01001: chr_bank_a[7:4] = cpu_data_in[3:0]; // $A001 */
+			case 0x09: /* 5'b01001: chr_bank_a[7:4] = cpu_data_in[3:0]; // $A001 */
 				SET_BITS(chr_bank_a, "7:4", V, "3:0"); break;
-			case 0b01010: /* 5'b01010: chr_bank_b[3:0] = cpu_data_in[3:0]; // $A002 */
+			case 0x0A: /* 5'b01010: chr_bank_b[3:0] = cpu_data_in[3:0]; // $A002 */
 				SET_BITS(chr_bank_b, "3:0", V, "3:0"); break;
-			case 0b01011: /* 5'b01011: chr_bank_b[7:4] = cpu_data_in[3:0]; // $A003 */
+			case 0x0B: /* 5'b01011: chr_bank_b[7:4] = cpu_data_in[3:0]; // $A003 */
 				SET_BITS(chr_bank_b, "7:4", V, "3:0"); break;
-			case 0b01100: /* 5'b01100: chr_bank_c[3:0] = cpu_data_in[3:0]; // $B000 */
+			case 0x0C: /* 5'b01100: chr_bank_c[3:0] = cpu_data_in[3:0]; // $B000 */
 				SET_BITS(chr_bank_c, "3:0", V, "3:0"); break;
-			case 0b01101: /* 5'b01101: chr_bank_c[7:4] = cpu_data_in[3:0]; // $B001 */
+			case 0x0D: /* 5'b01101: chr_bank_c[7:4] = cpu_data_in[3:0]; // $B001 */
 				SET_BITS(chr_bank_c, "7:4", V, "3:0"); break;
-			case 0b01110: /* 5'b01110: chr_bank_d[3:0] = cpu_data_in[3:0]; // $B002 */
+			case 0x0E: /* 5'b01110: chr_bank_d[3:0] = cpu_data_in[3:0]; // $B002 */
 				SET_BITS(chr_bank_d, "3:0", V, "3:0"); break;
-			case 0b01111: /* 5'b01111: chr_bank_d[7:4] = cpu_data_in[3:0]; // $B003 */
+			case 0x0F: /* 5'b01111: chr_bank_d[7:4] = cpu_data_in[3:0]; // $B003 */
 				SET_BITS(chr_bank_d, "7:4", V, "3:0"); break;
-			case 0b10000: /* 5'b10000: chr_bank_e[3:0] = cpu_data_in[3:0]; // $C000 */
+			case 0x10: /* 5'b10000: chr_bank_e[3:0] = cpu_data_in[3:0]; // $C000 */
 				SET_BITS(chr_bank_e, "3:0", V, "3:0"); break;
-			case 0b10001: /* 5'b10001: chr_bank_e[7:4] = cpu_data_in[3:0]; // $C001 */
+			case 0x11: /* 5'b10001: chr_bank_e[7:4] = cpu_data_in[3:0]; // $C001 */
 				SET_BITS(chr_bank_e, "7:4", V, "3:0"); break;
-			case 0b10010: /* 5'b10010: chr_bank_f[3:0] = cpu_data_in[3:0]; // $C002 */
+			case 0x12: /* 5'b10010: chr_bank_f[3:0] = cpu_data_in[3:0]; // $C002 */
 				SET_BITS(chr_bank_f, "3:0", V, "3:0"); break;
-			case 0b10011: /* 5'b10011: chr_bank_f[7:4] = cpu_data_in[3:0]; // $C003 */
+			case 0x13: /* 5'b10011: chr_bank_f[7:4] = cpu_data_in[3:0]; // $C003 */
 				SET_BITS(chr_bank_f, "7:4", V, "3:0"); break;
-			case 0b10100: /* 5'b10100: chr_bank_g[3:0] = cpu_data_in[3:0]; // $D000 */
+			case 0x14: /* 5'b10100: chr_bank_g[3:0] = cpu_data_in[3:0]; // $D000 */
 				SET_BITS(chr_bank_g, "3:0", V, "3:0"); break;
-			case 0b10101: /* 5'b10101: chr_bank_g[7:4] = cpu_data_in[3:0]; // $D001 */
+			case 0x15: /* 5'b10101: chr_bank_g[7:4] = cpu_data_in[3:0]; // $D001 */
 				SET_BITS(chr_bank_g, "7:4", V, "3:0"); break;
-			case 0b10110: /* 5'b10110: chr_bank_h[3:0] = cpu_data_in[3:0]; // $D002 */
+			case 0x16: /* 5'b10110: chr_bank_h[3:0] = cpu_data_in[3:0]; // $D002 */
 				SET_BITS(chr_bank_h, "3:0", V, "3:0"); break;
-			case 0b10111: /* 5'b10111: chr_bank_h[7:4] = cpu_data_in[3:0]; // $D003 */
+			case 0x17: /* 5'b10111: chr_bank_h[7:4] = cpu_data_in[3:0]; // $D003 */
 				SET_BITS(chr_bank_h, "7:4", V, "3:0"); break;
-			case 0b11000: /* 5'b11000: mapper18_irq_latch[3:0] = cpu_data_in[3:0]; // $E000 */
+			case 0x18: /* 5'b11000: mapper18_irq_latch[3:0] = cpu_data_in[3:0]; // $E000 */
 				SET_BITS(mapper18_irq_latch, "3:0", V, "3:0"); break;
-			case 0b11001: /* 5'b11001: mapper18_irq_latch[7:4] = cpu_data_in[3:0]; // $E001 */
+			case 0x19: /* 5'b11001: mapper18_irq_latch[7:4] = cpu_data_in[3:0]; // $E001 */
 				SET_BITS(mapper18_irq_latch, "7:4", V, "3:0"); break;
-			case 0b11010: /* 5'b11010: mapper18_irq_latch[11:8] = cpu_data_in[3:0]; // $E002 */
+			case 0x1A: /* 5'b11010: mapper18_irq_latch[11:8] = cpu_data_in[3:0]; // $E002 */
 				SET_BITS(mapper18_irq_latch, "11:8", V, "3:0"); break;
-			case 0b11011: /* 5'b11011: mapper18_irq_latch[15:12] = cpu_data_in[3:0]; // $E003 */
+			case 0x1B: /* 5'b11011: mapper18_irq_latch[15:12] = cpu_data_in[3:0]; // $E003 */
 				SET_BITS(mapper18_irq_latch, "15:12", V, "3:0"); break;
-			case 0b11100: /* 5'b11100: begin // $F000 */
+			case 0x1C: /* 5'b11100: begin // $F000 */
 				/* mapper18_irq_out = 0; // ack */
 				X6502_IRQEnd(FCEU_IQEXT);
 				/* mapper18_irq_value[15:0] = mapper18_irq_latch[15:0]; */
 				mapper18_irq_value = mapper18_irq_latch; break; /* irq_cpu_out = 0; */
-			case 0b11101: /* 5'b11101: begin // $F001 */
+			case 0x1D: /* 5'b11101: begin // $F001 */
 				X6502_IRQEnd(FCEU_IQEXT); /* irq_cpu_control[3:0] = cpu_data_in[3:0]; */
 				SET_BITS(mapper18_irq_control, "3:0", V, "3:0"); break;
-			case 0b11110: /* 5'b11110 */
+			case 0x1E: /* 5'b11110 */
 				switch (get_bits(V, "1:0")) /* case (cpu_data_in[1:0]) */
 				{
-				case 0b00: mirroring = 0b01; break; /*2'b00: mirroring = 2'b01; // Horz */
-				case 0b01: mirroring = 0b00; break;	/*2'b01: mirroring = 2'b00; // Vert */
-				case 0b10: mirroring = 0b10; break;	/*2'b10: mirroring = 2'b10; // 1SsA */
-				case 0b11: mirroring = 0b11; break;	/*2'b11: mirroring = 2'b11; // 1SsB */
+				case 0x00: mirroring = 0x01; break; /*2'b00: mirroring = 2'b01; // Horz */
+				case 0x01: mirroring = 0x00; break;	/*2'b01: mirroring = 2'b00; // Vert */
+				case 0x02: mirroring = 0x02; break;	/*2'b10: mirroring = 2'b10; // 1SsA */
+				case 0x03: mirroring = 0x03; break;	/*2'b11: mirroring = 2'b11; // 1SsB */
 				}
-			case 0b11111:
+			case 0x1F:
 				break; /* sound */
 			}
 		}
 
 		/* Mapper #7 - AxROM, mapper #241 - BNROM */
-		if (mapper == 0b001000)
+		if (mapper == 0x08)
 		{
 			/* AxROM_BxROM_BITSIZE = 3
 			 *prg_bank_a[AxROM_BxROM_BITSIZE + 2:2] = cpu_data_in[AxROM_BxROM_BITSIZE:0]; */
@@ -1007,7 +999,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #228 - Cheetahmen II				 */
-		if (mapper == 0b001001)
+		if (mapper == 0x09)
 		{
 			/* prg_bank_a[5:2] = cpu_addr_in[10:7]; */
 			SET_BITS(prg_bank_a, "5:2", A, "10:7");
@@ -1019,7 +1011,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #11 - ColorDreams */
-		if (mapper == 0b001010)
+		if (mapper == 0x0A)
 		{
 			/* prg_bank_a[3:2] = cpu_data_in[1:0]; */
 			SET_BITS(prg_bank_a, "3:2", V, "1:0");
@@ -1028,7 +1020,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #66 - GxROM */
-		if (mapper == 0b001011)
+		if (mapper == 0x0B)
 		{
 			/* prg_bank_a[3:2] = cpu_data_in[5:4]; */
 			SET_BITS(prg_bank_a, "3:2", V, "5:4");
@@ -1037,52 +1029,52 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #90 - JY */
-		if (mapper == 0b001101)
+		if (mapper == 0x0D)
 		{
 			/* if (cpu_addr_in[14:12] == 3'b000) // $800x */
-			if (get_bits(A, "14:12") == 0b000)
+			if (get_bits(A, "14:12") == 0x00)
 			{
 				/* case (cpu_addr_in[1:0]) */
 				switch (get_bits(A, "1:0"))
 				{
 					/* 2'b00: prg_bank_a[5:0] = cpu_data_in[5:0]; */
-				case 0b00: SET_BITS(prg_bank_a, "5:0", V, "5:0"); break;
+				case 0x00: SET_BITS(prg_bank_a, "5:0", V, "5:0"); break;
 					/* 2'b01: prg_bank_b[5:0] = cpu_data_in[5:0]; */
-				case 0b01: SET_BITS(prg_bank_b, "5:0", V, "5:0"); break;
+				case 0x01: SET_BITS(prg_bank_b, "5:0", V, "5:0"); break;
 					/* 2'b10: prg_bank_c[5:0] = cpu_data_in[5:0]; */
-				case 0b10: SET_BITS(prg_bank_c, "5:0", V, "5:0"); break;
+				case 0x02: SET_BITS(prg_bank_c, "5:0", V, "5:0"); break;
 					/* 2'b11: prg_bank_d[5:0] = cpu_data_in[5:0]; */
-				case 0b11: SET_BITS(prg_bank_d, "5:0", V, "5:0"); break;
+				case 0x03: SET_BITS(prg_bank_d, "5:0", V, "5:0"); break;
 				}
 			}
 
 			/* if (cpu_addr_in[14:12] == 3'b001) // $900x */
-			if (get_bits(A, "14:12") == 0b001)
+			if (get_bits(A, "14:12") == 0x01)
 			{
 				/* case (cpu_addr_in[2:0]) */
 				switch (get_bits(A, "2:0"))
 				{
-				case 0b000: /* 3'b000: chr_bank_a[7:0] = cpu_data_in[7:0]; // $9000 */
+				case 0x00: /* 3'b000: chr_bank_a[7:0] = cpu_data_in[7:0]; // $9000 */
 					SET_BITS(chr_bank_a, "7:0", V, "7:0"); break;
-				case 0b001: /* 3'b001: chr_bank_b[7:0] = cpu_data_in[7:0]; // $9001 */
+				case 0x01: /* 3'b001: chr_bank_b[7:0] = cpu_data_in[7:0]; // $9001 */
 					SET_BITS(chr_bank_b, "7:0", V, "7:0"); break;
-				case 0b010: /* 3'b010: chr_bank_c[7:0] = cpu_data_in[7:0]; // $9002 */
+				case 0x02: /* 3'b010: chr_bank_c[7:0] = cpu_data_in[7:0]; // $9002 */
 					SET_BITS(chr_bank_c, "7:0", V, "7:0"); break;
-				case 0b011: /* 3'b011: chr_bank_d[7:0] = cpu_data_in[7:0]; // $9003 */
+				case 0x03: /* 3'b011: chr_bank_d[7:0] = cpu_data_in[7:0]; // $9003 */
 					SET_BITS(chr_bank_d, "7:0", V, "7:0"); break;
-				case 0b100: /* 3'b100: chr_bank_e[7:0] = cpu_data_in[7:0]; // $9004 */
+				case 0x04: /* 3'b100: chr_bank_e[7:0] = cpu_data_in[7:0]; // $9004 */
 					SET_BITS(chr_bank_e, "7:0", V, "7:0"); break;
-				case 0b101: /* 3'b101: chr_bank_f[7:0] = cpu_data_in[7:0]; // $9005 */
+				case 0x05: /* 3'b101: chr_bank_f[7:0] = cpu_data_in[7:0]; // $9005 */
 					SET_BITS(chr_bank_f, "7:0", V, "7:0"); break;
-				case 0b110: /* 3'b110: chr_bank_g[7:0] = cpu_data_in[7:0]; // $9006 */
+				case 0x06: /* 3'b110: chr_bank_g[7:0] = cpu_data_in[7:0]; // $9006 */
 					SET_BITS(chr_bank_g, "7:0", V, "7:0"); break;
-				case 0b111: /* 3'b111: chr_bank_h[7:0] = cpu_data_in[7:0]; // $9007 */
+				case 0x07: /* 3'b111: chr_bank_h[7:0] = cpu_data_in[7:0]; // $9007 */
 					SET_BITS(chr_bank_h, "7:0", V, "7:0"); break;
 				}
 			}
 
 			/* if ({cpu_addr_in[14:12], cpu_addr_in[1:0]} == 5'b10101) // $D001 */
-			if (get_bits(A, "14:12,1:0") == 0b10101)
+			if (get_bits(A, "14:12,1:0") == 0x15)
 			{
 				/* mirroring = cpu_data_in[1:0]; */
 				SET_BITS(mirroring, "1:0", V, "1:0");
@@ -1090,12 +1082,12 @@ static DECLFW(COOLGIRL_WRITE) {
 
 			/* use MMC3's IRQs
 			 * if (cpu_addr_in[14:12] == 3'b100) // $C00x */
-			if (get_bits(A, "14:12") == 0b100)
+			if (get_bits(A, "14:12") == 0x04)
 			{
 				/* case (cpu_addr_in[2:0]) */
 				switch (get_bits(A, "2:0"))
 				{
-				case 0b000:
+				case 0x00:
 					/* 3'b000: mmc3_irq_enabled = cpu_data_in[0]; */
 					if (V & 1)
 					{
@@ -1106,97 +1098,96 @@ static DECLFW(COOLGIRL_WRITE) {
 						mmc3_irq_enabled = 0;
 					}
 					break;
-				case 0b001:
+				case 0x01:
 					break; /* who cares about this shit? */
-				case 0b010:
+				case 0x02:
 					/* 3'b010: mmc3_irq_enabled = 0; */
 					mmc3_irq_enabled = 0;
 					X6502_IRQEnd(FCEU_IQEXT);
 					break;
-				case 0b011:
+				case 0x03:
 					/* 3'b011: mmc3_irq_enabled = 1; */
 					mmc3_irq_enabled = 1;
 					break;
-				case 0b100:
+				case 0x04:
 					break; /* prescaler? who cares? */
-				case 0b101:
+				case 0x05:
 					/* mmc3_irq_latch = cpu_data_in ^ mapper90_xor; */
 					mmc3_irq_latch = V ^ mapper90_xor;
 					mmc3_irq_reload = 1;
 					break;
-				case 0b110:
+				case 0x06:
 					/* mapper90_xor = cpu_data_in; */
 					mapper90_xor = V;
 					break;
-				case 0b111:
+				case 0x07:
 					break; /* meh */
 				}
 			}
 		}
 
 		/* Mapper #65 - Irem's H3001 */
-		if (mapper == 0b001110)
+		if (mapper == 0x0E)
 		{
 			/* case ({cpu_addr_in[14:12], cpu_addr_in[2:0]}) */
 			switch (get_bits(A, "14:12,2:0"))
 			{
-			case 0b000000:
+			case 0x00:
 				/* 6'b000000: prg_bank_a[5:0] = cpu_data_in[5:0]; // $8000 */
 				SET_BITS(prg_bank_a, "5:0", V, "5:0");
 				break;
-			case 0b001001:
+			case 0x09:
 				/* 6'b001001: mirroring = {1'b0, cpu_data_in[7]}; // $9001, mirroring */
 				mirroring = get_bits(V, "7");
 				break;
-			case 0b001011:
+			case 0x0B:
 				/* mapper65_irq_out = 0; // ack */
 				X6502_IRQEnd(FCEU_IQEXT); /* irq_cpu_out = 0; */
 				/* mapper65_irq_enabled = cpu_data_in[7]; // $9003, enable IRQ */
 				mapper65_irq_enabled = get_bits(V, "7");
 				break;
-			case 0b001100:
+			case 0x0C:
 				X6502_IRQEnd(FCEU_IQEXT); /* mapper65_irq_out = 0; // ack */
 				mapper65_irq_value = mapper65_irq_latch; /* $9004, IRQ reload */
 				break;
-			case 0b001101: /* mapper65_irq_latch[15:8] = cpu_data_in; // $9005, IRQ high value */
+			case 0x0D: /* mapper65_irq_latch[15:8] = cpu_data_in; // $9005, IRQ high value */
 				SET_BITS(mapper65_irq_latch, "15:8", V, "7:0"); break;
-			case 0b001110: /* mapper65_irq_latch[7:0] = cpu_data_in; // $9006, IRQ low value */
+			case 0x0E: /* mapper65_irq_latch[7:0] = cpu_data_in; // $9006, IRQ low value */
 				SET_BITS(mapper65_irq_latch, "7:0", V, "7:0"); break;
-			case 0b010000: /* prg_bank_b[5:0] = cpu_data_in[5:0]; // $A000 */
-				prg_bank_b = (prg_bank_b & 0b11000000) | (V & 0b00111111); break;
-			case 0b011000: /* chr_bank_a[7:0] = cpu_data_in; // $B000 */
+			case 0x10: /* prg_bank_b[5:0] = cpu_data_in[5:0]; // $A000 */
+				prg_bank_b = (prg_bank_b & 0xC0) | (V & 0x3F); break;
+			case 0x18: /* chr_bank_a[7:0] = cpu_data_in; // $B000 */
 				SET_BITS(chr_bank_a, "7:0", V, "7:0"); break;
-			case 0b011001: /* chr_bank_b[7:0] = cpu_data_in[7:0]; // $B001 */
+			case 0x19: /* chr_bank_b[7:0] = cpu_data_in[7:0]; // $B001 */
 				SET_BITS(chr_bank_b, "7:0", V, "7:0"); break;
-			case 0b011010: /* chr_bank_c[7:0] = cpu_data_in[7:0]; // $B002 */
+			case 0x1A: /* chr_bank_c[7:0] = cpu_data_in[7:0]; // $B002 */
 				SET_BITS(chr_bank_c, "7:0", V, "7:0"); break;
-			case 0b011011: /* chr_bank_d[7:0] = cpu_data_in[7:0]; // $B003 */
+			case 0x1B: /* chr_bank_d[7:0] = cpu_data_in[7:0]; // $B003 */
 				SET_BITS(chr_bank_d, "7:0", V, "7:0"); break;
-			case 0b011100: /* chr_bank_e[7:0] = cpu_data_in[7:0]; // $B004 */
+			case 0x1C: /* chr_bank_e[7:0] = cpu_data_in[7:0]; // $B004 */
 				SET_BITS(chr_bank_e, "7:0", V, "7:0"); break;
-			case 0b011101: /* chr_bank_f[7:0] = cpu_data_in[7:0]; // $B005 */
+			case 0x1D: /* chr_bank_f[7:0] = cpu_data_in[7:0]; // $B005 */
 				SET_BITS(chr_bank_f, "7:0", V, "7:0"); break;
-			case 0b011110: /* chr_bank_g[7:0] = cpu_data_in[7:0]; // $B006 */
+			case 0x1E: /* chr_bank_g[7:0] = cpu_data_in[7:0]; // $B006 */
 				SET_BITS(chr_bank_g, "7:0", V, "7:0"); break;
-			case 0b011111: /* chr_bank_h[7:0] = cpu_data_in[7:0]; // $B007 */
+			case 0x1F: /* chr_bank_h[7:0] = cpu_data_in[7:0]; // $B007 */
 				SET_BITS(chr_bank_h, "7:0", V, "7:0"); break;
-			case 0b100000: /* 6'b100000: prg_bank_c[5:0] = cpu_data_in[5:0]; // $C000 */
+			case 0x20: /* 6'b100000: prg_bank_c[5:0] = cpu_data_in[5:0]; // $C000 */
 				SET_BITS(prg_bank_c, "5:0", V, "5:0"); break;
 			}
 		}
 
 		/* Mapper #1 - MMC1 */
 		/*
-		r0 - load register
 		flag0 - 16KB of SRAM (SOROM)
 		*/
-		if (mapper == 0b010000)
+		if (mapper == 0x10)
 		{
 			if (V & 0x80) /* reset */
 			{
-				mmc1_load_register = set_bits(mmc1_load_register, "5:0", 0b100000); /* mmc1_load_register[5:0] = 6'b100000; */
+				mmc1_load_register = set_bits(mmc1_load_register, "5:0", 0x20); /* mmc1_load_register[5:0] = 6'b100000; */
 				prg_mode = 0; /* 0x4000 (A) + fixed last (C) */
-				prg_bank_c = set_bits(prg_bank_c, "4:0", 0b11110); /* prg_bank_c[4:0] = 5'b11110; */
+				prg_bank_c = set_bits(prg_bank_c, "4:0", 0x1E); /* prg_bank_c[4:0] = 5'b11110; */
 			}
 			else {
 				/* mmc1_load_register[5:0] = { cpu_data_in[0], mmc1_load_register[5:1] }; */
@@ -1207,27 +1198,27 @@ static DECLFW(COOLGIRL_WRITE) {
 				{
 					switch ((A >> 13) & 3)
 					{
-					case 0b00: /* 2'b00: begin // $8000-$9FFF */
-						if (get_bits(mmc1_load_register, "4:3") == 0b11) /* if (mmc1_load_register[4:3] == 2'b11) */
+					case 0x00: /* 2'b00: begin // $8000-$9FFF */
+						if (get_bits(mmc1_load_register, "4:3") == 0x03) /* if (mmc1_load_register[4:3] == 2'b11) */
 						{
 							prg_mode = 0; /* prg_mode = 3'b000;   // 0x4000 (A) + fixed last (C) */
-							prg_bank_c = set_bits(prg_bank_c, "4:1", 0b1111); /* prg_bank_c[4:1] = 4'b1111; */
+							prg_bank_c = set_bits(prg_bank_c, "4:1", 0x0F); /* prg_bank_c[4:1] = 4'b1111; */
 						}
 						/*else if (mmc1_load_register[4:3] == 2'b10) */
-						else if (get_bits(mmc1_load_register, "4:3") == 0b10)
+						else if (get_bits(mmc1_load_register, "4:3") == 0x02)
 						{
-							prg_mode = 0b001; /* prg_mode = 3'b001;   // fixed first (C) + 0x4000 (A) */
-							prg_bank_c = set_bits(prg_bank_c, "4:1", 0b0000); /* prg_bank_c[4:0] = 4'b0000; */
+							prg_mode = 0x01; /* prg_mode = 3'b001;   // fixed first (C) + 0x4000 (A) */
+							prg_bank_c = set_bits(prg_bank_c, "4:1", 0x00); /* prg_bank_c[4:0] = 4'b0000; */
 						}
 						else
-							prg_mode = 0b111; /* prg_mode = 3'b111;   // 0x8000 (A) */
+							prg_mode = 0x07; /* prg_mode = 3'b111;   // 0x8000 (A) */
 						if (get_bits(mmc1_load_register, "5"))
-							chr_mode = 0b100;
+							chr_mode = 0x04;
 						else
-							chr_mode = 0b000;
-						mirroring = set_bits(mirroring, "1:0", get_bits(mmc1_load_register, "2:1") ^ 0b10);
+							chr_mode = 0x00;
+						mirroring = set_bits(mirroring, "1:0", get_bits(mmc1_load_register, "2:1") ^ 0x02);
 						break;
-					case 0b01: /* 2'b01 */
+					case 0x01: /* 2'b01 */
 						SET_BITS(chr_bank_a, "6:2", mmc1_load_register, "5:1"); /* chr_bank_a[6:2] = mmc1_load_register[5:1]; */
 						if (flags & 1) /* (flags[0]) - 16KB of SRAM */
 						{
@@ -1237,24 +1228,24 @@ static DECLFW(COOLGIRL_WRITE) {
 						SET_BITS(prg_bank_a, "5", mmc1_load_register, "5"); /* prg_bank_a[5] = mmc1_load_register[5]; // for SUROM, 512k PRG support */
 						SET_BITS(prg_bank_c, "5", mmc1_load_register, "5"); /* prg_bank_c[5] = mmc1_load_register[5]; // for SUROM, 512k PRG support */
 						break;
-					case 0b10: /* 2'b10: chr_bank_e[6:2] = mmc1_load_register[5:1]; // $C000-$DFFF */
+					case 0x02: /* 2'b10: chr_bank_e[6:2] = mmc1_load_register[5:1]; // $C000-$DFFF */
 						SET_BITS(chr_bank_e, "6:2", mmc1_load_register, "5:1");
 						break;
-					case 0b11: /* 2'b11 */
-						/* prg_bank_a[4:1] = r0[4:1]; */
+					case 0x03: /* 2'b11 */
+						/* prg_bank_a[4:1] = mmc1_load_register[4:1]; */
 						SET_BITS(prg_bank_a, "4:1", mmc1_load_register, "4:1");
 						/* sram_enabled = ~mmc1_load_register[5]; */
 						sram_enabled = get_bits(mmc1_load_register, "5") ^ 1;
 						break;
 					}
-					mmc1_load_register = 0b100000; /* mmc1_load_register[5:0] = 6'b100000; */
+					mmc1_load_register = 0x20; /* mmc1_load_register[5:0] = 6'b100000; */
 				}
 			}
 		}
 
 		/* Mapper #9 and #10 - MMC2 and MMC4
 		 * flag0 - 0=MMC2, 1=MMC4 */
-		if (mapper == 0b010001)
+		if (mapper == 0x11)
 		{
 			switch ((A >> 12) & 7)
 			{
@@ -1288,7 +1279,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #152 */
-		if (mapper == 0b010010)
+		if (mapper == 0x12)
 		{
 			SET_BITS(chr_bank_a, "6:3", V, "3:0"); /* chr_bank_a[6:3] = cpu_data_in[3:0]; */
 			SET_BITS(prg_bank_a, "3:1", V, "6:4"); /* prg_bank_a[3:1] = cpu_data_in[6:4]; */
@@ -1299,35 +1290,35 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #73 - VRC3 */
-		if (mapper == 0b010011)
+		if (mapper == 0x13)
 		{
 			switch (get_bits(A, "14:12")) /* case (cpu_addr_in[14:12]) */
 			{
-			case 0b000: /* 3'b000: vrc3_irq_latch[3:0] = cpu_data_in[3:0]; // $8000-$8FFF */
+			case 0x00: /* 3'b000: vrc3_irq_latch[3:0] = cpu_data_in[3:0]; // $8000-$8FFF */
 				SET_BITS(vrc3_irq_latch, "3:0", V, "3:0");
 				break;
-			case 0b001: /* 3'b001: vrc3_irq_latch[7:4] = cpu_data_in[3:0]; // $9000-$9FFF */
+			case 0x01: /* 3'b001: vrc3_irq_latch[7:4] = cpu_data_in[3:0]; // $9000-$9FFF */
 				SET_BITS(vrc3_irq_latch, "7:4", V, "3:0");
 				break;
-			case 0b010: /* 3'b010: vrc3_irq_latch[11:8] = cpu_data_in[3:0]; // $A000-$AFFF */
+			case 0x02: /* 3'b010: vrc3_irq_latch[11:8] = cpu_data_in[3:0]; // $A000-$AFFF */
 				SET_BITS(vrc3_irq_latch, "11:8", V, "3:0");
 				break;
-			case 0b011: /* 3'b011: vrc3_irq_latch[15:12] = cpu_data_in[3:0]; // $B000-$BFFF */
+			case 0x03: /* 3'b011: vrc3_irq_latch[15:12] = cpu_data_in[3:0]; // $B000-$BFFF */
 				SET_BITS(vrc3_irq_latch, "15:12", V, "3:0");
 				break;
-			case 0b100: /* // $C000-$CFFF */
+			case 0x04: /* $C000-$CFFF */
 				X6502_IRQEnd(FCEU_IQEXT); /* vrc3_irq_out = 0; // ack */
 				SET_BITS(vrc3_irq_control, "2:0", V, "2:0"); /* vrc3_irq_control[2:0] = cpu_data_in[2:0]; // mode, enabled, enabled after ack */
 				if (vrc3_irq_control & 2) /* if (vrc3_irq_control[1]) // if E is set */
 					vrc3_irq_value = vrc3_irq_latch; /* vrc3_irq_value[15:0] = vrc3_irq_latch[15:0]; // reload with latch */
 				break;
-			case 0b101: /* // $D000-$DFFF */
+			case 0x05: /* $D000-$DFFF */
 				X6502_IRQEnd(FCEU_IQEXT); /* vrc3_irq_out = 0; // ack */
 				SET_BITS(vrc3_irq_control, "1", vrc3_irq_control, "0"); /* vrc3_irq_control[1] = vrc3_irq_control[0]; */
 				break;
-			case 0b110: /* $E000-$EFFF */
+			case 0x06: /* $E000-$EFFF */
 				break;
-			case 0b111: /* 3'b111: prg_bank_a[3:1] = cpu_data_in[2:0]; // $F000-$FFFF */
+			case 0x07: /* 3'b111: prg_bank_a[3:1] = cpu_data_in[2:0]; // $F000-$FFFF */
 				SET_BITS(prg_bank_a, "3:1", V, "2:0");
 				break;
 			}
@@ -1338,151 +1329,148 @@ static DECLFW(COOLGIRL_WRITE) {
 		flag0 - TxSROM
 		flag1 - mapper #189
 		*/
-		if (mapper == 0b010100)
+		if (mapper == 0x14)
 		{
 			/* case ({cpu_addr_in[14:13], cpu_addr_in[0]}) */
 			switch (get_bits(A, "14:13,0"))
 			{
-			case 0b000: /* $8000-$9FFE, even */
+			case 0x00: /* $8000-$9FFE, even */
 				SET_BITS(mmc3_internal, "2:0", V, "2:0"); /* mmc3_internal[2:0] = cpu_data_in[2:0]; */
 				if (!(flags & 2) && !(flags & 4)) /* if ((!USE_MAPPER_189 | ~flags[1]) & (!USE_MAPPER_206 | ~flags[2])) */
 				{
 					if (get_bits(V, "6")) /* if (cpu_data_in[6]) */
-						prg_mode = 0b101;
+						prg_mode = 0x05;
 					else
-						prg_mode = 0b100;
+						prg_mode = 0x04;
 				}
 				if (!(flags & 4)) /* if (!USE_MAPPER_206 | ~flags[2]) // disabled for mapper #206 */
 				{
 					if (V & 0x80) /* if (cpu_data_in[7]) */
-						chr_mode = 0b011;
+						chr_mode = 0x03;
 					else
-						chr_mode = 0b010;
+						chr_mode = 0x02;
 				}
 				break;
-			case 0b001: /* $8001-$9FFF, odd */
+			case 0x01: /* $8001-$9FFF, odd */
 				switch (get_bits(mmc3_internal, "2:0"))
 				{
-				case 0b000: /* 3'b000: chr_bank_a[7:0] = cpu_data_in[7:0]; */
+				case 0x00: /* 3'b000: chr_bank_a[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_a, "7:0", V, "7:0"); break;
-				case 0b001: /* 3'b001: chr_bank_c[7:0] = cpu_data_in[7:0]; */
+				case 0x01: /* 3'b001: chr_bank_c[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_c, "7:0", V, "7:0"); break;
-				case 0b010: /* 3'b010: chr_bank_e[7:0] = cpu_data_in[7:0]; */
+				case 0x02: /* 3'b010: chr_bank_e[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_e, "7:0", V, "7:0"); break;
-				case 0b011: /* 3'b011: chr_bank_f[7:0] = cpu_data_in[7:0]; */
+				case 0x03: /* 3'b011: chr_bank_f[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_f, "7:0", V, "7:0"); break;
-				case 0b100: /* 3'b100: chr_bank_g[7:0] = cpu_data_in[7:0]; */
+				case 0x04: /* 3'b100: chr_bank_g[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_g, "7:0", V, "7:0"); break;
-				case 0b101: /* 3'b101: chr_bank_h[7:0] = cpu_data_in[7:0]; */
+				case 0x05: /* 3'b101: chr_bank_h[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_h, "7:0", V, "7:0"); break;
-				case 0b110: /* 3'b110: if (!ENABLE_MAPPER_189 | ~flags[1]) prg_bank_a[(MMC3_BITSIZE-1):0] = cpu_data_in[(MMC3_BITSIZE-1):0]; */
+				case 0x06: /* 3'b110: if (!ENABLE_MAPPER_189 | ~flags[1]) prg_bank_a[(MMC3_BITSIZE-1):0] = cpu_data_in[(MMC3_BITSIZE-1):0]; */
 					if (!(flags & 2))
 						SET_BITS(prg_bank_a, "7:0", V, "7:0");
 					break;
-				case 0b111: /* 3'b111: if (!ENABLE_MAPPER_189 | ~flags[1]) prg_bank_b[(MMC3_BITSIZE-1):0] = cpu_data_in[(MMC3_BITSIZE-1):0]; */
+				case 0x07: /* 3'b111: if (!ENABLE_MAPPER_189 | ~flags[1]) prg_bank_b[(MMC3_BITSIZE-1):0] = cpu_data_in[(MMC3_BITSIZE-1):0]; */
 					if (!(flags & 2))
 						SET_BITS(prg_bank_b, "7:0", V, "7:0");
 					break;
 				}
 				break;
-			case 0b010: /* $A000-$BFFE, even (mirroring) */
+			case 0x02: /* $A000-$BFFE, even (mirroring) */
 				/* if (!ENABLE_MAPPER_206 | ~flags[2]) // disabled for mapper #206 */
 				if (!(flags & 4))
 					mirroring = V & 1; /* mirroring = {1'b0, cpu_data_in[0]}; */
 				break;
-			case 0b011: /* RAM protect... no */
+			case 0x03: /* RAM protect... no */
 				break;
-			case 0b100: /* 3'b100: mmc3_irq_latch = cpu_data_in; // $C000-$DFFE, even (IRQ latch) */
+			case 0x04: /* 3'b100: mmc3_irq_latch = cpu_data_in; // $C000-$DFFE, even (IRQ latch) */
 				mmc3_irq_latch = V; break;
-			case 0b101: /* 3'b101: mmc3_irq_reload = 1; // $C001-$DFFF, odd */
+			case 0x05: /* 3'b101: mmc3_irq_reload = 1; // $C001-$DFFF, odd */
 				mmc3_irq_reload = 1; break;
-			case 0b110: /* 3'b110: mmc3_irq_enabled = 0; // $E000-$FFFE, even */
+			case 0x06: /* 3'b110: mmc3_irq_enabled = 0; // $E000-$FFFE, even */
 				X6502_IRQEnd(FCEU_IQEXT);
 				mmc3_irq_enabled = 0;
 				break;
-			case 0b111: /* $E001-$FFFF, odd	 */
+			case 0x07: /* $E001-$FFFF, odd	 */
 				if (!(flags & 4)) /* if (!USE_MAPPER_206 | ~flags[2]) // disabled for mapper #206 */
-					mmc3_irq_enabled = 1; /* mmc3_irq_enabled = 1;  */
+					mmc3_irq_enabled = 1; /* mmc3_irq_enabled = 1; */
 				break;
 			}
 		}
 
 		/* Mapper #112 */
-		/*
-		r0[2:0] - internal register
-		*/
-		if (mapper == 0b010101)
+		if (mapper == 0x15)
 		{
 			switch (get_bits(A, "14:13"))
 			{
-			case 0b00: /* $8000-$9FFF */
+			case 0x00: /* $8000-$9FFF */
 				SET_BITS(mapper112_internal, "2:0", V, "2:0"); /* mapper112_internal[2:0] = cpu_data_in[2:0]; */
 				break;
-			case 0b01: /* $A000-BFFF */
+			case 0x01: /* $A000-BFFF */
 				switch (get_bits(mapper112_internal, "2:0"))
 				{
-				case 0b000: /* 3'b000: prg_bank_a[5:0] = cpu_data_in[5:0]; */
+				case 0x00: /* 3'b000: prg_bank_a[5:0] = cpu_data_in[5:0]; */
 					SET_BITS(prg_bank_a, "5:0", V, "5:0"); break;
-				case 0b001: /* 3'b001: prg_bank_b[5:0] = cpu_data_in[5:0]; */
+				case 0x01: /* 3'b001: prg_bank_b[5:0] = cpu_data_in[5:0]; */
 					SET_BITS(prg_bank_b, "5:0", V, "5:0"); break;
-				case 0b010: /* 3'b010: chr_bank_a[7:0] = cpu_data_in[7:0]; */
+				case 0x02: /* 3'b010: chr_bank_a[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_a, "7:0", V, "7:0"); break;
-				case 0b011: /* 3'b011: chr_bank_c[7:0] = cpu_data_in[7:0]; */
+				case 0x03: /* 3'b011: chr_bank_c[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_c, "7:0", V, "7:0"); break;
-				case 0b100: /* 3'b100: chr_bank_e[7:0] = cpu_data_in[7:0]; */
+				case 0x04: /* 3'b100: chr_bank_e[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_e, "7:0", V, "7:0"); break;
-				case 0b101: /* 3'b101: chr_bank_f[7:0] = cpu_data_in[7:0]; */
+				case 0x05: /* 3'b101: chr_bank_f[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_f, "7:0", V, "7:0"); break;
-				case 0b110: /* 3'b110: chr_bank_g[7:0] = cpu_data_in[7:0]; */
+				case 0x06: /* 3'b110: chr_bank_g[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_g, "7:0", V, "7:0"); break;
-				case 0b111: /* 3'b111: chr_bank_h[7:0] = cpu_data_in[7:0]; */
+				case 0x07: /* 3'b111: chr_bank_h[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_h, "7:0", V, "7:0"); break;
 				}
 				break;
-			case 0b10: /* $C000-$DFFF  */
+			case 0x02: /* $C000-$DFFF */
 				break;
-			case 0b11: /* 2'b11: mirroring = {1'b0, cpu_data_in[0]}; // $E000-$FFFF */
+			case 0x03: /* 2'b11: mirroring = {1'b0, cpu_data_in[0]}; // $E000-$FFFF */
 				mirroring = V & 1; break;
 			}
 		}
 
 		/* Mappers #33 + #48 - Taito
 		 * flag0=0 - #33, flag0=1 - #48 */
-		if (mapper == 0b010110)
+		if (mapper == 0x16)
 		{
 			/* case ({cpu_addr_in[14:13], cpu_addr_in[1:0]}) */
 			switch (get_bits(A, "14:13,1:0"))
 			{
-			case 0b0000:
+			case 0x00:
 				SET_BITS(prg_bank_a, "5:0", V, "5:0"); /* prg_bank_a[5:0] = cpu_data_in[5:0]; // $8000, PRG Reg 0 (8k @ $8000) */
 				if (!(flags & 1)) /* if (~flags[0]) // 33 */
 					mirroring = get_bits(V, "6"); /* mirroring = {1'b0, cpu_data_in[6]}; */
 				break;
-			case 0b0001: /* 4'b0001: prg_bank_b[5:0] = cpu_data_in[5:0]; // $8001, PRG Reg 1 (8k @ $A000) */
+			case 0x01: /* 4'b0001: prg_bank_b[5:0] = cpu_data_in[5:0]; // $8001, PRG Reg 1 (8k @ $A000) */
 				SET_BITS(prg_bank_b, "5:0", V, "5:0"); break;
-			case 0b0010: /* 4'b0010: chr_bank_a[7:1] = cpu_data_in[6:0]; // $8002, CHR Reg 0 (2k @ $0000) */
+			case 0x02: /* 4'b0010: chr_bank_a[7:1] = cpu_data_in[6:0]; // $8002, CHR Reg 0 (2k @ $0000) */
 				SET_BITS(chr_bank_a, "7:1", V, "6:0"); break;
-			case 0b0011: /* 4'b0011: chr_bank_c[7:1] = cpu_data_in[6:0]; // $8003, CHR Reg 1 (2k @ $0800) */
+			case 0x03: /* 4'b0011: chr_bank_c[7:1] = cpu_data_in[6:0]; // $8003, CHR Reg 1 (2k @ $0800) */
 				SET_BITS(chr_bank_c, "7:1", V, "6:0"); break;
-			case 0b0100: /* 4'b0100: chr_bank_e[7:0] = cpu_data_in[7:0]; // $A000, CHR Reg 2 (1k @ $1000) */
+			case 0x04: /* 4'b0100: chr_bank_e[7:0] = cpu_data_in[7:0]; // $A000, CHR Reg 2 (1k @ $1000) */
 				SET_BITS(chr_bank_e, "7:0", V, "7:0"); break;
-			case 0b0101: /* 4'b0101: chr_bank_f[7:0] = cpu_data_in[7:0]; // $A001, CHR Reg 2 (1k @ $1400) */
+			case 0x05: /* 4'b0101: chr_bank_f[7:0] = cpu_data_in[7:0]; // $A001, CHR Reg 2 (1k @ $1400) */
 				SET_BITS(chr_bank_f, "7:0", V, "7:0"); break;
-			case 0b0110: /* 4'b0110: chr_bank_g[7:0] = cpu_data_in[7:0]; // $A002, CHR Reg 2 (1k @ $1800) */
+			case 0x06: /* 4'b0110: chr_bank_g[7:0] = cpu_data_in[7:0]; // $A002, CHR Reg 2 (1k @ $1800) */
 				SET_BITS(chr_bank_g, "7:0", V, "7:0"); break;
-			case 0b0111: /* 4'b0111: chr_bank_h[7:0] = cpu_data_in[7:0]; // $A003, CHR Reg 2 (1k @ $1C00) */
+			case 0x07: /* 4'b0111: chr_bank_h[7:0] = cpu_data_in[7:0]; // $A003, CHR Reg 2 (1k @ $1C00) */
 				SET_BITS(chr_bank_h, "7:0", V, "7:0"); break;
-			case 0b1100: /* 4'b1100: if (flags[0]) mirroring = {1'b0, cpu_data_in[6]};	// $E000, mirroring, for mapper #48 */
+			case 0x0C: /* 4'b1100: if (flags[0]) mirroring = {1'b0, cpu_data_in[6]};	// $E000, mirroring, for mapper #48 */
 				if (flags & 1) /* 48 */
 					mirroring = get_bits(V, "6"); /* mirroring = cpu_data_in[6]; */
-			case 0b1000: /* 4'b1000: irq_scanline_latch = ~cpu_data_in; // $C000, IRQ latch */
-				mmc3_irq_latch = set_bits(mmc3_irq_latch, "7:0", get_bits(V, "7:0") ^ 0b11111111);
+			case 0x08: /* 4'b1000: irq_scanline_latch = ~cpu_data_in; // $C000, IRQ latch */
+				mmc3_irq_latch = set_bits(mmc3_irq_latch, "7:0", get_bits(V, "7:0") ^ 0xFF);
 				break;
-			case 0b1001: /* 4'b1001: mmc3_irq_reload = 1; // $C001, IRQ reload */
+			case 0x09: /* 4'b1001: mmc3_irq_reload = 1; // $C001, IRQ reload */
 				mmc3_irq_reload = 1; break;
-			case 0b1010: /* 4'b1010: mmc3_irq_enabled = 1; // $C002, IRQ enable */
+			case 0x0A: /* 4'b1010: mmc3_irq_enabled = 1; // $C002, IRQ enable */
 				mmc3_irq_enabled = 1; break;
-			case 0b1011: /* 4'b1011: mmc3_irq_enabled = 0; // $C003, IRQ disable & ack */
+			case 0x0B: /* 4'b1011: mmc3_irq_enabled = 0; // $C003, IRQ disable & ack */
 				mmc3_irq_enabled = 0;
 				X6502_IRQEnd(FCEU_IQEXT); /* irq_cpu_out = 0; // ack */
 				break;
@@ -1490,7 +1478,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #42 */
-		if (mapper == 0b010111)
+		if (mapper == 0x17)
 		{
 			/* case ({cpu_addr_in[14], cpu_addr_in[1:0]}) */
 			switch (get_bits(A, "14,1:0"))
@@ -1520,9 +1508,9 @@ static DECLFW(COOLGIRL_WRITE) {
 		flag0 - switches A0 and A1 lines. 0=A0,A1 like VRC2b (mapper #23), 1=A1,A0 like VRC2a(#22), VRC2c(#25)
 		flag1 - divides CHR bank select by two (mapper #22, VRC2a)
 		*/
-		if (mapper == 0b011000)
+		if (mapper == 0x18)
 		{
-			uint8 vrc_2b_hi =
+			vrc_2b_hi =
 				(flags & 5) == 0 ? /* (!flags[0] && !flags[2]) ? */
 				(get_bits(A, "7") | get_bits(A, "2")) /* | cpu_addr_in[7] | cpu_addr_in[2]) // mapper #21 */
 				: (flags & 5) == 1 ? /*: (flags[0] && !flags[2]) ? */
@@ -1530,7 +1518,7 @@ static DECLFW(COOLGIRL_WRITE) {
 				: (flags & 5) == 4 ? /* : (!flags[0] && flags[2]) ? */
 				(get_bits(A, "5") | get_bits(A, "3") | get_bits(A, "1")) /* (cpu_addr_in[5] | cpu_addr_in[3] | cpu_addr_in[1]) // mapper #23 */
 				: (get_bits(A, "2") | get_bits(A, "0")); /* : (cpu_addr_in[2] | cpu_addr_in[0]); // mapper #25 */
-			uint8 vrc_2b_low =
+			vrc_2b_low =
 				(flags & 5) == 0 ? /* (!flags[0] && !flags[2]) ? */
 				(get_bits(A, "6") | get_bits(A, "1")) /* (cpu_addr_in[6] | cpu_addr_in[1]) // mapper #21 */
 				: (flags & 5) == 1 ? /* : (flags[0] && !flags[2]) ? */
@@ -1542,74 +1530,74 @@ static DECLFW(COOLGIRL_WRITE) {
 			/* case ({ cpu_addr_in[14:12], vrc_2b_hi, vrc_2b_low }) */
 			switch ((get_bits(A, "14:12") << 2) | (vrc_2b_hi << 1) | vrc_2b_low)
 			{
-			case 0b00000: /* $8000-$8003, PRG0 */
-			case 0b00001:
-			case 0b00010:
-			case 0b00011:
+			case 0x00: /* $8000-$8003, PRG0 */
+			case 0x01:
+			case 0x02:
+			case 0x03:
 				SET_BITS(prg_bank_a, "4:0", V, "4:0"); /* prg_bank_a[4:0] = cpu_data_in[4:0]; */
 				break;
-			case 0b00100: /* $9000-$9001, mirroring */
-			case 0b00101:
+			case 0x04: /* $9000-$9001, mirroring */
+			case 0x05:
 				/* VRC2 - using games are usually well - behaved and only write 0 or 1 to this register,
 				 * but Wai Wai World in one instance writes $FF instead */
-				if (V != 0b11111111) /* if (cpu_data_in != 8'b11111111) mirroring = cpu_data_in[1:0]; // $9000-$9001, mirroring */
+				if (V != 0xFF) /* if (cpu_data_in != 8'b11111111) mirroring = cpu_data_in[1:0]; // $9000-$9001, mirroring */
 					SET_BITS(mirroring, "1:0", V, "1:0");
 				break;
-			case 0b00110: /* $9002-$9004, PRG swap */
-			case 0b00111:
+			case 0x06: /* $9002-$9004, PRG swap */
+			case 0x07:
 				SET_BITS(prg_mode, "0", V, "1"); /* prg_mode[0] = cpu_data_in[1]; */
 				break;
-			case 0b01000:	/* $A000-$A003, PRG1 */
-			case 0b01001:
-			case 0b01010:
-			case 0b01011:
+			case 0x08:	/* $A000-$A003, PRG1 */
+			case 0x09:
+			case 0x0A:
+			case 0x0B:
 				SET_BITS(prg_bank_b, "4:0", V, "4:0"); /* prg_bank_b[4:0] = cpu_data_in[4:0]; */
 				break;
-			case 0b01100: /* 5'b01100: chr_bank_a[3:0] = cpu_data_in[3:0];  // $B000, CHR0 low */
+			case 0x0C: /* 5'b01100: chr_bank_a[3:0] = cpu_data_in[3:0];  // $B000, CHR0 low */
 				SET_BITS(chr_bank_a, "3:0", V, "3:0"); break;
-			case 0b01101: /* 5'b01101: chr_bank_a[7:4] = cpu_data_in[3:0];  // $B001, CHR0 hi */
+			case 0x0D: /* 5'b01101: chr_bank_a[7:4] = cpu_data_in[3:0];  // $B001, CHR0 hi */
 				SET_BITS(chr_bank_a, "7:4", V, "3:0"); break;
-			case 0b01110: /* 5'b01110: chr_bank_b[3:0] = cpu_data_in[3:0];  // $B002, CHR1 low */
+			case 0x0E: /* 5'b01110: chr_bank_b[3:0] = cpu_data_in[3:0];  // $B002, CHR1 low */
 				SET_BITS(chr_bank_b, "3:0", V, "3:0"); break;
-			case 0b01111: /* 5'b01111: chr_bank_b[7:4] = cpu_data_in[3:0];  // $B003, CHR1 hi */
+			case 0x0F: /* 5'b01111: chr_bank_b[7:4] = cpu_data_in[3:0];  // $B003, CHR1 hi */
 				SET_BITS(chr_bank_b, "7:4", V, "3:0"); break;
-			case 0b10000: /* 5'b10000: chr_bank_c[3:0] = cpu_data_in[3:0];  // $C000, CHR2 low */
+			case 0x10: /* 5'b10000: chr_bank_c[3:0] = cpu_data_in[3:0];  // $C000, CHR2 low */
 				SET_BITS(chr_bank_c, "3:0", V, "3:0"); break;
-			case 0b10001: /* 5'b10001: chr_bank_c[7:4] = cpu_data_in[3:0];  // $C001, CHR2 hi */
+			case 0x11: /* 5'b10001: chr_bank_c[7:4] = cpu_data_in[3:0];  // $C001, CHR2 hi */
 				SET_BITS(chr_bank_c, "7:4", V, "3:0"); break;
-			case 0b10010: /* 5'b10010: chr_bank_d[3:0] = cpu_data_in[3:0];  // $C002, CHR3 low */
+			case 0x12: /* 5'b10010: chr_bank_d[3:0] = cpu_data_in[3:0];  // $C002, CHR3 low */
 				SET_BITS(chr_bank_d, "3:0", V, "3:0"); break;
-			case 0b10011: /* 5'b10011: chr_bank_d[7:4] = cpu_data_in[3:0];  // $C003, CHR3 hi */
+			case 0x13: /* 5'b10011: chr_bank_d[7:4] = cpu_data_in[3:0];  // $C003, CHR3 hi */
 				SET_BITS(chr_bank_d, "7:4", V, "3:0"); break;
-			case 0b10100: /* 5'b10100: chr_bank_e[3:0] = cpu_data_in[3:0];  // $D000, CHR4 low */
+			case 0x14: /* 5'b10100: chr_bank_e[3:0] = cpu_data_in[3:0];  // $D000, CHR4 low */
 				SET_BITS(chr_bank_e, "3:0", V, "3:0"); break;
-			case 0b10101: /* 5'b10101: chr_bank_e[7:4] = cpu_data_in[3:0];  // $D001, CHR4 hi */
+			case 0x15: /* 5'b10101: chr_bank_e[7:4] = cpu_data_in[3:0];  // $D001, CHR4 hi */
 				SET_BITS(chr_bank_e, "7:4", V, "3:0"); break;
-			case 0b10110: /* 5'b10110: chr_bank_f[3:0] = cpu_data_in[3:0];  // $D002, CHR5 low */
+			case 0x16: /* 5'b10110: chr_bank_f[3:0] = cpu_data_in[3:0];  // $D002, CHR5 low */
 				SET_BITS(chr_bank_f, "3:0", V, "3:0"); break;
-			case 0b10111: /* 5'b10111: chr_bank_f[7:4] = cpu_data_in[3:0];  // $D003, CHR5 hi */
+			case 0x17: /* 5'b10111: chr_bank_f[7:4] = cpu_data_in[3:0];  // $D003, CHR5 hi */
 				SET_BITS(chr_bank_f, "7:4", V, "3:0"); break;
-			case 0b11000: /* 5'b11000: chr_bank_g[3:0] = cpu_data_in[3:0];  // $E000, CHR6 low */
+			case 0x18: /* 5'b11000: chr_bank_g[3:0] = cpu_data_in[3:0];  // $E000, CHR6 low */
 				SET_BITS(chr_bank_g, "3:0", V, "3:0"); break;
-			case 0b11001: /* 5'b11001: chr_bank_g[7:4] = cpu_data_in[3:0];  // $E001, CHR6 hi */
+			case 0x19: /* 5'b11001: chr_bank_g[7:4] = cpu_data_in[3:0];  // $E001, CHR6 hi */
 				SET_BITS(chr_bank_g, "7:4", V, "3:0"); break;
-			case 0b11010: /* 5'b11010: chr_bank_h[3:0] = cpu_data_in[3:0];  // $E002, CHR7 low */
+			case 0x1A: /* 5'b11010: chr_bank_h[3:0] = cpu_data_in[3:0];  // $E002, CHR7 low */
 				SET_BITS(chr_bank_h, "3:0", V, "3:0"); break;
-			case 0b11011: /* 5'b11011: chr_bank_h[7:4] = cpu_data_in[3:0];  // $E003, CHR7 hi */
+			case 0x1B: /* 5'b11011: chr_bank_h[7:4] = cpu_data_in[3:0];  // $E003, CHR7 hi */
 				SET_BITS(chr_bank_h, "7:4", V, "3:0"); break;
 			}
 
 			/* if (cpu_addr_in[14:12] == 3'b111) */
-			if (get_bits(A, "14:12") == 0b111)
+			if (get_bits(A, "14:12") == 0x07)
 			{
 				/* case (vrc_2b_hi, vrc_2b_low}) */
 				switch ((vrc_2b_hi << 1) | vrc_2b_low)
 				{
-				case 0b00: /* 2'b00: vrc4_irq_latch[3:0] = cpu_data_in[3:0];  // IRQ latch low */
+				case 0x00: /* 2'b00: vrc4_irq_latch[3:0] = cpu_data_in[3:0];  // IRQ latch low */
 					SET_BITS(vrc4_irq_latch, "3:0", V, "3:0"); break;
-				case 0b01: /* 2'b01: vrc4_irq_latch[7:4] = cpu_data_in[3:0];  // IRQ latch hi */
+				case 0x01: /* 2'b01: vrc4_irq_latch[7:4] = cpu_data_in[3:0];  // IRQ latch hi */
 					SET_BITS(vrc4_irq_latch, "7:4", V, "3:0"); break;
-				case 0b10: /* 2'b10 // IRQ control */
+				case 0x02: /* 2'b10 // IRQ control */
 					X6502_IRQEnd(FCEU_IQEXT); /* vrc4_irq_out = 0; // ack */
 					SET_BITS(vrc4_irq_control, "2:0", V, "2:0"); /* vrc4_irq_control[2:0] = cpu_data_in[2:0]; // mode, enabled, enabled after ack */
 					if (vrc4_irq_control & 2) /* if (vrc4_irq_control[1]) begin // if E is set */
@@ -1619,7 +1607,7 @@ static DECLFW(COOLGIRL_WRITE) {
 						SET_BITS(vrc4_irq_value, "7:0", vrc4_irq_latch, "7:0"); /* vrc4_irq_value[7:0] = vrc4_irq_latch[7:0]; // reload with latch */
 					}
 					break;
-				case 0b11: /* 2'b11 // IRQ ack */
+				case 0x03: /* 2'b11 // IRQ ack */
 					X6502_IRQEnd(FCEU_IQEXT); /* vrc4_irq_out = 0; */
 					SET_BITS(vrc4_irq_control, "1", vrc4_irq_control, "0"); /* vrc4_irq_control[1] = vrc4_irq_control[0]; */
 					break;
@@ -1628,90 +1616,90 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #69 - Sunsoft FME-7 */
-		if (mapper == 0b011001)
+		if (mapper == 0x19)
 		{
 			/* if (cpu_addr_in[14:13] == 2'b00) mapper69_internal[3:0] = cpu_data_in[3:0]; */
-			if (get_bits(A, "14:13") == 0b00) SET_BITS(mapper69_internal, "3:0", V, "3:0");
+			if (get_bits(A, "14:13") == 0x00) SET_BITS(mapper69_internal, "3:0", V, "3:0");
 			/* if (cpu_addr_in[14:13] == 2'b01) */
-			if (get_bits(A, "14:13") == 0b01)
+			if (get_bits(A, "14:13") == 0x01)
 			{
 				switch (get_bits(mapper69_internal, "3:0")) /* case (mapper69_internal[3:0]) */
 				{
-				case 0b0000: /* 4'b0000: chr_bank_a[7:0] = cpu_data_in[7:0]; // CHR0 */
+				case 0x00: /* 4'b0000: chr_bank_a[7:0] = cpu_data_in[7:0]; // CHR0 */
 					SET_BITS(chr_bank_a, "7:0", V, "7:0"); break;
-				case 0b0001: /* 4'b0001: chr_bank_b[7:0] = cpu_data_in[7:0]; // CHR1 */
+				case 0x01: /* 4'b0001: chr_bank_b[7:0] = cpu_data_in[7:0]; // CHR1 */
 					SET_BITS(chr_bank_b, "7:0", V, "7:0"); break;
-				case 0b0010: /* 4'b0010: chr_bank_c[7:0] = cpu_data_in[7:0]; // CHR2 */
+				case 0x02: /* 4'b0010: chr_bank_c[7:0] = cpu_data_in[7:0]; // CHR2 */
 					SET_BITS(chr_bank_c, "7:0", V, "7:0"); break;
-				case 0b0011: /* 4'b0011: chr_bank_d[7:0] = cpu_data_in[7:0]; // CHR3 */
+				case 0x03: /* 4'b0011: chr_bank_d[7:0] = cpu_data_in[7:0]; // CHR3 */
 					SET_BITS(chr_bank_d, "7:0", V, "7:0"); break;
-				case 0b0100: /* 4'b0100: chr_bank_e[7:0] = cpu_data_in[7:0]; // CHR4 */
+				case 0x04: /* 4'b0100: chr_bank_e[7:0] = cpu_data_in[7:0]; // CHR4 */
 					SET_BITS(chr_bank_e, "7:0", V, "7:0"); break;
-				case 0b0101: /* 4'b0101: chr_bank_f[7:0] = cpu_data_in[7:0]; // CHR5 */
+				case 0x05: /* 4'b0101: chr_bank_f[7:0] = cpu_data_in[7:0]; // CHR5 */
 					SET_BITS(chr_bank_f, "7:0", V, "7:0"); break;
-				case 0b0110: /* 4'b0110: chr_bank_g[7:0] = cpu_data_in[7:0]; // CHR6 */
+				case 0x06: /* 4'b0110: chr_bank_g[7:0] = cpu_data_in[7:0]; // CHR6 */
 					SET_BITS(chr_bank_g, "7:0", V, "7:0"); break;
-				case 0b0111: /* 4'b0111: chr_bank_h[7:0] = cpu_data_in[7:0]; // CHR7 */
+				case 0x07: /* 4'b0111: chr_bank_h[7:0] = cpu_data_in[7:0]; // CHR7 */
 					SET_BITS(chr_bank_h, "7:0", V, "7:0"); break;
-				case 0b1000: /* 4'b1000: {sram_enabled, map_rom_on_6000, prg_bank_6000} = {cpu_data_in[7], ~cpu_data_in[6], cpu_data_in[5:0]}; // PRG0 */
+				case 0x08: /* 4'b1000: {sram_enabled, map_rom_on_6000, prg_bank_6000} = {cpu_data_in[7], ~cpu_data_in[6], cpu_data_in[5:0]}; // PRG0 */
 					sram_enabled = (V >> 7) & 1;
 					map_rom_on_6000 = ((V >> 6) & 1) ^ 1;
 					prg_bank_6000 = V & 0x3F;
 					break;
-				case 0b1001: /* 4'b1001: prg_bank_a[5:0] = cpu_data_in[5:0]; // PRG1 */
+				case 0x09: /* 4'b1001: prg_bank_a[5:0] = cpu_data_in[5:0]; // PRG1 */
 					SET_BITS(prg_bank_a, "5:0", V, "5:0"); break;
-				case 0b1010: /* 4'b1010: prg_bank_b[5:0] = cpu_data_in[5:0]; // PRG2 */
+				case 0x0A: /* 4'b1010: prg_bank_b[5:0] = cpu_data_in[5:0]; // PRG2 */
 					SET_BITS(prg_bank_b, "5:0", V, "5:0"); break;
-				case 0b1011: /* 4'b1011: prg_bank_c[5:0] = cpu_data_in[5:0]; // PRG3 */
+				case 0x0B: /* 4'b1011: prg_bank_c[5:0] = cpu_data_in[5:0]; // PRG3 */
 					SET_BITS(prg_bank_c, "5:0", V, "5:0"); break;
-				case 0b1100: /* 4'b1100: mirroring[1:0] = cpu_data_in[1:0]; // mirroring */
+				case 0x0C: /* 4'b1100: mirroring[1:0] = cpu_data_in[1:0]; // mirroring */
 					SET_BITS(mirroring, "1:0", V, "1:0"); break;
-				case 0b1101: /* 4'b1101 */
+				case 0x0D: /* 4'b1101 */
 					X6502_IRQEnd(FCEU_IQEXT); /* fme7_irq_out = 0; // ack */
 					mapper69_counter_enabled = get_bits(V, "7"); /* fme7_counter_enabled = cpu_data_in[7]; */
 					mapper69_irq_enabled = get_bits(V, "0"); /* fme7_irq_enabled = cpu_data_in[0]; */
 					break;
-				case 0b1110: /* 4'b1110: fme7_irq_value[7:0] = cpu_data_in[7:0]; // IRQ low */
+				case 0x0E: /* 4'b1110: fme7_irq_value[7:0] = cpu_data_in[7:0]; // IRQ low */
 					SET_BITS(mapper69_irq_value, "7:0", V, "7:0"); break;
-				case 0b1111: /* fme7_irq_value[15:8] = cpu_data_in[7:0]; // IRQ high */
+				case 0x0F: /* fme7_irq_value[15:8] = cpu_data_in[7:0]; // IRQ high */
 					SET_BITS(mapper69_irq_value, "15:8", V, "7:0"); break;
 				}
 			}
 		}
 
 		/* Mapper #32 - Irem's G-101 */
-		if (mapper == 0b011010)
+		if (mapper == 0x1A)
 		{
 			switch (get_bits(A, "14:12"))
 			{
-			case 0b000: /* 2'b00: prg_bank_a[5:0] = cpu_data_in[5:0]; // $8000-$8FFF, PRG0 */
+			case 0x00: /* 2'b00: prg_bank_a[5:0] = cpu_data_in[5:0]; // $8000-$8FFF, PRG0 */
 				SET_BITS(prg_bank_a, "5:0", V, "5:0");
 				break;
-			case 0b001: /* 2'b01: {prg_mode[0], mirroring} = {cpu_data_in[1], 1'b0, cpu_data_in[0]}; // $9000-$9FFF, PRG mode, mirroring */
+			case 0x01: /* 2'b01: {prg_mode[0], mirroring} = {cpu_data_in[1], 1'b0, cpu_data_in[0]}; // $9000-$9FFF, PRG mode, mirroring */
 				SET_BITS(prg_mode, "0", V, "1");
 				mirroring = V & 1;
 				break;
-			case 0b010: /* 2'b10: prg_bank_b[5:0] = cpu_data_in[5:0]; // $A000-$AFFF, PRG1 */
+			case 0x02: /* 2'b10: prg_bank_b[5:0] = cpu_data_in[5:0]; // $A000-$AFFF, PRG1 */
 				SET_BITS(prg_bank_b, "5:0", V, "5:0");
 				break;
-			case 0b011: /* $B000-$BFFF, CHR regs */
+			case 0x03: /* $B000-$BFFF, CHR regs */
 				switch (get_bits(A, "2:0"))
 				{
-				case 0b000: /* 3'b000: chr_bank_a[7:0] = cpu_data_in[7:0]; */
+				case 0x00: /* 3'b000: chr_bank_a[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_a, "7:0", V, "7:0"); break;
-				case 0b001: /* 3'b001: chr_bank_b[7:0] = cpu_data_in[7:0]; */
+				case 0x01: /* 3'b001: chr_bank_b[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_b, "7:0", V, "7:0"); break;
-				case 0b010: /* 3'b010: chr_bank_c[7:0] = cpu_data_in[7:0]; */
+				case 0x02: /* 3'b010: chr_bank_c[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_c, "7:0", V, "7:0"); break;
-				case 0b011: /* 3'b011: chr_bank_d[7:0] = cpu_data_in[7:0]; */
+				case 0x03: /* 3'b011: chr_bank_d[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_d, "7:0", V, "7:0"); break;
-				case 0b100: /* 3'b100: chr_bank_e[7:0] = cpu_data_in[7:0]; */
+				case 0x04: /* 3'b100: chr_bank_e[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_e, "7:0", V, "7:0"); break;
-				case 0b101: /* 3'b101: chr_bank_f[7:0] = cpu_data_in[7:0]; */
+				case 0x05: /* 3'b101: chr_bank_f[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_f, "7:0", V, "7:0"); break;
-				case 0b110: /* 3'b110: chr_bank_g[7:0] = cpu_data_in[7:0]; */
+				case 0x06: /* 3'b110: chr_bank_g[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_g, "7:0", V, "7:0"); break;
-				case 0b111: /* 3'b111: chr_bank_h[7:0] = cpu_data_in[7:0]; */
+				case 0x07: /* 3'b111: chr_bank_h[7:0] = cpu_data_in[7:0]; */
 					SET_BITS(chr_bank_h, "7:0", V, "7:0"); break;
 				}
 				break;
@@ -1719,9 +1707,9 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #36 is assigned to TXC's PCB 01-22000-400 */
-		if (mapper == 0b011101)
+		if (mapper == 0x1D)
 		{
-			if (get_bits(A, "14:1") != 0b11111111111111) /* (cpu_addr_in[14:1] != 14'b11111111111111) */
+			if (get_bits(A, "14:1") != 0x3FFF) /* (cpu_addr_in[14:1] != 14'b11111111111111) */
 			{
 				/* prg_bank_a[5:2] = cpu_data_in[7:4]; */
 				SET_BITS(prg_bank_a, "5:2", V, "7:4");
@@ -1731,7 +1719,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #70 */
-		if (mapper == 0b011110)
+		if (mapper == 0x1E)
 		{
 			/* prg_bank_a[4:1] = cpu_data_in[7:4]; */
 			SET_BITS(prg_bank_a, "4:1", V, "7:4");
@@ -1740,45 +1728,45 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #75 - VRC1 */
-		if (mapper == 0b100010)
+		if (mapper == 0x22)
 		{
 			/* case (cpu_addr_in[14:12]) */
 			switch (get_bits(A, "14:12"))
 			{
-			case 0b000: /* 3'b000: prg_bank_a[3:0] = cpu_data_in[3:0]; // $8000-$8FFF */
+			case 0x00: /* 3'b000: prg_bank_a[3:0] = cpu_data_in[3:0]; // $8000-$8FFF */
 				SET_BITS(prg_bank_a, "3:0", V, "3:0"); break;
-			case 0b001:
+			case 0x01:
 				mirroring = V & 1; /* mirroring = {1'b0, cpu_data_in[0]}; */
 				SET_BITS(chr_bank_a, "6", V, "1"); /* chr_bank_a[6] = cpu_data_in[1]; */
 				SET_BITS(chr_bank_e, "6", V, "2"); /* chr_bank_e[6] = cpu_data_in[2]; */
 				break;
-			case 0b010: /* 3'b010: prg_bank_b[3:0] = cpu_data_in[3:0]; // $A000-$AFFF */
+			case 0x02: /* 3'b010: prg_bank_b[3:0] = cpu_data_in[3:0]; // $A000-$AFFF */
 				SET_BITS(prg_bank_b, "3:0", V, "3:0"); break;
-			case 0b100: /* 3'b100: prg_bank_c[3:0] = cpu_data_in[3:0]; // $C000-$CFFF */
+			case 0x04: /* 3'b100: prg_bank_c[3:0] = cpu_data_in[3:0]; // $C000-$CFFF */
 				SET_BITS(prg_bank_c, "3:0", V, "3:0"); break;
-			case 0b110: /* 3'b110: �hr_bank_a[5:2] = cpu_data_in[3:0]; // $E000-$EFFF */
+			case 0x06: /* 3'b110: �hr_bank_a[5:2] = cpu_data_in[3:0]; // $E000-$EFFF */
 				SET_BITS(chr_bank_a, "5:2", V, "3:0"); break;
-			case 0b111: /* 3'b111: chr_bank_e[5:2] = cpu_data_in[3:0]; // $F000-$FFFF */
+			case 0x07: /* 3'b111: chr_bank_e[5:2] = cpu_data_in[3:0]; // $F000-$FFFF */
 				SET_BITS(chr_bank_e, "5:2", V, "3:0"); break;
 			}
 		}
 
 		/* Mapper #83 - Cony/Yoko */
-		if (mapper == 0b100011)
+		if (mapper == 0x23)
 		{
 			/* case (cpu_addr_in[9:8]) */
 			switch (get_bits(A, "9:8"))
 			{
-			case 0b00: /* $80xx */
+			case 0x00: /* $80xx */
 				SET_BITS(prg_bank_a, "4:1", V, "3:0");
 				break;
-			case 0b01: /* $81xx */
+			case 0x01: /* $81xx */
 				mirroring = get_bits(V, "1:0"); /* mirroring <= cpu_data_in[1:0]; */
 				SET_BITS(prg_mode, "2", V, "4"); /* prg_mode[2] <= cpu_data_in[4]; */
 				map_rom_on_6000 = get_bits(V, "5"); /* map_rom_on_6000 <= cpu_data_in[5]; */
 				mapper83_irq_enabled_latch = get_bits(V, "7"); /* mapper83_irq_enabled_latch <= cpu_data_in[7]; */
 				break;
-			case 0b10: /* 82xx */
+			case 0x02: /* 82xx */
 				if (!get_bits(A, "0")) /* if (!cpu_addr_in[0]) */
 				{
 					X6502_IRQEnd(FCEU_IQEXT); /* mapper83_irq_out <= 0; */
@@ -1789,42 +1777,42 @@ static DECLFW(COOLGIRL_WRITE) {
 					SET_BITS(mapper83_irq_counter, "15:8", V, "7:0"); /* mapper83_irq_counter[15:8] <= cpu_data_in[7:0]; */
 				}
 				break;
-			case 0b11:
+			case 0x03:
 				if (!get_bits(A, "4")) /* if (!cpu_addr_in[4]) */
 				{
 					switch (get_bits(A, "1:0")) /* case (cpu_addr_in[1:0]) */
 					{
-					case 0b00: SET_BITS(prg_bank_a, "7:0", V, "7:0"); break; /* 2'b00: prg_bank_a[7:0] <= cpu_data_in[7:0]; */
-					case 0b01: SET_BITS(prg_bank_b, "7:0", V, "7:0"); break; /* 2'b01: prg_bank_b[7:0] <= cpu_data_in[7:0]; */
-					case 0b10: SET_BITS(prg_bank_b, "7:0", V, "7:0"); break; /* 2'b10: prg_bank_c[7:0] <= cpu_data_in[7:0]; */
-					case 0b11: SET_BITS(prg_bank_6000, "7:0", V, "7:0"); break; /*2'b11: prg_bank_6000[7:0] <= cpu_data_in[7:0]; */
+					case 0x00: SET_BITS(prg_bank_a, "7:0", V, "7:0"); break; /* 2'b00: prg_bank_a[7:0] <= cpu_data_in[7:0]; */
+					case 0x01: SET_BITS(prg_bank_b, "7:0", V, "7:0"); break; /* 2'b01: prg_bank_b[7:0] <= cpu_data_in[7:0]; */
+					case 0x02: SET_BITS(prg_bank_b, "7:0", V, "7:0"); break; /* 2'b10: prg_bank_c[7:0] <= cpu_data_in[7:0]; */
+					case 0x03: SET_BITS(prg_bank_6000, "7:0", V, "7:0"); break; /*2'b11: prg_bank_6000[7:0] <= cpu_data_in[7:0]; */
 					}
 				}
 				else {
-					if (!(flags & 0b100))
+					if (!(flags & 0x04))
 					{
 						switch (get_bits(A, "2:0")) /* case (cpu_addr_in[2:0]) */
 						{
-						case 0b000: SET_BITS(chr_bank_a, "7:0", V, "7:0"); break; /* 3'b000: chr_bank_a[7:0] <= cpu_data_in[7:0]; */
-						case 0b001: SET_BITS(chr_bank_b, "7:0", V, "7:0"); break; /* 3'b001: chr_bank_b[7:0] <= cpu_data_in[7:0]; */
-						case 0b010: SET_BITS(chr_bank_c, "7:0", V, "7:0"); break; /* 3'b010: chr_bank_c[7:0] <= cpu_data_in[7:0]; */
-						case 0b011: SET_BITS(chr_bank_d, "7:0", V, "7:0"); break; /* 3'b011: chr_bank_d[7:0] <= cpu_data_in[7:0]; */
-						case 0b100: SET_BITS(chr_bank_e, "7:0", V, "7:0"); break; /* 3'b100: chr_bank_e[7:0] <= cpu_data_in[7:0]; */
-						case 0b101: SET_BITS(chr_bank_f, "7:0", V, "7:0"); break; /* 3'b101: chr_bank_f[7:0] <= cpu_data_in[7:0]; */
-						case 0b110: SET_BITS(chr_bank_g, "7:0", V, "7:0"); break; /* 3'b110: chr_bank_g[7:0] <= cpu_data_in[7:0]; */
-						case 0b111: SET_BITS(chr_bank_h, "7:0", V, "7:0"); break; /* 3'b111: chr_bank_h[7:0] <= cpu_data_in[7:0]; */
+						case 0x00: SET_BITS(chr_bank_a, "7:0", V, "7:0"); break; /* 3'b000: chr_bank_a[7:0] <= cpu_data_in[7:0]; */
+						case 0x01: SET_BITS(chr_bank_b, "7:0", V, "7:0"); break; /* 3'b001: chr_bank_b[7:0] <= cpu_data_in[7:0]; */
+						case 0x02: SET_BITS(chr_bank_c, "7:0", V, "7:0"); break; /* 3'b010: chr_bank_c[7:0] <= cpu_data_in[7:0]; */
+						case 0x03: SET_BITS(chr_bank_d, "7:0", V, "7:0"); break; /* 3'b011: chr_bank_d[7:0] <= cpu_data_in[7:0]; */
+						case 0x04: SET_BITS(chr_bank_e, "7:0", V, "7:0"); break; /* 3'b100: chr_bank_e[7:0] <= cpu_data_in[7:0]; */
+						case 0x05: SET_BITS(chr_bank_f, "7:0", V, "7:0"); break; /* 3'b101: chr_bank_f[7:0] <= cpu_data_in[7:0]; */
+						case 0x06: SET_BITS(chr_bank_g, "7:0", V, "7:0"); break; /* 3'b110: chr_bank_g[7:0] <= cpu_data_in[7:0]; */
+						case 0x07: SET_BITS(chr_bank_h, "7:0", V, "7:0"); break; /* 3'b111: chr_bank_h[7:0] <= cpu_data_in[7:0]; */
 						}
 					}
 					else {
 						switch (get_bits(A, "2:0")) /* case (cpu_addr_in[2:0]) */
 						{
-						case 0b000:
+						case 0x00:
 							SET_BITS(chr_bank_a, "8:1", V, "7:0"); break; /* 3'b000: chr_bank_a[8:1] <= cpu_data_in[7:0]; */
-						case 0b001:
+						case 0x01:
 							SET_BITS(chr_bank_c, "8:1", V, "7:0"); break; /* 3'b001: chr_bank_c[8:1] <= cpu_data_in[7:0]; */
-						case 0b110:
+						case 0x06:
 							SET_BITS(chr_bank_e, "8:1", V, "7:0"); break; /* 3'b110: chr_bank_e[8:1] <= cpu_data_in[7:0]; */
-						case 0b111: 
+						case 0x07: 
 							SET_BITS(chr_bank_g, "8:1", V, "7:0"); break; /* 3'b111: chr_bank_g[8:1] <= cpu_data_in[7:0]; */
 						}
 					}
@@ -1834,35 +1822,35 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #67 - Sunsoft-3 */
-		if (mapper == 0b100100)
+		if (mapper == 0x24)
 		{
 			if (get_bits(A, "11")) /* if (cpu_addr_in[11]) */
 			{
 				switch (get_bits(A, "14:12")) /* case (cpu_addr_in[14:12]) */
 				{
-				case 0b000: /* 3'b000: chr_bank_a[6:1] <= cpu_data_in[5:0]; // $8800 */
+				case 0x00: /* 3'b000: chr_bank_a[6:1] <= cpu_data_in[5:0]; // $8800 */
 					SET_BITS(chr_bank_a, "6:1", V, "5:0"); break;
-				case 0b001: /* 3'b001: chr_bank_c[6:1] <= cpu_data_in[5:0]; // $9800 */
+				case 0x01: /* 3'b001: chr_bank_c[6:1] <= cpu_data_in[5:0]; // $9800 */
 					SET_BITS(chr_bank_c, "6:1", V, "5:0"); break;
-				case 0b010: /* 3'b010: chr_bank_e[6:1] <= cpu_data_in[5:0]; // $A800 */
+				case 0x02: /* 3'b010: chr_bank_e[6:1] <= cpu_data_in[5:0]; // $A800 */
 					SET_BITS(chr_bank_e, "6:1", V, "5:0"); break;
-				case 0b011: /* 3'b011: chr_bank_g[6:1] <= cpu_data_in[5:0]; // $B800* */
+				case 0x03: /* 3'b011: chr_bank_g[6:1] <= cpu_data_in[5:0]; // $B800* */
 					SET_BITS(chr_bank_g, "6:1", V, "5:0"); break;
-				case 0b100: /* 3'b100: begin // $C800, IRQ load8 */
+				case 0x04: /* 3'b100: begin // $C800, IRQ load8 */
 					mapper67_irq_latch = ~mapper67_irq_latch;
 					if (mapper67_irq_latch)
 						SET_BITS(mapper67_irq_counter, "15:8", V, "7:0"); /* mapper67_irq_counter[15:8] <= cpu_data_in[7:0]; */
 					else
 						SET_BITS(mapper67_irq_counter, "7:0", V, "7:0"); /* mapper67_irq_counter[7:0] <= cpu_data_in[7:0]; */
 					break;
-				case 0b101: /* 3'b101: begin // $D800, IRQ enable */
+				case 0x05: /* 3'b101: begin // $D800, IRQ enable */
 					mapper67_irq_latch = 0; /* mapper67_irq_latch <= 0; */
 					SET_BITS(mapper67_irq_enabled, "0", V, "4"); /* mapper67_irq_enabled <= cpu_data_in[4]; */
 					break;
-				case 0b110: /* 3'b110: mirroring[1:0] <= cpu_data_in[1:0];  // $E800 */
+				case 0x06: /* 3'b110: mirroring[1:0] <= cpu_data_in[1:0];  // $E800 */
 					SET_BITS(mirroring, "1:0", V, "1:0");
 					break;
-				case 0b111: /* 3'b111: prg_bank_a[4:1] <= cpu_data_in[3:0]; // $F800 */
+				case 0x07: /* 3'b111: prg_bank_a[4:1] <= cpu_data_in[3:0]; // $F800 */
 					SET_BITS(prg_bank_a, "4:1", V, "3:0");
 					break;
 				}
@@ -1874,7 +1862,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		}
 
 		/* Mapper #89 - Sunsoft-2 chip on the Sunsoft-3 board */
-		if (mapper == 0b100101)
+		if (mapper == 0x25)
 		{
 			/* prg_bank_a[3:1] <= cpu_data_in[6:4]; */
 			SET_BITS(prg_bank_a, "3:1", V, "6:4");
@@ -1890,45 +1878,48 @@ static DECLFW(COOLGIRL_WRITE) {
 }
 
 static DECLFR(MAFRAM) {
-	if ((mapper == 0b000000) && (A >= 0x5000) && (A < 0x6000))
+	int ppuon;
+	uint8 r, p;
+
+	if ((mapper == 0x00) && (A >= 0x5000) && (A < 0x6000))
 		return 0;
 
 	/* Mapper #163
-	 *	(USE_MAPPER_163 && (mapper == 5'b00110) && m2 && romsel && cpu_rw_in && ((cpu_addr_in[14:8] & 7'h77) == 7'h51)) ?   */
-	if ((mapper == 0b000110) && ((A & 0x7700) == 0x5100))
+	 *	(USE_MAPPER_163 && (mapper == 5'b00110) && m2 && romsel && cpu_rw_in && ((cpu_addr_in[14:8] & 7'h77) == 7'h51)) ? */
+	if ((mapper == 0x06) && ((A & 0x7700) == 0x5100))
 		return mapper163_r2 | mapper163_r0 | mapper163_r1 | ~mapper163_r3; /* {1'b1, r2 | r0 | r1 | ~r3}				 */
-	/* (USE_MAPPER_163 && (mapper == 5'b00110) && m2 && romsel && cpu_rw_in && ((cpu_addr_in[14:8] & 7'h77) == 7'h55)) ?  */
-	if ((mapper == 0b000110) && ((A & 0x7700) == 0x5500))
+	/* (USE_MAPPER_163 && (mapper == 5'b00110) && m2 && romsel && cpu_rw_in && ((cpu_addr_in[14:8] & 7'h77) == 7'h55)) ? */
+	if ((mapper == 0x06) && ((A & 0x7700) == 0x5500))
 		return (mapper163_r5 & 1) ? mapper163_r2 : mapper163_r1; /* {1'b1, r5[0] ? r2 : r1} */
 
 	/* MMC5 */
-	if ((mapper == 0b001111) && (A == 0x5204))
+	if ((mapper == 0x0F) && (A == 0x5204))
 	{
-		int ppuon = (PPU[1] & 0x18);
-		uint8 r = (!ppuon || scanline + 1 >= 241) ? 0 : 1;
-		uint8 p = mmc5_irq_out;
+		ppuon = (PPU[1] & 0x18);
+		r = (!ppuon || scanline + 1 >= 241) ? 0 : 1;
+		p = mmc5_irq_out;
 		X6502_IRQEnd(FCEU_IQEXT);
 		mmc5_irq_out = 0;
 		return (p << 7) | (r << 6);
 	}
 
 	/* Mapper #36 is assigned to TXC's PCB 01-22000-400 */
-	if ((mapper == 0b011101) && ((A & 0xE100) == 0x4100)) /* (USE_MAPPER_036 && mapper == 5'b11101 && {cpu_addr_in[14:13], cpu_addr_in[8]} == 3'b101) ? */
+	if ((mapper == 0x1D) && ((A & 0xE100) == 0x4100)) /* (USE_MAPPER_036 && mapper == 5'b11101 && {cpu_addr_in[14:13], cpu_addr_in[8]} == 3'b101) ? */
 	{
 		return (prg_bank_a & 0x0C) << 2; /* {1'b1, 2'b00, prg_bank_a[3:2], 4'b00} */
 	}
 
 	/* Mapper #83 - Cony/Yoko */
-	if ((mapper == 0b100011) && ((A & 0x7000) == 0x5000)) return flags & 3;
+	if ((mapper == 0x23) && ((A & 0x7000) == 0x5000)) return flags & 3;
 
 	/* Mapper #90 - JY */
-	if ((mapper == 0b001101) && (A == 0x5800)) return (mul1 * mul2) & 0xFF;
-	if ((mapper == 0b001101) && (A == 0x5801)) return ((mul1 * mul2) >> 8) & 0xFF;
+	if ((mapper == 0x0D) && (A == 0x5800)) return (mul1 * mul2) & 0xFF;
+	if ((mapper == 0x0D) && (A == 0x5801)) return ((mul1 * mul2) >> 8) & 0xFF;
 
 	if (sram_enabled && !map_rom_on_6000 && (A >= 0x6000) && (A < 0x8000))
-		return CartBR(A);          /* SRAM */
+		return CartBR(A); /* SRAM */
 	if (map_rom_on_6000 && (A >= 0x6000) && (A < 0x8000))
-		return CartBR(A);          /* PRG */
+		return CartBR(A); /* PRG */
 
 	return X.DB; /* Open bus */
 }
@@ -1969,6 +1960,8 @@ static void COOLGIRL_ScanlineCounter(void) {
 }
 
 static void COOLGIRL_CpuCounter(int a) {
+	uint8 carry;
+
 	while (a--)
 	{
 		/* Mapper #23 - VRC4 */
@@ -1977,7 +1970,6 @@ static void COOLGIRL_CpuCounter(int a) {
 			/* Cycle mode without prescaler is not used by any games? It's missed in fceux source code. */
 			if (vrc4_irq_control & 4) /* if (vrc4_irq_control[2]) // cycle mode */
 			{
-				FCEU_PrintError("Cycle IRQ mode is not supported, please report to Cluster");
 				vrc4_irq_value++; /* {carry, vrc4_irq_value[7:0]} = vrc4_irq_value[7:0] + 1'b1; // just count IRQ value */
 				if (vrc4_irq_value == 0) /* if (carry) */
 				{
@@ -1993,7 +1985,7 @@ static void COOLGIRL_CpuCounter(int a) {
 				{
 					vrc4_irq_prescaler = 0; /* vrc4_irq_prescaler = 0; */
 					vrc4_irq_prescaler_counter++; /* vrc4_irq_prescaler_counter = vrc4_irq_prescaler_counter + 1'b1; */
-					if (vrc4_irq_prescaler_counter == 0b11) vrc4_irq_prescaler_counter = 0; /* if (vrc4_irq_prescaler_counter == 2'b11) vrc4_irq_prescaler_counter =  2'b00; */
+					if (vrc4_irq_prescaler_counter == 0x03) vrc4_irq_prescaler_counter = 0; /* if (vrc4_irq_prescaler_counter == 2'b11) vrc4_irq_prescaler_counter =  2'b00; */
 					vrc4_irq_value++; /* {carry, vrc4_irq_value[7:0]} = vrc4_irq_value[7:0] + 1'b1; */
 					if (vrc4_irq_value == 0) /* f (carry) */
 					{
@@ -2044,14 +2036,13 @@ static void COOLGIRL_CpuCounter(int a) {
 		/* Mapper #18 */
 		if (mapper18_irq_control & 1) /* if (mapper18_irq_control[0]) */
 		{
-			uint8 carry;
 			/*carry = get_bits(mapper18_irq_value, "3:0") - 1; */
 			carry = (mapper18_irq_value & 0x0F) - 1;
 			/*SET_BITS(mapper18_irq_value, "3:0", carry, "3:0"); */
 			mapper18_irq_value = (mapper18_irq_value & 0xFFF0) | (carry & 0x0F);
 			carry = (carry >> 4) & 1;
 			/* if (mapper18_irq_control[3] == 1'b0) */
-			if (!(mapper18_irq_control & 0b1000))
+			if (!(mapper18_irq_control & 0x08))
 			{
 				/*carry = get_bits(mapper18_irq_value, "7:4") - carry; */
 				carry = ((mapper18_irq_value >> 4) & 0x0F) - carry; /*SET_BITS(mapper18_irq_value, "7:4", carry, "3:0"); */
@@ -2059,7 +2050,7 @@ static void COOLGIRL_CpuCounter(int a) {
 				carry = (carry >> 4) & 1;
 			}
 			/* if (mapper18_irq_control[3:2] == 2'b00) */
-			if (!(mapper18_irq_control & 0b1100))
+			if (!(mapper18_irq_control & 0x0C))
 			{
 				/*carry = get_bits(mapper18_irq_value, "11:8") - carry; */
 				carry = ((mapper18_irq_value >> 8) & 0x0F) - carry;
@@ -2068,7 +2059,7 @@ static void COOLGIRL_CpuCounter(int a) {
 				carry = (carry >> 4) & 1;
 			}
 			/* if (mapper18_irq_control[3:1] == 3'b000) */
-			if (!(mapper18_irq_control & 0b1110))
+			if (!(mapper18_irq_control & 0x0E))
 			{
 				/*carry = get_bits(mapper18_irq_value, "15:12") - carry; */
 				carry = ((mapper18_irq_value >> 12) & 0x0F) - carry;
@@ -2096,10 +2087,10 @@ static void COOLGIRL_CpuCounter(int a) {
 		if (mapper42_irq_enabled)
 		{
 			/*mapper42_irq_value = set_bits(mapper42_irq_value, "14:0", get_bits(mapper42_irq_value, "14:0") + 1);
-			 *if (get_bits(mapper42_irq_value, "14:13") == 0b11) */
+			 *if (get_bits(mapper42_irq_value, "14:13") == 0x03) */
 			mapper42_irq_value++;
 			if (mapper42_irq_value >> 15) mapper42_irq_value = 0;
-			if (((mapper42_irq_value >> 13) & 0b11) == 0b11)
+			if (((mapper42_irq_value >> 13) & 0x03) == 0x03)
 				X6502_IRQBegin(FCEU_IQEXT);
 			else
 				X6502_IRQEnd(FCEU_IQEXT);
@@ -2128,13 +2119,13 @@ static void COOLGIRL_CpuCounter(int a) {
 
 static void COOLGIRL_PPUHook(uint32 A) {
 	/* For TxROM */
-	if ((mapper == 0b010100) && (flags & 1))
+	if ((mapper == 0x14) && (flags & 1))
 	{
 		setmirror(MI_0 + (TKSMIR[(A & 0x1FFF) >> 10] >> 7));
 	}
 
 	/* Mapper #9 and #10 - MMC2 and MMC4 */
-	if (mapper == 0b010001)
+	if (mapper == 0x11)
 	{
 		if ((A >> 4) == 0xFD) /* if (ppu_addr_in[13:3] == 11'b00111111011) ppu_latch0 = 0; */
 		{
@@ -2171,7 +2162,7 @@ static void COOLGIRL_Reset(void) {
 	four_screen = 0;
 	lockout = 0;
 	prg_base = 0;
-	prg_mask = 0b11111000 << 14;
+	prg_mask = 0xF8 << 14;
 	prg_mode = 0;
 	prg_bank_6000 = 0;
 	prg_bank_a = 0;
