@@ -889,7 +889,7 @@ static DECLFW(COOLGIRL_WRITE) {
 		if (mapper == 0x04)
 		{
 			/* prg_bank_a[5:1] = cpu_data_in[4:0]; */
-			SET_BITS(chr_bank_a, "5:1", V, "4:0");
+			SET_BITS(prg_bank_a, "5:1", V, "4:0");
 			/* mirroring = { 1'b0, ~cpu_data_in[7]}; */
 			mirroring = get_bits(V, "7") ^ 1;
 		}
@@ -1463,6 +1463,7 @@ static DECLFW(COOLGIRL_WRITE) {
 			case 0x0C: /* 4'b1100: if (flags[0]) mirroring = {1'b0, cpu_data_in[6]};	// $E000, mirroring, for mapper #48 */
 				if (flags & 1) /* 48 */
 					mirroring = get_bits(V, "6"); /* mirroring = cpu_data_in[6]; */
+				break;
 			case 0x08: /* 4'b1000: irq_scanline_latch = ~cpu_data_in; // $C000, IRQ latch */
 				mmc3_irq_latch = set_bits(mmc3_irq_latch, "7:0", get_bits(V, "7:0") ^ 0xFF);
 				break;
