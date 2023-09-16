@@ -59,6 +59,8 @@
 #define RETRO_DEVICE_FC_SHADOW    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
 #define RETRO_DEVICE_FC_4PLAYERS  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 2)
 #define RETRO_DEVICE_FC_HYPERSHOT RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 3)
+#define RETRO_DEVICE_FC_FTRAINERA RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 2)
+#define RETRO_DEVICE_FC_FTRAINERB RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 3)
 #define RETRO_DEVICE_FC_AUTO      RETRO_DEVICE_JOYPAD
 
 #define NES_WIDTH   256
@@ -1239,6 +1241,14 @@ static void update_nes_controllers(unsigned port, unsigned device)
          FCEUI_SetInputFC(SIFC_HYPERSHOT, nes_input.FamicomData, 0);
          FCEU_printf(" Famicom Expansion: Konami Hyper Shot\n");
          break;
+      case RETRO_DEVICE_FC_FTRAINERA:
+         FCEUI_SetInputFC(SIFC_FTRAINERA, &nes_input.PowerPadData, 0);
+         FCEU_printf(" Famicom Expansion: Family Trainer A\n");
+         break;
+      case RETRO_DEVICE_FC_FTRAINERB:
+         FCEUI_SetInputFC(SIFC_FTRAINERB, &nes_input.PowerPadData, 0);
+         FCEU_printf(" Famicom Expansion: Family Trainer B\n");
+         break;
       case RETRO_DEVICE_NONE:
       default:
          FCEUI_SetInputFC(SIFC_NONE, &Dummy, 0);
@@ -1285,6 +1295,10 @@ static unsigned fc_to_libretro(int d)
       return RETRO_DEVICE_FC_4PLAYERS;
    case SIFC_HYPERSHOT:
       return RETRO_DEVICE_FC_HYPERSHOT;
+   case SIFC_FTRAINERA:
+      return RETRO_DEVICE_FC_FTRAINERA;
+   case SIFC_FTRAINERB:
+      return RETRO_DEVICE_FC_FTRAINERB;
    }
 
    return (RETRO_DEVICE_NONE);
@@ -1582,6 +1596,8 @@ void retro_set_environment(retro_environment_t cb)
       { "(Konami) Hyper Shot",   RETRO_DEVICE_FC_HYPERSHOT },
       { "Oeka Kids Tablet",      RETRO_DEVICE_FC_OEKAKIDS },
       { "4-Player Adapter",      RETRO_DEVICE_FC_4PLAYERS },
+      { "Family Trainer A",      RETRO_DEVICE_FC_FTRAINERA },
+      { "Family Trainer B",      RETRO_DEVICE_FC_FTRAINERB },
       { 0, 0 },
    };
 
@@ -1590,7 +1606,7 @@ void retro_set_environment(retro_environment_t cb)
       { pads2, 6 },
       { pads3, 4 },
       { pads4, 2 },
-      { pads5, 6 },
+      { pads5, 8 },
       { 0, 0 },
    };
 
@@ -2654,6 +2670,10 @@ static void FCEUD_UpdateInput(void)
          }
          break;
       }
+      case RETRO_DEVICE_FC_FTRAINERB:
+      case RETRO_DEVICE_FC_FTRAINERA:
+         add_powerpad_input(4, nes_input.type[4], &nes_input.PowerPadData);
+         break;
    }
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
