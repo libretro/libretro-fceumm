@@ -129,8 +129,6 @@ void MakeFilters(int32 rate) {
 					   C96000PAL };
 	int32 *sq2tabs[6] = { SQ2C44100NTSC, SQ2C44100PAL, SQ2C48000NTSC, SQ2C48000PAL,
 						  SQ2C96000NTSC, SQ2C96000PAL };
-
-	int32 *tmp;
 	int32 x;
 	uint32 nco;
 
@@ -143,14 +141,15 @@ void MakeFilters(int32 rate) {
 	mrratio = (PAL ? (int64)(PAL_CPU * 65536) : (int64)(NTSC_CPU * 65536)) / rate;
 
 	if (FSettings.soundq == 2)
-		tmp = sq2tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
-	else
-		tmp = tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
-
-	if (FSettings.soundq == 2)
+	{
+		int32 *tmp = sq2tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
 		for (x = 0; x < (SQ2NCOEFFS >> 1); x++)
 			sq2coeffs[x] = sq2coeffs[SQ2NCOEFFS - 1 - x] = tmp[x];
+	}
 	else
+	{
+		int32 *tmp = tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
 		for (x = 0; x < (NCOEFFS >> 1); x++)
 			coeffs[x] = coeffs[NCOEFFS - 1 - x] = tmp[x];
+	}
 }

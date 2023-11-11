@@ -43,18 +43,18 @@
 
 extern SFORMAT FCEUVSUNI_STATEINFO[];
 
-static uint8 *trainerpoo = NULL;
-uint8 *ROM              = NULL;
-uint8 *VROM             = NULL;
-uint8 *ExtraNTARAM      = NULL;
-iNES_HEADER head        = {0};
+static uint8 *trainerpoo  = NULL;
+uint8 *ROM                = NULL;
+uint8 *VROM               = NULL;
+static uint8 *ExtraNTARAM = NULL;
+iNES_HEADER head          = {0};
 
-CartInfo iNESCart       = {0};
+CartInfo iNESCart         = {0};
 
-uint32 ROM_size         = 0;
-uint32 VROM_size        = 0;
+uint32 ROM_size           = 0;
+uint32 VROM_size          = 0;
 
-static int CHRRAMSize   = -1;
+static int CHRRAMSize     = -1;
 
 static int iNES_Init(int num);
 
@@ -62,7 +62,7 @@ static uint8 TrainerRead(uint32 A) {
 	return(trainerpoo[A & 0x1FF]);
 }
 
-static void iNES_ExecPower() {
+static void iNES_ExecPower(void) {
 	if (iNESCart.Power)
 		iNESCart.Power();
 
@@ -1190,10 +1190,8 @@ static int iNES_Init(int num) {
 			}
 			if (head.ROM_type & 8)
 			{
-				if (ExtraNTARAM != NULL)
-				{
+				if (ExtraNTARAM)
 					AddExState(ExtraNTARAM, 2048, 0, "EXNR");
-				}
 			}
 			tmp->init(&iNESCart);
 			return 1;
