@@ -49,13 +49,11 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLAX40GWrite8) {
-	A &= 0xF003;
 	preg[0] = V & 0x1F;
 	Sync();
 }
 
 static DECLFW(UNLAX40GWriteA) {
-	A &= 0xF003;
 	preg[1] = V & 0x1F;
 	Sync();
 }

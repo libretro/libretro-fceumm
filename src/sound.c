@@ -683,7 +683,7 @@ static void RDoSQLQ(void) {
 }
 
 static void RDoTriangle(void) {
-	int32 V;
+	uint32 V;
 	int32 tcout = (tristep & 0xF);
 	if (!(tristep & 0x10)) tcout ^= 0xF;
 	tcout = (tcout * 3) << 16;	/* (tcout<<1); */
@@ -695,11 +695,6 @@ static void RDoTriangle(void) {
 			*start += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME */
 			start++;
 		}
-
-		/* cout = (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);
-		for(V = ChannelBC[2]; V < SOUNDTS; V++)
-			WaveHi[V] += cout; */
-
 	} else {
 		for (V = ChannelBC[2]; V < SOUNDTS; V++) {
 			WaveHi[V] += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME! */
