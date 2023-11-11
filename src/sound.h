@@ -62,6 +62,32 @@ void FCEUSND_Reset(void);
 void FCEUSND_SaveState(void);
 void FCEUSND_LoadState(int version);
 
-void FASTAPASS(1) FCEU_SoundCPUHook(int);
+void FCEU_SoundCPUHook(int);
+
+#define APU_SQUARE1        0
+#define APU_SQUARE2        1
+#define APU_TRIANGLE       2
+#define APU_NOISE          3
+#define APU_DPCM           4
+#define APU_FDS            5
+#define APU_S5B            6
+#define APU_N163           7
+#define APU_VRC6           8
+#define APU_VRC7           9
+#define APU_MMC5           10
+
+#include "fceu.h"
+/* Modify channel wave volume based on volume modifiers
+ * Note: the formulat x = x * y /256 does not yield exact results,
+ * but is "close enough" and avoids the need for using double values
+ * or implicit cohersion which are slower (we need speed here) */
+/* TODO: Optimize this. */
+static INLINE int32 GetVolume(int channel, int32 in) {
+	int mod = FSettings.volume[channel];
+
+	if (in == 0) return 0; /* do nothing */
+	if (mod == 256) return in; /* no change */
+	return ((in * mod) >> 8); /* return modified volume levels */
+}
 
 #endif

@@ -88,7 +88,7 @@ uint32 uppow2(uint32 n)
    for (x = 31; x >= 0; x--)
       if (n & (1 << x))
       {
-         if ((1 << x) != n)
+         if ((uint32)(1 << x) != n)
             return(1 << (x + 1));
          break;
       }

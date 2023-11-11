@@ -59,23 +59,25 @@ typedef long long int64;
 #endif
 #endif
 
-#ifdef __GNUC__
-	#ifdef C80x86
-		#define FASTAPASS(x) __attribute__((regparm(x)))
-		#define FP_FASTAPASS FASTAPASS
-	#else
-		#define FASTAPASS(x)
-		#define FP_FASTAPASS(x)
-	#endif
-#elif MSVC
-	#define FP_FASTAPASS(x)
-	#define FASTAPASS(x) __fastcall
-#else
-	#define FP_FASTAPASS(x)
-	#define FASTAPASS(x)
+#define FCEU_MAYBE_UNUSED(x) (void)(x)
+
+#if !defined (FALSE)
+#define FALSE 0
 #endif
 
-typedef void (FP_FASTAPASS(2) *writefunc)(uint32 A, uint8 V);
-typedef uint8 (FP_FASTAPASS(1) *readfunc)(uint32 A);
+#if !defined (TRUE)
+#define TRUE 1
+#endif
+
+#ifndef MAX
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+typedef void (*writefunc)(uint32 A, uint8 V);
+typedef uint8 (*readfunc)(uint32 A);
 
 #endif

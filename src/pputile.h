@@ -4,6 +4,7 @@ uint32 vadr;
 
 #ifndef PPUT_MMC5SP
 	uint8 zz;
+	FCEU_MAYBE_UNUSED(zz);
 #else
 	uint8 xs, ys;
 	xs = X1;

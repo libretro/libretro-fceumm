@@ -33,7 +33,7 @@
 #include "fceu-memory.h"
 #include "file.h"
 #include "fds.h"
-#include "fds_apu.h"
+#include "fdssound.h"
 #include "cart.h"
 #include "input.h"
 
@@ -109,11 +109,11 @@ void NSFGI(int h) {
 		} else if (NSFHeader.SoundChip & 2) {
 /*   NSFVRC7_Init(); */
 		} else if (NSFHeader.SoundChip & 4) {
-/*   FDSSoundReset(); */
+/*   FDSSound_Reset(); */
 		} else if (NSFHeader.SoundChip & 8) {
 			NSFMMC5_Close();
 		} else if (NSFHeader.SoundChip & 0x10) {
-/*   NSFN106_Init(); */
+/*   NSFN163_Init(); */
 		} else if (NSFHeader.SoundChip & 0x20) {
 /*   NSFAY_Init(); */
 		}
@@ -235,7 +235,7 @@ static DECLFR(NSFVectorRead) {
 void NSFVRC6_Init(void);
 void NSFVRC7_Init(void);
 void NSFMMC5_Init(void);
-void NSFN106_Init(void);
+void NSFN163_Init(void);
 void NSFAY_Init(void);
 
 void NSF_init(void) {
@@ -290,11 +290,11 @@ void NSF_init(void) {
 	} else if (NSFHeader.SoundChip & 2) {
 		NSFVRC7_Init();
 	} else if (NSFHeader.SoundChip & 4) {
-		FDSSoundReset();
+		FDSSound_Reset();
 	} else if (NSFHeader.SoundChip & 8) {
 		NSFMMC5_Init();
 	} else if (NSFHeader.SoundChip & 0x10) {
-		NSFN106_Init();
+		NSFN163_Init();
 	} else if (NSFHeader.SoundChip & 0x20) {
 		NSFAY_Init();
 	}
@@ -311,6 +311,7 @@ static DECLFW(NSF_write) {
 
 	case 0x5FF6:
 	case 0x5FF7: if (!(NSFHeader.SoundChip & 4)) return;
+	/* fallthrough */
 	case 0x5FF8:
 	case 0x5FF9:
 	case 0x5FFA:

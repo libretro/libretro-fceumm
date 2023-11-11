@@ -4,17 +4,7 @@
 #include "fceu-types.h"
 
 extern int fceuindbg;
-
-/* Overclocking-related */
-extern unsigned overclock_enabled;
-extern unsigned overclocked;
-extern unsigned skip_7bit_overclocking;
 extern unsigned DMC_7bit;
-extern unsigned totalscanlines;
-extern unsigned normal_scanlines;
-extern unsigned extrascanlines;
-extern unsigned vblankscanlines;
-
 /* Region selection */
 extern unsigned dendy;
 
@@ -25,14 +15,14 @@ extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
 
 void ResetGameLoaded(void);
 
-#define DECLFR(x) uint8 FP_FASTAPASS(1) x(uint32 A)
-#define DECLFW(x) void FP_FASTAPASS(2) x(uint32 A, uint8 V)
+#define DECLFR(x) uint8 x(uint32 A)
+#define DECLFW(x) void x(uint32 A, uint8 V)
 
 void FCEU_MemoryRand(uint8 *ptr, uint32 size);
-void FASTAPASS(3) SetReadHandler(int32 start, int32 end, readfunc func);
-void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func);
-writefunc FASTAPASS(1) GetWriteHandler(int32 a);
-readfunc FASTAPASS(1) GetReadHandler(int32 a);
+void SetReadHandler(int32 start, int32 end, readfunc func);
+void SetWriteHandler(int32 start, int32 end, writefunc func);
+writefunc GetWriteHandler(int32 a);
+readfunc GetReadHandler(int32 a);
 
 int AllocGenieRW(void);
 void FlushGenieRW(void);
@@ -76,11 +66,10 @@ extern uint8 PAL;
 
 typedef struct {
 	int PAL;
-	int SoundVolume;
-	int TriangleVolume;
-	int SquareVolume[2];
-	int NoiseVolume;
-	int PCMVolume;
+	
+	int SoundVolume; /* master volume */
+	int volume[11]; /* nes apu and expansion */
+	
 	int GameGenie;
 
 	/* Current first and last rendered scanlines. */
@@ -92,7 +81,7 @@ typedef struct {
 	 */
 	int UsrFirstSLine[2];
 	int UsrLastSLine[2];
-	uint32 SndRate;
+	int SndRate;
 	int soundq;
 	int lowpass;
 } FCEUS;

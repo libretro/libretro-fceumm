@@ -253,19 +253,23 @@ VSUNIENTRY VSUniGames[] =
 	{ "Duck Hunt", VS_DUCKHUNT, 0x47735d1e5f1205bbLL, 99, 2, RCP2C03B, IOPTION_GUN, 0 },
 	{ "Excitebike", VS_EXITEBIKE, 0x3dcd1401bcafde77LL, 99, 2, RP2C04_0003, 0, 0 },
 	{ "Excitebike (J)", VS_EXITEBIKE, 0x7ea51c9d007375f0LL, 99, 2, RP2C04_0004, 0, 0 },
+	{ "Excitebike (J)", VS_EXITEBIKE, 0x7bcccfdd8011ba99LL, 99, 2, RP2C04_0003, 0, 0 }, /* Excite Bike (EB4-3 E). nes added 2023-8-5 */
 	{ "Freedom Force", VS_FREEDOMFORCE, 0xed96436bd1b5e688LL, 4, 0, RP2C04_0001, IOPTION_GUN, 0 },	/* Wrong color in game select screen? */
 	{ "Stroke and Match Golf", VS_STROKEANDMATCHGOLF, 0x612325606e82bc66LL, 99, 2, RP2C04_0002, IOPTION_SWAPDIRAB | IOPTION_PREDIP, 0x01 },
 	{ "Goonies",  VS_GOONIES, 0xb4032d694e1d2733LL, 151, 1, RP2C04_0003, 0, 0 },
 	{ "Gradius", VS_GRADIUS, 0x50687ae63bdad976LL, 151, 1, RP2C04_0001, IOPTION_SWAPDIRAB, 0 },
 	{ "Gumshoe", VS_GUMSHOE, 0x87161f8ee37758d3LL, 99, 2, RC2C05_03, IOPTION_GUN, 0 },
 	{ "Gumshoe", VS_GUMSHOE, 0xb8500780bf69ce29LL, 99, 2, RC2C05_03, IOPTION_GUN, 0 },
-	{ "Gumshoe", VS_GUMSHOE, 0xa6bf132ba11d0a8cLL, 99, 2, RC2C05_03, IOPTION_GUN, 0 }, /* Gumshoe (VS).nes added: 2017-9-5*/
+	{ "Gumshoe", VS_GUMSHOE, 0xa6bf132ba11d0a8cLL, 99, 2, RC2C05_03, IOPTION_GUN, 0 }, /* Gumshoe (VS).nes added: 2017-9-5 */
+	{ "Gumshoe", VS_GUMSHOE, 0x53658a1f6d2df78eLL, 99, 2, RC2C05_03, IOPTION_GUN, 0 }, /* Gumshoe (VS).nes added: 2023-8-5 */
+	{ "Gumshoe", VS_GUMSHOE, 0x15f31725e5cbafd4LL, 99, 2, RC2C05_03, IOPTION_GUN, 0 }, /* Gumshoe (VS).nes added: 2023-8-5 */
 	{ "Hogan's Alley", VS_HOGANSALLEY, 0xd78b7f0bb621fb45LL, 99, 2, RP2C04_0001, IOPTION_GUN, 0 },
+	{ "Hogan's Alley", VS_HOGANSALLEY, 0x7566994e3d5ca6a7LL, 99, 2, RP2C04_0001, IOPTION_GUN, 0 }, /* Hogans Alley.nes added: 2023-8-5 */
 	{ "Ice Climber", VS_ICECLIMBER, 0xd21e999513435e2aLL, 99, 2, RP2C04_0004, IOPTION_SWAPDIRAB, 0 },
 	{ "Ladies Golf", VS_LADIESGOLF, 0x781b24be57ef6785LL, 99, 2, RP2C04_0002, IOPTION_SWAPDIRAB | IOPTION_PREDIP, 0x1 },
 	{ "Mach Rider", VS_MACHRIDER, 0x015672618af06441LL, 99, 2, RP2C04_0002, 0, 0 },
 	{ "Mach Rider (J)", VS_MACHRIDER, 0xa625afb399811a8aLL, 99, 2, RP2C04_0001, 0, 0 },
-	{ "Mighty Bomb Jack", VS_MIGHTYBOMBJACK, 0xe6a89f4873fac37bLL, 0, 2, RC2C05_02, 0, 0 },
+	{ "Mighty Bomb Jack", VS_MIGHTYBOMBJACK, 0xe6a89f4873fac37bLL, 99, 2, RC2C05_02, 0, 0 }, /* 2023-8-5 switched to mapper 99 instead of mapper 0 */
 	{ "Ninja Jajamaru Kun", VS_JAJAMARU, 0xb26a2c31474099c0LL, 99, 2, RC2C05_01, IOPTION_SWAPDIRAB, 0 },
 	{ "Pinball", VS_PINBALL, 0xc5f49d3de7f2e9b8LL, 99, 2, RP2C04_0001, IOPTION_PREDIP, 0x01 },
 	{ "Pinball (J)", VS_PINBALL, 0x66ab1a3828cc901cLL, 99, 2, RCP2C03B, IOPTION_PREDIP, 0x1 },

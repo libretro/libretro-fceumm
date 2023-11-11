@@ -45,7 +45,7 @@ static void (*SPostSave)(void);
 /* static int SaveStateStatus[10]; */
 
 static SFORMAT SFMDATA[64];
-int SFEXINDEX;
+static int SFEXINDEX;
 
 #define RLSB     FCEUSTATE_RLSB     /* 0x80000000 */
 

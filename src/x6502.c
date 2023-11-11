@@ -23,8 +23,8 @@
 #include "fceu.h"
 #include "fceu-types.h"
 #include "x6502.h"
-#include "fceu.h"
 #include "sound.h"
+#include "ppu.h"
 
 X6502 X;
 
@@ -34,7 +34,7 @@ void (*X6502_Run)(int32 cycles);
 
 uint32 timestamp;
 uint32 sound_timestamp;
-void FP_FASTAPASS(1) (*MapIRQHook)(int a);
+void (*MapIRQHook)(int a);
 
 #define _PC        X.PC
 #define _A         X.A
@@ -53,8 +53,8 @@ void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 	int __x = x;									\
 	_tcount += __x;									\
 	_count -= __x * 48;								\
-	timestamp += __x;  \
-	if (!overclocked) sound_timestamp +=  __x; \
+	timestamp += __x;                               \
+	if (!ppu.overclocked) sound_timestamp +=  __x;  \
 }
 
 static INLINE uint8 RdMemNorm(uint32 A) {
@@ -63,6 +63,7 @@ static INLINE uint8 RdMemNorm(uint32 A) {
 
 static INLINE void WrMemNorm(uint32 A, uint8 V) {
 	BWrite[A](A, V);
+	_DB = V;
 }
 
 #ifdef FCEUDEF_DEBUGGER
@@ -80,6 +81,7 @@ static INLINE void WrMemHook(uint32 A, uint8 V) {
 		X.WriteHook(&X, A, V);
 	else
 		BWrite[A](A, V);
+	_DB = V;
 }
 #endif
 
@@ -89,14 +91,15 @@ static INLINE uint8 RdRAMFast(uint32 A) {
 
 static INLINE void WrRAMFast(uint32 A, uint8 V) {
 	RAM[A] = V;
+	_DB = V;
 }
 
-uint8 FASTAPASS(1) X6502_DMR(uint32 A) {
+uint8 X6502_DMR(uint32 A) {
 	ADDCYC(1);
 	return(X.DB = ARead[A](A));
 }
 
-void FASTAPASS(2) X6502_DMW(uint32 A, uint8 V) {
+void X6502_DMW(uint32 A, uint8 V) {
 	ADDCYC(1);
 	BWrite[A](A, V);
 }
@@ -316,8 +319,8 @@ redundant) on the variable "x".
 #define LD_ZP(op)       { uint8 A; uint8 x; GetZP(A); x = RdRAM(A); op; break; }
 #define LD_ZPX(op)      { uint8 A; uint8 x; GetZPI(A, _X); x = RdRAM(A); op; break; }
 #define LD_ZPY(op)      { uint8 A; uint8 x; GetZPI(A, _Y); x = RdRAM(A); op; break; }
-#define LD_AB(op)       { uint32 A; uint8 x; GetAB(A); x = RdMem(A); op; break; }
-#define LD_ABI(reg, op) { uint32 A; uint8 x; GetABIRD(A, reg); x = RdMem(A); op; break; }
+#define LD_AB(op)       { uint32 A; uint8 x; FCEU_MAYBE_UNUSED(x); GetAB(A); x = RdMem(A); op; break; }
+#define LD_ABI(reg, op) { uint32 A; uint8 x; FCEU_MAYBE_UNUSED(x); GetABIRD(A, reg); x = RdMem(A); op; break; }
 #define LD_ABX(op)      LD_ABI(_X, op)
 #define LD_ABY(op)      LD_ABI(_Y, op)
 #define LD_IX(op)       { uint32 A; uint8 x; GetIX(A); x = RdMem(A); op; break; }
@@ -353,11 +356,11 @@ static uint8 CycTable[256] =
 /*0xF0*/ 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
 };
 
-void FASTAPASS(1) X6502_IRQBegin(int w) {
+void X6502_IRQBegin(int w) {
 	_IRQlow |= w;
 }
 
-void FASTAPASS(1) X6502_IRQEnd(int w) {
+void X6502_IRQEnd(int w) {
 	_IRQlow &= ~w;
 }
 
@@ -401,13 +404,14 @@ void X6502_Init(void) {
 	int x;
 
 	memset((void*)&X, 0, sizeof(X));
-	for (x = 0; x < 256; x++)
+	for (x = 0; x < 256; x++) {
 		if (!x)
 			ZNTable[x] = Z_FLAG;
 		else if (x & 0x80)
 			ZNTable[x] = N_FLAG;
 		else
 			ZNTable[x] = 0;
+	}
 	#ifdef FCEUDEF_DEBUGGER
 	X6502_Debug(0, 0, 0);
 	#endif
@@ -492,7 +496,7 @@ static void X6502_RunDebug(int32 cycles) {
 			b1 = RdMem(_PC);
 			_PC++;
 			switch (b1) {
-				#include "ops.h"
+				#include "ops.inc"
 			}
 
 			timestamp = tsave;
@@ -516,12 +520,12 @@ static void X6502_RunDebug(int32 cycles) {
 		_tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
 
-      if (!overclocked)
-         FCEU_SoundCPUHook(temp);
+		if (!ppu.overclocked)
+			FCEU_SoundCPUHook(temp);
 
 		_PC++;
 		switch (b1) {
-			#include "ops.h"
+			#include "ops.inc"
 		}
 	}
 	#undef RdRAM
@@ -613,12 +617,12 @@ void X6502_Run(int32 cycles)
 		temp = _tcount;
 		_tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
-		if (!overclocked)
+		if (!ppu.overclocked)
 			FCEU_SoundCPUHook(temp);
 		X.PC = pbackus;
 		_PC++;
 		switch (b1) {
-			#include "ops.h"
+			#include "ops.inc"
 		}
 	}
 

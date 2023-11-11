@@ -48,37 +48,41 @@ void FCEUI_SetInput(int port, int type, void *ptr, int attrib);
 void FCEUI_SetInputFC(int type, void *ptr, int attrib);
 void FCEUI_DisableFourScore(int s);
 
-#define SI_UNSET     -1
-#define SI_NONE      0
-#define SI_GAMEPAD   1
-#define SI_ZAPPER    2
-#define SI_POWERPADA 3
-#define SI_POWERPADB 4
-#define SI_ARKANOID  5
-#define SI_MOUSE     6
+#define SI_UNSET           -1
+#define SI_NONE            0
+#define SI_GAMEPAD         1
+#define SI_ZAPPER          2
+#define SI_POWERPADA       3
+#define SI_POWERPADB       4
+#define SI_ARKANOID        5
+#define SI_MOUSE           6
+#define SI_LCDCOMP_ZAPPER  7
+#define SI_SNES_MOUSE      8
+#define SI_SNES_GAMEPAD    9
+#define SI_VIRTUALBOY      10
 
-#define SIFC_UNSET     -1
-#define SIFC_NONE      0
-#define SIFC_ARKANOID  1
-#define SIFC_SHADOW      2
-#define SIFC_4PLAYER    3
-#define SIFC_FKB      4
-#define SIFC_SUBORKB    5
-#define SIFC_PEC586KB    6
-#define SIFC_HYPERSHOT  7
-#define SIFC_MAHJONG  8
-#define SIFC_QUIZKING  9
-#define SIFC_FTRAINERA  10
-#define SIFC_FTRAINERB  11
-#define SIFC_OEKAKIDS  12
-#define SIFC_BWORLD      13
-#define SIFC_TOPRIDER  14
+#define SIFC_UNSET         -1
+#define SIFC_NONE          0
+#define SIFC_ARKANOID      1
+#define SIFC_SHADOW        2
+#define SIFC_4PLAYER       3
+#define SIFC_FKB           4
+#define SIFC_SUBORKB       5
+#define SIFC_PEC586KB      6
+#define SIFC_HYPERSHOT     7
+#define SIFC_MAHJONG       8
+#define SIFC_QUIZKING      9
+#define SIFC_FTRAINERA     10
+#define SIFC_FTRAINERB     11
+#define SIFC_OEKAKIDS      12
+#define SIFC_BWORLD        13
+#define SIFC_TOPRIDER      14
 
-#define SIS_NONE  0
-#define SIS_DATACH  1
-#define SIS_NWC    2
-#define SIS_VSUNISYSTEM  3
-#define SIS_NSF    4
+#define SIS_NONE           0
+#define SIS_DATACH         1
+#define SIS_NWC            2
+#define SIS_VSUNISYSTEM    3
+#define SIS_NSF            4
 
 /* New interface functions */
 

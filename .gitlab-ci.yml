@@ -67,11 +67,11 @@ include:
   # PlayStation2
   - project: 'libretro-infrastructure/ci-templates'
     file: '/ps2-static.yml'
-    
+
   # PlayStation3
   - project: 'libretro-infrastructure/ci-templates'
     file: '/psl1ght-static.yml'
-    
+
   # PlayStation Portable
   - project: 'libretro-infrastructure/ci-templates'
     file: '/psp-static.yml'
@@ -243,7 +243,7 @@ libretro-build-ps2:
   extends:
     - .libretro-ps2-static-retroarch-master
     - .core-defs
-    
+
 # PlayStation3
 libretro-build-psl1ght:
   extends:

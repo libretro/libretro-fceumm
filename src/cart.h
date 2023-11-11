@@ -19,6 +19,10 @@ typedef struct {
 					 * that are not really MMC3 but are
 					 * set to mapper 4.
 					 */
+	int mirror2bits; /* a 2bit representation for mirroring.
+                      * For use in nonstandard way like apply one-screen mirroring on
+					  * mapper 30.
+                      */
 	int battery;	/* Presence of an actual battery. */
 	int PRGRomSize;		/* prg rom size in bytes */
 	int CHRRomSize;		/* chr rom size in bytes */
@@ -27,6 +31,12 @@ typedef struct {
 	int PRGRamSaveSize;	/* prg ram size in bytes (non-volatile or battery backed) */
 	int CHRRamSaveSize;	/* chr ram size in bytes (non-volatile or battery backed) */
 	int region;			/* video system timing (ntsc, pal, dendy */
+
+	int ConsoleType;
+	int ExtConsoleType;
+	int InputTypes;
+	int VS_PPUTypes;
+	int VS_HWType;
 
 	uint8 MD5[16];
 	uint32 PRGCRC32;
@@ -65,31 +75,31 @@ extern uint32 CHRmask2[32];
 extern uint32 CHRmask4[32];
 extern uint32 CHRmask8[32];
 
-void FASTAPASS(2) setprg2(uint32 A, uint32 V);
-void FASTAPASS(2) setprg4(uint32 A, uint32 V);
-void FASTAPASS(2) setprg8(uint32 A, uint32 V);
-void FASTAPASS(2) setprg16(uint32 A, uint32 V);
-void FASTAPASS(2) setprg32(uint32 A, uint32 V);
+void setprg2(uint32 A, uint32 V);
+void setprg4(uint32 A, uint32 V);
+void setprg8(uint32 A, uint32 V);
+void setprg16(uint32 A, uint32 V);
+void setprg32(uint32 A, uint32 V);
 
-void FASTAPASS(3) setprg2r(int r, uint32 A, uint32 V);
-void FASTAPASS(3) setprg4r(int r, uint32 A, uint32 V);
-void FASTAPASS(3) setprg8r(int r, uint32 A, uint32 V);
-void FASTAPASS(3) setprg16r(int r, uint32 A, uint32 V);
-void FASTAPASS(3) setprg32r(int r, uint32 A, uint32 V);
+void setprg2r(int r, uint32 A, uint32 V);
+void setprg4r(int r, uint32 A, uint32 V);
+void setprg8r(int r, uint32 A, uint32 V);
+void setprg16r(int r, uint32 A, uint32 V);
+void setprg32r(int r, uint32 A, uint32 V);
 
-void FASTAPASS(3) setchr1r(int r, uint32 A, uint32 V);
-void FASTAPASS(3) setchr2r(int r, uint32 A, uint32 V);
-void FASTAPASS(3) setchr4r(int r, uint32 A, uint32 V);
-void FASTAPASS(2) setchr8r(int r, uint32 V);
+void setchr1r(int r, uint32 A, uint32 V);
+void setchr2r(int r, uint32 A, uint32 V);
+void setchr4r(int r, uint32 A, uint32 V);
+void setchr8r(int r, uint32 V);
 
-void FASTAPASS(2) setchr1(uint32 A, uint32 V);
-void FASTAPASS(2) setchr2(uint32 A, uint32 V);
-void FASTAPASS(2) setchr4(uint32 A, uint32 V);
-void FASTAPASS(2) setchr8(uint32 V);
+void setchr1(uint32 A, uint32 V);
+void setchr2(uint32 A, uint32 V);
+void setchr4(uint32 A, uint32 V);
+void setchr8(uint32 V);
 
-void FASTAPASS(1) setmirror(int t);
+void setmirror(int t);
 void setmirrorw(int a, int b, int c, int d);
-void FASTAPASS(3) setntamem(uint8 *p, int ram, uint32 b);
+void setntamem(uint8 *p, int ram, uint32 b);
 
 #define MI_H 0
 #define MI_V 1
@@ -97,6 +107,7 @@ void FASTAPASS(3) setntamem(uint8 *p, int ram, uint32 b);
 #define MI_1 3
 
 extern int geniestage;
+extern CartInfo iNESCart;
 
 void FCEU_GeniePower(void);
 

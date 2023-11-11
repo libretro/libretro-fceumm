@@ -50,10 +50,12 @@
 
 #define PPU_status      (PPU[2])
 
-#define Pal             (PALRAM)
+#define READPALNOGS(ofs) (PALRAM[(ofs)])
+#define READPAL(ofs)    (PALRAM[(ofs)] & (GRAYSCALE ? 0x30 : 0xFF))
+#define READUPAL(ofs)   (UPALRAM[(ofs)] & (GRAYSCALE ? 0x30 : 0xFF))
 
 static void FetchSpriteData(void);
-static void FASTAPASS(1) RefreshLine(int lastpixel);
+static void RefreshLine(int lastpixel);
 static void RefreshSprites(void);
 static void CopySprites(uint8 *target);
 
@@ -112,7 +114,7 @@ static uint8 deemp = 0;
 static int deempcnt[8];
 
 void (*GameHBIRQHook)(void), (*GameHBIRQHook2)(void);
-void FP_FASTAPASS(1) (*PPU_hook)(uint32 A);
+void (*PPU_hook)(uint32 A);
 
 uint8 vtoggle = 0;
 uint8 XOffset = 0;
@@ -124,6 +126,7 @@ static int maxsprites = 8;
 /* scanline is equal to the current visible scanline we're on. */
 int scanline;
 static uint32 scanlines_per_frame;
+PPU_T ppu;
 
 uint8 PPU[4];
 uint8 PPUSPL;
@@ -178,13 +181,11 @@ static DECLFR(A2007) {
 	if (tmp >= 0x3F00) {	/* Palette RAM tied directly to the output data, without VRAM buffer */
 		if (!(tmp & 3)) {
 			if (!(tmp & 0xC))
-				ret = PALRAM[0x00];
+				ret = READPAL(0x00);
 			else
-				ret = UPALRAM[((tmp & 0xC) >> 2) - 1];
+				ret = READUPAL(((tmp & 0xC) >> 2) - 1);
 		} else
-			ret = PALRAM[tmp & 0x1F];
-		if (GRAYSCALE)
-			ret &= 0x30;
+			ret = READPAL(tmp & 0x1F);
 		#ifdef FCEUDEF_DEBUGGER
 		if (!fceuindbg)
 		#endif
@@ -431,7 +432,7 @@ static void CheckSpriteHit(int p) {
 static int spork = 0;
 
 /* lasttile is really "second to last tile." */
-static void FASTAPASS(1) RefreshLine(int lastpixel) {
+static void RefreshLine(int lastpixel) {
 	static uint32 pshift[2];
 	static uint32 atlatch;
 	uint32 smorkus = RefreshAddr;
@@ -472,7 +473,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 
 	if (!ScreenON && !SpriteON) {
 		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = READPALNOGS(0) | (READPALNOGS(0) << 8) | (READPALNOGS(0) << 16) | (READPALNOGS(0) << 24);
 		tem |= 0x40404040;
 		FCEU_dwmemset(Pline, tem, numtiles * 8);
 		P += numtiles * 8;
@@ -493,10 +494,10 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	}
 
 	/* Priority bits, needed for sprite emulation. */
-	Pal[0] |= 64;
-	Pal[4] |= 64;
-	Pal[8] |= 64;
-	Pal[0xC] |= 64;
+	PALRAM[0]   |= 64;
+	PALRAM[4]   |= 64;
+	PALRAM[8]   |= 64;
+	PALRAM[0xC] |= 64;
 
 	/* This high-level graphics MMC5 emulation code was written for MMC5 carts in "CL" mode.
 	 * It's probably not totally correct for carts in "SL" mode.
@@ -518,9 +519,6 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 				tochange--;
 			}
 		} else if (MMC5HackCHRMode == 1 && (MMC5HackSPMode & 0x80)) {
-			int tochange = MMC5HackSPMode & 0x1F;
-			tochange -= firsttile;
-
 			#define PPUT_MMC5SP
 			#define PPUT_MMC5CHR1
 			for (X1 = firsttile; X1 < lasttile; X1++) {
@@ -575,15 +573,15 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 #undef RefreshAddr
 
 	/* Reverse changes made before. */
-	Pal[0] &= 63;
-	Pal[4] &= 63;
-	Pal[8] &= 63;
-	Pal[0xC] &= 63;
+	PALRAM[0]   &= 63;
+	PALRAM[4]   &= 63;
+	PALRAM[8]   &= 63;
+	PALRAM[0xC] &= 63;
 
 	RefreshAddr = smorkus;
 	if (firsttile <= 2 && 2 < lasttile && !(PPU[1] & 2)) {
 		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = READPALNOGS(0) | (READPALNOGS(0) << 8) | (READPALNOGS(0) << 16) | (READPALNOGS(0) << 24);
 		tem |= 0x40404040;
 		*(uint32*)Plinef = *(uint32*)(Plinef + 4) = tem;
 	}
@@ -591,7 +589,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	if (!ScreenON) {
 		uint32 tem;
 		int tstart, tcount;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = READPALNOGS(0) | (READPALNOGS(0) << 8) | (READPALNOGS(0) << 16) | (READPALNOGS(0) << 24);
 		tem |= 0x40404040;
 
 		tcount = lasttile - firsttile;
@@ -653,7 +651,7 @@ static void DoLine(void)
 	uint8 *target = NULL;
 	uint8 *dtarget = NULL;
 
-	if (scanline >= 240 && scanline != totalscanlines)
+	if (scanline >= 240 && scanline != ppu.totalscanlines)
 	{
 		X6502_Run(256 + 69);
 		scanline++;
@@ -671,7 +669,7 @@ static void DoLine(void)
 
 	if (rendis & 2) {/* User asked to not display background data. */
 		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = READPALNOGS(0) | (READPALNOGS(0) << 8) | (READPALNOGS(0) << 16) | (READPALNOGS(0) << 24);
 		tem |= 0x40404040;
 		FCEU_dwmemset(target, tem, 256);
 	}
@@ -1139,11 +1137,11 @@ int FCEUPPU_Loop(int skip) {
 				TriggerNMI();
 		}
 		X6502_Run((scanlines_per_frame - 242) * (256 + 85) - 12);
-		if (overclock_enabled && vblankscanlines) {
-			if (!DMC_7bit || !skip_7bit_overclocking) {
-				overclocked = 1;
-				X6502_Run(vblankscanlines * (256 + 85) - 12);
-				overclocked = 0;
+		if (ppu.overclock_enabled && ppu.vblankscanlines) {
+			if (!DMC_7bit || !ppu.skip_7bit_overclocking) {
+				ppu.overclocked = 1;
+				X6502_Run(ppu.vblankscanlines * (256 + 85) - 12);
+				ppu.overclocked = 0;
 			}
 		}
 		PPU_status &= 0x1f;
@@ -1176,7 +1174,7 @@ int FCEUPPU_Loop(int skip) {
 			kook ^= 1;
 		}
 		if (GameInfo->type == GIT_NSF)
-			X6502_Run((256 + 85) * normal_scanlines);
+			X6502_Run((256 + 85) * ppu.normal_scanlines);
 		#ifdef FRAMESKIP
 		else if (skip) {
 			int y;
@@ -1207,20 +1205,20 @@ int FCEUPPU_Loop(int skip) {
 			deemp = PPU[1] >> 5;
 
          /* manual samples can't play correctly with overclocking */
-			if (DMC_7bit && skip_7bit_overclocking)
-				totalscanlines = normal_scanlines;
+			if (DMC_7bit && ppu.skip_7bit_overclocking)
+				ppu.totalscanlines = ppu.normal_scanlines;
 			else
-				totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
+				ppu.totalscanlines = ppu.normal_scanlines + (ppu.overclock_enabled ? ppu.extrascanlines : 0);
 
-			for (scanline = 0; scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
+			for (scanline = 0; scanline < ppu.totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;
 				DoLine();
-				if (scanline < normal_scanlines || scanline == totalscanlines)
-					overclocked = 0;
+				if (scanline < ppu.normal_scanlines || scanline == ppu.totalscanlines)
+					ppu.overclocked = 0;
 				else {
-					if (DMC_7bit && skip_7bit_overclocking) /* 7bit sample started after 240th line */
+					if (DMC_7bit && ppu.skip_7bit_overclocking) /* 7bit sample started after 240th line */
 						break;
-					overclocked = 1;
+					ppu.overclocked = 1;
 				}
 			}
 

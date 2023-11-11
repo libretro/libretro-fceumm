@@ -38,6 +38,10 @@ extern INPUTC *FCEU_InitMouse(int w);
 extern INPUTC *FCEU_InitPowerpadA(int w);
 extern INPUTC *FCEU_InitPowerpadB(int w);
 extern INPUTC *FCEU_InitArkanoid(int w);
+extern INPUTC *FCEU_InitLCDCompZapper(int w);
+extern INPUTC *FCEU_InitSNESMouse(int w);
+extern INPUTC *FCEU_InitSNESGamepad(int w);
+extern INPUTC *FCEU_InitVirtualBoy(int w);
 
 extern INPUTCFC *FCEU_InitArkanoidFC(void);
 extern INPUTCFC *FCEU_InitSpaceShadow(void);
@@ -72,18 +76,43 @@ static INPUTC DummyJPort = { 0, 0, 0, 0, 0, 0 };
 static INPUTC *JPorts[2] = { &DummyJPort, &DummyJPort };
 static INPUTCFC *FCExp = 0;
 
+int replaceP2StartWithMicrophone = 0;
+
 void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
 
 static DECLFR(JPRead)
 {
 	uint8 ret = 0;
+	static int microphone = 0;
 
 	if (JPorts[A & 1]->Read)
 		ret |= JPorts[A & 1]->Read(A & 1);
 
+	/* Test if the port 2 start button is being pressed.
+	 * On a famicom, port 2 start shouldn't exist, so this removes it.
+	 * Games can't automatically be checked for NES/Famicom status,
+	 * so it's an all-encompassing change in the input config menu.
+	 */
+	if ((replaceP2StartWithMicrophone) && (A & 1) && (joy_readbit[1] == 4)) {
+		/* Nullify Port 2 Start Button */
+		ret &= 0xFE;
+	}
+
 	if (FCExp)
 		if (FCExp->Read)
 			ret = FCExp->Read(A & 1, ret);
+
+	/* Not verified against hardware. */
+	if (replaceP2StartWithMicrophone) {
+		if (joy[1] & 8) {
+			microphone = !microphone;
+			if (microphone) {
+				ret |= 4;
+			}
+		} else {
+			microphone = 0;
+		}
+	}
 
 	ret |= X.DB & 0xC0;
 
@@ -141,7 +170,7 @@ static void StrobeFami4(void) {
 	F4ReadBit[0] = F4ReadBit[1] = 0;
 }
 
-static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret) {
+static uint8 ReadFami4(int w, uint8 ret) {
 	ret &= 1;
 	ret |= ((joy[2 + w] >> (F4ReadBit[w])) & 1) << 1;
 	if (F4ReadBit[w] >= 8) ret |= 2;
@@ -150,7 +179,7 @@ static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret) {
 }
 
 /* VS. Unisystem inputs */
-static uint8 FP_FASTAPASS(1) ReadGPVS(int w) {
+static uint8 ReadGPVS(int w) {
 	uint8 ret = 0;
 	if (joy_readbit[w] >= 8)
 		ret = 1;
@@ -165,7 +194,7 @@ static uint8 FP_FASTAPASS(1) ReadGPVS(int w) {
 }
 
 /* standard gamepad inputs */
-static uint8 FP_FASTAPASS(1) ReadGP(int w) {
+static uint8 ReadGP(int w) {
 	uint8 ret;
 	if (joy_readbit[w] >= 8)
 		ret = ((joy[2 + w] >> (joy_readbit[w] & 7)) & 1);
@@ -186,7 +215,7 @@ static uint8 FP_FASTAPASS(1) ReadGP(int w) {
 	return ret;
 }
 
-static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
+static void UpdateGP(int w, void *data, int arg) {
 	uint32 *ptr = (uint32*)data;
 	if (!w) {
 		joy[0] = *(uint32*)ptr;
@@ -197,7 +226,7 @@ static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
 	}
 }
 
-static void FP_FASTAPASS(1) StrobeGP(int w) {
+static void StrobeGP(int w) {
 	joy_readbit[w] = 0;
 }
 
@@ -206,7 +235,8 @@ static INPUTC GPCVS = { ReadGPVS, 0, StrobeGP, UpdateGP, 0, 0 };
 static INPUTCFC FAMI4C = { ReadFami4, 0, StrobeFami4, 0, 0, 0 };
 
 /**********************************************************************/
-
+#include "cart.h"
+extern CartInfo iNESCart;
 void FCEU_UpdateInput(void)
 {
    int x;
@@ -220,7 +250,7 @@ void FCEU_UpdateInput(void)
    if (FCExp && FCExp->Update)
       FCExp->Update(InputDataPtrFC, JPAttribFC);
 
-   if (GameInfo && GameInfo->type == GIT_VSUNI)
+   if (GameInfo && ((GameInfo->type == GIT_VSUNI) || (iNESCart.mapper == 124)))
       if (coinon) coinon--;
 
    if (GameInfo->type == GIT_VSUNI)
@@ -273,7 +303,7 @@ static void CheckSLHook(void)
       InputScanlineHook = SLHLHook;
 }
 
-static void FASTAPASS(1) SetInputStuff(int x)
+static void SetInputStuff(int x)
 {
 	switch (JPType[x])
    {
@@ -300,6 +330,18 @@ static void FASTAPASS(1) SetInputStuff(int x)
          break;
       case SI_POWERPADB:
          JPorts[x] = FCEU_InitPowerpadB(x);
+         break;
+      case SI_LCDCOMP_ZAPPER:
+         JPorts[x] = FCEU_InitLCDCompZapper(x);
+         break;
+      case SI_SNES_GAMEPAD:
+         JPorts[x] = FCEU_InitSNESGamepad(x);
+         break;
+      case SI_SNES_MOUSE:
+         JPorts[x] = FCEU_InitSNESMouse(x);
+         break;
+      case SI_VIRTUALBOY:
+         JPorts[x] = FCEU_InitVirtualBoy(x);
          break;
    }
 	CheckSLHook();
@@ -483,4 +525,3 @@ void FCEUI_PowerNES(void)
 {
 	FCEU_QSimpleCommand(FCEUNPCMD_POWER);
 }
-

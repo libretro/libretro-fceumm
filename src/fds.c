@@ -29,7 +29,7 @@
 #include "x6502.h"
 #include "fceu.h"
 #include "fds.h"
-#include "fds_apu.h"
+#include "fdssound.h"
 #include "sound.h"
 #include "general.h"
 #include "state.h"
@@ -44,24 +44,20 @@
  *	when the virtual motor is on(mmm...virtual motor).
  */
 
-static DECLFR(FDSRead4030);
-static DECLFR(FDSRead4031);
-static DECLFR(FDSRead4032);
-static DECLFR(FDSRead4033);
-
+static DECLFR(FDSRead);
 static DECLFW(FDSWrite);
 
 static void FDSInit(void);
 static void FDSClose(void);
 
-static void FP_FASTAPASS(1) FDSFix(int a);
+static void FDSFix(int a);
 
-static uint8 FDSRegs[6];
 static int32 IRQLatch, IRQCount;
 static uint8 IRQa;
+static uint8 IRQr;
 
-static uint8 *FDSROM = NULL;
-static uint32 FDSROMSize = 0;
+static uint8 *FDSDISK = NULL;  /* fds disks raw data */
+static uint32 FDSDISKSize = 0; /* fds disks total data size */
 static uint8 *FDSRAM = NULL;
 static uint32 FDSRAMSize;
 static uint8 *FDSBIOS = NULL;
@@ -74,9 +70,6 @@ static uint8 *diskdatao[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 static uint8 *diskdata[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 static uint32 TotalSides;
-static uint8 DiskWritten = 0;	/* Set to 1 if disk was written to. */
-static uint8 writeskip;
-static int32 DiskPtr;
 static int32 DiskSeekIRQ;
 static uint8 SelectDisk, InDisk;
 
@@ -88,26 +81,60 @@ enum FDS_DiskBlockIDs {
 	DSK_FILEDATA
 };
 
+static uint8 DiskRegsEnabled;
+
+/*
+FDS Control ($4025)
+7  bit  0
+---------
+IS1B MRTD
+|||| ||||
+|||| |||+- Drive Motor Control  
+|||| |||     0: Stop motor
+|||| |||     1: Turn on motor
+|||| ||+-- Transfer Reset
+|||| ||        Set 1 to reset transfer timing to the initial state.
+|||| |+--- Read / Write mode
+|||| |     (0: write; 1: read)
+|||| +---- Mirroring (0: vertical; 1: horizontal)
+|||+------ CRC control (set during CRC calculation of transfer)
+||+------- Always set to '1'
+|+-------- Read/Write Start  
+|            Turn on motor.  Set to 1 when the drive becomes ready for read/write
++--------- Interrupt Transfer  
+             0: Transfer without using IRQ
+             1: Enable IRQ when the drive becomes ready for
+*/
+
 static uint8  mapperFDS_control;    /* 4025(w) control register */
 static uint16 mapperFDS_filesize;   /* size of file being read/written */
-static uint8  mapperFDS_block;      /* block-id of current block */
+static uint8  mapperFDS_blockID;      /* block-id of current block */
 static uint16 mapperFDS_blockstart; /* start-address of current block */
 static uint16 mapperFDS_blocklen;   /* length of current block */
 static uint16 mapperFDS_diskaddr;   /* current address relative to blockstart */
 static uint8  mapperFDS_diskaccess; /* disk needs to be accessed at least once before writing */
 
-#define GET_FDS_DISK() (diskdata[InDisk][mapperFDS_blockstart + mapperFDS_diskaddr])
-#define FDS_DISK_INSERTED (InDisk != 255)
-
-#define DC_INC    1
 #define BYTES_PER_SIDE 65500
 
+static uint8 FDSDISK_read(void) {
+	uint32 offset = mapperFDS_blockstart + mapperFDS_diskaddr;
+	return diskdata[InDisk][offset];
+}
+
+static void FDSDISK_write(uint8 V) {
+	uint32 offset = mapperFDS_blockstart + mapperFDS_diskaddr;
+	uint8 ret = diskdata[InDisk][offset];
+	if (V != ret) {
+		diskdata[InDisk][offset] = V;
+	}
+}
+
 uint8 *FDSROM_ptr(void) {
-	return (FDSROM);
+	return (FDSDISK);
 }
 
 uint32 FDSROM_size(void) {
-	return (FDSROMSize);
+	return (FDSDISKSize);
 }
 
 void FDSGI(int h) {
@@ -118,21 +145,21 @@ void FDSGI(int h) {
 }
 
 static void FDSStateRestore(int version) {
-	int x;
+	uint32 x;
 
-	setmirror(((FDSRegs[5] & 8) >> 3) ^ 1);
+	setmirror(((mapperFDS_control & 8) >> 3) ^ 1);
 
-	if (version >= 9810)
-		for (x = 0; x < TotalSides; x++) {
-			int b;
-			for (b = 0; b < 65500; b++)
-				diskdata[x][b] ^= diskdatao[x][b];
+	for (x = 0; x < TotalSides; x++) {
+		int b;
+		for (b = 0; b < BYTES_PER_SIDE; b++) {
+			diskdata[x][b] ^= diskdatao[x][b];
 		}
+	}
 }
 
 static void FDSInit(void) {
-	memset(FDSRegs, 0, sizeof(FDSRegs));
-	writeskip = DiskPtr = DiskSeekIRQ = 0;
+	DiskRegsEnabled = 0;
+	DiskSeekIRQ = 0;
 
 	setmirror(1);
 	setprg8(0xE000, 0);			/* BIOS */
@@ -142,11 +169,7 @@ static void FDSInit(void) {
 	MapIRQHook = FDSFix;
 	GameStateRestore = FDSStateRestore;
 
-	SetReadHandler(0x4030, 0x4030, FDSRead4030);
-	SetReadHandler(0x4031, 0x4031, FDSRead4031);
-	SetReadHandler(0x4032, 0x4032, FDSRead4032);
-	SetReadHandler(0x4033, 0x4033, FDSRead4033);
-
+	SetReadHandler(0x4030, 0x4033, FDSRead);
 	SetWriteHandler(0x4020, 0x4025, FDSWrite);
 
 	SetWriteHandler(0x6000, 0xDFFF, CartBW);
@@ -154,37 +177,41 @@ static void FDSInit(void) {
 
 	IRQCount = IRQLatch = IRQa = 0;
 
-	FDSSoundReset();
+	FDSSound_Reset();
 	InDisk = 0;
 	SelectDisk = 0;
 
 	mapperFDS_control = 0;
 	mapperFDS_filesize = 0;
-	mapperFDS_block = 0;
+	mapperFDS_blockID = 0;
 	mapperFDS_blockstart = 0;
 	mapperFDS_blocklen = 0;
 	mapperFDS_diskaddr = 0;
 	mapperFDS_diskaccess = 0;
 }
 
-void FCEU_FDSInsert(int oride) {
-	if (InDisk == 255) {
-		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Inserted",
-				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
-		InDisk = SelectDisk;
-	} else {
-		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Ejected",
-				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
-		InDisk = 255;
-	}
+static uint8 isDiskInserted(void) {
+	return (InDisk != 255);
 }
 
 void FCEU_FDSEject(void) {
 	InDisk = 255;
 }
 
+void FCEU_FDSInsert(int oride) {
+	if (!isDiskInserted()) {
+		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Inserted",
+				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+		InDisk = SelectDisk;
+	} else {
+		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Ejected",
+				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+		FCEU_FDSEject();
+	}
+}
+
 void FCEU_FDSSelect(void) {
-	if (InDisk != 255) {
+	if (isDiskInserted()) {
 		FCEUD_DispMessage(RETRO_LOG_WARN, 2000, "Eject disk before selecting");
 		return;
 	}
@@ -194,193 +221,172 @@ void FCEU_FDSSelect(void) {
 }
 
 /* 2018/12/15 - update irq timings */
-static void FP_FASTAPASS(1) FDSFix(int a) {
-	if ((IRQa & 2) && (FDSRegs[3] & 0x1)) {
+static void FDSFix(int a) {
+	if (IRQa) {
+		IRQCount -= a;
 		if (IRQCount <= 0) {
-			if (!(IRQa & 1))
-				IRQa &= ~2; /* does not clear latch, fix Druid */
-			IRQCount = IRQLatch;
 			X6502_IRQBegin(FCEU_IQEXT);
-		} else {
-			IRQCount -= a;
+			IRQCount = IRQLatch;
+			if (!IRQr) {
+				IRQa = 0;
+			}
 		}
 	}
 
 	if (DiskSeekIRQ > 0) {
 		DiskSeekIRQ -= a;
 		if (DiskSeekIRQ <= 0) {
-			if (FDSRegs[5] & 0x80) {
+			if (mapperFDS_control & 0x80) {
 				X6502_IRQBegin(FCEU_IQEXT2);
 			}
 		}
 	}
 }
 
-static DECLFR(FDSRead4030) {
-	uint8 ret = 0;
+static DECLFR(FDSRead) {
+	uint8 ret = X.DB;
 
-	/* Cheap hack. */
-	if (X.IRQlow & FCEU_IQEXT) ret |= 1;
-	if (X.IRQlow & FCEU_IQEXT2) ret |= 2;
-
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
-	{
-		X6502_IRQEnd(FCEU_IQEXT);
-		X6502_IRQEnd(FCEU_IQEXT2);
+	if (!DiskRegsEnabled) {
+		return X.DB;
 	}
-	return ret;
-}
 
-static DECLFR(FDSRead4031) {
-	uint8 ret = 0xff;
+	switch (A) {
+	case 0x4030:
+		ret &= ~0xC3;
+		/* Cheap hack. */
+		if (X.IRQlow & FCEU_IQEXT)
+			ret |= 1;
+		if (X.IRQlow & FCEU_IQEXT2)
+			ret |= 2;
+#ifdef FCEUDEF_DEBUGGER
+		if (!fceuindbg)
+#endif
+		{
+			X6502_IRQEnd(FCEU_IQEXT);
+			X6502_IRQEnd(FCEU_IQEXT2);
+		}
+		return ret;
 
-	if (FDS_DISK_INSERTED && mapperFDS_control & 0x04) {
-		mapperFDS_diskaccess = 1;
-		ret = 0;
-
-		switch (mapperFDS_block) {
-		case DSK_FILEHDR:
+	case 0x4031:
+		if (isDiskInserted() && (mapperFDS_control & 0x04)) {
+			uint8 data = 0xFF;
+			mapperFDS_diskaccess = 1;
 			if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-				ret = GET_FDS_DISK();
-				switch (mapperFDS_diskaddr) {
-				case 13:
-					mapperFDS_filesize = ret;
-					break;
-				case 14:
-					mapperFDS_filesize |= ret << 8;
+				data = FDSDISK_read();
+				switch (mapperFDS_blockID) {
+				case DSK_FILEHDR:
+					switch (mapperFDS_diskaddr) {
+					case 13: mapperFDS_filesize = data; break;
+					case 14: mapperFDS_filesize |= (data << 8); break;
+					}
 					break;
 				}
 				mapperFDS_diskaddr++;
 			}
-			break;
-		default:
-			if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-				ret = GET_FDS_DISK();
-				mapperFDS_diskaddr++;
-			}
-			break;
+			DiskSeekIRQ = 150;
+			X6502_IRQEnd(FCEU_IQEXT2);
+			return data;
 		}
+		return 0xFF;
 
-		DiskSeekIRQ = 150;
-		X6502_IRQEnd(FCEU_IQEXT2);
+	case 0x4032:
+		ret &= ~0x07;
+		if (!isDiskInserted())
+			ret |= 5;
+		if (!isDiskInserted() || !(mapperFDS_control & 0x01) || (mapperFDS_control & 0x02))
+			ret |= 2;
+		return ret;
+
+	case 0x4033:
+		return 0x80; /* battery */
 	}
 
 	return ret;
 }
 
-static DECLFR(FDSRead4032) {
-	uint8 ret;
-
-	ret = X.DB & ~7;
-	if (InDisk == 255)
-		ret |= 5;
-
-	if (InDisk == 255 || !(FDSRegs[5] & 1) || (FDSRegs[5] & 2))
-		ret |= 2;
-	return ret;
-}
-
-static DECLFR(FDSRead4033) {
-	return 0x80;		/* battery */
-}
-
 static DECLFW(FDSWrite) {
+	if (A == 0x4026) FCEU_printf("%04x:%02x\n", A, V);
+	if (!DiskRegsEnabled && (A >= 0x4024)) {
+		return;
+	}
+
 	switch (A) {
 	case 0x4020:
 		IRQLatch &= 0xFF00;
 		IRQLatch |= V;
 		break;
+
 	case 0x4021:
 		IRQLatch &= 0xFF;
 		IRQLatch |= V << 8;
 		break;
+
 	case 0x4022:
-		if (FDSRegs[3] & 0x1) {
-			IRQa = (V & 0x3);
-			if (IRQa & 2) {
-				IRQCount = IRQLatch;
-			} else {
-				X6502_IRQEnd(FCEU_IQEXT);
-				X6502_IRQEnd(FCEU_IQEXT2);
-			}
+		/* irq repeat */
+		IRQr = (V & 0x01) == 0x01;
+		/* irq enabled */
+		IRQa = DiskRegsEnabled ? ((V >> 1) & 0x01) : 0x00;
+		if (IRQa) {
+			IRQCount = IRQLatch;
+		} else {
+			X6502_IRQEnd(FCEU_IQEXT);
 		}
 		break;
+
 	case 0x4023:
-		if (!(V & 1)) {
+		DiskRegsEnabled = V & 0x01;
+		if (!DiskRegsEnabled) {
+			IRQa = 0;
 			X6502_IRQEnd(FCEU_IQEXT);
 			X6502_IRQEnd(FCEU_IQEXT2);
 		}
 		break;
-	case 0x4024:
-		if (FDS_DISK_INSERTED && ~mapperFDS_control & 0x04) {
 
+	case 0x4024:
+		if (isDiskInserted() && (~mapperFDS_control & 0x04)) {
 			if (mapperFDS_diskaccess == 0) {
 				mapperFDS_diskaccess = 1;
-				break;
-			}
-
-			switch (mapperFDS_block) {
+			} else if (mapperFDS_diskaddr < mapperFDS_blocklen) {
+				FDSDISK_write(V);
+				switch (mapperFDS_blockID) {
 				case DSK_FILEHDR:
-					if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-						GET_FDS_DISK() = V;
-						switch (mapperFDS_diskaddr) {
-							case 13: mapperFDS_filesize = V; break;
-							case 14:
-								mapperFDS_filesize |= V << 8;
-								break;
-						}
-						mapperFDS_diskaddr++;
+					switch (mapperFDS_diskaddr) {
+					case 13: mapperFDS_filesize = V; break;
+					case 14: mapperFDS_filesize |= V << 8; break;
 					}
 					break;
-				default:
-					if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-						GET_FDS_DISK() = V;
-						mapperFDS_diskaddr++;
-					}
-					break;
+				}
+				mapperFDS_diskaddr++;
 			}
-
+			DiskSeekIRQ = 150;
+			X6502_IRQEnd(FCEU_IQEXT2);
 		}
 		break;
+
 	case 0x4025:
 		X6502_IRQEnd(FCEU_IQEXT2);
-		if (FDS_DISK_INSERTED) {
-			if (V & 0x40 && ~mapperFDS_control & 0x40) {
+		if (isDiskInserted()) {
+			if ((V & 0x40) && (~mapperFDS_control & 0x40)) {
 				mapperFDS_diskaccess = 0;
-
 				DiskSeekIRQ = 150;
-
 				/* blockstart  - address of block on disk
 				 * diskaddr    - address relative to blockstart
 				 * _block -> _blockID ?
 				 */
 				mapperFDS_blockstart += mapperFDS_diskaddr;
 				mapperFDS_diskaddr = 0;
-
-				mapperFDS_block++;
-				if (mapperFDS_block > DSK_FILEDATA)
-					mapperFDS_block = DSK_FILEHDR;
-
-				switch (mapperFDS_block) {
-					case DSK_VOLUME:
-						mapperFDS_blocklen = 0x38;
-						break;
-					case DSK_FILECNT:
-						mapperFDS_blocklen = 0x02;
-						break;
-					case DSK_FILEHDR:
-						mapperFDS_blocklen = 0x10;
-						break;
-					case DSK_FILEDATA:		 /* <blockid><filedata> */
-						mapperFDS_blocklen = 0x01 + mapperFDS_filesize;
-						break;
+				mapperFDS_blockID++;
+				if (mapperFDS_blockID > DSK_FILEDATA)
+					mapperFDS_blockID = DSK_FILEHDR;
+				switch (mapperFDS_blockID) {
+				case DSK_VOLUME: mapperFDS_blocklen = 0x38; break;
+				case DSK_FILECNT: mapperFDS_blocklen = 0x02; break;
+				case DSK_FILEHDR: mapperFDS_blocklen = 0x10; break;
+				case DSK_FILEDATA: mapperFDS_blocklen = 0x01 + mapperFDS_filesize; break;
 				}
 			}
-
 			if (V & 0x02) { /* transfer reset */
-				mapperFDS_block = DSK_INIT;
+				mapperFDS_blockID = DSK_INIT;
 				mapperFDS_blockstart = 0;
 				mapperFDS_blocklen = 0;
 				mapperFDS_diskaddr = 0;
@@ -394,7 +400,6 @@ static DECLFW(FDSWrite) {
 		setmirror(((V >> 3) & 1) ^ 1);
 		break;
 	}
-	FDSRegs[A & 7] = V;
 }
 
 struct codes_t {
@@ -559,9 +564,9 @@ static const char *getManufacturer(uint8 code)
 }
 
 static void FreeFDSMemory(void) {
-	if (FDSROM)
-		free(FDSROM);
-	FDSROM = NULL;
+	if (FDSDISK)
+		free(FDSDISK);
+	FDSDISK = NULL;
 	if (FDSBIOS)
 		free(FDSBIOS);
 	FDSBIOS = NULL;
@@ -576,66 +581,72 @@ static void FreeFDSMemory(void) {
 static int SubLoad(FCEUFILE *fp) {
 	struct md5_context md5;
 	uint8 header[16];
-	int x;
+	uint32 x;
 
 	FCEU_fread(header, 16, 1, fp);
 
 	if (memcmp(header, "FDS\x1a", 4)) {
-		if (!(memcmp(header + 1, "*NINTENDO-HVC*", 14))) {
+		if (!(memcmp(header, "\x1*NINTENDO-HVC*", 15))) {
 			long t;
 			t = FCEU_fgetsize(fp);
-			if (t < 65500)
-				t = 65500;
-			TotalSides = t / 65500;
+			if (t < BYTES_PER_SIDE)
+				t = BYTES_PER_SIDE;
+			TotalSides = t / BYTES_PER_SIDE;
 			FCEU_fseek(fp, 0, SEEK_SET);
-		} else
+		} else {
 			return(0);
-	} else
+		}
+	} else {
 		TotalSides = header[4];
+	}
 
 	if (TotalSides > 8) TotalSides = 8;
 	if (TotalSides < 1) TotalSides = 1;
 
-	FDSROMSize = TotalSides * BYTES_PER_SIDE;
-	FDSROM = (uint8*)FCEU_malloc(FDSROMSize);
+	FDSDISKSize = TotalSides * BYTES_PER_SIDE;
+	FDSDISK = (uint8*)FCEU_malloc(FDSDISKSize);
 
-	if (!FDSROM)
+	if (!FDSDISK) {
 		return (0);
+	}
 
-	for (x = 0; x < TotalSides; x++)
-		diskdata[x] = &FDSROM[x * BYTES_PER_SIDE];
+	for (x = 0; x < TotalSides; x++) {
+		diskdata[x] = &FDSDISK[x * BYTES_PER_SIDE];
+	}
 
 	md5_starts(&md5);
 
 	for (x = 0; x < TotalSides; x++) {
-		FCEU_fread(diskdata[x], 1, 65500, fp);
-		md5_update(&md5, diskdata[x], 65500);
+		FCEU_fread(diskdata[x], 1, BYTES_PER_SIDE, fp);
+		md5_update(&md5, diskdata[x], BYTES_PER_SIDE);
 	}
 	md5_finish(&md5, GameInfo->MD5);
 	return(1);
 }
 
 static void PreSave(void) {
-	int x;
+	uint32 x;
 	for (x = 0; x < TotalSides; x++) {
 		int b;
-		for (b = 0; b < 65500; b++)
+		for (b = 0; b < BYTES_PER_SIDE; b++) {
 			diskdata[x][b] ^= diskdatao[x][b];
+		}
 	}
 }
 
 static void PostSave(void) {
-	int x;
+	uint32 x;
 	for (x = 0; x < TotalSides; x++) {
 		int b;
-		for (b = 0; b < 65500; b++)
+		for (b = 0; b < BYTES_PER_SIDE; b++) {
 			diskdata[x][b] ^= diskdatao[x][b];
+		}
 	}
 }
 
 int FDSLoad(const char *name, FCEUFILE *fp) {
 	FCEUFILE *zp;
-	int x;
+	uint32 x;
 
 	char *fn = FCEU_MakeFName(FCEUMKF_FDSROM, 0, 0);
 
@@ -678,46 +689,36 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	}
 
 	for (x = 0; x < TotalSides; x++) {
-		diskdatao[x] = (uint8*)FCEU_malloc(65500);
-		memcpy(diskdatao[x], diskdata[x], 65500);
+		diskdatao[x] = (uint8*)FCEU_malloc(BYTES_PER_SIDE);
+		memcpy(diskdatao[x], diskdata[x], BYTES_PER_SIDE);
 	}
 	
-	DiskWritten = 1;
-
 	GameInfo->type = GIT_FDS;
 	GameInterface = FDSGI;
 
 	SelectDisk = 0;
-	InDisk = 255;
+	FCEU_FDSEject();
 
 	ResetExState(PreSave, PostSave);
-	FDSSoundStateAdd();
+	FDSSound_AddSaveState();
 
 	for (x = 0; x < TotalSides; x++) {
 		char temp[5];
 		sprintf(temp, "DDT%d", x);
-		AddExState(diskdata[x], 65500, 0, temp);
+		AddExState(diskdata[x], BYTES_PER_SIDE, 0, temp);
 	}
 
-	AddExState(&FDSRegs[0], 1, 0, "REG1");
-	AddExState(&FDSRegs[1], 1, 0, "REG2");
-	AddExState(&FDSRegs[2], 1, 0, "REG3");
-	AddExState(&FDSRegs[3], 1, 0, "REG4");
-	AddExState(&FDSRegs[4], 1, 0, "REG5");
-	AddExState(&FDSRegs[5], 1, 0, "REG6");
+	AddExState(&DiskRegsEnabled, 1, 0, "DREG");
 	AddExState(&IRQCount, 4 | FCEUSTATE_RLSB, 1, "IRQC");
 	AddExState(&IRQLatch, 4 | FCEUSTATE_RLSB, 1, "IQL1");
 	AddExState(&IRQa, 1, 0, "IRQA");
-	AddExState(&writeskip, 1, 0, "WSKI");
-	AddExState(&DiskPtr, 4 | FCEUSTATE_RLSB, 1, "DPTR");
 	AddExState(&DiskSeekIRQ, 4 | FCEUSTATE_RLSB, 1, "DSIR");
 	AddExState(&SelectDisk, 1, 0, "SELD");
 	AddExState(&InDisk, 1, 0, "INDI");
-	AddExState(&DiskWritten, 1, 0, "DSKW");
 
 	AddExState(&mapperFDS_control, 1, 0, "CTRG");
 	AddExState(&mapperFDS_filesize, 2 | FCEUSTATE_RLSB, 1, "FLSZ");
-	AddExState(&mapperFDS_block, 1, 0, "BLCK");
+	AddExState(&mapperFDS_blockID, 1, 0, "BLCK");
 	AddExState(&mapperFDS_blockstart, 2 | FCEUSTATE_RLSB, 1, "BLKS");
 	AddExState(&mapperFDS_blocklen, 2 | FCEUSTATE_RLSB, 1, "BLKL");
 	AddExState(&mapperFDS_diskaddr, 2 | FCEUSTATE_RLSB, 1, "DADR");
@@ -746,15 +747,14 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 }
 
 void FDSClose(void) {
-	int x;
+	uint32 x;
 
-	if (!DiskWritten) return;
-
-	for (x = 0; x < TotalSides; x++)
+	for (x = 0; x < TotalSides; x++) {
 		if (diskdatao[x]) {
 			free(diskdatao[x]);
 			diskdatao[x] = 0;
 		}
+	}
 
 	FreeFDSMemory();
 }

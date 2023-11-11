@@ -15,8 +15,6 @@
 #define MAX_CORE_OPTIONS 8
 #define MAX_VALUES 10
 
-extern CartInfo iNESCart;
-
 typedef struct {
    const char  *name;
    uint8       value;
@@ -1067,7 +1065,8 @@ static VSUNIGAME dipswitch_topgun = {
 enum {
    DPSW_NONE = 0,
    DPSW_VSUNI,
-   DPSW_NWC,
+   DPSW_NES_EVENT,
+   DPSW_NES_EVENT2
 };
 
 static struct retro_core_option_v2_definition vscoreopt[MAX_CORE_OPTIONS];
@@ -1101,9 +1100,9 @@ static void make_core_options(struct retro_core_option_v2_definition *vs_core_op
 
    for (i = 0; i < numCoreOptions; i++)
    {
-      const char *game_name   = vsgame->game_name;
+      const char *game_name = vsgame->game_name;
       const char *option_name = vsgame->core_options[i].option_name;
-      char key[100]           = {0};
+      char key[100] = {0};
 
       memset(&vs_core_options[i], 0,
             sizeof(struct retro_core_option_v2_definition));
@@ -1238,9 +1237,9 @@ static void update_dipswitch_vsuni(void)
 }
 
 /* Nintendo World Championships 1990 */
-static struct retro_core_option_v2_definition dipswitch_nwc[] = {
+static struct retro_core_option_v2_definition dipswitch_nes_event[] = {
    {
-      "fceumm_dipswitch_nwc",
+      "fceumm_dipswitch_nes_event",
       "Gameplay Duration in minutes (Restart)",
       NULL,
       "Sets the game timer in minutes.",
@@ -1270,23 +1269,77 @@ static struct retro_core_option_v2_definition dipswitch_nwc[] = {
    { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
 };
 
-static void update_dipswitch_nwc(void)
+static void update_dipswitch_nes_event(void)
 {
-   int dpsw_nwc = 0x00;
+   int dpsw_nes_event = 0x00;
    struct retro_variable var = {
-      "fceumm_dipswitch_nwc",
+      "fceumm_dipswitch_nes_event",
       NULL
    };
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-      dpsw_nwc = atoi(var.value);
+      dpsw_nes_event = atoi(var.value);
 
-   if (GameInfo->cspecial != dpsw_nwc)
+   if (GameInfo->cspecial != dpsw_nes_event)
    {
-      GameInfo->cspecial = dpsw_nwc;
+      GameInfo->cspecial = dpsw_nes_event;
 #ifdef DEBUG
-      FCEU_printf("Dipswitch changed = %d%d%d%d\n", (dpsw_nwc >> 0) & 1,
-         (dpsw_nwc >> 1) & 1, (dpsw_nwc >> 2) & 1, (dpsw_nwc >> 3) & 1);
+      FCEU_printf("Dipswitch changed = %d%d%d%d\n", (dpsw_nes_event >> 0) & 1,
+         (dpsw_nes_event >> 1) & 1, (dpsw_nes_event >> 2) & 1, (dpsw_nes_event >> 3) & 1);
+#endif
+   }
+}
+
+/* Nintendo Campus Challenge 1991 */
+static struct retro_core_option_v2_definition dipswitch_nes_event2[] = {
+   {
+      "fceumm_dipswitch_nes_event2",
+      "Gameplay Duration in minutes (Restart)",
+      NULL,
+      "Sets the game timer in minutes.",
+      NULL,
+      "dip_switch",
+      {
+         { "0",  "5:00" },
+         { "1",  "5:19" },
+         { "2",  "5:38" },
+         { "3",  "5:56" },
+         { "4",  "6:15 (Tournament)" },
+         { "5",  "6:34" },
+         { "6",  "6:53" },
+         { "7",  "7:11" },
+         { "8",  "7:30" },
+         { "9",  "7:49" },
+         { "10", "8:08" },
+         { "11", "8:27" },
+         { "12", "8:45" },
+         { "13", "9:04" },
+         { "14", "9:23" },
+         { "15", "9:42" },
+         { NULL, NULL },
+      },
+      "4",
+   },
+   { NULL, NULL, NULL, NULL, NULL, NULL, {{0}}, NULL },
+};
+
+static void update_dipswitch_nes_event2(void)
+{
+   int dpsw_nes_event2 = 0x00;
+   struct retro_variable var = {
+      "fceumm_dipswitch_nes_event2",
+      NULL
+   };
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+      dpsw_nes_event2 = atoi(var.value);
+
+   if (GameInfo->cspecial != dpsw_nes_event2)
+   {
+      GameInfo->cspecial = dpsw_nes_event2;
+#ifdef DEBUG
+      FCEU_printf("NES-EVENT2 Dipswitch changed = %d%d%d%d\n", (dpsw_nes_event2 >> 0) & 1,
+         (dpsw_nes_event2 >> 1) & 1, (dpsw_nes_event2 >> 2) & 1, (dpsw_nes_event2 >> 3) & 1);
 #endif
    }
 }
@@ -1338,10 +1391,23 @@ void set_dipswitch_variables(unsigned current_index, struct retro_core_option_v2
    /* Nintendo World Championship cart (Mapper 105)*/
    if (iNESCart.mapper == 105)
    {
-      dipswitch_type = DPSW_NWC;
+      dipswitch_type = DPSW_NES_EVENT;
 
-      while (dipswitch_nwc[dipsw_size].key) {
-         memcpy(&vars[index], &dipswitch_nwc[dipsw_size],
+      while (dipswitch_nes_event[dipsw_size].key) {
+         memcpy(&vars[index], &dipswitch_nes_event[dipsw_size],
+               sizeof(struct retro_core_option_v2_definition));
+         index++;
+         dipsw_size++;
+      }
+      return;
+   }
+
+   if (iNESCart.mapper == 555)
+   {
+      dipswitch_type = DPSW_NES_EVENT2;
+
+      while (dipswitch_nes_event2[dipsw_size].key) {
+         memcpy(&vars[index], &dipswitch_nes_event2[dipsw_size],
                sizeof(struct retro_core_option_v2_definition));
          index++;
          dipsw_size++;
@@ -1359,8 +1425,11 @@ void update_dipswitch(void)
    case DPSW_VSUNI:
       update_dipswitch_vsuni();
       break;
-   case DPSW_NWC:
-      update_dipswitch_nwc();
+   case DPSW_NES_EVENT:
+      update_dipswitch_nes_event();
+      break;
+   case DPSW_NES_EVENT2:
+      update_dipswitch_nes_event2();
       break;
    }
 }

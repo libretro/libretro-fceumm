@@ -202,8 +202,8 @@ void FCEU_ResetCheats(void)
 
 int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int type) {
 	char *t;
-	if (!(t = (char*)malloc(strlen(name) + 1)))
-	{
+
+	if (!(t = (char*)malloc(strlen(name) + 1))) {
 		CheatMemErr();
 		return(0);
 	}
@@ -318,11 +318,16 @@ static int GGtobin(char c) {
 
 /* Returns 1 on success, 0 on failure. Sets *a,*v,*c. */
 int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
+	uint16 A;
+	uint8 V, C;
 	uint8 t;
-	uint16 A = 0x8000;
-	uint8 V = 0;
-	uint8 C = 0;
-	int s = strlen(str);
+	int s;
+
+	A = 0x8000;
+	V = 0;
+	C = 0;
+
+	s = strlen(str);
 	if (s != 6 && s != 8) return(0);
 
 	t = GGtobin(*str++);
@@ -375,7 +380,7 @@ int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
 }
 
 int FCEUI_DecodePAR(const char *str, uint16 *a, uint8 *v, int *c, int *type) {
-	int boo[4];
+	uint32 boo[4];
 	if (strlen(str) != 8) return(0);
 
 	sscanf(str, "%02x%02x%02x%02x", boo, boo + 1, boo + 2, boo + 3);

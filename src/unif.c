@@ -60,8 +60,6 @@ typedef struct {
 	int (*init)(FCEUFILE *fp);
 } BFMAPPING;
 
-CartInfo UNIFCart;
-
 static int vramo;
 static int mirrortodo;
 static int submapper;
@@ -111,31 +109,35 @@ static void FreeUNIF(void) {
 			free(malloced[x]); malloced[x] = 0;
 		}
 	}
-	if (ROM) {
-		free(ROM); ROM = 0;
+	if (ROM.prg.data) {
+		free(ROM.prg.data); ROM.prg.data = 0;
 	}
-	if (VROM) {
-		free(VROM); VROM = 0;
+	if (ROM.chr.data) {
+		free(ROM.chr.data); ROM.chr.data = 0;
 	}
 }
 
 static void ResetUNIF(void) {
 	int x;
-	for (x = 0; x < 32; x++)
+	for (x = 0; x < 32; x++) {
 		malloced[x] = 0;
+		mallocedsizes[x] = 0;
+	}
 	for (x = 0; x < 16; x++)
 		prg_idx[x] = chr_idx[x] = 0;
 	vramo = 0;
 	boardname = 0;
 	mirrortodo = 0;
-	memset(&UNIFCart, 0, sizeof(UNIFCart));
+	submapper = 0;
+	cspecial = 0;
+	memset(&iNESCart, 0, sizeof(iNESCart));
 	UNIFchrrama = 0;
 	prg_chip_count = 0;
 	chr_chip_count = 0;
 	UNIF_PRGROMSize = 0;
 	UNIF_CHRROMSize = 0;
-	ROM_size = 0;
-	VROM_size = 0;
+	ROM.prg.size = 0;
+	ROM.chr.size = 0;
 }
 
 static void Cleanup(void) {
@@ -150,6 +152,7 @@ static void MooMirroring(void) {
 		/* 06-22-19 Allow override when using vertical/horizontal mirroring. */
 		SetupCartMirroring(mirrortodo, (mirrortodo >> 1) & 1, 0);
 	else if (mirrortodo == 0x4) {
+		FCEU_MemoryRand(exntar, sizeof(exntar));
 		SetupCartMirroring(4, 1, exntar);
 		AddExState(exntar, 2048, 0, "EXNR");
 	} else
@@ -279,8 +282,8 @@ static int TVCI(FCEUFILE *fp) {
 
 static int EnableBattery(FCEUFILE *fp) {
 	int ret = FCEU_fgetc(fp);
-	UNIFCart.battery = (ret > 0) ? 1 : 0;
-	if (UNIFCart.battery)
+	iNESCart.battery = (ret > 0) ? 1 : 0;
+	if (iNESCart.battery)
 		FCEU_printf(" Battery-backed.\n");
 	return(1);
 }
@@ -365,8 +368,8 @@ struct _unif_db {
 
 static struct _unif_db unif_db[] = {
 	{ 0x03ed6963ca50e1d8ULL, "A65AS",          1,   -1, -1 },
-	{ 0x616851e56946893bULL, "RESETNROM-XIN1", 0, MI_V, -1 }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p1].unf */
-	{ 0x4cd729b5ae23a3cfULL, "RESETNROM-XIN1", 0, MI_H, -1 }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p2].unf */
+	{ 0x616851e56946893bULL, "RESETNROM-XIN1", 1,   -1, -1 }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p1].unf */
+	{ 0x4cd729b5ae23a3cfULL, "RESETNROM-XIN1", 1,   -1, -1 }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p2].unf */
 
 	{ 0, NULL, -1, -1, -1 } /* end of the line */
 };
@@ -376,7 +379,7 @@ static void CheckHashInfo(void) {
 	uint64 partialMD5 = 0;
 
 	for (x = 0; x < 8; x++)
-		partialMD5 |= (uint64)UNIFCart.MD5[15 - x] << (x * 8);
+		partialMD5 |= (uint64)iNESCart.MD5[15 - x] << (x * 8);
 
 	x = 0;
 	do {
@@ -412,6 +415,7 @@ static void CheckHashInfo(void) {
 }
 
 #define NO_INES -1
+
 #define BMCFLAG_FORCE4    0x01
 #define BMCFLAG_16KCHRR   0x02
 #define BMCFLAG_32KCHRR   0x04
@@ -419,209 +423,217 @@ static void CheckHashInfo(void) {
 #define BMCFLAG_256KCHRR  0x10
 
 static BMAPPING bmap[] = {
-	{ "11160",                      299, BMC11160_Init,         0 },
-	{ "12-IN-1",                    331, BMC12IN1_Init,         0 },
-	{ "13in1JY110",                 295, Mapper295_Init,        0 },
-	{ "190in1",                     300, BMC190in1_Init,        0 },
-	{ "22211",                      132, Mapper132_Init,        0 },
-	{ "3D-BLOCK",                   355, UNL3DBlock_Init,       0 },
-	{ "411120-C",                   287, BMC411120C_Init,       0 },
-	{ "42in1ResetSwitch",           233, Mapper233_Init,        0 },
-	{ "43272",                      242, Mapper242_Init,        0 },
-	{ "603-5052",                   238, UNL6035052_Init,       0 },
-	{ "64in1NoRepeat",              314, BMC64in1nr_Init,       0 },
-	{ "70in1",                      236, Mapper236_Init,         0 },
-	{ "70in1B",                     236, Mapper236_Init,        0 },
-	{ "810544-C-A1",                261, BMC810544CA1_Init,     0 },
-	{ "8157",                       301, UNL8157_Init,          0 },
-	{ "8237",                       215, UNL8237_Init,          0 },
-	{ "8237A",                      215, UNL8237A_Init,         0 },
-	{ "830118C",                    348, BMC830118C_Init,       0 },
-	{ "A65AS",                      285, BMCA65AS_Init,         0 },
-	{ "AB-G1L",                     428, Mapper428_Init,        0 },
-	{ "WELL-NO-DG450",              428, Mapper428_Init,        0 },
-	{ "TF2740",                     428, Mapper428_Init,        0 },
-	{ "AC08",                        42, AC08_Init,             0 },
-	{ "ANROM",                        7, ANROM_Init,            0 },
-	{ "AX5705",                     530, UNLAX5705_Init,        0 },
-	{ "BB",                         108, UNLBB_Init,            0 },
-	{ "BS-110",                     444, Mapper444_Init,        0 }, /* Due to a mix-up, UNIF MAPR BMC-BS-110 is actually the NC7000M PCB and refers to NES 2.0 Mapper 444 instead. */
-	{ "BS-5",                       286, BMCBS5_Init,           0 },
-	{ "CC-21",                       27, UNLCC21_Init,          0 },
-	{ "CITYFIGHT",                  266, UNLCITYFIGHT_Init,     0 },
-	{ "10-24-C-A1",                 327, BMC1024CA1_Init,       0 },
-	{ "CNROM",                        3, CNROM_Init,            0 },
-	{ "CPROM",                       13, CPROM_Init,            BMCFLAG_16KCHRR },
-	{ "D1038",                       59, BMCD1038_Init,         0 },
-	{ "T3H53",                       59, BMCD1038_Init,         0 },
-	{ "DANCE",                      256, UNLOneBus_Init,        0 },
-	{ "DANCE2000",                  518, UNLD2000_Init,         0 },
-	{ "DREAMTECH01",                521, DreamTech01_Init,      0 },
-	{ "EDU2000",                    329, UNLEDU2000_Init,       0 },
-	{ "EKROM",                        5, EKROM_Init,            0 },
-	{ "ELROM",                        5, ELROM_Init,            0 },
-	{ "ETROM",                        5, ETROM_Init,            0 },
-	{ "EWROM",                        5, EWROM_Init,            0 },
-	{ "FK23C",                      176, BMCFK23C_Init,         BMCFLAG_256KCHRR },
-	{ "FK23CA",                     176, BMCFK23CA_Init,        BMCFLAG_256KCHRR },
-	{ "FS304",                      162, Mapper162_Init,        0 },
-	{ "G-146",                      349, BMCG146_Init,          0 },
-	{ "GK-192",                      58, Mapper58_Init,         0 },
-	{ "GS-2004",                    283, Mapper283_Init,        0 },
-	{ "GS-2013",                    283, Mapper283_Init,        0 },
-	{ "Ghostbusters63in1",          226, Mapper226_Init,        0 },
-	{ "G631",                       226, Mapper226_Init,        0 }, /* duplicate, probably wrong name */
-	{ "H2288",                      123, UNLH2288_Init,         0 },
-	{ "HKROM",                        4, HKROM_Init,            0 },
-	{ "KOF97",                      263, UNLKOF97_Init,         0 },
-/*	{ "KONAMI-QTAI",            NO_INES, Mapper190_Init,        0 }, */
-	{ "KS7012",                     346, UNLKS7012_Init,        0 },
-	{ "KS7013B",                    312, UNLKS7013B_Init,       0 },
-	{ "KS7016",                     306, UNLKS7016_Init,        0 },
-	{ "KS7017",                     303, UNLKS7017_Init,        0 },
-	{ "KS7030",                     347, UNLKS7030_Init,        0 },
-	{ "KS7031",                     305, UNLKS7031_Init,        0 },
-	{ "KS7032",                     142, UNLKS7032_Init,        0 },
-	{ "KS7037",                     307, UNLKS7037_Init,        0 },
-	{ "KS7057",                     302, UNLKS7057_Init,        0 },
-	{ "LE05",                   NO_INES, LE05_Init,             0 },
-	{ "LH10",                       522, LH10_Init,             0 },
-	{ "LH32",                       125, LH32_Init,             0 },
-	{ "LH53",                       535, LH53_Init,             0 },
-	{ "MALISB",                     325, UNLMaliSB_Init,        0 },
-	{ "MARIO1-MALEE2",               42, MALEE_Init,            0 },
-	{ "MHROM",                       66, MHROM_Init,            0 },
-	{ "N625092",                    221, UNLN625092_Init,       0 },
-	{ "NROM",                         0, NROM_Init,             0 },
-	{ "NROM-128",                     0, NROM_Init,             0 },
-	{ "NROM-256",                     0, NROM_Init,             0 },
-	{ "NTBROM",                      68, Mapper68_Init,         0 },
-	{ "NTD-03",                     290, BMCNTD03_Init,         0 },
-	{ "NovelDiamond9999999in1",     201, Novel_Init,            0 },
-	{ "OneBus",                     256, UNLOneBus_Init,        0 },
-	{ "PEC-586",                NO_INES, UNLPEC586Init,         0 },
-	{ "RROM",                         0, NROM_Init,             0 },
-	{ "RROM-128",                     0, NROM_Init,             0 },
-	{ "SA-002",                     136, Mapper136_Init,        0 },
-	{ "SA-0036",                    149, SA0036_Init,           0 },
-	{ "SA-0037",                    148, SA0037_Init,           0 },
-	{ "SA-009",                     160, SA009_Init,            0 },
-	{ "SA-016-1M",                  146, SA0161M_Init,          0 },
-	{ "SA-72007",                   145, SA72007_Init,          0 },
-	{ "SA-72008",                   133, SA72008_Init,          0 },
-	{ "SA-9602B",                   513, SA9602B_Init,          BMCFLAG_32KCHRR },
-	{ "SA-NROM",                    143, TCA01_Init,            0 },
-	{ "SAROM",                        1, SAROM_Init,            0 },
-	{ "SBROM",                        1, SBROM_Init,            0 },
-	{ "SC-127",                      35, Mapper35_Init,         0 },
-	{ "SCROM",                        1, SCROM_Init,            0 },
-	{ "SEROM",                        1, SEROM_Init,            0 },
-	{ "SGROM",                        1, SGROM_Init,            0 },
-	{ "SHERO",                      262, UNLSHeroes_Init,       0 },
-	{ "SKROM",                        1, SKROM_Init,            0 },
-	{ "SL12",                       116, UNLSL12_Init,          0 },
-	{ "SL1632",                      14, UNLSL1632_Init,        0 },
-	{ "SL1ROM",                       1, SL1ROM_Init,           0 },
-	{ "SLROM",                        1, SLROM_Init,            0 },
-	{ "SMB2J",                      304, UNLSMB2J_Init,         0 },
-	{ "SNROM",                        1, SNROM_Init,            0 },
-	{ "SOROM",                        1, SOROM_Init,            0 },
-	{ "SSS-NROM-256",           NO_INES, SSSNROM_Init,          0 },
-	{ "SUNSOFT_UNROM",               93, SUNSOFT_UNROM_Init,    0 }, /* fix me, real pcb name, real pcb type */
-	{ "Sachen-74LS374N",            150, S74LS374N_Init,        0 },
-	{ "Sachen-74LS374NA",           150, S74LS374N_Init,        0 }, /* seems to be custom mapper */
-	{ "Sachen-8259A",               141, S8259A_Init,           0 },
-	{ "Sachen-8259B",               138, S8259B_Init,           0 },
-	{ "Sachen-8259C",               139, S8259C_Init,           0 },
-	{ "Sachen-8259D",               137, S8259D_Init,           0 },
-	{ "Super24in1SC03",             176, Super24_Init,          0 },
-	{ "SuperHIK8in1",                45, Mapper45_Init,         0 },
-	{ "Supervision16in1",            53, Supervision16_Init,    0 },
-	{ "T-227-1",                NO_INES, BMCT2271_Init,         0 },
-	{ "T-230",                      529, UNLT230_Init,          0 },
-	{ "T-262",                      265, BMCT262_Init,          0 },
-	{ "TBROM",                        4, TBROM_Init,            0 },
-	{ "TC-U01-1.5M",                147, Mapper147_Init,        0 },
-	{ "TEK90",                       90, Mapper90_Init,         0 },
-	{ "TEROM",                        4, TEROM_Init,            0 },
-	{ "TF1201",                     298, UNLTF1201_Init,        0 },
-	{ "TFROM",                        4, TFROM_Init,            0 },
-	{ "TGROM",                        4, TGROM_Init,            0 },
-	{ "TKROM",                        4, TKROM_Init,            0 },
-	{ "TKSROM",                     118, TKSROM_Init,           0 },
-	{ "TLROM",                        4, TLROM_Init,            0 },
-	{ "TLSROM",                     118, TLSROM_Init,           0 },
-	{ "TQROM",                      119, TQROM_Init,            0 },
-	{ "TR1ROM",                       4, TFROM_Init,            BMCFLAG_FORCE4 },
-	{ "TSROM",                        4, TSROM_Init,            0 },
-	{ "TVROM",                        4, TLROM_Init,            BMCFLAG_FORCE4 },
-	{ "Transformer",            NO_INES, Transformer_Init,      0 },
-	{ "UNROM",                        2, UNROM_Init,            0 },
-	{ "UNROM-512-8",                 30, UNROM512_Init,         0 },
-	{ "UNROM-512-16",                30, UNROM512_Init,         BMCFLAG_16KCHRR },
-	{ "UNROM-512-32",                30, UNROM512_Init,         BMCFLAG_32KCHRR },
-	{ "UOROM",                        2, UNROM_Init,            0 },
-	{ "VRC7",                        85, UNLVRC7_Init,          0 },
-	{ "YOKO",                       264, UNLYOKO_Init,          0 },
-	{ "COOLBOY",                    268, COOLBOY_Init,          BMCFLAG_256KCHRR },
-	{ "MINDKIDS",                   268, MINDKIDS_Init,         BMCFLAG_256KCHRR },
-	{ "158B",                       258, UNL8237_Init,          0 },
-	{ "DRAGONFIGHTER",              292, UNLBMW8544_Init,       0 },
-	{ "EH8813A",                    519, UNLEH8813A_Init,       0 },
-	{ "HP898F",                     319, BMCHP898F_Init,        0 },
-	{ "F-15",                       259, BMCF15_Init,           0 },
-	{ "RT-01",                      328, UNLRT01_Init,          0 },
-	{ "81-01-31-C",             NO_INES, BMC810131C_Init,       0 },
-	{ "8-IN-1",                     333, BMC8IN1_Init,          0 },
-	{ "RET-CUFROM",                  29, Mapper29_Init,         BMCFLAG_32KCHRR },
-	{ "60311C",                     289, BMC60311C_Init,        0 },
-	{ "WS",                         332, BMCWS_Init,            0 },
-	{ "HPxx",                       260, BMCHPxx_Init,          0 },
-	{ "HP2018-A",                   260, BMCHPxx_Init,          0 },
-	{ "CHINA_ER_SAN2",               19, Mapper19_Init,         0 },
-	{ "WAIXING-FW01",               227, Mapper227_Init,        0 },
-	{ "WAIXING-FS005",              176, WAIXINGFS005_Init,     0 },
-	{ "80013-B",                    274, BMC80013B_Init,        0 },
-	{ "TH2131-1",                   308, UNLTH21311_Init,       0 },
-	{ "LH51",                       309, LH51_Init,             0 },
-	{ "RESETNROM-XIN1",         NO_INES, BMCRESETNROMXIN1_Init, 0 }, /* split roms */
-	{ "RESET-TXROM",                313, BMCRESETTXROM_Init,    0 },
-	{ "K-3088",                     287, BMCK3088_Init,         0 },
-	{ "FARID_SLROM_8-IN-1",         323, FARIDSLROM8IN1_Init,   0 },
-	{ "830425C-4391T",              320, BMC830425C4391T_Init,  0 },
-	{ "TJ-03",                      341, BMCTJ03_Init,          0 },
-	{ "CTC-09",                     335, BMCCTC09_Init,         0 },
-	{ "K-3046",                     336, BMCK3046_Init,         0 },
-	{ "SA005-A",                    338, BMCSA005A_Init,        0 },
-	{ "K-3006",                     339, BMCK3006_Init,         0 },
-	{ "K-3036",                     340, BMCK3036_Init,         0 },
-	{ "KS7021A",                    525, UNLKS7021A_Init,       0 },
-	{ "KS106C",                 NO_INES, BMCKS106C_Init,        0 }, /* split roms */
-	{ "900218",                     524, BTL900218_Init,        0 },
-	{ "JC-016-2",                   205, Mapper205_Init,        0 },
-	{ "AX-40G",                     527, UNLAX40G_Init,         0 },
-	{ "STREETFIGTER-GAME4IN1",  NO_INES, BMCSFGAME4IN1_Init,    0 }, /* mapper 49? submapper 1*/
-	{ "BJ-56",                      526, UNLBJ56_Init,          0 },
-	{ "L6IN1",                      345, BMCL6IN1_Init,         0 },
-	{ "CTC-12IN1",                  337, BMCCTC12IN1_Init,      0 },
-	{ "891227",                     350, BMC891227_Init,        0 },
-	{ "NEWSTAR-GRM070-8IN1",        333, BMC8IN1_Init,          0 },
-	{ "FARID_UNROM_8-IN-1",         324, FARIDUNROM_Init,       0 },
-	{ "K-3033",                     322, BMCK3033_Init,         0 },
-	{ "830134C",                    315, BMC830134C_Init,       0 },
-	{ "GN-26",                      344, BMCGN26_Init,          0 },
-	{ "KG256",                  NO_INES, KG256_Init,            0 },
-	{ "T4A54A",                     134, Mapper134_Init,        0 },
-	{ "WX-KB4K",                    134, Mapper134_Init,        0 },
-	{ "SB-5013",                    359, Mapper359_Init,        0 },
-	{ "82112C",                     540, Mapper540_Init,        0 },
-	{ "N49C-300",                   369, Mapper369_Init,        0 },
-	{ "830752C",                    396, Mapper396_Init,        0 },
+	{ "NROM",                         0, Mapper000_Init, 0 },
+	{ "NROM-128",                     0, Mapper000_Init, 0 },
+	{ "NROM-256",                     0, Mapper000_Init, 0 },
+	{ "RROM",                         0, Mapper000_Init, 0 },
+	{ "RROM-128",                     0, Mapper000_Init, 0 },
+	{ "SBROM",                        1, Mapper001_Init, 0 },
+	{ "SCROM",                        1, Mapper001_Init, 0 },
+	{ "SEROM",                        1, Mapper001_Init, 0 },
+	{ "SGROM",                        1, Mapper001_Init, 0 },
+	{ "SL1ROM",                       1, Mapper001_Init, 0 },
+	{ "SLROM",                        1, Mapper001_Init, 0 },
+	{ "SAROM",                        1, SAROM_Init,     0 },
+	{ "SKROM",                        1, SKROM_Init,     0 },
+	{ "SNROM",                        1, SNROM_Init,     0 },
+	{ "SOROM",                        1, SOROM_Init,     0 },
+	{ "UNROM",                        2, Mapper002_Init, 0 },
+	{ "UOROM",                        2, Mapper002_Init, 0 },
+	{ "CNROM",                        3, Mapper003_Init, 0 },
+	{ "HKROM",                        4, Mapper004_Init, 0 }, /* 1K WRAM, mapper 004.1 */
+	{ "TBROM",                        4, Mapper004_Init, 0 },
+	{ "TEROM",                        4, Mapper004_Init, 0 },
+	{ "TFROM",                        4, Mapper004_Init, 0 },
+	{ "TGROM",                        4, Mapper004_Init, 0 },
+	{ "TKROM",                        4, Mapper004_Init, 0 },
+	{ "TLROM",                        4, Mapper004_Init, 0 },
+	{ "TSROM",                        4, Mapper004_Init, 0 },
+	{ "TVROM",                        4, Mapper004_Init, BMCFLAG_FORCE4 },
+	{ "TR1ROM",                       4, Mapper004_Init, BMCFLAG_FORCE4 },
+	{ "EKROM",                        5, EKROM_Init,     0 },
+	{ "ELROM",                        5, ELROM_Init,     0 },
+	{ "ETROM",                        5, ETROM_Init,     0 },
+	{ "EWROM",                        5, EWROM_Init,     0 },
+	{ "ANROM",                        7, Mapper007_Init, 0 },
+	{ "CPROM",                       13, Mapper013_Init, BMCFLAG_16KCHRR },
+	{ "SL1632",                      14, Mapper014_Init, 0 },
+	{ "CC-21",                       27, Mapper027_Init, 0 },
+	{ "RET-CUFROM",                  29, Mapper029_Init, BMCFLAG_32KCHRR },
+	{ "UNROM-512-8",                 30, Mapper030_Init, 0 },
+	{ "UNROM-512-16",                30, Mapper030_Init, BMCFLAG_16KCHRR },
+	{ "UNROM-512-32",                30, Mapper030_Init, BMCFLAG_32KCHRR },
+	{ "SC-127",                      35, Mapper035_Init, 0 },
+	{ "AC08",                        42, Mapper042_Init, 0 },
+	{ "SuperHIK8in1",                45, Mapper045_Init, 0 },
+	{ "STREETFIGTER-GAME4IN1",       49, Mapper049_Init, 0 }, /* mapper 49? submapper 1*/
+	{ "Supervision16in1",            53, Mapper053_Init, 0 },
+	{ "MARIO1-MALEE2",               55, Mapper055_Init, 0 },
+	{ "GK-192",                      58, Mapper058_Init, 0 },
+	{ "D1038",                       59, Mapper059_Init, 0 },
+	{ "T3H53",                       59, Mapper059_Init, 0 },
+	{ "MHROM",                       66, Mapper066_Init, 0 },
+	{ "NTBROM",                      68, Mapper068_Init, 0 },
+	{ "SA-016-1M",                   79, Mapper079_Init, 0 },
+	{ "VRC7",                        85, Mapper085_Init, 0 },
+	{ "TEK90",                       90, Mapper090_Init, 0 },
+	{ "SUNSOFT_UNROM",               93, Mapper093_Init, 0 }, /* fix me, real pcb name, real pcb type */
+	{ "BB",                         108, Mapper108_Init, 0 },
+	{ "LE05",                       108, Mapper108_Init, 0 },
+	{ "SL12",                       116, Mapper116_Init, 0 },
+	{ "TKSROM",                     118, Mapper118_Init, 0 },
+	{ "TLSROM",                     118, Mapper118_Init, 0 },
+	{ "TQROM",                      119, Mapper119_Init, 0 },
+	{ "H2288",                      123, Mapper123_Init, 0 },
+	{ "LH32",                       125, Mapper125_Init, 0 },
+	{ "22211",                      132, Mapper132_Init, 0 },
+	{ "SA-72008",                   133, Mapper133_Init, 0 },
+	{ "T4A54A",                     134, Mapper134_Init, 0 },
+	{ "WX-KB4K",                    134, Mapper134_Init, 0 },
+	{ "SA-002",                     136, Mapper136_Init, 0 },
+	{ "Sachen-8259D",               137, Mapper137_Init, 0 },
+	{ "Sachen-8259B",               138, Mapper138_Init, 0 },
+	{ "Sachen-8259C",               139, Mapper139_Init, 0 },
+	{ "Sachen-8259A",               141, Mapper141_Init, 0 },
+	{ "KS7032",                     142, Mapper142_Init, 0 },
+	{ "SA-NROM",                    143, Mapper143_Init, 0 },
+	{ "SA-72007",                   145, Mapper145_Init, 0 },
+	{ "TC-U01-1.5M",                147, Mapper147_Init, 0 },
+	{ "SA-0037",                    148, Mapper148_Init, 0 },
+	{ "SA-0036",                    149, Mapper149_Init, 0 },
+	{ "Sachen-74LS374N",            150, Mapper150_Init, 0 },
+	{ "Sachen-74LS374NA",           150, Mapper150_Init, 0 }, /* seems to be custom mapper */
+/* 	{ "SA-009",                     160, Mapper160_Init, 0 }, */
+	{ "FS304",                      162, Mapper162_Init, 0 },
+	{ "FK23C",                      176, BMCFK23C_Init,  BMCFLAG_256KCHRR },
+	{ "FK23CA",                     176, BMCFK23CA_Init, BMCFLAG_256KCHRR },
+	{ "Super24in1SC03",             176, Super24_Init,   0 },
+	{ "WAIXING-FS005",              176, WAIXINGFS005_Init, 0 },
+	{ "NovelDiamond9999999in1",     201, Mapper201_Init, 0 },
+	{ "JC-016-2",                   205, Mapper205_Init, 0 },
+	{ "8237",                       215, Mapper215_Init, 0 },
+	{ "8237A",                      215, Mapper215_Init, 0 }, /* m215 sub 1*/
+	{ "N625092",                    221, Mapper221_Init, 0 },
+	{ "Ghostbusters63in1",          226, Mapper226_Init, 0 },
+	{ "G631",                       226, Mapper226_Init, 0 }, /* duplicate, probably wrong name */
+	{ "WAIXING-FW01",               227, Mapper227_Init, 0 },
+	{ "42in1ResetSwitch",           233, Mapper233_Init, 0 },
+	{ "70in1",                      236, Mapper236_Init, 0 },
+	{ "70in1B",                     236, Mapper236_Init, 0 },
+	{ "603-5052",                   238, Mapper238_Init, 0 },
+	{ "43272",                      242, Mapper242_Init, 0 },
+	{ "DANCE",                      256, Mapper256_Init, 0 },
+	{ "OneBus",                     256, Mapper256_Init, 0 },
+	{ "PEC-586",                    257, Mapper257_Init, 0 },
+	{ "158B",                       258, Mapper215_Init, 0 },
+	{ "F-15",                       259, Mapper259_Init, 0 },
+	{ "HPxx",                       260, Mapper260_Init, 0 },
+	{ "HP2018-A",                   260, Mapper260_Init, 0 },
+	{ "810544-C-A1",                261, Mapper261_Init, 0 },
+	{ "SHERO",                      262, Mapper262_Init, BMCFLAG_FORCE4 },
+	{ "KOF97",                      263, Mapper263_Init, 0 },
+	{ "YOKO",                       264, Mapper264_Init, 0 },
+	{ "T-262",                      265, Mapper265_Init, 0 },
+	{ "CITYFIGHT",                  266, Mapper266_Init, 0 },
+	{ "COOLBOY",                    268, COOLBOY_Init,   BMCFLAG_256KCHRR },
+	{ "MINDKIDS",                   268, MINDKIDS_Init,  BMCFLAG_256KCHRR },
+	{ "22026",                      271, Mapper271_Init, 0 },
+	{ "80013-B",                    274, Mapper274_Init, 0 },
+	{ "GS-2004",                    283, Mapper283_Init, 0 },
+	{ "GS-2013",                    283, Mapper283_Init, 0 },
+	{ "A65AS",                      285, Mapper285_Init, 0 },
+	{ "BS-5",                       286, Mapper286_Init, 0 },
+	{ "411120-C",                   287, Mapper287_Init, 0 },
+	{ "K-3088",                     287, Mapper287_Init, 0 },
+	{ "60311C",                     289, Mapper289_Init, 0 },
+	{ "NTD-03",                     290, Mapper290_Init, 0 },
+	{ "DRAGONFIGHTER",              292, Mapper292_Init, 0 },
+	{ "13in1JY110",                 295, Mapper295_Init, 0 },
+	{ "TF1201",                     298, Mapper298_Init, 0 },
+	{ "11160",                      299, Mapper299_Init, 0 },
+	{ "190in1",                     300, Mapper300_Init, 0 },
+	{ "8157",                       301, Mapper301_Init, 0 },
+	{ "KS7057",                     302, Mapper302_Init, 0 },
+	{ "KS7017",                     303, Mapper303_Init, 0 },
+	{ "SMB2J",                      304, Mapper304_Init, 0 },
+	{ "KS7031",                     305, Mapper305_Init, 0 },
+	{ "KS7016",                     306, Mapper306_Init, 0 },
+	{ "KS7037",                     307, Mapper307_Init, 0 },
+	{ "TH2131-1",                   308, Mapper308_Init, 0 },
+	{ "LH51",                       309, Mapper309_Init, 0 },
+	{ "KS7013B",                    312, Mapper312_Init, 0 },
+	{ "RESET-TXROM",                313, Mapper313_Init, 0 },
+	{ "64in1NoRepeat",              314, Mapper314_Init, 0 },
+	{ "830134C",                    315, Mapper315_Init, 0 },
+	{ "HP898F",                     319, Mapper319_Init, 0 }, /* UNIF implementation of mapper 319 */
+	{ "830425C-4391T",              320, Mapper320_Init, 0 },
+	{ "K-3033",                     322, Mapper322_Init, 0 },
+	{ "FARID_SLROM_8-IN-1",         323, Mapper323_Init, 0 },
+	{ "FARID_UNROM_8-IN-1",         324, Mapper324_Init, 0 },
+	{ "MALISB",                     325, Mapper325_Init, 0 },
+	{ "10-24-C-A1",                 327, Mapper327_Init, 0 },
+	{ "RT-01",                      328, Mapper328_Init, 0 },
+	{ "EDU2000",                    329, Mapper329_Init, 0 },
+	{ "12-IN-1",                    331, Mapper331_Init, 0 },
+	{ "WS",                         332, Mapper332_Init, 0 },
+	{ "8-IN-1",                     333, Mapper333_Init, 0 },
+	{ "NEWSTAR-GRM070-8IN1",        333, Mapper333_Init, 0 },
+	{ "CTC-09",                     335, Mapper335_Init, 0 },
+	{ "K-3046",                     336, Mapper336_Init, 0 },
+	{ "CTC-12IN1",                  337, Mapper337_Init, 0 },
+	{ "SA005-A",                    338, Mapper338_Init, 0 },
+	{ "K-3006",                     339, Mapper339_Init, 0 },
+	{ "K-3036",                     340, Mapper340_Init, 0 },
+	{ "TJ-03",                      341, Mapper341_Init, 0 },
+	{ "COOLGIRL",                   342, COOLGIRL_Init,  BMCFLAG_256KCHRR },
+	{ "RESETNROM-XIN1",             343, Mapper343_Init, 0 },
+	{ "GN-26",                      344, Mapper344_Init, 0 },
+	{ "L6IN1",                      345, Mapper345_Init, 0 },
+	{ "KS7012",                     346, Mapper346_Init, 0 },
+	{ "KS7030",                     347, Mapper347_Init, 0 },
+	{ "830118C",                    348, Mapper348_Init, 0 },
+	{ "G-146",                      349, Mapper349_Init, 0 },
+	{ "891227",                     350, Mapper350_Init, 0 },
+	{ "KS106C",                     352, Mapper352_Init, 0 },
+	{ "3D-BLOCK",                   355, UNL3DBlock_Init, 0 },
+	{ "SB-5013",                    359, Mapper359_Init, 0 },
+	{ "N49C-300",                   369, Mapper369_Init, 0 },
+	{ "830752C",                    396, Mapper396_Init, 0 },
+	{ "GOLDEN-16IN1-SPC001",        396, Mapper396_Init, 0 },
+	{ "BS-400R",                    422, Mapper422_Init, 0 },
+	{ "BS-4040R",                   422, Mapper422_Init, 0 },
+	{ "AB-G1L",                     428, Mapper428_Init, 0 },
+	{ "WELL-NO-DG450",              428, Mapper428_Init, 0 },
+	{ "TF2740",                     428, Mapper428_Init, 0 },
+	{ "S-2009",                     434, Mapper434_Init, 0 },
+	{ "K-3010",                     438, Mapper438_Init, 0 },
+	{ "K-3071",                     438, Mapper438_Init, 0 },
+	{ "DS-07",                      439, Mapper439_Init, 0 },
+	{ "K86B",                       439, Mapper439_Init, 0 },
+	{ "BS-110",                     444, Mapper444_Init, 0 }, /* Due to a mix-up, UNIF MAPR BMC-BS-110 is actually the NC7000M PCB and refers to NES 2.0 Mapper 444 instead. */
+	{ "DG574B",                     445, Mapper445_Init, 0 },
+	{ "SA-9602B",                   513, Mapper513_Init, BMCFLAG_32KCHRR },
+	{ "DANCE2000",                  518, Mapper518_Init, 0 },
+	{ "EH8813A",                    519, Mapper519_Init, 0 },
+	{ "DREAMTECH01",                521, Mapper521_Init, 0 },
+	{ "LH10",                       522, Mapper522_Init, 0 },
+	{ "900218",                     524, Mapper524_Init, 0 },
+	{ "KS7021A",                    525, Mapper525_Init, 0 },
+	{ "BJ-56",                      526, Mapper526_Init, 0 },
+	{ "AX-40G",                     527, Mapper527_Init, 0 },
+	{ "831128C",                    528, Mapper528_Init, 0 },
+	{ "T-230",                      529, Mapper529_Init, 0 },
+	{ "AX5705",                     530, Mapper530_Init, 0 },
+	{ "LH53",                       535, Mapper535_Init, 0 },
+	{ "82112C",                     540, Mapper540_Init, 0 },
 
-	{ "BS-400R",                    422, Mapper422_Init,        0 },
-	{ "BS-4040R",                   422, Mapper422_Init,        0 },
-	{ "22026",                      271, Mapper271_Init,        0 },
-	{ "COOLGIRL",                   342, COOLGIRL_Init,         BMCFLAG_256KCHRR },
+/*	{ "KONAMI-QTAI",            NO_INES, Mapper190_Init,        0 }, */
+	{ "SSS-NROM-256",           NO_INES, SSSNROM_Init,   0 }, /* famicombox - cant find similar cart */
+	{ "T-227-1",                NO_INES, BMCT2271_Init,  0 }, /* cant find similar cart */
+	{ "Transformer",            NO_INES, Transformer_Init, 0 },
+	{ "81-01-31-C",             NO_INES, BMC810131C_Init, 0 }, /* might be 327 with m118-like mirroring */
+	{ "KG256",                  NO_INES, KG256_Init,     0 }, /* cant find similar cart */
+	{ "CHINA_ER_SAN2",          NO_INES, Mapper019_Init, 0 }, /* Needs more than just what mapper 19 can handle */
 
 	{ NULL, NO_INES, NULL, 0 }
 };
@@ -677,7 +689,7 @@ static int InitializeBoard(void) {
 		/* ignore case during board name comparing */
 		if (string_is_equal_noncase((const char*)sboardname, (const char*)bmap[x].name)) {
 
-			if (VROM_size == 0) {
+			if (ROM.chr.size == 0) {
 				if (bmap[x].flags & BMCFLAG_16KCHRR)
 					CHRRAMSize = 16;
 				else if (bmap[x].flags & BMCFLAG_32KCHRR)
@@ -688,7 +700,7 @@ static int InitializeBoard(void) {
 					CHRRAMSize = 256;
 				else
 					CHRRAMSize = 8;
-                CHRRAMSize <<= 10;
+				CHRRAMSize <<= 10;
 				if ((UNIFchrrama = (uint8*)FCEU_malloc(CHRRAMSize))) {
 					SetupCartCHRMapping(0, UNIFchrrama, CHRRAMSize, 1);
 					AddExState(UNIFchrrama, CHRRAMSize, 0, "CHRR");
@@ -699,11 +711,11 @@ static int InitializeBoard(void) {
 				mirrortodo = 4;
 			MooMirroring();
 
-			UNIFCart.mapper    = bmap[x].ines_mapper;
-			UNIFCart.submapper = submapper;
+			iNESCart.mapper    = bmap[x].ines_mapper;
+			iNESCart.submapper = submapper;
 			GameInfo->cspecial = cspecial;
 
-			bmap[x].init(&UNIFCart);
+			bmap[x].init(&iNESCart);
 			return(1);
 		}
 		x++;
@@ -716,17 +728,17 @@ static int InitializeBoard(void) {
 static void UNIFGI(int h) {
 	switch (h) {
 	case GI_RESETM2:
-		if (UNIFCart.Reset)
-			UNIFCart.Reset();
+		if (iNESCart.Reset)
+			iNESCart.Reset();
 		break;
 	case GI_POWER:
-		if (UNIFCart.Power)
-			UNIFCart.Power();
+		if (iNESCart.Power)
+			iNESCart.Power();
 		if (UNIFchrrama) memset(UNIFchrrama, 0, 8192);
 		break;
 	case GI_CLOSE:
-		if (UNIFCart.Close)
-			UNIFCart.Close();
+		if (iNESCart.Close)
+			iNESCart.Close();
 		FreeUNIF();
 		break;
 	}
@@ -759,11 +771,11 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		return 0;
 	}
 
-	ROM_size = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
-	ROM_size = (ROM_size >> 2) + ((ROM_size & 3) ? 1: 0);
+	ROM.prg.size = (UNIF_PRGROMSize / 0x1000) + ((UNIF_PRGROMSize % 0x1000) ? 1 : 0);
+	ROM.prg.size = (ROM.prg.size >> 2) + ((ROM.prg.size & 3) ? 1: 0);
 	if (UNIF_CHRROMSize) {
-		VROM_size = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
-		VROM_size = (VROM_size >> 3) + ((VROM_size & 7) ? 1: 0);
+		ROM.chr.size = (UNIF_CHRROMSize / 0x400) + ((UNIF_CHRROMSize % 0x400) ? 1 : 0);
+		ROM.chr.size = (ROM.chr.size >> 3) + ((ROM.chr.size & 7) ? 1: 0);
 	}
 
 	UNIF_PRGROMSize = FixRomSize(UNIF_PRGROMSize, 2048);
@@ -772,12 +784,12 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 
 	/* Note: Use rounded size for memory allocations and board mapping */
 
-	if (!(ROM = (uint8*)malloc(UNIF_PRGROMSize))) {
+	if (!(ROM.prg.data = (uint8*)malloc(UNIF_PRGROMSize))) {
 		Cleanup();
 		return 0;
 	}
 	if (UNIF_CHRROMSize) {
-		if (!(VROM = (uint8*)malloc(UNIF_CHRROMSize))) {
+		if (!(ROM.chr.data = (uint8*)malloc(UNIF_CHRROMSize))) {
 			Cleanup();
 			return 0;
 		}
@@ -789,14 +801,14 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 		int p = prg_idx[x];
 		int c = 16 + chr_idx[x];
 		if (malloced[p]) {
-			memcpy(ROM + prg_size_bytes, malloced[p], mallocedsizes[p]);
+			memcpy(ROM.prg.data + prg_size_bytes, malloced[p], mallocedsizes[p]);
 			prg_size_bytes += mallocedsizes[p];
 			free(malloced[p]);
 			malloced[p] = 0;
 		}
 
 		if (malloced[c]) {
-			memcpy(VROM + chr_size_bytes, malloced[c], mallocedsizes[c]);
+			memcpy(ROM.chr.data + chr_size_bytes, malloced[c], mallocedsizes[c]);
 			chr_size_bytes += mallocedsizes[c];
 			free(malloced[c]);
 			malloced[c] = 0;
@@ -805,41 +817,41 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 
 	/* Note: Use raw size in bytes for checksums */
 
-	UNIFCart.PRGRomSize = prg_size_bytes;
-	UNIFCart.CHRRomSize = chr_size_bytes;
+	iNESCart.PRGRomSize = prg_size_bytes;
+	iNESCart.CHRRomSize = chr_size_bytes;
 
-	UNIFCart.PRGCRC32   = CalcCRC32(0, ROM, prg_size_bytes);
-	UNIFCart.CHRCRC32   = CalcCRC32(0, VROM, chr_size_bytes);
-	UNIFCart.CRC32      = CalcCRC32(UNIFCart.PRGCRC32, VROM, chr_size_bytes);
+	iNESCart.PRGCRC32   = CalcCRC32(0, ROM.prg.data, prg_size_bytes);
+	iNESCart.CHRCRC32   = CalcCRC32(0, ROM.chr.data, chr_size_bytes);
+	iNESCart.CRC32      = CalcCRC32(iNESCart.PRGCRC32, ROM.chr.data, chr_size_bytes);
 
 	md5_starts(&md5);
-	md5_update(&md5, ROM, prg_size_bytes);
+	md5_update(&md5, ROM.prg.data, prg_size_bytes);
 	if (chr_size_bytes)
-		md5_update(&md5, VROM, chr_size_bytes);
-	md5_finish(&md5, UNIFCart.MD5);
-	memcpy(GameInfo->MD5, UNIFCart.MD5, sizeof(UNIFCart.MD5));
+		md5_update(&md5, ROM.chr.data, chr_size_bytes);
+	md5_finish(&md5, iNESCart.MD5);
+	memcpy(GameInfo->MD5, iNESCart.MD5, sizeof(iNESCart.MD5));
 
 	CheckHashInfo();
 
 	/* Note: Use rounded size for board mappings */
 
-	SetupCartPRGMapping(0, ROM, UNIF_PRGROMSize, 0);
+	SetupCartPRGMapping(0, ROM.prg.data, UNIF_PRGROMSize, 0);
 	if (UNIF_CHRROMSize)
-		SetupCartCHRMapping(0, VROM, UNIF_CHRROMSize, 0);
+		SetupCartCHRMapping(0, ROM.chr.data, UNIF_CHRROMSize, 0);
 
-	FCEU_printf(" PRG-ROM CRC32: 0x%08X\n", UNIFCart.PRGCRC32);
-	FCEU_printf(" PRG+CHR CRC32: 0x%08X\n", UNIFCart.CRC32);
-	FCEU_printf(" PRG+CHR MD5  : 0x%s\n", md5_asciistr(UNIFCart.MD5));
+	FCEU_printf(" PRG-ROM CRC32: 0x%08X\n", iNESCart.PRGCRC32);
+	FCEU_printf(" PRG+CHR CRC32: 0x%08X\n", iNESCart.CRC32);
+	FCEU_printf(" PRG+CHR MD5  : 0x%s\n", md5_asciistr(iNESCart.MD5));
 
 	if (!InitializeBoard()) {
 		Cleanup();
 		return 0;
 	}
 
-	FCEU_printf(" [UNIF] PRG ROM: %u KiB\n", UNIFCart.PRGRomSize / 1024);
-	FCEU_printf(" [UNIF] CHR ROM: %u KiB\n", UNIFCart.CHRRomSize / 1024);
-	FCEU_printf(" [UNIF] iNES Mapper: %d\n", UNIFCart.mapper);
-	FCEU_printf(" [UNIF] SubMapper: %d\n", UNIFCart.submapper);
+	FCEU_printf(" [UNIF] PRG ROM: %u KiB\n", iNESCart.PRGRomSize / 1024);
+	FCEU_printf(" [UNIF] CHR ROM: %u KiB\n", iNESCart.CHRRomSize / 1024);
+	FCEU_printf(" [UNIF] iNES Mapper: %d\n", iNESCart.mapper);
+	FCEU_printf(" [UNIF] SubMapper: %d\n", iNESCart.submapper);
 
 	GameInterface = UNIFGI;
 
