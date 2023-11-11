@@ -1962,14 +1962,14 @@ void retro_reset(void)
 static void set_apu_channels(void)
 {
    char apu_name[][25] = {
-      "fceumm_apu_1",
-      "fceumm_apu_2",
-      "fceumm_apu_tri",
-      "fceumm_apu_noise",
-      "fceumm_apu_dpcm",
-      "fceumm_apu_fds",
-      "fceumm_apu_s5b",
-      "fceumm_apu_n163",
+      "fceumm_apu_sq1",
+      "fceumm_apu_sq2",
+      "fceumm_apu_tri",     /* Triangle */
+      "fceumm_apu_noise",   /* Noise    */
+      "fceumm_apu_dpcm",    /* PCM      */
+      "fceumm_apu_fds",     /* FDS      */
+      "fceumm_apu_s5b",     /* S5B      */
+      "fceumm_apu_n163",    /* N163     */
       "fceumm_apu_vrc6",
       "fceumm_apu_vrc7",
       "fceumm_apu_mmc5",
