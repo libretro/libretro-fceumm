@@ -3,8 +3,6 @@
 
 #include "fceu-types.h"
 
-extern int fceuindbg;
-
 /* Overclocking-related */
 extern unsigned overclock_enabled;
 extern unsigned overclocked;

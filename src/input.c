@@ -156,9 +156,6 @@ static uint8 ReadGPVS(int w) {
 		ret = 1;
 	else {
 		ret = ((joy[w] >> (joy_readbit[w])) & 1);
-	#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-	#endif
 		joy_readbit[w]++;
 	}
 	return ret;
@@ -179,9 +176,6 @@ static uint8 ReadGP(int w) {
 		if (joy_readbit[w] == 19 - w)
 			ret |= 1;
 	}
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
 	joy_readbit[w]++;
 	return ret;
 }

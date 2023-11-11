@@ -223,13 +223,8 @@ static DECLFR(FDSRead4030) {
 	if (X.IRQlow & FCEU_IQEXT) ret |= 1;
 	if (X.IRQlow & FCEU_IQEXT2) ret |= 2;
 
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
-	{
-		X6502_IRQEnd(FCEU_IQEXT);
-		X6502_IRQEnd(FCEU_IQEXT2);
-	}
+	X6502_IRQEnd(FCEU_IQEXT);
+	X6502_IRQEnd(FCEU_IQEXT2);
 	return ret;
 }
 

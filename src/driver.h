@@ -168,16 +168,6 @@ int FCEUI_SetCheat(uint32 which, const char *name, int32 a, int32 v, int compare
 void FCEUI_CheatSearchShowExcluded(void);
 void FCEUI_CheatSearchSetCurrentAsOriginal(void);
 
-#ifdef FCEUDEF_DEBUGGER
-void FCEUI_MemDump(uint16 a, int32 len, void (*callb)(uint16 a, uint8 v));
-uint8 FCEUI_MemSafePeek(uint16 A);
-void FCEUI_MemPoke(uint16 a, uint8 v, int hl);
-void FCEUI_NMI(void);
-void FCEUI_IRQ(void);
-uint16 FCEUI_Disassemble(void *XA, uint16 a, char *stringo);
-void FCEUI_GetIVectors(uint16 *reset, uint16 *irq, uint16 *nmi);
-#endif
-
 void FCEUI_SetLowPass(int q);
 
 void FCEUI_NSFSetVis(int mode);

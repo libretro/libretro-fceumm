@@ -334,13 +334,8 @@ static DECLFR(StatusRead) {
 	for (x = 0; x < 4; x++) ret |= lengthcount[x] ? (1 << x) : 0;
 	if (DMCSize) ret |= 0x10;
 
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
-	{
-		SIRQStat &= ~0x40;
-		X6502_IRQEnd(FCEU_IQFCOUNT);
-	}
+	SIRQStat &= ~0x40;
+	X6502_IRQEnd(FCEU_IQFCOUNT);
 	return ret;
 }
 

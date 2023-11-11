@@ -36,9 +36,6 @@ static uint8 ReadPP(int w) {
 		if (pprsb[w] >= 8)
 			ret |= 0x08;
 	}
-				#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-				#endif
 	pprsb[w]++;
 	return ret;
 }

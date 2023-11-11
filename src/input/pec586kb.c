@@ -62,9 +62,6 @@ static void PEC586KB_Write(uint8 v) {
 }
 
 static uint8 PEC586KB_Read(int w, uint8 ret) {
-#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg) {
-#endif
 	if (w) {
 		ret &= ~2;
 		if(bufit[matrix[kspos][7-ksindex]])
@@ -72,9 +69,6 @@ static uint8 PEC586KB_Read(int w, uint8 ret) {
 		ksindex++;
 		ksindex&=7;
 	}
-#ifdef FCEUDEF_DEBUGGER
-	}
-#endif
 	return(ret);
 }
 

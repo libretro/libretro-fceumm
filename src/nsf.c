@@ -330,15 +330,9 @@ static DECLFR(NSF_read) {
 
 	switch (A) {
 	case 0x3ff0: x = SongReload;
-				#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-				#endif
 		SongReload = 0;
 		return x;
 	case 0x3ff1:
-			#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-			#endif
 		{
 			memset(RAM, 0x00, 0x800);
 

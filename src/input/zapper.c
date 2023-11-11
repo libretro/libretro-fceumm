@@ -132,9 +132,6 @@ static uint8 ReadZapperVS(int w) {
 			ret |= 0x1;
 	}
 
-				#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-				#endif
 	ZD[w].zap_readbit++;
 	return ret;
 }

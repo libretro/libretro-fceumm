@@ -375,9 +375,6 @@ static DECLFR(MMC5_read) {
 		uint8 x;
 		X6502_IRQEnd(FCEU_IQEXT);
 		x = MMC5IRQR;
-		#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-		#endif
 		MMC5IRQR &= 0x40;
 		return x;
 		}

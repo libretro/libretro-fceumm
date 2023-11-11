@@ -53,7 +53,7 @@ static DECLFW(UNLBMW8544ProtWrite) {
 }
 
 static DECLFR(UNLBMW8544ProtRead) {
-	if(!fceuindbg) {
+	{
 		if(!(A & 1)) {
 			if((EXPREGS[0] & 0xE0) == 0xC0) {
 				EXPREGS[1] = ARead[0x6a](0x6a);	/* program can latch some data from the BUS, but I can't say how exactly, */
