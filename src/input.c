@@ -74,7 +74,7 @@ static INPUTCFC *FCExp = 0;
 
 void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
 
-static DECLFR(JPRead)
+static uint8 JPRead(uint32 A)
 {
 	uint8 ret = 0;
 
@@ -221,7 +221,7 @@ void FCEU_UpdateInput(void)
       FCEU_VSUniSwap(&joy[0], &joy[1]);
 }
 
-static DECLFR(VSUNIRead0)
+static uint8 VSUNIRead0(uint32 A)
 {
    uint8 ret = 0;
 
@@ -234,7 +234,7 @@ static DECLFR(VSUNIRead0)
    return ret;
 }
 
-static DECLFR(VSUNIRead1)
+static uint8 VSUNIRead1(uint32 A)
 {
 	uint8 ret = 0;
 

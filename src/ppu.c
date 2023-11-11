@@ -144,7 +144,7 @@ uint8 * MMC5BGVRAMADR(uint32 V) {
 	} else return &MMC5BGVPage[(V) >> 10][(V)];
 }
 
-static DECLFR(A2002) {
+static uint8 A2002(uint32 A) {
 	uint8 ret;
 
 	FCEUPPU_LineUpdate();
@@ -158,12 +158,12 @@ static DECLFR(A2002) {
 	return ret;
 }
 
-static DECLFR(A200x) {	/* Not correct for $2004 reads. */
+static uint8 A200x(uint32 A) {	/* Not correct for $2004 reads. */
 	FCEUPPU_LineUpdate();
 	return PPUGenLatch;
 }
 
-static DECLFR(A2007) {
+static uint8 A2007(uint32 A) {
 	uint8 ret;
 	uint32 tmp = RefreshAddr & 0x3FFF;
 

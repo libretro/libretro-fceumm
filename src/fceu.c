@@ -64,7 +64,7 @@ static DECLFW(BNull)
 {
 }
 
-static DECLFR(ANull)
+static uint8 ANull(uint32 A)
 {
 	return(X.DB);
 }
@@ -175,7 +175,7 @@ static DECLFW(BRAML)
 	RAM[A] = V;
 }
 
-static DECLFR(ARAML)
+static uint8 ARAML(uint32 A)
 {
 	return RAM[A];
 }
@@ -185,7 +185,7 @@ static DECLFW(BRAMH)
 	RAM[A & 0x7FF] = V;
 }
 
-static DECLFR(ARAMH)
+static uint8 ARAMH(uint32 A)
 {
 	return RAM[A & 0x7FF];
 }

@@ -79,7 +79,7 @@ static uint8 *secptr;
 
 static uint8 VSindex;
 
-static DECLFR(VSSecRead) {
+static uint8 VSSecRead(uint32 A) {
 	switch (A) {
 	case 0x5e00: VSindex = 0; return X.DB;
 	case 0x5e01: return(secptr[(VSindex++) & 0x1F]);
@@ -108,15 +108,15 @@ static int64 curmd5;
 static readfunc OldReadPPU;
 static writefunc OldWritePPU[2];
 
-static DECLFR(A2002_Gumshoe) {
+static uint8 A2002_Gumshoe(uint32 A) {
 	return((OldReadPPU(A) & ~0x3F) | 0x1C);
 }
 
-static DECLFR(A2002_Topgun) {
+static uint8 A2002_Topgun(uint32 A) {
 	return((OldReadPPU(A) & ~0x3F) | 0x1B);
 }
 
-static DECLFR(A2002_MBJ) {	/* Mighty Bomb Jack */
+static uint8 A2002_MBJ(uint32 A) {	/* Mighty Bomb Jack */
 	return((OldReadPPU(A) & ~0x3F) | 0x3D);
 }
 
@@ -124,7 +124,7 @@ static DECLFW(B2000_2001_2C05) {
 	OldWritePPU[(A & 1) ^ 1](A ^ 1, V);
 }
 static uint8 xevselect = 0;
-static DECLFR(XevRead) {
+static uint8 XevRead(uint32 A) {
 	if (A == 0x54FF) {
 		return(0x5);
 	} else if (A == 0x5678) {

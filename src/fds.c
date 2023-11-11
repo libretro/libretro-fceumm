@@ -44,10 +44,10 @@
  *	when the virtual motor is on(mmm...virtual motor).
  */
 
-static DECLFR(FDSRead4030);
-static DECLFR(FDSRead4031);
-static DECLFR(FDSRead4032);
-static DECLFR(FDSRead4033);
+static uint8 FDSRead4030(uint32 A);
+static uint8 FDSRead4031(uint32 A);
+static uint8 FDSRead4032(uint32 A);
+static uint8 FDSRead4033(uint32 A);
 
 static DECLFW(FDSWrite);
 
@@ -216,7 +216,7 @@ static void FDSFix(int a) {
 	}
 }
 
-static DECLFR(FDSRead4030) {
+static uint8 FDSRead4030(uint32 A) {
 	uint8 ret = 0;
 
 	/* Cheap hack. */
@@ -228,7 +228,7 @@ static DECLFR(FDSRead4030) {
 	return ret;
 }
 
-static DECLFR(FDSRead4031) {
+static uint8 FDSRead4031(uint32 A) {
 	uint8 ret = 0xff;
 
 	if (FDS_DISK_INSERTED && mapperFDS_control & 0x04) {
@@ -265,7 +265,7 @@ static DECLFR(FDSRead4031) {
 	return ret;
 }
 
-static DECLFR(FDSRead4032) {
+static uint8 FDSRead4032(uint32 A) {
 	uint8 ret;
 
 	ret = X.DB & ~7;
@@ -277,7 +277,7 @@ static DECLFR(FDSRead4032) {
 	return ret;
 }
 
-static DECLFR(FDSRead4033) {
+static uint8 FDSRead4033(uint32 A) {
 	return 0x80;		/* battery */
 }
 

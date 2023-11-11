@@ -134,7 +134,7 @@ void SetupCartCHRMapping(int chip, uint8 *p, uint32 size, int ram) {
 	CHRram[chip] = ram;
 }
 
-DECLFR(CartBR) {
+uint8 CartBR(uint32 A) {
 	return Page[A >> 11][A];
 }
 
@@ -143,11 +143,10 @@ DECLFW(CartBW) {
 		Page[A >> 11][A] = V;
 }
 
-DECLFR(CartBROB) {
+uint8 CartBROB(uint32 A) {
 	if (!Page[A >> 11])
 		return(X.DB);
-	else
-		return Page[A >> 11][A];
+	return Page[A >> 11][A];
 }
 
 void setprg2r(int r, uint32 A, uint32 V) {
@@ -412,7 +411,7 @@ void FCEU_KillGenie(void) {
 	}
 }
 
-static DECLFR(GenieRead) {
+static uint8 GenieRead(uint32 A) {
 	return GENIEROM[A & 4095];
 }
 
@@ -448,7 +447,7 @@ static DECLFW(GenieWrite) {
 
 static readfunc GenieBackup[3];
 
-static DECLFR(GenieFix1) {
+static uint8 GenieFix1(uint32 A) {
 	uint8 r = GenieBackup[0](A);
 
 	if ((modcon >> 1) & 1)	/* No check */
@@ -459,7 +458,7 @@ static DECLFR(GenieFix1) {
 	return r;
 }
 
-static DECLFR(GenieFix2) {
+static uint8 GenieFix2(uint32 A) {
 	uint8 r = GenieBackup[1](A);
 
 	if ((modcon >> 2) & 1)	/* No check */
@@ -470,7 +469,7 @@ static DECLFR(GenieFix2) {
 	return r;
 }
 
-static DECLFR(GenieFix3) {
+static uint8 GenieFix3(uint32 A) {
 	uint8 r = GenieBackup[2](A);
 
 	if ((modcon >> 3) & 1)	/* No check */

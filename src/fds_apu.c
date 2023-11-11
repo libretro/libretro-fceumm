@@ -74,7 +74,7 @@ void FDSSoundStateAdd(void) {
 	AddExState(&b17latch76, 4, 1, "B76");
 }
 
-static DECLFR(FDSSRead) {
+static uint8 FDSSRead(uint32 A) {
 	switch (A & 0xF) {
 	case 0x0: return(amplitude[0] | (X.DB & 0xC0));
 	case 0x2: return(amplitude[1] | (X.DB & 0xC0));
@@ -145,7 +145,7 @@ static void DoEnv() {
 		}
 }
 
-static DECLFR(FDSWaveRead) {
+static uint8 FDSWaveRead(uint32 A) {
 	return(fdso.cwave[A & 0x3f] | (X.DB & 0xC0));
 }
 

@@ -82,7 +82,7 @@ struct CHEATF *cheats = 0, *cheatsl = 0;
 static uint16 *CheatComp = 0;
 static int savecheats;
 
-static DECLFR(SubCheatsRead) {
+static uint8 SubCheatsRead(uint32 A) {
 	CHEATF_SUBFAST *s = SubCheats;
 	int x = numsubcheats;
 
@@ -132,16 +132,11 @@ void FCEU_PowerCheats() {
 	RebuildSubCheats();
 }
 
-static int AddCheatEntry(char *name, uint32 addr, uint8 val, int compare, int status, int type);
-static void CheatMemErr(void) {
-	FCEUD_PrintError("Error allocating memory for cheat data.");
-}
-
 /* This function doesn't allocate any memory for "name" */
 static int AddCheatEntry(char *name, uint32 addr, uint8 val, int compare, int status, int type) {
 	struct CHEATF *temp;
 	if (!(temp = (struct CHEATF*)malloc(sizeof(struct CHEATF)))) {
-		CheatMemErr();
+		FCEUD_PrintError("Error allocating memory for cheat data.");
 		return(0);
 	}
 	temp->name = name;
@@ -204,7 +199,7 @@ int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int ty
 	char *t;
 	if (!(t = (char*)malloc(strlen(name) + 1)))
 	{
-		CheatMemErr();
+		FCEUD_PrintError("Error allocating memory for cheat data.");
 		return(0);
 	}
 	strcpy(t, name);
@@ -470,7 +465,7 @@ static int InitCheatComp(void) {
 
 	CheatComp = (uint16*)malloc(65536 * sizeof(uint16));
 	if (!CheatComp) {
-		CheatMemErr();
+		FCEUD_PrintError("Error allocating memory for cheat data.");
 		return(0);
 	}
 	for (x = 0; x < 65536; x++)
@@ -516,7 +511,7 @@ void FCEUI_CheatSearchGet(int (*callb)(uint32 a, uint8 last, uint8 current, void
 
 	if (!CheatComp) {
 		if (!InitCheatComp())
-			CheatMemErr();
+			FCEUD_PrintError("Error allocating memory for cheat data.");
 		return;
 	}
 
@@ -532,7 +527,7 @@ void FCEUI_CheatSearchGetRange(uint32 first, uint32 last, int (*callb)(uint32 a,
 
 	if (!CheatComp) {
 		if (!InitCheatComp())
-			CheatMemErr();
+			FCEUD_PrintError("Error allocating memory for cheat data.");
 		return;
 	}
 
@@ -551,7 +546,7 @@ void FCEUI_CheatSearchBegin(void) {
 
 	if (!CheatComp) {
 		if (!InitCheatComp()) {
-			CheatMemErr();
+			FCEUD_PrintError("Error allocating memory for cheat data.");
 			return;
 		}
 	}
@@ -575,7 +570,7 @@ void FCEUI_CheatSearchEnd(int type, uint8 v1, uint8 v2) {
 
 	if (!CheatComp) {
 		if (!InitCheatComp()) {
-			CheatMemErr();
+			FCEUD_PrintError("Error allocating memory for cheat data.");
 			return;
 		}
 	}

@@ -58,7 +58,7 @@ static int CHRRAMSize   = -1;
 
 static int iNES_Init(int num);
 
-static DECLFR(TrainerRead) {
+static uint8 TrainerRead(uint32 A) {
 	return(trainerpoo[A & 0x1FF]);
 }
 

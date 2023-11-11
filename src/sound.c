@@ -325,11 +325,9 @@ static DECLFW(StatusWrite) {
 	EnabledChannels = V & 0x1F;
 }
 
-static DECLFR(StatusRead) {
+static uint8 StatusRead(uint32 A) {
 	int x;
-	uint8 ret;
-
-	ret = SIRQStat;
+	uint8 ret = SIRQStat;
 
 	for (x = 0; x < 4; x++) ret |= lengthcount[x] ? (1 << x) : 0;
 	if (DMCSize) ret |= 0x10;
