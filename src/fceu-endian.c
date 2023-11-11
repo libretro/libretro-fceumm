@@ -35,9 +35,7 @@ void FlipByteOrder(uint8 *src, uint32 count)
 
    while (count--)
    {
-      uint8 tmp;
-
-      tmp = *end;
+      uint8 tmp = *end;
       *end = *start;
       *start = tmp;
       end--;

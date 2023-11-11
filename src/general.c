@@ -40,8 +40,6 @@
 
 #include "driver.h"
 
-#include "md5.h"
-
 static char BaseDirectory[2048] = {0};
 
 void FCEUI_SetBaseDirectory(const char *dir)

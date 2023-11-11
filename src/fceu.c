@@ -520,11 +520,3 @@ void FCEUI_SetGameGenie(int a)
 {
 	FSettings.GameGenie = a ? 1 : 0;
 }
-
-int32 FCEUI_GetDesiredFPS(void)
-{
-	if (PAL || dendy)
-		return(838977920);	/* ~50.007 */
-	else
-		return(1008307711);	/* ~60.1 */
-}

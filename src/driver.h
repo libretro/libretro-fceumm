@@ -146,8 +146,6 @@ void FCEUI_Sound(int Rate);
 void FCEUI_SetSoundVolume(uint32 volume);
 void FCEUI_SetSoundQuality(int quality);
 
-int32 FCEUI_GetDesiredFPS(void);
-
 int FCEUI_DecodePAR(const char *code, uint16 *a, uint8 *v, int *c, int *type);
 int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c);
 int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int type);
