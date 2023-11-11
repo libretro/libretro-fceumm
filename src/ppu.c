@@ -422,7 +422,7 @@ static void RefreshLine(int lastpixel) {
 	uint32 vofs;
 	int X1;
 
-	register uint8 *P = Pline;
+	uint8 *P = Pline;
 	int lasttile = lastpixel >> 3;
 	int numtiles;
 	static int norecurse = 0;	/* Yeah, recursion would be bad.
@@ -729,19 +729,13 @@ void FCEUI_DisableSpriteLimitation(int a) {
 
 static uint8 numsprites, SpriteBlurp;
 static void FetchSpriteData(void) {
-	uint8 ns, sb;
-	SPR *spr;
-	uint8 H;
 	int n;
-	int vofs;
 	uint8 P0 = PPU[0];
-
-	spr = (SPR*)SPRAM;
-	H = 8;
-
-	ns = sb = 0;
-
-	vofs = (uint32)(P0 & 0x8 & (((P0 & 0x20) ^ 0x20) >> 2)) << 9;
+	SPR *spr = (SPR*)SPRAM;
+	uint8 H  = 8;
+	uint8 ns = 0;
+	uint8 sb = 0;
+	int vofs = (uint32)(P0 & 0x8 & (((P0 & 0x20) ^ 0x20) >> 2)) << 9;
 	H += (P0 & 0x20) >> 2;
 
 	if (!PPU_hook)
@@ -753,10 +747,8 @@ static void FetchSpriteData(void) {
 				{
 					SPRB dst;
 					uint8 *C;
-					int t;
 					uint32 vadr;
-
-					t = (int)scanline - (spr->y);
+					int t = (int)scanline - (spr->y);
 
 					if (Sprite16)
 						vadr = ((spr->no & 1) << 12) + ((spr->no & 0xFE) << 4);
@@ -803,10 +795,8 @@ static void FetchSpriteData(void) {
 				{
 					SPRB dst;
 					uint8 *C;
-					int t;
 					uint32 vadr;
-
-					t = (int)scanline - (spr->y);
+					int t = (int)scanline - (spr->y);
 
 					if (Sprite16)
 						vadr = ((spr->no & 1) << 12) + ((spr->no & 0xFE) << 4);
@@ -871,16 +861,12 @@ static void RefreshSprites(void) {
 	spr = (SPRB*)SPRBUF + numsprites;
 
 	for (n = numsprites; n >= 0; n--, spr--) {
-		register uint32 pixdata;
-		register uint8 J, atr;
-
 		int x = spr->x;
 		uint8 *C;
 		uint8 *VB;
-
-		pixdata = ppulut1[spr->ca[0]] | ppulut2[spr->ca[1]];
-		J = spr->ca[0] | spr->ca[1];
-		atr = spr->atr;
+		uint32 pixdata = ppulut1[spr->ca[0]] | ppulut2[spr->ca[1]];
+		uint8 J = spr->ca[0] | spr->ca[1];
+		uint8 atr = spr->atr;
 
 		if (J) {
 			if (n == 0 && SpriteBlurp && !(PPU_status & 0x40)) {

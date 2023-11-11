@@ -378,14 +378,7 @@ void X6502_Run(int32 cycles)
 	#define RdMem RdMemNorm
 	#define WrMem WrMemNorm
 
-	#if (defined(C80x86) && defined(__GNUC__))
-	/* Gives a nice little speed boost. */
-	register uint16 pbackus asm ("edi");
-	#else
-	uint16 pbackus;
-	#endif
-
-	pbackus = _PC;
+	uint16 pbackus = _PC;
 
 	#undef _PC
 	#define _PC pbackus
