@@ -72,12 +72,12 @@ uint32 CHRmask8[32];
 
 int geniestage = 0;
 
-int modcon;
+static int modcon;
 
-uint8 genieval[3];
-uint8 geniech[3];
+static uint8 genieval[3];
+static uint8 geniech[3];
 
-uint32 genieaddr[3];
+static uint32 genieaddr[3];
 
 static INLINE void setpageptr(int s, uint32 A, uint8 *p, int ram) {
 	uint32 AB = A >> 11;
@@ -104,9 +104,8 @@ void ResetCartMapping(void) {
 		PRGptr[x] = CHRptr[x] = 0;
 		PRGsize[x] = CHRsize[x] = 0;
 	}
-	for (x = 0; x < 8; x++) {
+	for (x = 0; x < 8; x++)
 		MMC5SPRVPage[x] = MMC5BGVPage[x] = VPageR[x] = nothing - 0x400 * x;
-	}
 }
 
 void SetupCartPRGMapping(int chip, uint8 *p, uint32 size, int ram) {

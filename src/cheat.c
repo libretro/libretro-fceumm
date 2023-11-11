@@ -299,19 +299,6 @@ int FCEUI_DecodePAR(const char *str, uint16 *a, uint8 *v, int *c, int *type) {
 	sscanf(str, "%02x%02x%02x%02x", boo, boo + 1, boo + 2, boo + 3);
 
 	*c = -1;
-
-	/* 2020-08-31
-	 * Why is the top code set as default on non-debug runtime when
-	 * bottom code is what works for PAR?
-	 */
-	/* if (1) {
-		*a = (boo[3] << 8) | (boo[2] + 0x7F);
-		*v = 0;
-	} else {
-		*v = boo[3];
-		*a = boo[2] | (boo[1] << 8);
-	} */
-
 	*v = boo[3];
 	*a = boo[2] | (boo[1] << 8);
 

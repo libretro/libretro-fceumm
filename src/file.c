@@ -191,11 +191,6 @@ int FCEU_fgetc(FCEUFILE *fp)
    return EOF;
 }
 
-uint64 FCEU_ftell(FCEUFILE *fp)
-{
-   return fp->fp->location;
-}
-
 uint64 FCEU_fgetsize(FCEUFILE *fp)
 {
    return fp->fp->size;
