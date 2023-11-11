@@ -374,12 +374,6 @@ static DECLFW(UNL22211WriteHi) {
 
 static DECLFR(UNL22211ReadLo) {
 	return (reg[1] ^ reg[2]) | (is173 ? 0x01 : 0x40);
-#if 0
-	if(reg[3])
-	  return reg[2];
-	else
-	  return X.DB;
-#endif
 }
 
 static void UNL22211Power(void) {

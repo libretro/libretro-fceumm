@@ -360,15 +360,6 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 {
 	int x = 0;
 	while (size) {
-#if 0
-		*ptr = (x & 4) ? 0xFF : 0x00;	/* Huang Di DEBUG MODE enabled by default */
-										/* Cybernoid NO MUSIC by default */
-		*ptr = (x & 4) ? 0x7F : 0x00;	/* Huang Di DEBUG MODE enabled by default */
-										/* Minna no Taabou no Nakayoshi Daisakusen DOESN'T BOOT */
-										/* Cybernoid NO MUSIC by default */
-		*ptr = (x & 1) ? 0x55 : 0xAA;	/* F-15 Sity War HISCORE is screwed... */
-										/* 1942 SCORE/HISCORE is screwed... */
-#endif
 		uint8_t v = 0;
 		switch (option_ramstate)
 		{
@@ -381,10 +372,6 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 		size--;
 		ptr++;
 	}
-}
-
-void hand(X6502 *X, int type, uint32 A)
-{
 }
 
 void PowerNES(void)
