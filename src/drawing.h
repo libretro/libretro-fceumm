@@ -165,37 +165,4 @@ static uint8 sstat[2541] =
 	0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80
 };
 
-void FCEU_DrawNumberRow(uint8 *XBuf, int *nstatus, int cur) {
-	uint8 *XBaf;
-	int z, x, y;
-
-	XBaf = XBuf - 4 + (FSettings.LastSLine - 34) * 256;
-	if (XBaf >= XBuf)
-		for (z = 1; z < 11; z++) {
-			if (nstatus[z % 10]) {
-				for (y = 0; y < 13; y++)
-					for (x = 0; x < 21; x++)
-						XBaf[y * 256 + x + z * 21 + z] = sstat[y * 21 + x + (z - 1) * 21 * 12] ^ 0x80;
-			} else {
-				for (y = 0; y < 13; y++)
-					for (x = 0; x < 21; x++)
-						if (sstat[y * 21 + x + (z - 1) * 21 * 12] != 0x83)
-							XBaf[y * 256 + x + z * 21 + z] = sstat[y * 21 + x + (z - 1) * 21 * 12] ^ 0x80;
-						else
-							XBaf[y * 256 + x + z * 21 + z] = (XBaf[y * 256 + x + z * 21 + z] & 0xF) | 0xC0;
-			}
-			if (cur == z % 10) {
-				for (x = 0; x < 21; x++)
-					XBaf[x + z * 21 + z * 1] = 4;
-				for (x = 1; x < 12; x++) {
-					XBaf[256 * x + z * 21 + z * 1] =
-						XBaf[256 * x + z * 21 + z * 1 + 20] = 4;
-				}
-				for (x = 0; x < 21; x++)
-					XBaf[12 * 256 + x + z * 21 + z * 1] = 4;
-			}
-		}
-}
-
-
 #endif
