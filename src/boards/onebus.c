@@ -146,50 +146,50 @@ static DECLFW(UNLOneBusWriteCPU410X) {
 	}
 }
 
-static const uint8 ppuMangle[16][6] = {
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 0: Normal                                  */
-	{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 1: Waixing VT03                            */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 2: Trump Grand                             */
-	{ 5, 4, 3, 2, 0, 1 }, 	/* Submapper 3: Zechess                                 */
-	{ 2, 5, 0, 4, 3, 1 }, 	/* Submapper 4: Qishenglong                             */
-	{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 5: Waixing VT02                            */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 6: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 7: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 8: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 9: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper A: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper B: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper C: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only)  */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
-	{ 0, 1, 2, 3, 4, 5 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
-};
 static DECLFW(UNLOneBusWritePPU201X) {
+	static const uint8 ppuMangle[16][6] = {
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 0: Normal                                  */
+		{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 1: Waixing VT03                            */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 2: Trump Grand                             */
+		{ 5, 4, 3, 2, 0, 1 }, 	/* Submapper 3: Zechess                                 */
+		{ 2, 5, 0, 4, 3, 1 }, 	/* Submapper 4: Qishenglong                             */
+		{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 5: Waixing VT02                            */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 6: unused so far                           */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 7: unused so far                           */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 8: unused so far                           */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 9: unused so far                           */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper A: unused so far                           */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper B: unused so far                           */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper C: unused so far                           */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only)  */
+		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
+		{ 0, 1, 2, 3, 4, 5 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
+	};
 	A &=0x0F;
 	if (A >=2 && A <=7) A =2 +ppuMangle[submapper][A -2];
 	ppu201x[A] = V;
 	Sync();
 }
 
-static const uint8 mmc3Mangle[16][8] = {
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 0: Normal                                 */
-	{ 5, 4, 3, 2, 1, 0, 6, 7 }, 	/* Submapper 1: Waixing VT03                           */
-	{ 0, 1, 2, 3, 4, 5, 7, 6 }, 	/* Submapper 2: Trump Grand                            */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 3: Zechess                                */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 4: Qishenglong                            */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 5: Waixing VT02                           */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 6: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 7: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 8: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 9: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper A: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper B: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper C: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only) */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)   */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }  	/* Submapper F: Jungletac (CPU opcode encryption only) */
-};
 static DECLFW(UNLOneBusWriteMMC3) {
+	static const uint8 mmc3Mangle[16][8] = {
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 0: Normal                                 */
+		{ 5, 4, 3, 2, 1, 0, 6, 7 }, 	/* Submapper 1: Waixing VT03                           */
+		{ 0, 1, 2, 3, 4, 5, 7, 6 }, 	/* Submapper 2: Trump Grand                            */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 3: Zechess                                */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 4: Qishenglong                            */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 5: Waixing VT02                           */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 6: unused so far                          */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 7: unused so far                          */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 8: unused so far                          */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 9: unused so far                          */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper A: unused so far                          */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper B: unused so far                          */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper C: unused so far                          */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only) */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)   */
+		{ 0, 1, 2, 3, 4, 5, 6, 7 }  	/* Submapper F: Jungletac (CPU opcode encryption only) */
+	};
 	switch (A & 0xe001) {
 	case 0x8000: 
 		V =V &0xF8 | mmc3Mangle[submapper][V &0x07];
@@ -264,9 +264,8 @@ static DECLFR(UNLOneBusReadAPU40XX) {
 	uint8 result = defapuread[A & 0x3f](A);
 	switch (A & 0x3f) {
 	case 0x15:
-		if (apu40xx[0x30] & 0x10) {
+		if (apu40xx[0x30] & 0x10)
 			result = (result & 0x7f) | pcm_irq;
-		}
 		break;
 	}
 	return result;

@@ -192,25 +192,22 @@ static uint32 InefficientSqrt(uint32 z) {
 	for (i = 0 ; i * i <= z ; i++) ;
 	return i-1;
 }
-#endif
 
 void FCEU_ZapperSetTolerance(int t)
 {
-#ifdef ROUNDED_TARGET
 	uint32 y;
 	tolerance = t <= MAX_TOLERANCE ? t : MAX_TOLERANCE;
 	for (y = 0; y <= tolerance; y++)
 		targetExpansion[y] = InefficientSqrt(tolerance*tolerance-y*y);
-#else
-	tolerance = t;
-#endif
 }
+#else
+void FCEU_ZapperSetTolerance(int t) { tolerance = t; }
+#endif
 
 INPUTC *FCEU_InitZapper(int w) {
 	memset(&ZD[w], 0, sizeof(ZAPPER));
 	if (GameInfo->type == GIT_VSUNI)
 		return(&ZAPVSC);
-	else
-		return(&ZAPC);
+	return(&ZAPC);
 }
 
