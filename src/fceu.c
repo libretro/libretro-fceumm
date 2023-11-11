@@ -114,8 +114,7 @@ readfunc GetReadHandler(int32 a)
 {
 	if (a >= 0x8000 && RWWrap)
 		return AReadG[a - 0x8000];
-	else
-		return ARead[a];
+	return ARead[a];
 }
 
 void SetReadHandler(int32 start, int32 end, readfunc func)
@@ -142,8 +141,7 @@ writefunc GetWriteHandler(int32 a)
 {
 	if (RWWrap && a >= 0x8000)
 		return BWriteG[a - 0x8000];
-	else
-		return BWrite[a];
+	return BWrite[a];
 }
 
 void SetWriteHandler(int32 start, int32 end, writefunc func)
