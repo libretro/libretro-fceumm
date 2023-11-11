@@ -153,7 +153,6 @@ static DECLFW(MMC1_write) {
 	*/
 	if ((timestampbase + timestamp) < (lreset + 2))
 		return;
-/*	FCEU_printf("Write %04x:%02x\n",A,V); */
 	if (V & 0x80) {
 		DRegs[0] |= 0xC;
 		BufferShift = Buffer = 0;
@@ -165,7 +164,6 @@ static DECLFW(MMC1_write) {
 	Buffer |= (V & 1) << (BufferShift++);
 
 	if (BufferShift == 5) {
-/*		FCEU_printf("REG[%d]=%02x\n",n,Buffer); */
 		DRegs[n] = Buffer;
 		BufferShift = Buffer = 0;
 		switch (n) {
@@ -223,8 +221,6 @@ static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
 	} else if (info->battery) {
 		*saveRAM = 8;
 	}
-	if (workRAM > 8)
-		FCEU_printf(" >8KB external WRAM present.  Use NES 2.0 if you hack the ROM image.\n");
 	return workRAM;
 }
 

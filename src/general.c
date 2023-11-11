@@ -71,8 +71,6 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
          break;
    }
 
-   FCEU_printf(" FCEU_MakeFName: %s\n", tmp);
-
    ret = (char*)malloc(strlen(tmp) * sizeof(char) + 1);
    strcpy(ret, tmp);
 

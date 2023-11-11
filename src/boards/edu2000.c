@@ -38,7 +38,6 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLEDU2000HiWrite) {
-/*	FCEU_printf("%04x:%02x\n",A,V); */
 	reg = V;
 	Sync();
 }

@@ -40,7 +40,6 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLKS7012Write) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	switch (A) {
 	case 0xE0A0: reg = 0; Sync(); break;
 	case 0xEE36: reg = 1; Sync(); break;

@@ -46,7 +46,6 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-/*	FCEU_printf("P0:%02x P1:%02x outerbank:%02x\n", pregs[0], pregs[1], outerbank);*/
 	setprg8(0x8000, pregs[0] | (outerbank & 6) << 3);
 	setprg8(0xa000, pregs[1] | (outerbank & 6) << 3);
 	setprg8(0xc000,      0xE | (outerbank & 6) << 3);
@@ -68,7 +67,7 @@ static DECLFW(M91Write0) {
 	case 3: cregs[A & 3] = V; Sync(); break;
 	case 4:
 	case 5: mirr = V & 1; Sync(); break;
-	default: /*FCEU_printf("A:%04x V:%02x\n", A, V);*/ break;
+	default: break;
 	}
 }
 

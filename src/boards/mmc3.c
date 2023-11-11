@@ -115,7 +115,6 @@ void MMC3RegReset(void) {
 }
 
 DECLFW(MMC3_CMDWrite) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	switch (A & 0xE001) {
 	case 0x8000:
 		if ((V & 0x40) != (MMC3_cmd & 0x40))
@@ -171,7 +170,6 @@ DECLFW(MMC3_CMDWrite) {
 }
 
 DECLFW(MMC3_IRQWrite) {
-/*	FCEU_printf("%04x:%04x\n",A,V); */
 	switch (A & 0xE001) {
 	case 0xC000: IRQLatch = V; break;
 	case 0xC001: IRQReload = 1; break;

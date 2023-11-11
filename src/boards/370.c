@@ -72,7 +72,6 @@ static DECLFW(M370Write) {
 static void M370Reset(void) {
 	EXPREGS[0] = 0;
 	EXPREGS[1] ^= 1;
-	FCEU_printf("solderpad=%02x\n", EXPREGS[1]);
 	MMC3RegReset();
 }
 

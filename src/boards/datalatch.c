@@ -28,7 +28,6 @@ static uint32 WRAMSIZE;
 static void (*WSync)(void);
 
 static DECLFW(LatchWrite) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	if (bus_conflict)
 		latche = V & CartBR(A);
 	else

@@ -47,7 +47,6 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLKS7017Write) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	if ((A & 0xFF00) == 0x4A00) {
 		latche = ((A >> 2) & 3) | ((A >> 4) & 4);
 	} else if ((A & 0xFF00) == 0x5100) {

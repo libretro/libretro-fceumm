@@ -52,7 +52,6 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLBJ56Write) {
-/*	FCEU_printf("Wr: A:%04x V:%02x\n", A, V); */
 	A &= 0xF00F;
 	if (A <= 0x8007) {
 		creg[A & 0x07] = V;

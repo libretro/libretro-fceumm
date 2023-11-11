@@ -79,7 +79,6 @@ static void UNLN625092Reset(void) {
 	cmd = 0;
 	bank = 0;
 	ass++;
-	FCEU_printf("%04x\n", ass);
 	Sync();
 }
 

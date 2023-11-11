@@ -37,15 +37,12 @@ static void BMCHPxxCW(uint32 A, uint8 V) {
 		case 0:
 		case 1:
 			setchr8(EXPREGS[2] & 0x3F);
-/*			FCEU_printf("\tCHR8 %02X\n",EXPREGS[2]&0x3F); */
 			break;
 		case 2:
 			setchr8((EXPREGS[2] & 0x3E) | (unromchr & 1));
-/*			FCEU_printf("\tCHR8 %02X\n",(EXPREGS[2]&0x3E)|(unromchr&1)); */
 			break;
 		case 3:
 			setchr8((EXPREGS[2] & 0x3C) | (unromchr & 3));
-/*			FCEU_printf("\tCHR8 %02X\n",(EXPREGS[2]&0x3C)|(unromchr&3)); */
 			break;
 		}
 	} else {				/* mmc3 banking */
@@ -57,7 +54,6 @@ static void BMCHPxxCW(uint32 A, uint8 V) {
 			base = EXPREGS[2] & 0x20;
 			mask = 0xFF;
 		}
-/*		FCEU_printf("\tCHR1 %04x:%02X\n",A,(V&mask)|(base<<3)); */
 		setchr1(A, (V & mask) | (base << 3));
 	}
 }
@@ -66,11 +62,9 @@ static void BMCHPxxCW(uint32 A, uint8 V) {
 static void BMCHPxxPW(uint32 A, uint8 V) {
 	if(EXPREGS[0] & 4) {		/* custom banking */
 		if((EXPREGS[0] & 0xF) == 4) {	/* 16K mode */
-/*			FCEU_printf("\tPRG16 %02X\n",EXPREGS[1]&0x1F); */
 			setprg16(0x8000, EXPREGS[1] & 0x1F);
 			setprg16(0xC000, EXPREGS[1] & 0x1F);
 		} else {			/* 32K modes */
-/*			FCEU_printf("\tPRG32 %02X\n",(EXPREGS[1]&0x1F)>>1); */
 			setprg32(0x8000, (EXPREGS[1] & 0x1F) >> 1);
 		}
 	} else {				/* mmc3 banking */
@@ -82,7 +76,6 @@ static void BMCHPxxPW(uint32 A, uint8 V) {
 			base = EXPREGS[1] & 0x10;
 			mask = 0x1F;
 		}
-/*		FCEU_printf("\tPRG8 %02X\n",(V&mask)|(base<<1)); */
 		setprg8(A, (V & mask) | (base << 1));
 		setprg8r(0x10, 0x6000, A001B & 3);
 	}
@@ -91,10 +84,8 @@ static void BMCHPxxPW(uint32 A, uint8 V) {
 /* MIRROR wrapper */
 static void BMCHPxxMW(uint8 V) {
 	if(EXPREGS[0] & 4) {		/* custom banking */
-/*		FCEU_printf("CUSTOM MIRR: %d\n",(unromchr>>2)&1); */
 		setmirror(((unromchr >> 2) & 1) ^ 1);
 	} else {				/* mmc3 banking */
-/*		FCEU_printf("MMC3 MIRR: %d\n",(V&1)^1); */
 		A000B = V;
 		setmirror((A000B & 1) ^ 1);
 	}
@@ -102,13 +93,10 @@ static void BMCHPxxMW(uint8 V) {
 
 /* PRG handler ($8000-$FFFF) */
 static DECLFW(BMCHPxxHiWrite) {
-/*	FCEU_printf("HI WRITE %04X:%02X\n",A,V); */
 	if(EXPREGS[0] & 4) {		/* custom banking */
-/*		FCEU_printf("CUSTOM\n"); */
 		unromchr = V;
 		FixMMC3CHR(MMC3_cmd);
 	} else {				/* mmc3 banking */
-/*		FCEU_printf("MMC3\n"); */
 		if(A<0xC000) {
 			MMC3_CMDWrite(A, V);
 			FixMMC3PRG(MMC3_cmd);
@@ -122,7 +110,6 @@ static DECLFW(BMCHPxxHiWrite) {
 /* EXP handler ($5000-$5FFF) */
 static DECLFW(BMCHPxxWrite) {
 	if (!lock) {
-/*		FCEU_printf("LO WRITE %04X:%02X\n",A,V); */
 		EXPREGS[A & 3] = V;
 		lock = V & 0x80;
 		FixMMC3PRG(MMC3_cmd);
@@ -138,7 +125,6 @@ static void BMCHPxxReset(void) {
 	dipswitch++;
 	dipswitch &= 0xF;
 	lock = 0;
-/*	FCEU_printf("BMCHPxx dipswitch set to %d\n",dipswitch); */
 	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = 0;
 	MMC3RegReset();
 	FixMMC3PRG(MMC3_cmd);

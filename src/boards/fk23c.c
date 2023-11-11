@@ -388,10 +388,8 @@ static void IRQHook(void)
 static void Reset(void)
 {
    /* this little hack makes sure that we try all the dip switch settings eventually, if we reset enough */
-   if (dipsw_enable) {
+   if (dipsw_enable)
       dipswitch = (dipswitch + 1) & 7;
-      FCEU_printf("BMCFK23C dipswitch set to $%04x\n",0x5000|0x10 << dipswitch);
-   }
 
    fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = fk23_regs[4] = fk23_regs[5] = fk23_regs[6] = fk23_regs[7] = 0;
    mmc3_regs[0]   = 0;

@@ -364,12 +364,10 @@ static void UNL22211Sync(void) {
 }
 
 static DECLFW(UNL22211WriteLo) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	reg[A & 3] = V;
 }
 
 static DECLFW(UNL22211WriteHi) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
 	cmd = V;
 	UNL22211Sync();
 }

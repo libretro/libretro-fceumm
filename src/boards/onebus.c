@@ -83,13 +83,9 @@ static void PSync(void) {
 	uint8 bank2 = (cpu410x[0xb] & 0x40) ? (cpu410x[0x9]) : (~1);
 	uint8 bank3 = ~0;
 
-/*	FCEU_printf(" PRG: %04x [%02x]",0x8000^pswap,block | (bank0 & mask)); */
 	setprg8(0x8000 ^ pswap, block | (bank0 & mask));
-/*	FCEU_printf(" %04x [%02x]",0xa000^pswap,block | (bank1 & mask)); */
 	setprg8(0xa000, block | (bank1 & mask));
-/*	FCEU_printf(" %04x [%02x]",0xc000^pswap,block | (bank2 & mask)); */
 	setprg8(0xc000 ^ pswap, block | (bank2 & mask));
-/*	FCEU_printf(" %04x [%02x]\n",0xe000^pswap,block | (bank3 & mask)); */
 	setprg8(0xe000, block | (bank3 & mask));
 }
 
@@ -144,7 +140,6 @@ static const uint8 cpuMangle[16][4] = {
 	{ 0, 1, 2, 3 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
 };
 static DECLFW(UNLOneBusWriteCPU410X) {
-/*	FCEU_printf("CPU %04x:%04x\n",A,V); */
 	A &=0xF;
 	switch (A) {
 	case 0x1: IRQLatch = V & 0xfe; break;	/* не по даташиту */
@@ -177,7 +172,6 @@ static const uint8 ppuMangle[16][6] = {
 	{ 0, 1, 2, 3, 4, 5 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
 };
 static DECLFW(UNLOneBusWritePPU201X) {
-/*	FCEU_printf("PPU %04x:%04x\n",A,V); */
 	A &=0x0F;
 	if (A >=2 && A <=7) A =2 +ppuMangle[submapper][A -2];
 	ppu201x[A] = V;
@@ -203,7 +197,6 @@ static const uint8 mmc3Mangle[16][8] = {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }  	/* Submapper F: Jungletac (CPU opcode encryption only) */
 };
 static DECLFW(UNLOneBusWriteMMC3) {
-/*	FCEU_printf("MMC %04x:%04x\n",A,V); */
 	switch (A & 0xe001) {
 	case 0x8000: 
 		V =V &0xF8 | mmc3Mangle[submapper][V &0x07];
@@ -246,7 +239,6 @@ static void UNLOneBusIRQHook(void) {
 }
 
 static DECLFW(UNLOneBusWriteAPU40XX) {
-/*	if(((A & 0x3f)!=0x16) && ((apu40xx[0x30] & 0x10) || ((A & 0x3f)>0x17)))FCEU_printf("APU %04x:%04x\n",A,V); */
 	apu40xx[A & 0x3f] = V;
 	switch (A & 0x3f) {
 	case 0x12:
@@ -277,7 +269,6 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 
 static DECLFR(UNLOneBusReadAPU40XX) {
 	uint8 result = defapuread[A & 0x3f](A);
-/*	FCEU_printf("read %04x, %02x\n",A,result); */
 	switch (A & 0x3f) {
 	case 0x15:
 		if (apu40xx[0x30] & 0x10) {

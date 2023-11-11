@@ -66,7 +66,6 @@ static void M57Reset(void) {
 	regs[1] = regs[0] = 0; /* Always reset to menu */
 	hrd_flag++;
 	hrd_flag &= 3;
-	FCEU_printf("Select Register = %02x\n", hrd_flag);
 	Sync();
 }
 

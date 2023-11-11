@@ -71,7 +71,6 @@ static void EH8813APower(void) {
 static void EH8813AReset(void) {
 	addrlatch = datalatch = lock = 0;
 	hw_mode = (hw_mode + 1) & 0xF;
-	FCEU_printf("Hardware Switch is %01X\n", hw_mode);
 	Sync();
 }
 

@@ -40,22 +40,9 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-#if 0
- static DECLFW(SSSNROMWrite)
-{
-	CartBW(A,V);
-}
-#endif
-
-static DECLFW(SSSNROMWrite) {
-#if 0
-	FCEU_printf("write %04x %02x\n",A,V);
-	regs[A&7] = V;
-#endif
-}
+static DECLFW(SSSNROMWrite) { }
 
 static DECLFR(SSSNROMRead) {
-/*	FCEU_printf("read %04x\n",A); */
 	switch (A & 7) {
 	case 0: return regs[0] = 0xff; /* clear all exceptions */
 	case 2: return 0xc0;	/* DIP selftest + freeplay */
