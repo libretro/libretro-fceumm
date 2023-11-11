@@ -60,7 +60,7 @@ static void M50Power(void) {
 static void M50Reset(void) {
 }
 
-static void FP_FASTAPASS(1) M50IRQHook(int a) {
+static void M50IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
 			IRQCount += a;

@@ -88,7 +88,7 @@ static void M368Reset(void) {
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M368IRQHook(int a) {
+static void M368IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
 			IRQCount += a;

@@ -213,7 +213,7 @@ static DECLFW(trapCPUWrite)
 	cpuWriteHandlers[A](A, V);
 }
 
-static void FP_FASTAPASS(1) trapPPUAddressChange (uint32 A)
+static void trapPPUAddressChange (uint32 A)
 {
    if ((irqControl &0x03) ==0x02 && lastPPUAddress !=A)
    {
@@ -240,7 +240,7 @@ static void ppuScanline(void)
    }
 }
 
-static void FP_FASTAPASS(1) cpuCycle(int a)
+static void cpuCycle(int a)
 {
    if ((irqControl &0x03) ==0x00)
       while (a--)

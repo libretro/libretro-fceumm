@@ -46,7 +46,7 @@ typedef struct {
 
 static ZAPPER ZD[2];
 
-static void FP_FASTAPASS(3) ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32 linets, int final) {
+static void ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32 linets, int final) {
 	if (!switchZapper) {
 	   int xs, xe;
 	   int zx, zy;
@@ -113,7 +113,7 @@ static INLINE int CheckColor(int w) {
 	return(1);
 }
 
-static uint8 FP_FASTAPASS(1) ReadZapperVS(int w) {
+static uint8 ReadZapperVS(int w) {
 	uint8 ret = 0;
 
 	if (ZD[w].zap_readbit == 4) ret = 1;
@@ -139,11 +139,11 @@ static uint8 FP_FASTAPASS(1) ReadZapperVS(int w) {
 	return ret;
 }
 
-static void FP_FASTAPASS(1) StrobeZapperVS(int w) {
+static void StrobeZapperVS(int w) {
 	ZD[w].zap_readbit = 0;
 }
 
-static uint8 FP_FASTAPASS(1) ReadZapper(int w) {
+static uint8 ReadZapper(int w) {
 	uint8 ret = 0;
 		
 	if (ZD[w].bogo) 
@@ -159,12 +159,12 @@ static uint8 FP_FASTAPASS(1) ReadZapper(int w) {
 	return ret;
 }
 
-static void FASTAPASS(3) DrawZapper(int w, uint8 * buf, int arg) {
+static void DrawZapper(int w, uint8 * buf, int arg) {
 	if (arg && !switchZapper)
 		FCEU_DrawGunSight(buf, ZD[w].mzx, ZD[w].mzy);
 }
 
-static void FP_FASTAPASS(3) UpdateZapper(int w, void *data, int arg) {
+static void UpdateZapper(int w, void *data, int arg) {
 	uint32 *ptr = (uint32*)data;
 
 	if (ZD[w].bogo)

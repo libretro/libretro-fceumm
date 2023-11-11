@@ -62,10 +62,9 @@ static void UNL3DBlockPower(void) {
 
 static void UNL3DBlockReset(void) {
 	Count += 0x10;
-	FCEU_printf("Count=%04x\n", Count);
 }
 
-static void FP_FASTAPASS(1) UNL3DBlockIRQHook(int a) {
+static void  UNL3DBlockIRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount > 0) {
 			IRQCount -= a;

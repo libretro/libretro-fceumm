@@ -74,7 +74,7 @@ static DECLFW(UNLBJ56Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) UNLBJ56IRQHook(int a) {
+static void UNLBJ56IRQHook(int a) {
 	IRQCount += a;
 	if (IRQCount & 4096)
 		X6502_IRQBegin(FCEU_IQEXT);

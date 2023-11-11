@@ -41,7 +41,7 @@ char *GetKeyboard(void);
 static char *TransformerKeys, oldkeys[256];
 static int TransformerCycleCount, TransformerChar = 0;
 
-static void FP_FASTAPASS(1) TransformerIRQHook(int a) {
+static void TransformerIRQHook(int a) {
 	TransformerCycleCount += a;
 	if (TransformerCycleCount >= 1000) {
 		uint32 i;

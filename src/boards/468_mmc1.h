@@ -49,7 +49,7 @@ static DECLFW(MMC1_writeReg) {
 	MMC1_filter =2;
 }
 
-static void FP_FASTAPASS(1) MMC1_cpuCycle(int a) {
+static void MMC1_cpuCycle(int a) {
 	while (a--) if (MMC1_filter) MMC1_filter--;
 }
 

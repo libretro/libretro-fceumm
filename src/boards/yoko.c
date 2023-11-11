@@ -196,7 +196,7 @@ static void M83Close(void) {
 	WRAM = NULL;
 }
 
-static void FP_FASTAPASS(1) UNLYOKOIRQHook(int a) {
+static void UNLYOKOIRQHook(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount < 0) {

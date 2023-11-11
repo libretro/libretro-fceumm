@@ -156,7 +156,7 @@ static void M359Reset(void) {
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M359CPUHook(int a) {
+static void M359CPUHook(int a) {
 	if (!irqPA12) {
 		if (IRQa && IRQCount16) {
 			IRQCount16 -= a;

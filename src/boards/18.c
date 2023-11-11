@@ -92,7 +92,7 @@ static void M18Power(void) {
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void FP_FASTAPASS(1) M18IRQHook(int a) {
+static void M18IRQHook(int a) {
 	if (IRQa && IRQCount) {
 		IRQCount -= a;
 		if (IRQCount <= 0) {

@@ -133,7 +133,7 @@ static DECLFW(M369Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) SMB2JIRQHook(int a) {
+static void SMB2JIRQHook(int a) {
 	if (mode != 0x13)
 		return;
 

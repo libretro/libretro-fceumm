@@ -34,7 +34,7 @@ void (*X6502_Run)(int32 cycles);
 
 uint32 timestamp;
 uint32 sound_timestamp;
-void FP_FASTAPASS(1) (*MapIRQHook)(int a);
+void (*MapIRQHook)(int a);
 
 #define _PC        X.PC
 #define _A         X.A
@@ -91,12 +91,12 @@ static INLINE void WrRAMFast(uint32 A, uint8 V) {
 	RAM[A] = V;
 }
 
-uint8 FASTAPASS(1) X6502_DMR(uint32 A) {
+uint8 X6502_DMR(uint32 A) {
 	ADDCYC(1);
 	return(X.DB = ARead[A](A));
 }
 
-void FASTAPASS(2) X6502_DMW(uint32 A, uint8 V) {
+void X6502_DMW(uint32 A, uint8 V) {
 	ADDCYC(1);
 	BWrite[A](A, V);
 }
@@ -353,11 +353,11 @@ static uint8 CycTable[256] =
 /*0xF0*/ 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
 };
 
-void FASTAPASS(1) X6502_IRQBegin(int w) {
+void X6502_IRQBegin(int w) {
 	_IRQlow |= w;
 }
 
-void FASTAPASS(1) X6502_IRQEnd(int w) {
+void X6502_IRQEnd(int w) {
 	_IRQlow &= ~w;
 }
 

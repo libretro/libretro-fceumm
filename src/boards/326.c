@@ -52,7 +52,7 @@ static void FixCHR(void) {
 		DoCHR(x, CHR[x]);
 }
 
-static void FASTAPASS(2) DoNTARAM(int w, uint8 V) {
+static void DoNTARAM(int w, uint8 V) {
 	NTAPage[w] = V;
 	setntamem(NTARAM + ((V & 1) << 10), 1, w);
 }

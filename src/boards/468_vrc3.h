@@ -36,7 +36,7 @@ static DECLFW(VRC3_writeReg) {
 	}
 }
 
-static void FP_FASTAPASS(1) VRC3_cpuCycle(int a) {
+static void VRC3_cpuCycle(int a) {
 	while (a--) {
 		int mask =VRC3_mode &0x04? 0xFF: 0xFFFF;
 		if (VRC3_mode &0x02) {

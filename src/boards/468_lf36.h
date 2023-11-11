@@ -20,7 +20,7 @@ static DECLFW(LF36_writeReg) {
 	}
 }
 
-static void FP_FASTAPASS(1) LF36_cpuCycle(int a) {
+static void LF36_cpuCycle(int a) {
 	while (a--) {
 		if (LF36_irq) {
 			if (++LF36_counter &0x1000)

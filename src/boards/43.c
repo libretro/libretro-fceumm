@@ -70,7 +70,7 @@ static void M43Power(void) {
 static void M43Reset(void) {
 }
 
-static void FP_FASTAPASS(1) M43IRQHook(int a) {
+static void M43IRQHook(int a) {
 	IRQCount += a;
 	if (IRQa)
 		if (IRQCount >= 4096) {

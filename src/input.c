@@ -141,7 +141,7 @@ static void StrobeFami4(void) {
 	F4ReadBit[0] = F4ReadBit[1] = 0;
 }
 
-static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret) {
+static uint8 ReadFami4(int w, uint8 ret) {
 	ret &= 1;
 	ret |= ((joy[2 + w] >> (F4ReadBit[w])) & 1) << 1;
 	if (F4ReadBit[w] >= 8) ret |= 2;
@@ -150,7 +150,7 @@ static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret) {
 }
 
 /* VS. Unisystem inputs */
-static uint8 FP_FASTAPASS(1) ReadGPVS(int w) {
+static uint8 ReadGPVS(int w) {
 	uint8 ret = 0;
 	if (joy_readbit[w] >= 8)
 		ret = 1;
@@ -165,7 +165,7 @@ static uint8 FP_FASTAPASS(1) ReadGPVS(int w) {
 }
 
 /* standard gamepad inputs */
-static uint8 FP_FASTAPASS(1) ReadGP(int w) {
+static uint8 ReadGP(int w) {
 	uint8 ret;
 	if (joy_readbit[w] >= 8)
 		ret = ((joy[2 + w] >> (joy_readbit[w] & 7)) & 1);
@@ -186,7 +186,7 @@ static uint8 FP_FASTAPASS(1) ReadGP(int w) {
 	return ret;
 }
 
-static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
+static void UpdateGP(int w, void *data, int arg) {
 	uint32 *ptr = (uint32*)data;
 	if (!w) {
 		joy[0] = *(uint32*)ptr;
@@ -197,7 +197,7 @@ static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
 	}
 }
 
-static void FP_FASTAPASS(1) StrobeGP(int w) {
+static void StrobeGP(int w) {
 	joy_readbit[w] = 0;
 }
 
@@ -273,7 +273,7 @@ static void CheckSLHook(void)
       InputScanlineHook = SLHLHook;
 }
 
-static void FASTAPASS(1) SetInputStuff(int x)
+static void SetInputStuff(int x)
 {
 	switch (JPType[x])
    {

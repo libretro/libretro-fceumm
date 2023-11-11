@@ -10,7 +10,7 @@ void FCEUPPU_LineUpdate(void);
 void FCEUPPU_SetVideoSystem(int w);
 
 extern void (*GameHBIRQHook)(void), (*GameHBIRQHook2)(void);
-extern void FP_FASTAPASS(1) (*PPU_hook)(uint32 A);
+extern void (*PPU_hook)(uint32 A);
 
 /* For cart.c and banksw.h, mostly */
 extern uint8 NTARAM[0x800], *vnapage[4];

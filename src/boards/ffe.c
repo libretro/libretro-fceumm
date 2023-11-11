@@ -105,7 +105,7 @@ static void FFEPower(void) {
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void FP_FASTAPASS(1) FFEIRQHook(int a) {
+static void FFEIRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount >= 0x10000) {

@@ -304,7 +304,7 @@ static DECLFR(BandaiRead) {
 		return (X.DB & 0xEF) | (x24c01_out << 4);
 }
 
-static void FP_FASTAPASS(1) BandaiIRQHook(int a) {
+static void BandaiIRQHook(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount < 0) {
@@ -587,7 +587,7 @@ static DECLFW(BarcodeWrite) {
 	}
 }
 
-static void FP_FASTAPASS(1) BarcodeIRQHook(int a) {
+static void BarcodeIRQHook(int a) {
 	BandaiIRQHook(a);
 
 	BarcodeCycleCount += a;

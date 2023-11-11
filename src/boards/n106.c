@@ -81,7 +81,7 @@ static void SyncMirror() {
 	}
 }
 
-static void FP_FASTAPASS(1) NamcoIRQHook(int a) {
+static void NamcoIRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount >= 0x7FFF) {
@@ -111,7 +111,7 @@ static DECLFR(Namco_Read5800) {
 	return(IRQCount >> 8);
 }
 
-static void FASTAPASS(2) DoNTARAMROM(int w, uint8 V) {
+static void DoNTARAMROM(int w, uint8 V) {
 	NTAPage[w] = V;
 	if (V >= 0xE0)
 		setntamem(NTARAM + ((V & 1) << 10), 1, w);
@@ -127,7 +127,7 @@ static void FixNTAR(void) {
 		DoNTARAMROM(x, NTAPage[x]);
 }
 
-static void FASTAPASS(2) DoCHRRAMROM(int x, uint8 V) {
+static void DoCHRRAMROM(int x, uint8 V) {
 	CHR[x] = V;
 	if (!is210 && !((gorfus >> ((x >> 2) + 6)) & 1) && (V >= 0xE0)) {
 	} else

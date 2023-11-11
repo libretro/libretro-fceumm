@@ -876,7 +876,7 @@ void Mapper115_Init(CartInfo *info) {
 static uint8 PPUCHRBus;
 static uint8 TKSMIR[8];
 
-static void FP_FASTAPASS(1) TKSPPU(uint32 A) {
+static void TKSPPU(uint32 A) {
 	A &= 0x1FFF;
 	A >>= 10;
 	PPUCHRBus = A;
@@ -935,7 +935,7 @@ static void M165CWM(uint32 A, uint8 V) {
 		M165PPUFE();
 }
 
-static void FP_FASTAPASS(1) M165PPU(uint32 A) {
+static void M165PPU(uint32 A) {
 	if ((A & 0x1FF0) == 0x1FD0) {
 		EXPREGS[0] = 0xFD;
 		M165PPUFD();

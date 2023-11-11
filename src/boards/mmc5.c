@@ -179,7 +179,7 @@ static void MMC5CHRB(void) {
 	}
 }
 
-static void FASTAPASS(2) MMC5WRAM(uint32 A, uint32 V) {
+static void MMC5WRAM(uint32 A, uint32 V) {
 	V = MMC5WRAMIndex[V & 7];
 	if (V != 255) {
 		setprg8r(0x10, A, V);

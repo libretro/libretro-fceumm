@@ -52,7 +52,7 @@ static DECLFW(FME7_writeReg) {
 	}
 }
 
-static void FP_FASTAPASS(1) FME7_cpuCycle(int a) {
+static void FME7_cpuCycle(int a) {
 	while (a--) {
 		if (FME7_reg[0xD] &0x80 && !--FME7_counter && FME7_reg[0xD] &0x01) X6502_IRQBegin(FCEU_IQEXT);
 	}

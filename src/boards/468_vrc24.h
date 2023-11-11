@@ -66,7 +66,7 @@ static DECLFW(VRC24_writeReg) {
 	}
 }
 
-static void FP_FASTAPASS(1) VRCIRQ_cpuCycle(int a) {
+static void VRCIRQ_cpuCycle(int a) {
 	while (a--) {
 		if (VRCIRQ_mode &0x02 && (VRCIRQ_mode &0x04 || (VRCIRQ_cycles -=3) <=0)) {
 			if (~VRCIRQ_mode &0x04) VRCIRQ_cycles +=341;

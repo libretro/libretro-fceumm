@@ -197,7 +197,7 @@ static void M25Power(void) {
 	VRC24PowerCommon(M22Write);
 }
 
-void FP_FASTAPASS(1) VRC24IRQHook(int a) {
+void VRC24IRQHook(int a) {
 	#define LCYCS 341
 	if (IRQa) {
 		acount += a * 3;
@@ -307,7 +307,7 @@ static DECLFW(TH2131Write) {
 	}
 }
 
-void FP_FASTAPASS(1) TH2131IRQHook(int a) {
+void TH2131IRQHook(int a) {
 	int count;
 
 	if (!IRQa)
@@ -368,7 +368,7 @@ static DECLFW(BTL900218Write) {
 	}
 }
 
-void FP_FASTAPASS(1) BTL900218IRQHook(int a) {
+void BTL900218IRQHook(int a) {
 	if (!IRQa)
 		return;
 

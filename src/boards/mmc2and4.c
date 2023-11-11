@@ -65,7 +65,7 @@ DECLFW(MMC2and4Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) MMC2and4PPUHook(uint32 A) {
+static void MMC2and4PPUHook(uint32 A) {
 	uint8 l, h = A >> 8;
 	if (h >= 0x20 || ((h & 0xF) != 0xF))
 		return;

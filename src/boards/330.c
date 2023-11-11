@@ -58,7 +58,7 @@ static void FixCHR(void) {
 		DoCHR(x, CHR[x]);
 }
 
-static void FASTAPASS(2) DoNTARAM(int w, uint8 V) {
+static void DoNTARAM(int w, uint8 V) {
 	NTAPage[w] = V;
 	setntamem(NTARAM + ((V & 1) << 10), 1, w);
 }
@@ -109,7 +109,7 @@ static void M330Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M330Write);
 }
 
-static void FP_FASTAPASS(1) M330IRQHook(int a) {
+static void M330IRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount > 0x7FFF) {

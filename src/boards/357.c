@@ -101,7 +101,7 @@ static void M357Reset(void) {
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M357IRQHook(int a) {
+static void M357IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
 			IRQCount += a;

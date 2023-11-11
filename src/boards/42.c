@@ -63,7 +63,7 @@ static void M42Power(void) {
 	SetWriteHandler(0x6000, 0xffff, M42Write);
 }
 
-static void FP_FASTAPASS(1) M42IRQHook(int a) {
+static void M42IRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount >= 32768) IRQCount -= 32768;

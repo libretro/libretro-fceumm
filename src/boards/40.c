@@ -80,7 +80,7 @@ static void M40Reset(void) {
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M40IRQHook(int a) {
+static void M40IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
 			IRQCount += a;

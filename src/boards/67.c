@@ -81,7 +81,7 @@ static void M67Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M67Write);
 }
 
-void FP_FASTAPASS(1) M67IRQ(int a) {
+void M67IRQ(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount <= 0) {

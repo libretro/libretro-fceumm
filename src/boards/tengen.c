@@ -42,7 +42,7 @@ static SFORMAT StateRegs[] = {
 	{ 0 }
 };
 
-static void FP_FASTAPASS(1) RAMBO1IRQHook(int a) {
+static void RAMBO1IRQHook(int a) {
 	static int32 smallcount;
 	if (IRQmode) {
 		smallcount += a;
@@ -168,7 +168,7 @@ void Mapper64_Init(CartInfo *info) {
 static uint8 M158MIR[8];
 static uint8 PPUCHRBus;
 
-static void FP_FASTAPASS(1) M158PPU(uint32 A) {
+static void M158PPU(uint32 A) {
 	A &= 0x1FFF;
 	A >>= 10;
 	PPUCHRBus = A;

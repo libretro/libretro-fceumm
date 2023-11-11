@@ -25,7 +25,7 @@ static DECLFW(MMC24_writeReg) {
 	sync();
 }
 
-static void FP_FASTAPASS(1) MMC24_ppuHook(uint32 A) {
+static void MMC24_ppuHook(uint32 A) {
 	uint8 l, h = A >> 8;
 	if (h >= 0x20 || ((h & 0xF) != 0xF)) return;
 	l = A & 0xF0;

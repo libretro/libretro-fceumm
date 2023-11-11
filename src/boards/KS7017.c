@@ -75,7 +75,7 @@ static DECLFR(FDSRead4030) {
 	return X.IRQlow & FCEU_IQEXT ? 1 : 0;
 }
 
-static void FP_FASTAPASS(1) UNL7017IRQ(int a) {
+static void UNL7017IRQ(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount <= 0) {

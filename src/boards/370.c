@@ -28,7 +28,7 @@
 static uint8 PPUCHRBus;
 static uint8 mirr[8];
 
-static void FP_FASTAPASS(1) M370PPU(uint32 A) {
+static void M370PPU(uint32 A) {
 	if ((EXPREGS[0] & 7) == 1) {
 		A &= 0x1FFF;
 		A >>= 10;

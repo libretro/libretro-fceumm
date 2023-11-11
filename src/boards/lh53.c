@@ -67,7 +67,7 @@ static DECLFW(LH53IRQaWrite) {
 		X6502_IRQEnd(FCEU_IQEXT);
 }
 
-static void FP_FASTAPASS(1) LH53IRQ(int a) {
+static void LH53IRQ(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount > 7560)

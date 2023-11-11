@@ -73,7 +73,7 @@ static void UNLD2000Power(void) {
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void FP_FASTAPASS(1) UNL2000Hook(uint32 A) {
+static void UNL2000Hook(uint32 A) {
 	if (mode & 2) {
 		if ((A & 0x3000) == 0x2000) {
 			uint32 curnt = A & 0x800;

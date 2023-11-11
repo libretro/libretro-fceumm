@@ -121,7 +121,7 @@ static DECLFW(M95Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) MExMirrPPU(uint32 A) {
+static void MExMirrPPU(uint32 A) {
 	static int8 lastmirr = -1, curmirr;
 	if (A < 0x2000) {
 		lastppu = A >> 10;

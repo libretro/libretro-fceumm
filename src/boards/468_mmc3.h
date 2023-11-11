@@ -50,7 +50,7 @@ static void MMC3_horizontalBlanking(void) {
 	if (!MMC3_count && MMC3_irq) X6502_IRQBegin(FCEU_IQEXT);
 }
 
-static void FP_FASTAPASS(1) MMC3_ppuHook(uint32 A) {
+static void MMC3_ppuHook(uint32 A) {
 	A &=0x1FFF;
 	if (MMC3_index &0x80) A ^=0x1000;
 	if (A <0x1000)

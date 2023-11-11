@@ -50,7 +50,7 @@ static DECLFW(M96Write) {
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M96Hook(uint32 A) {
+static void M96Hook(uint32 A) {
 	if ((A & 0x3000) == 0x2000) {
 		ppulatch = (A >> 8) & 3;
 		Sync();
