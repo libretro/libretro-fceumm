@@ -2983,7 +2983,6 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
       if ((codepart_len == 7) && (codepart[4]==':'))
       {
          /* raw code in xxxx:xx format */
-         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (Raw)\n", codepart);
          codepart[4] = '\0';
          a = strtoul(codepart, NULL, 16);
          v = strtoul(codepart + 5, NULL, 16);
@@ -2996,7 +2995,6 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
       else if ((codepart_len == 10) && (codepart[4] == '?') && (codepart[7] == ':'))
       {
          /* raw code in xxxx?xx:xx */
-         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (Raw)\n", codepart);
          codepart[4] = '\0';
          codepart[7] = '\0';
          a = strtoul(codepart, NULL, 16);
@@ -3010,12 +3008,10 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
       else if (GGisvalid(codepart) && FCEUI_DecodeGG(codepart, &a, &v, &c))
       {
          FCEUI_AddCheat(name, a, v, c, type);
-         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (GG)\n", codepart);
       }
       else if (FCEUI_DecodePAR(codepart, &a, &v, &c, &type))
       {
          FCEUI_AddCheat(name, a, v, c, type);
-         log_cb.log(RETRO_LOG_DEBUG, "Cheat code added: '%s' (PAR)\n", codepart);
       }
       else
          log_cb.log(RETRO_LOG_DEBUG, "Invalid or unknown code: '%s'\n", codepart);
@@ -3505,14 +3501,7 @@ bool retro_load_game(const struct retro_game_info *info)
          frontend_post_load_init);
 
    if (!GameInfo)
-   {
-#if 0
-      /* An error message here is superfluous - the frontend
-       * will report that content loading has failed */
-      FCEUD_DispMessage(RETRO_LOG_ERROR, 3000, "ROM loading failed...");
-#endif
       return false;
-   }
 
    if (palette_switch_enabled)
       environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc_ps);
