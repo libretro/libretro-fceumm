@@ -57,15 +57,14 @@ static void hblank(void) {
       setchr8(0);
 }
 
-static DECLFR(readReg)
+static uint8 readReg(uint32 A)
 {
    if (haveEEPROM)
       return eeprom_93C66_read()? 0x04: 0x00;
-   else
-      return reg[2] &0x04;
+   return reg[2] &0x04;
 }
 
-static DECLFW(writeReg)
+static void writeReg(uint32 A, uint8 V)
 {
    uint8 index = A >>8 &3;
    

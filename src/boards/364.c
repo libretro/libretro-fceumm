@@ -32,7 +32,7 @@ static void M364PW(uint32 A, uint8 V) {
 	setprg8(A, V | ((EXPREGS[0] >> 1) & 0x20));
 }
 
-static DECLFW(M364Write) {
+static void M364Write(uint32 A, uint8 V) {
 	EXPREGS[0] = V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

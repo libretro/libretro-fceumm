@@ -51,7 +51,7 @@ static void Sync(void) {
 	setchr8(creg);
 }
 
-static DECLFW(M244Write) {
+static void M244Write(uint32 A, uint8 V) {
 	if (V & 8)
 		creg = chr_perm[(V >> 4) & 7][V & 7];
 	else

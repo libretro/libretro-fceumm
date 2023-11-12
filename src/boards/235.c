@@ -59,7 +59,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFR(M235Read) {
+static uint8 M235Read(uint32 A) {
 	if (openbus) {
 		openbus = 0;
 		return X.DB;
@@ -67,7 +67,7 @@ static DECLFR(M235Read) {
 	return CartBR(A);
 }
 
-static DECLFW(M235Write) {
+static void M235Write(uint32 A, uint8 V) {
 	cmdreg = A;
 	reg = V;
 	Sync();

@@ -56,7 +56,7 @@ static void Sync(void) {
 	setmirror(mirr ^ 1);
 }
 
-static DECLFW(M222Write) {
+static void M222Write(uint32 A, uint8 V) {
 	switch (A & 0xF003) {
 	case 0x8000: prg_reg[0] = V; break;
 	case 0x9000: mirr = V & 1; break;

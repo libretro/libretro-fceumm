@@ -31,7 +31,7 @@ static void M516PW(uint32 A, uint8 V) {
 	setprg8(A, (V & 0x0F) | ((EXPREGS[0] << 4) & 0x30));
 }
 
-static DECLFW(M516Write) {
+static void M516Write(uint32 A, uint8 V) {
 	if (A & 0x10) {
 		EXPREGS[0] = A & 0xF;
 		FixMMC3PRG(MMC3_cmd);

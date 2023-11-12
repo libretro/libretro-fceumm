@@ -49,19 +49,17 @@ static void Sync(void) {
 	setmirror((regs[1] & 0x8) ? 0 : 1);
 }
 
-static DECLFW(WriteHi) {
+static void WriteHi(uint32 A, uint8 V) {
 	regs[0] = V;
 	Sync();
 }
 
-static DECLFW(WriteLo) {
+static void WriteLo(uint32 A, uint8 V) {
 	regs[A & 0x03] = V;
 	Sync();
 }
 
-static DECLFR(ReadLo) {
-	return hrd_flag;
-}
+static uint8 ReadLo(uint32 A) { return hrd_flag; }
 
 static void Power(void) {
 	hrd_flag = 0; /* Solder pad, selecting different menus */

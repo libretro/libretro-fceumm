@@ -46,7 +46,7 @@ static void M410PW(uint32 A, uint8 V) {
 	setprg8(A, MV);
 }
 
-static DECLFW(M410Write) {
+static void M410Write(uint32 A, uint8 V) {
 	EXPREGS[EXPREGS[4]] = V;
 	EXPREGS[4] = (EXPREGS[4] + 1) & 3;
 	FixMMC3PRG(MMC3_cmd);

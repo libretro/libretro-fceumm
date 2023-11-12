@@ -43,11 +43,11 @@ static void Mapper443_CHRWrap(uint32 A, uint8 V) {
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
-static DECLFR(Mapper443_Read) {
+static uint8 Mapper443_Read(uint32 A) {
 	return (EXPREGS[0] &0x0C) ==0x08? dip: CartBR(A);
 }
 
-static DECLFW(Mapper443_Write) {
+static void Mapper443_Write(uint32 A, uint8 V) {
 	EXPREGS[0] =A &0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

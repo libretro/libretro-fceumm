@@ -69,7 +69,7 @@ static void FixNTAR(void) {
 		DoNTARAM(x, NTAPage[x]);
 }
 
-static DECLFW(M330Write) {
+static void M330Write(uint32 A, uint8 V) {
 	if (!(A & 0x400)) {
 		if (A >= 0x8000 && A <= 0xB800)
 			DoCHR((A - 0x8000) >> 11, V);

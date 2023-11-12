@@ -38,7 +38,7 @@ static void M395PW(uint32 A, uint8 V) {
 	setprg8(A, (V & mask) | ((EXPREGS[0] & 0x30) << 1) | ((EXPREGS[0] & 8) << 4) | ((EXPREGS[1] & 1) << 4));
 }
 
-static DECLFW(M395Write) {
+static void M395Write(uint32 A, uint8 V) {
 	if (!(EXPREGS[1] & 0x80)) {
 		EXPREGS[(A >> 4) & 1] = V;
 		FixMMC3PRG(MMC3_cmd);

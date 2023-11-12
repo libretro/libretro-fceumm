@@ -40,13 +40,12 @@ static void Sync(void) {
 	setprg16(0xc000, ~0);
 }
 
-static DECLFW(M168Write) {
+static void M168Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }
 
-static DECLFW(M168Dummy) {
-}
+static void M168Dummy(uint32 A, uint8 V) { }
 
 static void M168Power(void) {
 	reg = 0;
@@ -64,9 +63,7 @@ static void M168Close(void) {
 	CHRRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 void Mapper168_Init(CartInfo *info) {
 	info->Power = M168Power;

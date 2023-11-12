@@ -180,7 +180,7 @@ static void Sync(void) {
 	SyncMIR();
 }
 
-static DECLFW(UNLSL12ModeWrite) {
+static void UNLSL12ModeWrite(uint32 A, uint8 V) {
 	if ((A & 0x4100) == 0x4100) {
 		mode = V;
 		if (A & 1) {	/* hacky hacky, there are two configuration modes on SOMARI HUANG-1 PCBs
@@ -199,7 +199,7 @@ static DECLFW(UNLSL12ModeWrite) {
 	}
 }
 
-static DECLFW(UNLSL12Write) {
+static void UNLSL12Write(uint32 A, uint8 V) {
 	switch (mode & 3) {
 	case 0: {
 		if ((A >= 0xB000) && (A <= 0xE003)) {

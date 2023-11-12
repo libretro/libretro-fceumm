@@ -73,7 +73,7 @@ static void Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
-static DECLFW(M375Write) {
+static void M375Write(uint32 A, uint8 V) {
 	if (addrlatch & 0x800)
 		datalatch = V;
 	else {

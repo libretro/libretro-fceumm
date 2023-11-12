@@ -9,7 +9,7 @@ static void IF12_sync () {
 	setmirror(IF12_reg[0] &1? MI_H: MI_V);
 }
 
-static DECLFW(IF12_writeReg) {
+static void IF12_writeReg(uint32 A, uint8 V) {
 	IF12_reg[A >>14 &1] =V;
 	sync();
 }

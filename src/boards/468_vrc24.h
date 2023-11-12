@@ -7,7 +7,7 @@
 #define VRCIRQ_count    regByte[15]
 #define VRCIRQ_cycles   regWord[8]
 
-static void VRC24_sync() {
+static void VRC24_sync(void) {
 	setprg8(0x8000 ^(VRC24_misc <<13 &0x4000), VRC24_prg[0] &prgAND | prgOR &~prgAND);
 	setprg8(0xA000,                            VRC24_prg[1] &prgAND | prgOR &~prgAND);
 	setprg8(0xC000 ^(VRC24_misc <<13 &0x4000),         0xFE &prgAND | prgOR &~prgAND);
@@ -23,7 +23,7 @@ static void VRC24_sync() {
 	setmirror(VRC24_mirroring &3 ^(VRC24_mirroring &2? 0: 1));
 }
 
-static DECLFW(VRC24_writeReg) {
+static void VRC24_writeReg(uint32 A, uint8 V) {
 	uint8 index;
 	A =A &0xF000 | (mapper &2? ((A &0xA? 1: 0) | (A &0x5? 2: 0)): ((A &0x5? 1: 0) | (A &0xA? 2: 0)));
 	switch (A &0xF000) {

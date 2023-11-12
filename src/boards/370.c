@@ -59,11 +59,9 @@ static void M370MW(uint8 V) {
 		setmirror((V & 1) ^ 1);
 }
 
-static DECLFR(M370Read) {;
-	return (EXPREGS[1] << 7);
-}
+static uint8 M370Read(uint32 A) { return (EXPREGS[1] << 7); }
 
-static DECLFW(M370Write) {
+static void M370Write(uint32 A, uint8 V) {
 	EXPREGS[0] = (A & 0xFF);
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

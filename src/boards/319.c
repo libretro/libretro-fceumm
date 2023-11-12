@@ -49,16 +49,14 @@ static void StateRestore(int version) {
 	M319Sync();
 }
 
-static DECLFR(M319ReadPad) {
-	return pad;
-}
+static uint8 M319ReadPad(uint32 A) { return pad; }
 
-static DECLFW(M319WriteReg) {
+static void M319WriteReg(uint32 A, uint8 V) {
 	reg[A >>2 &1] =V;
 	M319Sync();
 }
 
-static DECLFW(M319WriteLatch) {
+static void M319WriteLatch(uint32 A, uint8 V) {
 	latch =V;
 	M319Sync();
 }

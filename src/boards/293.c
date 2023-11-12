@@ -54,18 +54,18 @@ static void Sync(void) {
 	setmirror(((regs[1] >> 7) & 1) ^ 1);
 }
 
-static DECLFW(M293Write1) {
+static void M293Write1(uint32 A, uint8 V) {
 	regs[0] = V;
 	regs[1] = V;
 	Sync();
 }
 
-static DECLFW(M293Write2) {
+static void M293Write2(uint32 A, uint8 V) {
 	regs[1] = V;
 	Sync();
 }
 
-static DECLFW(M293Write3) {
+static void M293Write3(uint32 A, uint8 V) {
 	regs[0] = V;
 	Sync();
 }

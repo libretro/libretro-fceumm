@@ -50,18 +50,19 @@ static void Sync(void) {
 	setmirror(((mirr & 8) >> 3) ^ 1);
 }
 
-static DECLFR(M539Read) {
+static uint8 M539Read(uint32 A) {
 	switch (A >> 8) {
 	case 0x60: case 0x62: case 0x64: case 0x65: case 0x82: case 0xC0: case 0xC1: case 0xC2:
 	case 0xC3: case 0xC4: case 0xC5: case 0xC6: case 0xC7: case 0xC8: case 0xC9: case 0xCA:
 	case 0xCB: case 0xCC: case 0xCD: case 0xCE: case 0xCF: case 0xD0: case 0xD1: case 0xDF:
 		return WRAM[GetWRAMAddress(A)];
 	default:
-		return CartBR(A);
+		break;
 	}
+	return CartBR(A);
 }
 
-static DECLFW(M539Write) {
+static void M539Write(uint32 A, uint8 V) {
 	switch (A >> 8) {
 	case 0x60: case 0x62: case 0x64: case 0x65: case 0x82: case 0xC0: case 0xC1: case 0xC2:
 	case 0xC3: case 0xC4: case 0xC5: case 0xC6: case 0xC7: case 0xC8: case 0xC9: case 0xCA:

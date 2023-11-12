@@ -57,7 +57,7 @@ static void Sync(void) {
 	setmirror(((reg >> 2) & 1) ^ 1);
 }
 
-static DECLFW(M416Write4) {
+static void M416Write4(uint32 A, uint8 V) {
 	switch (A & 0xD160) {
 	case 0x4120:
 		IRQa = V & 1;
@@ -72,7 +72,7 @@ static DECLFW(M416Write4) {
 	}
 }
 
-static DECLFW(M416Write8) {
+static void M416Write8(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }

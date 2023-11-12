@@ -58,23 +58,19 @@ static void Mapper449_Sync(void)
    setmirror(latchAddr &0x002? MI_H: MI_V);
 }
 
-static DECLFR(Mapper449_Read)
+static uint8 Mapper449_Read(uint32 A)
 {
    if (dipselect)
       return dipswitch &0x3;
    else
    if (latchAddr &0x200)
       return CartBR(A | dipswitch &0xF);
-   else
-      return CartBR(A);
+   return CartBR(A);
 }
 
-static DECLFW(Mapper449_WriteDIPSelect)
-{
-   dipselect =V &1;
-}
+static void Mapper449_WriteDIPSelect(uint32 A, uint8 V) { dipselect = V & 1; }
 
-static DECLFW(Mapper449_WriteLatch)
+static void Mapper449_WriteLatch(uint32 A, uint8 V)
 {
    latchData =V;
    latchAddr =A &0xFFFF;

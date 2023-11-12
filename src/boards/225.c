@@ -66,7 +66,7 @@ static void M225LoWrite(uint32 A, uint8 V) {
 	if (A & 0x800) extraRAM[A & 3] = V & 0x0F;
 }
 
-static DECLFR(M225LoRead) {
+static uint8 M225LoRead(uint32 A) {
 	if (A & 0x800) return extraRAM[A & 3];
 	return X.DB;
 }

@@ -41,7 +41,7 @@ static void Sync(void) {
 	setmirror((latch_addr & 1) ^ 1);
 }
 
-static DECLFW(M414Write) {
+static void M414Write(uint32 A, uint8 V) {
 	latch_addr = A;
 	latch_data = V & CartBR(A);
 	Sync();

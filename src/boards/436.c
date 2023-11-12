@@ -36,7 +36,7 @@ static void Mapper436_CWrap(uint32 A, uint8 V) {
 	setchr1(A, V &0x7F | EXPREGS[0] <<1 &~0x7F);
 }
 
-static DECLFW(Mapper436_Write) {
+static void Mapper436_Write(uint32 A, uint8 V) {
 	EXPREGS[0] = A &0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

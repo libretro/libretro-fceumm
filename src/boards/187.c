@@ -48,17 +48,17 @@ static void M187PW(uint32 A, uint8 V) {
 		setprg8(A, V & 0x3F);
 }
 
-static DECLFW(M187Write8000) {
+static void M187Write8000(uint32 A, uint8 V) {
 	EXPREGS[1] = 1;
 	MMC3_CMDWrite(A, V);
 }
 
-static DECLFW(M187Write8001) {
+static void M187Write8001(uint32 A, uint8 V) {
 	if (EXPREGS[1])
 		MMC3_CMDWrite(A, V);
 }
 
-static DECLFW(M187WriteLo) {
+static void M187WriteLo(uint32 A, uint8 V) {
 	if ((A == 0x5000) || (A == 0x6000)) {
 		EXPREGS[0] = V;
 		FixMMC3PRG(MMC3_cmd);

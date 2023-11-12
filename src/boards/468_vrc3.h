@@ -3,7 +3,7 @@
 #define VRC3_mode  regByte[1]
 #define VRC3_count regWord[1]
 
-static void VRC3_sync() {
+static void VRC3_sync(void) {
 	int AND =prgAND >>1;
 	int OR  =prgOR >>1;
 	setprg16(0x8000, VRC3_prg &AND | OR &~AND);
@@ -12,7 +12,7 @@ static void VRC3_sync() {
 	setmirror(mapperFlags &4? MI_H: MI_V);
 }
 
-static DECLFW(VRC3_writeReg) {
+static void VRC3_writeReg(uint32 A, uint8 V) {
 	int shift;
 	switch(A &0xF000) {
 	case 0x8000: case 0x9000: case 0xA000: case 0xB000:

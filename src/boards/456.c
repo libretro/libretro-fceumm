@@ -29,7 +29,7 @@ static void Mapper456_CHRWrap(uint32 A, uint8 V) {
 	setchr1(A, V &0x7F | EXPREGS[0] <<7);
 }
 
-static DECLFW(Mapper456_Write) {
+static void Mapper456_Write(uint32 A, uint8 V) {
 	if (A &0x100) {
 		EXPREGS[0] =V;
 		FixMMC3PRG(MMC3_cmd);

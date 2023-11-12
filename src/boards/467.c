@@ -40,14 +40,14 @@ static void Mapper467_CHRWrap(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(Mapper467_WriteExtra) {
+static void Mapper467_WriteExtra(uint32 A, uint8 V) {
 	EXPREGS[0] =V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 	setmirror(EXPREGS[0] &0x80? MI_H: MI_V);
 }
 
-static DECLFW(Mapper467_WriteMMC3) {
+static void Mapper467_WriteMMC3(uint32 A, uint8 V) {
 	if (~A &1) V &=0x3F;
 	MMC3_CMDWrite(A, V);
 }

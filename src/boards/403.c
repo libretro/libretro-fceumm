@@ -44,12 +44,12 @@ static void Sync(void) {
 	setmirror(((mode >> 4) & 1) ^ 1);
 }
 
-static DECLFW(M403Write4) {
+static void M403Write4(uint32 A, uint8 V) {
 	reg[A & 3] = V;
 	Sync();
 }
 
-static DECLFW(M403Write8) {
+static void M403Write8(uint32 A, uint8 V) {
 	if (reg[2] & 4) {
 		reg[1] = V;
 		Sync();

@@ -55,7 +55,7 @@ static void Sync(void) {
 	setmirror(mirr ^ 1);
 }
 
-static DECLFW(M382Write) {
+static void M382Write(uint32 A, uint8 V) {
 	if (!lock) {
 		preg[1] = (A & 0x07);
 		mode = (A & 0x08) >> 3;

@@ -3,7 +3,7 @@
 #define VRC6_prg8     regByte[9]
 #define VRC6_misc     regByte[10]
 
-static void VRC6_sync() {
+static void VRC6_sync(void) {
 	int AND =prgAND >>1;
 	int OR  =prgOR >>1;
 	setprg16(0x8000, VRC6_prg16 &   AND |    OR &   ~AND);
@@ -20,7 +20,7 @@ static void VRC6_sync() {
 	setmirror((VRC6_misc &0xC ^(VRC6_misc &0x8? 0: 0x4)) >>2);
 }
 
-static DECLFW(VRC6_writeReg) {
+static void VRC6_writeReg(uint32 A, uint8 V) {
 	uint8 index;
 	switch (A &0xF003) {
 	case 0x8000: case 0x8001: case 0x8002: case 0x8003:

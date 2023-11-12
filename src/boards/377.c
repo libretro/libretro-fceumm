@@ -35,7 +35,7 @@ static void M377PW(uint32 A, uint8 V) {
 	setprg8(A, (V & 0x0F) | (OUTER_BANK << 3));
 }
 
-static DECLFW(M377Write) {
+static void M377Write(uint32 A, uint8 V) {
     if (!(EXPREGS[0] & 0x80)) {
 		EXPREGS[0] = V;
 		FixMMC3PRG(MMC3_cmd);

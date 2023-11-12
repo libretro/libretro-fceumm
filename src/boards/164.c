@@ -75,12 +75,12 @@ static void sync()
    eeprom_93C66_write(reg[2] &0x10, reg[2] &0x04, reg[2] &0x01);
 }
 
-static DECLFR(readReg)
+static uint8 readReg(uint32 A)
 {
    return eeprom_93C66_read()? 0x00: 0x04;
 }
 
-static DECLFW(writeReg)
+static void writeReg(uint32 A, uint8 V)
 {
    reg[A >>8 &7] = V;
    sync();

@@ -57,12 +57,9 @@ static void hblank(void) {
       setchr8(0);
 }
 
-static DECLFR(readReg)
-{
-   return 0x00;
-}
+static uint8 readReg(uint32 A) { return 0x00; }
 
-static DECLFW(writeReg)
+static void writeReg(uint32 A, uint8 V)
 {
    reg[A >>8 &3] = V;
    sync();

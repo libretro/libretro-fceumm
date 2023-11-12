@@ -32,12 +32,12 @@ static void Mapper434_Sync(void) {
 	setmirror(latch >>8 &1);
 }
 
-static DECLFW(Mapper434_WriteOuterBank) {
+static void Mapper434_WriteOuterBank(uint32 A, uint8 V) {
 	latch =latch &7 | V <<3;
 	Mapper434_Sync();
 }
 
-static DECLFW(Mapper434_WriteInnerBank) {
+static void Mapper434_WriteInnerBank(uint32 A, uint8 V) {
 	latch =latch &~7 | V &CartBR(A) &7;
 	Mapper434_Sync();
 }

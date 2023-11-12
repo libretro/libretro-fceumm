@@ -51,12 +51,9 @@ static void hblank(void) {
       setchr8(0);
 }
 
-static DECLFR(readReg)
-{
-   return ~reg[1] &0x04;
-}
+static uint8 readReg(uint32 A) { return ~reg[1] & 0x04; }
 
-static DECLFW(writeReg)
+static void writeReg(uint32 A, uint8 V)
 {
    uint8 index = A >>8 &3;
    

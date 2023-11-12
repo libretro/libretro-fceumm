@@ -57,7 +57,7 @@ static void M356MW(uint8 V) {
 		setmirror((V & 1) ^ 1);
 }
 
-static DECLFW(M356Write) {
+static void M356Write(uint32 A, uint8 V) {
 	if (!(EXPREGS[3] & 0x40)) {
 		EXPREGS[EXPREGS[4]] = V;
 		EXPREGS[4] = (EXPREGS[4] + 1) & 3;

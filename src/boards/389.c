@@ -46,7 +46,7 @@ static void Sync(void)
    setmirror((regs[0] & 0x01) ^ 1);
 }
 
-static DECLFW(M389Write)
+static void M389Write(uint32 A, uint8 V)
 {
    switch (A & 0xF000)
    {

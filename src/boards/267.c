@@ -33,7 +33,7 @@ static void M267PW(uint32 A, uint8 V) {
 	setprg8(A, (V & 0x1F) | (OUTER_BANK << 4));
 }
 
-static DECLFW(M267Write) {
+static void M267Write(uint32 A, uint8 V) {
 	if (!(EXPREGS[0] & 0x80)) {
 		EXPREGS[0] = V;
 		FixMMC3PRG(MMC3_cmd);

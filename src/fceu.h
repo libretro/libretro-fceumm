@@ -23,9 +23,6 @@ extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
 
 void ResetGameLoaded(void);
 
-#define DECLFR(x) uint8 x(uint32 A)
-#define DECLFW(x) void x(uint32 A, uint8 V)
-
 void FCEU_MemoryRand(uint8 *ptr, uint32 size);
 void SetReadHandler(int32 start, int32 end, readfunc func);
 void SetWriteHandler(int32 start, int32 end, writefunc func);

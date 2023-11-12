@@ -32,7 +32,7 @@ static void MMC3_sync () {
 		setmirror(MMC3_mirroring &1? MI_H: MI_V);
 }
 
-static DECLFW(MMC3_writeReg) {
+static void MMC3_writeReg(uint32 A, uint8 V) {
 	switch(A &0xE001) {
 	case 0x8000: MMC3_index =V;              sync();    break;
 	case 0x8001: MMC3_reg[MMC3_index &7] =V; sync();    break;

@@ -44,7 +44,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M320Write) {
+static void M320Write(uint32 A, uint8 V) {
 	/* address mask is inconsistent with that is in the wiki. Mask should be
 	 * 0xFFE0 or Mermaid game will not work. */
 	if ((A & 0xFFE0) == 0xF0E0) {

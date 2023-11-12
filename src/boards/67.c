@@ -52,7 +52,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(M67Write) {
+static void M67Write(uint32 A, uint8 V) {
 	switch (A & 0xF800) {
 	case 0x8800: creg[0] = V; Sync(); break;
 	case 0x9800: creg[1] = V; Sync(); break;

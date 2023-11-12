@@ -63,7 +63,7 @@ static void FixNTAR(void) {
 		DoNTARAM(x, NTAPage[x]);
 }
 
-static DECLFW(M326Write) {
+static void M326Write(uint32 A, uint8 V) {
 	switch (A & 0xE010) {
 	case 0x8000: PRG[0] = V; SyncPRG(); break;
 	case 0xA000: PRG[1] = V; SyncPRG(); break;

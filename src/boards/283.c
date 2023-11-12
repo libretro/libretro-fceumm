@@ -34,7 +34,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M283Write) {
+static void M283Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }

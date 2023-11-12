@@ -63,7 +63,7 @@ static void K1053_restore(int version) {
 	K1053_sync();
 }
 
-static DECLFW(K1053_write) {
+static void K1053_write(uint32 A, uint8 V) {
 	regData[A >>14 &1] =V;
 	if (A &0x4000) regAddr=A &0xFF;
 	K1053_sync();

@@ -29,14 +29,14 @@ static void M334PW(uint32 A, uint8 V) {
     setprg32(0x8000, EXPREGS[0] >> 1);
 }
 
-static DECLFW(M334Write) {
+static void M334Write(uint32 A, uint8 V) {
     if (!(A & 1)) {
         EXPREGS[0] = V;
         FixMMC3PRG(MMC3_cmd);
     }
 }
 
-static DECLFR(M334Read) {
+static uint8 M334Read(uint32 A) {
     if (A & 2)
         return ((X.DB & 0xFE) | (dipswitch & 1));
     return X.DB;
@@ -44,8 +44,8 @@ static DECLFR(M334Read) {
 
 static void M334Reset(void) {
     dipswitch++;
-	EXPREGS[0] = 0;
-	MMC3RegReset();
+    EXPREGS[0] = 0;
+    MMC3RegReset();
 }
 
 static void M334Power(void) {

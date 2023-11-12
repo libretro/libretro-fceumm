@@ -38,7 +38,7 @@ static void Sync(void) {
 	setmirror(((reg & 0x20) >> 5) ^ 1);
 }
 
-static DECLFW(M177Write) {
+static void M177Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }

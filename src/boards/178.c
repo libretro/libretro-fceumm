@@ -98,12 +98,12 @@ static void Sync(void) {
 	setmirror((reg[0] & 1) ^ 1);
 }
 
-static DECLFW(M178Write) {
+static void M178Write(uint32 A, uint8 V) {
 	reg[A & 3] = V;
 	Sync();
 }
 
-static DECLFW(M178WriteSnd) {
+static void M178WriteSnd(uint32 A, uint8 V) {
 	if (A == 0x5800) {
 		if (V & 0xF0) {
 			pcm_enable = 1;
@@ -113,7 +113,7 @@ static DECLFW(M178WriteSnd) {
 	}
 }
 
-static DECLFR(M178ReadSnd) {
+static uint8 M178ReadSnd(uint32 A) {
 	if (A == 0x5800)
 		return (X.DB & 0xBF) | ((pcm_enable ^ 1) << 6);
 	return X.DB;

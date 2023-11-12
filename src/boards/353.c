@@ -82,7 +82,7 @@ static void M353MW(uint8 V) {
 	}
 }
 
-static DECLFW(M353Write) {
+static void M353Write(uint32 A, uint8 V) {
 	if (A & 0x80) {
 		EXPREGS[0] = (A >> 13) & 0x03;
 		FixMMC3PRG(MMC3_cmd);

@@ -45,7 +45,7 @@ static void M269PW(uint32 A, uint8 V) {
 	setprg8(A, MV);
 }
 
-static DECLFW(M269Write5) {
+static void M269Write5(uint32 A, uint8 V) {
 	if (!(EXPREGS[3] & 0x80)) {
 		EXPREGS[EXPREGS[4]] = V;
 		EXPREGS[4] = (EXPREGS[4] + 1) & 3;

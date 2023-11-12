@@ -64,7 +64,7 @@ static void M121PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(M121Write) {
+static void M121Write(uint32 A, uint8 V) {
 	switch (A & 0xE003) {
 	case 0x8000:
 		MMC3_CMDWrite(A, V);
@@ -86,7 +86,7 @@ static DECLFW(M121Write) {
 }
 
 static uint8 prot_array[16] = { 0x83, 0x83, 0x42, 0x00 };
-static DECLFW(M121LoWrite) {
+static void M121LoWrite(uint32 A, uint8 V) {
 	EXPREGS[4] = prot_array[V & 3];	/* 0x100 bit in address seems to be switch arrays 0, 2, 2, 3 (Contra Fighter) */
 	if ((A & 0x5180) == 0x5180) {	/* A9713 multigame extension */
 		EXPREGS[3] = V;
@@ -95,9 +95,7 @@ static DECLFW(M121LoWrite) {
 	}
 }
 
-static DECLFR(M121Read) {
-	return EXPREGS[4];
-}
+static uint8 M121Read(uint32 A) { return EXPREGS[4]; }
 
 static void M121Power(void) {
 	EXPREGS[3] = 0x80;
