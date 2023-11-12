@@ -50,8 +50,6 @@
 
 #define PPU_status      (PPU[2])
 
-#define Pal             (PALRAM)
-
 static void FetchSpriteData(void);
 static void RefreshLine(int lastpixel);
 static void RefreshSprites(void);
@@ -452,7 +450,7 @@ static void RefreshLine(int lastpixel) {
 
 	if (!ScreenON && !SpriteON) {
 		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = PALRAM[0] | (PALRAM[0] << 8) | (PALRAM[0] << 16) | (PALRAM[0] << 24);
 		tem |= 0x40404040;
 		FCEU_dwmemset(Pline, tem, numtiles * 8);
 		P += numtiles * 8;
@@ -473,10 +471,10 @@ static void RefreshLine(int lastpixel) {
 	}
 
 	/* Priority bits, needed for sprite emulation. */
-	Pal[0] |= 64;
-	Pal[4] |= 64;
-	Pal[8] |= 64;
-	Pal[0xC] |= 64;
+	PALRAM[0] |= 64;
+	PALRAM[4] |= 64;
+	PALRAM[8] |= 64;
+	PALRAM[0xC] |= 64;
 
 	/* This high-level graphics MMC5 emulation code was written for MMC5 carts in "CL" mode.
 	 * It's probably not totally correct for carts in "SL" mode.
@@ -552,15 +550,15 @@ static void RefreshLine(int lastpixel) {
 #undef RefreshAddr
 
 	/* Reverse changes made before. */
-	Pal[0] &= 63;
-	Pal[4] &= 63;
-	Pal[8] &= 63;
-	Pal[0xC] &= 63;
+	PALRAM[0] &= 63;
+	PALRAM[4] &= 63;
+	PALRAM[8] &= 63;
+	PALRAM[0xC] &= 63;
 
 	RefreshAddr = smorkus;
 	if (firsttile <= 2 && 2 < lasttile && !(PPU[1] & 2)) {
 		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = PALRAM[0] | (PALRAM[0] << 8) | (PALRAM[0] << 16) | (PALRAM[0] << 24);
 		tem |= 0x40404040;
 		*(uint32*)Plinef = *(uint32*)(Plinef + 4) = tem;
 	}
@@ -568,7 +566,7 @@ static void RefreshLine(int lastpixel) {
 	if (!ScreenON) {
 		uint32 tem;
 		int tstart, tcount;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = PALRAM[0] | (PALRAM[0] << 8) | (PALRAM[0] << 16) | (PALRAM[0] << 24);
 		tem |= 0x40404040;
 
 		tcount = lasttile - firsttile;
@@ -648,7 +646,7 @@ static void DoLine(void)
 
 	if (rendis & 2) {/* User asked to not display background data. */
 		uint32 tem;
-		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
+		tem = PALRAM[0] | (PALRAM[0] << 8) | (PALRAM[0] << 16) | (PALRAM[0] << 24);
 		tem |= 0x40404040;
 		FCEU_dwmemset(target, tem, 256);
 	}
