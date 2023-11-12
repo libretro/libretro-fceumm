@@ -45,7 +45,7 @@ static void Sync(void) {
 	setmirror(MI_V);
 }
 
-static DECLFW(LE05Write) {
+static void LE05Write(uint32 A, uint8 V) {
 	chr = V;
 	Sync();
 }

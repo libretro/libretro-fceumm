@@ -35,7 +35,7 @@ static void Mapper195_CHRWrap(uint32 A, uint8 V) {
 }
 
 static const uint8 compares[8] = { 0x28, 0x00, 0x4C, 0x64, 0x46, 0x7C, 0x04, 0xFF };
-static DECLFW(Mapper195_InterceptPPUWrite) {
+static void Mapper195_InterceptPPUWrite(uint32 A, uint8 V) {
 	if (RefreshAddr <0x2000) {
 		int addr =RefreshAddr;
 		int reg, bank;

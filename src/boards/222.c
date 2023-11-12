@@ -42,10 +42,8 @@ static SFORMAT StateRegs[] =
 static void M222IRQ(void) {
 	if (IRQa) {
 		IRQCount++;
-		if (IRQCount >= 238) {
+		if (IRQCount >= 238)
 			X6502_IRQBegin(FCEU_IQEXT);
-/*			IRQa=0; */
-		}
 	}
 }
 
@@ -82,9 +80,7 @@ static void M222Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M222Write);
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 void Mapper222_Init(CartInfo *info) {
 	info->Power = M222Power;

@@ -22,14 +22,12 @@
 #include        <stdlib.h>
 #include        "share.h"
 
-
 static char side;
 static uint32 pprsb[2];
 static uint32 pprdata[2];
 
 static uint8 ReadPP(int w) {
-	uint8 ret = 0;
-	ret |= ((pprdata[w] >> pprsb[w]) & 1) << 3;
+	uint8 ret = ((pprdata[w] >> pprsb[w]) & 1) << 3;
 	ret |= ((pprdata[w] >> (pprsb[w] + 8)) & 1) << 4;
 	if (pprsb[w] >= 4) {
 		ret |= 0x10;
@@ -40,9 +38,7 @@ static uint8 ReadPP(int w) {
 	return ret;
 }
 
-static void StrobePP(int w) {
-	pprsb[w] = 0;
-}
+static void StrobePP(int w) { pprsb[w] = 0; }
 
 void UpdatePP(int w, void *data, int arg) {
 	static const char shifttableA[12] = { 8, 9, 0, 1, 11, 7, 4, 2, 10, 6, 5, 3 };

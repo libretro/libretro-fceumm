@@ -41,17 +41,17 @@ static void Sync(void) {
 	setchr2(0x1800, creg[3]);
 }
 
-static DECLFW(M190Write89) {
+static void M190Write89(uint32 A, uint8 V) {
 	preg = V & 7;
 	Sync();
 }
 
-static DECLFW(M190WriteCD) {
+static void M190WriteCD(uint32 A, uint8 V) {
 	preg = 8 | (V & 7);
 	Sync();
 }
 
-static DECLFW(M190WriteAB) {
+static void M190WriteAB(uint32 A, uint8 V) {
 	creg[A & 3] = V;
 	Sync();
 }

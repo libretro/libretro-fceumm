@@ -46,7 +46,7 @@ static void Sync(void) {
 	setmirror(mirror);
 }
 
-static DECLFW(UNLKS7057Write) {
+static void UNLKS7057Write(uint32 A, uint8 V) {
 	switch (A & 0xF003) {
 	case 0x8000:
 	case 0x8001:

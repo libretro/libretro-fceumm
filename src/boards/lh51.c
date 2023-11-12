@@ -49,7 +49,7 @@ static void Sync(void) {
 	setmirror(((mirr >> 3) & 1) ^ 1);
 }
 
-static DECLFW(LH51Write) {
+static void LH51Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
 	case 0x8000: reg = V; Sync(); break;
 	case 0xF000: mirr = V; Sync(); break;

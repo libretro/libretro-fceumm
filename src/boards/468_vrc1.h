@@ -1,6 +1,6 @@
 #define VRC1_reg regByte
 
-static void VRC1_sync () {
+static void VRC1_sync(void) {
 	setprg8(0x8000, VRC1_reg[0] &prgAND | prgOR &~prgAND);
 	setprg8(0xA000, VRC1_reg[2] &prgAND | prgOR &~prgAND);
 	setprg8(0xC000, VRC1_reg[4] &prgAND | prgOR &~prgAND);
@@ -10,7 +10,7 @@ static void VRC1_sync () {
 	setmirror(VRC1_reg[1] &1? MI_H: MI_V);
 }
 
-static DECLFW(VRC1_writeReg) {
+static void VRC1_writeReg(uint32 A, uint8 V) {
 	VRC1_reg[A >>12 &7] =V;
 	sync();
 }

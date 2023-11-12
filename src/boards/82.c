@@ -50,7 +50,7 @@ static void Sync(void) {
 	setmirror(ctrl & 1);
 }
 
-static DECLFW(M82Write) {
+static void M82Write(uint32 A, uint8 V) {
 	if (A <= 0x7ef5)
 		regs[A & 7] = V;
 	else

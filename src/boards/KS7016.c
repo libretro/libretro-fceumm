@@ -44,24 +44,22 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(UNLKS7016Write) {
+static void UNLKS7016Write(uint32 A, uint8 V) {
 	unsigned short mask = (A & 0x30);
 	switch(A & 0xD943) {
 	case 0xD943: {
-		if(mask == 0x30) {
+		if(mask == 0x30)
 			preg = 8 | 3;				/* or A, or no bus (all FF) */
-		} else {
+		else
 			preg = (A >> 2) & 0xF;		/* can be anything but C-F */
-		}
 		Sync();
 		break;
 	}
 	case 0xD903: {						/* this case isn't usedby the game, but addressing does this as a side effect */
-		if(mask == 0x30) {
+		if(mask == 0x30)
 			preg = 8 | ((A >> 2) & 3);	/* also masked C-F from output */
-		} else {
+		else
 			preg = 8 | 3;
-		}
 		Sync();
 		break;
 	}
@@ -76,9 +74,7 @@ static void UNLKS7016Power(void) {
 	SetWriteHandler(0x8000, 0xffff, UNLKS7016Write);
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 void UNLKS7016_Init(CartInfo *info) {
 	info->Power = UNLKS7016Power;

@@ -46,15 +46,12 @@ static void Sync(void) {
 	setmirror(((regs[PRG] >> 5) & 1) ^ 1);
 }
 
-static DECLFW(WritePRG) {
+static void WritePRG(uint32 A, uint8 V) {
 	regs[PRG] = V;
 	Sync();
 }
 
-static DECLFW(WriteCHR) {
-	regs[CHR] = V;
-	Sync();
-}
+static void WriteCHR(uint32 A, uint8 V) { regs[CHR] = V; Sync(); }
 
 static void BMCCTC09Power(void) {
 	Sync();

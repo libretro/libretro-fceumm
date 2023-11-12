@@ -1,6 +1,6 @@
 #define latch regByte[0]
 
-static void ANROM_sync () {
+static void ANROM_sync(void) {
 	int AND =prgAND >>2;
 	int OR  =prgOR  >>2;
 	setprg32(0x8000, latch &AND | OR &~AND);
@@ -8,7 +8,7 @@ static void ANROM_sync () {
 	setmirror(latch &0x10? MI_1: MI_0);
 }
 
-static void BNROM_sync () {
+static void BNROM_sync(void) {
 	int AND =prgAND >>2;
 	int OR  =prgOR  >>2;
 	setprg32(0x8000, latch &AND | OR &~AND);
@@ -16,7 +16,7 @@ static void BNROM_sync () {
 	setmirror(mapperFlags &4? MI_H: MI_V);
 }
 
-static void GNROM_sync () {
+static void GNROM_sync(void) {
 	int AND =prgAND >>2;
 	int OR  =prgOR  >>2 | (mapperFlags &4? 2: 0);
 	setprg32(0x8000, latch >>4 &AND | OR &~AND);
@@ -24,7 +24,7 @@ static void GNROM_sync () {
 	setmirror(mapper &1? MI_H: MI_V);
 }
 
-static void UNROM_sync () {
+static void UNROM_sync(void) {
 	int AND =prgAND >>1;
 	int OR  =prgOR  >>1;
 	setprg16(0x8000, latch &AND | OR &~AND);
@@ -33,16 +33,16 @@ static void UNROM_sync () {
 	setmirror(mapperFlags &4? MI_H: MI_V);
 }
 
-static DECLFW(DISCRETE_writeLatch) {
+static void DISCRETE_writeLatch(uint32 A, uint8 V) {
 	latch =V;
 	sync();
 }
 
-static DECLFW(Portopia_writeLatch) {
+static void Portopia_writeLatch(uint32 A, uint8 V) {
 	DISCRETE_writeLatch(A, A ==0xA000 && V ==0x00? 0x06: V); /* Strange hack, needed to get #282 "Portopia Serial Murder Case" on 852-in-1 running */
 }
 
-static DECLFW(ColorDreams_writeLatch) {
+static void ColorDreams_writeLatch(uint32 A, uint8 V) {
 	DISCRETE_writeLatch(A, V >>4 &0xF | V <<4 &0xF0); /* Sswap nibbles to mimic GNROM */
 }
 

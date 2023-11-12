@@ -75,7 +75,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(UNLKS7032Write) {
+static void UNLKS7032Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
 	case 0x8000: IRQLatch = (IRQLatch & 0xFFF0) | (V & 0x0F); break;
 	case 0x9000: IRQLatch = (IRQLatch & 0xFF0F) | ((V & 0x0F) << 4); break;

@@ -43,12 +43,12 @@ static void Sync(void) {
 	setmirror(mirr);
 }
 
-static DECLFW(AC08Mirr) {
+static void AC08Mirr(uint32 A, uint8 V) {
 	mirr = ((V & 8) >> 3) ^ 1;
 	Sync();
 }
 
-static DECLFW(AC08Write) {
+static void AC08Write(uint32 A, uint8 V) {
 	if (A == 0x8001)			/* Green Berret prg switching is only 100x xxxx xxxx xxx1 mask */
 		reg = (V >> 1) & 0xf;
 	else

@@ -27,7 +27,7 @@ static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 static void (*WSync)(void);
 
-static DECLFW(LatchWrite) {
+static void LatchWrite(uint32 A, uint8 V) {
 	if (bus_conflict)
 		latche = V & CartBR(A);
 	else
@@ -54,9 +54,7 @@ static void LatchClose(void) {
 	WRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	WSync();
-}
+static void StateRestore(int version) { WSync(); }
 
 static void Latch_Init(CartInfo *info, void (*proc)(void), uint8 init, uint16 adr0, uint16 adr1, uint8 wram, uint8 busc) {
 	bus_conflict = busc;

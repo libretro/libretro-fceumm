@@ -50,12 +50,12 @@ static void Sync(void) {
 	setmirror(mirroring ^ 1);
 }
 
-static DECLFW(BMCCTC12IN1Write8) {
+static void BMCCTC12IN1Write8(uint32 A, uint8 V) {
 	latche = (latche & 7) | (V & ~7);
 	Sync();
 }
 
-static DECLFW(BMCCTC12IN1WriteC) {
+static void BMCCTC12IN1WriteC(uint32 A, uint8 V) {
 	latche = (latche & ~7) | (V & 7);
 	Sync();
 }
@@ -72,9 +72,7 @@ static void BMCCTC12IN1Reset(void) {
 	Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 /* Mapper 337 - BMC-CTC-12IN1 */
 void BMCCTC12IN1_Init(CartInfo *info) {

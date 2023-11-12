@@ -57,7 +57,7 @@ static void BMCK3033PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(BMCK3033Write) {
+static void BMCK3033Write(uint32 A, uint8 V) {
 	EXPREGS[0] = (A & 0x07);
 	EXPREGS[1] = ((A & 0x18) >> 3) | ((A & 0x40) >> 4);
 	EXPREGS[2] = (A & 0x20);

@@ -59,7 +59,7 @@ static void Sync(void) {
 		setmirror(mirr ^ 1);
 }
 
-static DECLFW(M91Write0) {
+static void M91Write0(uint32 A, uint8 V) {
 	switch (A & 7) {
 	case 0:
 	case 1:
@@ -71,7 +71,7 @@ static DECLFW(M91Write0) {
 	}
 }
 
-static DECLFW(M91Write1) {
+static void M91Write1(uint32 A, uint8 V) {
 	switch (A & 3) {
 	case 0:
 	case 1: pregs[A & 1] = V; Sync(); break;
@@ -80,7 +80,7 @@ static DECLFW(M91Write1) {
 	}
 }
 
-static DECLFW(M91Write2) {
+static void M91Write2(uint32 A, uint8 V) {
 	outerbank = A & 7;
 	Sync();
 }

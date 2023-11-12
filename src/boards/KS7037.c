@@ -59,7 +59,7 @@ static void SyncLH10(void) {
 	setmirror(0);
 }
 
-static DECLFW(UNLKS7037Write) {
+static void UNLKS7037Write(uint32 A, uint8 V) {
 	switch (A & 0xE001) {
 	case 0x8000: cmd = V & 7; break;
 	case 0x8001: reg[cmd] = V; WSync(); break;

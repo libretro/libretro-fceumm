@@ -58,6 +58,4 @@ static void BWorld_Update(void *data, int arg) {
 
 static INPUTCFC BarcodeWorld = { BWorld_Read, BWorld_Write, 0, BWorld_Update, 0, 0 };
 
-INPUTCFC *FCEU_InitBarcodeWorld(void) {
-	return(&BarcodeWorld);
-}
+INPUTCFC *FCEU_InitBarcodeWorld(void) { return(&BarcodeWorld); }

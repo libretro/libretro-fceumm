@@ -670,7 +670,7 @@ static void M52S14CW(uint32 A, uint8 V) {
 		setchr1(A, bank | (V & mask));
 }
 
-static DECLFW(M52Write) {
+static void M52Write(uint32 A, uint8 V) {
 	if (EXPREGS[1]) {
 		WRAM[A - 0x6000] = V;
 		return;
@@ -760,7 +760,7 @@ static void M114CWRAP(uint32 A, uint8 V) {
 	setchr1(A, (uint32)V | ((EXPREGS[1] & 1) << 8));
 }
 
-static DECLFW(M114Write) {
+static void M114Write(uint32 A, uint8 V) {
 	switch (A & 0xE001) {
 	case 0x8001: MMC3_CMDWrite(0xA000, V); break;
 	case 0xA000: MMC3_CMDWrite(0x8000, (V & 0xC0) | (m114_perm[V & 7])); cmdin = 1; break;
@@ -772,7 +772,7 @@ static DECLFW(M114Write) {
 	}
 }
 
-static DECLFW(BoogermanWrite) {
+static void BoogermanWrite(uint32 A, uint8 V) {
 	switch (A & 0xE001) {
 	case 0x8001: if (!cmdin) break; MMC3_CMDWrite(0x8001, V); cmdin = 0; break;
 	case 0xA000: MMC3_CMDWrite(0x8000, (V & 0xC0) | (boogerman_perm[V & 7])); cmdin = 1; break;
@@ -1027,7 +1027,7 @@ static void M196PW(uint32 A, uint8 V) {
 		setprg8(A, V);
 }
 
-static DECLFW(Mapper196Write) {
+static void Mapper196Write(uint32 A, uint8 V) {
 	A =A &0xF000 | (!!(A &0xE) ^(A &1));
 	if (A >= 0xC000)
 		MMC3_IRQWrite(A, V);
@@ -1035,7 +1035,7 @@ static DECLFW(Mapper196Write) {
 		MMC3_CMDWrite(A, V);
 }
 
-static DECLFW(Mapper196WriteLo) {
+static void Mapper196WriteLo(uint32 A, uint8 V) {
 	EXPREGS[0] = 1;
 	EXPREGS[1] = (V & 0xf) | (V >> 4);
 	FixMMC3PRG(MMC3_cmd);
@@ -1068,7 +1068,7 @@ static void UNLMaliSBCW(uint32 A, uint8 V) {
 	setchr1(A, (V & 0xDD) | ((V & 0x20) >> 4) | ((V & 2) << 4));
 }
 
-static DECLFW(UNLMaliSBWrite) {
+static void UNLMaliSBWrite(uint32 A, uint8 V) {
 	if (A >= 0xC000) {
 		A = (A & 0xFFFE) | ((A >> 2) & 1) | ((A >> 3) & 1);
 		MMC3_IRQWrite(A, V);
@@ -1132,7 +1132,7 @@ static void M197S3PW(uint32 A, uint8 V) {
 	setprg8(A, V &(EXPREGS[0] &8? 0x0F: 0x1F) | EXPREGS[0] <<4);
 }
 
-static DECLFW(Mapper197S3Write) {
+static void Mapper197S3Write(uint32 A, uint8 V) {
 	if (A001B &0x80) {
 		EXPREGS[0] =V;
 		FixMMC3PRG(MMC3_cmd);
@@ -1203,7 +1203,7 @@ static void M205CW(uint32 A, uint8 V) {
 	setchr1(A, (EXPREGS[0] << 7) | bank);
 }
 
-static DECLFW(M205Write0) {
+static void M205Write0(uint32 A, uint8 V) {
 	if (EXPREGS[1] == 0) {
 		EXPREGS[0] = V & 0x03;
 		EXPREGS[1] = A & 0x80;
@@ -1213,7 +1213,7 @@ static DECLFW(M205Write0) {
 		CartBW(A, V);
 }
 
-static DECLFW(M205Write1) {
+static void M205Write1(uint32 A, uint8 V) {
 	if (EXPREGS[1] == 0) {
 		EXPREGS[0] = V & 0xF0;
 		FixMMC3PRG(MMC3_cmd);
@@ -1256,7 +1256,7 @@ static void GN45CW(uint32 A, uint8 V) {
 	setchr1(A, (V & 0x7F) | (EXPREGS[0] << 3));
 }
 
-static DECLFW(GN45Write0) {
+static void GN45Write0(uint32 A, uint8 V) {
 	if (EXPREGS[2] == 0) {
 		EXPREGS[0] = A & 0x30;
 		EXPREGS[2] = A & 0x80;
@@ -1266,7 +1266,7 @@ static DECLFW(GN45Write0) {
 		CartBW(A, V);
 }
 
-static DECLFW(GN45Write1) {
+static void GN45Write1(uint32 A, uint8 V) {
 	if (EXPREGS[2] == 0) {
 		EXPREGS[0] = V & 0x30;
 		FixMMC3PRG(MMC3_cmd);
@@ -1341,7 +1341,7 @@ static void M249CW(uint32 A, uint8 V) {
 	setchr1(A, V);
 }
 
-static DECLFW(M249Write) {
+static void M249Write(uint32 A, uint8 V) {
 	EXPREGS[0] = V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
@@ -1363,11 +1363,11 @@ void Mapper249_Init(CartInfo *info) {
 
 /* ---------------------------- Mapper 250 ------------------------------ */
 
-static DECLFW(M250Write) {
+static void M250Write(uint32 A, uint8 V) {
 	MMC3_CMDWrite((A & 0xE000) | ((A & 0x400) >> 10), A & 0xFF);
 }
 
-static DECLFW(M250IRQWrite) {
+static void M250IRQWrite(uint32 A, uint8 V) {
 	MMC3_IRQWrite((A & 0xE000) | ((A & 0x400) >> 10), A & 0xFF);
 }
 
@@ -1384,14 +1384,13 @@ void Mapper250_Init(CartInfo *info) {
 
 /* ---------------------------- Mapper 254 ------------------------------ */
 
-static DECLFR(MR254WRAM) {
+static uint8 MR254WRAM(uint32 A) {
 	if (EXPREGS[0])
 		return WRAM[A - 0x6000];
-	else
-		return WRAM[A - 0x6000] ^ EXPREGS[1];
+	return WRAM[A - 0x6000] ^ EXPREGS[1];
 }
 
-static DECLFW(M254Write) {
+static void M254Write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x8000: EXPREGS[0] = 0xff; break;
 	case 0xA001: EXPREGS[1] = V; break;

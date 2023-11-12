@@ -50,14 +50,14 @@ static void Sync(void) {
 	setchr8((regs[2] << 2) | ((regs[0] >> 1) & 3));
 }
 
-static DECLFW(BMC64in1nrWriteLo) {
+static void BMC64in1nrWriteLo(uint32 A, uint8 V) {
 	A &=3;
 	if (A ==3) A =1; /* K-42001's "Aladdin III" */
 	regs[A & 3] = V;
 	Sync();
 }
 
-static DECLFW(BMC64in1nrWriteHi) {
+static void BMC64in1nrWriteHi(uint32 A, uint8 V) {
 	regs[3] = V;
 	Sync();
 }

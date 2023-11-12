@@ -122,9 +122,7 @@ static void UpdateZapper(void *data, int arg) {
 	ZD.mzb = ptr[2];
 }
 
-static void StrobeShadow(void) {
-	ZD.zap_readbit = 0;
-}
+static void StrobeShadow(void) { ZD.zap_readbit = 0; }
 
 static INPUTCFC SHADOWC = { ReadZapper, 0, StrobeShadow, UpdateZapper, ZapperFrapper, DrawZapper };
 

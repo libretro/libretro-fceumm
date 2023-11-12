@@ -43,7 +43,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(LH32Write) {
+static void LH32Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }

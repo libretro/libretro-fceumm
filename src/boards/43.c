@@ -49,7 +49,7 @@ static void M43Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M43Write) {
+static void M43Write(uint32 A, uint8 V) {
 	int transo[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };	/* According to hardware tests */
 	switch (A & 0xf1ff) {
 	case 0x4022: reg = transo[V & 7]; M43Sync(); break;

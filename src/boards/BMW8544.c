@@ -45,14 +45,14 @@ static void UNLBMW8544CW(uint32 A, uint8 V) {
 
 }
 
-static DECLFW(UNLBMW8544ProtWrite) {
+static void UNLBMW8544ProtWrite(uint32 A, uint8 V) {
 	if(!(A & 1)) {
 		EXPREGS[0] = V;
 		FixMMC3PRG(MMC3_cmd);
 	}
 }
 
-static DECLFR(UNLBMW8544ProtRead) {
+static uint8 UNLBMW8544ProtRead(uint32 A) {
 	{
 		if(!(A & 1)) {
 			if((EXPREGS[0] & 0xE0) == 0xC0) {

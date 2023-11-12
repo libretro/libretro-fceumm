@@ -41,7 +41,7 @@ static void Sync(void) {
 	setmirror(regs[1] >> 7);
 }
 
-static DECLFW(HP898FWrite) {
+static void HP898FWrite(uint32 A, uint8 V) {
 	if((A & 0x6000) == 0x6000) {
 		regs[(A & 4) >> 2] = V;
 		Sync();

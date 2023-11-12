@@ -63,24 +63,22 @@ static void Sync(void) {
  * 7000 - 7FFF - BANK 4K REG0
  */
 
-static DECLFW(UNLKS7030RamWrite0) {
-	if ((A >= 0x6000) && A <= 0x6BFF) {
+static void UNLKS7030RamWrite0(uint32 A, uint8 V) {
+	if ((A >= 0x6000) && A <= 0x6BFF)
 		WRAM[A - 0x6000] = V;
-	} else if ((A >= 0x6C00) && A <= 0x6FFF) {
+	else if ((A >= 0x6C00) && A <= 0x6FFF)
 		CartBW(0xC800 + (A - 0x6C00), V);
-	} else if ((A >= 0x7000) && A <= 0x7FFF) {
+	else if ((A >= 0x7000) && A <= 0x7FFF)
 		CartBW(0xB800 + (A - 0x7000), V);
-	}
 }
 
-static DECLFR(UNLKS7030RamRead0) {
-	if ((A >= 0x6000) && A <= 0x6BFF) {
+static uint8 UNLKS7030RamRead0(uint32 A) {
+	if ((A >= 0x6000) && A <= 0x6BFF)
 		return WRAM[A - 0x6000];
-	} else if ((A >= 0x6C00) && A <= 0x6FFF) {
+	else if ((A >= 0x6C00) && A <= 0x6FFF)
 		return CartBR(0xC800 + (A - 0x6C00));
-	} else if ((A >= 0x7000) && A <= 0x7FFF) {
+	else if ((A >= 0x7000) && A <= 0x7FFF)
 		return CartBR(0xB800 + (A - 0x7000));
-	}
 	return 0;
 }
 
@@ -89,7 +87,7 @@ static DECLFR(UNLKS7030RamRead0) {
  * CC00 - D7FF - RAM
  */
 
-static DECLFW(UNLKS7030RamWrite1) {
+static void UNLKS7030RamWrite1(uint32 A, uint8 V) {
 	if ((A >= 0xB800) && A <= 0xBFFF) {
 		WRAM[0x0C00 + (A - 0xB800)] = V;
 	} else if ((A >= 0xC000) && A <= 0xCBFF) {
@@ -99,23 +97,22 @@ static DECLFW(UNLKS7030RamWrite1) {
 	}
 }
 
-static DECLFR(UNLKS7030RamRead1) {
-	if ((A >= 0xB800) && A <= 0xBFFF) {
+static uint8 UNLKS7030RamRead1(uint32 A) {
+	if ((A >= 0xB800) && A <= 0xBFFF)
 		return WRAM[0x0C00 + (A - 0xB800)];
-	} else if ((A >= 0xC000) && A <= 0xCBFF) {
+	else if ((A >= 0xC000) && A <= 0xCBFF)
 		return CartBR(0xCC00 + (A - 0xC000));
-	} else if ((A >= 0xCC00) && A <= 0xD7FF) {
+	else if ((A >= 0xCC00) && A <= 0xD7FF)
 		return WRAM[0x1400 + (A - 0xCC00)];
-	}
 	return 0;
 }
 
-static DECLFW(UNLKS7030Write0) {
+static void UNLKS7030Write0(uint32 A, uint8 V) {
 	reg0 = A & 0xF;
 	Sync();
 }
 
-static DECLFW(UNLKS7030Write1) {
+static void UNLKS7030Write1(uint32 A, uint8 V) {
 	reg1 = A & 0xF;
 	Sync();
 }

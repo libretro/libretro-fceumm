@@ -36,21 +36,17 @@ static void Sync(void) {
 	setchr8(chr_reg);
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
-static DECLFW(M216WriteHi) {
+static void M216WriteHi(uint32 A, uint8 V) {
 	prg_reg = A & 1;
 	chr_reg = (A & 0x0E) >> 1;
 	Sync();
 }
 
-static DECLFW(M216Write5000) { }
+static void M216Write5000(uint32 A, uint8 V) { }
 
-static DECLFR(M216Read5000) {
-	return 0;
-}
+static uint8 M216Read5000(uint32 A) { return 0; }
 
 static void Power(void) {
 	prg_reg = 0;

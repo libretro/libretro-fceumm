@@ -29,7 +29,7 @@ static void UNLA9746CWrap(uint32 A, uint8 V) {
 	setchr1(A, EXPREGS[1] <<7 | V &0x7F);
 }
 
-static DECLFW(UNLA9746WriteOuter) {
+static void UNLA9746WriteOuter(uint32 A, uint8 V) {
 	switch(A &1) {
 		case 0: EXPREGS[1] =EXPREGS[1] &~1 | V >>3 &1; break;
 		case 1: EXPREGS[1] =EXPREGS[1] &~2 | V >>4 &2; break;
@@ -38,7 +38,7 @@ static DECLFW(UNLA9746WriteOuter) {
 	FixMMC3CHR(MMC3_cmd);
 }
 
-static DECLFW(UNLA9746WriteASIC) {
+static void UNLA9746WriteASIC(uint32 A, uint8 V) {
 	int index;
 	
 	if (A &1)

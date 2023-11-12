@@ -72,11 +72,7 @@ static uint8 PEC586KB_Read(int w, uint8 ret) {
 	return(ret);
 }
 
-static void PEC586KB_Strobe(void) {
-/*	kstrobe = 0; 
-	ksindex = 0;
-*/
-}
+static void PEC586KB_Strobe(void) { }
 
 static void PEC586KB_Update(void *data, int arg) {
 	memcpy(bufit + 1, data, sizeof(bufit) - 1);

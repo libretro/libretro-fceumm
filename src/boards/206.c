@@ -46,7 +46,7 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-static DECLFW(M206Write) {
+static void M206Write(uint32 A, uint8 V) {
 	switch (A & 0x8001) {
 	case 0x8000: cmd = V & 0x07; break;
 	case 0x8001:

@@ -33,14 +33,12 @@ static void Sync(void) {
 		setprg16(0x8000, 7 + (ROM_size >> 4));
 }
 
-static DECLFW(M188Write) {
+static void M188Write(uint32 A, uint8 V) {
 	latche = V;
 	Sync();
 }
 
-static DECLFR(ExtDev) {
-	return(3);
-}
+static uint8 ExtDev(uint32 A) { return 3; }
 
 static void Power(void) {
 	latche = 0;

@@ -41,7 +41,7 @@ static void BMCF15PW(uint32 A, uint8 V) {
 	setprg16(0xC000, (bank & mask) | mode);
 }
 
-static DECLFW(BMCF15Write) {
+static void BMCF15Write(uint32 A, uint8 V) {
 	if (A001B & 0x80) {
 		EXPREGS[0] = V & 0xF;
 		FixMMC3PRG(MMC3_cmd);

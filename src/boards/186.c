@@ -54,12 +54,8 @@ static DECLFR(M186Read) {
 	return 0xFF;
 }
 
-static DECLFR(ASWRAM) {
-	return(SWRAM[A - 0x4400]);
-}
-static DECLFW(BSWRAM) {
-	SWRAM[A - 0x4400] = V;
-}
+static uint8 ASWRAM(uint32 A) { return(SWRAM[A - 0x4400]); }
+static void BSWRAM(uint32 A, uint8 V) { SWRAM[A - 0x4400] = V; }
 
 static void M186Power(void) {
 	setchr8(0);

@@ -99,9 +99,8 @@ static void ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32 linets, int fin
  	endo:
 		ZD[w].zappo = final;
 	}
-	else {
+	else
 		ZD[w].zappo = 0;
-	}
 }
 
 static INLINE int CheckColor(int w) {
@@ -136,9 +135,7 @@ static uint8 ReadZapperVS(int w) {
 	return ret;
 }
 
-static void StrobeZapperVS(int w) {
-	ZD[w].zap_readbit = 0;
-}
+static void StrobeZapperVS(int w) { ZD[w].zap_readbit = 0; }
 
 static uint8 ReadZapper(int w) {
 	uint8 ret = 0;

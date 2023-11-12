@@ -49,14 +49,14 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(UNLD2000Write) {
+static void UNLD2000Write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x5000: prg = V; Sync(); break;
 	case 0x5200: mode = V; if (mode & 4) Sync(); break;
 	}
 }
 
-static DECLFR(UNLD2000Read) {
+static uint8 UNLD2000Read(uint32 A) {
 	if (prg & 0x40)
 		return X.DB;
 	else

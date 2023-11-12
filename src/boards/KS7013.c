@@ -40,12 +40,12 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(UNLKS7013BLoWrite) {
+static void UNLKS7013BLoWrite(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }
 
-static DECLFW(UNLKS7013BHiWrite) {
+static void UNLKS7013BHiWrite(uint32 A, uint8 V) {
 	mirr = (V & 1) ^ 1;
 	Sync();
 }

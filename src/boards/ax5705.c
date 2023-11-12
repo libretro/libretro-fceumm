@@ -49,7 +49,7 @@ static void Sync(void) {
 	setmirror(mirr ^ 1);
 }
 
-static DECLFW(UNLAX5705Write) {
+static void UNLAX5705Write(uint32 A, uint8 V) {
 	switch (A & 0xF00F) {
 	case 0x8000: prg_reg[0] = ((V & 2) << 2) | ((V & 8) >> 2) | (V & 5); break;	/* EPROM dump have mixed PRG and CHR banks, data lines to mapper seems to be mixed */
 	case 0x8008: mirr = V & 1; break;

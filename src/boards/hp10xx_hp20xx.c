@@ -92,7 +92,7 @@ static void BMCHPxxMW(uint8 V) {
 }
 
 /* PRG handler ($8000-$FFFF) */
-static DECLFW(BMCHPxxHiWrite) {
+static void BMCHPxxHiWrite(uint32 A, uint8 V) {
 	if(EXPREGS[0] & 4) {		/* custom banking */
 		unromchr = V;
 		FixMMC3CHR(MMC3_cmd);
@@ -108,7 +108,7 @@ static DECLFW(BMCHPxxHiWrite) {
 }
 
 /* EXP handler ($5000-$5FFF) */
-static DECLFW(BMCHPxxWrite) {
+static void BMCHPxxWrite(uint32 A, uint8 V) {
 	if (!lock) {
 		EXPREGS[A & 3] = V;
 		lock = V & 0x80;
@@ -117,9 +117,7 @@ static DECLFW(BMCHPxxWrite) {
 	}
 }
 
-static DECLFR(BMCHPxxRead) {
-	return dipswitch;
-}
+static uint8 BMCHPxxRead(uint32 A) { return dipswitch; }
 
 static void BMCHPxxReset(void) {
 	dipswitch++;

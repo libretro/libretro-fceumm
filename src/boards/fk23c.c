@@ -269,12 +269,13 @@ static void Sync(void)
    SyncMIR();
 }
 
-static DECLFW(Write4800) /* Only used by submapper 5 (HST-162) */
+static void Write4800(uint32 A, uint8 V) /* Only used by submapper 5 (HST-162) */
 {
    fk23_regs[5] = V; /* Register 4800 is a separate register, but we use one of the ASIC registers that is otherwise unused in submapper 5 */
    SyncPRG();
 }
-static DECLFW(Write5000)
+
+static void Write5000(uint32 A, uint8 V)
 {
    if (after_power && A > 0x5010 && A != 0x5FF3) /* Ignore writes from $5000-$500F, in particular to $5008, but not $5FF3 */
    { 
@@ -292,7 +293,7 @@ static DECLFW(Write5000)
       CartBW(A, V);
 }
 
-static DECLFW(Write8000)
+static void Write8000(uint32 A, uint8 V)
 {
    latch = V;
    if (CHR_8K_MODE && CHR_CNROM_MODE) SyncCHR(); /* CNROM latch updated */

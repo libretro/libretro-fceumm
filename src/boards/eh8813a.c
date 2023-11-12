@@ -45,7 +45,7 @@ static void Sync(void) {
 	setmirror(((datalatch >> 7) & 1) ^ 1);
 }
 
-static DECLFW(EH8813AWrite) {
+static void EH8813AWrite(uint32 A, uint8 V) {
 	if (lock == 0) {
 		addrlatch = A & 0xFF;
 		datalatch = V & 0xFC;
@@ -55,7 +55,7 @@ static DECLFW(EH8813AWrite) {
 	Sync();
 }
 
-static DECLFR(EH8813ARead) {
+static uint8 EH8813ARead(uint32 A) {
 	if (addrlatch & 0x40)
 		A= (A & 0xFFF0) + hw_mode;
 	return CartBR(A);
@@ -74,9 +74,7 @@ static void EH8813AReset(void) {
 	Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 void UNLEH8813A_Init(CartInfo *info) {
 	info->Reset = EH8813AReset;

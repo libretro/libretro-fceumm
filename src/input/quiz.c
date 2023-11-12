@@ -29,26 +29,17 @@ static uint8 QZ_Read(int w, uint8 ret) {
 		ret |= (QZValR & 0x7) << 2;
 		QZValR = QZValR >> 3;
 
-		if (FunkyMode) {
+		if (FunkyMode)
 			QZValR |= 0x28;
-		} else {
+		else
 			QZValR |= 0x38;
-		}
 	}
 	return(ret);
 }
 
-static void QZ_Strobe(void) {
-	QZValR = QZVal;
-}
-
-static void QZ_Write(uint8 V) {
-	FunkyMode = V & 4;
-}
-
-static void QZ_Update(void *data, int arg) {
-	QZVal = *(uint8*)data;
-}
+static void QZ_Strobe(void) { QZValR = QZVal; }
+static void QZ_Write(uint8 V) { FunkyMode = V & 4; }
+static void QZ_Update(void *data, int arg) { QZVal = *(uint8*)data; }
 
 static INPUTCFC QuizKing = { QZ_Read, QZ_Write, QZ_Strobe, QZ_Update, 0, 0 };
 

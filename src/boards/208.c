@@ -62,21 +62,19 @@ static void M208MW(uint8 V) {
 		setmirror(((EXPREGS[5] >> 5) & 1) ^ 1);
 }
 
-static DECLFW(M208Write) {
+static void M208Write(uint32 A, uint8 V) {
 	EXPREGS[5] = V;
 	FixMMC3PRG(MMC3_cmd);
 }
 
-static DECLFW(M208ProtWrite) {
+static void M208ProtWrite(uint32 A, uint8 V) {
 	if (A <= 0x57FF)
 		EXPREGS[4] = V;
 	else
 		EXPREGS[(A & 0x03)] = V ^ lut[EXPREGS[4]];
 }
 
-static DECLFR(M208ProtRead) {
-	return(EXPREGS[(A & 0x3)]);
-}
+static uint8 M208ProtRead(uint32 A) { return(EXPREGS[(A & 0x3)]); }
 
 static void M208Power(void) {
 	EXPREGS[5] = 0x11;

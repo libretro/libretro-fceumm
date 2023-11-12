@@ -60,23 +60,20 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(M69WRAMWrite) {
+static void M69WRAMWrite(uint32 A, uint8 V) {
 	if ((preg[3] & 0xC0) == 0xC0)
 		CartBW(A, V);
 }
 
-static DECLFR(M69WRAMRead) {
+static uint8 M69WRAMRead(uint32 A) {
 	if ((preg[3] & 0xC0) == 0x40)
 		return X.DB;
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
-static DECLFW(M69Write0) {
-	cmdreg = V & 0xF;
-}
+static void M69Write0(uint32 A, uint8 V) { cmdreg = V & 0xF; }
 
-static DECLFW(M69Write1) {
+static void M69Write1(uint32 A, uint8 V) {
 	switch (cmdreg) {
 	case 0x0: creg[0] = V; Sync(); break;
 	case 0x1: creg[1] = V; Sync(); break;
@@ -130,11 +127,9 @@ static SFORMAT SStateRegs[] =
 	{ 0 }
 };
 
-static DECLFW(M69SWrite0) {
-	sndcmd = V % 14;
-}
+static void M69SWrite0(uint32 A, uint8 V) { sndcmd = V % 14; }
 
-static DECLFW(M69SWrite1) {
+static void M69SWrite1(uint32 A, uint8 V) {
 	GameExpSound.Fill = AYSound;
 	GameExpSound.HiFill = AYSoundHQ;
 	switch (sndcmd) {

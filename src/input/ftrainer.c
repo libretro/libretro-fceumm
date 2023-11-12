@@ -47,9 +47,7 @@ static void FT_Write(uint8 V) {
 	FTValR <<= 1;
 }
 
-static void FT_Update(void *data, int arg) {
-	FTVal = *(uint32*)data;
-}
+static void FT_Update(void *data, int arg) { FTVal = *(uint32*)data; }
 
 static INPUTCFC FamilyTrainer = { FT_Read, FT_Write, 0, FT_Update, 0, 0 };
 

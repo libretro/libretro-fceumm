@@ -18,8 +18,8 @@ void MMC3RegReset(void);
 void GenMMC3Close(void);
 void FixMMC3PRG(int V);
 void FixMMC3CHR(int V);
-DECLFW(MMC3_CMDWrite);
-DECLFW(MMC3_IRQWrite);
+void MMC3_CMDWrite(uint32 A, uint8 V);
+void MMC3_IRQWrite(uint32 A, uint8 V);
 
 void GenMMC3_Init(CartInfo *info, int prg, int chr, int wram, int battery);
 

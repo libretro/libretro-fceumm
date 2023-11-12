@@ -43,7 +43,7 @@ static void BMCK3006PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(BMCK3006Write) {
+static void BMCK3006Write(uint32 A, uint8 V) {
 	EXPREGS[0] = A & 0x3F;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
