@@ -31,27 +31,27 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M216Sync(void) {
 	setprg32(0x8000, prg_reg);
 	setchr8(chr_reg);
 }
 
-static void StateRestore(int version) { Sync(); }
+static void M216StateRestore(int version) { M216Sync(); }
 
 static void M216WriteHi(uint32 A, uint8 V) {
 	prg_reg = A & 1;
 	chr_reg = (A & 0x0E) >> 1;
-	Sync();
+	M216Sync();
 }
 
 static void M216Write5000(uint32 A, uint8 V) { }
 
 static uint8 M216Read5000(uint32 A) { return 0; }
 
-static void Power(void) {
+static void M216Power(void) {
 	prg_reg = 0;
 	chr_reg = 0;
-	Sync();
+	M216Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M216WriteHi);
 	SetWriteHandler(0x5000, 0x5000, M216Write5000);
@@ -60,7 +60,7 @@ static void Power(void) {
 
 
 void Mapper216_Init(CartInfo *info) {
-	info->Power = Power;
-	GameStateRestore = StateRestore;
+	info->Power = M216Power;
+	GameStateRestore = M216StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

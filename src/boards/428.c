@@ -33,7 +33,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M428Sync(void) {
 	int mask = regs[2] >> 6; /* There is an CNROM mode that takes either two or four inner CHR banks from a CNROM-like latch register at $8000-$FFFF. */
 
 	if (regs[1] & 0x10)
@@ -51,35 +51,35 @@ static void Sync(void) {
 
 static void WriteHi(uint32 A, uint8 V) {
 	regs[0] = V;
-	Sync();
+	M428Sync();
 }
 
 static void WriteLo(uint32 A, uint8 V) {
 	regs[A & 0x03] = V;
-	Sync();
+	M428Sync();
 }
 
 static uint8 ReadLo(uint32 A) { return hrd_flag; }
 
-static void Power(void) {
+static void M428Power(void) {
 	hrd_flag = 0; /* Solder pad, selecting different menus */
 
 	regs[0] = 0;
 	regs[1] = 0;
 	regs[2] = 0;
 
-	Sync();
+	M428Sync();
 	SetWriteHandler(0x8000, 0xFFFF, WriteHi);
 	SetWriteHandler(0x6001, 0x6002, WriteLo);
 	SetReadHandler(0x6000, 0x7FFF, ReadLo);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M428StateRestore(int version) {
+	M428Sync();
 }
 
-static void Reset(void) {
+static void M428Reset(void) {
 	hrd_flag++;
 	hrd_flag &= 3;
 	
@@ -87,17 +87,17 @@ static void Reset(void) {
 	regs[1] = 0;
 	regs[2] = 0;
 
-	Sync();
+	M428Sync();
 }
 
 void Mapper428_Init(CartInfo *info) {
 	hrd_flag = 0;
 
-	Sync();
+	M428Sync();
 
-	info->Power = Power;
-	info->Reset = Reset;
+	info->Power = M428Power;
+	info->Reset = M428Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+	GameStateRestore = M428StateRestore;
 }
 

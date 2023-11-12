@@ -261,7 +261,7 @@ static void SyncMIR(void)
    }
 }
 
-static void Sync(void)
+static void M176Sync(void)
 {
    SyncPRG();
    SyncCHR();
@@ -353,7 +353,7 @@ static void Write8000(uint32 A, uint8 V)
          if ((V & 0x20) == 0)
             V &= 0xC0;
          mmc3_wram = V;
-         Sync();
+         M176Sync();
          break;
       case 0xC000:
          irq_latch = V;
@@ -373,7 +373,7 @@ static void Write8000(uint32 A, uint8 V)
    }
 }
 
-static void IRQHook(void)
+static void M176HBIRQHook(void)
 {
    if (!irq_count || irq_reload)
       irq_count = irq_latch;
@@ -386,7 +386,7 @@ static void IRQHook(void)
    irq_reload = 0;
 }
 
-static void Reset(void)
+static void M176Reset(void)
 {
    /* this little hack makes sure that we try all the dip switch settings eventually, if we reset enough */
    if (dipsw_enable)
@@ -408,10 +408,10 @@ static void Reset(void)
    mmc3_wram      = 0x80;
    mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
 
-   Sync();
+   M176Sync();
 }
 
-static void Power(void)
+static void M176Power(void)
 {
    fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = fk23_regs[4] = fk23_regs[5] = fk23_regs[6] = fk23_regs[7] = 0;
    mmc3_regs[0]   = 0;
@@ -429,7 +429,7 @@ static void Power(void)
    mmc3_wram      = 0x80;
    mmc3_ctrl      = mmc3_mirr = irq_count = irq_latch = irq_enabled = 0;
 
-   Sync();
+   M176Sync();
 
    SetReadHandler(0x8000, 0xFFFF, CartBR);
    SetWriteHandler(0x5000, 0x5FFF, Write5000);
@@ -446,7 +446,7 @@ static void Power(void)
    }
 }
 
-static void Close(void)
+static void M176Close(void)
 {
    if (WRAM)
       FCEU_gfree(WRAM);
@@ -457,19 +457,16 @@ static void Close(void)
    CHRRAM = NULL;
 }
 
-static void StateRestore(int version)
-{
-   Sync();
-}
+static void M176StateRestore(int version) { M176Sync(); }
 
 void Init(CartInfo *info)
 {
    /* Initialization for iNES and UNIF. subType and dipsw_enable must have been set. */
-   info->Power       = Power;
-   info->Reset       = Reset;
-   info->Close       = Close;
-   GameHBIRQHook     = IRQHook;
-   GameStateRestore  = StateRestore;
+   info->Power       = M176Power;
+   info->Reset       = M176Reset;
+   info->Close       = M176Close;
+   GameHBIRQHook     = M176HBIRQHook;
+   GameStateRestore  = M176StateRestore;
    AddExState(StateRegs, ~0, 0, 0);
 
    if (CHRRAMSIZE)
