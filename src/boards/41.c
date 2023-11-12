@@ -30,40 +30,40 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M41Sync(void) {
 	setprg32(0x8000, mainreg & 7);
 	setchr8(chrreg);
 	setmirror(mirror);
 }
 
-static DECLFW(M41Write0) {
+static void M41Write0(uint32 A, uint8 V) {
 	mainreg = A & 0xFF;
 	mirror = ((A >> 5) & 1) ^ 1;
 	chrreg = (chrreg & 3) | ((A >> 1) & 0xC);
-	Sync();
+	M41Sync();
 }
 
-static DECLFW(M41Write1) {
+static void M41Write1(uint32 A, uint8 V) {
 	if (mainreg & 0x4) {
 		chrreg = (chrreg & 0xC) | (A & 3);
-		Sync();
+		M41Sync();
 	}
 }
 
 static void M41Power(void) {
 	mainreg = chrreg = 0;
-	Sync();
+	M41Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x67FF, M41Write0);
 	SetWriteHandler(0x8000, 0xFFFF, M41Write1);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M41StateRestore(int version) {
+	M41Sync();
 }
 
 void Mapper41_Init(CartInfo *info) {
 	info->Power = M41Power;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M41StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

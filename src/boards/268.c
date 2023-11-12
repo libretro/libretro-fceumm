@@ -85,15 +85,15 @@ static void Mapper268_CHRWrap(uint32 A, uint8 V) {
 	setchr1r(CHRRAM && EXPREGS[4] &0x01 && (V &0xFE) ==(EXPREGS[4] &0xFE)? 0x10: 0x00, A, V &chrMaskMMC3 | chrOffset | A >>10 &chrMaskGNROM);
 }
 
-static DECLFR(Mapper268_ReadWRAM) {
+static uint8 Mapper268_ReadWRAM(uint32 A) {
 	return A001B &0xA0? CartBR(A): X.DB;
 }
 
-static DECLFW(Mapper268_WriteWRAM) {
+static void Mapper268_WriteWRAM(uint32 A, uint8 V) {
 	if (A001B &0x80 && ~A001B &0x40 || A001B &0x20) CartBW(A, V);
 }
 
-static DECLFW(Mapper268_WriteReg) {
+static void Mapper268_WriteReg(uint32 A, uint8 V) {
 	int index =A &7;
 	if (~submapper &1) Mapper268_WriteWRAM(A, V);
 	if (~EXPREGS[3] &0x80 || index ==2) {

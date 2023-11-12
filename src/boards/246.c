@@ -42,7 +42,7 @@ static void Sync(void) {
 	setchr2(0x1800, regs[7]);
 }
 
-static DECLFW(M246Write) {
+static void M246Write(uint32 A, uint8 V) {
 	regs[A & 7] = V;
 	Sync();
 }

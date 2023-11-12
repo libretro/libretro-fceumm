@@ -40,7 +40,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M108Write) {
+static void M108Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }
@@ -53,9 +53,7 @@ static void M108Power(void) {
 	SetWriteHandler(0xF000, 0xFFFF, M108Write);	/* simplified Kaiser BB Hack */
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 void Mapper108_Init(CartInfo *info) {
 	info->Power = M108Power;

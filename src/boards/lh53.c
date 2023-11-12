@@ -51,23 +51,23 @@ static void Sync(void) {
 	setprg8(0xe000, 0xf);
 }
 
-static DECLFW(LH53RamWrite) {
+static void LH53RamWrite(uint32 A, uint8 V) {
 	WRAM[(A - 0xB800) & 0x1FFF] = V;
 }
 
-static DECLFW(LH53Write) {
+static void LH53Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }
 
-static DECLFW(LH53IRQaWrite) {
+static void LH53IRQaWrite(uint32 A, uint8 V) {
 	IRQa = V & 2;
 	IRQCount = 0;
 	if (!IRQa)
 		X6502_IRQEnd(FCEU_IQEXT);
 }
 
-static void FP_FASTAPASS(1) LH53IRQ(int a) {
+static void LH53IRQ(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount > 7560)

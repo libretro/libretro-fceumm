@@ -35,12 +35,12 @@ static void Sync (void) {
 	setmirror(reg[1] & 0x60 ? 0 : 1);
 }
 
-static DECLFW(M396WriteInnerBank) {
+static void M396WriteInnerBank(uint32 A, uint8 V) {
 	reg[0] = V;
 	Sync();
 }
 
-static DECLFW(M396WriteOuterBank) {
+static void M396WriteOuterBank(uint32 A, uint8 V) {
 	reg[1] = V;
 	Sync();
 }

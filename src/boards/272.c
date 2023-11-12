@@ -74,7 +74,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(M272Write) {
+static void M272Write(uint32 A, uint8 V) {
 	/* writes to VRC chip */
 	switch (vrc_addr_mix(A)) {
 	case 0x8000:

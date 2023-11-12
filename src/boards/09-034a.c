@@ -43,37 +43,35 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNLSMB2JSync(void) {
 	setprg8(0x6000, 4 | prg);
 	setprg32(0x8000, 0);
 	setchr8(0);
 }
 
-static DECLFW(UNLSMB2JWrite1) {
+static void UNLSMB2JWrite1(uint32 A, uint8 V) {
 	prg = V & 1;
-	Sync();
+	UNLSMB2JSync();
 }
 
-static DECLFW(UNLSMB2JWrite2) {
+static void UNLSMB2JWrite2(uint32 A, uint8 V) {
 	IRQa = V & 1;
 	IRQCount = 0;
 	X6502_IRQEnd(FCEU_IQEXT);
 }
 
-static DECLFR(UNLSMB2JRead) {
-	return 0xFF;
-}
+static uint8 UNLSMB2JRead(uint32 A) { return 0xFF; }
 
 static void UNLSMB2JPower(void) {
 	prg = 0;
-	Sync();
+	UNLSMB2JSync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetReadHandler(0x4042, 0x4055, UNLSMB2JRead);
 	SetWriteHandler(0x4068, 0x4068, UNLSMB2JWrite2);
 	SetWriteHandler(0x4027, 0x4027, UNLSMB2JWrite1);
 }
 
-static void FP_FASTAPASS(1) UNLSMB2JIRQHook(int a) {
+static void UNLSMB2JIRQHook(int a) {
 	if (IRQa)
 	{
 		if (IRQCount < 5750)    /* completely by guess */
@@ -85,13 +83,13 @@ static void FP_FASTAPASS(1) UNLSMB2JIRQHook(int a) {
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void UNLSMB2JStateRestore(int version) {
+	UNLSMB2JSync();
 }
 
 void UNLSMB2J_Init(CartInfo *info) {
 	info->Power = UNLSMB2JPower;
 	MapIRQHook = UNLSMB2JIRQHook;
-	GameStateRestore = StateRestore;
+	GameStateRestore = UNLSMB2JStateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

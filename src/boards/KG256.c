@@ -59,12 +59,12 @@ static void Sync(void)
 
 }
 
-static DECLFW(KG256WriteHi) {
+static void KG256WriteHi(uint32 A, uint8 V) {
 	regs[2] = V;
 	Sync();
 }
 
-static DECLFW(KG256WriteLo) {
+static void KG256WriteLo(uint32 A, uint8 V) {
 	regs[A & 0x03] = V;
 	Sync();
 }

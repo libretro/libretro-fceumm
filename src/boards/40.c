@@ -37,7 +37,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M40Sync(void) {
 	if (outer &0x08) {
 		if (outer &0x10)
 			setprg32(0x8000, 2 | outer >>6);
@@ -56,12 +56,12 @@ static void Sync(void) {
 	setmirror(outer &1? MI_H: MI_V);
 }
 
-static DECLFW(M40Write) {
+static void M40Write(uint32 A, uint8 V) {
 	switch (A & 0xe000) {
 	case 0x8000: IRQa = 0; IRQCount = 0; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0xa000: IRQa = 1; break;
-	case 0xc000: if (submapper ==1) { outer =A &0xFF; Sync(); } break;
-	case 0xe000: reg = V & 7; Sync(); break;
+	case 0xc000: if (submapper ==1) { outer =A &0xFF; M40Sync(); } break;
+	case 0xe000: reg = V & 7; M40Sync(); break;
 	}
 }
 
@@ -70,17 +70,17 @@ static void M40Power(void) {
 	outer = 0;
 	IRQa = 0;
 	X6502_IRQEnd(FCEU_IQEXT);
-	Sync();
+	M40Sync();
 	SetReadHandler(0x6000, 0xffff, CartBR);
 	SetWriteHandler(0x8000, 0xffff, M40Write);
 }
 
 static void M40Reset(void) {
 	outer = 0;
-	Sync();
+	M40Sync();
 }
 
-static void FP_FASTAPASS(1) M40IRQHook(int a) {
+static void M40IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
 			IRQCount += a;
@@ -91,8 +91,8 @@ static void FP_FASTAPASS(1) M40IRQHook(int a) {
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M40StateRestore(int version) {
+	M40Sync();
 }
 
 void Mapper40_Init(CartInfo *info) {
@@ -100,6 +100,6 @@ void Mapper40_Init(CartInfo *info) {
 	info->Reset = M40Reset;
 	info->Power = M40Power;
 	MapIRQHook = M40IRQHook;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M40StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

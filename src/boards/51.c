@@ -28,7 +28,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M51Sync(void) {
 	if (mode & 2) {
 		setprg8(0x6000, ((bank & 7) << 2) | 0x23);
 		setprg16(0x8000, (bank << 1) | 0);
@@ -45,22 +45,22 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M51WriteMode) {
+static void M51WriteMode(uint32 A, uint8 V) {
 	mode = V & 0x12;
-	Sync();
+	M51Sync();
 }
 
-static DECLFW(M51WriteBank) {
+static void M51WriteBank(uint32 A, uint8 V) {
 	bank = V & 0x0F;
 	if (A & 0x4000)
 		mode = (mode & 2) | (V & 0x10);
-	Sync();
+	M51Sync();
 }
 
 static void M51Power(void) {
 	bank = 0;
 	mode = 2;
-	Sync();
+	M51Sync();
 	SetWriteHandler(0x6000, 0x7FFF, M51WriteMode);
 	SetWriteHandler(0x8000, 0xFFFF, M51WriteBank);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
@@ -69,16 +69,16 @@ static void M51Power(void) {
 static void M51Reset(void) {
 	bank = 0;
 	mode = 2;
-	Sync();
+	M51Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M51StateRestore(int version) {
+	M51Sync();
 }
 
 void Mapper51_Init(CartInfo *info) {
 	info->Power = M51Power;
 	info->Reset = M51Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+	GameStateRestore = M51StateRestore;
 }

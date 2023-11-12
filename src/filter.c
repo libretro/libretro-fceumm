@@ -12,16 +12,6 @@ static uint32 mrindex;
 static uint32 mrratio;
 
 void SexyFilter2(int32 *in, int32 count) {
- #ifdef moo
-	static int64 acc = 0;
-	double x, p;
-	int64 c;
-
-	x = 2 * M_PI * 6000 / FSettings.SndRate;
-	p = ((double)2 - cos(x)) - sqrt(pow((double)2 - cos(x), 2) - 1);
-
-	c = p * 0x100000;
- #endif
 	static int64 acc = 0;
 
 	while (count--) {
@@ -31,22 +21,15 @@ void SexyFilter2(int32 *in, int32 count) {
 		acc += dropcurrent;
 		*in = acc >> 16;
 		in++;
-#if 0
-		 acc=((int64)0x100000-c)* *in + ((c*acc)>>20);
-		*in=acc>>20;
-		in++;
-#endif
 	}
 }
 
 int64 sexyfilter_acc1 = 0, sexyfilter_acc2 = 0;
 
 void SexyFilter(int32 *in, int32 *out, int32 count) {
-	int32 mul1, mul2, vmul;
-
-	mul1 = (94 << 16) / FSettings.SndRate;
-	mul2 = (24 << 16) / FSettings.SndRate;
-	vmul = (FSettings.SoundVolume << 16) * 3 / 4 / 100;
+	int32 mul1 = (94 << 16) / FSettings.SndRate;
+	int32 mul2 = (24 << 16) / FSettings.SndRate;
+	int32 vmul = (FSettings.SoundVolume << 16) * 3 / 4 / 100;
 
 	if (FSettings.soundq)
 		vmul /= 4;
@@ -146,8 +129,6 @@ void MakeFilters(int32 rate) {
 					   C96000PAL };
 	int32 *sq2tabs[6] = { SQ2C44100NTSC, SQ2C44100PAL, SQ2C48000NTSC, SQ2C48000PAL,
 						  SQ2C96000NTSC, SQ2C96000PAL };
-
-	int32 *tmp;
 	int32 x;
 	uint32 nco;
 
@@ -160,14 +141,15 @@ void MakeFilters(int32 rate) {
 	mrratio = (PAL ? (int64)(PAL_CPU * 65536) : (int64)(NTSC_CPU * 65536)) / rate;
 
 	if (FSettings.soundq == 2)
-		tmp = sq2tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
-	else
-		tmp = tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
-
-	if (FSettings.soundq == 2)
+	{
+		int32 *tmp = sq2tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
 		for (x = 0; x < (SQ2NCOEFFS >> 1); x++)
 			sq2coeffs[x] = sq2coeffs[SQ2NCOEFFS - 1 - x] = tmp[x];
+	}
 	else
+	{
+		int32 *tmp = tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
 		for (x = 0; x < (NCOEFFS >> 1); x++)
 			coeffs[x] = coeffs[NCOEFFS - 1 - x] = tmp[x];
+	}
 }

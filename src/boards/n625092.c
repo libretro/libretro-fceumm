@@ -32,7 +32,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNLN625092Sync(void) {
 	setmirror((cmd & 1) ^ 1);
 	setchr8(0);
 	if (cmd & 2) {
@@ -51,25 +51,25 @@ static void Sync(void) {
 
 static uint16 ass = 0;
 
-static DECLFW(UNLN625092WriteCommand) {
+static void UNLN625092WriteCommand(uint32 A, uint8 V) {
 	cmd = A;
 	if (A == 0x80F8) {
 		setprg16(0x8000, ass);
 		setprg16(0xC000, ass);
 	} else {
-		Sync();
+		UNLN625092Sync();
 	}
 }
 
-static DECLFW(UNLN625092WriteBank) {
+static void UNLN625092WriteBank(uint32 A, uint8 V) {
 	bank = A & 7;
-	Sync();
+	UNLN625092Sync();
 }
 
 static void UNLN625092Power(void) {
 	cmd = 0;
 	bank = 0;
-	Sync();
+	UNLN625092Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xBFFF, UNLN625092WriteCommand);
 	SetWriteHandler(0xC000, 0xFFFF, UNLN625092WriteBank);
@@ -79,17 +79,16 @@ static void UNLN625092Reset(void) {
 	cmd = 0;
 	bank = 0;
 	ass++;
-	FCEU_printf("%04x\n", ass);
-	Sync();
+	UNLN625092Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void UNLN625092StateRestore(int version) {
+	UNLN625092Sync();
 }
 
 void UNLN625092_Init(CartInfo *info) {
 	info->Reset = UNLN625092Reset;
 	info->Power = UNLN625092Power;
-	GameStateRestore = StateRestore;
+	GameStateRestore = UNLN625092StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

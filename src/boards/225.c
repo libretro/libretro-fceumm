@@ -52,7 +52,7 @@ static void Sync(void) {
 	setmirror(mirr ^ 1);
 }
 
-static DECLFW(M225Write) {
+static void M225Write(uint32 A, uint8 V) {
 	uint8 bank = (A >> 14) & 1;
 	mirr = (A >> 13) & 1;
 	mode = (A >> 12) & 1;
@@ -61,12 +61,12 @@ static DECLFW(M225Write) {
 	Sync();
 }
 
-static DECLFW(M225LoWrite) {
+static void M225LoWrite(uint32 A, uint8 V) {
 	/* e.g. 115-in-1 [p1][!] CRC32 0xb39d30b4 */
 	if (A & 0x800) extraRAM[A & 3] = V & 0x0F;
 }
 
-static DECLFR(M225LoRead) {
+static uint8 M225LoRead(uint32 A) {
 	if (A & 0x800) return extraRAM[A & 3];
 	return X.DB;
 }

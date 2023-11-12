@@ -105,7 +105,7 @@ static void M83Sync(void) {
 	}
 }
 
-static DECLFW(UNLYOKOWrite) {
+static void UNLYOKOWrite(uint32 A, uint8 V) {
 	switch (A & 0x8C17) {
 	case 0x8000: bank = V; UNLYOKOSync(); break;
 	case 0x8400: mode = V; UNLYOKOSync(); break;
@@ -121,7 +121,7 @@ static DECLFW(UNLYOKOWrite) {
 	}
 }
 
-static DECLFW(M83Write) {
+static void M83Write(uint32 A, uint8 V) {
 	switch (A &0x31F) {
 	case 0x000: bank = V; M83Sync(); break;
 	case 0x100: mode = V; M83Sync(); break;
@@ -141,17 +141,9 @@ static DECLFW(M83Write) {
 	}
 }
 
-static DECLFR(UNLYOKOReadDip) {
-	return (X.DB & 0xFC) | dip;
-}
-
-static DECLFR(UNLYOKOReadLow) {
-	return low[A & 3];
-}
-
-static DECLFW(UNLYOKOWriteLow) {
-	low[A & 3] = V;
-}
+static uint8 UNLYOKOReadDip(uint32 A) { return (X.DB & 0xFC) | dip; }
+static uint8 UNLYOKOReadLow(uint32 A) { return low[A & 3]; }
+static void UNLYOKOWriteLow(uint32 A, uint8 V) { low[A & 3] = V; }
 
 static void UNLYOKOPower(void) {
 	mode = bank = 0;
@@ -196,7 +188,7 @@ static void M83Close(void) {
 	WRAM = NULL;
 }
 
-static void FP_FASTAPASS(1) UNLYOKOIRQHook(int a) {
+static void UNLYOKOIRQHook(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount < 0) {

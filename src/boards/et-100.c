@@ -60,7 +60,7 @@ static void BMC1024CA1CW(uint32 A, uint8 V) {
 	 	setchr1(A, (V&0x7F) | ((EXPREGS[0] & 7) << 7));
 }
 
-static DECLFW(BMC1024CA1Write) {
+static void BMC1024CA1Write(uint32 A, uint8 V) {
 	if (((A001B & 0xC0) == 0x80) && !(EXPREGS[0] & 7))
 	{
 		EXPREGS[0] = A & 0x3F;

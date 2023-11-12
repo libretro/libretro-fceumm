@@ -45,7 +45,7 @@ static void Sync(void) {
     setmirrorw(nt[0] & 1, nt[1] & 1, nt[2] & 1, nt[3] & 1);
 }
 
-static DECLFW(M417Write) {
+static void M417Write(uint32 A, uint8 V) {
     switch ((A >> 4) & 7) {
     case 0: preg[A & 3] = V; Sync(); break;
     case 1: creg[0 | (A & 3)] = V; Sync(); break;

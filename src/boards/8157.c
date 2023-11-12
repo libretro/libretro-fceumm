@@ -42,14 +42,13 @@ static void Sync(void) {
 	setmirror(((cmdreg & 2) >> 1) ^ 1);
 }
 
-static DECLFR(UNL8157Read) {
-	if ((cmdreg & 0x100) && (PRGsize[0] < (1024 * 1024))) {
+static uint8 UNL8157Read(uint32 A) {
+	if ((cmdreg & 0x100) && (PRGsize[0] < (1024 * 1024)))
 		A = (A & 0xFFF0) + reset;
-	}
 	return CartBR(A);
 }
 
-static DECLFW(UNL8157Write) {
+static void UNL8157Write(uint32 A, uint8 V) {
 	cmdreg = A;
 	Sync();
 }

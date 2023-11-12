@@ -30,7 +30,7 @@ static uint32 WRAMSIZE;
 static uint32 hasBattery;
 static uint32 submapper = 0;
 
-static DECLFW(LatchWrite) {
+static void LatchWrite(uint32 A, uint8 V) {
 	latche = A;
 	WSync();
 }
@@ -102,14 +102,13 @@ static void BMCD1038Sync(void) {
 	setmirror(((latche & 8) >> 3) ^ 1);
 }
 
-static DECLFR(BMCD1038Read) {
+static uint8 BMCD1038Read(uint32 A) {
 	if (latche & 0x100)
 		return dipswitch;
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
-static DECLFW(BMCD1038Write) {
+static void BMCD1038Write(uint32 A, uint8 V) {
 	/* Only recognize the latch write if the lock bit has not been set. Needed for NT-234 "Road Fighter" */
 	if (~latche & 0x200)
 		LatchWrite(A, V);
@@ -163,11 +162,10 @@ void Mapper58_Init(CartInfo *info) {
 	setmirror((latche >> 3) & 1);
 }
 
-static DECLFR(M59Read) {
+static uint8 M59Read(uint32 A) {
 	if (latche & 0x100)
 		return 0;
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
 void Mapper59_Init(CartInfo *info) {
@@ -200,7 +198,7 @@ void Mapper61_Init(CartInfo *info) {
 
 static uint16 openBus;
 
-static DECLFR(M63Read) {
+static uint8 M63Read(uint32 A) {
 	if (openBus)
 		return X.DB;
 	return CartBR(A);
@@ -321,7 +319,7 @@ void Mapper204_Init(CartInfo *info) {
 
 /*------------------ Map 212 ---------------------------*/
 
-static DECLFR(M212Read) {
+static uint8 M212Read(uint32 A) {
 	uint8 ret = CartBROB(A);
 	if ((A & 0xE010) == 0x6000)
 		ret |= 0x80;
@@ -415,11 +413,10 @@ static void M227Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
-static DECLFR(M227Read) {
+static uint8 M227Read(uint32 A) {
 	if (latche &0x0400)
 		return CartBR(A | dipswitch);
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
 static void Mapper227_Reset(void) {
@@ -527,11 +524,10 @@ static void M242Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 }
 
-static DECLFR(M242Read) {
+static uint8 M242Read(uint32 A) {
 	if (latche &0x0100)
 		return CartBR(A | dipswitch);
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
 static void Mapper242_Reset(void) {
@@ -558,7 +554,7 @@ static void M288Sync(void) {
 	setprg32(0x8000, (latche >> 3) & 3);
 }
 
-static DECLFR(M288Read) {
+static uint8 M288Read(uint32 A) {
 	uint8 ret = CartBR(A);
 	if (latche & 0x20)
 		ret |= (dipswitch << 2);

@@ -43,7 +43,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M433Write) {
+static void M433Write(uint32 A, uint8 V) {
 	latche = V;
 	Sync();
 }

@@ -45,7 +45,7 @@ static void Sync(void) {
 	setmirror(mirror ^ 1);
 }
 
-static DECLFW(M117Write) {
+static void M117Write(uint32 A, uint8 V) {
 	if (A < 0x8004) {
 		prgreg[A & 3] = V;
 		Sync();

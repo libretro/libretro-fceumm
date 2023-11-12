@@ -27,8 +27,7 @@ static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 static void (*WSync)(void);
 
-static DECLFW(LatchWrite) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
+static void LatchWrite(uint32 A, uint8 V) {
 	if (bus_conflict)
 		latche = V & CartBR(A);
 	else
@@ -55,9 +54,7 @@ static void LatchClose(void) {
 	WRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	WSync();
-}
+static void StateRestore(int version) { WSync(); }
 
 static void Latch_Init(CartInfo *info, void (*proc)(void), uint8 init, uint16 adr0, uint16 adr1, uint8 wram, uint8 busc) {
 	bus_conflict = busc;
@@ -84,13 +81,6 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), uint8 init, uint16 ad
 
 /*------------------ Map 0 ---------------------------*/
 
-#ifdef DEBUG_MAPPER
-static DECLFW(NROMWrite) {
-	FCEU_printf("bs %04x %02x\n", A, V);
-	CartBW(A, V);
-}
-#endif
-
 static void NROMPower(void) {
 	setprg8r(0x10, 0x6000, 0);	/* Famili BASIC (v3.0) need it (uses only 4KB), FP-BASIC uses 8KB */
 	setprg16(0x8000, 0);
@@ -102,10 +92,6 @@ static void NROMPower(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
-
-	#ifdef DEBUG_MAPPER
-	SetWriteHandler(0x4020, 0xFFFF, NROMWrite);
-	#endif
 }
 
 void NROM_Init(CartInfo *info) {

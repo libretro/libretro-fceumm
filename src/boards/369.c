@@ -81,7 +81,7 @@ static void SyncCHR(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(M369WriteLo) {
+static void M369WriteLo(uint32 A, uint8 V) {
 	if ((A & 0xC100) == 0x4100) {
 		mode = V;
 		FixMMC3PRG(MMC3_cmd);
@@ -89,7 +89,7 @@ static DECLFW(M369WriteLo) {
 	}
 }
 
-static DECLFW(M369Write) {
+static void M369Write(uint32 A, uint8 V) {
 	if (mode == 0x13) {
 		switch (A & 0xE000) {
 		case 0x8000:
@@ -133,7 +133,7 @@ static DECLFW(M369Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) SMB2JIRQHook(int a) {
+static void SMB2JIRQHook(int a) {
 	if (mode != 0x13)
 		return;
 

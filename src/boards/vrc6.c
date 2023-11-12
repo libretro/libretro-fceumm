@@ -74,7 +74,7 @@ static SFORMAT SStateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void VRC6Sync(void) {
 	uint8 i;
 	if (is26)
 		setprg8r(0x10, 0x6000, 0);
@@ -91,7 +91,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(VRC6SW) {
+static void VRC6SW(uint32 A, uint8 V) {
 	A &= 0xF003;
 	if (A >= 0x9000 && A <= 0x9002) {
 		vpsg1[A & 3] = V;
@@ -105,7 +105,7 @@ static DECLFW(VRC6SW) {
 	}
 }
 
-static DECLFW(VRC6Write) {
+static void VRC6Write(uint32 A, uint8 V) {
 	if (is26)
 		A = (A & 0xFFFC) | ((A >> 1) & 1) | ((A << 1) & 2);
 	if (A >= 0x9000 && A <= 0xB002) {
@@ -113,17 +113,17 @@ static DECLFW(VRC6Write) {
 		return;
 	}
 	switch (A & 0xF003) {
-	case 0x8000: prg[0] = V; Sync(); break;
-	case 0xB003: mirr = (V >> 2) & 3; Sync(); break;
-	case 0xC000: prg[1] = V; Sync(); break;
-	case 0xD000: chr[0] = V; Sync(); break;
-	case 0xD001: chr[1] = V; Sync(); break;
-	case 0xD002: chr[2] = V; Sync(); break;
-	case 0xD003: chr[3] = V; Sync(); break;
-	case 0xE000: chr[4] = V; Sync(); break;
-	case 0xE001: chr[5] = V; Sync(); break;
-	case 0xE002: chr[6] = V; Sync(); break;
-	case 0xE003: chr[7] = V; Sync(); break;
+	case 0x8000: prg[0] = V; VRC6Sync(); break;
+	case 0xB003: mirr = (V >> 2) & 3; VRC6Sync(); break;
+	case 0xC000: prg[1] = V; VRC6Sync(); break;
+	case 0xD000: chr[0] = V; VRC6Sync(); break;
+	case 0xD001: chr[1] = V; VRC6Sync(); break;
+	case 0xD002: chr[2] = V; VRC6Sync(); break;
+	case 0xD003: chr[3] = V; VRC6Sync(); break;
+	case 0xE000: chr[4] = V; VRC6Sync(); break;
+	case 0xE001: chr[5] = V; VRC6Sync(); break;
+	case 0xE002: chr[6] = V; VRC6Sync(); break;
+	case 0xE003: chr[7] = V; VRC6Sync(); break;
 	case 0xF000: IRQLatch = V; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0xF001:
 		IRQa = V & 2;
@@ -140,7 +140,7 @@ static DECLFW(VRC6Write) {
 }
 
 static void VRC6Power(void) {
-	Sync();
+	VRC6Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x8000, 0xFFFF, VRC6Write);
@@ -167,8 +167,8 @@ static void VRC6Close(void) {
 	WRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void VRC6StateRestore(int version) {
+	VRC6Sync();
 }
 
 /* VRC6 Sound */
@@ -368,7 +368,7 @@ void Mapper24_Init(CartInfo *info) {
 	info->Power = VRC6Power;
 	MapIRQHook = VRC6IRQHook;
 	VRC6_ESI();
-	GameStateRestore = StateRestore;
+	GameStateRestore = VRC6StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 	AddExState(&SStateRegs, ~0, 0, 0);
 }
@@ -379,7 +379,7 @@ void Mapper26_Init(CartInfo *info) {
 	info->Close = VRC6Close;
 	MapIRQHook = VRC6IRQHook;
 	VRC6_ESI();
-	GameStateRestore = StateRestore;
+	GameStateRestore = VRC6StateRestore;
 
 	WRAMSIZE = 8192;
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);

@@ -59,7 +59,7 @@ static void M383CHRWrap (uint32 A, uint8 V)
 	setchr1(A, V &0x7F | A17A18 <<3);
 }
 
-static DECLFR(M383Read)
+static uint8 M383Read(uint32 A)
 {
 	if (A17A18 ==0x00)
 	{	/* "PAL PRG A16 is updated with the content of the corresponding MMC3 PRG bank bit by reading from the respective address range,
@@ -70,7 +70,7 @@ static DECLFR(M383Read)
 	return CartBR(A);
 }
 
-static DECLFW(M383Write)
+static void M383Write(uint32 A, uint8 V)
 {
 	if (A &0x0100)
 	{

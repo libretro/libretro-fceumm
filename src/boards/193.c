@@ -46,7 +46,7 @@ static void Sync(void) {
 	setchr2(0x1800, reg[2] >> 1);
 }
 
-static DECLFW(M193Write) {
+static void M193Write(uint32 A, uint8 V) {
 	reg[A & 3] = V;
 	Sync();
 }

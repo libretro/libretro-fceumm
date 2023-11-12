@@ -33,7 +33,7 @@ static SFORMAT StateRegs[] =
         { 0 }
 };
 
-static void sync()
+static void M162Sync(void)
 {
    setprg32(0x8000, reg[2] <<4 | reg[0] &0x0C                                        /* PRG A17-A20 always normal from $5000 and $5200 */
                   | ( reg[3] &0x04                ?         0x00 : 0x02)             /* PRG A16 is 1       if $5300.2=0                */
@@ -47,7 +47,7 @@ static void sync()
       setchr8(0);
 }
 
-static void hblank(void) {
+static void M162HBIRQHook(void) {
    if (reg[0] &0x80 && scanline <239)
    {  /* Actual hardware cannot look at the current scanline number, but instead latches PA09 on PA13 rises. This does not seem possible with the current PPU emulation however. */
       setchr4(0x0000, scanline >=127? 1: 0);
@@ -57,53 +57,50 @@ static void hblank(void) {
       setchr8(0);
 }
 
-static DECLFR(readReg)
-{
-   return 0x00;
-}
+static uint8 readReg(uint32 A) { return 0x00; }
 
-static DECLFW(writeReg)
+static void writeReg(uint32 A, uint8 V)
 {
    reg[A >>8 &3] = V;
-   sync();
+   M162Sync();
 }
 
-static void power(void)
+static void M162Power(void)
 {
    memset(reg, 0, sizeof(reg));
-   sync();
+   M162Sync();
    SetReadHandler (0x5000, 0x57FF, readReg);
    SetWriteHandler(0x5000, 0x57FF, writeReg);
    SetReadHandler (0x6000, 0xFFFF, CartBR);
    SetWriteHandler(0x6000, 0x7FFF, CartBW);
 }
 
-static void reset(void)
+static void M162Reset(void)
 {
    memset(reg, 0, sizeof(reg));
-   sync();
+   M162Sync();
 }
 
-static void close(void)
+static void M162Close(void)
 {
    if (WRAM)
       FCEU_gfree(WRAM);
    WRAM = NULL;
 }
 
-static void StateRestore(int version)
+static void M162StateRestore(int version)
 {
-   sync();
+   M162Sync();
 }
 
 void Mapper162_Init (CartInfo *info)
 {
-   info->Power   = power;
-   info->Reset   = reset;
-   info->Close   = close;
-   GameHBIRQHook = hblank;
+   info->Power   = M162Power;
+   info->Reset   = M162Reset;
+   info->Close   = M162Close;
+   GameHBIRQHook = M162HBIRQHook;
 
-   GameStateRestore = StateRestore;
+   GameStateRestore = M162StateRestore;
    AddExState(StateRegs, ~0, 0, 0);
 
    WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;

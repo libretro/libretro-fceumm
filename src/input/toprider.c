@@ -24,7 +24,7 @@
 static uint32 bs, bss;
 static uint32 boop;
 
-static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret) {
+static uint8 Read(int w, uint8 ret) {
 	if (w) {
 		ret |= (bs & 1) << 3;
 		ret |= (boop & 1) << 4;
@@ -34,11 +34,9 @@ static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret) {
 	return(ret);
 }
 
-static void FP_FASTAPASS(1) Write(uint8 V) {
-	bs = bss;
-}
+static void Write(uint8 V) { bs = bss; }
 
-static void FP_FASTAPASS(2) Update(void *data, int arg) {
+static void Update(void *data, int arg) {
 	bss = *(uint8*)data;
 	bss |= bss << 8;
 	bss |= bss << 8;
@@ -46,7 +44,4 @@ static void FP_FASTAPASS(2) Update(void *data, int arg) {
 
 static INPUTCFC TopRider = { Read, Write, 0, Update, 0, 0 };
 
-INPUTCFC *FCEU_InitTopRider(void) {
-	return(&TopRider);
-}
-
+INPUTCFC *FCEU_InitTopRider(void) { return(&TopRider); }

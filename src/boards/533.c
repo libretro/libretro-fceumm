@@ -39,11 +39,11 @@ static void Sync(void) {
 	setchr8((latche >> 4) & 1);
 }
 
-static DECLFR(M533Read) {
+static uint8 M533Read(uint32 A) {
 	return ((PRGptr[0][A] & 0xF0) | (latche >> 4));
 }
 
-static DECLFW(M533Write) {
+static void M533Write(uint32 A, uint8 V) {
 	latche = (V & CartBR(A));
 	Sync();
 }

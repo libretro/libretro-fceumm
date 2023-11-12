@@ -25,14 +25,13 @@ static uint8 OKValR, LastWR;
 static uint32 OKData;
 static uint32 OKX, OKY, OKB;
 
-static uint8 FP_FASTAPASS(2) OK_Read(int w, uint8 ret) {
-	if (w) {
+static uint8 OK_Read(int w, uint8 ret) {
+	if (w)
 		ret |= OKValR;
-	}
 	return(ret);
 }
 
-static void FP_FASTAPASS(1) OK_Write(uint8 V) {
+static void OK_Write(uint8 V) {
 	if (!(V & 0x1)) {
 		int32 vx, vy;
 
@@ -64,13 +63,13 @@ static void FP_FASTAPASS(1) OK_Write(uint8 V) {
 	LastWR = V;
 }
 
-static void FP_FASTAPASS(2) OK_Update(void *data, int arg) {
+static void OK_Update(void *data, int arg) {
 	OKX = ((uint32*)data)[0];
 	OKY = ((uint32*)data)[1];
 	OKB = ((uint32*)data)[2];
 }
 
-static void FP_FASTAPASS(2) DrawOeka(uint8 * buf, int arg) {
+static void DrawOeka(uint8 * buf, int arg) {
 	if (arg && OKY < 44)
 		FCEU_DrawCursor(buf, OKX, OKY);
 }

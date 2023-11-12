@@ -62,12 +62,12 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(FFEWriteMirr) {
+static void FFEWriteMirr(uint32 A, uint8 V) {
 	mirr = ((A << 1) & 2) | ((V >> 4) & 1);
 	Sync();
 }
 
-static DECLFW(FFEWriteIRQ) {
+static void FFEWriteIRQ(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x4501: IRQa = 0; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0x4502: IRQCount &= 0xFF00; IRQCount |= V; X6502_IRQEnd(FCEU_IQEXT); break;
@@ -75,17 +75,17 @@ static DECLFW(FFEWriteIRQ) {
 	}
 }
 
-static DECLFW(FFEWritePrg) {
+static void FFEWritePrg(uint32 A, uint8 V) {
 	preg[A & 3] = V;
 	Sync();
 }
 
-static DECLFW(FFEWriteChr) {
+static void FFEWriteChr(uint32 A, uint8 V) {
 	creg[A & 7] = V;
 	Sync();
 }
 
-static DECLFW(FFEWriteLatch) {
+static void FFEWriteLatch(uint32 A, uint8 V) {
 	latch = V;
 	Sync();
 }
@@ -105,7 +105,7 @@ static void FFEPower(void) {
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void FP_FASTAPASS(1) FFEIRQHook(int a) {
+static void FFEIRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount >= 0x10000) {

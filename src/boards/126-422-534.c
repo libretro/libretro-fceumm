@@ -106,7 +106,7 @@ static void wrapMirroring(uint8 V) {
 	
 }
 
-static DECLFW(writeWRAM) {
+static void writeWRAM(uint32 A, uint8 V) {
 	CartBW(A, V);
 	if ((A &3) ==2) { /* CNROM Bank (D0-D3), Bank Enable (D4-D6) and Bank Enable Lock (D7) */
 		int latchMask =0xFF &~(EXPREGS[2] &0x80? 0x70: 0x00) &~(EXPREGS [2] >>3 &0x0E);
@@ -122,7 +122,7 @@ static DECLFW(writeWRAM) {
 	}
 }
 
-static DECLFW(writeCart) {
+static void writeCart(uint32 A, uint8 V) {
 	if ((EXPREGS[3] &0x09) ==0x09) /* UNROM and ANROM modes treat all writes to $8000-$FFFF as if they were going to $8000-$9FFF */
 		MMC3_CMDWrite(0x8000 | (EXPREGS[3] &0x08? 1: A) &1, V); /* A0 substitution only looks at bit 3 of register 3 */
 	else
@@ -132,7 +132,7 @@ static DECLFW(writeCart) {
 		MMC3_CMDWrite(A, V);	
 }
 
-static DECLFR(readPRG) {
+static uint8 readPRG(uint32 A) {
 	if (EXPREGS[1] &1) A =A &~1 | SL0 &1; /* Replace A0 with SL0 input */
 	return CartBR(A);
 }

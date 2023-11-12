@@ -29,7 +29,8 @@
 static uint8 preg[4], creg[8];
 static uint32 IRQCount;
 static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+
+#define UNLBJ56_WRAMSIZE 8192
 
 static SFORMAT StateRegs[] =
 {
@@ -39,7 +40,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNLBJ56Sync(void) {
 	uint8 i;
 	setprg8r(0x10, 0x6000, 0);
 	setprg8(0x8000, preg[0]);
@@ -51,15 +52,14 @@ static void Sync(void) {
 	setmirror(MI_V);
 }
 
-static DECLFW(UNLBJ56Write) {
-/*	FCEU_printf("Wr: A:%04x V:%02x\n", A, V); */
+static void UNLBJ56Write(uint32 A, uint8 V) {
 	A &= 0xF00F;
 	if (A <= 0x8007) {
 		creg[A & 0x07] = V;
-		Sync();
+		UNLBJ56Sync();
 	} else if (A <= 0x800B) {
 		preg[A & 0x03] = V;
-		Sync();
+		UNLBJ56Sync();
 	} else {
 		switch (A & 0x0F) {
 		case 0x0D:
@@ -74,7 +74,7 @@ static DECLFW(UNLBJ56Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) UNLBJ56IRQHook(int a) {
+static void UNLBJ56IRQHook(int a) {
 	IRQCount += a;
 	if (IRQCount & 4096)
 		X6502_IRQBegin(FCEU_IQEXT);
@@ -91,29 +91,28 @@ static void UNLBJ56Power(void) {
 	preg[1] = ~2;
 	preg[2] = ~1;
 	preg[3] = ~0;
-	Sync();
+	UNLBJ56Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x8000, 0x800F, UNLBJ56Write);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	FCEU_CheatAddRAM(UNLBJ56_WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void UNLBJ56StateRestore(int version) {
+	UNLBJ56Sync();
 }
 
 void UNLBJ56_Init(CartInfo *info) {
 	info->Power = UNLBJ56Power;
 	info->Close = UNLBJ56Close;
 	MapIRQHook = UNLBJ56IRQHook;
-	GameStateRestore = StateRestore;
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	GameStateRestore = UNLBJ56StateRestore;
+	WRAM = (uint8*)FCEU_gmalloc(UNLBJ56_WRAMSIZE);
+	SetupCartPRGMapping(0x10, WRAM, UNLBJ56_WRAMSIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
+		info->SaveGameLen[0] = UNLBJ56_WRAMSIZE;
 	}
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	AddExState(WRAM, UNLBJ56_WRAMSIZE, 0, "WRAM");
 	AddExState(&StateRegs, ~0, 0, 0);
 }

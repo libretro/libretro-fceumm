@@ -32,7 +32,7 @@ static void M291PW(uint32 A, uint8 V) {
 		setprg8(A, (V & 0x0F) |  ((EXPREGS[0] >> 2) & 0x10));
 }
 
-static DECLFW(M291Write) {
+static void M291Write(uint32 A, uint8 V) {
 	EXPREGS[0] = V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

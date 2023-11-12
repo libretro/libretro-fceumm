@@ -36,12 +36,12 @@
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
-char *GetKeyboard(void);
+char *GetKeyboard(void); /* forward declaration */
 
 static char *TransformerKeys, oldkeys[256];
 static int TransformerCycleCount, TransformerChar = 0;
 
-static void FP_FASTAPASS(1) TransformerIRQHook(int a) {
+static void TransformerIRQHook(int a) {
 	TransformerCycleCount += a;
 	if (TransformerCycleCount >= 1000) {
 		uint32 i;
@@ -62,7 +62,7 @@ static void FP_FASTAPASS(1) TransformerIRQHook(int a) {
 	}
 }
 
-static DECLFR(TransformerRead) {
+static uint8 TransformerRead(uint32 A) {
 	uint8 ret = 0;
 	switch (A & 3) {
 	case 0: ret = TransformerChar & 15; break;

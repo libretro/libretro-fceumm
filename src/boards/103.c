@@ -57,25 +57,23 @@ static void Sync(void) {
 	setmirror(reg1 ^ 1);
 }
 
-static DECLFW(M103RamWrite0) {
-	WRAM[A & 0x1FFF] = V;
-}
+static void M103RamWrite0(uint32 A, uint8 V) { WRAM[A & 0x1FFF] = V; }
 
-static DECLFW(M103RamWrite1) {
+static void M103RamWrite1(uint32 A, uint8 V) {
 	WRAM[0x2000 + ((A - 0xB800) & 0x1FFF)] = V;
 }
 
-static DECLFW(M103Write0) {
+static void M103Write0(uint32 A, uint8 V) {
 	reg0 = V & 0xf;
 	Sync();
 }
 
-static DECLFW(M103Write1) {
+static void M103Write1(uint32 A, uint8 V) {
 	reg1 = (V >> 3) & 1;
 	Sync();
 }
 
-static DECLFW(M103Write2) {
+static void M103Write2(uint32 A, uint8 V) {
 	reg2 = V;
 	Sync();
 }

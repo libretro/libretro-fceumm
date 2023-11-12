@@ -42,7 +42,7 @@ static MEMWRAP *MakeMemWrap(RFILE *tz)
    MEMWRAP *tmp = NULL;
 
    if (!(tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP))))
-      goto doret;
+      return NULL;
    tmp->location = 0;
 
    filestream_seek(tz, 0, RETRO_VFS_SEEK_POSITION_END);
@@ -53,13 +53,12 @@ static MEMWRAP *MakeMemWrap(RFILE *tz)
    {
       free(tmp);
       tmp = NULL;
-      goto doret;
+      return NULL;
    }
 
    filestream_read(tz, tmp->data_int, tmp->size);
    tmp->data = tmp->data_int;
 
-doret:
    return tmp;
 }
 
@@ -120,10 +119,10 @@ int FCEU_fclose(FCEUFILE *fp)
    }
    fp->fp = NULL;
 
-	free(fp);
-	fp = NULL;
+   free(fp);
+   fp = NULL;
 
-	return 1;
+   return 1;
 }
 
 uint64 FCEU_fread(void *ptr, size_t element_size, size_t nmemb, FCEUFILE *fp)
@@ -190,11 +189,6 @@ int FCEU_fgetc(FCEUFILE *fp)
       return fp->fp->data[fp->fp->location++];
 
    return EOF;
-}
-
-uint64 FCEU_ftell(FCEUFILE *fp)
-{
-   return fp->fp->location;
 }
 
 uint64 FCEU_fgetsize(FCEUFILE *fp)

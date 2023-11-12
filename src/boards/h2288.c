@@ -36,14 +36,14 @@ static void H2288PW(uint32 A, uint8 V) {
 		setprg8(A, V & 0x3F);
 }
 
-static DECLFW(H2288WriteHi) {
+static void H2288WriteHi(uint32 A, uint8 V) {
 	switch (A & 0x8001) {
 	case 0x8000: MMC3_CMDWrite(0x8000, (V & 0xC0) | (m114_perm[V & 7])); break;
 	case 0x8001: MMC3_CMDWrite(0x8001, V); break;
 	}
 }
 
-static DECLFW(H2288WriteLo) {
+static void H2288WriteLo(uint32 A, uint8 V) {
 	if (A & 0x800) {
 		if (A & 1)
 			EXPREGS[1] = V;

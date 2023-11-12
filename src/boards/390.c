@@ -54,14 +54,14 @@ static void Sync(void) {
 	setmirror(((regs[0] & 0x20) >> 5) ^ 1);
 }
 
-static DECLFR(M390Read) {
+static uint8 M390Read(uint32 A) {
 	uint8 ret = CartBR(A);
 	if ((regs[1] & 0x30) == 0x10)
-		ret |= dipswitch;
+		return (ret | dipswitch);
 	return ret;
 }
 
-static DECLFW(M390Write) {
+static void M390Write(uint32 A, uint8 V) {
 	regs[(A >> 14) & 1] = A & 0x3F;
 	Sync();
 }

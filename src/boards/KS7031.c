@@ -59,7 +59,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(UNLKS7031Write) {
+static void UNLKS7031Write(uint32 A, uint8 V) {
 	reg[(A >> 11) & 3] = V;
 	Sync();
 }

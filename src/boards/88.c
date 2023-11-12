@@ -48,7 +48,7 @@ static void MSync(void) {
 	if (is154) setmirror(MI_0 + (mirror & 1));
 }
 
-static DECLFW(M88Write) {
+static void M88Write(uint32 A, uint8 V) {
 	switch (A & 0x8001) {
 	case 0x8000: cmd = V & 7; mirror = V >> 6; MSync(); break;
 	case 0x8001: reg[cmd] = V; Sync(); break;

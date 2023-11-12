@@ -52,7 +52,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(M67Write) {
+static void M67Write(uint32 A, uint8 V) {
 	switch (A & 0xF800) {
 	case 0x8800: creg[0] = V; Sync(); break;
 	case 0x9800: creg[1] = V; Sync(); break;
@@ -81,7 +81,7 @@ static void M67Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M67Write);
 }
 
-void FP_FASTAPASS(1) M67IRQ(int a) {
+void M67IRQ(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount <= 0) {

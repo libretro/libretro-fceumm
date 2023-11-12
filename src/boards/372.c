@@ -53,10 +53,9 @@ static void M372PW(uint32 A, uint8 V) {
 	if(UNIFchrrama)
 		MV |= ((EXPREGS[2] & 0x40) << 2);
 	setprg8(A, MV);
-/*	FCEU_printf("1:%02x 2:%02x 3:%02x A=%04x V=%03x\n",EXPREGS[1],EXPREGS[2],EXPREGS[3],A,MV); */
 }
 
-static DECLFW(M372Write) {
+static void M372Write(uint32 A, uint8 V) {
 	if (EXPREGS[3] & 0x40) {
 		WRAM[A - 0x6000] = V;
 		return;
@@ -67,12 +66,11 @@ static DECLFW(M372Write) {
 	FixMMC3CHR(MMC3_cmd);
 }
 
-static DECLFR(M372Read) {
+static uint8 M372Read(uint32 A) {
 	uint32 addr = 1 << (EXPREGS[5] + 4);
 	if (A & (addr | (addr - 1)))
 		return X.DB | 1;
-	else
-		return X.DB;
+	return X.DB;
 }
 
 static void M372Reset(void) {

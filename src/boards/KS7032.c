@@ -75,10 +75,8 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(UNLKS7032Write) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
+static void UNLKS7032Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
-/*		case 0x8FFF: reg[4]=V; Sync(); break; */
 	case 0x8000: IRQLatch = (IRQLatch & 0xFFF0) | (V & 0x0F); break;
 	case 0x9000: IRQLatch = (IRQLatch & 0xFF0F) | ((V & 0x0F) << 4); break;
 	case 0xA000: IRQLatch = (IRQLatch & 0xF0FF) | ((V & 0x0F) << 8); break;
@@ -118,7 +116,7 @@ static DECLFW(UNLKS7032Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) UNLSMB2JIRQHook(int a) {
+static void UNLSMB2JIRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount >= 0xFFFF) {

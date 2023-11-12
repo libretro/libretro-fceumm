@@ -38,7 +38,7 @@ static void Sync(void) {
 	setprg8(0x8000, latch & 4);			/* Special for VS Gumshoe */
 }
 
-static DECLFW(M99Write) {
+static void M99Write(uint32 A, uint8 V) {
 	latch = V;
 	Sync();
 	old4016(A, V);

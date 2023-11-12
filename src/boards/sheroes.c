@@ -39,14 +39,12 @@ static void MSHCW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(MSHWrite) {
+static void MSHWrite(uint32 A, uint8 V) {
 	EXPREGS[0] = V;
 	FixMMC3CHR(MMC3_cmd);
 }
 
-static DECLFR(MSHRead) {
-	return(tekker);
-}
+static uint8 MSHRead(uint32 A) { return(tekker); }
 
 static void MSHReset(void) {
 	MMC3RegReset();

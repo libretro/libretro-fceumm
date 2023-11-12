@@ -52,7 +52,7 @@ static void Sync(void) {
 			setchr1(i << 10, creg[i]);
 }
 
-static DECLFW(M252Write) {
+static void M252Write(uint32 A, uint8 V) {
 	if ((A >= 0xB000) && (A <= 0xEFFF)) {
 		uint8 ind = ((((A & 8) | (A >> 8)) >> 3) + 2) & 7;
 		uint8 sar = A & 4;

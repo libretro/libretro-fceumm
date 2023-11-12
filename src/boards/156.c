@@ -52,7 +52,7 @@ static void Sync(void) {
 		setmirror(MI_0);
 }
 
-static DECLFW(M156Write) {
+static void M156Write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0xC000:
 	case 0xC001:

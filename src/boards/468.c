@@ -145,8 +145,19 @@ void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
 	eep_clock =newClock;
 }
 
-static DECLFR(readReg);
-static DECLFW(writeReg);
+static uint8 readReg(uint32 A) {
+	switch(A) {
+	case 0x5301:
+	case 0x5601:
+		return output? 0x80: 0x00;
+	default:
+		break;
+	}
+	return 0xFF;
+}
+
+static void writeReg(uint32 A, uint8 V); /* forward declaration */
+
 static void setMapper(uint8 clearRegs) {
 	int i;
 	if (clearRegs) {
@@ -185,16 +196,7 @@ static void setMapper(uint8 clearRegs) {
 	sync();
 }
 
-static DECLFR(readReg) {
-	switch(A) {
-	case 0x5301: case 0x5601:
-		return output? 0x80: 0x00;
-	default:
-		return 0xFF;
-	}
-}
-
-static DECLFW(writeReg) {
+static void writeReg(uint32 A, uint8 V) {
 	switch(A) {
 	case 0x5301:
 		if (submapper ==0) setPins(!!(V &0x04), !!(V &0x02), !!(V &0x01));

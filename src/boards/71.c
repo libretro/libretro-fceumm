@@ -37,7 +37,7 @@ static void Sync(void) {
 		setmirror(mirr);
 }
 
-static DECLFW(M71Write) {
+static void M71Write(uint32 A, uint8 V) {
 	if ((A & 0xF000) == 0x9000)
 		mirr = MI_0 + ((V >> 4) & 1);	/* 2-in-1, some carts are normal hardwire V/H mirror, some uses mapper selectable 0/1 mirror */
 	else

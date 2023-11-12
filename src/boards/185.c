@@ -57,7 +57,7 @@ static void Sync181(void) {
 		setchr8r(0x10, 0);
 }
 
-static DECLFW(MWrite) {
+static void MWrite(uint32 A, uint8 V) {
 	datareg = V;
 	Sync();
 }

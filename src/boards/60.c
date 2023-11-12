@@ -22,7 +22,7 @@
 
 static uint8 game = 0;
 
-static void Sync(void)
+static void M60Sync(void)
 {
     setchr8(game);
 	setprg16(0x8000, game);
@@ -32,25 +32,25 @@ static void Sync(void)
 static void M60Reset(void)
 {
     game = (game + 1) & 3;
-    Sync();
+    M60Sync();
 }
 
 static void M60Power(void)
 {
     game = 0;
-    Sync();
+    M60Sync();
     SetReadHandler(0x8000, 0xFFFF, CartBR);
     SetWriteHandler(0x8000, 0xFFFF, CartBW);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M60StateRestore(int version) {
+	M60Sync();
 }
 
 void Mapper60_Init(CartInfo *info)
 {
     info->Power = M60Power;
     info->Reset = M60Reset;
-    GameStateRestore = StateRestore;
+    GameStateRestore = M60StateRestore;
 	AddExState(&game, 1, 0, "GAME");
 }

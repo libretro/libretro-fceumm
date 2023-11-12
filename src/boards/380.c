@@ -54,14 +54,14 @@ static void Sync(void)
    setmirror(latche &(is4K1? 0x040: 0x002)? MI_H: MI_V);
 }
 
-static DECLFR(M380Read)
+static uint8 M380Read(uint32 A)
 {
    if (latche & 0x100 && !isKN35A)
       return CartBR(A | dipswitch);
    return CartBR(A);
 }
 
-static DECLFW(M380Write)
+static void M380Write(uint32 A, uint8 V)
 {
    latche = A;
    Sync();

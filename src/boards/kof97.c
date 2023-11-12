@@ -21,13 +21,13 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static DECLFW(UNLKOF97CMDWrite) {
+static void UNLKOF97CMDWrite(uint32 A, uint8 V) {
 	V = (V & 0xD8) | ((V & 0x20) >> 4) | ((V & 4) << 3) | ((V & 2) >> 1) | ((V & 1) << 2);	/* 76143502 */
 	if (A == 0x9000) A = 0x8001;
 	MMC3_CMDWrite(A, V);
 }
 
-static DECLFW(UNLKOF97IRQWrite) {
+static void UNLKOF97IRQWrite(uint32 A, uint8 V) {
 	V = (V & 0xD8) | ((V & 0x20) >> 4) | ((V & 4) << 3) | ((V & 2) >> 1) | ((V & 1) << 2);
 	if (A == 0xD000) A = 0xC001;
 	else if (A == 0xF000) A = 0xE001;

@@ -54,8 +54,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(UNLCITYFIGHTWrite) {
-	/* FCEU_printf("%04x %02x",A,V); */
+static void UNLCITYFIGHTWrite(uint32 A, uint8 V) {
 	switch (A & 0xF00C) {
 	case 0x9000: prg_reg = V & 0xC; mirr = V & 3; break;
 	case 0x9004:

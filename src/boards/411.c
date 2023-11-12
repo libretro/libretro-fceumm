@@ -63,7 +63,7 @@ static void M411PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(M411Write5000) {
+static void M411Write5000(uint32 A, uint8 V) {
 	EXPREGS[A & 1] = V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

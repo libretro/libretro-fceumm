@@ -48,17 +48,17 @@ static void M187PW(uint32 A, uint8 V) {
 		setprg8(A, V & 0x3F);
 }
 
-static DECLFW(M187Write8000) {
+static void M187Write8000(uint32 A, uint8 V) {
 	EXPREGS[1] = 1;
 	MMC3_CMDWrite(A, V);
 }
 
-static DECLFW(M187Write8001) {
+static void M187Write8001(uint32 A, uint8 V) {
 	if (EXPREGS[1])
 		MMC3_CMDWrite(A, V);
 }
 
-static DECLFW(M187WriteLo) {
+static void M187WriteLo(uint32 A, uint8 V) {
 	if ((A == 0x5000) || (A == 0x6000)) {
 		EXPREGS[0] = V;
 		FixMMC3PRG(MMC3_cmd);
@@ -66,9 +66,7 @@ static DECLFW(M187WriteLo) {
 }
 
 static uint8 prot_data[4] = { 0x83, 0x83, 0x42, 0x00 };
-static DECLFR(M187Read) {
-	return prot_data[EXPREGS[1] & 3];
-}
+static uint8 M187Read(uint32 A) { return prot_data[EXPREGS[1] & 3]; }
 
 static void M187Power(void) {
 	EXPREGS[0] = EXPREGS[1] = 0;

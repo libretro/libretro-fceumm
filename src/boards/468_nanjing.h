@@ -1,12 +1,12 @@
 #define NANJING_reg regByte
 
-static void NANJING_sync () {
+static void NANJING_sync(void) {
 	setprg32(0x8000, NANJING_reg[2] <<4 &0x30 | NANJING_reg[0] &0x0F | (NANJING_reg[3] &4? 0x00: 0x03) | prgOR >>2);
 	setchr8(0);
 	setmirror(mapperFlags &4? MI_H: MI_V);
 }
 
-static DECLFW(NANJING_writeReg) {
+static void NANJING_writeReg(uint32 A, uint8 V) {
 	NANJING_reg[A >>8 &3] =V;
 	sync();
 }

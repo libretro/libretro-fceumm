@@ -39,7 +39,7 @@ static void Sync(void) {
 	setprg16(0xC000, ((latch & 0x70) >> 1) | 0x07 );
 }
 
-static DECLFW(FARIDUNROMWrite) {
+static void FARIDUNROMWrite(uint32 A, uint8 V) {
 	V &= CartBR(A);
 	if ((V & 0x80) && !(latch & 0x80) && !(latch & 0x08))
 		latch = (latch & 0x87) | (V & 0x78);

@@ -54,16 +54,12 @@ static void Mapper465_Sync(void)
    setmirror(latchAddr &0x002? MI_H: MI_V);
 }
 
-static DECLFW(Mapper465_WriteLatch)
+static void Mapper465_WriteLatch(uint32 A, uint8 V)
 {
    if (latchAddr &0x200)
-   {
       latchData =V;
-   }
    else
-   {
       latchAddr =A &0xFFFF;
-   }
    Mapper465_Sync();
 }
 

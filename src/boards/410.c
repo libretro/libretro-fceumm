@@ -44,10 +44,9 @@ static void M410PW(uint32 A, uint8 V) {
 	MV |= EXPREGS[1];
 	MV |= ((EXPREGS[2] & 0x40) << 2);
 	setprg8(A, MV);
-/*	FCEU_printf("1:%02x 2:%02x 3:%02x A=%04x V=%03x\n",EXPREGS[1],EXPREGS[2],EXPREGS[3],A,MV); */
 }
 
-static DECLFW(M410Write) {
+static void M410Write(uint32 A, uint8 V) {
 	EXPREGS[EXPREGS[4]] = V;
 	EXPREGS[4] = (EXPREGS[4] + 1) & 3;
 	FixMMC3PRG(MMC3_cmd);

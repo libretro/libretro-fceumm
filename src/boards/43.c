@@ -35,42 +35,40 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M43Sync(void) {
 	setprg4(0x5000, 8 << 1);	/* Only YS-612 advanced version */
 	setprg8(0x6000, swap?0:2);
 	setprg8(0x8000, 1);
 	setprg8(0xa000, 0);
 	setprg8(0xc000, reg);
 	setprg8(0xe000, swap?8:9);	/* hard dump for mr.Mary is 128K,
-								 * bank 9 is the last 2K ok bank 8 repeated 4 times, then till the end of 128K
-								 * instead used bank A, containing some CHR data, ines rom have unused banks removed,
-								 * and bank A moved to the bank 9 place for compatibility with other crappy dumps
-								 */
+					 * bank 9 is the last 2K ok bank 8 repeated 4 times, then till the end of 128K
+					 * instead used bank A, containing some CHR data, ines rom have unused banks removed,
+					 * and bank A moved to the bank 9 place for compatibility with other crappy dumps
+					 */
 	setchr8(0);
 }
 
-static DECLFW(M43Write) {
-/*	int transo[8]={4,3,4,4,4,7,5,6}; */
+static void M43Write(uint32 A, uint8 V) {
 	int transo[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };	/* According to hardware tests */
 	switch (A & 0xf1ff) {
-	case 0x4022: reg = transo[V & 7]; Sync(); break;
-	case 0x4120: swap = V & 1; Sync(); break;
-	case 0x8122:																/* hacked version */
+	case 0x4022: reg = transo[V & 7]; M43Sync(); break;
+	case 0x4120: swap = V & 1; M43Sync(); break;
+	case 0x8122: /* hacked version */
 	case 0x4122: IRQa = V & 1; X6502_IRQEnd(FCEU_IQEXT); IRQCount = 0; break;	/* original version */
 	}
 }
 
 static void M43Power(void) {
 	reg = swap = 0;
-	Sync();
+	M43Sync();
 	SetReadHandler(0x5000, 0xffff, CartBR);
 	SetWriteHandler(0x4020, 0xffff, M43Write);
 }
 
-static void M43Reset(void) {
-}
+static void M43Reset(void) { }
 
-static void FP_FASTAPASS(1) M43IRQHook(int a) {
+static void M43IRQHook(int a) {
 	IRQCount += a;
 	if (IRQa)
 		if (IRQCount >= 4096) {
@@ -79,14 +77,14 @@ static void FP_FASTAPASS(1) M43IRQHook(int a) {
 		}
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M43StateRestore(int version) {
+	M43Sync();
 }
 
 void Mapper43_Init(CartInfo *info) {
 	info->Reset = M43Reset;
 	info->Power = M43Power;
 	MapIRQHook = M43IRQHook;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M43StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

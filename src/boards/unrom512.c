@@ -60,13 +60,11 @@ static INLINE void setfpageptr(int s, uint32 A, uint8 *p) {
 	int x;
 
 	if (p)
-		for (x = (s >> 1) - 1; x >= 0; x--) {
+		for (x = (s >> 1) - 1; x >= 0; x--)
 			FlashPage[AB + x] = p - A;
-		}
 	else
-		for (x = (s >> 1) - 1; x >= 0; x--) {
+		for (x = (s >> 1) - 1; x >= 0; x--)
 			FlashPage[AB + x] = 0;
-		}
 }
 
 void setfprg16(uint32 A, uint32 V) {
@@ -96,13 +94,13 @@ static void StateRestore(int version) {
 	WHSync();
 }
 
-static DECLFW(UNROM512LLatchWrite) {
+static void UNROM512LLatchWrite(uint32 A, uint8 V) {
 	latche = V;
 	latcha = A;
 	WLSync();
 }
 
-static DECLFW(UNROM512HLatchWrite) {
+static void UNROM512HLatchWrite(uint32 A, uint8 V) {
 	if (bus_conflict)
 		latche = (V == CartBR(A)) ? V : 0;
 	else
@@ -111,13 +109,12 @@ static DECLFW(UNROM512HLatchWrite) {
 	WHSync();
 }
 
-static DECLFR(UNROM512LatchRead) {
+static uint8 UNROM512LatchRead(uint32 A) {
 	uint8 flash_id[3] = { 0xB5, 0xB6, 0xB7 };
 	if (software_id) {
 		if (A & 1)
 			return flash_id[ROM_size >> 4];
-		else
-			return 0xBF;
+		return 0xBF;
 	}
 	if (flash_save) {
 		if (A < 0xC000) {
@@ -144,8 +141,7 @@ static void UNROM512LatchPower(void) {
 	}
 }
 
-static void UNROM512LatchClose(void) {
-}
+static void UNROM512LatchClose(void) { }
 
 static void UNROM512LSync(void) {
 	int erase_a[5] = { 0x9555, 0xAAAA, 0x9555, 0x9555, 0xAAAA };
@@ -155,9 +151,8 @@ static void UNROM512LSync(void) {
 	if (flash_mode==0) {
 		if ((latcha == erase_a[flash_state]) && (latche == erase_d[flash_state]) && (flash_bank == erase_b[flash_state])) {
 			flash_state++;
-			if (flash_state == 5) {
+			if (flash_state == 5)
 				flash_mode = 1;
-			}
 		}
 		else if ((flash_state == 2) && (latcha == 0x9555) && (latche == 0xA0) && (flash_bank == 1)) {
 			flash_state++;

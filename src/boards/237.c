@@ -50,7 +50,7 @@ static void Sync(void) {
 	setmirror(((reg[1] & 0x20) >> 5) ^ 1);
 }
 
-static DECLFW(M237Write) {
+static void M237Write(uint32 A, uint8 V) {
 	if (!(reg[0] & 0x02)) {
 		reg[0] = A & 0x0F;
 		reg[1] = (reg[1] & 0x07) | (V & 0xF8);
@@ -59,7 +59,7 @@ static DECLFW(M237Write) {
 	Sync();
 }
 
-static DECLFR(M237Read) {
+static uint8 M237Read(uint32 A) {
 	if (!(reg[0] & 0x02) && (reg[0] & 0x01))
 		return dipswitch;
 	return CartBR(A);

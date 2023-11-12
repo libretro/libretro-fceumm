@@ -39,7 +39,7 @@ static void Sync(void) {
 	setmirror(((mode >> 7) & 1) ^ 1);
 }
 
-static DECLFW(M62Write) {
+static void M62Write(uint32 A, uint8 V) {
 	mode = A & 0x3FFF;
 	bank = V & 3;
 	Sync();

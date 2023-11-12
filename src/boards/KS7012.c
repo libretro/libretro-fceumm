@@ -39,8 +39,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(UNLKS7012Write) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
+static void UNLKS7012Write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0xE0A0: reg = 0; Sync(); break;
 	case 0xEE36: reg = 1; Sync(); break;

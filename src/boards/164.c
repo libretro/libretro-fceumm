@@ -39,7 +39,7 @@ static SFORMAT StateRegs[] =
         { 0 }
 };
 
-static void sync()
+static void M164Sync(void)
 {
    uint8 prgLow  = reg[0] &0x0F | reg[0] >>1 &0x10;
    uint8 prgHigh = reg[1] <<5;
@@ -75,53 +75,53 @@ static void sync()
    eeprom_93C66_write(reg[2] &0x10, reg[2] &0x04, reg[2] &0x01);
 }
 
-static DECLFR(readReg)
+static uint8 readReg(uint32 A)
 {
    return eeprom_93C66_read()? 0x00: 0x04;
 }
 
-static DECLFW(writeReg)
+static void writeReg(uint32 A, uint8 V)
 {
    reg[A >>8 &7] = V;
-   sync();
+   M164Sync();
 }
 
-static void power(void)
+static void M164Power(void)
 {
    memset(reg, 0, sizeof(reg));
    eeprom_93C66_init();
-   sync();
+   M164Sync();
    SetReadHandler (0x5400, 0x57FF, readReg);
    SetWriteHandler(0x5000, 0x57FF, writeReg);
    SetReadHandler (0x6000, 0xFFFF, CartBR);
    SetWriteHandler(0x6000, 0x7FFF, CartBW);
 }
 
-static void reset(void)
+static void M164Reset(void)
 {
    memset(reg, 0, sizeof(reg));
-   sync();
+   M164Sync();
 }
 
-static void close(void)
+static void M164Close(void)
 {
    if (WRAM)
       FCEU_gfree(WRAM);
    WRAM = NULL;
 }
 
-static void StateRestore(int version)
+static void M164StateRestore(int version)
 {
-   sync();
+   M164Sync();
 }
 
 void Mapper164_Init (CartInfo *info)
 {
-   info->Power   = power;
-   info->Reset   = reset;
-   info->Close   = close;
+   info->Power   = M164Power;
+   info->Reset   = M164Reset;
+   info->Close   = M164Close;
 
-   GameStateRestore = StateRestore;
+   GameStateRestore = M164StateRestore;
    AddExState(StateRegs, ~0, 0, 0);
 
    WRAMSIZE = info->iNES2? (info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF)): 8192;

@@ -39,27 +39,24 @@ static void Sync(void) {
 	setprg16(0xc000, 0);
 }
 
-static DECLFW(M186Write) {
+static void M186Write(uint32 A, uint8 V) {
 	if (A & 0x4203) regs[A & 3] = V;
 	Sync();
 }
 
-static DECLFR(M186Read) {
+static uint8 M186Read(uint32 A) {
 	switch (A) {
-	case 0x4200: return 0x00; break;
-	case 0x4201: return 0x00; break;
 	case 0x4202: return 0x40; break;
-	case 0x4203: return 0x00; break;
+	case 0x4200:
+	case 0x4201:
+	case 0x4203:
+		     return 0x00; break;
 	}
 	return 0xFF;
 }
 
-static DECLFR(ASWRAM) {
-	return(SWRAM[A - 0x4400]);
-}
-static DECLFW(BSWRAM) {
-	SWRAM[A - 0x4400] = V;
-}
+static uint8 ASWRAM(uint32 A) { return(SWRAM[A - 0x4400]); }
+static void BSWRAM(uint32 A, uint8 V) { SWRAM[A - 0x4400] = V; }
 
 static void M186Power(void) {
 	setchr8(0);

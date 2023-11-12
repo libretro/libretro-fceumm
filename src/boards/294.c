@@ -30,12 +30,12 @@ static void Mapper294_sync (void) {
 	setmirror(latch &0x80? MI_H: MI_V);
 }
 
-static DECLFW(Mapper294_writeInnerBank) {
+static void Mapper294_writeInnerBank(uint32 A, uint8 V) {
 	latch =latch &~7 | V&7;
 	Mapper294_sync();
 }
 
-static DECLFW(Mapper294_writeOuterBank) {
+static void Mapper294_writeOuterBank(uint32 A, uint8 V) {
 	if (A &0x100) {
 		latch =latch &7 | V <<3;
 		Mapper294_sync();

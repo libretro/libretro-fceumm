@@ -55,14 +55,13 @@ void DoVRC7Sound(void) {
 	dwave += a;
 }
 
-void UpdateOPLNEO(int32 *Wave, int Count) {
+static void UpdateOPLNEO(int32 *Wave, int Count) {
 	OPLL_fillbuf(VRC7Sound, Wave, Count, 4);
 }
 
-void UpdateOPL(int Count) {
-	int32 z, a;
-	z = ((SOUNDTS << 16) / soundtsinc) >> 4;
-	a = z - dwave;
+static void UpdateOPL(int Count) {
+	int32 z = ((SOUNDTS << 16) / soundtsinc) >> 4;
+	int32 a = z - dwave;
 	if (VRC7Sound && a)
 		OPLL_fillbuf(VRC7Sound, &Wave[dwave], a, 1);
 	dwave = 0;
@@ -89,7 +88,7 @@ static void VRC7_ESI(void) {
 
 /* VRC7 Sound */
 
-static void Sync(void) {
+static void VRC7Sync(void) {
 	uint8 i;
 	setprg8r(0x10, 0x6000, 0);
 	setprg8(0x8000, preg[0]);
@@ -106,7 +105,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(VRC7SW) {
+static void VRC7SW(uint32 A, uint8 V) {
 	if (FSettings.SndRate) {
 		OPLL_writeReg(VRC7Sound, vrc7idx, V);
 		GameExpSound.Fill = UpdateOPL;
@@ -114,20 +113,20 @@ static DECLFW(VRC7SW) {
 	}
 }
 
-static DECLFW(VRC7Write) {
+static void VRC7Write(uint32 A, uint8 V) {
 	A |= (A & 8) << 1;	/* another two-in-oooone */
 	if (A >= 0xA000 && A <= 0xDFFF) {
 		A &= 0xF010;
 		creg[((A >> 4) & 1) | ((A - 0xA000) >> 11)] = V;
-		Sync();
+		VRC7Sync();
 	} else if (A == 0x9030) {
 		VRC7SW(A, V);
 	} else switch (A & 0xF010) {
-		case 0x8000: preg[0] = V; Sync(); break;
-		case 0x8010: preg[1] = V; Sync(); break;
-		case 0x9000: preg[2] = V; Sync(); break;
+		case 0x8000: preg[0] = V; VRC7Sync(); break;
+		case 0x8010: preg[1] = V; VRC7Sync(); break;
+		case 0x9000: preg[2] = V; VRC7Sync(); break;
 		case 0x9010: vrc7idx = V; break;
-		case 0xE000: mirr = V & 3; Sync(); break;
+		case 0xE000: mirr = V & 3; VRC7Sync(); break;
 		case 0xE010: IRQLatch = V; X6502_IRQEnd(FCEU_IQEXT); break;
 		case 0xF000:
 			IRQa = V & 2;
@@ -145,7 +144,7 @@ static DECLFW(VRC7Write) {
 }
 
 static void VRC7Power(void) {
-	Sync();
+	VRC7Sync();
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, VRC7Write);
@@ -172,9 +171,8 @@ static void VRC7IRQHook(int a) {
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
-
+static void VRC7StateRestore(int version) {
+	VRC7Sync();
 #ifndef GEKKO
 	OPLL_forceRefresh(VRC7Sound);
 #endif
@@ -192,7 +190,7 @@ void Mapper85_Init(CartInfo *info) {
 		info->SaveGame[0] = WRAM;
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
-	GameStateRestore = StateRestore;
+	GameStateRestore = VRC7StateRestore;
 	VRC7_ESI();
 	AddExState(&StateRegs, ~0, 0, 0);
 

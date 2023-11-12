@@ -36,7 +36,7 @@ static SFORMAT StateRegs[] = {
 	{0}
 };
 
-void SyncMirror() {
+static void M28SyncMirror(void) {
 	switch (mode & 3) {
 	case 0: setmirror(MI_0); break;
 	case 1: setmirror(MI_1); break;
@@ -45,17 +45,17 @@ void SyncMirror() {
 	}
 }
 
-void Mirror(uint8 value)
+static void M28Mirror(uint8 value)
 {
 	if ((mode & 2) == 0) {
 		mode &= 0xfe;
 		mode |= value >> 4 & 1;
 	}
-	SyncMirror();
+	M28SyncMirror();
 }
 
 
-static void Sync() {
+static void M28Sync(void) {
 	uint8 prglo = 0;
 	uint8 prghi = 0;
 
@@ -129,30 +129,30 @@ static void Sync() {
 	setchr8(chr);
 }
 
-static DECLFW(WriteEXP) {
+static void M28WriteEXP(uint32 A, uint8 V) {
 	reg = V & 0x81;
 }
 
-static DECLFW(WritePRG) {
+static void M28WritePRG(uint32 A, uint8 V) {
 	switch (reg) {
 	case 0x00:
 		chr = V & 3;
-		Mirror(V);
-		Sync();
+		M28Mirror(V);
+		M28Sync();
 		break;
 	case 0x01:
 		prg = V & 15;
-		Mirror(V);
-		Sync();
+		M28Mirror(V);
+		M28Sync();
 		break;
 	case 0x80:
 		mode = V & 63;
-		SyncMirror();
-		Sync();
+		M28SyncMirror();
+		M28Sync();
 		break;
 	case 0x81:
 		outer = V & 63;
-		Sync();
+		M28Sync();
 		break;
 	}
 }
@@ -160,10 +160,10 @@ static DECLFW(WritePRG) {
 static void M28Power(void) {
 	outer = 63;
 	prg = 15;
-	Sync();
+	M28Sync();
 	prg_mask_16k = PRGsize[0] - 1;
-	SetWriteHandler(0x5000,0x5FFF,WriteEXP);
-	SetWriteHandler(0x8000,0xFFFF,WritePRG);
+	SetWriteHandler(0x5000,0x5FFF, M28WriteEXP);
+	SetWriteHandler(0x8000,0xFFFF, M28WritePRG);
 	SetReadHandler(0x8000,0xFFFF,CartBR);
 	SetReadHandler(0x6000,0x7FFF,CartBR);
 	SetWriteHandler(0x6000,0x7FFF,CartBW);
@@ -172,16 +172,16 @@ static void M28Power(void) {
 static void M28Reset(void) {
 	outer = 63;
 	prg = 15;
-	Sync();
+	M28Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M28StateRestore(int version) {
+	M28Sync();
 }
 
 void Mapper28_Init(CartInfo* info) {
-	info->Power=M28Power;
-	info->Reset=M28Reset;
-	GameStateRestore=StateRestore;
+	info->Power = M28Power;
+	info->Reset = M28Reset;
+	GameStateRestore = M28StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

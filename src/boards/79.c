@@ -34,7 +34,7 @@ static void Sync(void) {
 	setchr8(creg);
 }
 
-static DECLFW(M79Write) {
+static void M79Write(uint32 A, uint8 V) {
 	if (A & 0x100) {
 		preg = (V >> 3) & 1;
 		creg = V & 7;

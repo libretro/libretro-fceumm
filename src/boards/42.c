@@ -38,18 +38,18 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M42Sync(void) {
 	setprg8(0x6000, preg);
 	setprg32(0x8000, ~0);
 	setchr8(creg);
 	setmirror(mirr);
 }
 
-static DECLFW(M42Write) {
+static void M42Write(uint32 A, uint8 V) {
 	switch (A & 0xE003) {
-	case 0x8000: creg = V; Sync(); break;
-	case 0xE000: preg = V & 0x0F; Sync(); break;
-	case 0xE001: mirr = ((V >> 3) & 1) ^ 1; Sync(); break;
+	case 0x8000: creg = V; M42Sync(); break;
+	case 0xE000: preg = V & 0x0F; M42Sync(); break;
+	case 0xE001: mirr = ((V >> 3) & 1) ^ 1; M42Sync(); break;
 	case 0xE002: IRQa = V & 2; if (!IRQa) IRQCount = 0; X6502_IRQEnd(FCEU_IQEXT); break;
 	}
 }
@@ -58,12 +58,12 @@ static void M42Power(void) {
 	FDSSoundPower();
 	preg = 0;
 	mirr = 1;	/* Ai Senshi Nicol actually has fixed mirroring, but mapper forcing it's default value now */
-	Sync();
+	M42Sync();
 	SetReadHandler(0x6000, 0xffff, CartBR);
 	SetWriteHandler(0x6000, 0xffff, M42Write);
 }
 
-static void FP_FASTAPASS(1) M42IRQHook(int a) {
+static void M42IRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount >= 32768) IRQCount -= 32768;
@@ -74,8 +74,8 @@ static void FP_FASTAPASS(1) M42IRQHook(int a) {
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M42StateRestore(int version) {
+	M42Sync();
 }
 
 void Mapper42_Init(CartInfo *info) {
@@ -86,6 +86,6 @@ void Mapper42_Init(CartInfo *info) {
 	}
 	info->Power = M42Power;
 	MapIRQHook = M42IRQHook;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M42StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

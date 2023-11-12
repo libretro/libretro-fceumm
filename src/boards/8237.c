@@ -120,11 +120,11 @@ static void UNL8237PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFR(UNL8237ProtRead) {
+static uint8 UNL8237ProtRead(uint32 A) {
 	return protarray[EXPREGS[3]][A &7] &0x0F | 0x50;
 }
 
-static DECLFW(UNL8237Write) {
+static void UNL8237Write(uint32 A, uint8 V) {
 	uint8 dat = V;
 	uint8 adr = adrperm[EXPREGS[2]][((A >> 12) & 6) | (A & 1)];
 	uint16 addr = (adr & 1) | ((adr & 6) << 12) | 0x8000;
@@ -136,7 +136,7 @@ static DECLFW(UNL8237Write) {
 		MMC3_IRQWrite(addr, dat);
 }
 
-static DECLFW(UNL8237ExWrite) {
+static void UNL8237ExWrite(uint32 A, uint8 V) {
 	switch (A & 0xF007) {
 	case 0x5000: EXPREGS[0] = V; FixMMC3PRG(MMC3_cmd); FixMMC3CHR(MMC3_cmd); break;
 	case 0x5001: EXPREGS[1] = V; FixMMC3PRG(MMC3_cmd); FixMMC3CHR(MMC3_cmd); break;

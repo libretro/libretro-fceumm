@@ -7,7 +7,7 @@
 #define MMC1_count   regByte[5]
 #define MMC1_filter  regByte[6]
 
-static void MMC1_sync () {
+static void MMC1_sync(void) {
 	int AND =prgAND >>1;
 	int OR  =prgOR  >>1 | (mapper &0x01? (MMC1_chr0 &0x10): (mapperFlags &0x06));
 	if (MMC1_control &0x08) { /* 16 KiB mode */
@@ -31,7 +31,7 @@ static void MMC1_sync () {
 	setmirror(MMC1_control &2? (MMC1_control &1? MI_H: MI_V): (MMC1_control &1? MI_1: MI_0));
 }
 
-static DECLFW(MMC1_writeReg) {
+static void MMC1_writeReg(uint32 A, uint8 V) {
 	if (V &0x80) {
 		MMC1_shift =MMC1_count =0;
 		MMC1_control |=0x0C;
@@ -49,7 +49,7 @@ static DECLFW(MMC1_writeReg) {
 	MMC1_filter =2;
 }
 
-static void FP_FASTAPASS(1) MMC1_cpuCycle(int a) {
+static void MMC1_cpuCycle(int a) {
 	while (a--) if (MMC1_filter) MMC1_filter--;
 }
 

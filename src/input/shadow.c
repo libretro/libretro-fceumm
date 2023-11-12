@@ -33,7 +33,7 @@ typedef struct {
 
 static ZAPPER ZD;
 
-static void FP_FASTAPASS(3) ZapperFrapper(uint8 * bg, uint8 * spr, uint32 linets, int final) {
+static void ZapperFrapper(uint8 * bg, uint8 * spr, uint32 linets, int final) {
 	int xs, xe;
 	int zx, zy;
 
@@ -86,7 +86,7 @@ static INLINE int CheckColor(void) {
 }
 
 
-static uint8 FP_FASTAPASS(2) ReadZapper(int w, uint8 ret) {
+static uint8 ReadZapper(int w, uint8 ret) {
 	if (w) {
 		ret &= ~0x18;
 		if (ZD.bogo)
@@ -104,12 +104,12 @@ static uint8 FP_FASTAPASS(2) ReadZapper(int w, uint8 ret) {
 	return ret;
 }
 
-static void FP_FASTAPASS(2) DrawZapper(uint8 * buf, int arg) {
+static void DrawZapper(uint8 * buf, int arg) {
 	if (arg)
 		FCEU_DrawGunSight(buf, ZD.mzx, ZD.mzy);
 }
 
-static void FP_FASTAPASS(2) UpdateZapper(void *data, int arg) {
+static void UpdateZapper(void *data, int arg) {
 	uint32 *ptr = (uint32*)data;
 
 	if (ZD.bogo)
@@ -122,9 +122,7 @@ static void FP_FASTAPASS(2) UpdateZapper(void *data, int arg) {
 	ZD.mzb = ptr[2];
 }
 
-static void StrobeShadow(void) {
-	ZD.zap_readbit = 0;
-}
+static void StrobeShadow(void) { ZD.zap_readbit = 0; }
 
 static INPUTCFC SHADOWC = { ReadZapper, 0, StrobeShadow, UpdateZapper, ZapperFrapper, DrawZapper };
 

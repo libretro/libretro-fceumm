@@ -72,14 +72,14 @@ static void Sync(void) {
 	setprg32r(prg_chip, 0x8000, prg);
 }
 
-static DECLFW(M111Write) {
+static void M111Write(uint32 A, uint8 V) {
 	if ((A >= 0x5000 && A <= 0x5FFF) || (A >= 0x7000 && A <= 0x7FFF)) {
 		reg = V;
 		Sync();
 	}
 }
 
-static DECLFR(M111FlashID) {
+static uint8 M111FlashID(uint32 A) {
 	/* Software ID mode is undefined by the datasheet for all but the lowest 2 addressable bytes,
 	 * but some tests of the chip currently being used found it repeats in 512-byte patterns.
 	 * http://forums.nesdev.com/viewtopic.php?p=178728#p178728
@@ -114,10 +114,10 @@ enum {
     FLASH_MODE_READY = 0,
     FLASH_MODE_COMMAND,
     FLASH_MODE_BYTE_WRITE,
-    FLASH_MODE_ERASE,
+    FLASH_MODE_ERASE
 };
 
-static DECLFW(M111Flash) {
+static void M111Flash(uint32 A, uint8 V) {
 	uint32 flash_addr = 0;
 	uint32 command_addr = 0;
 

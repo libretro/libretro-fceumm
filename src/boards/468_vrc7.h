@@ -4,7 +4,7 @@
 #define VRC7_prg2 regByte[10]
 #define VRC7_misc regByte[11]
 
-static void VRC7_sync() {
+static void VRC7_sync(void) {
 	setprg8(0x8000, VRC7_prg0 &prgAND | prgOR &~prgAND);
 	setprg8(0xA000, VRC7_prg1 &prgAND | prgOR &~prgAND);
 	setprg8(0xC000, VRC7_prg2 &prgAND | prgOR &~prgAND);
@@ -20,7 +20,7 @@ static void VRC7_sync() {
 	setmirror(VRC7_misc &3 ^(VRC7_misc &2? 0: 1));
 }
 
-static DECLFW(VRC7_writeReg) {
+static void VRC7_writeReg(uint32 A, uint8 V) {
 	uint8 index;
 	A =A &0xF000 | (A &0x18? 1: 0) | (A &0x20? 2: 0);
 	switch (A &0xF003) {

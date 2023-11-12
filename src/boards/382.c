@@ -53,10 +53,9 @@ static void Sync(void) {
 	}
 	setchr8(0);
 	setmirror(mirr ^ 1);
-	/* FCEU_printf("inB[0]:%02x outB[1]:%02x mode:%02x mirr:%02x lock:%02x\n", preg[0], preg[1], mode, mirr, lock); */
 }
 
-static DECLFW(M382Write) {
+static void M382Write(uint32 A, uint8 V) {
 	if (!lock) {
 		preg[1] = (A & 0x07);
 		mode = (A & 0x08) >> 3;

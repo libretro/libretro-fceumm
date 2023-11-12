@@ -48,7 +48,7 @@ static void Sync(void) {
 	setchr1(0x1C00, ((bank & 0x80) << 1) | reg[7]);
 }
 
-static DECLFW(M112Write) {
+static void M112Write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0xe000: mirror = V & 1; Sync();; break;
 	case 0x8000: cmd = V & 7; break;

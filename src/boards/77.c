@@ -38,7 +38,7 @@ static void Sync(void) {
 	setchr4r(0x10, 0x1000, 0);
 }
 
-static DECLFW(M77Write) {
+static void M77Write(uint32 A, uint8 V) {
 	latche = V;
 	Sync();
 }

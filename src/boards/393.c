@@ -54,7 +54,7 @@ static void M393PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(M393Write8) {
+static void M393Write8(uint32 A, uint8 V) {
 	switch (A & 0xE000) {
 	case 0x8000:
 	case 0xA000:
@@ -71,7 +71,7 @@ static DECLFW(M393Write8) {
 	FixMMC3PRG(MMC3_cmd);
 }
 
-static DECLFW(M393Write6) {
+static void M393Write6(uint32 A, uint8 V) {
 	EXPREGS[0] = A & 0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

@@ -27,7 +27,7 @@ static void Sync(void) {
 	setprg16(0xC000, 8);
 }
 
-static DECLFW(DREAMWrite) {
+static void DREAMWrite(uint32 A, uint8 V) {
 	latche = V & 7;
 	Sync();
 }

@@ -46,7 +46,7 @@ typedef struct {
 
 static ZAPPER ZD[2];
 
-static void FP_FASTAPASS(3) ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32 linets, int final) {
+static void ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32 linets, int final) {
 	if (!switchZapper) {
 	   int xs, xe;
 	   int zx, zy;
@@ -99,9 +99,8 @@ static void FP_FASTAPASS(3) ZapperFrapper(int w, uint8 * bg, uint8 * spr, uint32
  	endo:
 		ZD[w].zappo = final;
 	}
-	else {
+	else
 		ZD[w].zappo = 0;
-	}
 }
 
 static INLINE int CheckColor(int w) {
@@ -113,7 +112,7 @@ static INLINE int CheckColor(int w) {
 	return(1);
 }
 
-static uint8 FP_FASTAPASS(1) ReadZapperVS(int w) {
+static uint8 ReadZapperVS(int w) {
 	uint8 ret = 0;
 
 	if (ZD[w].zap_readbit == 4) ret = 1;
@@ -132,18 +131,13 @@ static uint8 FP_FASTAPASS(1) ReadZapperVS(int w) {
 			ret |= 0x1;
 	}
 
-				#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-				#endif
 	ZD[w].zap_readbit++;
 	return ret;
 }
 
-static void FP_FASTAPASS(1) StrobeZapperVS(int w) {
-	ZD[w].zap_readbit = 0;
-}
+static void StrobeZapperVS(int w) { ZD[w].zap_readbit = 0; }
 
-static uint8 FP_FASTAPASS(1) ReadZapper(int w) {
+static uint8 ReadZapper(int w) {
 	uint8 ret = 0;
 		
 	if (ZD[w].bogo) 
@@ -159,12 +153,12 @@ static uint8 FP_FASTAPASS(1) ReadZapper(int w) {
 	return ret;
 }
 
-static void FASTAPASS(3) DrawZapper(int w, uint8 * buf, int arg) {
+static void DrawZapper(int w, uint8 * buf, int arg) {
 	if (arg && !switchZapper)
 		FCEU_DrawGunSight(buf, ZD[w].mzx, ZD[w].mzy);
 }
 
-static void FP_FASTAPASS(3) UpdateZapper(int w, void *data, int arg) {
+static void UpdateZapper(int w, void *data, int arg) {
 	uint32 *ptr = (uint32*)data;
 
 	if (ZD[w].bogo)
@@ -195,25 +189,22 @@ static uint32 InefficientSqrt(uint32 z) {
 	for (i = 0 ; i * i <= z ; i++) ;
 	return i-1;
 }
-#endif
 
 void FCEU_ZapperSetTolerance(int t)
 {
-#ifdef ROUNDED_TARGET
 	uint32 y;
 	tolerance = t <= MAX_TOLERANCE ? t : MAX_TOLERANCE;
 	for (y = 0; y <= tolerance; y++)
 		targetExpansion[y] = InefficientSqrt(tolerance*tolerance-y*y);
-#else
-	tolerance = t;
-#endif
 }
+#else
+void FCEU_ZapperSetTolerance(int t) { tolerance = t; }
+#endif
 
 INPUTC *FCEU_InitZapper(int w) {
 	memset(&ZD[w], 0, sizeof(ZAPPER));
 	if (GameInfo->type == GIT_VSUNI)
 		return(&ZAPVSC);
-	else
-		return(&ZAPC);
+	return(&ZAPC);
 }
 

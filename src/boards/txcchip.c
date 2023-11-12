@@ -87,7 +87,7 @@ static uint8 TXC_CMDRead(void) {
 	return ret;
 }
 
-static DECLFW(TXC_CMDWrite) {
+static void TXC_CMDWrite(uint32 A, uint8 V) {
 	if (A & 0x8000) {
 	  if (txc.isJV001)
 		 txc.output = (txc.accumulator & 0x0F) | (txc.inverter & 0xF0);
@@ -171,12 +171,12 @@ static void M36Sync(void) {
 	setchr8(creg & 0x0F);
 }
 
-static DECLFW(M36Write) {
+static void M36Write(uint32 A, uint8 V) {
 	if ((A & 0xF200) == 0x4200) creg = V;
 	TXC_CMDWrite(A, (V >> 4) & 0x03);
 }
 
-static DECLFR(M36Read) {
+static uint8 M36Read(uint32 A) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = (X.DB & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
@@ -204,11 +204,11 @@ static void M132Sync(void) {
 	setchr8(txc.output & 0x03);
 }
 
-static DECLFW(M132Write) {
+static void M132Write(uint32 A, uint8 V) {
 	TXC_CMDWrite(A, V & 0x0F);
 }
 
-static DECLFR(M132Read) {
+static uint8 M132Read(uint32 A) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = ((X.DB & 0xF0) | (TXC_CMDRead() & 0x0F));
@@ -252,11 +252,11 @@ static void M136Sync(void) {
 	setchr8(txc.output & 0x07);
 }
 
-static DECLFW(M136Write) {
+static void M136Write(uint32 A, uint8 V) {
 	TXC_CMDWrite(A, V & 0x3F);
 }
 
-static DECLFR(M136Read) {
+static uint8 M136Read(uint32 A) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = ((X.DB & 0xC0) | (TXC_CMDRead() & 0x3F));
@@ -282,11 +282,11 @@ static void M147Sync(void) {
 	setchr8((txc.output >> 1) & 0x0F);
 }
 
-static DECLFW(M147Write) {
+static void M147Write(uint32 A, uint8 V) {
 	TXC_CMDWrite(A, ((V >> 2) & 0x3F) | ((V << 6) & 0xC0));
 }
 
-static DECLFR(M147Read) {
+static uint8 M147Read(uint32 A) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100) {
 	  uint8 value = TXC_CMDRead();
@@ -320,11 +320,9 @@ static uint8 GetValue(uint8 value) {
 		 ((value >> 1) & 0x04) | ((value >> 3) & 0x02) | ((value >> 5) & 0x01));
 }
 
-static DECLFW(M172Write) {
-	TXC_CMDWrite(A, GetValue(V));
-}
+static void M172Write(uint32 A, uint8 V) { TXC_CMDWrite(A, GetValue(V)); }
 
-static DECLFR(M172Read) {
+static uint8 M172Read(uint32 A) {
 	uint8 ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = (X.DB & 0xC0) | GetValue(TXC_CMDRead());
@@ -363,25 +361,15 @@ static void UNL22211Sync(void) {
 	  setchr8(reg[2] & 3);
 }
 
-static DECLFW(UNL22211WriteLo) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
-	reg[A & 3] = V;
-}
+static void UNL22211WriteLo(uint32 A, uint8 V) { reg[A & 3] = V; }
 
-static DECLFW(UNL22211WriteHi) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
+static void UNL22211WriteHi(uint32 A, uint8 V) {
 	cmd = V;
 	UNL22211Sync();
 }
 
-static DECLFR(UNL22211ReadLo) {
+static uint8 UNL22211ReadLo(uint32 A) {
 	return (reg[1] ^ reg[2]) | (is173 ? 0x01 : 0x40);
-#if 0
-	if(reg[3])
-	  return reg[2];
-	else
-	  return X.DB;
-#endif
 }
 
 static void UNL22211Power(void) {

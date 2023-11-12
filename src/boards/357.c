@@ -62,14 +62,14 @@ static void Sync(void) {
 	setmirror(dipswitch == 3 ? MI_H : MI_V);
 }
 
-static DECLFW(M357WriteLo) {
+static void M357WriteLo(uint32 A, uint8 V) {
 	switch (A & 0x71ff) {
 		case 0x4022: preg[0] = V & 7; Sync(); break;
 		case 0x4120: preg[1] = V & 1; Sync(); break;
 	}
 }
 
-static DECLFW(M357WriteIRQ) {
+static void M357WriteIRQ(uint32 A, uint8 V) {
 	IRQa = V & 1;
 	if (!IRQa) {
 		IRQCount = 0;
@@ -77,7 +77,7 @@ static DECLFW(M357WriteIRQ) {
 	}
 }
 
-static DECLFW(M357WriteUNROM) {
+static void M357WriteUNROM(uint32 A, uint8 V) {
 	preg[2] = V & 7;
 	Sync();
 }
@@ -101,7 +101,7 @@ static void M357Reset(void) {
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M357IRQHook(int a) {
+static void M357IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
 			IRQCount += a;

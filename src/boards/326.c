@@ -52,7 +52,7 @@ static void FixCHR(void) {
 		DoCHR(x, CHR[x]);
 }
 
-static void FASTAPASS(2) DoNTARAM(int w, uint8 V) {
+static void DoNTARAM(int w, uint8 V) {
 	NTAPage[w] = V;
 	setntamem(NTARAM + ((V & 1) << 10), 1, w);
 }
@@ -63,7 +63,7 @@ static void FixNTAR(void) {
 		DoNTARAM(x, NTAPage[x]);
 }
 
-static DECLFW(M326Write) {
+static void M326Write(uint32 A, uint8 V) {
 	switch (A & 0xE010) {
 	case 0x8000: PRG[0] = V; SyncPRG(); break;
 	case 0xA000: PRG[1] = V; SyncPRG(); break;

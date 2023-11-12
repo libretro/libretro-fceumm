@@ -41,7 +41,7 @@ static void BMC830118CPW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(BMC830118CLoWrite) {
+static void BMC830118CLoWrite(uint32 A, uint8 V) {
 	EXPREGS[0] = V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

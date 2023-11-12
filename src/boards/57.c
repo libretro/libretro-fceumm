@@ -31,7 +31,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M57Sync(void) {
 	if (regs[1] & 0x10)
 		setprg32(0x8000, (regs[1] >> 6) & 3);
 	else {
@@ -42,14 +42,12 @@ static void Sync(void) {
 	setchr8((regs[0] & 7) | (regs[1] & 7) | ((regs[0] & 0x40) >> 3));
 }
 
-static DECLFR(M57Read) {
-	return hrd_flag;
-}
+static uint8 M57Read(uint32 A) { return hrd_flag; }
 
-static DECLFW(M57Write) {
+static void M57Write(uint32 A, uint8 V) {
 	switch (A & 0x8800) {
-		case 0x8000: regs[0] = V; Sync(); break;
-		case 0x8800: regs[1] = V; Sync(); break;
+		case 0x8000: regs[0] = V; M57Sync(); break;
+		case 0x8800: regs[1] = V; M57Sync(); break;
 	}
 }
 
@@ -59,24 +57,23 @@ static void M57Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M57Write);
 	SetReadHandler(0x6000, 0x6000, M57Read);
-	Sync();
+	M57Sync();
 }
 
 static void M57Reset(void) {
 	regs[1] = regs[0] = 0; /* Always reset to menu */
 	hrd_flag++;
 	hrd_flag &= 3;
-	FCEU_printf("Select Register = %02x\n", hrd_flag);
-	Sync();
+	M57Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M57StateRestore(int version) {
+	M57Sync();
 }
 
 void Mapper57_Init(CartInfo *info) {
 	info->Power = M57Power;
 	info->Reset = M57Reset;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M57StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

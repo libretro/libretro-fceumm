@@ -206,14 +206,14 @@ static void clockIRQ (void)
       }
 }
 
-static DECLFW(trapCPUWrite)
+static void trapCPUWrite(uint32 A, uint8 V)
 {
 	if ((irqControl &0x03) ==0x03)
       clockIRQ(); /* Clock IRQ counter on CPU writes */
 	cpuWriteHandlers[A](A, V);
 }
 
-static void FP_FASTAPASS(1) trapPPUAddressChange (uint32 A)
+static void trapPPUAddressChange (uint32 A)
 {
    if ((irqControl &0x03) ==0x02 && lastPPUAddress !=A)
    {
@@ -240,14 +240,14 @@ static void ppuScanline(void)
    }
 }
 
-static void FP_FASTAPASS(1) cpuCycle(int a)
+static void cpuCycle(int a)
 {
    if ((irqControl &0x03) ==0x00)
       while (a--)
          clockIRQ(); /* Clock IRQ counter on M2 cycles */
 }
 
-static DECLFR(readALU_DIP)
+static uint8 readALU_DIP(uint32 A)
 {
    if ((A &0x3FF) ==0 && A !=0x5800) /* 5000, 5400, 5C00: read solder pad setting */
       return dipSwitch | X.DB &0x3F;
@@ -269,7 +269,7 @@ static DECLFR(readALU_DIP)
    return X.DB;
 }
 
-static DECLFW(writeALU)
+static void writeALU(uint32 A, uint8 V)
 {
 	switch (A &3)
    {
@@ -289,25 +289,25 @@ static DECLFW(writeALU)
    }
 }
 
-static DECLFW(writePRG)
+static void writePRG(uint32 A, uint8 V)
 {
 	prg[A &3] = V;
 	sync();	
 }
 
-static DECLFW(writeCHRLow)
+static void writeCHRLow(uint32 A, uint8 V)
 {
 	chr[A &7] =chr[A &7] &0xFF00 | V;
 	sync();
 }
 
-static DECLFW(writeCHRHigh)
+static void writeCHRHigh(uint32 A, uint8 V)
 {
 	chr[A &7] =chr[A &7] &0x00FF | V <<8;
 	sync();
 }
 
-static DECLFW(writeNT)
+static void writeNT(uint32 A, uint8 V)
 {
 	if (~A &4)
 		nt[A &3] =nt[A &3] &0xFF00 | V;
@@ -316,7 +316,7 @@ static DECLFW(writeNT)
 	sync();
 }
 
-static DECLFW(writeIRQ)
+static void writeIRQ(uint32 A, uint8 V)
 {
 	switch (A &7)
    {
@@ -351,7 +351,7 @@ static DECLFW(writeIRQ)
    }
 }
 
-static DECLFW(writeMode)
+static void writeMode(uint32 A, uint8 V)
 {
 	switch (A &3)
    {
@@ -712,7 +712,7 @@ static void Mapper394_CWrap(uint32 A, uint8 V)
 	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100;
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
-static DECLFW(Mapper394_Write)
+static void Mapper394_Write(uint32 A, uint8 V)
 {
 	uint8 oldMode =HSK007Reg[1];
 	A &=3;

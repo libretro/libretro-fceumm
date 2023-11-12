@@ -72,19 +72,18 @@ static void Sync(void) {
 		setmirror(mirr);
 }
 
-static DECLFW(M80RamWrite) {
+static void M80RamWrite(uint32 A, uint8 V) {
 	if (wram_enable == 0xA3)
 		wram[A & 0xFF] = V;
 }
 
-static DECLFR(M80RamRead) {
+static uint8 M80RamRead(uint32 A) {
 	if (wram_enable == 0xA3)
 		return wram[A & 0xFF];
-	else
-		return 0xFF;
+	return 0xFF;
 }
 
-static DECLFW(M80Write) {
+static void M80Write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x7EF0: creg[0] = V; mcache[0] = mcache[1] = V >> 7; Sync(); break;
 	case 0x7EF1: creg[1] = V; mcache[2] = mcache[3] = V >> 7; Sync(); break;
@@ -103,7 +102,7 @@ static DECLFW(M80Write) {
 	}
 }
 
-static DECLFW(M95Write) {
+static void M95Write(uint32 A, uint8 V) {
 	switch (A & 0xF001) {
 	case 0x8000: cmd = V; break;
 	case 0x8001:
@@ -121,7 +120,7 @@ static DECLFW(M95Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) MExMirrPPU(uint32 A) {
+static void MExMirrPPU(uint32 A) {
 	static int8 lastmirr = -1, curmirr;
 	if (A < 0x2000) {
 		lastppu = A >> 10;

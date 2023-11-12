@@ -66,7 +66,7 @@ static void BMC810131C_CW(uint32 A, uint8 V) {
 		setmirror(MI_0 + (V >> 7));
 }
 
-static DECLFW(BMC810131C_Write) {
+static void BMC810131C_Write(uint32 A, uint8 V) {
 	if (((A001B & 0xC0) == 0x80) && !(EXPREGS[0] & 7))
 	{
 		EXPREGS[0] = A & 0x3F;

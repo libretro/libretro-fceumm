@@ -29,24 +29,24 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M46Sync(void) {
 	setprg32(0x8000, (reg1 & 1) + ((reg0 & 0xF) << 1));
 	setchr8(((reg1 >> 4) & 7) + ((reg0 & 0xF0) >> 1));
 }
 
-static DECLFW(M46Write0) {
+static void M46Write0(uint32 A, uint8 V) {
 	reg0 = V;
-	Sync();
+	M46Sync();
 }
 
-static DECLFW(M46Write1) {
+static void M46Write1(uint32 A, uint8 V) {
 	reg1 = V;
-	Sync();
+	M46Sync();
 }
 
 static void M46Power(void) {
 	reg0 = reg1 = 0;
-	Sync();
+	M46Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, M46Write0);
 	SetWriteHandler(0x8000, 0xFFFF, M46Write1);
@@ -54,16 +54,16 @@ static void M46Power(void) {
 
 static void M46Reset(void) {
 	reg0 = reg1 = 0;
-	Sync();
+	M46Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M46StateRestore(int version) {
+	M46Sync();
 }
 
 void Mapper46_Init(CartInfo *info) {
 	info->Power = M46Power;
 	info->Reset = M46Reset;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M46StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

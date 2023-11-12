@@ -39,19 +39,19 @@ static void Sync(void) {
 	setmirror(((mirr & 4) >> 2) ^ 1);
 }
 
-static DECLFW(M175Write1) {
+static void M175Write1(uint32 A, uint8 V) {
 	mirr = V;
 	delay = 1;
 	Sync();
 }
 
-static DECLFW(M175Write2) {
+static void M175Write2(uint32 A, uint8 V) {
 	reg = V & 0x0F;
 	delay = 1;
 	Sync();
 }
 
-static DECLFR(M175Read) {
+static uint8 M175Read(uint32 A) {
 	if (A == 0xFFFC) {
 		delay = 0;
 		Sync();
@@ -67,9 +67,7 @@ static void M175Power(void) {
 	Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 void Mapper175_Init(CartInfo *info) {
 	info->Power = M175Power;

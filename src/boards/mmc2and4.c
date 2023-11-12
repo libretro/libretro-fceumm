@@ -54,7 +54,7 @@ static void Sync(void) {
 	setmirror(mirr);
 }
 
-DECLFW(MMC2and4Write) {
+static void MMC2and4Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
 	case 0xA000: preg = V & 0xF; Sync(); break;
 	case 0xB000: creg[0] = V & 0x1F; Sync(); break;
@@ -65,7 +65,7 @@ DECLFW(MMC2and4Write) {
 	}
 }
 
-static void FP_FASTAPASS(1) MMC2and4PPUHook(uint32 A) {
+static void MMC2and4PPUHook(uint32 A) {
 	uint8 l, h = A >> 8;
 	if (h >= 0x20 || ((h & 0xF) != 0xF))
 		return;

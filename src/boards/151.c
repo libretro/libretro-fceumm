@@ -37,7 +37,7 @@ static void Sync(void) {
 	setchr4(0x1000, regs[7]);
 }
 
-static DECLFW(M151Write) {
+static void M151Write(uint32 V, uint8 A) {
 	regs[(A >> 12) & 7] = V;
 	Sync();
 }

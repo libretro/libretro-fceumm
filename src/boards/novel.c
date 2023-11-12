@@ -27,7 +27,7 @@ static void DoNovel(void) {
 	setchr8(latch & 7);
 }
 
-static DECLFW(NovelWrite) {
+static void NovelWrite(uint32 A, uint8 V) {
 	latch = A & 0xFF;
 	DoNovel();
 }

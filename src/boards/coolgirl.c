@@ -228,7 +228,7 @@ static uint8 flash_buffer_v[10];
 static uint8 cfi_mode = 0;
 
 /* Micron 4-gbit memory CFI data */
-const uint8 cfi_data[] =
+static const uint8 cfi_data[] =
 { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x51, 0x52, 0x59, 0x02, 0x00, 0x40, 0x00, 0x00,
@@ -484,7 +484,7 @@ static void COOLGIRL_Sync(void) {
 	COOLGIRL_Sync_Mirroring();
 }
 
-static DECLFW(COOLGIRL_Flash_Write) {
+static void COOLGIRL_Flash_Write(uint32 A, uint8 V) {
 	int sector;
 	uint32 i, flash_addr;
 	if (flash_state < sizeof(flash_buffer_a) / sizeof(flash_buffer_a[0]))
@@ -549,7 +549,7 @@ static DECLFW(COOLGIRL_Flash_Write) {
 	COOLGIRL_Sync_PRG();
 }
 
-static DECLFW(COOLGIRL_WRITE) {
+static void COOLGIRL_WRITE(uint32 A, uint8 V) {
 	uint8 vrc_2b_hi, vrc_2b_low;
 
 	if (sram_enabled && A >= 0x6000 && A < 0x8000 && !map_rom_on_6000)
@@ -1878,7 +1878,7 @@ static DECLFW(COOLGIRL_WRITE) {
 	COOLGIRL_Sync();
 }
 
-static DECLFR(MAFRAM) {
+static uint8 MAFRAM(uint32 A) {
 	int ppuon;
 	uint8 r, p;
 

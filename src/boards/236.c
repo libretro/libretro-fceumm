@@ -63,15 +63,14 @@ static void Sync(void)
 	setmirror((reg[0] >>5 &1) ^1);
 }
 
-static DECLFR(M236Read)
+static uint8 M236Read(uint32 A)
 {
 	if ((reg[1] >>4 &3) ==1)
 		return CartBR(A &~0xF | dip &0xF);
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
-static DECLFW(M236WriteReg)
+static void M236WriteReg(uint32 A, uint8 V)
 {
 	reg[A >>14 &1] =A &0xFF;
 	Sync();

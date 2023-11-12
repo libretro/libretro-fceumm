@@ -60,14 +60,8 @@ static readfunc *AReadG = NULL;
 static writefunc *BWriteG = NULL;
 static int RWWrap = 0;
 
-static DECLFW(BNull)
-{
-}
-
-static DECLFR(ANull)
-{
-	return(X.DB);
-}
+static void BNull(uint32 A, uint8 V) { }
+static uint8 ANull(uint32 A) { return(X.DB); }
 
 int AllocGenieRW(void)
 {
@@ -110,15 +104,14 @@ void FlushGenieRW(void)
    RWWrap = 0;
 }
 
-readfunc FASTAPASS(1) GetReadHandler(int32 a)
+readfunc GetReadHandler(int32 a)
 {
 	if (a >= 0x8000 && RWWrap)
 		return AReadG[a - 0x8000];
-	else
-		return ARead[a];
+	return ARead[a];
 }
 
-void FASTAPASS(3) SetReadHandler(int32 start, int32 end, readfunc func)
+void SetReadHandler(int32 start, int32 end, readfunc func)
 {
 	int32 x;
 
@@ -138,15 +131,14 @@ void FASTAPASS(3) SetReadHandler(int32 start, int32 end, readfunc func)
 			ARead[x] = func;
 }
 
-writefunc FASTAPASS(1) GetWriteHandler(int32 a)
+writefunc GetWriteHandler(int32 a)
 {
 	if (RWWrap && a >= 0x8000)
 		return BWriteG[a - 0x8000];
-	else
-		return BWrite[a];
+	return BWrite[a];
 }
 
-void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func)
+void SetWriteHandler(int32 start, int32 end, writefunc func)
 {
 	int32 x;
 
@@ -170,25 +162,10 @@ uint8 RAM[0x800];
 
 uint8 PAL = 0;
 
-static DECLFW(BRAML)
-{
-	RAM[A] = V;
-}
-
-static DECLFR(ARAML)
-{
-	return RAM[A];
-}
-
-static DECLFW(BRAMH)
-{
-	RAM[A & 0x7FF] = V;
-}
-
-static DECLFR(ARAMH)
-{
-	return RAM[A & 0x7FF];
-}
+static void BRAML(uint32 A, uint8 V) { RAM[A] = V; }
+static uint8 ARAML(uint32 A) { return RAM[A]; }
+static void BRAMH(uint32 A, uint8 V) { RAM[A & 0x7FF] = V; }
+static uint8 ARAMH(uint32 A) { return RAM[A & 0x7FF]; }
 
 void FCEUI_CloseGame(void)
 {
@@ -360,15 +337,6 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 {
 	int x = 0;
 	while (size) {
-#if 0
-		*ptr = (x & 4) ? 0xFF : 0x00;	/* Huang Di DEBUG MODE enabled by default */
-										/* Cybernoid NO MUSIC by default */
-		*ptr = (x & 4) ? 0x7F : 0x00;	/* Huang Di DEBUG MODE enabled by default */
-										/* Minna no Taabou no Nakayoshi Daisakusen DOESN'T BOOT */
-										/* Cybernoid NO MUSIC by default */
-		*ptr = (x & 1) ? 0x55 : 0xAA;	/* F-15 Sity War HISCORE is screwed... */
-										/* 1942 SCORE/HISCORE is screwed... */
-#endif
 		uint8_t v = 0;
 		switch (option_ramstate)
 		{
@@ -381,10 +349,6 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 		size--;
 		ptr++;
 	}
-}
-
-void hand(X6502 *X, int type, uint32 A)
-{
 }
 
 void PowerNES(void)
@@ -519,12 +483,4 @@ int FCEUI_GetCurrentVidSystem(int *slstart, int *slend)
 void FCEUI_SetGameGenie(int a)
 {
 	FSettings.GameGenie = a ? 1 : 0;
-}
-
-int32 FCEUI_GetDesiredFPS(void)
-{
-	if (PAL || dendy)
-		return(838977920);	/* ~50.007 */
-	else
-		return(1008307711);	/* ~60.1 */
 }

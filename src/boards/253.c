@@ -63,7 +63,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(M253Write) {
+static void M253Write(uint32 A, uint8 V) {
 	if ((A >= 0xB000) && (A <= 0xE00C)) {
 		uint8 ind = ((((A & 8) | (A >> 8)) >> 3) + 2) & 7;
 		uint8 sar = A & 4;

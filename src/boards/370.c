@@ -28,7 +28,7 @@
 static uint8 PPUCHRBus;
 static uint8 mirr[8];
 
-static void FP_FASTAPASS(1) M370PPU(uint32 A) {
+static void M370PPU(uint32 A) {
 	if ((EXPREGS[0] & 7) == 1) {
 		A &= 0x1FFF;
 		A >>= 10;
@@ -59,11 +59,9 @@ static void M370MW(uint8 V) {
 		setmirror((V & 1) ^ 1);
 }
 
-static DECLFR(M370Read) {;
-	return (EXPREGS[1] << 7);
-}
+static uint8 M370Read(uint32 A) { return (EXPREGS[1] << 7); }
 
-static DECLFW(M370Write) {
+static void M370Write(uint32 A, uint8 V) {
 	EXPREGS[0] = (A & 0xFF);
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
@@ -72,7 +70,6 @@ static DECLFW(M370Write) {
 static void M370Reset(void) {
 	EXPREGS[0] = 0;
 	EXPREGS[1] ^= 1;
-	FCEU_printf("solderpad=%02x\n", EXPREGS[1]);
 	MMC3RegReset();
 }
 

@@ -33,7 +33,8 @@ static void SetWRAM(uint16 A) {
 	SetWriteHandler(A, A |0x1FFF, CartBW);
 }
 
-static DECLFW(Mapper452_WriteLatch);
+static void Mapper452_WriteLatch(uint32 A, uint8 V); /* forward declaration */
+
 static void Mapper452_Sync(void) {
 	SetWriteHandler(0x8000, 0xFFFF, Mapper452_WriteLatch);
 	if (submapper ==1) {
@@ -92,7 +93,7 @@ static void Mapper452_Sync(void) {
 	}
 }
 
-static DECLFW(Mapper452_WriteLatch) {
+static void Mapper452_WriteLatch(uint32 A, uint8 V) {
 	CartBW(A, V);
 	latch[0] =A &0xFFFF;
 	latch[1] =V;

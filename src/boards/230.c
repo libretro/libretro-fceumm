@@ -32,7 +32,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M230Sync(void) {
 	if (reset) {
 		setprg16(0x8000, latche & 7);
 		setprg16(0xC000, 7);
@@ -49,30 +49,30 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M230Write) {
+static void M230Write(uint32 A, uint8 V) {
 	latche = V;
-	Sync();
+	M230Sync();
 }
 
 static void M230Reset(void) {
 	reset ^= 1;
-	Sync();
+	M230Sync();
 }
 
 static void M230Power(void) {
 	latche = reset = 0;
-	Sync();
+	M230Sync();
 	SetWriteHandler(0x8000, 0xFFFF, M230Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M230StateRestore(int version) {
+	M230Sync();
 }
 
 void Mapper230_Init(CartInfo *info) {
 	info->Power = M230Power;
 	info->Reset = M230Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+	GameStateRestore = M230StateRestore;
 }

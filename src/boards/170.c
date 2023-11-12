@@ -34,13 +34,8 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M170ProtW) {
-	reg = V << 1 & 0x80;
-}
-
-static DECLFR(M170ProtR) {
-	return reg | (X.DB & 0x7F);
-}
+static void M170ProtW(uint32 A, uint8 V) { reg = V << 1 & 0x80; }
+static uint8 M170ProtR(uint32 A) { return reg | (X.DB & 0x7F); }
 
 static void M170Power(void) {
 	Sync();

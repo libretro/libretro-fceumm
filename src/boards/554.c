@@ -42,7 +42,7 @@ static void Sync(void) {
     setchr8(reg);
 }
 
-static DECLFR(M554Read) {
+static uint8 M554Read(uint32 A) {
     int A1 = A &~1;
     if ((A >= 0xCAB6) && (A <= 0xCAD7))
     {

@@ -63,14 +63,14 @@ static void BMCT2271PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFW(BMCT2271LoWrite) {
+static void BMCT2271LoWrite(uint32 A, uint8 V) {
 	if (!(EXPREGS[0] & 0x80))
 		EXPREGS[0] = A & 0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
 
-static DECLFR(BMCT2271HiRead) {
+static uint8 BMCT2271HiRead(uint32 A) {
 	uint32 av = A;
 	if (EXPREGS[0] & 0x40) av = (av & 0xFFF0) | reset_flag;
 	return CartBR(av);

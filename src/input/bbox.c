@@ -160,7 +160,7 @@ uint8 serialROMstate(uint8 linestate)
   return answ;
 }
 
-static uint8 FP_FASTAPASS(2) BBRead(int w, uint8 ret)
+static uint8 BBRead(int w, uint8 ret)
 {
   if(w)
   {
@@ -170,7 +170,7 @@ static uint8 FP_FASTAPASS(2) BBRead(int w, uint8 ret)
   return(ret);
 }
 
-static void FP_FASTAPASS(1) BBWrite(uint8 V)
+static void BBWrite(uint8 V)
 {
   OUT0state = V;
   serialROMstate(OUT0state?OUT0:0);

@@ -37,7 +37,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNLAX40GSync(void) {
 	uint8 i;
 	setprg8(0x8000, preg[0]);
 	setprg8(0xA000, preg[1]);
@@ -48,19 +48,17 @@ static void Sync(void) {
 	setmirrorw(NT[0], NT[0], NT[1], NT[1]);
 }
 
-static DECLFW(UNLAX40GWrite8) {
-	A &= 0xF003;
+static void UNLAX40GWrite8(uint32 A, uint8 V) {
 	preg[0] = V & 0x1F;
-	Sync();
+	UNLAX40GSync();
 }
 
-static DECLFW(UNLAX40GWriteA) {
-	A &= 0xF003;
+static void UNLAX40GWriteA(uint32 A, uint8 V) {
 	preg[1] = V & 0x1F;
-	Sync();
+	UNLAX40GSync();
 }
 
-static DECLFW(UNLAX40GWriteB) {
+static void UNLAX40GWriteB(uint32 A, uint8 V) {
 	uint16 i, shift;
 	A &= 0xF003;
 	i = ((A >> 1) & 1) | ((A - 0xB000) >> 11);
@@ -68,23 +66,21 @@ static DECLFW(UNLAX40GWriteB) {
 	creg[i] = (creg[i] & (0xF0 >> shift)) | ((V & 0xF) << shift);
 	if (i < 2)
 		NT[i] = (creg[i] & 0x80) >> 7;
-	Sync();
+	UNLAX40GSync();
 }
 
 static void UNLAX40GPower(void) {
-	Sync();
+	UNLAX40GSync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0x8FFF, UNLAX40GWrite8);
 	SetWriteHandler(0xA000, 0xAFFF, UNLAX40GWriteA);
 	SetWriteHandler(0xB000, 0xEFFF, UNLAX40GWriteB);
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void UNLAX40GStateRestore(int version) { UNLAX40GSync(); }
 
 void UNLAX40G_Init(CartInfo *info) {
 	info->Power = UNLAX40GPower;
-	GameStateRestore = StateRestore;
+	GameStateRestore = UNLAX40GStateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

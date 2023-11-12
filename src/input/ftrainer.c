@@ -25,14 +25,13 @@
 static uint32 FTVal, FTValR;
 static char side;
 
-static uint8 FP_FASTAPASS(2) FT_Read(int w, uint8 ret) {
-	if (w) {
+static uint8 FT_Read(int w, uint8 ret) {
+	if (w)
 		ret |= FTValR;
-	}
 	return(ret);
 }
 
-static void FP_FASTAPASS(1) FT_Write(uint8 V) {
+static void FT_Write(uint8 V) {
 	FTValR = 0;
 
 	if (!(V & 0x1))
@@ -48,9 +47,7 @@ static void FP_FASTAPASS(1) FT_Write(uint8 V) {
 	FTValR <<= 1;
 }
 
-static void FP_FASTAPASS(2) FT_Update(void *data, int arg) {
-	FTVal = *(uint32*)data;
-}
+static void FT_Update(void *data, int arg) { FTVal = *(uint32*)data; }
 
 static INPUTCFC FamilyTrainer = { FT_Read, FT_Write, 0, FT_Update, 0, 0 };
 

@@ -43,7 +43,7 @@ static void Sync(void) {
 	setmirror(MI_V);
 }
 
-static DECLFW(MBS5Write) {
+static void MBS5Write(uint32 A, uint8 V) {
 	int bank_sel = (A & 0xC00) >> 10;
 	switch (A & 0xF000) {
 	case 0x8000:

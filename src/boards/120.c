@@ -37,7 +37,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M120Write) {
+static void M120Write(uint32 A, uint8 V) {
 	if (A == 0x41FF) {
 		reg = V & 7;
 		Sync();

@@ -42,10 +42,8 @@ static SFORMAT StateRegs[] =
 static void M222IRQ(void) {
 	if (IRQa) {
 		IRQCount++;
-		if (IRQCount >= 238) {
+		if (IRQCount >= 238)
 			X6502_IRQBegin(FCEU_IQEXT);
-/*			IRQa=0; */
-		}
 	}
 }
 
@@ -58,7 +56,7 @@ static void Sync(void) {
 	setmirror(mirr ^ 1);
 }
 
-static DECLFW(M222Write) {
+static void M222Write(uint32 A, uint8 V) {
 	switch (A & 0xF003) {
 	case 0x8000: prg_reg[0] = V; break;
 	case 0x9000: mirr = V & 1; break;
@@ -71,13 +69,6 @@ static DECLFW(M222Write) {
 	case 0xD002: chr_reg[5] = V; break;
 	case 0xE000: chr_reg[6] = V; break;
 	case 0xE002: chr_reg[7] = V; break;
-#if 0
-		case 0xF000: FCEU_printf("%04x:%02x %d\n",A,V,scanline); IRQa=V; if(!V)IRQPre=0; X6502_IRQEnd(FCEU_IQEXT); break;
-		case 0xF001: FCEU_printf("%04x:%02x %d\n",A,V,scanline); IRQCount=V; break;
-		case 0xF002: FCEU_printf("%04x:%02x %d\n",A,V,scanline); break;
-		case 0xD001: IRQa=V; X6502_IRQEnd(FCEU_IQEXT); FCEU_printf("%04x:%02x %d\n",A,V,scanline); break;
-		case 0xC001: IRQPre=16; FCEU_printf("%04x:%02x %d\n",A,V,scanline); break;
-#endif
 	case 0xF000: IRQa = IRQCount = V; if (scanline < 240) IRQCount -= 8; else IRQCount += 4; X6502_IRQEnd(FCEU_IQEXT); break;
 	}
 	Sync();
@@ -89,9 +80,7 @@ static void M222Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M222Write);
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void StateRestore(int version) { Sync(); }
 
 void Mapper222_Init(CartInfo *info) {
 	info->Power = M222Power;

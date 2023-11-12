@@ -31,11 +31,9 @@ static void FME7_sync() {
 	setmirror(FME7_reg[0xC] &3 ^(FME7_reg[0xC] &2? 0: 1));
 }
 
-static DECLFW(FME7_writeIndex) {
-	FME7_index =V &0xF;
-}
+static void FME7_writeIndex(uint32 A, uint8 V) { FME7_index = V & 0xF; }
 
-static DECLFW(FME7_writeReg) {
+static void FME7_writeReg(uint32 A, uint8 V) {
 	switch(FME7_index) {
 	case 0xE:
 		FME7_counter =FME7_counter &0xFF00 |V;
@@ -52,7 +50,7 @@ static DECLFW(FME7_writeReg) {
 	}
 }
 
-static void FP_FASTAPASS(1) FME7_cpuCycle(int a) {
+static void FME7_cpuCycle(int a) {
 	while (a--) {
 		if (FME7_reg[0xD] &0x80 && !--FME7_counter && FME7_reg[0xD] &0x01) X6502_IRQBegin(FCEU_IQEXT);
 	}

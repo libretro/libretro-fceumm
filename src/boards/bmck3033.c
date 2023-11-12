@@ -30,14 +30,11 @@
 static void BMCK3033CW(uint32 A, uint8 V) {
 	if (EXPREGS[2]) {
 		if (EXPREGS[3]) {
-/*			FCEU_printf("MMC3-256: A:%04x V:%02x R1:%02x\n", A, V, EXPREGS[1]); */
 			setchr1(A, (EXPREGS[1] << 8) | (V & 0xFF));
 		} else {
-/*			FCEU_printf("MMC3-128: A:%04x V:%02x R1:%02x\n", A, V, EXPREGS[1]); */
 			setchr1(A, (EXPREGS[1] << 7) | (V & 0x7F));
 		}
 	} else {
-/*		FCEU_printf("NROM: A:%04x V:%02x R1:%02x\n", A, V, EXPREGS[1]); */
 		setchr1(A, (V & 0x7F));
 	}
 }
@@ -45,26 +42,22 @@ static void BMCK3033CW(uint32 A, uint8 V) {
 static void BMCK3033PW(uint32 A, uint8 V) {
 	if (EXPREGS[2]) {
 		if (EXPREGS[3] ) {
-/*			FCEU_printf("MMC3-256 A:%04x V:%02x chip:%02x\n", A, V, EXPREGS[1] & ~0x01); */
 			setprg8(A, (EXPREGS[1] << 5) | (V & 0x1F));
 		} else {
-/*			FCEU_printf("MMC3-128 A:%04x V:%02x chip:%02x\n", A, V, EXPREGS[1]); */
 			setprg8(A, (EXPREGS[1] << 4) | (V & 0x0F));
 		}
 	} else {
 		uint32 base = (EXPREGS[1] << 3);
 		if (EXPREGS[0] & 0x03) {
-/*			FCEU_printf("NROM-256 base:%02x chip:%02x\n", EXPREGS[0] >> 1, EXPREGS[1]); */
 			setprg32(0x8000, base | EXPREGS[0] >> 1);
 		} else {
-/*			FCEU_printf("NROM-128 base:%02x chip:%02x\n", EXPREGS[0], EXPREGS[1]); */
 			setprg16(0x8000, base | EXPREGS[0]);
 			setprg16(0xC000, base | EXPREGS[0]);
 		}
 	}
 }
 
-static DECLFW(BMCK3033Write) {
+static void BMCK3033Write(uint32 A, uint8 V) {
 	EXPREGS[0] = (A & 0x07);
 	EXPREGS[1] = ((A & 0x18) >> 3) | ((A & 0x40) >> 4);
 	EXPREGS[2] = (A & 0x20);

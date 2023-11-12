@@ -55,7 +55,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M226Write) {
+static void M226Write(uint32 A, uint8 V) {
 	latche[A & 1] = V;
 	Sync();
 }

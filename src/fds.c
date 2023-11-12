@@ -44,17 +44,15 @@
  *	when the virtual motor is on(mmm...virtual motor).
  */
 
-static DECLFR(FDSRead4030);
-static DECLFR(FDSRead4031);
-static DECLFR(FDSRead4032);
-static DECLFR(FDSRead4033);
-
-static DECLFW(FDSWrite);
+static uint8 FDSRead4030(uint32 A);
+static uint8 FDSRead4031(uint32 A);
+static uint8 FDSRead4032(uint32 A);
+static uint8 FDSRead4033(uint32 A);
 
 static void FDSInit(void);
 static void FDSClose(void);
 
-static void FP_FASTAPASS(1) FDSFix(int a);
+static void FDSFix(int a);
 
 static uint8 FDSRegs[6];
 static int32 IRQLatch, IRQCount;
@@ -130,163 +128,7 @@ static void FDSStateRestore(int version) {
 		}
 }
 
-static void FDSInit(void) {
-	memset(FDSRegs, 0, sizeof(FDSRegs));
-	writeskip = DiskPtr = DiskSeekIRQ = 0;
-
-	setmirror(1);
-	setprg8(0xE000, 0);			/* BIOS */
-	setprg32r(1, 0x6000, 0);	/* 32KB RAM */
-	setchr8(0);					/* 8KB CHR RAM */
-
-	MapIRQHook = FDSFix;
-	GameStateRestore = FDSStateRestore;
-
-	SetReadHandler(0x4030, 0x4030, FDSRead4030);
-	SetReadHandler(0x4031, 0x4031, FDSRead4031);
-	SetReadHandler(0x4032, 0x4032, FDSRead4032);
-	SetReadHandler(0x4033, 0x4033, FDSRead4033);
-
-	SetWriteHandler(0x4020, 0x4025, FDSWrite);
-
-	SetWriteHandler(0x6000, 0xDFFF, CartBW);
-	SetReadHandler(0x6000, 0xFFFF, CartBR);
-
-	IRQCount = IRQLatch = IRQa = 0;
-
-	FDSSoundReset();
-	InDisk = 0;
-	SelectDisk = 0;
-
-	mapperFDS_control = 0;
-	mapperFDS_filesize = 0;
-	mapperFDS_block = 0;
-	mapperFDS_blockstart = 0;
-	mapperFDS_blocklen = 0;
-	mapperFDS_diskaddr = 0;
-	mapperFDS_diskaccess = 0;
-}
-
-void FCEU_FDSInsert(int oride) {
-	if (InDisk == 255) {
-		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Inserted",
-				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
-		InDisk = SelectDisk;
-	} else {
-		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Ejected",
-				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
-		InDisk = 255;
-	}
-}
-
-void FCEU_FDSEject(void) {
-	InDisk = 255;
-}
-
-void FCEU_FDSSelect(void) {
-	if (InDisk != 255) {
-		FCEUD_DispMessage(RETRO_LOG_WARN, 2000, "Eject disk before selecting");
-		return;
-	}
-	SelectDisk = ((SelectDisk + 1) % TotalSides) & 3;
-	FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Selected",
-			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
-}
-
-/* 2018/12/15 - update irq timings */
-static void FP_FASTAPASS(1) FDSFix(int a) {
-	if ((IRQa & 2) && (FDSRegs[3] & 0x1)) {
-		if (IRQCount <= 0) {
-			if (!(IRQa & 1))
-				IRQa &= ~2; /* does not clear latch, fix Druid */
-			IRQCount = IRQLatch;
-			X6502_IRQBegin(FCEU_IQEXT);
-		} else {
-			IRQCount -= a;
-		}
-	}
-
-	if (DiskSeekIRQ > 0) {
-		DiskSeekIRQ -= a;
-		if (DiskSeekIRQ <= 0) {
-			if (FDSRegs[5] & 0x80) {
-				X6502_IRQBegin(FCEU_IQEXT2);
-			}
-		}
-	}
-}
-
-static DECLFR(FDSRead4030) {
-	uint8 ret = 0;
-
-	/* Cheap hack. */
-	if (X.IRQlow & FCEU_IQEXT) ret |= 1;
-	if (X.IRQlow & FCEU_IQEXT2) ret |= 2;
-
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
-	{
-		X6502_IRQEnd(FCEU_IQEXT);
-		X6502_IRQEnd(FCEU_IQEXT2);
-	}
-	return ret;
-}
-
-static DECLFR(FDSRead4031) {
-	uint8 ret = 0xff;
-
-	if (FDS_DISK_INSERTED && mapperFDS_control & 0x04) {
-		mapperFDS_diskaccess = 1;
-		ret = 0;
-
-		switch (mapperFDS_block) {
-		case DSK_FILEHDR:
-			if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-				ret = GET_FDS_DISK();
-				switch (mapperFDS_diskaddr) {
-				case 13:
-					mapperFDS_filesize = ret;
-					break;
-				case 14:
-					mapperFDS_filesize |= ret << 8;
-					break;
-				}
-				mapperFDS_diskaddr++;
-			}
-			break;
-		default:
-			if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-				ret = GET_FDS_DISK();
-				mapperFDS_diskaddr++;
-			}
-			break;
-		}
-
-		DiskSeekIRQ = 150;
-		X6502_IRQEnd(FCEU_IQEXT2);
-	}
-
-	return ret;
-}
-
-static DECLFR(FDSRead4032) {
-	uint8 ret;
-
-	ret = X.DB & ~7;
-	if (InDisk == 255)
-		ret |= 5;
-
-	if (InDisk == 255 || !(FDSRegs[5] & 1) || (FDSRegs[5] & 2))
-		ret |= 2;
-	return ret;
-}
-
-static DECLFR(FDSRead4033) {
-	return 0x80;		/* battery */
-}
-
-static DECLFW(FDSWrite) {
+static void FDSWrite(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x4020:
 		IRQLatch &= 0xFF00;
@@ -395,6 +237,158 @@ static DECLFW(FDSWrite) {
 		break;
 	}
 	FDSRegs[A & 7] = V;
+}
+
+
+static void FDSInit(void) {
+	memset(FDSRegs, 0, sizeof(FDSRegs));
+	writeskip = DiskPtr = DiskSeekIRQ = 0;
+
+	setmirror(1);
+	setprg8(0xE000, 0);			/* BIOS */
+	setprg32r(1, 0x6000, 0);	/* 32KB RAM */
+	setchr8(0);					/* 8KB CHR RAM */
+
+	MapIRQHook = FDSFix;
+	GameStateRestore = FDSStateRestore;
+
+	SetReadHandler(0x4030, 0x4030, FDSRead4030);
+	SetReadHandler(0x4031, 0x4031, FDSRead4031);
+	SetReadHandler(0x4032, 0x4032, FDSRead4032);
+	SetReadHandler(0x4033, 0x4033, FDSRead4033);
+
+	SetWriteHandler(0x4020, 0x4025, FDSWrite);
+
+	SetWriteHandler(0x6000, 0xDFFF, CartBW);
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+
+	IRQCount = IRQLatch = IRQa = 0;
+
+	FDSSoundReset();
+	InDisk = 0;
+	SelectDisk = 0;
+
+	mapperFDS_control = 0;
+	mapperFDS_filesize = 0;
+	mapperFDS_block = 0;
+	mapperFDS_blockstart = 0;
+	mapperFDS_blocklen = 0;
+	mapperFDS_diskaddr = 0;
+	mapperFDS_diskaccess = 0;
+}
+
+void FCEU_FDSInsert(int oride) {
+	if (InDisk == 255) {
+		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Inserted",
+				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+		InDisk = SelectDisk;
+	} else {
+		FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Ejected",
+				1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+		InDisk = 255;
+	}
+}
+
+void FCEU_FDSEject(void) {
+	InDisk = 255;
+}
+
+void FCEU_FDSSelect(void) {
+	if (InDisk != 255) {
+		FCEUD_DispMessage(RETRO_LOG_WARN, 2000, "Eject disk before selecting");
+		return;
+	}
+	SelectDisk = ((SelectDisk + 1) % TotalSides) & 3;
+	FCEU_DispMessage(RETRO_LOG_INFO, 2000, "Disk %d of %d Side %s Selected",
+			1 + (SelectDisk >> 1), (TotalSides + 1) >> 1, (SelectDisk & 1) ? "B" : "A");
+}
+
+/* 2018/12/15 - update irq timings */
+static void FDSFix(int a) {
+	if ((IRQa & 2) && (FDSRegs[3] & 0x1)) {
+		if (IRQCount <= 0) {
+			if (!(IRQa & 1))
+				IRQa &= ~2; /* does not clear latch, fix Druid */
+			IRQCount = IRQLatch;
+			X6502_IRQBegin(FCEU_IQEXT);
+		} else {
+			IRQCount -= a;
+		}
+	}
+
+	if (DiskSeekIRQ > 0) {
+		DiskSeekIRQ -= a;
+		if (DiskSeekIRQ <= 0) {
+			if (FDSRegs[5] & 0x80) {
+				X6502_IRQBegin(FCEU_IQEXT2);
+			}
+		}
+	}
+}
+
+static uint8 FDSRead4030(uint32 A) {
+	uint8 ret = 0;
+
+	/* Cheap hack. */
+	if (X.IRQlow & FCEU_IQEXT) ret |= 1;
+	if (X.IRQlow & FCEU_IQEXT2) ret |= 2;
+
+	X6502_IRQEnd(FCEU_IQEXT);
+	X6502_IRQEnd(FCEU_IQEXT2);
+	return ret;
+}
+
+static uint8 FDSRead4031(uint32 A) {
+	uint8 ret = 0xff;
+
+	if (FDS_DISK_INSERTED && mapperFDS_control & 0x04) {
+		mapperFDS_diskaccess = 1;
+		ret = 0;
+
+		switch (mapperFDS_block) {
+		case DSK_FILEHDR:
+			if (mapperFDS_diskaddr < mapperFDS_blocklen) {
+				ret = GET_FDS_DISK();
+				switch (mapperFDS_diskaddr) {
+				case 13:
+					mapperFDS_filesize = ret;
+					break;
+				case 14:
+					mapperFDS_filesize |= ret << 8;
+					break;
+				}
+				mapperFDS_diskaddr++;
+			}
+			break;
+		default:
+			if (mapperFDS_diskaddr < mapperFDS_blocklen) {
+				ret = GET_FDS_DISK();
+				mapperFDS_diskaddr++;
+			}
+			break;
+		}
+
+		DiskSeekIRQ = 150;
+		X6502_IRQEnd(FCEU_IQEXT2);
+	}
+
+	return ret;
+}
+
+static uint8 FDSRead4032(uint32 A) {
+	uint8 ret;
+
+	ret = X.DB & ~7;
+	if (InDisk == 255)
+		ret |= 5;
+
+	if (InDisk == 255 || !(FDSRegs[5] & 1) || (FDSRegs[5] & 2))
+		ret |= 2;
+	return ret;
+}
+
+static uint8 FDSRead4033(uint32 A) {
+	return 0x80;		/* battery */
 }
 
 struct codes_t {

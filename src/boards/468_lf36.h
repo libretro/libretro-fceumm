@@ -2,7 +2,7 @@
 #define LF36_irq regByte[1]
 #define LF36_counter regWord[0]
 
-static void LF36_sync () {
+static void LF36_sync(void) {
 	int OR  =prgOR | mapperFlags &0x08;
 	setprg8(0x8000,           0x04 | OR);
 	setprg8(0xA000,           0x05 | OR);
@@ -12,7 +12,7 @@ static void LF36_sync () {
 	setmirror(mapperFlags &4? MI_H: MI_V);
 }
 
-static DECLFW(LF36_writeReg) {
+static void LF36_writeReg(uint32 A, uint8 V) {
 	switch (A &0xE000) {
 	case 0x8000: LF36_irq =0; break;
 	case 0xA000: LF36_irq =1; break;
@@ -20,7 +20,7 @@ static DECLFW(LF36_writeReg) {
 	}
 }
 
-static void FP_FASTAPASS(1) LF36_cpuCycle(int a) {
+static void LF36_cpuCycle(int a) {
 	while (a--) {
 		if (LF36_irq) {
 			if (++LF36_counter &0x1000)

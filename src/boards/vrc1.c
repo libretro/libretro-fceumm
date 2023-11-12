@@ -32,7 +32,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void VRC1Sync(void) {
 	setprg8(0x8000, preg[0]);
 	setprg8(0xA000, preg[1]);
 	setprg8(0xC000, preg[2]);
@@ -42,29 +42,29 @@ static void Sync(void) {
 	setmirror((mode & 1) ^ 1);
 }
 
-static DECLFW(M75Write) {
+static void M75Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
-	case 0x8000: preg[0] = V; Sync(); break;
-	case 0x9000: mode = V; Sync(); break;
-	case 0xA000: preg[1] = V; Sync(); break;
-	case 0xC000: preg[2] = V; Sync(); break;
-	case 0xE000: creg[0] = V & 0xF; Sync(); break;
-	case 0xF000: creg[1] = V & 0xF; Sync(); break;
+	case 0x8000: preg[0] = V; VRC1Sync(); break;
+	case 0x9000: mode = V; VRC1Sync(); break;
+	case 0xA000: preg[1] = V; VRC1Sync(); break;
+	case 0xC000: preg[2] = V; VRC1Sync(); break;
+	case 0xE000: creg[0] = V & 0xF; VRC1Sync(); break;
+	case 0xF000: creg[1] = V & 0xF; VRC1Sync(); break;
 	}
 }
 
 static void M75Power(void) {
-	Sync();
+	VRC1Sync();
 	SetWriteHandler(0x8000, 0xFFFF, M75Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void VRC1StateRestore(int version) {
+	VRC1Sync();
 }
 
 void Mapper75_Init(CartInfo *info) {
 	info->Power = M75Power;
 	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+	GameStateRestore = VRC1StateRestore;
 }

@@ -179,7 +179,7 @@ static void MMC5CHRB(void) {
 	}
 }
 
-static void FASTAPASS(2) MMC5WRAM(uint32 A, uint32 V) {
+static void MMC5WRAM(uint32 A, uint32 V) {
 	V = MMC5WRAMIndex[V & 7];
 	if (V != 255) {
 		setprg8r(0x10, A, V);
@@ -251,7 +251,7 @@ static void MMC5PRG(void) {
 	}
 }
 
-static DECLFW(Mapper5_write) {
+static void Mapper5_write(uint32 A, uint8 V) {
 	switch (A) {
 		case 0x5100:
 			mmc5psize = V;
@@ -345,14 +345,13 @@ static DECLFW(Mapper5_write) {
 		}
 }
 
-static DECLFR(MMC5_ReadROMRAM) {
+static uint8 MMC5_ReadROMRAM(uint32 A) {
 	if (MMC5MemIn[(A - 0x6000) >> 13])
 		return Page[A >> 11][A];
-	else
-		return X.DB;
+	return X.DB;
 }
 
-static DECLFW(MMC5_WriteROMRAM) {
+static void MMC5_WriteROMRAM(uint32 A, uint8 V) {
 	if ((A >= 0x8000) && (MMC5ROMWrProtect[(A - 0x8000) >> 13]))
 			return;
 	if (MMC5MemIn[(A - 0x6000) >> 13])
@@ -360,24 +359,19 @@ static DECLFW(MMC5_WriteROMRAM) {
 			Page[A >> 11][A] = V;
 }
 
-static DECLFW(MMC5_ExRAMWr) {
+static void MMC5_ExRAMWr(uint32 A, uint8 V) {
 	if (MMC5HackCHRMode != 3)
 		ExRAM[A & 0x3ff] = V;
 }
 
-static DECLFR(MMC5_ExRAMRd) {
-	return ExRAM[A & 0x3ff];
-}
+static uint8 MMC5_ExRAMRd(uint32 A) { return ExRAM[A & 0x3ff]; }
 
-static DECLFR(MMC5_read) {
+static uint8 MMC5_read(uint32 A) {
 	switch (A) {
 	case 0x5204: {
 		uint8 x;
 		X6502_IRQEnd(FCEU_IQEXT);
 		x = MMC5IRQR;
-		#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-		#endif
 		MMC5IRQR &= 0x40;
 		return x;
 		}
@@ -504,8 +498,7 @@ static void Do5PCMHQ(void) {
 	MMC5Sound.BC[2] = SOUNDTS;
 }
 
-
-static DECLFW(Mapper5_SW) {
+static void Mapper5_SW(uint32 A, uint8 V) {
 	A &= 0x1F;
 
 	GameExpSound.Fill = MMC5RunSound;

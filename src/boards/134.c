@@ -53,11 +53,9 @@ static void Mapper134_CHRWrap(uint32 A, uint8 V) {
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
-static DECLFR(Mapper134_Read) {
-	return EXPREGS[0] &0x40? dip: CartBR(A);
-}
+static uint8 Mapper134_Read(uint32 A) { return EXPREGS[0] &0x40 ? dip : CartBR(A); }
 
-static DECLFW(Mapper134_Write) {
+static void Mapper134_Write(uint32 A, uint8 V) {
 	if (~EXPREGS[0] &0x80) {
 		EXPREGS[A &3] =V;
 		FixMMC3PRG(MMC3_cmd);

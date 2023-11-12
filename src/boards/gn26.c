@@ -40,7 +40,7 @@ static void BMCGN26PW(uint32 A, uint8 V) {
 		setprg8(A, (EXPREGS[0] << 4) | (V & 0x0F));
 }
 
-static DECLFW(BMCGN26Write) {
+static void BMCGN26Write(uint32 A, uint8 V) {
 	if (A001B &0x80 && ~A001B &0x40) {
 		EXPREGS[0] = A;
 		FixMMC3PRG(MMC3_cmd);

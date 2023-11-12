@@ -47,20 +47,19 @@ static int is155, is171;
 static uint32 MMC1GetCHRBank (uint32 bank) {
 	if (DRegs[0] & 0x10)	/* 4 KiB mode */
 		return (DRegs[1 + bank]);
-	else 					/* 8 KiB mode */
-		return ((DRegs[1] & ~1) | bank);
+	return ((DRegs[1] & ~1) | bank); /* 8 KiB mode */
 }
 
 static uint8 MMC1WRAMEnabled(void) {
 	return !(DRegs[3] & 0x10);
 }
 
-static DECLFW(MBWRAM) {
+static void MBWRAM(uint32 A, uint8 V) {
 	if (MMC1WRAMEnabled() || is155)
 		Page[A >> 11][A] = V;	/* WRAM is enabled. */
 }
 
-static DECLFR(MAWRAM) {
+static uint8 MAWRAM(uint32 A) {
 	if (!MMC1WRAMEnabled() && !is155)
 		return X.DB;			/* WRAM is disabled */
 	return(Page[A >> 11][A]);
@@ -142,7 +141,7 @@ static void MMC1MIRROR(void) {
 }
 
 static uint64 lreset;
-static DECLFW(MMC1_write) {
+static void MMC1_write(uint32 A, uint8 V) {
 	int n = (A >> 13) - 4;
 
 	/* The MMC1 is busy so ignore the write. */
@@ -153,7 +152,6 @@ static DECLFW(MMC1_write) {
 	*/
 	if ((timestampbase + timestamp) < (lreset + 2))
 		return;
-/*	FCEU_printf("Write %04x:%02x\n",A,V); */
 	if (V & 0x80) {
 		DRegs[0] |= 0xC;
 		BufferShift = Buffer = 0;
@@ -165,7 +163,6 @@ static DECLFW(MMC1_write) {
 	Buffer |= (V & 1) << (BufferShift++);
 
 	if (BufferShift == 5) {
-/*		FCEU_printf("REG[%d]=%02x\n",n,Buffer); */
 		DRegs[n] = Buffer;
 		BufferShift = Buffer = 0;
 		switch (n) {
@@ -223,8 +220,6 @@ static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
 	} else if (info->battery) {
 		*saveRAM = 8;
 	}
-	if (workRAM > 8)
-		FCEU_printf(" >8KB external WRAM present.  Use NES 2.0 if you hack the ROM image.\n");
 	return workRAM;
 }
 
@@ -438,7 +433,7 @@ static void FARIDSLROM8IN1CHRHook(uint32 A, uint8 V) {
 	setchr4(A, (V & 0x1F) | (reg << 5));
 }
 
-static DECLFW(FARIDSLROM8IN1Write) {
+static void FARIDSLROM8IN1Write(uint32 A, uint8 V) {
 	if (MMC1WRAMEnabled() && !lock) {
 		lock = (V & 0x08) >> 3;
 		reg = (V & 0xF0) >> 4;
@@ -524,14 +519,14 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(M297Mode) {
+static void M297Mode(uint32 A, uint8 V) {
 	if (A & 0x100) {
 		mode = V;
 		Sync();
 	}
 }
 
-static DECLFW(M297Latch) {
+static void M297Latch(uint32 A, uint8 V) {
 	if (mode & 1) {
 		MMC1_write(A, V);
 	} else {
@@ -588,7 +583,7 @@ static void M543WRAM8(void) {
 	setprg8r(0x10, 0x6000, wramBank);
 }
 
-static DECLFW(M543Write) {
+static void M543Write(uint32 A, uint8 V) {
 	bits |= ((V >> 3) & 1) << shift++;
 	if (shift == 4) {
 		outerBank = bits;
@@ -647,7 +642,7 @@ static void M550CHR4(uint32 A, uint8 V) {
 		setchr8((latch & 3) | ((outerBank << 1) & 0x0C));
 }
 
-static DECLFW(M550Write7) {
+static void M550Write7(uint32 A, uint8 V) {
 	if (!(outerBank & 8)) {
 		outerBank = A & 15;
 		MMC1PRG();
@@ -655,7 +650,7 @@ static DECLFW(M550Write7) {
 	}
 }
 
-static DECLFW(M550Write8) {
+static void M550Write8(uint32 A, uint8 V) {
 	latch = V;
 	if ((outerBank & 6) == 6)
 		MMC1_write(A, V);
@@ -703,7 +698,7 @@ static void M404CHR4(uint32 A, uint8 V) {
 	setchr4(A, (V & 0x1F) | outerBank << 5);
 }
 
-static DECLFW(M404Write) {
+static void M404Write(uint32 A, uint8 V) {
 	if (!(outerBank & 0x80)) {
 		outerBank = V;
 		MMC1PRG();

@@ -23,7 +23,7 @@
 extern uint32 ROM_size;
 static uint8 latche;
 
-static void Sync(void) {
+static void M188Sync(void) {
 	if (latche) {
 		if (latche & 0x10)
 			setprg16(0x8000, (latche & 7));
@@ -33,31 +33,29 @@ static void Sync(void) {
 		setprg16(0x8000, 7 + (ROM_size >> 4));
 }
 
-static DECLFW(M188Write) {
+static void M188Write(uint32 A, uint8 V) {
 	latche = V;
-	Sync();
+	M188Sync();
 }
 
-static DECLFR(ExtDev) {
-	return(3);
-}
+static uint8 M188ExtDev(uint32 A) { return 3; }
 
-static void Power(void) {
+static void M188Power(void) {
 	latche = 0;
-	Sync();
+	M188Sync();
 	setchr8(0);
 	setprg16(0xc000, 0x7);
-	SetReadHandler(0x6000, 0x7FFF, ExtDev);
+	SetReadHandler(0x6000, 0x7FFF, M188ExtDev);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M188Write);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M188StateRestore(int version) {
+	M188Sync();
 }
 
 void Mapper188_Init(CartInfo *info) {
-	info->Power = Power;
-	GameStateRestore = StateRestore;
+	info->Power = M188Power;
+	GameStateRestore = M188StateRestore;
 	AddExState(&latche, 1, 0, "LATC");
 }

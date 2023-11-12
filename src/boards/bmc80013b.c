@@ -44,7 +44,7 @@ static void Sync(void) {
 	setmirror(((regs[0] >> 4) & 1) ^ 1);
 }
 
-static DECLFW(BMC80013BWrite) {
+static void BMC80013BWrite(uint32 A, uint8 V) {
 	uint8 reg = (A >> 13) & 0x03;
 	if (!reg)
 		regs[0] = V & 0x1F;

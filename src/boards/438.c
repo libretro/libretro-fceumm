@@ -37,7 +37,7 @@ static void Mapper438_Sync(void) {
 	
 }
 
-static DECLFW(Mapper438_WriteLatch) {
+static void Mapper438_WriteLatch(uint32 A, uint8 V) {
 	latch[0] =A &0xFF;
 	latch[1] =V;
 	Mapper438_Sync();

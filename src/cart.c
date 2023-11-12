@@ -72,12 +72,12 @@ uint32 CHRmask8[32];
 
 int geniestage = 0;
 
-int modcon;
+static int modcon;
 
-uint8 genieval[3];
-uint8 geniech[3];
+static uint8 genieval[3];
+static uint8 geniech[3];
 
-uint32 genieaddr[3];
+static uint32 genieaddr[3];
 
 static INLINE void setpageptr(int s, uint32 A, uint8 *p, int ram) {
 	uint32 AB = A >> 11;
@@ -104,9 +104,8 @@ void ResetCartMapping(void) {
 		PRGptr[x] = CHRptr[x] = 0;
 		PRGsize[x] = CHRsize[x] = 0;
 	}
-	for (x = 0; x < 8; x++) {
+	for (x = 0; x < 8; x++)
 		MMC5SPRVPage[x] = MMC5BGVPage[x] = VPageR[x] = nothing - 0x400 * x;
-	}
 }
 
 void SetupCartPRGMapping(int chip, uint8 *p, uint32 size, int ram) {
@@ -134,41 +133,40 @@ void SetupCartCHRMapping(int chip, uint8 *p, uint32 size, int ram) {
 	CHRram[chip] = ram;
 }
 
-DECLFR(CartBR) {
+uint8 CartBR(uint32 A) {
 	return Page[A >> 11][A];
 }
 
-DECLFW(CartBW) {
+void CartBW(uint32 A, uint8 V) {
 	if (PRGIsRAM[A >> 11] && Page[A >> 11])
 		Page[A >> 11][A] = V;
 }
 
-DECLFR(CartBROB) {
+uint8 CartBROB(uint32 A) {
 	if (!Page[A >> 11])
 		return(X.DB);
-	else
-		return Page[A >> 11][A];
+	return Page[A >> 11][A];
 }
 
-void FASTAPASS(3) setprg2r(int r, uint32 A, uint32 V) {
+void setprg2r(int r, uint32 A, uint32 V) {
 	V &= PRGmask2[r];
 	setpageptr(2, A, PRGptr[r] ? (&PRGptr[r][V << 11]) : 0, PRGram[r]);
 }
 
-void FASTAPASS(2) setprg2(uint32 A, uint32 V) {
+void setprg2(uint32 A, uint32 V) {
 	setprg2r(0, A, V);
 }
 
-void FASTAPASS(3) setprg4r(int r, uint32 A, uint32 V) {
+void setprg4r(int r, uint32 A, uint32 V) {
 	V &= PRGmask4[r];
 	setpageptr(4, A, PRGptr[r] ? (&PRGptr[r][V << 12]) : 0, PRGram[r]);
 }
 
-void FASTAPASS(2) setprg4(uint32 A, uint32 V) {
+void setprg4(uint32 A, uint32 V) {
 	setprg4r(0, A, V);
 }
 
-void FASTAPASS(3) setprg8r(int r, uint32 A, uint32 V) {
+void setprg8r(int r, uint32 A, uint32 V) {
 	if (PRGsize[r] >= 8192) {
 		V &= PRGmask8[r];
 		setpageptr(8, A, PRGptr[r] ? (&PRGptr[r][V << 13]) : 0, PRGram[r]);
@@ -180,11 +178,11 @@ void FASTAPASS(3) setprg8r(int r, uint32 A, uint32 V) {
 	}
 }
 
-void FASTAPASS(2) setprg8(uint32 A, uint32 V) {
+void setprg8(uint32 A, uint32 V) {
 	setprg8r(0, A, V);
 }
 
-void FASTAPASS(3) setprg16r(int r, uint32 A, uint32 V) {
+void setprg16r(int r, uint32 A, uint32 V) {
 	if (PRGsize[r] >= 16384) {
 		V &= PRGmask16[r];
 		setpageptr(16, A, PRGptr[r] ? (&PRGptr[r][V << 14]) : 0, PRGram[r]);
@@ -197,11 +195,9 @@ void FASTAPASS(3) setprg16r(int r, uint32 A, uint32 V) {
 	}
 }
 
-void FASTAPASS(2) setprg16(uint32 A, uint32 V) {
-	setprg16r(0, A, V);
-}
+void setprg16(uint32 A, uint32 V) { setprg16r(0, A, V); }
 
-void FASTAPASS(3) setprg32r(int r, uint32 A, uint32 V) {
+void setprg32r(int r, uint32 A, uint32 V) {
 	if (PRGsize[r] >= 32768) {
 		V &= PRGmask32[r];
 		setpageptr(32, A, PRGptr[r] ? (&PRGptr[r][V << 15]) : 0, PRGram[r]);
@@ -214,11 +210,9 @@ void FASTAPASS(3) setprg32r(int r, uint32 A, uint32 V) {
 	}
 }
 
-void FASTAPASS(2) setprg32(uint32 A, uint32 V) {
-	setprg32r(0, A, V);
-}
+void setprg32(uint32 A, uint32 V) { setprg32r(0, A, V); }
 
-void FASTAPASS(3) setchr1r(int r, uint32 A, uint32 V) {
+void setchr1r(int r, uint32 A, uint32 V) {
 	if (!CHRptr[r]) return;
 	FCEUPPU_LineUpdate();
 	V &= CHRmask1[r];
@@ -229,7 +223,7 @@ void FASTAPASS(3) setchr1r(int r, uint32 A, uint32 V) {
 	VPageR[(A) >> 10] = &CHRptr[r][(V) << 10] - (A);
 }
 
-void FASTAPASS(3) setchr2r(int r, uint32 A, uint32 V) {
+void setchr2r(int r, uint32 A, uint32 V) {
 	if (!CHRptr[r]) return;
 	FCEUPPU_LineUpdate();
 	V &= CHRmask2[r];
@@ -240,7 +234,7 @@ void FASTAPASS(3) setchr2r(int r, uint32 A, uint32 V) {
 		PPUCHRRAM &= ~(3 << (A >> 10));
 }
 
-void FASTAPASS(3) setchr4r(int r, uint32 A, uint32 V) {
+void setchr4r(int r, uint32 A, uint32 V) {
 	if (!CHRptr[r]) return;
 	FCEUPPU_LineUpdate();
 	V &= CHRmask4[r];
@@ -252,7 +246,7 @@ void FASTAPASS(3) setchr4r(int r, uint32 A, uint32 V) {
 		PPUCHRRAM &= ~(15 << (A >> 10));
 }
 
-void FASTAPASS(2) setchr8r(int r, uint32 V) {
+void setchr8r(int r, uint32 V) {
 	int x;
 
 	if (!CHRptr[r]) return;
@@ -266,25 +260,14 @@ void FASTAPASS(2) setchr8r(int r, uint32 V) {
 		PPUCHRRAM = 0;
 }
 
-void FASTAPASS(2) setchr1(uint32 A, uint32 V) {
-	setchr1r(0, A, V);
-}
-
-void FASTAPASS(2) setchr2(uint32 A, uint32 V) {
-	setchr2r(0, A, V);
-}
-
-void FASTAPASS(2) setchr4(uint32 A, uint32 V) {
-	setchr4r(0, A, V);
-}
-
-void FASTAPASS(1) setchr8(uint32 V) {
-	setchr8r(0, V);
-}
+void setchr1(uint32 A, uint32 V) { setchr1r(0, A, V); }
+void setchr2(uint32 A, uint32 V) { setchr2r(0, A, V); }
+void setchr4(uint32 A, uint32 V) { setchr4r(0, A, V); }
+void setchr8(uint32 V) { setchr8r(0, V); }
 
 /* This function can be called without calling SetupCartMirroring(). */
 
-void FASTAPASS(3) setntamem(uint8 * p, int ram, uint32 b) {
+void setntamem(uint8 * p, int ram, uint32 b) {
 	FCEUPPU_LineUpdate();
 	vnapage[b] = p;
 	PPUNTARAM &= ~(1 << b);
@@ -301,7 +284,7 @@ void setmirrorw(int a, int b, int c, int d) {
 	vnapage[3] = NTARAM + d * 0x400;
 }
 
-void FASTAPASS(1) setmirror(int t) {
+void setmirror(int t) {
 	FCEUPPU_LineUpdate();
 	if (!mirrorhard) {
 		switch (t) {
@@ -412,11 +395,9 @@ void FCEU_KillGenie(void) {
 	}
 }
 
-static DECLFR(GenieRead) {
-	return GENIEROM[A & 4095];
-}
+static uint8 GenieRead(uint32 A) { return GENIEROM[A & 4095]; }
 
-static DECLFW(GenieWrite) {
+static void GenieWrite(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x800c:
 	case 0x8008:
@@ -448,7 +429,7 @@ static DECLFW(GenieWrite) {
 
 static readfunc GenieBackup[3];
 
-static DECLFR(GenieFix1) {
+static uint8 GenieFix1(uint32 A) {
 	uint8 r = GenieBackup[0](A);
 
 	if ((modcon >> 1) & 1)	/* No check */
@@ -459,7 +440,7 @@ static DECLFR(GenieFix1) {
 	return r;
 }
 
-static DECLFR(GenieFix2) {
+static uint8 GenieFix2(uint32 A) {
 	uint8 r = GenieBackup[1](A);
 
 	if ((modcon >> 2) & 1)	/* No check */
@@ -470,7 +451,7 @@ static DECLFR(GenieFix2) {
 	return r;
 }
 
-static DECLFR(GenieFix3) {
+static uint8 GenieFix3(uint32 A) {
 	uint8 r = GenieBackup[2](A);
 
 	if ((modcon >> 3) & 1)	/* No check */

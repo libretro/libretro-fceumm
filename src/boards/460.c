@@ -22,10 +22,7 @@
 
 static uint8 *CHRRAM =NULL;
 
-static DECLFR(Mapper460_ReadOB)
-{
-   return X.DB;
-}
+static uint8 Mapper460_ReadOB(uint32 A) { return X.DB; }
 
 static void Mapper460_PRGWrap(uint32 A, uint8 V) {
 	int prgAND =0x0F;
@@ -55,7 +52,7 @@ static void Mapper460_CHRWrap(uint32 A, uint8 V) {
 		setchr8r(0x10, 0);
 }
 
-static DECLFW(Mapper460_WriteExtra) {
+static void Mapper460_WriteExtra(uint32 A, uint8 V) {
 	if (A001B &0x80 && ~A001B &0x40) EXPREGS[0] =A &0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

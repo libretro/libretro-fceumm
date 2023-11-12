@@ -52,12 +52,12 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M368WritePRG) {
+static void M368WritePRG(uint32 A, uint8 V) {
     preg = V & 7;
     Sync();
 }
 
-static DECLFW(M368WriteIRQ) {
+static void M368WriteIRQ(uint32 A, uint8 V) {
 	latch = V & 0x53;
     IRQa = V & 1;
 	if (!IRQa) {
@@ -66,9 +66,7 @@ static DECLFW(M368WriteIRQ) {
 	}
 }
 
-static DECLFR(M368Read) {
-    return (latch | 0xBA);
-}
+static uint8 M368Read(uint32 A) { return (latch | 0xBA); }
 
 static void M368Power(void) {
 	preg = 0;
@@ -88,7 +86,7 @@ static void M368Reset(void) {
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M368IRQHook(int a) {
+static void M368IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
 			IRQCount += a;

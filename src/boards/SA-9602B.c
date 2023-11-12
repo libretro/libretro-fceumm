@@ -30,7 +30,7 @@ static void SA9602BPW(uint32 A, uint8 V) {
 	setprg8(0xe000, 63);
 }
 
-static DECLFW(SA9602BWrite) {
+static void SA9602BWrite(uint32 A, uint8 V) {
 	switch (A & 0xe001) {
 	case 0x8000: EXPREGS[0] = V; break;
 	case 0x8001:

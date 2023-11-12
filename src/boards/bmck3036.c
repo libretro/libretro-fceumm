@@ -40,7 +40,7 @@ static void Sync(void) {
 	setmirror((regs[0] &0x40 || regs[0] &0x20 && regs[0] &0x04)? MI_H: MI_V);
 }
 
-static DECLFW(M340Write) {
+static void M340Write(uint32 A, uint8 V) {
 	regs[0] = A & 0xFF;
 	regs[1] = V;
 	Sync();

@@ -46,8 +46,7 @@ static void Sync(void) {
 	setmirror(mirr);
 }
 
-static DECLFW(UNLKS7017Write) {
-/*	FCEU_printf("bs %04x %02x\n",A,V); */
+static void UNLKS7017Write(uint32 A, uint8 V) {
 	if ((A & 0xFF00) == 0x4A00) {
 		latche = ((A >> 2) & 3) | ((A >> 4) & 4);
 	} else if ((A & 0xFF00) == 0x5100) {
@@ -70,12 +69,12 @@ static DECLFW(UNLKS7017Write) {
 	}
 }
 
-static DECLFR(FDSRead4030) {
+static uint8 FDSRead4030(uint32 A) {
 	X6502_IRQEnd(FCEU_IQEXT);
 	return X.IRQlow & FCEU_IQEXT ? 1 : 0;
 }
 
-static void FP_FASTAPASS(1) UNL7017IRQ(int a) {
+static void UNL7017IRQ(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount <= 0) {

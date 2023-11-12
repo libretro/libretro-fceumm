@@ -44,7 +44,7 @@ static void Mapper463_Sync(void)
    setmirror(regs[0] &1? MI_H: MI_V);
 }
 
-static DECLFW(Mapper463_Write5000)
+static void Mapper463_Write5000(uint32 A, uint8 V)
 {
    if (A &(0x10 << dipswitch))
    {

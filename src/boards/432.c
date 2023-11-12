@@ -36,13 +36,13 @@ static void M432PW(uint32 A, uint8 V) {
 	if ((A < 0xC000) &&  (EXPREGS[1] & 0x40)) setprg8(A | 0x4000, (V & prgAND) | (prgOR & ~prgAND) | (EXPREGS[1] & 0x80? 2: 0));
 }
 
-static DECLFR(M432Read) {
+static uint8 M432Read(uint32 A) {
    if (EXPREGS[0] & 1 || EXPREGS[1] & 0x20 && ROM_size <64)
 	  return EXPREGS[2];
    return CartBR(A);
 }
 
-static DECLFW(M432Write) {
+static void M432Write(uint32 A, uint8 V) {
 	EXPREGS[A & 1] = V;
 	if (~A &1 && ~V &1 && ROM_size <64) EXPREGS[1] &=~0x20; /* Writing 0 to register 0 clears register 1's DIP bit */
 	FixMMC3PRG(MMC3_cmd);

@@ -45,12 +45,12 @@ static void Sync(void) {
 	setchr4(0x1000, (reg & 4) | 3);
 }
 
-static DECLFW(M96Write) {
+static void M96Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }
 
-static void FP_FASTAPASS(1) M96Hook(uint32 A) {
+static void M96Hook(uint32 A) {
 	if ((A & 0x3000) == 0x2000) {
 		ppulatch = (A >> 8) & 3;
 		Sync();

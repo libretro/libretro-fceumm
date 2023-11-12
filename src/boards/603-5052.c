@@ -28,13 +28,8 @@
 
 static const uint8 lut[4] = { 0x00, 0x02, 0x02, 0x03 };
 
-static DECLFW(UNL6035052ProtWrite) {
-	EXPREGS[0] = lut[V & 3];
-}
-
-static DECLFR(UNL6035052ProtRead) {
-	return EXPREGS[0];
-}
+static void UNL6035052ProtWrite(uint32 A, uint8 V) { EXPREGS[0] = lut[V & 3]; }
+static uint8 UNL6035052ProtRead(uint32 A) { return EXPREGS[0]; }
 
 static void UNL6035052Power(void) {
 	GenMMC3Power();

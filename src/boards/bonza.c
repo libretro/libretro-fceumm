@@ -31,97 +31,27 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-#if 0
-
-cmd[0] = response on/off
-				0x00 - on
-				0x80 - off
-cmd[1] = cmd
-
-
-_GET_CHALLENGE:      .BYTE   0,$B4,  0,  0,$62
-
-_SELECT_FILE_1_0200: .BYTE   0,$A4,  1,  0,  2,  2,  0
-_SELECT_FILE_2_0201: .BYTE   0,$A4,  2,  0,  2,  2,  1
-_SELECT_FILE_2_0203: .BYTE   0,$A4,  2,  0,  2,  2,  3
-_SELECT_FILE_2_0204: .BYTE   0,$A4,  2,  0,  2,  2,  4
-_SELECT_FILE_2_0205: .BYTE   0,$A4,  2,  0,  2,  2,  5
-_SELECT_FILE_2_3F04: .BYTE   0,$A4,  2,  0,  2,$3F,  4
-_SELECT_FILE_2_4F00: .BYTE   0,$A4,  2,  0,  2,$4F,  0
-
-_READ_BINARY_5:      .BYTE   0,$B0,$85,  0,  2
-_READ_BINARY_6:      .BYTE   0,$B0,$86,  0,  4
-_READ_BINARY_6_0:    .BYTE   0,$B0,$86,  0,$18
-_READ_BINARY_0:      .BYTE   0,$B0,  0,  2,  3
-_READ_BINARY_0_0:    .BYTE   0,$B0,  0,  0,  4
-_READ_BINARY_0_1:    .BYTE   0,$B0,  0,  0, $C
-_READ_BINARY_0_2:    .BYTE   0,$B0,  0,  0,$10
-
-_UPDATE_BINARY:      .BYTE   0,$D6,  0,  0,  4
-_UPDATE_BINARY_0:    .BYTE   0,$D6,  0,  0,$10
-
-_GET_RESPONSE:       .BYTE $80,$C0,  2,$A1,  8
-_GET_RESPONSE_0:     .BYTE   0,$C0,  0,  0,  2
-_GET_RESPONSE_1:     .BYTE   0,$C0,  0,  0,  6
-_GET_RESPONSE_2:     .BYTE   0,$C0,  0,  0,  8
-_GET_RESPONSE_3:     .BYTE   0,$C0,  0,  0, $C
-_GET_RESPONSE_4:     .BYTE   0,$C0,  0,  0,$10
-
-byte_8C0B:           .BYTE $80,$30,  0,  2, $A,  0,  1
-byte_8C48:           .BYTE $80,$32,  0,  1,  4
-byte_8C89:           .BYTE $80,$34,  0,  0,  8,  0,  0
-byte_8D01:           .BYTE $80,$36,  0,  0, $C
-byte_8CA7:           .BYTE $80,$38,  0,  2,  4
-byte_8BEC:           .BYTE $80,$3A,  0,  3,  0
-
-byte_89A0:           .BYTE   0,$48,  0,  0,  6
-byte_8808:           .BYTE   0,$54,  0,  0,$1C
-byte_89BF:           .BYTE   0,$58,  0,  0,$1C
-
-_MANAGE_CHANNEL:     .BYTE   0,$70,  0,  0,  8
-byte_8CE5:           .BYTE   0,$74,  0,  0,$12
-byte_8C29:           .BYTE   0,$76,  0,  0,  8
-byte_8CC6:           .BYTE   0,$78,  0,  0,$12
-#endif
-
-#if 0 /* Silenced since unused */
-static uint8 sim0reset[0x1F] = {
-	0x3B, 0xE9, 0x00, 0xFF, 0xC1, 0x10, 0x31, 0xFE,
-	0x55, 0xC8, 0x10, 0x20, 0x55, 0x47, 0x4F, 0x53,
-	0x56, 0x53, 0x43, 0xAD, 0x10, 0x10, 0x10, 0x10,
-	0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10
-};
-
-#endif
-
-static void Sync(void) {
+static void M216Sync(void) {
 	setprg32(0x8000, prg_reg);
 	setchr8(chr_reg);
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void M216StateRestore(int version) { M216Sync(); }
 
-static DECLFW(M216WriteHi) {
+static void M216WriteHi(uint32 A, uint8 V) {
 	prg_reg = A & 1;
 	chr_reg = (A & 0x0E) >> 1;
-	Sync();
+	M216Sync();
 }
 
-static DECLFW(M216Write5000) {
-/*	FCEU_printf("WRITE: %04x:%04x (PC=%02x cnt=%02x)\n",A,V,X.PC,sim0bcnt); */
-}
+static void M216Write5000(uint32 A, uint8 V) { }
 
-static DECLFR(M216Read5000) {
-/*	FCEU_printf("READ: %04x PC=%04x out=%02x byte=%02x cnt=%02x bit=%02x\n",A,X.PC,sim0out,sim0byte,sim0bcnt,sim0bit); */
-	return 0;
-}
+static uint8 M216Read5000(uint32 A) { return 0; }
 
-static void Power(void) {
+static void M216Power(void) {
 	prg_reg = 0;
 	chr_reg = 0;
-	Sync();
+	M216Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M216WriteHi);
 	SetWriteHandler(0x5000, 0x5000, M216Write5000);
@@ -130,7 +60,7 @@ static void Power(void) {
 
 
 void Mapper216_Init(CartInfo *info) {
-	info->Power = Power;
-	GameStateRestore = StateRestore;
+	info->Power = M216Power;
+	GameStateRestore = M216StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

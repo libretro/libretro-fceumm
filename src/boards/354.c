@@ -63,7 +63,7 @@ static void Mapper354_Sync(void)
    setmirror(latchData &0x40? MI_H: MI_V);
 }
 
-static DECLFW(Mapper354_WriteLatch)
+static void Mapper354_WriteLatch(uint32 A, uint8 V)
 {
    latchData =V;
    latchAddr =A &0xFFFF;

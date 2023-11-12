@@ -52,7 +52,7 @@ static void Sync(void) {
 	setmirror(mirr);
 }
 
-static DECLFW(M65Write) {
+static void M65Write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x8000: preg[0] = V; Sync(); break;
 	case 0xA000: preg[1] = V; Sync(); break;
@@ -80,7 +80,7 @@ static void M65Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M65Write);
 }
 
-void FP_FASTAPASS(1) M65IRQ(int a) {
+void M65IRQ(int a) {
 	if (IRQa) {
 		IRQCount -= a;
 		if (IRQCount < -4) {

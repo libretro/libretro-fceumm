@@ -23,15 +23,7 @@
 
 #include "x6502struct.h"
 
-#ifdef FCEUDEF_DEBUGGER
-void X6502_Debug(void (*CPUHook)(X6502 *),
-				 uint8 (*ReadHook)(X6502 *, uint32),
-				 void (*WriteHook)(X6502 *, uint32, uint8));
-
-extern void (*X6502_Run)(int32 cycles);
-#else
 void X6502_Run(int32 cycles);
-#endif
 
 extern uint32 timestamp;
 extern uint32 sound_timestamp;
@@ -46,7 +38,7 @@ extern X6502 X;
 #define Z_FLAG  0x02
 #define C_FLAG  0x01
 
-extern void FP_FASTAPASS(1) (*MapIRQHook)(int a);
+extern void (*MapIRQHook)(int a);
 
 #define NTSC_CPU (dendy ? 1773447.467 : 1789772.7272727272727272)
 #define PAL_CPU  1662607.125
@@ -68,10 +60,10 @@ void X6502_Power(void);
 void TriggerNMI(void);
 void TriggerNMI2(void);
 
-uint8 FASTAPASS(1) X6502_DMR(uint32 A);
-void FASTAPASS(2) X6502_DMW(uint32 A, uint8 V);
+uint8 X6502_DMR(uint32 A);
+void X6502_DMW(uint32 A, uint8 V);
 
-void FASTAPASS(1) X6502_IRQBegin(int w);
-void FASTAPASS(1) X6502_IRQEnd(int w);
+void X6502_IRQBegin(int w);
+void X6502_IRQEnd(int w);
 
 #endif

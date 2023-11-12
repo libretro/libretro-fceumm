@@ -71,7 +71,7 @@ static void S8259Synco(void) {
 		setmirror(MI_V);
 }
 
-static DECLFW(S8259Write) {
+static void S8259Write(uint32 A, uint8 V) {
 	A &= 0x4101;
 	if (A == 0x4100)
 		cmd = V;
@@ -131,7 +131,7 @@ void S8259D_Init(CartInfo *info) {	/* Kevin's Horton 137 mapper */
 
 static void (*WSync)(void);
 
-static DECLFW(SAWrite) {
+static void SAWrite(uint32 A, uint8 V) {
 	if (A & 0x100) {
 		latch[0] = V;
 		WSync();
@@ -149,7 +149,7 @@ static void SARestore(int version) {
 	WSync();
 }
 
-static DECLFW(SADWrite) {
+static void SADWrite(uint32 A, uint8 V) {
 	latch[0] = V;
 	WSync();
 }
@@ -225,13 +225,10 @@ void SA0037_Init(CartInfo *info) {
 
 /* --------------------------------------------- */
 
-static DECLFR(TCA01Read) {
-	uint8 ret;
+static uint8 TCA01Read(uint32 A) {
 	if ((A & 0x4100) == 0x4100)
-		ret = (X.DB & 0xC0) | ((~A) & 0x3F);
-	else
-		ret = X.DB;
-	return ret;
+		return (X.DB & 0xC0) | ((~A) & 0x3F);
+	return X.DB;
 }
 
 static void TCA01Power(void) {
@@ -270,20 +267,16 @@ static void S74LS374NSynco(void) {
 	}
 }
 
-static DECLFR(S74LS374NRead) {
-	uint8 ret;
+static uint8 S74LS374NRead(uint32 A) {
 	if ((A & 0xC101) == 0x4101) {
 		if (dip & 1)
-			ret = (latch[cmd] & 3) | (X.DB & 0xFC);
-		else
-			ret = (latch[cmd] & 7) | (X.DB & 0xF8);
-	} else {
-		ret = X.DB;
+			return (latch[cmd] & 3) | (X.DB & 0xFC);
+		return (latch[cmd] & 7) | (X.DB & 0xF8);
 	}
-	return ret;
+	return X.DB;
 }
 
-static DECLFW(S74LS374NWrite) {
+static void S74LS374NWrite(uint32 A, uint8 V) {
 	if (dip & 1)
 		V |= 4;
 	switch (A & 0xC101) {
@@ -328,9 +321,7 @@ void S74LS374N_Init(CartInfo *info) {
 	AddExState(&cmd, 1, 0, "CMD");
 }
 
-static DECLFR(Mapper553Read) {
-	return 0x3A;
-}
+static uint8 Mapper553Read(uint32 A) { return 0x3A; }
 
 static void Mapper553Power(void) {
 	setprg16(0xC000, 0);

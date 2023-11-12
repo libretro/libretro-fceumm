@@ -40,8 +40,6 @@
 
 #include "driver.h"
 
-#include "md5.h"
-
 static char BaseDirectory[2048] = {0};
 
 void FCEUI_SetBaseDirectory(const char *dir)
@@ -72,8 +70,6 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
       default:
          break;
    }
-
-   FCEU_printf(" FCEU_MakeFName: %s\n", tmp);
 
    ret = (char*)malloc(strlen(tmp) * sizeof(char) + 1);
    strcpy(ret, tmp);

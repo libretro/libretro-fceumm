@@ -45,14 +45,13 @@ static void M401PW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFR(M401Read) {
+static uint8 M401Read(uint32 A) {
 	if ((dipswitch & 1) && (EXPREGS[1] & 0x80))
 		return X.DB;
 	return CartBR(A);
 }
 
-static DECLFW(M401Write) {
-	/* FCEU_printf("Wr A:%04x V:%02x index:%d\n", A, V, EXPREGS[4]); */
+static void M401Write(uint32 A, uint8 V) {
 	if (!(EXPREGS[3] & 0x40)) {
 		EXPREGS[EXPREGS[4]] = V;
 		EXPREGS[4] = (EXPREGS[4] + 1) & 3;
@@ -64,7 +63,6 @@ static DECLFW(M401Write) {
 
 static void M401Reset(void) {
 	dipswitch = (dipswitch + 1) & 7;
-	FCEU_printf("dipswitch = %d\n", dipswitch);
 	EXPREGS[0] = 0x00;
 	EXPREGS[1] = 0x00;
 	EXPREGS[2] = 0x0F;

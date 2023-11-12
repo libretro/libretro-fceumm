@@ -37,7 +37,7 @@ static void Sync(void) {
 	setmirror((outer_bank & 1) ^ 1);
 }
 
-static DECLFW(M431Write) {
+static void M431Write(uint32 A, uint8 V) {
 	if (A < 0xC000) outer_bank = V;
     else inner_bank = V;
 	Sync();

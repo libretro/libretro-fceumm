@@ -52,7 +52,6 @@ static void M360Power(void) {
 static void M360Reset(void) {
 	dipswitch = (dipswitch + 1) & 31;
 	Sync();
-	FCEU_printf("dipswitch = %d\n", dipswitch);
 }
 
 static void StateRestore(int version) {

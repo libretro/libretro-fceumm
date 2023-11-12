@@ -74,7 +74,7 @@ static INPUTCFC *FCExp = 0;
 
 void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
 
-static DECLFR(JPRead)
+static uint8 JPRead(uint32 A)
 {
 	uint8 ret = 0;
 
@@ -90,7 +90,7 @@ static DECLFR(JPRead)
 	return(ret);
 }
 
-static DECLFW(B4016)
+static void B4016(uint32 A, uint8 V)
 {
 	if (FCExp)
 		if (FCExp->Write)
@@ -141,7 +141,7 @@ static void StrobeFami4(void) {
 	F4ReadBit[0] = F4ReadBit[1] = 0;
 }
 
-static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret) {
+static uint8 ReadFami4(int w, uint8 ret) {
 	ret &= 1;
 	ret |= ((joy[2 + w] >> (F4ReadBit[w])) & 1) << 1;
 	if (F4ReadBit[w] >= 8) ret |= 2;
@@ -150,22 +150,19 @@ static uint8 FP_FASTAPASS(2) ReadFami4(int w, uint8 ret) {
 }
 
 /* VS. Unisystem inputs */
-static uint8 FP_FASTAPASS(1) ReadGPVS(int w) {
+static uint8 ReadGPVS(int w) {
 	uint8 ret = 0;
 	if (joy_readbit[w] >= 8)
 		ret = 1;
 	else {
 		ret = ((joy[w] >> (joy_readbit[w])) & 1);
-	#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-	#endif
 		joy_readbit[w]++;
 	}
 	return ret;
 }
 
 /* standard gamepad inputs */
-static uint8 FP_FASTAPASS(1) ReadGP(int w) {
+static uint8 ReadGP(int w) {
 	uint8 ret;
 	if (joy_readbit[w] >= 8)
 		ret = ((joy[2 + w] >> (joy_readbit[w] & 7)) & 1);
@@ -179,14 +176,11 @@ static uint8 FP_FASTAPASS(1) ReadGP(int w) {
 		if (joy_readbit[w] == 19 - w)
 			ret |= 1;
 	}
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
 	joy_readbit[w]++;
 	return ret;
 }
 
-static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
+static void UpdateGP(int w, void *data, int arg) {
 	uint32 *ptr = (uint32*)data;
 	if (!w) {
 		joy[0] = *(uint32*)ptr;
@@ -197,7 +191,7 @@ static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
 	}
 }
 
-static void FP_FASTAPASS(1) StrobeGP(int w) {
+static void StrobeGP(int w) {
 	joy_readbit[w] = 0;
 }
 
@@ -227,7 +221,7 @@ void FCEU_UpdateInput(void)
       FCEU_VSUniSwap(&joy[0], &joy[1]);
 }
 
-static DECLFR(VSUNIRead0)
+static uint8 VSUNIRead0(uint32 A)
 {
    uint8 ret = 0;
 
@@ -240,7 +234,7 @@ static DECLFR(VSUNIRead0)
    return ret;
 }
 
-static DECLFR(VSUNIRead1)
+static uint8 VSUNIRead1(uint32 A)
 {
 	uint8 ret = 0;
 
@@ -273,7 +267,7 @@ static void CheckSLHook(void)
       InputScanlineHook = SLHLHook;
 }
 
-static void FASTAPASS(1) SetInputStuff(int x)
+static void SetInputStuff(int x)
 {
 	switch (JPType[x])
    {

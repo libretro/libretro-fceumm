@@ -98,29 +98,25 @@ static void Sync(void) {
 	setmirror((reg[0] & 1) ^ 1);
 }
 
-static DECLFW(M178Write) {
+static void M178Write(uint32 A, uint8 V) {
 	reg[A & 3] = V;
-/*	FCEU_printf("cmd %04x:%02x\n", A, V); */
 	Sync();
 }
 
-static DECLFW(M178WriteSnd) {
+static void M178WriteSnd(uint32 A, uint8 V) {
 	if (A == 0x5800) {
 		if (V & 0xF0) {
 			pcm_enable = 1;
-/*			pcmwrite(0x4011, (V & 0xF) << 3); */
 			pcmwrite(0x4011, decode(V & 0xf));
 		} else
 			pcm_enable = 0;
-	} else
-		FCEU_printf("misc %04x:%02x\n", A, V);
+	}
 }
 
-static DECLFR(M178ReadSnd) {
+static uint8 M178ReadSnd(uint32 A) {
 	if (A == 0x5800)
 		return (X.DB & 0xBF) | ((pcm_enable ^ 1) << 6);
-	else
-		return X.DB;
+	return X.DB;
 }
 
 static void M178Power(void) {

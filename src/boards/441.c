@@ -41,7 +41,7 @@ static void Mapper441_CHRWrap(uint32 A, uint8 V) {
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
-static DECLFW(Mapper441_Write) {
+static void Mapper441_Write(uint32 A, uint8 V) {
 	if (~EXPREGS[0] &0x80) EXPREGS[0] =V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

@@ -17,7 +17,7 @@ static void CNROM_sync () {
 		setmirror(CNROM_reg[1] &0x10? MI_1: MI_0);
 }
 
-static DECLFW(CNROM_writeReg) {
+static void CNROM_writeReg(uint32 A, uint8 V) {
 	switch(A &0xE000) {
 	case 0x8000: case 0xA000:
 		CNROM_reg[0] =V;
@@ -29,7 +29,7 @@ static DECLFW(CNROM_writeReg) {
 	sync();
 }
 
-static DECLFW(BF9097_writeMirroring) {
+static void BF9097_writeMirroring(uint32 A, uint8 V) {
 	CNROM_reg[1] =V;
 	sync();
 }

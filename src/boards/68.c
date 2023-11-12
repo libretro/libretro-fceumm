@@ -76,7 +76,7 @@ static void Sync(void) {
 	setprg16(0xC000, 0x07);
 }
 
-static DECLFR(M68Read) {
+static uint8 M68Read(uint32 A) {
 	if (!(kogame & 8)) {
 		count++;
 		if (count == 1784)
@@ -85,7 +85,7 @@ static DECLFR(M68Read) {
 	return CartBR(A);
 }
 
-static DECLFW(M68WriteLo) {
+static void M68WriteLo(uint32 A, uint8 V) {
 	if (!V) {
 		count = 0;
 		setprg16r((PRGptr[1]) ? kogame : 0, 0x8000, prg_reg);
@@ -93,27 +93,27 @@ static DECLFW(M68WriteLo) {
 	CartBW(A, V);
 }
 
-static DECLFW(M68WriteCHR) {
+static void M68WriteCHR(uint32 A, uint8 V) {
 	chr_reg[(A >> 12) & 3] = V;
 	Sync();
 }
 
-static DECLFW(M68WriteNT1) {
+static void M68WriteNT1(uint32 A, uint8 V) {
 	nt1 = V;
 	M68NTfix();
 }
 
-static DECLFW(M68WriteNT2) {
+static void M68WriteNT2(uint32 A, uint8 V) {
 	nt2 = V;
 	M68NTfix();
 }
 
-static DECLFW(M68WriteMIR) {
+static void M68WriteMIR(uint32 A, uint8 V) {
 	mirr = V;
 	M68NTfix();
 }
 
-static DECLFW(M68WriteROM) {
+static void M68WriteROM(uint32 A, uint8 V) {
 	prg_reg = V & 7;
 	kogame = ((V >> 3) & 1) ^ 1;
 	Sync();

@@ -68,23 +68,20 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(UNLPEC586Write) {
+static void UNLPEC586Write(uint32 A, uint8 V) {
 	reg[(A & 0x700) >> 8] = V;
 	PEC586Hack = (reg[0] & 0x80) >> 7;
-/*	FCEU_printf("bs %04x %02x\n", A, V); */
 	Sync();
 }
 
-static DECLFR(UNLPEC586Read) {
-/*	FCEU_printf("read %04x\n", A); */
+static uint8 UNLPEC586Read(uint32 A) {
 	return (X.DB & 0xD8) | br_tbl[reg[4] >> 4];
 }
 
-static DECLFR(UNLPEC586ReadHi) {
+static uint8 UNLPEC586ReadHi(uint32 A) {
 	if((reg[0] & 0x10) || ((reg[0] & 0x40) && (A < 0xA000)))
 		return CartBR(A);
-	else
-		return PRGptr[0][((0x0107 | ((A >> 7) & 0x0F8)) << 10) | (A & 0x3FF)];
+	return PRGptr[0][((0x0107 | ((A >> 7) & 0x0F8)) << 10) | (A & 0x3FF)];
 }
 
 static void UNLPEC586Power(void) {

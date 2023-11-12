@@ -28,10 +28,7 @@ static SFORMAT StateRegs[] =
    { 0 }
 };
 
-static DECLFR(Mapper466_ReadOB)
-{
-   return X.DB;
-}
+static uint8 Mapper466_ReadOB(uint32 A) { return X.DB; }
 
 static void Mapper466_Sync(void)
 {
@@ -65,13 +62,13 @@ static void Mapper466_Sync(void)
    setmirror(regs[0] &0x80? MI_H: MI_V);
 }
 
-static DECLFW(Mapper466_Write5000)
+static void Mapper466_Write5000(uint32 A, uint8 V)
 {
    regs[A >>11 &1] =A &0xFF;
    Mapper466_Sync();
 }
 
-static DECLFW(Mapper466_WriteLatch)
+static void Mapper466_WriteLatch(uint32 A, uint8 V)
 {
    regs[2] =V;
    Mapper466_Sync();
