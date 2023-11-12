@@ -42,7 +42,7 @@ static void VRC1Sync(void) {
 	setmirror((mode & 1) ^ 1);
 }
 
-static DECLFW(M75Write) {
+static void M75Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
 	case 0x8000: preg[0] = V; VRC1Sync(); break;
 	case 0x9000: mode = V; VRC1Sync(); break;

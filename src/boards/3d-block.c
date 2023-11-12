@@ -33,15 +33,14 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNL3DBlockSync(void) {
 	setprg32(0x8000, 0);
 	setchr8(0);
 }
 
-/* #define Count 0x1800 */
 #define Pause 0x010
 
-static DECLFW(UNL3DBlockWrite) {
+static void UNL3DBlockWrite(uint32 A, uint8 V) {
 	switch (A) {
 /* 4800 32 */
 /* 4900 37 */
@@ -55,7 +54,7 @@ static DECLFW(UNL3DBlockWrite) {
 }
 
 static void UNL3DBlockPower(void) {
-	Sync();
+	UNL3DBlockSync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x4800, 0x4E00, UNL3DBlockWrite);
 }
@@ -81,14 +80,14 @@ static void  UNL3DBlockIRQHook(int a) {
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void UNL3DBlockStateRestore(int version) {
+	UNL3DBlockSync();
 }
 
 void UNL3DBlock_Init(CartInfo *info) {
 	info->Power = UNL3DBlockPower;
 	info->Reset = UNL3DBlockReset;
 	MapIRQHook = UNL3DBlockIRQHook;
-	GameStateRestore = StateRestore;
+	GameStateRestore = UNL3DBlockStateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

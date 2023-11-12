@@ -46,7 +46,7 @@ void SetupCartMirroring(int m, int hard, uint8 *extra);
 
 uint8 CartBROB(uint32 A);
 uint8 CartBR(uint32 A);
-DECLFW(CartBW);
+void CartBW(uint32 A, uint8 V);
 
 extern uint8 *PRGptr[32];
 extern uint8 *CHRptr[32];

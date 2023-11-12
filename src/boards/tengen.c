@@ -93,7 +93,7 @@ static void Sync(void) {
 }
 
 
-static DECLFW(RAMBO1_Write) {
+static void RAMBO1_Write(uint32 A, uint8 V) {
 	switch (A & 0xF001) {
 	case 0xA000:
 		if (!_isM158) {

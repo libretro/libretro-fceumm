@@ -137,7 +137,7 @@ uint8 CartBR(uint32 A) {
 	return Page[A >> 11][A];
 }
 
-DECLFW(CartBW) {
+void CartBW(uint32 A, uint8 V) {
 	if (PRGIsRAM[A >> 11] && Page[A >> 11])
 		Page[A >> 11][A] = V;
 }
@@ -195,9 +195,7 @@ void setprg16r(int r, uint32 A, uint32 V) {
 	}
 }
 
-void setprg16(uint32 A, uint32 V) {
-	setprg16r(0, A, V);
-}
+void setprg16(uint32 A, uint32 V) { setprg16r(0, A, V); }
 
 void setprg32r(int r, uint32 A, uint32 V) {
 	if (PRGsize[r] >= 32768) {
@@ -212,9 +210,7 @@ void setprg32r(int r, uint32 A, uint32 V) {
 	}
 }
 
-void setprg32(uint32 A, uint32 V) {
-	setprg32r(0, A, V);
-}
+void setprg32(uint32 A, uint32 V) { setprg32r(0, A, V); }
 
 void setchr1r(int r, uint32 A, uint32 V) {
 	if (!CHRptr[r]) return;
@@ -264,21 +260,10 @@ void setchr8r(int r, uint32 V) {
 		PPUCHRRAM = 0;
 }
 
-void setchr1(uint32 A, uint32 V) {
-	setchr1r(0, A, V);
-}
-
-void setchr2(uint32 A, uint32 V) {
-	setchr2r(0, A, V);
-}
-
-void setchr4(uint32 A, uint32 V) {
-	setchr4r(0, A, V);
-}
-
-void setchr8(uint32 V) {
-	setchr8r(0, V);
-}
+void setchr1(uint32 A, uint32 V) { setchr1r(0, A, V); }
+void setchr2(uint32 A, uint32 V) { setchr2r(0, A, V); }
+void setchr4(uint32 A, uint32 V) { setchr4r(0, A, V); }
+void setchr8(uint32 V) { setchr8r(0, V); }
 
 /* This function can be called without calling SetupCartMirroring(). */
 
@@ -410,11 +395,9 @@ void FCEU_KillGenie(void) {
 	}
 }
 
-static uint8 GenieRead(uint32 A) {
-	return GENIEROM[A & 4095];
-}
+static uint8 GenieRead(uint32 A) { return GENIEROM[A & 4095]; }
 
-static DECLFW(GenieWrite) {
+static void GenieWrite(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x800c:
 	case 0x8008:

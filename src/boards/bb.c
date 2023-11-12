@@ -34,35 +34,35 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNLBBSync(void) {
 	setprg8(0x6000, reg & 3);
 	setprg32(0x8000, ~0);
 	setchr8(chr & 3);
 }
 
-static DECLFW(UNLBBWrite) {
+static void UNLBBWrite(uint32 A, uint8 V) {
 	if ((A & 0x9000) == 0x8000)
 		reg = chr = V;
 	else
 		chr = V & 1;	/* hacky hacky, ProWres simplified FDS conversion 2-in-1 mapper */
-	Sync();
+	UNLBBSync();
 }
 
 static void UNLBBPower(void) {
 	chr = 0;
 	reg = ~0;
-	Sync();
+	UNLBBSync();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, UNLBBWrite);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void UNLBBStateRestore(int version) {
+	UNLBBSync();
 }
 
 void UNLBB_Init(CartInfo *info) {
 	info->Power = UNLBBPower;
-	GameStateRestore = StateRestore;
+	GameStateRestore = UNLBBStateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

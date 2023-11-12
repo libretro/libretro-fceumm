@@ -85,7 +85,7 @@ static uint8 FDSSRead(uint32 A) {
 static void RenderSound(void);
 static void RenderSoundHQ(void);
 
-static DECLFW(FDSSWrite) {
+static void FDSSWrite(uint32 A, uint8 V) {
 	if (FSettings.SndRate) {
 		if (FSettings.soundq >= 1)
 			RenderSoundHQ();
@@ -122,7 +122,7 @@ static DECLFW(FDSSWrite) {
  */
 
 
-static void DoEnv() {
+static void DoEnv(void) {
 	int x;
 
 	for (x = 0; x < 2; x++)
@@ -149,16 +149,13 @@ static uint8 FDSWaveRead(uint32 A) {
 	return(fdso.cwave[A & 0x3f] | (X.DB & 0xC0));
 }
 
-static DECLFW(FDSWaveWrite) {
+static void FDSWaveWrite(uint32 A, uint8 V) {
 	if (SPSG[0x9] & 0x80)
 		fdso.cwave[A & 0x3f] = V & 0x3F;
 }
 
-static int ta;
 static INLINE void ClockRise(void) {
 	if (!clockcount) {
-		ta++;
-
 		b19shiftreg60 = (SPSG[0x2] | ((SPSG[0x3] & 0xF) << 8));
 		b17latch76 = (SPSG[0x6] | ((SPSG[0x07] & 0xF) << 8)) + b17latch76;
 
@@ -219,11 +216,9 @@ static INLINE int32 FDSDoSound(void) {
 static int32 FBC = 0;
 
 static void RenderSound(void) {
-	int32 end, start;
 	int32 x;
-
-	start = FBC;
-	end = (SOUNDTS << 16) / soundtsinc;
+	int32 start = FBC;
+	int32 end = (SOUNDTS << 16) / soundtsinc;
 	if (end <= start)
 		return;
 	FBC = end;

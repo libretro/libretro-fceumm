@@ -42,11 +42,9 @@ static void M57Sync(void) {
 	setchr8((regs[0] & 7) | (regs[1] & 7) | ((regs[0] & 0x40) >> 3));
 }
 
-static DECLFR(M57Read) {
-	return hrd_flag;
-}
+static uint8 M57Read(uint32 A) { return hrd_flag; }
 
-static DECLFW(M57Write) {
+static void M57Write(uint32 A, uint8 V) {
 	switch (A & 0x8800) {
 		case 0x8000: regs[0] = V; M57Sync(); break;
 		case 0x8800: regs[1] = V; M57Sync(); break;

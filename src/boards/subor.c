@@ -68,12 +68,12 @@ static void M167Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M166Write) {
+static void M166Write(uint32 A, uint8 V) {
 	regs[(A >> 13) & 0x03] = V;
 	M166Sync();
 }
 
-static DECLFW(M167Write) {
+static void M167Write(uint32 A, uint8 V) {
 	regs[(A >> 13) & 0x03] = V;
 	M167Sync();
 }

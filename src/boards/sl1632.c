@@ -63,10 +63,9 @@ static void UNLSL1632CW(uint32 A, uint8 V) {
 	setchr1(cbase ^ 0x1c00, page2 | DRegBuf[5]);
 }
 
-static DECLFW(UNLSL1632CMDWrite) {
-	if (A == 0xA131) {
+static void UNLSL1632CMDWrite(uint32 A, uint8 V) {
+	if (A == 0xA131)
 		bbrk = V;
-	}
 	if (bbrk & 2) {
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);

@@ -35,7 +35,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M33Sync(void) {
 	setmirror(mirr);
 	setprg8(0x8000, regs[0]);
 	setprg8(0xA000, regs[1]);
@@ -49,38 +49,38 @@ static void Sync(void) {
 	setchr1(0x1C00, regs[7]);
 }
 
-static DECLFW(M33Write) {
+static void M33Write(uint32 A, uint8 V) {
 	A &= 0xF003;
 	switch (A) {
-	case 0x8000: regs[0] = V & 0x3F; if (!is48) mirr = ((V >> 6) & 1) ^ 1; Sync(); break;
-	case 0x8001: regs[1] = V & 0x3F; Sync(); break;
-	case 0x8002: regs[2] = V; Sync(); break;
-	case 0x8003: regs[3] = V; Sync(); break;
-	case 0xA000: regs[4] = V; Sync(); break;
-	case 0xA001: regs[5] = V; Sync(); break;
-	case 0xA002: regs[6] = V; Sync(); break;
-	case 0xA003: regs[7] = V; Sync(); break;
+	case 0x8000: regs[0] = V & 0x3F; if (!is48) mirr = ((V >> 6) & 1) ^ 1; M33Sync(); break;
+	case 0x8001: regs[1] = V & 0x3F; M33Sync(); break;
+	case 0x8002: regs[2] = V; M33Sync(); break;
+	case 0x8003: regs[3] = V; M33Sync(); break;
+	case 0xA000: regs[4] = V; M33Sync(); break;
+	case 0xA001: regs[5] = V; M33Sync(); break;
+	case 0xA002: regs[6] = V; M33Sync(); break;
+	case 0xA003: regs[7] = V; M33Sync(); break;
 	}
 }
 
-static DECLFW(M48Write) {
+static void M48Write(uint32 A, uint8 V) {
 	switch (A & 0xF003) {
 	case 0xC000: IRQLatch = V; break;
 	case 0xC001: IRQCount = IRQLatch; break;
 	case 0xC003: IRQa = 0; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0xC002: IRQa = 1; break;
-	case 0xE000: mirr = ((V >> 6) & 1) ^ 1; Sync(); break;
+	case 0xE000: mirr = ((V >> 6) & 1) ^ 1; M33Sync(); break;
 	}
 }
 
 static void M33Power(void) {
-	Sync();
+	M33Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M33Write);
 }
 
 static void M48Power(void) {
-	Sync();
+	M33Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xBFFF, M33Write);
 	SetWriteHandler(0xC000, 0xFFFF, M48Write);
@@ -96,14 +96,14 @@ static void M48IRQ(void) {
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M33StateRestore(int version) {
+	M33Sync();
 }
 
 void Mapper33_Init(CartInfo *info) {
 	is48 = 0;
 	info->Power = M33Power;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M33StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
@@ -111,7 +111,7 @@ void Mapper48_Init(CartInfo *info) {
 	is48 = 1;
 	info->Power = M48Power;
 	GameHBIRQHook = M48IRQ;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M33StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 

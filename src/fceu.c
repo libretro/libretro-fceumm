@@ -60,14 +60,8 @@ static readfunc *AReadG = NULL;
 static writefunc *BWriteG = NULL;
 static int RWWrap = 0;
 
-static DECLFW(BNull)
-{
-}
-
-static uint8 ANull(uint32 A)
-{
-	return(X.DB);
-}
+static void BNull(uint32 A, uint8 V) { }
+static uint8 ANull(uint32 A) { return(X.DB); }
 
 int AllocGenieRW(void)
 {
@@ -168,25 +162,10 @@ uint8 RAM[0x800];
 
 uint8 PAL = 0;
 
-static DECLFW(BRAML)
-{
-	RAM[A] = V;
-}
-
-static uint8 ARAML(uint32 A)
-{
-	return RAM[A];
-}
-
-static DECLFW(BRAMH)
-{
-	RAM[A & 0x7FF] = V;
-}
-
-static uint8 ARAMH(uint32 A)
-{
-	return RAM[A & 0x7FF];
-}
+static void BRAML(uint32 A, uint8 V) { RAM[A] = V; }
+static uint8 ARAML(uint32 A) { return RAM[A]; }
+static void BRAMH(uint32 A, uint8 V) { RAM[A & 0x7FF] = V; }
+static uint8 ARAMH(uint32 A) { return RAM[A & 0x7FF]; }
 
 void FCEUI_CloseGame(void)
 {

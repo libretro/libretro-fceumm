@@ -49,8 +49,6 @@ static uint8 FDSRead4031(uint32 A);
 static uint8 FDSRead4032(uint32 A);
 static uint8 FDSRead4033(uint32 A);
 
-static DECLFW(FDSWrite);
-
 static void FDSInit(void);
 static void FDSClose(void);
 
@@ -129,6 +127,118 @@ static void FDSStateRestore(int version) {
 				diskdata[x][b] ^= diskdatao[x][b];
 		}
 }
+
+static void FDSWrite(uint32 A, uint8 V) {
+	switch (A) {
+	case 0x4020:
+		IRQLatch &= 0xFF00;
+		IRQLatch |= V;
+		break;
+	case 0x4021:
+		IRQLatch &= 0xFF;
+		IRQLatch |= V << 8;
+		break;
+	case 0x4022:
+		if (FDSRegs[3] & 0x1) {
+			IRQa = (V & 0x3);
+			if (IRQa & 2) {
+				IRQCount = IRQLatch;
+			} else {
+				X6502_IRQEnd(FCEU_IQEXT);
+				X6502_IRQEnd(FCEU_IQEXT2);
+			}
+		}
+		break;
+	case 0x4023:
+		if (!(V & 1)) {
+			X6502_IRQEnd(FCEU_IQEXT);
+			X6502_IRQEnd(FCEU_IQEXT2);
+		}
+		break;
+	case 0x4024:
+		if (FDS_DISK_INSERTED && ~mapperFDS_control & 0x04) {
+
+			if (mapperFDS_diskaccess == 0) {
+				mapperFDS_diskaccess = 1;
+				break;
+			}
+
+			switch (mapperFDS_block) {
+				case DSK_FILEHDR:
+					if (mapperFDS_diskaddr < mapperFDS_blocklen) {
+						GET_FDS_DISK() = V;
+						switch (mapperFDS_diskaddr) {
+							case 13: mapperFDS_filesize = V; break;
+							case 14:
+								mapperFDS_filesize |= V << 8;
+								break;
+						}
+						mapperFDS_diskaddr++;
+					}
+					break;
+				default:
+					if (mapperFDS_diskaddr < mapperFDS_blocklen) {
+						GET_FDS_DISK() = V;
+						mapperFDS_diskaddr++;
+					}
+					break;
+			}
+
+		}
+		break;
+	case 0x4025:
+		X6502_IRQEnd(FCEU_IQEXT2);
+		if (FDS_DISK_INSERTED) {
+			if (V & 0x40 && ~mapperFDS_control & 0x40) {
+				mapperFDS_diskaccess = 0;
+
+				DiskSeekIRQ = 150;
+
+				/* blockstart  - address of block on disk
+				 * diskaddr    - address relative to blockstart
+				 * _block -> _blockID ?
+				 */
+				mapperFDS_blockstart += mapperFDS_diskaddr;
+				mapperFDS_diskaddr = 0;
+
+				mapperFDS_block++;
+				if (mapperFDS_block > DSK_FILEDATA)
+					mapperFDS_block = DSK_FILEHDR;
+
+				switch (mapperFDS_block) {
+					case DSK_VOLUME:
+						mapperFDS_blocklen = 0x38;
+						break;
+					case DSK_FILECNT:
+						mapperFDS_blocklen = 0x02;
+						break;
+					case DSK_FILEHDR:
+						mapperFDS_blocklen = 0x10;
+						break;
+					case DSK_FILEDATA:		 /* <blockid><filedata> */
+						mapperFDS_blocklen = 0x01 + mapperFDS_filesize;
+						break;
+				}
+			}
+
+			if (V & 0x02) { /* transfer reset */
+				mapperFDS_block = DSK_INIT;
+				mapperFDS_blockstart = 0;
+				mapperFDS_blocklen = 0;
+				mapperFDS_diskaddr = 0;
+				DiskSeekIRQ = 150;
+			}
+			if (V & 0x40) { /* turn on motor */
+				DiskSeekIRQ = 150;
+			}
+		}
+		mapperFDS_control = V;
+		setmirror(((V >> 3) & 1) ^ 1);
+		break;
+	}
+	FDSRegs[A & 7] = V;
+}
+
 
 static void FDSInit(void) {
 	memset(FDSRegs, 0, sizeof(FDSRegs));
@@ -279,117 +389,6 @@ static uint8 FDSRead4032(uint32 A) {
 
 static uint8 FDSRead4033(uint32 A) {
 	return 0x80;		/* battery */
-}
-
-static DECLFW(FDSWrite) {
-	switch (A) {
-	case 0x4020:
-		IRQLatch &= 0xFF00;
-		IRQLatch |= V;
-		break;
-	case 0x4021:
-		IRQLatch &= 0xFF;
-		IRQLatch |= V << 8;
-		break;
-	case 0x4022:
-		if (FDSRegs[3] & 0x1) {
-			IRQa = (V & 0x3);
-			if (IRQa & 2) {
-				IRQCount = IRQLatch;
-			} else {
-				X6502_IRQEnd(FCEU_IQEXT);
-				X6502_IRQEnd(FCEU_IQEXT2);
-			}
-		}
-		break;
-	case 0x4023:
-		if (!(V & 1)) {
-			X6502_IRQEnd(FCEU_IQEXT);
-			X6502_IRQEnd(FCEU_IQEXT2);
-		}
-		break;
-	case 0x4024:
-		if (FDS_DISK_INSERTED && ~mapperFDS_control & 0x04) {
-
-			if (mapperFDS_diskaccess == 0) {
-				mapperFDS_diskaccess = 1;
-				break;
-			}
-
-			switch (mapperFDS_block) {
-				case DSK_FILEHDR:
-					if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-						GET_FDS_DISK() = V;
-						switch (mapperFDS_diskaddr) {
-							case 13: mapperFDS_filesize = V; break;
-							case 14:
-								mapperFDS_filesize |= V << 8;
-								break;
-						}
-						mapperFDS_diskaddr++;
-					}
-					break;
-				default:
-					if (mapperFDS_diskaddr < mapperFDS_blocklen) {
-						GET_FDS_DISK() = V;
-						mapperFDS_diskaddr++;
-					}
-					break;
-			}
-
-		}
-		break;
-	case 0x4025:
-		X6502_IRQEnd(FCEU_IQEXT2);
-		if (FDS_DISK_INSERTED) {
-			if (V & 0x40 && ~mapperFDS_control & 0x40) {
-				mapperFDS_diskaccess = 0;
-
-				DiskSeekIRQ = 150;
-
-				/* blockstart  - address of block on disk
-				 * diskaddr    - address relative to blockstart
-				 * _block -> _blockID ?
-				 */
-				mapperFDS_blockstart += mapperFDS_diskaddr;
-				mapperFDS_diskaddr = 0;
-
-				mapperFDS_block++;
-				if (mapperFDS_block > DSK_FILEDATA)
-					mapperFDS_block = DSK_FILEHDR;
-
-				switch (mapperFDS_block) {
-					case DSK_VOLUME:
-						mapperFDS_blocklen = 0x38;
-						break;
-					case DSK_FILECNT:
-						mapperFDS_blocklen = 0x02;
-						break;
-					case DSK_FILEHDR:
-						mapperFDS_blocklen = 0x10;
-						break;
-					case DSK_FILEDATA:		 /* <blockid><filedata> */
-						mapperFDS_blocklen = 0x01 + mapperFDS_filesize;
-						break;
-				}
-			}
-
-			if (V & 0x02) { /* transfer reset */
-				mapperFDS_block = DSK_INIT;
-				mapperFDS_blockstart = 0;
-				mapperFDS_blocklen = 0;
-				mapperFDS_diskaddr = 0;
-				DiskSeekIRQ = 150;
-			}
-			if (V & 0x40) { /* turn on motor */
-				DiskSeekIRQ = 150;
-			}
-		}
-		mapperFDS_control = V;
-		setmirror(((V >> 3) & 1) ^ 1);
-		break;
-	}
-	FDSRegs[A & 7] = V;
 }
 
 struct codes_t {

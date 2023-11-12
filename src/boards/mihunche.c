@@ -28,7 +28,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNLCC21Sync(void) {
 	setprg32(0x8000, 0);
 	if(CHRsize[0] == 8192) {
 		setchr4(0x0000, latche & 1);
@@ -39,30 +39,30 @@ static void Sync(void) {
 	setmirror(MI_0 + (latche & 1));
 }
 
-static DECLFW(UNLCC21Write1) {
+static void UNLCC21Write1(uint32 A, uint8 V) {
 	latche = A;
-	Sync();
+	UNLCC21Sync();
 }
 
-static DECLFW(UNLCC21Write2) {
+static void UNLCC21Write2(uint32 A, uint8 V) {
 	latche = V;
-	Sync();
+	UNLCC21Sync();
 }
 
 static void UNLCC21Power(void) {
 	latche = 0;
-	Sync();
+	UNLCC21Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8001, 0xFFFF, UNLCC21Write1);
 	SetWriteHandler(0x8000, 0x8000, UNLCC21Write2); /* another one many-in-1 mapper, there is a lot of similar carts with little different wirings */
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void UNLCC21StateRestore(int version) {
+	UNLCC21Sync();
 }
 
 void UNLCC21_Init(CartInfo *info) {
 	info->Power = UNLCC21Power;
-	GameStateRestore = StateRestore;
+	GameStateRestore = UNLCC21StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

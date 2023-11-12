@@ -55,7 +55,6 @@ extern uint32 soundtsoffs;
 #define SOUNDTS (sound_timestamp + soundtsoffs)
 
 void SetNESSoundMap(void);
-void FrameSoundUpdate(void);
 
 void FCEUSND_Power(void);
 void FCEUSND_Reset(void);

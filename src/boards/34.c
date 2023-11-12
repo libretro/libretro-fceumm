@@ -31,7 +31,8 @@
 
 static uint8 regs[3];
 static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+
+#define M34_WRAMSIZE 8192
 
 static SFORMAT StateRegs[] =
 {
@@ -39,14 +40,14 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M34Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 	setprg32(0x8000, regs[0]);
 	setchr4(0x0000, regs[1]);
 	setchr4(0x1000, regs[2]);
 }
 
-static DECLFW(M34Write) {
+static void M34Write(uint32 A, uint8 V) {
 	if (A >= 0x8000)
 		regs[0] = V;
 	else
@@ -55,18 +56,18 @@ static DECLFW(M34Write) {
 		case 0x7ffe: regs[1] = V; break;
 		case 0x7fff: regs[2] = V; break;
 		}
-	Sync();
+	M34Sync();
 }
 
 static void M34Power(void) {
 	regs[0] = regs[1] = 0;
 	regs[2] = 1;
-	Sync();
+	M34Sync();
 	SetReadHandler(0x6000, 0x7ffc, CartBR);
 	SetWriteHandler(0x6000, 0x7ffc, CartBW);
 	SetReadHandler(0x8000, 0xffff, CartBR);
 	SetWriteHandler(0x7ffd, 0xffff, M34Write);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	FCEU_CheatAddRAM(M34_WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M34Close(void) {
@@ -75,19 +76,18 @@ static void M34Close(void) {
 	WRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M34StateRestore(int version) {
+	M34Sync();
 }
 
 void Mapper34_Init(CartInfo *info) {
 	info->Power = M34Power;
 	info->Close = M34Close;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M34StateRestore;
 
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	WRAM = (uint8*)FCEU_gmalloc(M34_WRAMSIZE);
+	SetupCartPRGMapping(0x10, WRAM, M34_WRAMSIZE, 1);
+	AddExState(WRAM, M34_WRAMSIZE, 0, "WRAM");
 
 	AddExState(&StateRegs, ~0, 0, 0);
 }

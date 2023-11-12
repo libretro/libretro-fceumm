@@ -45,12 +45,12 @@ static void M51Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M51WriteMode) {
+static void M51WriteMode(uint32 A, uint8 V) {
 	mode = V & 0x12;
 	M51Sync();
 }
 
-static DECLFW(M51WriteBank) {
+static void M51WriteBank(uint32 A, uint8 V) {
 	bank = V & 0x0F;
 	if (A & 0x4000)
 		mode = (mode & 2) | (V & 0x10);

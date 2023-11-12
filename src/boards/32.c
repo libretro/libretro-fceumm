@@ -23,7 +23,8 @@
 static uint8 preg[2], creg[8], mirr;
 
 static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+
+#define M32_WRAMSIZE 8192
 
 static SFORMAT StateRegs[] =
 {
@@ -33,7 +34,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M32Sync(void) {
 	uint8 i;
 	uint16 swap = ((mirr & 2) << 13);
 	setmirror((mirr & 1) ^ 1);
@@ -46,28 +47,28 @@ static void Sync(void) {
 		setchr1(i << 10, creg[i]);
 }
 
-static DECLFW(M32Write0) {
+static void M32Write0(uint32 A, uint8 V) {
 	preg[0] = V;
-	Sync();
+	M32Sync();
 }
 
-static DECLFW(M32Write1) {
+static void M32Write1(uint32 A, uint8 V) {
 	mirr = V;
-	Sync();
+	M32Sync();
 }
 
-static DECLFW(M32Write2) {
+static void M32Write2(uint32 A, uint8 V) {
 	preg[1] = V;
-	Sync();
+	M32Sync();
 }
 
-static DECLFW(M32Write3) {
+static void M32Write3(uint32 A, uint8 V) {
 	creg[A & 7] = V;
-	Sync();
+	M32Sync();
 }
 
 static void M32Power(void) {
-	Sync();
+	M32Sync();
 	SetReadHandler(0x6000, 0x7fff, CartBR);
 	SetWriteHandler(0x6000, 0x7fff, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
@@ -75,7 +76,7 @@ static void M32Power(void) {
 	SetWriteHandler(0x9000, 0x9FFF, M32Write1);
 	SetWriteHandler(0xA000, 0xAFFF, M32Write2);
 	SetWriteHandler(0xB000, 0xBFFF, M32Write3);
-        FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+        FCEU_CheatAddRAM(M32_WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M32Close(void) {
@@ -84,19 +85,18 @@ static void M32Close(void) {
 	WRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M32StateRestore(int version) {
+	M32Sync();
 }
 
 void Mapper32_Init(CartInfo *info) {
 	info->Power = M32Power;
 	info->Close = M32Close;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M32StateRestore;
 
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	WRAM = (uint8*)FCEU_gmalloc(M32_WRAMSIZE);
+	SetupCartPRGMapping(0x10, WRAM, M32_WRAMSIZE, 1);
+	AddExState(WRAM, M32_WRAMSIZE, 0, "WRAM");
 
 	AddExState(&StateRegs, ~0, 0, 0);
 }

@@ -42,14 +42,14 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M73Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 	setprg16(0x8000, preg);
 	setprg16(0xC000, ~0);
 	setchr8(0);
 }
 
-static DECLFW(M73Write) {
+static void M73Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
 	case 0x8000: IRQReload &= 0xFFF0; IRQReload |= (V & 0xF) << 0;  break;
 	case 0x9000: IRQReload &= 0xFF0F; IRQReload |= (V & 0xF) << 4;  break;
@@ -69,7 +69,7 @@ static DECLFW(M73Write) {
 		X6502_IRQEnd(FCEU_IQEXT);
 		break;
 	case 0xD000: X6502_IRQEnd(FCEU_IQEXT); IRQa = IRQx; break;
-	case 0xF000: preg = V; Sync(); break;
+	case 0xF000: preg = V; M73Sync(); break;
 	}
 }
 
@@ -102,7 +102,7 @@ static void M73IRQHook(int a) {
 
 static void M73Power(void) {
 	IRQReload = IRQm = IRQx = 0;
-	Sync();
+	M73Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x8000, 0xFFFF, M73Write);
@@ -115,8 +115,8 @@ static void M73Close(void) {
 	WRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M73StateRestore(int version) {
+	M73Sync();
 }
 
 void Mapper73_Init(CartInfo *info) {
@@ -130,5 +130,5 @@ void Mapper73_Init(CartInfo *info) {
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
 	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+	GameStateRestore = M73StateRestore;
 }

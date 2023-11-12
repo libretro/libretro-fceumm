@@ -44,7 +44,7 @@
 static uint8 SongReload;
 static int CurrentSong;
 
-static DECLFW(NSF_write);
+static void NSF_write(uint32 A, uint8 V);
 static uint8 NSF_read(uint32 A);
 
 static int vismode = 1;
@@ -303,7 +303,7 @@ void NSF_init(void) {
 	NSFNMIFlags = 0;
 }
 
-static DECLFW(NSF_write) {
+static void NSF_write(uint32 A, uint8 V) {
 	switch (A) {
 	case 0x3FF3: NSFNMIFlags |= 1; break;
 	case 0x3FF4: NSFNMIFlags &= ~2; break;

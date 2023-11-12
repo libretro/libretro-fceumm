@@ -223,7 +223,7 @@ static uint8 A2007(uint32 A) {
 	return ret;
 }
 
-static DECLFW(B2000) {
+static void B2000(uint32 A, uint8 V) {
 	FCEUPPU_LineUpdate();
 	PPUGenLatch = V;
 
@@ -235,7 +235,7 @@ static DECLFW(B2000) {
 	TempAddr |= (V & 3) << 10;
 }
 
-static DECLFW(B2001) {
+static void B2001(uint32 A, uint8 V) {
 	FCEUPPU_LineUpdate();
 	PPUGenLatch = V;
 	PPU[1] = V;
@@ -243,17 +243,15 @@ static DECLFW(B2001) {
 		deemp = V >> 5;
 }
 
-static DECLFW(B2002) {
-	PPUGenLatch = V;
-}
+static void B2002(uint32 A, uint8 V) { PPUGenLatch = V; }
 
-static DECLFW(B2003) {
+static void B2003(uint32 A, uint8 V) {
 	PPUGenLatch = V;
 	PPU[3] = V;
 	PPUSPL = V & 0x7;
 }
 
-static DECLFW(B2004) {
+static void B2004(uint32 A, uint8 V) {
 	PPUGenLatch = V;
 	if (PPUSPL >= 8) {
 		if (PPU[3] >= 8)
@@ -265,7 +263,7 @@ static DECLFW(B2004) {
 	PPUSPL++;
 }
 
-static DECLFW(B2005) {
+static void B2005(uint32 A, uint8 V) {
 	uint32 tmp = TempAddr;
 	FCEUPPU_LineUpdate();
 	PPUGenLatch = V;
@@ -283,7 +281,7 @@ static DECLFW(B2005) {
 }
 
 
-static DECLFW(B2006) {
+static void B2006(uint32 A, uint8 V) {
 	FCEUPPU_LineUpdate();
 
 	PPUGenLatch = V;
@@ -301,7 +299,7 @@ static DECLFW(B2006) {
 	vtoggle ^= 1;
 }
 
-static DECLFW(B2007) {
+static void B2007(uint32 A, uint8 V) {
 	uint32 tmp = RefreshAddr & 0x3FFF;
 	PPUGenLatch = V;
 	if (tmp < 0x2000) {
@@ -327,7 +325,7 @@ static DECLFW(B2007) {
 		PPU_hook(RefreshAddr & 0x3fff);
 }
 
-static DECLFW(B4014) {
+static void B4014(uint32 A, uint8 V) {
 	uint32 t = V << 8;
 	int x;
 

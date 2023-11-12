@@ -132,7 +132,8 @@ static const uint8 cpuMangle[16][4] = {
 	{ 0, 1, 2, 3 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
 	{ 0, 1, 2, 3 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
 };
-static DECLFW(UNLOneBusWriteCPU410X) {
+
+static void UNLOneBusWriteCPU410X(uint32 A, uint8 V) {
 	A &=0xF;
 	switch (A) {
 	case 0x1: IRQLatch = V & 0xfe; break;	/* не по даташиту */
@@ -146,7 +147,7 @@ static DECLFW(UNLOneBusWriteCPU410X) {
 	}
 }
 
-static DECLFW(UNLOneBusWritePPU201X) {
+static void UNLOneBusWritePPU201X(uint32 A, uint8 V) {
 	static const uint8 ppuMangle[16][6] = {
 		{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 0: Normal                                  */
 		{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 1: Waixing VT03                            */
@@ -171,7 +172,7 @@ static DECLFW(UNLOneBusWritePPU201X) {
 	Sync();
 }
 
-static DECLFW(UNLOneBusWriteMMC3) {
+static void UNLOneBusWriteMMC3(uint32 A, uint8 V) {
 	static const uint8 mmc3Mangle[16][8] = {
 		{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 0: Normal                                 */
 		{ 5, 4, 3, 2, 1, 0, 6, 7 }, 	/* Submapper 1: Waixing VT03                           */
@@ -231,7 +232,7 @@ static void UNLOneBusIRQHook(void) {
 	}
 }
 
-static DECLFW(UNLOneBusWriteAPU40XX) {
+static void UNLOneBusWriteAPU40XX(uint32 A, uint8 V) {
 	apu40xx[A & 0x3f] = V;
 	switch (A & 0x3f) {
 	case 0x12:
@@ -260,7 +261,7 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 	defapuwrite[A & 0x3f](A, V);
 }
 
-static DECLFR(UNLOneBusReadAPU40XX) {
+static uint8 UNLOneBusReadAPU40XX(uint32 A) {
 	uint8 result = defapuread[A & 0x3f](A);
 	switch (A & 0x3f) {
 	case 0x15:

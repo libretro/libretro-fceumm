@@ -54,7 +54,7 @@ static void Sync(void) {
 	setmirror(mirr);
 }
 
-DECLFW(MMC2and4Write) {
+static void MMC2and4Write(uint32 A, uint8 V) {
 	switch (A & 0xF000) {
 	case 0xA000: preg = V & 0xF; Sync(); break;
 	case 0xB000: creg[0] = V & 0x1F; Sync(); break;

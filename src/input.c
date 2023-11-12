@@ -90,7 +90,7 @@ static uint8 JPRead(uint32 A)
 	return(ret);
 }
 
-static DECLFW(B4016)
+static void B4016(uint32 A, uint8 V)
 {
 	if (FCExp)
 		if (FCExp->Write)

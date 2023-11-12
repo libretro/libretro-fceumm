@@ -49,8 +49,7 @@ static void BMC411120CPW(uint32 A, uint8 V) {
 		setprg8(A, (V & 0x0F) | ((EXPREGS[0] & mask) << 4));
 }
 
-static DECLFW(BMC411120CLoWrite) {
-/*	printf("Wr: A:%04x V:%02x\n", A, V); */
+static void BMC411120CLoWrite(uint32 A, uint8 V) {
 	EXPREGS[0] = A;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);

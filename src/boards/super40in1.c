@@ -51,13 +51,13 @@ static void Sync(void) {
 	setmirror(((preg >> 4) & 1) ^ 1);
 }
 
-static DECLFR(BMCWSRead) {
+static uint8 BMCWSRead(uint32 A) {
 	if ((creg >> 6) & (dipSwitch &3))
 		return X.DB;
 	return CartBR(A);
 }
 
-static DECLFW(BMCWSWrite) {
+static void BMCWSWrite(uint32 A, uint8 V) {
 	if (preg & 0x20)
 		return;
 
@@ -67,7 +67,7 @@ static DECLFW(BMCWSWrite) {
 	}
 }
 
-static DECLFW(LatchWrite) {
+static void LatchWrite(uint32 A, uint8 V) {
 	latch =V;
 	Sync();
 }

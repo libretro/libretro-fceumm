@@ -85,7 +85,7 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(VRC24Write) {
+static void VRC24Write(uint32 A, uint8 V) {
 	A &= 0xF003;
 	if ((A >= 0xB000) && (A <= 0xE003)) {
 		if (UNIFchrrama)
@@ -135,18 +135,18 @@ static DECLFW(VRC24Write) {
 	}
 }
 
-static DECLFW(M21Write) {
+static void M21Write(uint32 A, uint8 V) {
 	A = (A & 0xF000) | ((A >> 1) & 0x3) | ((A >> 6) & 0x3);		/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] is Mapper 21*/
 	VRC24Write(A, V);
 }
 
-static DECLFW(M22Write) {
+static void M22Write(uint32 A, uint8 V) {
 	A |= ((A >> 2) & 0x3);										/* It's just swapped lines from 21 mapper
 																 */
 	VRC24Write((A & 0xF000) | ((A >> 1) & 1) | ((A << 1) & 2), V);
 }
 
-static DECLFW(M23Write) {
+static void M23Write(uint32 A, uint8 V) {
 	A |= ((A >> 2) & 0x3) | ((A >> 4) & 0x3);	/* actually there is many-in-one mapper source, some pirate or
 												 * licensed games use various address bits for registers
 												 */
@@ -289,7 +289,7 @@ void UNLT230_Init(CartInfo *info) {
  * UNIF board name is UNL-TH2131-1.
  */
 
-static DECLFW(TH2131Write) {
+static void TH2131Write(uint32 A, uint8 V) {
 	switch (A & 0xF003) {
 	case 0xF000: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; IRQCount = 0; break;
 	case 0xF001: IRQa = 1; break;
@@ -329,7 +329,7 @@ void UNLTH21311_Init(CartInfo *info) {
  * Its similar to Mapper 23 Submapper 3) with non-nibblized CHR-ROM bank registers.
  */
 
-static DECLFW(KS7021AWrite) {
+static void KS7021AWrite(uint32 A, uint8 V) {
 	switch (A & 0xB000) {
 	case 0xB000: chrreg[A & 0x07] = V; Sync(); break;
 	}
@@ -351,7 +351,7 @@ void UNLKS7021A_Init(CartInfo *info) {
  * UNIF board name is BTL-900218.
  */
 
-static DECLFW(BTL900218Write) {
+static void BTL900218Write(uint32 A, uint8 V) {
 	switch (A & 0xF00C) {
 	case 0xF008: IRQa = 1; break;
 	case 0xF00C: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; IRQCount = 0; break;

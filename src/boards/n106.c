@@ -26,13 +26,8 @@ static uint8 IRQa;
 static uint8 WRAM[8192];
 static uint8 IRAM[128];
 
-static DECLFR(AWRAM) {
-	return(WRAM[A - 0x6000]);
-}
-
-static DECLFW(BWRAM) {
-	WRAM[A - 0x6000] = V;
-}
+static uint8 AWRAM(uint32 A) { return(WRAM[A - 0x6000]); }
+static void BWRAM(uint32 A, uint8 V) { WRAM[A - 0x6000] = V; }
 
 void Mapper19_ESI(void);
 
@@ -92,7 +87,7 @@ static void NamcoIRQHook(int a) {
 	}
 }
 
-static DECLFR(Namco_Read4800) {
+static uint8 Namco_Read4800(uint32 A) {
 	uint8 ret = IRAM[dopol & 0x7f];
 	/* Maybe I should call NamcoSoundHack() here? */
 	if (dopol & 0x80)
@@ -100,13 +95,8 @@ static DECLFR(Namco_Read4800) {
 	return ret;
 }
 
-static DECLFR(Namco_Read5000) {
-	return(IRQCount);
-}
-
-static DECLFR(Namco_Read5800) {
-	return(IRQCount >> 8);
-}
+static uint8 Namco_Read5000(uint32 A) { return(IRQCount); }
+static uint8 Namco_Read5800(uint32 A) { return(IRQCount >> 8); }
 
 static void DoNTARAMROM(int w, uint8 V) {
 	NTAPage[w] = V;
@@ -137,7 +127,7 @@ static void FixCRR(void) {
 		DoCHRRAMROM(x, CHR[x]);
 }
 
-static DECLFW(Mapper19C0D8_write) {
+static void Mapper19C0D8_write(uint32 A, uint8 V) {
 	DoNTARAMROM((A - 0xC000) >> 11, V);
 }
 
@@ -161,7 +151,7 @@ static void FixCache(int a, int V) {
 	}
 }
 
-static DECLFW(Mapper19_write) {
+static void Mapper19_write(uint32 A, uint8 V) {
 	A &= 0xF800;
 	if (A >= 0x8000 && A <= 0xb800)
 		DoCHRRAMROM((A - 0x8000) >> 11, V);
@@ -263,10 +253,7 @@ static SFORMAT N106_SStateRegs[] =
 };
 
 /* 16:15 */
-static void SyncHQ(int32 ts) {
-	CVBC = ts;
-}
-
+static void SyncHQ(int32 ts) { CVBC = ts; }
 
 /* Things to do:
 	1        Read freq low
@@ -277,8 +264,7 @@ static void SyncHQ(int32 ts) {
 */
 
 static INLINE uint32 FetchDuff(uint32 P, uint32 envelope) {
-	uint32 duff;
-	duff = IRAM[((IRAM[0x46 + (P << 3)] + (PlayIndex[P] >> TOINDEX)) & 0xFF) >> 1];
+	uint32 duff = IRAM[((IRAM[0x46 + (P << 3)] + (PlayIndex[P] >> TOINDEX)) & 0xFF) >> 1];
 	if ((IRAM[0x46 + (P << 3)] + (PlayIndex[P] >> TOINDEX)) & 1)
 		duff >>= 4;
 	duff &= 0xF;
@@ -292,16 +278,11 @@ static void DoNamcoSoundHQ(void) {
 
 	for (P = 7; P >= (7 - ((IRAM[0x7F] >> 4) & 7)); P--) {
 		if ((IRAM[0x44 + (P << 3)] & 0xE0) && (IRAM[0x47 + (P << 3)] & 0xF)) {
-			uint32 freq;
-			int32 vco;
-			uint32 duff2, lengo, envelope;
-
-			vco = vcount[P];
-			freq = FreqCache[P];
-			envelope = EnvCache[P];
-			lengo = LengthCache[P];
-
-			duff2 = FetchDuff(P, envelope);
+			int32 vco   = vcount[P];
+			uint32 freq = FreqCache[P];
+			uint32 envelope = EnvCache[P];
+			uint32 lengo = LengthCache[P];
+			uint32 duff2 = FetchDuff(P, envelope);
 			for (V = CVBC << 1; V < (int)SOUNDTS << 1; V++) {
 				WaveHi[V >> 1] += duff2;
 				if (!vco) {
@@ -324,14 +305,11 @@ static void DoNamcoSound(int32 *Wave, int Count) {
 	for (P = 7; P >= 7 - ((IRAM[0x7F] >> 4) & 7); P--) {
 		if ((IRAM[0x44 + (P << 3)] & 0xE0) && (IRAM[0x47 + (P << 3)] & 0xF)) {
 			int32 inc;
-			uint32 freq;
-			int32 vco;
-			uint32 duff, duff2, lengo, envelope;
-
-			vco = vcount[P];
-			freq = FreqCache[P];
-			envelope = EnvCache[P];
-			lengo = LengthCache[P];
+			uint32 duff, duff2;
+			int32 vco = vcount[P];
+			uint32 freq = FreqCache[P];
+			uint32 envelope = EnvCache[P];
+			uint32 lengo = LengthCache[P];
 
 			if (!freq)
 				continue;

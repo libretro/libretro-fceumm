@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include "mapinc.h"
 
-static DECLFR(UNLRT01Read) {
+static uint8 UNLRT01Read(uint32 A) {
 	if(((A >= 0xCE80) && (A < 0xCF00)) ||
 	   ((A >= 0xFE80) && (A < 0xFF00)))
 		return 0xF2 | (rand() & 0x0D);

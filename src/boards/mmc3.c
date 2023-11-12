@@ -114,7 +114,7 @@ void MMC3RegReset(void) {
 	FixMMC3CHR(0);
 }
 
-DECLFW(MMC3_CMDWrite) {
+void MMC3_CMDWrite(uint32 A, uint8 V) {
 	switch (A & 0xE001) {
 	case 0x8000:
 		if ((V & 0x40) != (MMC3_cmd & 0x40))
@@ -169,7 +169,7 @@ DECLFW(MMC3_CMDWrite) {
 	}
 }
 
-DECLFW(MMC3_IRQWrite) {
+void MMC3_IRQWrite(uint32 A, uint8 V) {
 	switch (A & 0xE001) {
 	case 0xC000: IRQLatch = V; break;
 	case 0xC001: IRQReload = 1; break;
@@ -231,11 +231,11 @@ static void GENNOMWRAP(uint8 V) {
 	A000B = V;
 }
 
-static DECLFW(MBWRAMMMC6) {
+static void MBWRAMMMC6(uint32 A, uint8 V) {
 	WRAM[A & 0x3ff] = V;
 }
 
-static DECLFR(MAWRAMMMC6) {
+static uint8 MAWRAMMMC6(uint32 A) {
 	return(WRAM[A & 0x3ff]);
 }
 
@@ -352,12 +352,12 @@ static void M12CW(uint32 A, uint8 V) {
 	setchr1(A, (EXPREGS[(A & 0x1000) >> 12] << 8) + V);
 }
 
-static DECLFW(M12Write) {
+static void M12Write(uint32 A, uint8 V) {
 	EXPREGS[0] = V & 0x01;
 	EXPREGS[1] = (V & 0x10) >> 4;
 }
 
-static DECLFR(M12Read) {
+static uint8 M12Read(uint32 A) {
 	return EXPREGS[2];
 }
 
@@ -403,7 +403,7 @@ static void M37CW(uint32 A, uint8 V) {
 	setchr1(A, NV);
 }
 
-static DECLFW(M37Write) {
+static void M37Write(uint32 A, uint8 V) {
 	EXPREGS[0] = (V & 6) >> 1;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
@@ -446,7 +446,7 @@ static void M44CW(uint32 A, uint8 V) {
 	setchr1(A, NV);
 }
 
-static DECLFW(M44Write) {
+static void M44Write(uint32 A, uint8 V) {
 	if (A & 1) {
 		EXPREGS[0] = V & 7;
 		FixMMC3PRG(MMC3_cmd);
@@ -481,7 +481,7 @@ static void M45CW(uint32 A, uint8 V) {
 	}
 }
 
-static DECLFR(M45ReadOB) {
+static uint8 M45ReadOB(uint32 A) {
 	return X.DB;
 }
 
@@ -501,7 +501,7 @@ static void M45PW(uint32 A, uint8 V) {
 		SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static DECLFW(M45Write) {
+static void M45Write(uint32 A, uint8 V) {
 	if (EXPREGS[3] & 0x40) {
 		WRAM[A - 0x6000] = V;
 		return;
@@ -512,12 +512,11 @@ static DECLFW(M45Write) {
 	FixMMC3CHR(MMC3_cmd);
 }
 
-static DECLFR(M45Read) {
+static uint8 M45Read(uint32 A) {
 	uint32 addr = 1 << (EXPREGS[5] + 4);
 	if (A & (addr | (addr - 1)))
 		return X.DB | 1;
-	else
-		return X.DB;
+	return X.DB;
 }
 
 static void M45Reset(void) {
@@ -560,7 +559,7 @@ static void M47CW(uint32 A, uint8 V) {
 	setchr1(A, NV);
 }
 
-static DECLFW(M47Write) {
+static void M47Write(uint32 A, uint8 V) {
 	EXPREGS[0] = V & 1;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
@@ -605,7 +604,7 @@ static void M49CW(uint32 A, uint8 V) {
 	setchr1(A, NV);
 }
 
-static DECLFW(M49Write) {
+static void M49Write(uint32 A, uint8 V) {
 	if (A001B & 0x80) {
 		EXPREGS[0] = V;
 		FixMMC3PRG(MMC3_cmd);
@@ -785,7 +784,7 @@ static DECLFW(BoogermanWrite) {
 	}
 }
 
-static DECLFW(M114ExWrite) {
+static void M114ExWrite(uint32 A, uint8 V) {
 	if (A <= 0x7FFF) {
 		if (A & 1)
 			EXPREGS[1] = V;
@@ -841,7 +840,7 @@ static void M115CW(uint32 A, uint8 V) {
 	setchr1(A, (uint32)V | ((EXPREGS[1] & 1) << 8));
 }
 
-static DECLFW(M115Write) {
+static void M115Write(uint32 A, uint8 V) {
 	if (A == 0x5080)
 		EXPREGS[2] = V;	/* Extra prot hardware 2-in-1 mode */
 	else if (A == 0x6000)
@@ -851,7 +850,7 @@ static DECLFW(M115Write) {
 	FixMMC3PRG(MMC3_cmd);
 }
 
-static DECLFR(M115Read) {
+static uint8 M115Read(uint32 A) {
 	return EXPREGS[2];
 }
 

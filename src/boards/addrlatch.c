@@ -530,8 +530,7 @@ static void M242Sync(void) {
 static DECLFR(M242Read) {
 	if (latche &0x0100)
 		return CartBR(A | dipswitch);
-	else
-		return CartBR(A);
+	return CartBR(A);
 }
 
 static void Mapper242_Reset(void) {

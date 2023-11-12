@@ -39,11 +39,8 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
-}
-
-static DECLFW(MNNNWrite) {
-}
+static void Sync(void) { }
+static void MNNNWrite(uint32 A, uint8 V) { }
 
 static void MNNNPower(void) {
 /*	SetReadHandler(0x6000, 0x7fff, CartBR); */

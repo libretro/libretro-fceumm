@@ -39,14 +39,14 @@ static void Sync(void) {
 	setmirror(((cmd0 & 0x20) >> 5) ^ 1);
 }
 
-static DECLFW(SuperWriteLo) {
+static void SuperWriteLo(uint32 A, uint8 V) {
 	if (!(cmd0 & 0x10)) {
 		cmd0 = V;
 		Sync();
 	}
 }
 
-static DECLFW(SuperWriteHi) {
+static void SuperWriteHi(uint32 A, uint8 V) {
 	cmd1 = V;
 	Sync();
 }

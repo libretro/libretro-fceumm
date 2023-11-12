@@ -39,7 +39,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void UNLVRC7Sync(void) {
 	uint8 i;
 	setprg8(0x8000, prg[0]);
 	setprg8(0xa000, prg[1]);
@@ -55,20 +55,20 @@ static void Sync(void) {
 	}
 }
 
-static DECLFW(UNLVRC7Write) {
+static void UNLVRC7Write(uint32 A, uint8 V) {
 	switch (A & 0xF008) {
-	case 0x8000: prg[0] = V; Sync(); break;
-	case 0x8008: prg[1] = V; Sync(); break;
-	case 0x9000: prg[2] = V; Sync(); break;
-	case 0xa000: chr[0] = V; Sync(); break;
-	case 0xa008: chr[1] = V; Sync(); break;
-	case 0xb000: chr[2] = V; Sync(); break;
-	case 0xb008: chr[3] = V; Sync(); break;
-	case 0xc000: chr[4] = V; Sync(); break;
-	case 0xc008: chr[5] = V; Sync(); break;
-	case 0xd000: chr[6] = V; Sync(); break;
-	case 0xd008: chr[7] = V; Sync(); break;
-	case 0xe000: mirr = V; Sync(); break;
+	case 0x8000: prg[0] = V; UNLVRC7Sync(); break;
+	case 0x8008: prg[1] = V; UNLVRC7Sync(); break;
+	case 0x9000: prg[2] = V; UNLVRC7Sync(); break;
+	case 0xa000: chr[0] = V; UNLVRC7Sync(); break;
+	case 0xa008: chr[1] = V; UNLVRC7Sync(); break;
+	case 0xb000: chr[2] = V; UNLVRC7Sync(); break;
+	case 0xb008: chr[3] = V; UNLVRC7Sync(); break;
+	case 0xc000: chr[4] = V; UNLVRC7Sync(); break;
+	case 0xc008: chr[5] = V; UNLVRC7Sync(); break;
+	case 0xd000: chr[6] = V; UNLVRC7Sync(); break;
+	case 0xd008: chr[7] = V; UNLVRC7Sync(); break;
+	case 0xe000: mirr = V; UNLVRC7Sync(); break;
 	case 0xe008: IRQLatch = V; X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0xf000:
 		IRQa = V & 2;
@@ -89,7 +89,7 @@ static DECLFW(UNLVRC7Write) {
 }
 
 static void UNLVRC7Power(void) {
-	Sync();
+	UNLVRC7Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, UNLVRC7Write);
 }
@@ -108,13 +108,11 @@ static void UNLVRC7IRQHook(int a) {
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
+static void UNLVRC7StateRestore(int version) { UNLVRC7Sync(); }
 
 void UNLVRC7_Init(CartInfo *info) {
 	info->Power = UNLVRC7Power;
 	MapIRQHook = UNLVRC7IRQHook;
-	GameStateRestore = StateRestore;
+	GameStateRestore = UNLVRC7StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

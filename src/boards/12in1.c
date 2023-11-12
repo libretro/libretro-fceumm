@@ -32,7 +32,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void BMC12IN1Sync(void) {
 	uint8 bank = (ctrl & 3) << 3;
 	setchr4(0x0000, (prgchr[0] >> 3) | (bank << 2));
 	setchr4(0x1000, (prgchr[1] >> 3) | (bank << 2));
@@ -46,28 +46,28 @@ static void Sync(void) {
 	setmirror(((ctrl & 4) >> 2) ^ 1);
 }
 
-static DECLFW(BMC12IN1Write) {
+static void BMC12IN1Write(uint32 A, uint8 V) {
 	switch (A & 0xE000) {
-	case 0xA000: prgchr[0] = V; Sync(); break;
-	case 0xC000: prgchr[1] = V; Sync(); break;
-	case 0xE000: ctrl = V & 0x0F; Sync(); break;
+	case 0xA000: prgchr[0] = V; BMC12IN1Sync(); break;
+	case 0xC000: prgchr[1] = V; BMC12IN1Sync(); break;
+	case 0xE000: ctrl = V & 0x0F; BMC12IN1Sync(); break;
 	}
 }
 
 static void BMC12IN1Power(void) {
 	prgchr[0] = prgchr[1] = ctrl = 0;
-	Sync();
+	BMC12IN1Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, BMC12IN1Write);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void BMC12IN1StateRestore(int version) {
+	BMC12IN1Sync();
 }
 
 void BMC12IN1_Init(CartInfo *info) {
 	info->Power = BMC12IN1Power;
-	GameStateRestore = StateRestore;
+	GameStateRestore = BMC12IN1StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 

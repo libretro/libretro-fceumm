@@ -39,7 +39,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M104WriteBank) {
+static void M104WriteBank(uint32 A, uint8 V) {
 	if ((V & 8) > 0) {
 		preg[0]  = ((V << 4) & 0x70) | (preg[0] & 0x0F);
 		preg[1]  = ((V << 4) & 0x70) | 0x0F;
@@ -47,7 +47,7 @@ static DECLFW(M104WriteBank) {
 	}
 }
 
-static DECLFW(M104WritePreg) {
+static void M104WritePreg(uint32 A, uint8 V) {
 	preg[0] = (preg[0] & 0x70) | (V & 0x0F);
 	Sync();
 }

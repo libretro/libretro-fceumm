@@ -38,7 +38,7 @@ static void Sync(void) {
 	setmirror(mirr);
 }
 
-static DECLFW(BMCT262Write) {
+static void BMCT262Write(uint32 A, uint8 V) {
 	if (!lock) {
 		base = ((A & 0x60) >> 2) | ((A & 0x100) >> 3);
 		mode = A & 0x80;

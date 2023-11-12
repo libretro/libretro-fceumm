@@ -105,7 +105,7 @@ static void VRC7Sync(void) {
 	}
 }
 
-static DECLFW(VRC7SW) {
+static void VRC7SW(uint32 A, uint8 V) {
 	if (FSettings.SndRate) {
 		OPLL_writeReg(VRC7Sound, vrc7idx, V);
 		GameExpSound.Fill = UpdateOPL;
@@ -113,7 +113,7 @@ static DECLFW(VRC7SW) {
 	}
 }
 
-static DECLFW(VRC7Write) {
+static void VRC7Write(uint32 A, uint8 V) {
 	A |= (A & 8) << 1;	/* another two-in-oooone */
 	if (A >= 0xA000 && A <= 0xDFFF) {
 		A &= 0xF010;

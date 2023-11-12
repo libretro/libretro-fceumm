@@ -24,7 +24,9 @@
 static uint16 latchea;
 static uint8 latched;
 static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+
+#define M15_WRAMSIZE 8192
+
 static SFORMAT StateRegs[] =
 {
 	{ &latchea, 2 | FCEUSTATE_RLSB, "AREG" },
@@ -32,7 +34,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void M15Sync(void) {
 	uint32 preg[4];
 	uint32 bank = (latched & 0x3F) << 1;
 	switch (latchea & 0x03) {
@@ -66,7 +68,7 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static DECLFW(M15Write) {
+static void M15Write(uint32 A, uint8 V) {
 	latchea = A;
 	latched = V;
 	/* cah4e3 02.10.19 once again, there may be either two similar mapper 15 exist. the one for 110in1 or 168in1 carts with complex multi game features.
@@ -76,11 +78,11 @@ static DECLFW(M15Write) {
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	else
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
-	Sync();
+	M15Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M15StateRestore(int version) {
+	M15Sync();
 }
 
 static void M15Power(void) {
@@ -92,14 +94,14 @@ static void M15Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x8000, 0xFFFF, M15Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
-	Sync();
+	FCEU_CheatAddRAM(M15_WRAMSIZE >> 10, 0x6000, WRAM);
+	M15Sync();
 }
 
 static void M15Reset(void) {
 	latchea = 0x8000;
 	latched = 0;
-	Sync();
+	M15Sync();
 }
 
 static void M15Close(void) {
@@ -112,15 +114,14 @@ void Mapper15_Init(CartInfo *info) {
 	info->Power = M15Power;
 	info->Reset = M15Reset;
 	info->Close = M15Close;
-	GameStateRestore = StateRestore;
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	GameStateRestore = M15StateRestore;
+	WRAM = (uint8*)FCEU_gmalloc(M15_WRAMSIZE);
+	SetupCartPRGMapping(0x10, WRAM, M15_WRAMSIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
+		info->SaveGameLen[0] = M15_WRAMSIZE;
 	}
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	AddExState(WRAM, M15_WRAMSIZE, 0, "WRAM");
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 

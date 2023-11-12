@@ -65,7 +65,7 @@ static void StateRestore(int version) {
 	SyncChr();
 }
 
-static DECLFW(UNLTF1201Write) {
+static void UNLTF1201Write(uint32 A, uint8 V) {
 	A = (A & 0xF003) | ((A & 0xC) >> 2);
 	if ((A >= 0xB000) && (A <= 0xE003)) {
 		int ind = (((A >> 11) - 6) | (A & 1)) & 7;

@@ -91,7 +91,7 @@ static void VRC6Sync(void) {
 	}
 }
 
-static DECLFW(VRC6SW) {
+static void VRC6SW(uint32 A, uint8 V) {
 	A &= 0xF003;
 	if (A >= 0x9000 && A <= 0x9002) {
 		vpsg1[A & 3] = V;
@@ -105,7 +105,7 @@ static DECLFW(VRC6SW) {
 	}
 }
 
-static DECLFW(VRC6Write) {
+static void VRC6Write(uint32 A, uint8 V) {
 	if (is26)
 		A = (A & 0xFFFC) | ((A >> 1) & 1) | ((A << 1) & 2);
 	if (A >= 0x9000 && A <= 0xB002) {
