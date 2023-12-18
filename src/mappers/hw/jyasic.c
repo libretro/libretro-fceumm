@@ -23,8 +23,8 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-void 	(*sync)(void);
-static uint8	allowExtendedMirroring;
+void 	(*JYASIC_sync)(void);
+uint8	allowExtendedMirroring;
 
 static uint8	mode[4];
 static uint8*	WRAM = NULL;
@@ -46,8 +46,8 @@ static uint8	adder;
 static uint8	test;
 static uint8    dipSwitch;
 
-static uint8 cpuWriteHandlersSet;
-static writefunc cpuWriteHandlers[0x10000]; /* Actual write handlers for CPU write trapping as a method fo IRQ clocking */
+uint8 cpuWriteHandlersSet;
+writefunc cpuWriteHandlers[0x10000]; /* Actual write handlers for CPU write trapping as a method fo IRQ clocking */
 
 static SFORMAT JYASIC_stateRegs[] = {
 	{ &irqControl,   1,                  "IRQM" },
@@ -75,7 +75,7 @@ static uint8 rev (uint8_t val)
 	return ((val <<6) &0x40) | ((val <<4) &0x20) | ((val <<2) &0x10) | (val &0x08) | ((val >>2) &0x04) | ((val >>4) &0x02) | ((val >>6) &0x01);
 }
 
-static void syncPRG (int AND, int OR)
+void syncPRG (int AND, int OR)
 {
 	uint8_t prgLast =mode[0] &0x04? prg[3]: 0xFF;
 	uint8_t prg6000 =0;
@@ -112,7 +112,7 @@ static void syncPRG (int AND, int OR)
          setprg8r(0x10, 0x6000, 0);
 }
 
-static void syncCHR (int AND, int OR)
+void syncCHR (int AND, int OR)
 {
    /* MMC4 mode[0] with 4 KiB CHR mode[0] */
    if (mode[3] &0x80 && (mode[0] &0x18) ==0x08)
@@ -147,7 +147,7 @@ static void syncCHR (int AND, int OR)
    PPUCHRRAM = (mode[2] & 0x40) ? 0xFF: 0x00; /* Write-protect or write-enable CHR-RAM */
 }
 
-static void syncNT (int AND, int OR)
+void syncNT (int AND, int OR)
 {
 	if (mode[0] &0x20 || mode[1] &0x08)
    {
@@ -206,7 +206,7 @@ static void clockIRQ (void)
       }
 }
 
-static void trapCPUWrite(uint32 A, uint8 V)
+void trapCPUWrite(uint32 A, uint8 V)
 {
 	if ((irqControl &0x03) ==0x03)
       clockIRQ(); /* Clock IRQ counter on CPU writes */
@@ -225,7 +225,7 @@ static void trapPPUAddressChange (uint32 A)
    {
       /* If MMC4 mode[0] is enabled, and CHR mode[0] is 4 KiB, and tile FD or FE is being fetched ... */
       latch[A >>12 &1] =(A >>10 &4) | (A >>4 &2); /* ... switch the left or right pattern table's latch to 0 (FD) or 2 (FE), being used as an offset for the CHR register index. */
-      sync();
+      JYASIC_sync();
    }
    lastPPUAddress =A;
 }
@@ -247,7 +247,7 @@ static void cpuCycle(int a)
          clockIRQ(); /* Clock IRQ counter on M2 cycles */
 }
 
-static uint8 readALU_DIP(uint32 A)
+uint8 readALU_DIP(uint32 A)
 {
    if ((A &0x3FF) ==0 && A !=0x5800) /* 5000, 5400, 5C00: read solder pad setting */
       return dipSwitch | X.DB &0x3F;
@@ -269,7 +269,7 @@ static uint8 readALU_DIP(uint32 A)
    return X.DB;
 }
 
-static void writeALU(uint32 A, uint8 V)
+void writeALU(uint32 A, uint8 V)
 {
 	switch (A &3)
    {
@@ -289,34 +289,34 @@ static void writeALU(uint32 A, uint8 V)
    }
 }
 
-static void writePRG(uint32 A, uint8 V)
+void writePRG(uint32 A, uint8 V)
 {
 	prg[A &3] = V;
-	sync();	
+	JYASIC_sync();
 }
 
-static void writeCHRLow(uint32 A, uint8 V)
+void writeCHRLow(uint32 A, uint8 V)
 {
 	chr[A &7] =chr[A &7] &0xFF00 | V;
-	sync();
+	JYASIC_sync();
 }
 
-static void writeCHRHigh(uint32 A, uint8 V)
+void writeCHRHigh(uint32 A, uint8 V)
 {
 	chr[A &7] =chr[A &7] &0x00FF | V <<8;
-	sync();
+	JYASIC_sync();
 }
 
-static void writeNT(uint32 A, uint8 V)
+void writeNT(uint32 A, uint8 V)
 {
 	if (~A &4)
 		nt[A &3] =nt[A &3] &0xFF00 | V;
 	else
 		nt[A &3] =nt[A &3] &0x00FF | V <<8;
-	sync();
+	JYASIC_sync();
 }
 
-static void writeIRQ(uint32 A, uint8 V)
+void writeIRQ(uint32 A, uint8 V)
 {
 	switch (A &7)
    {
@@ -351,7 +351,7 @@ static void writeIRQ(uint32 A, uint8 V)
    }
 }
 
-static void writeMode(uint32 A, uint8 V)
+void writeMode(uint32 A, uint8 V)
 {
 	switch (A &3)
    {
@@ -372,10 +372,10 @@ static void writeMode(uint32 A, uint8 V)
          mode[3] =V;
          break;
    }
-	sync();
+   JYASIC_sync();
 }
 
-static void JYASIC_restoreWriteHandlers(void)
+void JYASIC_restoreWriteHandlers(void)
 {
    int i;
    if (cpuWriteHandlersSet) 
@@ -385,7 +385,7 @@ static void JYASIC_restoreWriteHandlers(void)
    }
 }
 
-static void JYASIC_power(void)
+void JYASIC_power(void)
 {
    unsigned int i;
 
@@ -415,7 +415,7 @@ static void JYASIC_power(void)
    latch[0] =0;
    latch[1] =4;
 
-   sync();
+   JYASIC_sync();
 }
 
 static void JYASIC_reset (void)
@@ -432,10 +432,10 @@ static void JYASIC_close (void)
 
 static void JYASIC_restore (int version)
 {
-	sync();
+   JYASIC_sync();
 }
 
-void JYASIC_init (CartInfo *info)
+void JYASIC_init(CartInfo *info)
 {
    cpuWriteHandlersSet =0;
    info->Reset = JYASIC_reset;
@@ -479,14 +479,14 @@ void Mapper35_Init(CartInfo *info)
 {
    /* Basically mapper 90/209/211 with WRAM */
 	allowExtendedMirroring =1;
-	sync =syncSingleCart;
+	JYASIC_sync = syncSingleCart;
 	JYASIC_init(info);
 }
 void Mapper90_Init(CartInfo *info)
 {
    /* Single cart, extended mirroring and ROM nametables disabled */
 	allowExtendedMirroring =0;
-	sync =syncSingleCart;
+	JYASIC_sync = syncSingleCart;
 	JYASIC_init(info);
 }
 
@@ -494,7 +494,7 @@ void Mapper209_Init(CartInfo *info)
 {
    /* Single cart, extended mirroring and ROM nametables enabled */
 	allowExtendedMirroring =1;
-	sync =syncSingleCart;
+	JYASIC_sync = syncSingleCart;
 	JYASIC_init(info);
 }
 
@@ -502,7 +502,7 @@ void Mapper211_Init(CartInfo *info)
 {
    /* Duplicate of mapper 209 */
 	allowExtendedMirroring =1;
-	sync =syncSingleCart;
+	JYASIC_sync = syncSingleCart;
 	JYASIC_init(info);
 }
 
@@ -517,7 +517,7 @@ void Mapper281_Init(CartInfo *info)
 {
    /* Multicart */
 	allowExtendedMirroring =1;
-	sync =sync281;
+	JYASIC_sync = sync281;
 	JYASIC_init(info);
 }
 
@@ -540,7 +540,7 @@ void Mapper282_Init(CartInfo *info)
 {
    /* Multicart */
 	allowExtendedMirroring =1;
-	sync =sync282;
+	JYASIC_sync = sync282;
 	JYASIC_init(info);
 }
 
@@ -555,7 +555,7 @@ void Mapper295_Init(CartInfo *info)
 {
    /* Multicart */
 	allowExtendedMirroring =1;
-	sync =sync295;
+	JYASIC_sync = sync295;
 	JYASIC_init(info);
 }
 
@@ -578,7 +578,7 @@ void Mapper358_Init(CartInfo *info)
 {
    /* Multicart */
 	allowExtendedMirroring =1;
-	sync =sync358;
+	JYASIC_sync = sync358;
 	JYASIC_init(info);
 }
 
@@ -601,7 +601,7 @@ void Mapper386_Init(CartInfo *info)
 {
    /* Multicart */
 	allowExtendedMirroring =1;
-	sync =sync386;
+	JYASIC_sync = sync386;
 	JYASIC_init(info);
 }
 	
@@ -624,7 +624,7 @@ void Mapper387_Init(CartInfo *info)
 {
    /* Multicart */
    allowExtendedMirroring =1;
-   sync =sync387;
+   JYASIC_sync = sync387;
    JYASIC_init(info);
 }
 
@@ -648,7 +648,7 @@ void Mapper388_Init(CartInfo *info)
 {
    /* Multicart */
 	allowExtendedMirroring =0;
-	sync =sync388;
+	JYASIC_sync = sync388;
 	JYASIC_init(info);
 }
 
@@ -663,7 +663,7 @@ void Mapper397_Init(CartInfo *info)
 {
    /* Multicart */
    allowExtendedMirroring =1;
-   sync =sync397;
+   JYASIC_sync = sync397;
    JYASIC_init(info);
 }
 
@@ -681,115 +681,7 @@ void Mapper421_Init(CartInfo *info)
 {
    /* Multicart */
 	allowExtendedMirroring =1;
-	sync =sync421;
+	JYASIC_sync = sync421;
 	JYASIC_init(info);
 }
 
-/* Mapper 394: HSK007 circuit board that can simulate J.Y. ASIC, MMC3, and NROM. */
-static uint8 HSK007Reg[4];
-void sync394 (void) /* Called when J.Y. ASIC is active */
-{
-	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x020;
-	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100;
-	syncPRG(0x1F, prgOR);
-	syncCHR(0xFF, chrOR);
-	syncNT (0xFF, chrOR);	
-}
-static void Mapper394_PWrap(uint32 A, uint8 V)
-{
-	int prgAND =HSK007Reg[3] &0x10? 0x1F: 0x0F;
-	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x020;
-	if (HSK007Reg[1] &0x08)
-		setprg8(A, V &prgAND | prgOR &~prgAND);
-	else
-	if (A ==0x8000)
-		setprg32(A, (prgOR | HSK007Reg[3] <<1 &0x0F) >>2);
-	
-}
-static void Mapper394_CWrap(uint32 A, uint8 V)
-{
-	int chrAND =HSK007Reg[3] &0x80? 0xFF: 0x7F;
-	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100;
-	setchr1(A, V &chrAND | chrOR &~chrAND);
-}
-static void Mapper394_Write(uint32 A, uint8 V)
-{
-	uint8 oldMode =HSK007Reg[1];
-	A &=3;
-	HSK007Reg[A] =V;
-	if (A ==1)
-	{		
-		if (~oldMode &0x10 &&  V &0x10) JYASIC_power();
-		if ( oldMode &0x10 && ~V &0x10)
-		{
-			JYASIC_restoreWriteHandlers();
-			GenMMC3Power();
-		}
-	}
-	else
-	{
-		if (HSK007Reg[1] &0x10)
-			sync();
-		else
-		{
-			FixMMC3PRG(MMC3_cmd);
-			FixMMC3CHR(MMC3_cmd);
-		}
-			
-	}
-}
-static void Mapper394_restore (int version)
-{
-	int i;
-	JYASIC_restoreWriteHandlers();
-	if (HSK007Reg[1] &0x10)
-	{		
-		SetWriteHandler(0x5000, 0x5FFF, writeALU);
-		SetWriteHandler(0x6000, 0x7fff, CartBW);
-		SetWriteHandler(0x8000, 0x87FF, writePRG);     /* 8800-8FFF ignored */
-		SetWriteHandler(0x9000, 0x97FF, writeCHRLow);  /* 9800-9FFF ignored */
-		SetWriteHandler(0xA000, 0xA7FF, writeCHRHigh); /* A800-AFFF ignored */
-		SetWriteHandler(0xB000, 0xB7FF, writeNT);      /* B800-BFFF ignored */
-		SetWriteHandler(0xC000, 0xCFFF, writeIRQ);
-		SetWriteHandler(0xD000, 0xD7FF, writeMode);    /* D800-DFFF ignored */
-		
-		for (i =0; i <0x10000; i++) cpuWriteHandlers[i] =GetWriteHandler(i);
-		SetWriteHandler(0x0000, 0xFFFF, trapCPUWrite); /* Trap all CPU writes for IRQ clocking purposes */
-		cpuWriteHandlersSet =1;
-		
-		SetReadHandler(0x5000, 0x5FFF, readALU_DIP);
-		SetReadHandler(0x6000, 0xFFFF, CartBR);
-		sync();
-	}
-	else
-	{
-		SetWriteHandler(0x8000, 0xBFFF, MMC3_CMDWrite);
-		SetWriteHandler(0xC000, 0xFFFF, MMC3_IRQWrite);
-		SetReadHandler(0x8000, 0xFFFF, CartBR);
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	}
-}
-static void Mapper394_power(void)
-{
-	HSK007Reg[0] =0x00;
-	HSK007Reg[1] =0x0F;
-	HSK007Reg[2] =0x00;
-	HSK007Reg[3] =0x10;
-	GenMMC3Power();
-	SetWriteHandler(0x5000, 0x5FFF, Mapper394_Write);
-}
-
-void Mapper394_Init(CartInfo *info)
-{
-	allowExtendedMirroring =1;
-	sync =sync394;
-	JYASIC_init(info);
-	GenMMC3_Init(info, 128, 128, 0, 0);
-	pwrap =Mapper394_PWrap;
-	cwrap =Mapper394_CWrap;
-	info->Reset = Mapper394_power;
-	info->Power = Mapper394_power;
-	AddExState(HSK007Reg, 4, 0, "HSK ");
-	GameStateRestore = Mapper394_restore;
-}

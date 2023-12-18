@@ -22,6 +22,7 @@
 
 /* Forward declarations */
 extern uint16 latche;
+void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram);
 
 /*------------------ Map 212 ---------------------------*/
 
