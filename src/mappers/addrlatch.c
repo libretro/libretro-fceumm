@@ -29,7 +29,7 @@ static readfunc defread;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 static uint32 hasBattery;
-static uint32 submapper = 0;
+uint32 submapper = 0;
 
 static void LatchWrite(uint32 A, uint8 V) {
 	latche = A;
@@ -157,42 +157,6 @@ void Mapper59_Init(CartInfo *info) {
 	Latch_Init(info, M59Sync, M59Read, 0x0000, 0x8000, 0xFFFF, 0);
 }*/
 
-/*------------------ Map 063 ---------------------------*/
-/* added 2019-5-23
- * Mapper 63 NTDEC-Multicart
- * http://wiki.nesdev.com/w/index.php/INES_Mapper_063
- * - Powerful 250-in-1
- * - Hello Kitty 255-in-1
- * Submapper 1:
- * - NTDEC 82-in-1 */
-
-static uint16 openBus;
-
-static uint8 M63Read(uint32 A) {
-	if (openBus)
-		return X.DB;
-	return CartBR(A);
-}
-
-static void M63Sync(void) {
-	uint16 prg =latche >>2 &(submapper ==1? 0x7F: 0xFF);
-	if (latche &2)
-		setprg32(0x8000, prg >>1);
-	else {
-		setprg16(0x8000, prg);
-		setprg16(0xC000, prg);
-	}
-	openBus =prg >=ROM_size;
-	SetupCartCHRMapping(0, CHRptr[0], 0x2000, latche &(submapper ==1? 0x200: 0x400)? 0: 1);
-	setchr8(0);
-	setmirror(latche &1? MI_H: MI_V);
-}
-
-void Mapper63_Init(CartInfo *info) {
-	submapper = info->submapper;
-	Latch_Init(info, M63Sync, M63Read, 0x0000, 0x8000, 0xFFFF, 0);
-}
-
 /*------------------ Map 092 ---------------------------*/
 /* Another two-in-one mapper, two Jaleco carts uses similar
  * hardware, but with different wiring.
@@ -303,17 +267,6 @@ void Mapper214_Init(CartInfo *info) {
 	Latch_Init(info, M214Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-/*------------------ Map 217 ---------------------------*/
-
-static void M217Sync(void) {
-	setprg32(0x8000, (latche >> 2) & 0x03);
-	setchr8(latche & 0x0F);
-}
-
-void Mapper217_Init(CartInfo *info) {
-	Latch_Init(info, M217Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
-
 /*------------------ Map 227 ---------------------------*/
 
 static void M227Sync(void) {
@@ -421,10 +374,8 @@ static void M242Sync(void) {
 	uint32 L = (latche >> 9) & 1;
 	
 	if (M242TwoChips) {
-		if (latche &0x600)
-		{	/* First chip */
+		if (latche &0x600) /* First chip */
 			p &= 0x1F; 
-		}
 		else
 		{	/* Second chip */
 			p &= 0x07;
@@ -535,24 +486,6 @@ void Mapper385_Init(CartInfo *info) {
 	Latch_Init(info, M385Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-/*------------------ Map 541 ---------------------------*/
-/* LittleCom 160-in-1 multicart */
-static void M541Sync(void) {
-	if (latche & 2) {
-		/* NROM-128 */
-		setprg16(0x8000, latche >> 2);
-		setprg16(0xC000, latche >> 2);
-	} else {
-		/* NROM=256 */
-		setprg32(0x8000, latche >> 3);
-	}
-	setchr8(0);
-	setmirror(latche & 1);
-}
-
-void Mapper541_Init(CartInfo *info) {
-	Latch_Init(info, M541Sync, NULL, 0x0000, 0xC000, 0xFFFF, 0);
-}
 
 /*------------------ 190in1 ---------------------------*/
 
@@ -619,9 +552,8 @@ static void BMCG146Sync(void) {
 		if (latche & 0x40) {	/* 16K mode */
 			setprg16(0x8000, latche & 0x1F);
 			setprg16(0xC000, latche & 0x1F);
-		} else {
+		} else
 			setprg32(0x8000, (latche >> 1) & 0x0F);
-		}
 	}
 	setmirror(((latche & 0x80) >> 7) ^ 1);
 }
@@ -693,17 +625,6 @@ static void J2282Sync(void)
 void J2282_Init(CartInfo *info)
 {
     Latch_Init(info, J2282Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
-
-/* -------------- Mapper 409 ------------------------ */
-static void M409Sync(void) {
-	setprg16(0x8000, latche);
-	setprg16(0xC000, ~0);
-	setchr8(0);
-}
-
-void Mapper409_Init(CartInfo *info) {
-	Latch_Init(info, M409Sync, NULL, 0x0000, 0xC000, 0xCFFF, 0);
 }
 
 /*------------------ Map 435 ---------------------------*/
