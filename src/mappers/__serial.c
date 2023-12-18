@@ -119,33 +119,12 @@ int ReadResp(uint8 *resp, int size) {
 	return sum;
 }
 #else
-
 /* code is not portable, so make stubs for now */
-
-BOOL SerialOpen(int port, int baud) {
-	return FALSE;
-}
-
-void SerialClose(void) {
-}
-
-BOOL SerialSendChar(int c) {
-	return FALSE;
-}
-
-int SerialIsOpen(void) {
-	return FALSE;
-}
-
-int SerialGetChar(void) {
-	return EOF;
-}
-
-void SendCmd(uint8 *cmd, int size) {
-}
-
-int ReadResp(uint8 *resp, int size) {
-	return 0;
-}
-
+BOOL SerialOpen(int port, int baud) { return FALSE; }
+void SerialClose(void) { }
+BOOL SerialSendChar(int c) { return FALSE; }
+int SerialIsOpen(void) { return 0; }
+int SerialGetChar(void) { return EOF; }
+void SendCmd(uint8 *cmd, int size) { }
+int ReadResp(uint8 *resp, int size) { return 0; }
 #endif
