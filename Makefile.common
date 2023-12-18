@@ -1,7 +1,7 @@
-LIBRETRO_COMM_DIR := $(CORE_DIR)/drivers/libretro/libretro-common
+LIBRETRO_COMM_DIR := $(CORE_DIR)/libretro/libretro-common
 
 INCFLAGS := \
-	-I$(CORE_DIR)/drivers/libretro \
+	-I$(CORE_DIR)/libretro \
 	-I$(LIBRETRO_COMM_DIR)/include \
 	-I$(CORE_DIR) \
 	-I$(CORE_DIR)/input \
@@ -35,8 +35,8 @@ ifeq ($(HAVE_NTSC),1)
 endif
 
 SOURCES_C += \
-	$(CORE_DIR)/drivers/libretro/libretro.c \
-	$(CORE_DIR)/drivers/libretro/libretro_dipswitch.c \
+	$(CORE_DIR)/libretro/libretro.c \
+	$(CORE_DIR)/libretro/libretro_dipswitch.c \
 	$(CORE_DIR)/cart.c \
 	$(CORE_DIR)/cheat.c \
 	$(CORE_DIR)/crc32.c \
