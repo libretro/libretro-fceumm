@@ -23,6 +23,25 @@
 
 #include "mapinc.h"
 
+static uint8 prg[2], chr[8], mirr;
+static uint8 IRQLatch, IRQa, IRQd;
+static int32 IRQCount, CycleCount;
+static uint8 *WRAM = NULL;
+static uint32 WRAMSIZE;
+
+static SFORMAT StateRegs[] =
+{
+	{ prg, 2, "PRG" },
+	{ chr, 8, "CHR" },
+	{ &mirr, 1, "MIRR" },
+	{ &IRQa, 1, "IRQA" },
+	{ &IRQd, 1, "IRQD" },
+	{ &IRQLatch, 1, "IRQL" },
+	{ &IRQCount, 4, "IRQC" },
+	{ &CycleCount, 4, "CYCC" },
+	{ 0 }
+};
+
 static void(*sfun[3]) (void);
 
 static uint8 vpsg1[8];
@@ -54,6 +73,21 @@ static SFORMAT SStateRegs[] =
 	{ 0 }
 };
 
+static void Mapper24_VRC6Sync(void) {
+	uint8 i;
+	setprg16(0x8000, prg[0]);
+	setprg8(0xc000, prg[1]);
+	setprg8(0xe000, ~0);
+	for (i = 0; i < 8; i++)
+		setchr1(i << 10, chr[i]);
+	switch (mirr & 3) {
+	case 0: setmirror(MI_V); break;
+	case 1: setmirror(MI_H); break;
+	case 2: setmirror(MI_0); break;
+	case 3: setmirror(MI_1); break;
+	}
+}
+
 static void VRC6SW(uint32 A, uint8 V) {
 	A &= 0xF003;
 	if (A >= 0x9000 && A <= 0x9002) {
@@ -66,6 +100,70 @@ static void VRC6SW(uint32 A, uint8 V) {
 		vpsg2[A & 3] = V;
 		if (sfun[2]) sfun[2]();
 	}
+}
+
+static void VRC6Write(uint32 A, uint8 V) {
+	if (A >= 0x9000 && A <= 0xB002) {
+		VRC6SW(A, V);
+		return;
+	}
+	switch (A & 0xF003) {
+	case 0x8000: prg[0] = V; Mapper24_VRC6Sync(); break;
+	case 0xB003: mirr = (V >> 2) & 3; Mapper24_VRC6Sync(); break;
+	case 0xC000: prg[1] = V; Mapper24_VRC6Sync(); break;
+	case 0xD000: chr[0] = V; Mapper24_VRC6Sync(); break;
+	case 0xD001: chr[1] = V; Mapper24_VRC6Sync(); break;
+	case 0xD002: chr[2] = V; Mapper24_VRC6Sync(); break;
+	case 0xD003: chr[3] = V; Mapper24_VRC6Sync(); break;
+	case 0xE000: chr[4] = V; Mapper24_VRC6Sync(); break;
+	case 0xE001: chr[5] = V; Mapper24_VRC6Sync(); break;
+	case 0xE002: chr[6] = V; Mapper24_VRC6Sync(); break;
+	case 0xE003: chr[7] = V; Mapper24_VRC6Sync(); break;
+	case 0xF000: IRQLatch = V; X6502_IRQEnd(FCEU_IQEXT); break;
+	case 0xF001:
+		IRQa = V & 2;
+		IRQd = V & 1;
+		if (V & 2)
+			IRQCount = IRQLatch;
+		CycleCount = 0;
+		X6502_IRQEnd(FCEU_IQEXT);
+		break;
+	case 0xF002:
+		IRQa = IRQd;
+		X6502_IRQEnd(FCEU_IQEXT);
+	}
+}
+
+static void VRC6Power(void) {
+	Mapper24_VRC6Sync();
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	SetWriteHandler(0x8000, 0xFFFF, VRC6Write);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+}
+
+static void VRC6IRQHook(int a) {
+	if (IRQa) {
+		CycleCount += a * 3;
+		while (CycleCount >= 341) {
+			CycleCount -= 341;
+			IRQCount++;
+			if (IRQCount == 0x100) {
+				IRQCount = IRQLatch;
+				X6502_IRQBegin(FCEU_IQEXT);
+			}
+		}
+	}
+}
+
+static void VRC6Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
+}
+
+static void VRC6StateRestore(int version) {
+	Mapper24_VRC6Sync();
 }
 
 /* VRC6 Sound */
@@ -209,7 +307,7 @@ static void DoSawVHQ(void) {
 	cvbc[2] = SOUNDTS;
 }
 
-void VRC6Sound(int Count) {
+void Mapper24_VRC6Sound(int Count) {
 	int x;
 
 	DoSQV1();
@@ -219,22 +317,22 @@ void VRC6Sound(int Count) {
 		cvbc[x] = Count;
 }
 
-void VRC6SoundHQ(void) {
+void Mapper24_VRC6SoundHQ(void) {
 	DoSQV1HQ();
 	DoSQV2HQ();
 	DoSawVHQ();
 }
 
-void VRC6SyncHQ(int32 ts) {
+void Mapper24_VRC6SyncHQ(int32 ts) {
 	int x;
 	for (x = 0; x < 3; x++) cvbc[x] = ts;
 }
 
 static void VRC6_ESI(void) {
 	GameExpSound.RChange = VRC6_ESI;
-	GameExpSound.Fill = VRC6Sound;
-	GameExpSound.HiFill = VRC6SoundHQ;
-	GameExpSound.HiSync = VRC6SyncHQ;
+	GameExpSound.Fill = Mapper24_VRC6Sound;
+	GameExpSound.HiFill = Mapper24_VRC6SoundHQ;
+	GameExpSound.HiSync = Mapper24_VRC6SyncHQ;
 
 	phaseacc = 0;
 	memset(cvbc, 0, sizeof(cvbc));
@@ -256,8 +354,11 @@ static void VRC6_ESI(void) {
 
 /* VRC6 Sound */
 
-void NSFVRC6_Init(void) {
+void Mapper24_Init(CartInfo *info) {
+	info->Power = VRC6Power;
+	MapIRQHook = VRC6IRQHook;
 	VRC6_ESI();
-	SetWriteHandler(0x8000, 0xbfff, VRC6SW);
+	GameStateRestore = VRC6StateRestore;
+	AddExState(&StateRegs, ~0, 0, 0);
 	AddExState(&SStateRegs, ~0, 0, 0);
 }

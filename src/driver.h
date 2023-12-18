@@ -166,8 +166,6 @@ int FCEUI_FDSInsert(int oride);
 int FCEUI_FDSEject(void);
 void FCEUI_FDSSelect(void);
 
-int FCEUI_DatachSet(uint8 *rcode);
-
 #ifdef  __cplusplus
 }
 #endif

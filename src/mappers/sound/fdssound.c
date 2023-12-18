@@ -48,6 +48,7 @@ typedef struct {
 } FDSSOUND;
 
 static FDSSOUND fdso;
+static int32 FBC = 0;
 
 #define  SPSG  fdso.SPSG
 #define b19shiftreg60  fdso.b19shiftreg60
@@ -212,8 +213,6 @@ static INLINE int32 FDSDoSound(void) {
 		return (fdso.cwave[b24latch68 >> 19] * k) * 4 / ((SPSG[0x9] & 0x3) + 2);
 	}
 }
-
-static int32 FBC = 0;
 
 static void RenderSound(void) {
 	int32 x;
