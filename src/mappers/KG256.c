@@ -31,7 +31,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void)
+static void KG256Sync(void)
 {
    uint8 mirr;
 	int r = 0;
@@ -61,12 +61,12 @@ static void Sync(void)
 
 static void KG256WriteHi(uint32 A, uint8 V) {
 	regs[2] = V;
-	Sync();
+	KG256Sync();
 }
 
 static void KG256WriteLo(uint32 A, uint8 V) {
 	regs[A & 0x03] = V;
-	Sync();
+	KG256Sync();
 }
 
 static void KG256Power(void) {
@@ -80,12 +80,12 @@ static void KG256Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, KG256WriteLo);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 
-	Sync();
+	KG256Sync();
 
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void KG256StateRestore(int version) {
+	KG256Sync();
 }
 
 static void KG256Reset(void) {
@@ -94,17 +94,17 @@ static void KG256Reset(void) {
 	regs[1] = 0;
 	regs[2] = 0;
 
-	Sync();
+	KG256Sync();
 }
 
 void KG256_Init(CartInfo *info) {
 
-	Sync();
+	KG256Sync();
 
 	info->Power = KG256Power;
 	info->Reset = KG256Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+	GameStateRestore = KG256StateRestore;
 }
 
 
