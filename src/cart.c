@@ -79,6 +79,12 @@ static uint8 geniech[3];
 
 static uint32 genieaddr[3];
 
+static uint8 *GENIEROM = 0;
+
+static readfunc GenieBackup[3];
+
+static int mirrorhard = 0;
+
 static INLINE void setpageptr(int s, uint32 A, uint8 *p, int ram) {
 	uint32 AB = A >> 11;
 	int x;
@@ -95,9 +101,9 @@ static INLINE void setpageptr(int s, uint32 A, uint8 *p, int ram) {
 		}
 }
 
-static uint8 nothing[8192];
 void ResetCartMapping(void) {
 	int x;
+	static uint8 nothing[8192];
 
 	for (x = 0; x < 32; x++) {
 		Page[x] = nothing - x * 2048;
@@ -275,7 +281,6 @@ void setntamem(uint8 * p, int ram, uint32 b) {
 		PPUNTARAM |= 1 << b;
 }
 
-static int mirrorhard = 0;
 void setmirrorw(int a, int b, int c, int d) {
 	FCEUPPU_LineUpdate();
 	vnapage[0] = NTARAM + a * 0x400;
@@ -319,9 +324,59 @@ void SetupCartMirroring(int m, int hard, uint8 *extra) {
 	mirrorhard = hard;
 }
 
-static uint8 *GENIEROM = 0;
+static uint8 GenieFix1(uint32 A) {
+	uint8 r = GenieBackup[0](A);
 
-void FixGenieMap(void);
+	if ((modcon >> 1) & 1)	/* No check */
+		return genieval[0];
+	else if (r == geniech[0])
+		return genieval[0];
+
+	return r;
+}
+
+static uint8 GenieFix2(uint32 A) {
+	uint8 r = GenieBackup[1](A);
+
+	if ((modcon >> 2) & 1)	/* No check */
+		return genieval[1];
+	else if (r == geniech[1])
+		return genieval[1];
+
+	return r;
+}
+
+static uint8 GenieFix3(uint32 A) {
+	uint8 r = GenieBackup[2](A);
+
+	if ((modcon >> 3) & 1)	/* No check */
+		return genieval[2];
+	else if (r == geniech[2])
+		return genieval[2];
+
+	return r;
+}
+
+
+
+static void FixGenieMap(void) {
+	int x;
+
+	geniestage = 2;
+
+	for (x = 0; x < 8; x++)
+		VPage[x] = VPageG[x];
+
+	VPageR = VPage;
+	FlushGenieRW();
+	for (x = 0; x < 3; x++)
+		if ((modcon >> (4 + x)) & 1) {
+			readfunc tmp[3] = { GenieFix1, GenieFix2, GenieFix3 };
+			GenieBackup[x] = GetReadHandler(genieaddr[x]);
+			SetReadHandler(genieaddr[x], genieaddr[x], tmp[x]);
+		}
+}
+
 
 /* Called when a game(file) is opened successfully. */
 void FCEU_OpenGenie(void) {
@@ -425,60 +480,6 @@ static void GenieWrite(uint32 A, uint8 V) {
 		}
 		break;
 	}
-}
-
-static readfunc GenieBackup[3];
-
-static uint8 GenieFix1(uint32 A) {
-	uint8 r = GenieBackup[0](A);
-
-	if ((modcon >> 1) & 1)	/* No check */
-		return genieval[0];
-	else if (r == geniech[0])
-		return genieval[0];
-
-	return r;
-}
-
-static uint8 GenieFix2(uint32 A) {
-	uint8 r = GenieBackup[1](A);
-
-	if ((modcon >> 2) & 1)	/* No check */
-		return genieval[1];
-	else if (r == geniech[1])
-		return genieval[1];
-
-	return r;
-}
-
-static uint8 GenieFix3(uint32 A) {
-	uint8 r = GenieBackup[2](A);
-
-	if ((modcon >> 3) & 1)	/* No check */
-		return genieval[2];
-	else if (r == geniech[2])
-		return genieval[2];
-
-	return r;
-}
-
-
-void FixGenieMap(void) {
-	int x;
-
-	geniestage = 2;
-
-	for (x = 0; x < 8; x++)
-		VPage[x] = VPageG[x];
-
-	VPageR = VPage;
-	FlushGenieRW();
-	for (x = 0; x < 3; x++)
-		if ((modcon >> (4 + x)) & 1) {
-			readfunc tmp[3] = { GenieFix1, GenieFix2, GenieFix3 };
-			GenieBackup[x] = GetReadHandler(genieaddr[x]);
-			SetReadHandler(genieaddr[x], genieaddr[x], tmp[x]);
-		}
 }
 
 void FCEU_GeniePower(void) {
