@@ -29,7 +29,7 @@
 #include "x6502.h"
 #include "fceu.h"
 #include "fds.h"
-#include "fds_apu.h"
+#include "mappers/sound/fdssound.h"
 #include "sound.h"
 #include "general.h"
 #include "state.h"

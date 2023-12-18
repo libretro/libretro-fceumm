@@ -1,6 +1,6 @@
 #define IF12_reg regByte
 
-static void IF12_sync () {
+static void IF12_sync(void) {
 	int AND =prgAND >>1;
 	int OR  =prgOR  >>1;
 	setprg16(0x8000, IF12_reg[1] &AND | OR &~AND);

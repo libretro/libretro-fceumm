@@ -1,6 +1,6 @@
 #define MMC24_reg regByte
 
-static void MMC2_sync() {
+static void MMC2_sync(void) {
 	setprg8(0x8000, MMC24_reg[0] &prgAND | prgOR &~prgAND);
 	setprg8(0xA000,         0xFD &prgAND | prgOR &~prgAND);
 	setprg8(0xC000,         0xFE &prgAND | prgOR &~prgAND);
@@ -10,7 +10,7 @@ static void MMC2_sync() {
 	setmirror(MMC24_reg[5] &1? MI_H: MI_V);
 }
 
-static void MMC4_sync() {
+static void MMC4_sync(void) {
 	int AND =prgAND >>1;
 	int OR  =prgOR  >>1;
 	setprg16(0x8000, MMC24_reg[0] &AND | OR &~AND);

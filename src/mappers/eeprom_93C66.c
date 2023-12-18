@@ -25,7 +25,7 @@ uint8  eeprom_93C66_output;
 #define STATE_DATA      20
 #define STATE_FINISHED  99
 
-void eeprom_93C66_init ()
+void eeprom_93C66_init(void)
 {
    eeprom_93C66_address      =0;
    eeprom_93C66_state        =STATE_STANDBY;
@@ -33,12 +33,12 @@ void eeprom_93C66_init ()
    eeprom_93C66_writeEnabled =0;
 }
 
-uint8 eeprom_93C66_read ()
+uint8 eeprom_93C66_read(void)
 {
    return eeprom_93C66_output;
 }
 
-void eeprom_93C66_write (uint8 CS, uint8 CLK, uint8 DAT)
+void eeprom_93C66_write(uint8 CS, uint8 CLK, uint8 DAT)
 {
    if (!CS && eeprom_93C66_state <= STATE_ADDRESS)
       eeprom_93C66_state =STATE_STANDBY;

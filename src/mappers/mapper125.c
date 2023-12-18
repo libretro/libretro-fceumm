@@ -17,75 +17,47 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * FDS Conversion - Nazo no Murasamejō
+ * FDS Conversion - Monty no Doki Doki Daisassō, Monty on the Run, cartridge code LH32
  *
  */
 
 #include "mapinc.h"
-#include "../fds_apu.h"
+#include "sound/fdssound.h"
 
-static uint8 reg, IRQa;
-static int32 IRQCount;
+static uint8 reg;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
 	{ &reg, 1, "REG" },
-	{ &IRQa, 1, "IRQA" },
-	{ &IRQCount, 4, "IRQC" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setchr8(0);
 	setprg8(0x6000, reg);
-	setprg8(0x8000, 0xc);
-	setprg4(0xa000, (0xd << 1));
-	setprg2(0xb000, (0xd << 2) + 2);
-	setprg2r(0x10, 0xb800, 4);
-	setprg2r(0x10, 0xc000, 5);
-	setprg2r(0x10, 0xc800, 6);
-	setprg2r(0x10, 0xd000, 7);
-	setprg2(0xd800, (0xe << 2) + 3);
-	setprg8(0xe000, 0xf);
+	setprg8(0x8000, ~3);
+	setprg8(0xa000, ~2);
+	setprg8r(0x10, 0xc000, 0);
+	setprg8(0xe000, ~0);
+	setchr8(0);
 }
 
-static void LH53RamWrite(uint32 A, uint8 V) {
-	WRAM[(A - 0xB800) & 0x1FFF] = V;
-}
-
-static void LH53Write(uint32 A, uint8 V) {
+static void LH32Write(uint32 A, uint8 V) {
 	reg = V;
 	Sync();
 }
 
-static void LH53IRQaWrite(uint32 A, uint8 V) {
-	IRQa = V & 2;
-	IRQCount = 0;
-	if (!IRQa)
-		X6502_IRQEnd(FCEU_IQEXT);
-}
-
-static void LH53IRQ(int a) {
-	if (IRQa) {
-		IRQCount += a;
-		if (IRQCount > 7560)
-			X6502_IRQBegin(FCEU_IQEXT);
-	}
-}
-
-static void LH53Power(void) {
+static void LH32Power(void) {
 	FDSSoundPower();
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0xB800, 0xD7FF, LH53RamWrite);
-	SetWriteHandler(0xE000, 0xEFFF, LH53IRQaWrite);
-	SetWriteHandler(0xF000, 0xFFFF, LH53Write);
+	SetWriteHandler(0xC000, 0xDFFF, CartBW);
+	SetWriteHandler(0x6000, 0x6000, LH32Write);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void LH53Close(void) {
+static void LH32Close(void) {
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;
@@ -95,16 +67,15 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-void LH53_Init(CartInfo *info) {
-	info->Power = LH53Power;
-	info->Close = LH53Close;
-	MapIRQHook = LH53IRQ;
-	GameStateRestore = StateRestore;
+void LH32_Init(CartInfo *info) {
+	info->Power = LH32Power;
+	info->Close = LH32Close;
 
 	WRAMSIZE = 8192;
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
+	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

@@ -2,7 +2,7 @@
 #define FME7_index regByte[15]
 #define FME7_counter regWord[0]
 
-static void FME7_sync() {
+static void FME7_sync(void) {
 	int AND =mapperFlags &8? 0xFF: 0x7F;
 	switch(FME7_reg[8] &0xC0) {
 	case 0x00: case 0x80:

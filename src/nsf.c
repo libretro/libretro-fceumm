@@ -33,7 +33,7 @@
 #include "fceu-memory.h"
 #include "file.h"
 #include "fds.h"
-#include "fds_apu.h"
+#include "mappers/sound/fdssound.h"
 #include "cart.h"
 #include "input.h"
 

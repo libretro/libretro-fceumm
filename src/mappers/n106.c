@@ -67,7 +67,7 @@ static void SyncPRG(void) {
 	setprg8(0xe000, 0x3F);
 }
 
-static void SyncMirror() {
+static void SyncMirror(void) {
 	switch(gorko) {
 	case 0: setmirror(MI_0); break;
 	case 1: setmirror(MI_V); break;

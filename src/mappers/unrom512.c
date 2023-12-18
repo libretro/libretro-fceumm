@@ -36,7 +36,7 @@
 
 #include "mapinc.h"
 
-/* Workaround for libretro api compatibility */
+/* Workaround for Libretro API compatibility */
 #define ROM_size_max                32
 #define flashdata_size          (ROM_size_max * 0x4000)
 #define flash_write_count_size  (ROM_size_max * 4 * sizeof(uint32))

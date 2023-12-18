@@ -7,7 +7,7 @@
 #define MMC3_irq       regByte[13]
 #define MMC3_lastReg   regByte[14]
 
-static void MMC3_sync () {
+static void MMC3_sync(void) {
 	int chrAND =mapper &0x01? 0xFF: 0x7F;
 	int OR =prgOR | (misc2 &1? 12: 0);
 	setprg8(0x8000 ^(MMC3_index <<8 &0x4000), MMC3_reg[6] &prgAND | OR &~prgAND);

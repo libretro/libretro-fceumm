@@ -5,7 +5,9 @@ INCFLAGS := \
 	-I$(LIBRETRO_COMM_DIR)/include \
 	-I$(CORE_DIR) \
 	-I$(CORE_DIR)/input \
-	-I$(CORE_DIR)/boards
+	-I$(CORE_DIR)/mappers \
+	-I$(CORE_DIR)/mappers/hw \
+	-I$(CORE_DIR)/mappers/sound
 
 ifneq (,$(findstring msvc2003,$(platform)))
 	INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
@@ -18,7 +20,9 @@ COREDEFINES = \
 	-DFRONTEND_SUPPORTS_RGB565
 
 FCEU_SRC_DIRS := \
-	$(CORE_DIR)/boards \
+	$(CORE_DIR)/mappers \
+	$(CORE_DIR)/mappers/hw \
+	$(CORE_DIR)/mappers/sound \
 	$(CORE_DIR)/input
 
 SOURCES_C := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
@@ -40,7 +44,6 @@ SOURCES_C += \
 	$(CORE_DIR)/fceu-memory.c \
 	$(CORE_DIR)/fceu.c \
 	$(CORE_DIR)/fds.c \
-	$(CORE_DIR)/fds_apu.c \
 	$(CORE_DIR)/file.c \
 	$(CORE_DIR)/filter.c \
 	$(CORE_DIR)/general.c \

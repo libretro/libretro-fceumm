@@ -20,7 +20,8 @@
 
 #include "mapinc.h"
 
-static uint16 latche, latcheinit;
+uint16 latche;
+static uint16 latcheinit;
 static uint16 addrreg0, addrreg1;
 static uint8 dipswitch;
 static void (*WSync)(void);
@@ -62,7 +63,7 @@ static void StateRestore(int version) {
 	WSync();
 }
 
-static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram) {
+void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram) {
 	latcheinit = linit;
 	addrreg0 = adr0;
 	addrreg1 = adr1;
@@ -137,22 +138,6 @@ void BMCD1038_Init(CartInfo *info) {
 	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
-/*------------------ Map 058 ---------------------------*/
-
-static void M58Sync(void) {
-	if (latche & 0x40) {
-		setprg16(0x8000, latche & 7);
-		setprg16(0xC000, latche & 7);
-	} else
-		setprg32(0x8000, (latche >> 1) & 3);
-	setchr8((latche >> 3) & 7);
-	setmirror(((latche & 0x80) >> 7) ^ 1);
-}
-
-void Mapper58_Init(CartInfo *info) {
-	Latch_Init(info, M58Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
-
 /*------------------ Map 059 ---------------------------*/
 /* One more forgotten mapper */
 /* Formerly, an incorrect implementation of BMC-T3H53 */
@@ -171,21 +156,6 @@ static uint8 M59Read(uint32 A) {
 void Mapper59_Init(CartInfo *info) {
 	Latch_Init(info, M59Sync, M59Read, 0x0000, 0x8000, 0xFFFF, 0);
 }*/
-
-/*------------------ Map 061 ---------------------------*/
-static void M61Sync(void) {
-	if (((latche & 0x10) << 1) ^ (latche & 0x20)) {
-		setprg16(0x8000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
-		setprg16(0xC000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
-	} else
-		setprg32(0x8000, latche & 0xF);
-	setchr8(0);
-	setmirror(((latche >> 7) & 1) ^ 1);
-}
-
-void Mapper61_Init(CartInfo *info) {
-	Latch_Init(info, M61Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
 
 /*------------------ Map 063 ---------------------------*/
 /* added 2019-5-23
@@ -315,30 +285,6 @@ static void M204Sync(void) {
 
 void Mapper204_Init(CartInfo *info) {
 	Latch_Init(info, M204Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
-}
-
-/*------------------ Map 212 ---------------------------*/
-
-static uint8 M212Read(uint32 A) {
-	uint8 ret = CartBROB(A);
-	if ((A & 0xE010) == 0x6000)
-		ret |= 0x80;
-	return ret;
-}
-
-static void M212Sync(void) {
-	if (latche & 0x4000) {
-		setprg32(0x8000, (latche >> 1) & 3);
-	} else {
-		setprg16(0x8000, latche & 7);
-		setprg16(0xC000, latche & 7);
-	}
-	setchr8(latche & 7);
-	setmirror(((latche >> 3) & 1) ^ 1);
-}
-
-void Mapper212_Init(CartInfo *info) {
-	Latch_Init(info, M212Sync, M212Read, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
 /*------------------ Map 213 ---------------------------*/
@@ -822,22 +768,4 @@ static void M461Sync(void) {
 
 void Mapper461_Init(CartInfo *info) {
 	Latch_Init(info, M461Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
-}
-
-/*------------------ Map 464 ---------------------------*/
-static void M464Sync(void) {
-	int p =latche >>7;
-	int c =latche &0x1F;
-	if (latche &0x40) {
-		setprg32(0x8000, p >> 1);
-	} else {
-		setprg16(0x8000, p);
-		setprg16(0xC000, p);
-	}
-	setchr8(c);
-	setmirror(latche &0x20? MI_H: MI_V);
-}
-
-void Mapper464_Init(CartInfo *info) {
-	Latch_Init(info, M464Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
