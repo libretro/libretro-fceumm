@@ -34,7 +34,10 @@
 #include "mapinc.h"
 
 static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+
+#ifndef WRAM_SIZE
+#define WRAM_SIZE 8192
+#endif
 
 char *GetKeyboard(void); /* forward declaration */
 
@@ -83,7 +86,7 @@ static void TransformerPower(void) {
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	FCEU_CheatAddRAM(WRAM_SIZE >> 10, 0x6000, WRAM);
 
 	MapIRQHook = TransformerIRQHook;
 }
@@ -97,13 +100,11 @@ static void TransformerClose(void) {
 void Transformer_Init(CartInfo *info) {
 	info->Power = TransformerPower;
 	info->Close = TransformerClose;
-
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAM_SIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
+		info->SaveGameLen[0] = WRAM_SIZE;
 	}
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	AddExState(WRAM, WRAM_SIZE, 0, "WRAM");
 }

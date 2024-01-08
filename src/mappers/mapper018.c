@@ -25,7 +25,9 @@ static uint8 IRQa, mirr;
 static int32 IRQCount, IRQLatch;
 static uint8 *WRAM = NULL;
 
-#define M18_WRAMSIZE 8192
+#ifndef WRAM_SIZE
+#define WRAM_SIZE 8192
+#endif
 
 static SFORMAT StateRegs[] =
 {
@@ -90,7 +92,7 @@ static void M18Power(void) {
 	SetWriteHandler(0x8000, 0x9FFF, M18WritePrg);
 	SetWriteHandler(0xA000, 0xDFFF, M18WriteChr);
 	SetWriteHandler(0xE000, 0xFFFF, M18WriteIRQ);
-	FCEU_CheatAddRAM(M18_WRAMSIZE >> 10, 0x6000, WRAM);
+	FCEU_CheatAddRAM(WRAM_SIZE >> 10, 0x6000, WRAM);
 }
 
 static void M18IRQHook(int a) {
@@ -120,12 +122,12 @@ void Mapper18_Init(CartInfo *info) {
 	MapIRQHook = M18IRQHook;
 	GameStateRestore = M18StateRestore;
 
-	WRAM = (uint8*)FCEU_gmalloc(M18_WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, M18_WRAMSIZE, 1);
-	AddExState(WRAM, M18_WRAMSIZE, 0, "WRAM");
+	WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAM_SIZE, 1);
+	AddExState(WRAM, WRAM_SIZE, 0, "WRAM");
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = M18_WRAMSIZE;
+		info->SaveGameLen[0] = WRAM_SIZE;
 	}
 
 	AddExState(&StateRegs, ~0, 0, 0);

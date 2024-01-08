@@ -35,7 +35,10 @@ static uint8 reg[8], creg[8], mirr, cmd, IRQa = 0;
 static int32 IRQCount, IRQLatch;
 static uint8 KS7032;
 static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+
+#ifndef WRAM_SIZE
+#define WRAM_SIZE 8192
+#endif
 
 static SFORMAT StateRegsKS7032[] =
 {
@@ -133,7 +136,7 @@ static void UNLKS7032Power(void) {
 	SetWriteHandler(0x4020, 0xFFFF, UNLKS7032Write);
 	if (!KS7032) {
 		SetWriteHandler(0x6000, 0x7FFF, CartBW);
-		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+		FCEU_CheatAddRAM(WRAM_SIZE >> 10, 0x6000, WRAM);
 	}
 }
 
@@ -165,12 +168,11 @@ void UNLKS202_Init(CartInfo *info) {
 	AddExState(&StateRegsKS7032, ~0, 0, 0);
 	AddExState(&StateRegsKS202, ~0, 0, 0);
 
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAM_SIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
+		info->SaveGameLen[0] = WRAM_SIZE;
 	}
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	AddExState(WRAM, WRAM_SIZE, 0, "WRAM");
 }

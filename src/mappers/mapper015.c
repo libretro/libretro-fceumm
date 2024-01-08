@@ -25,7 +25,9 @@ static uint16 latchea;
 static uint8 latched;
 static uint8 *WRAM = NULL;
 
-#define M15_WRAMSIZE 8192
+#ifndef WRAM_SIZE
+#define WRAM_SIZE 8192
+#endif
 
 static SFORMAT StateRegs[] =
 {
@@ -94,7 +96,7 @@ static void M15Power(void) {
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x8000, 0xFFFF, M15Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	FCEU_CheatAddRAM(M15_WRAMSIZE >> 10, 0x6000, WRAM);
+	FCEU_CheatAddRAM(WRAM_SIZE >> 10, 0x6000, WRAM);
 	M15Sync();
 }
 
@@ -115,13 +117,13 @@ void Mapper15_Init(CartInfo *info) {
 	info->Reset = M15Reset;
 	info->Close = M15Close;
 	GameStateRestore = M15StateRestore;
-	WRAM = (uint8*)FCEU_gmalloc(M15_WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, M15_WRAMSIZE, 1);
+	WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAM_SIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = M15_WRAMSIZE;
+		info->SaveGameLen[0] = WRAM_SIZE;
 	}
-	AddExState(WRAM, M15_WRAMSIZE, 0, "WRAM");
+	AddExState(WRAM, WRAM_SIZE, 0, "WRAM");
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 

@@ -24,7 +24,9 @@ static uint8 preg[2], creg[8], mirr;
 
 static uint8 *WRAM = NULL;
 
-#define M32_WRAMSIZE 8192
+#ifndef WRAM_SIZE
+#define WRAM_SIZE 8192
+#endif
 
 static SFORMAT StateRegs[] =
 {
@@ -76,7 +78,7 @@ static void M32Power(void) {
 	SetWriteHandler(0x9000, 0x9FFF, M32Write1);
 	SetWriteHandler(0xA000, 0xAFFF, M32Write2);
 	SetWriteHandler(0xB000, 0xBFFF, M32Write3);
-        FCEU_CheatAddRAM(M32_WRAMSIZE >> 10, 0x6000, WRAM);
+        FCEU_CheatAddRAM(WRAM_SIZE >> 10, 0x6000, WRAM);
 }
 
 static void M32Close(void) {
@@ -94,9 +96,9 @@ void Mapper32_Init(CartInfo *info) {
 	info->Close = M32Close;
 	GameStateRestore = M32StateRestore;
 
-	WRAM = (uint8*)FCEU_gmalloc(M32_WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, M32_WRAMSIZE, 1);
-	AddExState(WRAM, M32_WRAMSIZE, 0, "WRAM");
+	WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAM_SIZE, 1);
+	AddExState(WRAM, WRAM_SIZE, 0, "WRAM");
 
 	AddExState(&StateRegs, ~0, 0, 0);
 }

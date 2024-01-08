@@ -22,7 +22,10 @@
 
 static uint8 regs[8];
 static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+
+#ifndef WRAM_SIZE
+#define WRAM_SIZE 16384
+#endif
 
 static SFORMAT StateRegs[] =
 {
@@ -70,7 +73,7 @@ static void SSSNROMPower(void) {
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	FCEU_CheatAddRAM(WRAM_SIZE >> 10, 0x6000, WRAM);
 }
 
 static void SSSNROMReset(void) {
@@ -93,9 +96,8 @@ void SSSNROM_Init(CartInfo *info) {
 	GameHBIRQHook = SSSNROMIRQHook;
 	GameStateRestore = StateRestore;
 
-	WRAMSIZE = 16384;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAM_SIZE, 1);
+	AddExState(WRAM, WRAM_SIZE, 0, "WRAM");
 	AddExState(&StateRegs, ~0, 0, 0);
 }

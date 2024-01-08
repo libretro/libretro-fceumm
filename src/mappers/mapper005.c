@@ -36,20 +36,17 @@ static INLINE void MMC5SPRVROM_BANK1(uint32 A, uint32 V) {
 }
 
 static INLINE void MMC5BGVROM_BANK1(uint32 A, uint32 V) {
-	if (CHRptr[0]) {
+	if (CHRptr[0])
 		V &= CHRmask1[0]; MMC5BGVPage[(A) >> 10] = &CHRptr[0][(V) << 10] - (A);
-	}
 }
 
 static INLINE void MMC5SPRVROM_BANK2(uint32 A, uint32 V) {
-	if (CHRptr[0]) {
+	if (CHRptr[0])
 		V &= CHRmask2[0]; MMC5SPRVPage[(A) >> 10] = MMC5SPRVPage[((A) >> 10) + 1] = &CHRptr[0][(V) << 11] - (A);
-	}
 }
 static INLINE void MMC5BGVROM_BANK2(uint32 A, uint32 V) {
-	if (CHRptr[0]) {
+	if (CHRptr[0])
 		V &= CHRmask2[0]; MMC5BGVPage[(A) >> 10] = MMC5BGVPage[((A) >> 10) + 1] = &CHRptr[0][(V) << 11] - (A);
-	}
 }
 
 static INLINE void MMC5SPRVROM_BANK4(uint32 A, uint32 V) {
