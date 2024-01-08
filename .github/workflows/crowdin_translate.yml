@@ -30,13 +30,13 @@ jobs:
         env:
           CROWDIN_API_KEY: ${{ secrets.CROWDIN_API_KEY }}
         run: |
-          python3 intl/download_workflow.py $CROWDIN_API_KEY "libretro-fceumm" "src/drivers/libretro/libretro_core_options_intl.h"
+          python3 intl/download_workflow.py $CROWDIN_API_KEY "libretro-fceumm" "src/libretro/libretro_core_options_intl.h"
 
       - name: Commit files
         run: |
           git config --local user.email "github-actions@github.com"
           git config --local user.name "github-actions[bot]"
-          git add intl/*_workflow.py "src/drivers/libretro/libretro_core_options_intl.h"
+          git add intl/*_workflow.py "src/libretro/libretro_core_options_intl.h"
           git commit -m "Fetch translations & Recreate libretro_core_options_intl.h"
 
       - name: GitHub Push
