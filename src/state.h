@@ -23,6 +23,13 @@
 
 #include "fceu-memory.h"
 
+/* last known fceu-mm version */
+#define FCEU_VERSION_MAJOR 0
+#define FCEU_VERSION_MINOR 98
+#define FCEU_VERSION_PATCH 13
+
+#define FCEU_VERSION_NUMERIC ((FCEU_VERSION_MAJOR * 10000) + (FCEU_VERSION_MINOR * 100) + (FCEU_VERSION_PATCH))
+
 void FCEUSS_Load_Mem(void);
 void FCEUSS_Save_Mem(void);
 

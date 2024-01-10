@@ -1,13 +1,15 @@
-LIBRETRO_COMM_DIR := $(CORE_DIR)/libretro/libretro-common
+SOURCE_DIR := $(CORE_DIR)
+LIBRETRO_DIR := $(SOURCE_DIR)/libretro
+LIBRETRO_COMM_DIR := $(LIBRETRO_DIR)/libretro-common
 
 INCFLAGS := \
-	-I$(CORE_DIR)/libretro \
+	-I$(LIBRETRO_DIR) \
 	-I$(LIBRETRO_COMM_DIR)/include \
-	-I$(CORE_DIR) \
-	-I$(CORE_DIR)/input \
-	-I$(CORE_DIR)/mappers \
-	-I$(CORE_DIR)/mappers/hw \
-	-I$(CORE_DIR)/mappers/sound
+	-I$(SOURCE_DIR) \
+	-I$(SOURCE_DIR)/input \
+	-I$(SOURCE_DIR)/mappers \
+	-I$(SOURCE_DIR)/mappers/hw \
+	-I$(SOURCE_DIR)/mappers/sound
 
 ifneq (,$(findstring msvc2003,$(platform)))
 	INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
@@ -16,49 +18,48 @@ endif
 COREDEFINES = \
 	-D__LIBRETRO__ \
 	-DPATH_MAX=1024 \
-	-DFCEU_VERSION_NUMERIC=9813 \
 	-DFRONTEND_SUPPORTS_RGB565
 
 FCEU_SRC_DIRS := \
-	$(CORE_DIR)/mappers \
-	$(CORE_DIR)/mappers/hw \
-	$(CORE_DIR)/mappers/sound \
-	$(CORE_DIR)/input
+	$(SOURCE_DIR)/mappers \
+	$(SOURCE_DIR)/mappers/hw \
+	$(SOURCE_DIR)/mappers/sound \
+	$(SOURCE_DIR)/input
 
 SOURCES_C := $(foreach dir,$(FCEU_SRC_DIRS),$(wildcard $(dir)/*.c))
 
 ifeq ($(HAVE_NTSC),1)
 	COREDEFINES += \
 		-DHAVE_NTSC_FILTER \
-		-I$(CORE_DIR)/ntsc
-	SOURCES_C += $(CORE_DIR)/ntsc/nes_ntsc.c
+		-I$(SOURCE_DIR)/ntsc
+	SOURCES_C += $(SOURCE_DIR)/ntsc/nes_ntsc.c
 endif
 
 SOURCES_C += \
-	$(CORE_DIR)/libretro/libretro.c \
-	$(CORE_DIR)/libretro/libretro_dipswitch.c \
-	$(CORE_DIR)/cart.c \
-	$(CORE_DIR)/cheat.c \
-	$(CORE_DIR)/crc32.c \
-	$(CORE_DIR)/fceu-endian.c \
-	$(CORE_DIR)/fceu-memory.c \
-	$(CORE_DIR)/fceu.c \
-	$(CORE_DIR)/fds.c \
-	$(CORE_DIR)/file.c \
-	$(CORE_DIR)/filter.c \
-	$(CORE_DIR)/general.c \
-	$(CORE_DIR)/input.c \
-	$(CORE_DIR)/md5.c \
-	$(CORE_DIR)/nsf.c \
-	$(CORE_DIR)/palette.c \
-	$(CORE_DIR)/ppu.c \
-	$(CORE_DIR)/sound.c \
-	$(CORE_DIR)/state.c \
-	$(CORE_DIR)/video.c \
-	$(CORE_DIR)/vsuni.c \
-	$(CORE_DIR)/ines.c \
-	$(CORE_DIR)/unif.c \
-	$(CORE_DIR)/x6502.c
+	$(LIBRETRO_DIR)/libretro.c \
+	$(LIBRETRO_DIR)/libretro_dipswitch.c \
+	$(SOURCE_DIR)/cart.c \
+	$(SOURCE_DIR)/cheat.c \
+	$(SOURCE_DIR)/crc32.c \
+	$(SOURCE_DIR)/fceu-endian.c \
+	$(SOURCE_DIR)/fceu-memory.c \
+	$(SOURCE_DIR)/fceu.c \
+	$(SOURCE_DIR)/fds.c \
+	$(SOURCE_DIR)/file.c \
+	$(SOURCE_DIR)/filter.c \
+	$(SOURCE_DIR)/general.c \
+	$(SOURCE_DIR)/input.c \
+	$(SOURCE_DIR)/md5.c \
+	$(SOURCE_DIR)/nsf.c \
+	$(SOURCE_DIR)/palette.c \
+	$(SOURCE_DIR)/ppu.c \
+	$(SOURCE_DIR)/sound.c \
+	$(SOURCE_DIR)/state.c \
+	$(SOURCE_DIR)/video.c \
+	$(SOURCE_DIR)/vsuni.c \
+	$(SOURCE_DIR)/ines.c \
+	$(SOURCE_DIR)/unif.c \
+	$(SOURCE_DIR)/x6502.c
 
 ifneq ($(STATIC_LINKING), 1)
 	SOURCES_C += \
