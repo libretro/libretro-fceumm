@@ -65,21 +65,13 @@ static writefunc OldWritePPU[2];
 uint8 vsdip = 0;
 uint8 coinon = 0;
 
-void FCEUI_VSUniToggleDIPView(void) {
-	DIPS = !DIPS;
-}
-
-void FCEU_VSUniToggleDIP(int w) {
-	vsdip ^= 1 << w;
-}
+void FCEU_VSUniToggleDIP(int w) { vsdip ^= 1 << w; }
+uint8 FCEUI_VSUniGetDIPs(void) {return(vsdip);}
+void FCEU_VSUniCoin(void) { coinon = 6; }
 
 void FCEUI_VSUniSetDIP(int w, int state) {
 	if (((vsdip >> w) & 1) != state)
-		FCEUI_VSUniToggleDIP(w);
-}
-
-uint8 FCEUI_VSUniGetDIPs(void) {
-	return(vsdip);
+		FCEU_DoSimpleCommand(FCEUNPCMD_VSUNIDIP0 + w);
 }
 
 static uint8 secdata[2][32] = {
@@ -99,10 +91,6 @@ static uint8 VSSecRead(uint32 A) {
 	case 0x5e01: return(secptr[(VSindex++) & 0x1F]);
 	}
 	return(0x00);
-}
-
-void FCEU_VSUniCoin(void) {
-	coinon = 6;
 }
 
 static uint8 A2002_Gumshoe(uint32 A) {
@@ -166,9 +154,8 @@ void FCEU_VSUniPower(void) {
 		OldWritePPU[1] = GetWriteHandler(0x2001);
 		SetWriteHandler(0x2000, 0x2001, B2000_2001_2C05);
 	}
-	if (curmd5 == 0x2d396247cf58f9faLL) {	/* Super Xevious */
+	if (curmd5 == 0x2d396247cf58f9faLL) /* Super Xevious */
 		SetReadHandler(0x5400, 0x57FF, XevRead);
-	}
 }
 
 /* Games that will probably not be supported ever(or for a long time), since they require
@@ -312,15 +299,13 @@ void FCEU_VSUniCheck(uint64 md5partial, int *MapperNo, int *Mirroring) {
 				secptr = secdata[1];
 
 			vsdip = 0x0;
-			if (vs->ioption & IOPTION_PREDIP) {
+			if (vs->ioption & IOPTION_PREDIP)
 				vsdip = vs->predip;
-			}
 			if (vs->ioption & IOPTION_GUN) {
 				GameInfo->input[0] = SI_ZAPPER;
 				GameInfo->input[1] = SI_NONE;
-			} else {
+			} else
 				GameInfo->input[0] = GameInfo->input[1] = SI_GAMEPAD;
-			}
 			curvs = vs;
 			return;
 		}

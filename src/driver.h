@@ -152,8 +152,6 @@ void FCEUI_NSFSetVis(int mode);
 int FCEUI_NSFChange(int amount);
 int FCEUI_NSFGetInfo(uint8 *name, uint8 *artist, uint8 *copyright, int maxlen);
 
-void FCEUI_VSUniToggleDIPView(void);
-void FCEUI_VSUniToggleDIP(int w);
 uint8 FCEUI_VSUniGetDIPs(void);
 void FCEUI_VSUniSetDIP(int w, int state);
 
