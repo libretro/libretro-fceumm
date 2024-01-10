@@ -5,9 +5,8 @@ uint32 vadr;
 #ifndef PPUT_MMC5SP
 	uint8 zz;
 #else
-	uint8 xs, ys;
-	xs = X1;
-	ys = ((scanline >> 3) + MMC5HackSPScroll) & 0x1F;
+	uint8 xs = X1;
+	uint8 ys = ((scanline >> 3) + MMC5HackSPScroll) & 0x1F;
 	if (ys >= 0x1E) ys -= 0x1E;
 #endif
 

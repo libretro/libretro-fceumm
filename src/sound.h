@@ -58,7 +58,6 @@ void SetNESSoundMap(void);
 
 void FCEUSND_Power(void);
 void FCEUSND_Reset(void);
-void FCEUSND_SaveState(void);
 void FCEUSND_LoadState(int version);
 
 void FCEU_SoundCPUHook(int);
