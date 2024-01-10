@@ -98,11 +98,6 @@ void FCEU_PrintError(char *format, ...);
 void FCEU_printf(char *format, ...);
 
 void SetNESDeemph(uint8 d, int force);
-void DrawTextTrans(uint8 *dest, uint32 width, uint8 *textmsg, uint8 fgcolor);
-void FCEU_PutImage(void);
-#ifdef FRAMESKIP
-void FCEU_PutImageDummy(void);
-#endif
 
 extern uint8 pale;
 extern uint8 vsdip;

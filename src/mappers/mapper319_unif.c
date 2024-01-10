@@ -21,7 +21,7 @@
 #include "mapinc.h"
 
 /* This source code file only applies to Sanchez' original UNIF file with the incorrect bank order.
-   The correctly-specified mapper, used for all NES 2.0 ROM files, is implemented in 319.c. */
+   The correctly-specified mapper, used for all NES 2.0 ROM files, is implemented in mapper319.c. */
 
 static uint8 regs[2];
 

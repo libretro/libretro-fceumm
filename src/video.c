@@ -65,25 +65,6 @@ int FCEU_InitVirtualVideo(void)
    return 1;
 }
 
-#include "drawing.h"
-
-void FCEU_PutImage(void)
-{
-	if (GameInfo->type == GIT_NSF)
-		DrawNSF(XBuf);
-   else
-   {
-		if (GameInfo->type == GIT_VSUNI)
-			FCEU_VSUniDraw(XBuf);
-	}
-	if (show_crosshair)
-		FCEU_DrawInput(XBuf);
-}
-
-void FCEU_PutImageDummy(void)
-{
-}
-
 void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...)
 {
    static char msg[512] = {0};

@@ -37,6 +37,7 @@
 #include        "state.h"
 #include        "video.h"
 #include        "input.h"
+#include        "vsuni.h"
 
 #define VBlankON        (PPU[0] & 0x80)		/* Generate VBlank NMI */
 #define Sprite16        (PPU[0] & 0x20)		/* Sprites 8x16/8x8 */
@@ -1074,6 +1075,22 @@ void FCEUPPU_Power(void) {
 	BWrite[0x4014] = B4014;
 }
 
+#ifdef FRAMESKIP
+static void FCEU_PutImageDummy(void) { }
+#endif
+
+static void FCEU_PutImage(void)
+{
+	if (GameInfo->type == GIT_NSF)
+		DrawNSF(XBuf);
+   else
+   {
+		if (GameInfo->type == GIT_VSUNI)
+			FCEU_VSUniDraw(XBuf);
+	}
+	if (show_crosshair)
+		FCEU_DrawInput(XBuf);
+}
 
 int FCEUPPU_Loop(int skip) {
 	/* Needed for Knight Rider, possibly others. */
@@ -1198,12 +1215,12 @@ int FCEUPPU_Loop(int skip) {
 		}
 	}
 
-	#ifdef FRAMESKIP
+#ifdef FRAMESKIP
 	if (skip) {
 		FCEU_PutImageDummy();
 		return(0);
 	} else
-	#endif
+#endif
 	{
 		FCEU_PutImage();
 		return(1);

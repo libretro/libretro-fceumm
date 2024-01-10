@@ -31,6 +31,16 @@
 #define IOPTION_SWAPDIRAB   0x02
 #define IOPTION_PREDIP      0x10
 
+#define RP2C04_0001     1
+#define RP2C04_0002     2
+#define RP2C04_0003     3
+#define RP2C04_0004     4
+#define RCP2C03B        5
+#define RC2C05_01       6
+#define RC2C05_02       7
+#define RC2C05_03       8
+#define RC2C05_04       9
+
 typedef struct {
 	char *name;
 	int gameid;
@@ -42,10 +52,18 @@ typedef struct {
 	int predip;
 } VSUNIENTRY;
 
-VSUNIENTRY *curvs;
+static VSUNIENTRY *curvs;
 
 static uint8 DIPS = 0;
+static uint8 *secptr;
+static uint8 VSindex;
+static int curppu;
+static int64 curmd5;
+static readfunc OldReadPPU;
+static writefunc OldWritePPU[2];
+
 uint8 vsdip = 0;
+uint8 coinon = 0;
 
 void FCEUI_VSUniToggleDIPView(void) {
 	DIPS = !DIPS;
@@ -75,10 +93,6 @@ static uint8 secdata[2][32] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 	}
 };
 
-static uint8 *secptr;
-
-static uint8 VSindex;
-
 static uint8 VSSecRead(uint32 A) {
 	switch (A) {
 	case 0x5e00: VSindex = 0; return X.DB;
@@ -86,27 +100,10 @@ static uint8 VSSecRead(uint32 A) {
 	}
 	return(0x00);
 }
-uint8 coinon = 0;
 
 void FCEU_VSUniCoin(void) {
 	coinon = 6;
 }
-
-static int curppu;
-static int64 curmd5;
-
-#define RP2C04_0001     1
-#define RP2C04_0002     2
-#define RP2C04_0003     3
-#define RP2C04_0004     4
-#define RCP2C03B        5
-#define RC2C05_01       6
-#define RC2C05_02       7
-#define RC2C05_03       8
-#define RC2C05_04       9
-
-static readfunc OldReadPPU;
-static writefunc OldWritePPU[2];
 
 static uint8 A2002_Gumshoe(uint32 A) {
 	return((OldReadPPU(A) & ~0x3F) | 0x1C);
@@ -360,7 +357,6 @@ void FCEU_VSUniDraw(uint8 *XBuf) {
 			*da = 0;
 	}
 }
-
 
 SFORMAT FCEUVSUNI_STATEINFO[] = {
 	{ &vsdip, 1, "vsdp" },

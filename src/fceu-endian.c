@@ -25,24 +25,6 @@
 #include "fceu-types.h"
 #include "fceu-endian.h"
 
-void FlipByteOrder(uint8 *src, uint32 count)
-{
-   uint8 *start = src;
-   uint8 *end = src + count - 1;
-
-   if ((count & 1) || !count)
-      return;     /* This shouldn't happen. */
-
-   while (count--)
-   {
-      uint8 tmp = *end;
-      *end = *start;
-      *start = tmp;
-      end--;
-      start++;
-   }
-}
-
 int write32le_mem(uint32 b, memstream_t *mem)
 {
    uint8 s[4];

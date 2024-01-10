@@ -11,6 +11,8 @@
 static uint32 mrindex;
 static uint32 mrratio;
 
+int64 sexyfilter_acc1 = 0, sexyfilter_acc2 = 0;
+
 void SexyFilter2(int32 *in, int32 count) {
 	static int64 acc = 0;
 
@@ -23,8 +25,6 @@ void SexyFilter2(int32 *in, int32 count) {
 		in++;
 	}
 }
-
-int64 sexyfilter_acc1 = 0, sexyfilter_acc2 = 0;
 
 void SexyFilter(int32 *in, int32 *out, int32 count) {
 	int32 mul1 = (94 << 16) / FSettings.SndRate;

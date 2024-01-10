@@ -30,7 +30,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void Sync(void) {
+static void LE05Sync(void) {
 	setprg2r(0, 0xE000, 0);
 	setprg2r(0, 0xE800, 0);
 	setprg2r(0, 0xF000, 0);
@@ -47,21 +47,21 @@ static void Sync(void) {
 
 static void LE05Write(uint32 A, uint8 V) {
 	chr = V;
-	Sync();
+	LE05Sync();
 }
 
 static void LE05Power(void) {
-	Sync();
+	LE05Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, LE05Write);
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void LE05StateRestore(int version) {
+	LE05Sync();
 }
 
 void LE05_Init(CartInfo *info) {
 	info->Power = LE05Power;
-	GameStateRestore = StateRestore;
+	GameStateRestore = LE05StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

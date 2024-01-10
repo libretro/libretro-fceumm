@@ -26,37 +26,11 @@
 #include "fceu-memory.h"
 #include "general.h"
 
-void *FCEU_gmalloc(uint32 size)
-{
-   void *ret = malloc(size);
-   if (!ret)
-   {
-      FCEU_PrintError("Error allocating memory!  Doing a hard exit.");
-      exit(1);
-   }
-   memset(ret, 0, size);
-   return ret;
-}
-
 void *FCEU_malloc(uint32 size)
 {
    void *ret = (void*)malloc(size);
-
    if (!ret)
-   {
-      FCEU_PrintError("Error allocating memory!");
       ret = 0;
-   }
    memset(ret, 0, size);
    return ret;
-}
-
-void FCEU_free(void *ptr)
-{
-	free(ptr);
-}
-
-void FCEU_gfree(void *ptr)
-{
-	free(ptr);
 }

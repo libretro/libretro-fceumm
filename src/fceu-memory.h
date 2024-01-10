@@ -25,13 +25,15 @@
 #ifndef _FCEU_MEMORY_H_
 #define _FCEU_MEMORY_H_
 
+#include <stdlib.h>
 #include "fceu-types.h"
 
-#define FCEU_dwmemset(d, c, n) { int _x; for (_x = n - 4; _x >= 0; _x -= 4) *(uint32*)& (d)[_x] = c; }
-
 void *FCEU_malloc(uint32 size);
-void *FCEU_gmalloc(uint32 size);
-void FCEU_gfree(void *ptr);
 void FCEU_free(void *ptr);
+
+#define FCEU_dwmemset(d, c, n) { int _x; for (_x = n - 4; _x >= 0; _x -= 4) *(uint32*)& (d)[_x] = c; }
+#define FCEU_gmalloc FCEU_malloc
+#define FCEU_free(x) free(x)
+#define FCEU_gfree(x) free(x)
 
 #endif

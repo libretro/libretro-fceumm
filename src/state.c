@@ -75,6 +75,27 @@ SFORMAT SFCPUC[] = {
    { 0 }
 };
 
+#ifdef MSB_FIRST
+static void FlipByteOrder(uint8 *src, uint32 count)
+{
+   uint8 *start = src;
+   uint8 *end = src + count - 1;
+
+   if ((count & 1) || !count)
+      return;     /* This shouldn't happen. */
+
+   while (count--)
+   {
+      uint8 tmp = *end;
+      *end = *start;
+      *start = tmp;
+      end--;
+      start++;
+   }
+}
+
+#endif
+
 static int SubWrite(memstream_t *mem, SFORMAT *sf)
 {
    uint32 acc = 0;
