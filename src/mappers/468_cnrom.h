@@ -1,6 +1,6 @@
 #define CNROM_reg regByte
 
-static void CNROM_sync () {
+static void CNROM_sync(void) {
 	int OR  =prgOR >>1;
 	if (mapperFlags &2) {
 		setprg16(0x8000, CNROM_reg[2] <<1 &0xE | mapperFlags &1 | OR &~0xF);
