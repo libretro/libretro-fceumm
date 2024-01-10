@@ -29,10 +29,14 @@
 #include "fceu-types.h"
 
 void *FCEU_malloc(uint32 size);
+
+/* returns a buffer with initialization based on FCEU_MemoryRand() */
+/* Used by mappers for wram, chr ram, etc */
+void *FCEU_gmalloc(uint32 size);
+
 void FCEU_free(void *ptr);
 
 #define FCEU_dwmemset(d, c, n) { int _x; for (_x = n - 4; _x >= 0; _x -= 4) *(uint32*)& (d)[_x] = c; }
-#define FCEU_gmalloc FCEU_malloc
 #define FCEU_free(x) free(x)
 #define FCEU_gfree(x) free(x)
 

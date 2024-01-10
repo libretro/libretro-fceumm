@@ -34,3 +34,12 @@ void *FCEU_malloc(uint32 size)
    memset(ret, 0, size);
    return ret;
 }
+
+void *FCEU_gmalloc(uint32 size)
+{
+   void *ret = (void*)malloc(size);
+   if (!ret)
+      ret = 0;
+   FCEU_MemoryRand((uint8 *)ret, size);
+   return ret;
+}
