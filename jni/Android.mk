@@ -6,7 +6,7 @@ HAVE_NTSC := 1
 
 include $(LOCAL_PATH)/../Makefile.common
 
-COREFLAGS := $(COREDEFINES) -DPSS_STYLE=1 $(INCFLAGS)
+COREFLAGS := $(COREDEFINES) $(INCFLAGS)
 
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
