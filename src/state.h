@@ -30,6 +30,8 @@
 
 #define FCEU_VERSION_NUMERIC ((FCEU_VERSION_MAJOR * 10000) + (FCEU_VERSION_MINOR * 100) + (FCEU_VERSION_PATCH))
 
+#define FCEUSTATE_RLSB      0x80000000
+
 void FCEUSS_Load_Mem(void);
 void FCEUSS_Save_Mem(void);
 
@@ -41,9 +43,5 @@ typedef struct {
 
 void ResetExState(void (*PreSave)(void), void (*PostSave)(void));
 void AddExState(void *v, uint32 s, int type, char *desc);
-
-#define FCEUSTATE_RLSB      0x80000000
-
-void FCEU_DrawSaveStates(uint8 *XBuf);
 
 #endif
