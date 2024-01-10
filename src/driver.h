@@ -39,9 +39,6 @@ void FCEUD_Message(char *s);
 void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char *str);
 void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...);
 
-void FCEUI_ResetNES(void);
-void FCEUI_PowerNES(void);
-
 void FCEUI_SetInput(int port, int type, void *ptr, int attrib);
 void FCEUI_SetInputFC(int type, void *ptr, int attrib);
 void FCEUI_DisableFourScore(int s);
@@ -159,11 +156,6 @@ void FCEUI_VSUniToggleDIPView(void);
 void FCEUI_VSUniToggleDIP(int w);
 uint8 FCEUI_VSUniGetDIPs(void);
 void FCEUI_VSUniSetDIP(int w, int state);
-void FCEUI_VSUniCoin(void);
-
-int FCEUI_FDSInsert(int oride);
-int FCEUI_FDSEject(void);
-void FCEUI_FDSSelect(void);
 
 #ifdef  __cplusplus
 }

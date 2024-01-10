@@ -428,7 +428,7 @@ void FCEU_DoSimpleCommand(int cmd)
          FCEU_VSUniToggleDIP(cmd - FCEUNPCMD_VSUNIDIP0);
          break;
       case FCEUNPCMD_POWER:
-         PowerNES();
+	 PowerNES();
          break;
       case FCEUNPCMD_RESET:
          ResetNES();
@@ -436,45 +436,7 @@ void FCEU_DoSimpleCommand(int cmd)
    }
 }
 
-void FCEU_QSimpleCommand(int cmd)
-{
-   FCEU_DoSimpleCommand(cmd);
-}
-
-void FCEUI_FDSSelect(void)
-{
-	FCEU_QSimpleCommand(FCEUNPCMD_FDSSELECT);
-}
-
-int FCEUI_FDSInsert(int oride)
-{
-	FCEU_QSimpleCommand(FCEUNPCMD_FDSINSERT);
-	return(1);
-}
-
-int FCEUI_FDSEject(void)
-{
-	FCEU_QSimpleCommand(FCEUNPCMD_FDSEJECT);
-	return(1);
-}
-
 void FCEUI_VSUniToggleDIP(int w)
 {
-	FCEU_QSimpleCommand(FCEUNPCMD_VSUNIDIP0 + w);
+	FCEU_DoSimpleCommand(FCEUNPCMD_VSUNIDIP0 + w);
 }
-
-void FCEUI_VSUniCoin(void)
-{
-	FCEU_QSimpleCommand(FCEUNPCMD_VSUNICOIN);
-}
-
-void FCEUI_ResetNES(void)
-{
-	FCEU_QSimpleCommand(FCEUNPCMD_RESET);
-}
-
-void FCEUI_PowerNES(void)
-{
-	FCEU_QSimpleCommand(FCEUNPCMD_POWER);
-}
-
