@@ -40,7 +40,7 @@ extern X6502 cpu;
 
 extern void (*MapIRQHook)(int a);
 
-#define NTSC_CPU (dendy ? 1773447.467 : 1789772.7272727272727272)
+#define NTSC_CPU (isDendy ? 1773447.467 : 1789772.7272727272727272)
 #define PAL_CPU  1662607.125
 
 #define FCEU_IQEXT      0x001

@@ -218,7 +218,7 @@ static void FCEU_ResetVidSys(void)
 	else if (GameInfo->vidsys == GIV_PAL)
    {
       w = 1;
-      dendy = 0;
+      isDendy = 0;
    }
 	else
 		w = FSettings.PAL;
@@ -226,12 +226,12 @@ static void FCEU_ResetVidSys(void)
 	PAL = w ? 1 : 0;
 
    if (PAL)
-      dendy = 0;
+      isDendy = 0;
 
-   normal_scanlines = dendy ? 290 : 240;
+   normal_scanlines = isDendy ? 290 : 240;
    totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
 
-   FCEUPPU_SetVideoSystem(w || dendy);
+   FCEUPPU_SetVideoSystem(w || isDendy);
    SetSoundVariables();
 }
 

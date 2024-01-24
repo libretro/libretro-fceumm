@@ -14,7 +14,7 @@ extern unsigned extrascanlines;
 extern unsigned vblankscanlines;
 
 /* Region selection */
-extern unsigned dendy;
+extern unsigned isDendy;
 
 /* Audio mods*/
 extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug

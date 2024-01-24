@@ -188,7 +188,7 @@ unsigned totalscanlines = 0;
 unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
-unsigned dendy = 0;
+unsigned isDendy = 0;
 
 static unsigned systemRegion = 0;
 static unsigned opt_region = 0;
@@ -346,7 +346,7 @@ void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char
    }
    else
    {
-      float fps       = (FSettings.PAL || dendy) ? NES_PAL_FPS : NES_NTSC_FPS;
+      float fps       = (FSettings.PAL || isDendy) ? NES_PAL_FPS : NES_NTSC_FPS;
       unsigned frames = (unsigned)(((float)duration * fps / 1000.0f) + 0.5f);
       struct retro_message msg;
 
@@ -1671,7 +1671,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
    info->geometry.max_height = NES_HEIGHT;
    info->geometry.aspect_ratio = get_aspect_ratio(width, height);
    info->timing.sample_rate = (float)sndsamplerate;
-   if (FSettings.PAL || dendy)
+   if (FSettings.PAL || isDendy)
       info->timing.fps = NES_PAL_FPS;
    else
       info->timing.fps = NES_NTSC_FPS;
@@ -1765,7 +1765,7 @@ static void FCEUD_RegionOverride(unsigned region)
    switch (region)
    {
       case 0: /* auto */
-         d = (systemRegion >> 1) & 1;
+         d   = (systemRegion >> 1) & 1;
          pal = systemRegion & 1;
          break;
       case 1: /* ntsc */
@@ -1781,7 +1781,7 @@ static void FCEUD_RegionOverride(unsigned region)
          break;
    }
 
-   dendy = d;
+   isDendy = d;
    FCEUI_SetVidSystem(pal);
    ResetPalette();
 }
@@ -1979,7 +1979,7 @@ static void check_variables(bool startup)
          do_reinit              = true;
       }
 
-      normal_scanlines = dendy ? 290 : 240;
+      normal_scanlines = isDendy ? 290 : 240;
       totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
 
       if (do_reinit && startup)
@@ -3447,15 +3447,15 @@ bool retro_load_game(const struct retro_game_info *info)
 
    /* initialize some of the default variables */
 #ifdef GEKKO
-   sndsamplerate = 32000;
+   sndsamplerate  = 32000;
 #else
-   sndsamplerate = 48000;
+   sndsamplerate  = 48000;
 #endif
-   sndquality = 0;
-   sndvolume = 150;
-   swapDuty = 0;
-   dendy = 0;
-   opt_region = 0;
+   sndquality     = 0;
+   sndvolume      = 150;
+   swapDuty       = 0;
+   isDendy        = 0;
+   opt_region     = 0;
 
    /* Wii: initialize this or else last variable is passed through
     * when loading another rom causing save state size change. */
@@ -3508,7 +3508,7 @@ bool retro_load_game(const struct retro_game_info *info)
             system_dir, PATH_DEFAULT_SLASH_C());
 
    /* Save region and dendy mode for region-auto detect */
-   systemRegion = (dendy << 1) | (retro_get_region() & 1);
+   systemRegion = (isDendy << 1) | (retro_get_region() & 1);
 
    current_palette = 0;
 

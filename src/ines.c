@@ -1089,7 +1089,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
     * 2: Multiple-region
     * 3: UMC 6527P ("Dendy") */
    if (iNESCart.region == 3)
-      dendy = 1;
+      isDendy = 1;
    FCEUI_SetVidSystem((iNESCart.region == 1) ? 1 : 0);
 
    return 1;
