@@ -113,14 +113,6 @@ void FCEUI_SetVidSystem(int a);
 /* Convenience function; returns currently emulated video system(0=NTSC, 1=PAL).  */
 int FCEUI_GetCurrentVidSystem(int *slstart, int *slend);
 
-#ifdef FRAMESKIP
-/* Should be called from FCEUD_BlitScreen().  Specifies how many frames
-   to skip until FCEUD_BlitScreen() is called.  FCEUD_BlitScreenDummy()
-   will be called instead of FCEUD_BlitScreen() when when a frame is skipped.
-*/
-void FCEUI_FrameSkip(int x);
-#endif
-
 /* First and last scanlines to render, for ntsc and pal emulation. */
 void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall);
 
