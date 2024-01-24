@@ -12,7 +12,7 @@ typedef struct __X6502 {
 	int32 count;
 	uint32 IRQlow;		/* Simulated IRQ pin held low(or is it high?).
 						And other junk hooked on for speed reasons.*/
-	uint8 DB;			/* Data bus "cache" for reads from certain areas */
+	uint8 openbus;		/* Data bus "cache" for reads from certain areas */
 
 	int preexec;		/* Pre-exec'ing for debug breakpoints. */
 } X6502;

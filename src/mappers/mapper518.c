@@ -58,7 +58,7 @@ static void UNLD2000Write(uint32 A, uint8 V) {
 
 static uint8 UNLD2000Read(uint32 A) {
 	if (prg & 0x40)
-		return cpu.DB;
+		return cpu.openbus;
 	return CartBR(A);
 }
 

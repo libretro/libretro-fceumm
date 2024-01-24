@@ -370,7 +370,7 @@ static uint8 FDSRead4031(uint32 A) {
 }
 
 static uint8 FDSRead4032(uint32 A) {
-	uint8 ret = cpu.DB & ~7;
+	uint8 ret = cpu.openbus & ~7;
 	if (InDisk == 255)
 		ret |= 5;
 

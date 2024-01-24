@@ -67,7 +67,7 @@ static void M69WRAMWrite(uint32 A, uint8 V) {
 
 static uint8 M69WRAMRead(uint32 A) {
 	if ((preg[3] & 0xC0) == 0x40)
-		return cpu.DB;
+		return cpu.openbus;
 	return CartBR(A);
 }
 

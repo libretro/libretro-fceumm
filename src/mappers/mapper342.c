@@ -1922,7 +1922,7 @@ static uint8 MAFRAM(uint32 A) {
 	if (map_rom_on_6000 && (A >= 0x6000) && (A < 0x8000))
 		return CartBR(A); /* PRG */
 
-	return cpu.DB; /* Open bus */
+	return cpu.openbus; /* Open bus */
 }
 
 static void COOLGIRL_ScanlineCounter(void) {

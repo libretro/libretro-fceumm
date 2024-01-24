@@ -141,7 +141,7 @@ static void M83Write(uint32 A, uint8 V) {
 	}
 }
 
-static uint8 UNLYOKOReadDip(uint32 A) { return (cpu.DB & 0xFC) | dip; }
+static uint8 UNLYOKOReadDip(uint32 A) { return (cpu.openbus & 0xFC) | dip; }
 static uint8 UNLYOKOReadLow(uint32 A) { return low[A & 3]; }
 static void UNLYOKOWriteLow(uint32 A, uint8 V) { low[A & 3] = V; }
 

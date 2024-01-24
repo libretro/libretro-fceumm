@@ -302,8 +302,8 @@ static void BandaiWrite(uint32 A, uint8 V) {
 
 static uint8 BandaiRead(uint32 A) {
 	if (x24c02)
-		return (cpu.DB & 0xEF) | (x24c02_out << 4);
-	return (cpu.DB & 0xEF) | (x24c01_out << 4);
+		return (cpu.openbus & 0xEF) | (x24c02_out << 4);
+	return (cpu.openbus & 0xEF) | (x24c01_out << 4);
 }
 
 static void BandaiIRQHook(int a) {
@@ -607,7 +607,7 @@ static void BarcodeIRQHook(int a) {
 }
 
 static uint8 BarcodeRead(uint32 A) {
-	return (cpu.DB & 0xE7) | ((x24c02_out | x24c01_out) << 4) | BarcodeOut;
+	return (cpu.openbus & 0xE7) | ((x24c02_out | x24c01_out) << 4) | BarcodeOut;
 }
 
 static void M157Power(void) {

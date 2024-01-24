@@ -86,7 +86,7 @@ static void Mapper268_CHRWrap(uint32 A, uint8 V) {
 }
 
 static uint8 Mapper268_ReadWRAM(uint32 A) {
-	return A001B &0xA0? CartBR(A): cpu.DB;
+	return A001B &0xA0? CartBR(A): cpu.openbus;
 }
 
 static void Mapper268_WriteWRAM(uint32 A, uint8 V) {

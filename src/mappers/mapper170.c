@@ -35,7 +35,7 @@ static void Sync(void) {
 }
 
 static void M170ProtW(uint32 A, uint8 V) { reg = V << 1 & 0x80; }
-static uint8 M170ProtR(uint32 A) { return reg | (cpu.DB & 0x7F); }
+static uint8 M170ProtR(uint32 A) { return reg | (cpu.openbus & 0x7F); }
 
 static void M170Power(void) {
 	Sync();

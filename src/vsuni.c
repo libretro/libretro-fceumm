@@ -87,7 +87,7 @@ static uint8 secdata[2][32] = {
 
 static uint8 VSSecRead(uint32 A) {
 	switch (A) {
-	case 0x5e00: VSindex = 0; return cpu.DB;
+	case 0x5e00: VSindex = 0; return cpu.openbus;
 	case 0x5e01: return(secptr[(VSindex++) & 0x1F]);
 	}
 	return(0x00);
@@ -121,7 +121,7 @@ static uint8 XevRead(uint32 A) {
 		xevselect ^= 1;
 		return(xevselect ? 0x37 : 0x3E);
 	}
-	return(cpu.DB);
+	return(cpu.openbus);
 }
 
 void FCEU_VSUniSwap(uint8 *j0, uint8 *j1) {

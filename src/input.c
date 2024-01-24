@@ -85,7 +85,7 @@ static uint8 JPRead(uint32 A)
 		if (FCExp->Read)
 			ret = FCExp->Read(A & 1, ret);
 
-	ret |= cpu.DB & 0xC0;
+	ret |= cpu.openbus & 0xC0;
 
 	return(ret);
 }

@@ -151,7 +151,7 @@ void CartBW(uint32 A, uint8 V) {
 
 uint8 CartBROB(uint32 A) {
 	if (!Page[A >> 11])
-		return(cpu.DB);
+		return(cpu.openbus);
 	return Page[A >> 11][A];
 }
 

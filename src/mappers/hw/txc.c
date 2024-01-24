@@ -177,9 +177,9 @@ static void M36Write(uint32 A, uint8 V) {
 }
 
 static uint8 M36Read(uint32 A) {
-	uint8 ret = cpu.DB;
+	uint8 ret = cpu.openbus;
 	if ((A & 0x103) == 0x100)
-	  ret = (cpu.DB & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
+	  ret = (cpu.openbus & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
 	return ret;
 }
 
@@ -209,9 +209,9 @@ static void M132Write(uint32 A, uint8 V) {
 }
 
 static uint8 M132Read(uint32 A) {
-	uint8 ret = cpu.DB;
+	uint8 ret = cpu.openbus;
 	if ((A & 0x103) == 0x100)
-	  ret = ((cpu.DB & 0xF0) | (TXC_CMDRead() & 0x0F));
+	  ret = ((cpu.openbus & 0xF0) | (TXC_CMDRead() & 0x0F));
 	return ret;
 }
 
@@ -257,9 +257,9 @@ static void M136Write(uint32 A, uint8 V) {
 }
 
 static uint8 M136Read(uint32 A) {
-	uint8 ret = cpu.DB;
+	uint8 ret = cpu.openbus;
 	if ((A & 0x103) == 0x100)
-	  ret = ((cpu.DB & 0xC0) | (TXC_CMDRead() & 0x3F));
+	  ret = ((cpu.openbus & 0xC0) | (TXC_CMDRead() & 0x3F));
 	return ret;
 }
 
@@ -287,7 +287,7 @@ static void M147Write(uint32 A, uint8 V) {
 }
 
 static uint8 M147Read(uint32 A) {
-	uint8 ret = cpu.DB;
+	uint8 ret = cpu.openbus;
 	if ((A & 0x103) == 0x100) {
 	  uint8 value = TXC_CMDRead();
 	  ret = ((value << 2) & 0xFC) | ((value >> 6) & 0x03);
@@ -323,9 +323,9 @@ static uint8 GetValue(uint8 value) {
 static void M172Write(uint32 A, uint8 V) { TXC_CMDWrite(A, GetValue(V)); }
 
 static uint8 M172Read(uint32 A) {
-	uint8 ret = cpu.DB;
+	uint8 ret = cpu.openbus;
 	if ((A & 0x103) == 0x100)
-	  ret = (cpu.DB & 0xC0) | GetValue(TXC_CMDRead());
+	  ret = (cpu.openbus & 0xC0) | GetValue(TXC_CMDRead());
 	return ret;
 }
 

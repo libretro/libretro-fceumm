@@ -75,7 +75,7 @@ static void UNLPEC586Write(uint32 A, uint8 V) {
 }
 
 static uint8 UNLPEC586Read(uint32 A) {
-	return (cpu.DB & 0xD8) | br_tbl[reg[4] >> 4];
+	return (cpu.openbus & 0xD8) | br_tbl[reg[4] >> 4];
 }
 
 static uint8 UNLPEC586ReadHi(uint32 A) {

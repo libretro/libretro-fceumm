@@ -250,7 +250,7 @@ static void cpuCycle(int a)
 uint8 readALU_DIP(uint32 A)
 {
    if ((A &0x3FF) ==0 && A !=0x5800) /* 5000, 5400, 5C00: read solder pad setting */
-      return dipSwitch | cpu.DB &0x3F;
+      return dipSwitch | cpu.openbus &0x3F;
 
    if (A &0x800)
       switch (A &3)
@@ -266,7 +266,7 @@ uint8 readALU_DIP(uint32 A)
             return test;
       }
    /* all others */
-   return cpu.DB;
+   return cpu.openbus;
 }
 
 void writeALU(uint32 A, uint8 V)

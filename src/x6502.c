@@ -32,30 +32,16 @@ uint32 timestamp;
 uint32 sound_timestamp;
 void (*MapIRQHook)(int a);
 
-#define CPU_PC     cpu.PC
-#define CPU_A      cpu.A
-#define CPU_X      cpu.X
-#define CPU_Y      cpu.Y
-#define CPU_S      cpu.S
-#define CPU_P      cpu.P
-#define CPU_PI     cpu.mooPI
-#define CPU_DB        cpu.DB
-#define CPU_count     cpu.count
-#define CPU_tcount    cpu.tcount
-#define CPU_IRQlow    cpu.IRQlow
-#define CPU_jammed    cpu.jammed
-
 #define ADDCYC(x) {									\
 	int __x = x;									\
-	CPU_tcount += __x;									\
-	CPU_count -= __x * 48;								\
+	cpu.tcount += __x;									\
+	cpu.count -= __x * 48;								\
 	timestamp += __x;  \
 	if (!overclocked) sound_timestamp +=  __x; \
 }
 
 static INLINE uint8 RdMemNorm(uint32 A) {
-	CPU_DB = ARead[A](A);
-	return(CPU_DB);
+	return ((cpu.openbus = ARead[A](A)));
 }
 
 static INLINE void WrMemNorm(uint32 A, uint8 V) {
@@ -63,18 +49,17 @@ static INLINE void WrMemNorm(uint32 A, uint8 V) {
 }
 
 static INLINE uint8 RdRAMFast(uint32 A) {
-	CPU_DB = RAM[A];
-	return(CPU_DB);
+	return ((cpu.openbus = RAM[A]));
 }
 
 static INLINE void WrRAMFast(uint32 A, uint8 V) {
 	RAM[A] = V;
-	CPU_DB = V;
+	cpu.openbus = V;
 }
 
 uint8 X6502_DMR(uint32 A) {
 	ADDCYC(1);
-	return(cpu.DB = ARead[A](A));
+	return(cpu.openbus = ARead[A](A));
 }
 
 void X6502_DMW(uint32 A, uint8 V) {
@@ -84,106 +69,106 @@ void X6502_DMW(uint32 A, uint8 V) {
 
 #define PUSH(V) {									\
 	uint8 VTMP = V;									\
-	WrRAM(0x100 + CPU_S, VTMP);						\
-	CPU_S--;											\
+	WrRAM(0x100 + cpu.S, VTMP);						\
+	cpu.S--;											\
 }
 
-#define POP() RdRAM(0x100 + (++CPU_S))
+#define POP() RdRAM(0x100 + (++cpu.S))
 
 static uint8 ZNTable[256];
 /* Some of these operations will only make sense if you know what the flag constants are. */
 
-#define X_ZN(zort)  CPU_P &= ~(Z_FLAG | N_FLAG); CPU_P |= ZNTable[zort]
-#define X_ZNT(zort) CPU_P |= ZNTable[zort]
+#define X_ZN(zort)  cpu.P &= ~(Z_FLAG | N_FLAG); cpu.P |= ZNTable[zort]
+#define X_ZNT(zort) cpu.P |= ZNTable[zort]
 
 #define JR(cond) {									\
 	if (cond)										\
 	{												\
 		uint32 tmp;									\
 		int32 disp;									\
-		disp = (int8)RdMem(CPU_PC);					\
-		CPU_PC++;										\
+		disp = (int8)RdMem(cpu.PC);					\
+		cpu.PC++;										\
 		ADDCYC(1);									\
-		tmp = CPU_PC;									\
-		CPU_PC += disp;								\
-		if ((tmp ^ CPU_PC) & 0x100)					\
+		tmp = cpu.PC;									\
+		cpu.PC += disp;								\
+		if ((tmp ^ cpu.PC) & 0x100)					\
 			ADDCYC(1);								\
-	} else CPU_PC++;									\
+	} else cpu.PC++;									\
 }
 
-#define LDA     CPU_A = x; X_ZN(CPU_A)
-#define LDX     CPU_X = x; X_ZN(CPU_X)
-#define LDY     CPU_Y = x; X_ZN(CPU_Y)
+#define LDA     cpu.A = x; X_ZN(cpu.A)
+#define LDX     cpu.X = x; X_ZN(cpu.X)
+#define LDY     cpu.Y = x; X_ZN(cpu.Y)
 
 /* All of the freaky arithmetic operations. */
-#define AND     CPU_A &= x; X_ZN(CPU_A)
-#define BIT     CPU_P &= ~(Z_FLAG | V_FLAG | N_FLAG); CPU_P |= ZNTable[x & CPU_A] & Z_FLAG; CPU_P |= x & (V_FLAG | N_FLAG)
-#define EOR     CPU_A ^= x; X_ZN(CPU_A)
-#define ORA     CPU_A |= x; X_ZN(CPU_A)
+#define AND     cpu.A &= x; X_ZN(cpu.A)
+#define BIT     cpu.P &= ~(Z_FLAG | V_FLAG | N_FLAG); cpu.P |= ZNTable[x & cpu.A] & Z_FLAG; cpu.P |= x & (V_FLAG | N_FLAG)
+#define EOR     cpu.A ^= x; X_ZN(cpu.A)
+#define ORA     cpu.A |= x; X_ZN(cpu.A)
 
 #define ADC {										\
-	uint32 l = CPU_A + x + (CPU_P & 1);					\
-	CPU_P &= ~(Z_FLAG | C_FLAG | N_FLAG | V_FLAG);		\
-	CPU_P |= ((((CPU_A ^ x) & 0x80) ^ 0x80) & ((CPU_A ^ l) & 0x80)) >> 1;  \
-	CPU_P |= (l >> 8) & C_FLAG;						\
-	CPU_A = l;											\
-	X_ZNT(CPU_A);										\
+	uint32 l = cpu.A + x + (cpu.P & 1);					\
+	cpu.P &= ~(Z_FLAG | C_FLAG | N_FLAG | V_FLAG);		\
+	cpu.P |= ((((cpu.A ^ x) & 0x80) ^ 0x80) & ((cpu.A ^ l) & 0x80)) >> 1;  \
+	cpu.P |= (l >> 8) & C_FLAG;						\
+	cpu.A = l;											\
+	X_ZNT(cpu.A);										\
 }
 
 #define SBC {										\
-	uint32 l = CPU_A - x - ((CPU_P & 1) ^ 1);				\
-	CPU_P &= ~(Z_FLAG | C_FLAG | N_FLAG | V_FLAG);		\
-	CPU_P |= ((CPU_A ^ l) & (CPU_A ^ x) & 0x80) >> 1;		\
-	CPU_P |= ((l >> 8) & C_FLAG) ^ C_FLAG;				\
-	CPU_A = l;											\
-	X_ZNT(CPU_A);										\
+	uint32 l = cpu.A - x - ((cpu.P & 1) ^ 1);				\
+	cpu.P &= ~(Z_FLAG | C_FLAG | N_FLAG | V_FLAG);		\
+	cpu.P |= ((cpu.A ^ l) & (cpu.A ^ x) & 0x80) >> 1;		\
+	cpu.P |= ((l >> 8) & C_FLAG) ^ C_FLAG;				\
+	cpu.A = l;											\
+	X_ZNT(cpu.A);										\
 }
 
 #define CMPL(a1, a2) {								\
 	uint32 t = a1 - a2;								\
 	X_ZN(t & 0xFF);									\
-	CPU_P &= ~C_FLAG;									\
-	CPU_P |= ((t >> 8) & C_FLAG) ^ C_FLAG;				\
+	cpu.P &= ~C_FLAG;									\
+	cpu.P |= ((t >> 8) & C_FLAG) ^ C_FLAG;				\
 }
 
 /* Special undocumented operation.  Very similar to CMP. */
 #define AXS {										\
-	uint32 t = (CPU_A & CPU_X) - x;						\
+	uint32 t = (cpu.A & cpu.X) - x;						\
 	X_ZN(t & 0xFF);									\
-	CPU_P &= ~C_FLAG;									\
-	CPU_P |= ((t >> 8) & C_FLAG) ^ C_FLAG;				\
-	CPU_X = t;											\
+	cpu.P &= ~C_FLAG;									\
+	cpu.P |= ((t >> 8) & C_FLAG) ^ C_FLAG;				\
+	cpu.X = t;											\
 }
 
-#define CMP     CMPL(CPU_A, x)
-#define CPX     CMPL(CPU_X, x)
-#define CPY     CMPL(CPU_Y, x)
+#define CMP     CMPL(cpu.A, x)
+#define CPX     CMPL(cpu.X, x)
+#define CPY     CMPL(cpu.Y, x)
 
 /* The following operations modify the byte being worked on. */
 #define DEC     x--; X_ZN(x)
 #define INC     x++; X_ZN(x)
 
-#define ASL     CPU_P &= ~C_FLAG; CPU_P |= x >> 7; x <<= 1; X_ZN(x)
-#define LSR     CPU_P &= ~(C_FLAG | N_FLAG | Z_FLAG); CPU_P |= x & 1; x >>= 1; X_ZNT(x)
+#define ASL     cpu.P &= ~C_FLAG; cpu.P |= x >> 7; x <<= 1; X_ZN(x)
+#define LSR     cpu.P &= ~(C_FLAG | N_FLAG | Z_FLAG); cpu.P |= x & 1; x >>= 1; X_ZNT(x)
 
 /* For undocumented instructions, maybe for other things later... */
-#define LSRA    CPU_P &= ~(C_FLAG | N_FLAG | Z_FLAG); CPU_P |= CPU_A & 1; CPU_A >>= 1; X_ZNT(CPU_A)
+#define LSRA    cpu.P &= ~(C_FLAG | N_FLAG | Z_FLAG); cpu.P |= cpu.A & 1; cpu.A >>= 1; X_ZNT(cpu.A)
 
 #define ROL {										\
 	uint8 l = x >> 7;								\
 	x <<= 1;										\
-	x |= CPU_P & C_FLAG;								\
-	CPU_P &= ~(Z_FLAG | N_FLAG | C_FLAG);				\
-	CPU_P |= l;										\
+	x |= cpu.P & C_FLAG;								\
+	cpu.P &= ~(Z_FLAG | N_FLAG | C_FLAG);				\
+	cpu.P |= l;										\
 	X_ZNT(x);										\
 }
 
 #define ROR {										\
 	uint8 l = x & 1;								\
 	x >>= 1;										\
-	x |= (CPU_P & C_FLAG) << 7;						\
-	CPU_P &= ~(Z_FLAG | N_FLAG | C_FLAG);				\
-	CPU_P |= l;										\
+	x |= (cpu.P & C_FLAG) << 7;						\
+	cpu.P &= ~(Z_FLAG | N_FLAG | C_FLAG);				\
+	cpu.P |= l;										\
 	X_ZNT(x);										\
 }
 
@@ -193,10 +178,10 @@ static uint8 ZNTable[256];
 
 /* Absolute */
 #define GetAB(target) {								\
-	target = RdMem(CPU_PC);							\
-	CPU_PC++;											\
-	target |= RdMem(CPU_PC) << 8;						\
-	CPU_PC++;											\
+	target = RdMem(cpu.PC);							\
+	cpu.PC++;											\
+	target |= RdMem(cpu.PC) << 8;						\
+	cpu.PC++;											\
 }
 
 /* Absolute Indexed(for reads) */
@@ -224,22 +209,22 @@ static uint8 ZNTable[256];
 
 /* Zero Page */
 #define GetZP(target) {								\
-	target = RdMem(CPU_PC);							\
-	CPU_PC++;											\
+	target = RdMem(cpu.PC);							\
+	cpu.PC++;											\
 }
 
 /* Zero Page Indexed */
 #define GetZPI(target, i) {							\
-	target = i + RdMem(CPU_PC);						\
-	CPU_PC++;											\
+	target = i + RdMem(cpu.PC);						\
+	cpu.PC++;											\
 }
 
 /* Indexed Indirect */
 #define GetIX(target) {								\
 	uint8 tmp;										\
-	tmp = RdMem(CPU_PC);								\
-	CPU_PC++;											\
-	tmp += CPU_X;										\
+	tmp = RdMem(cpu.PC);								\
+	cpu.PC++;											\
+	tmp += cpu.X;										\
 	target = RdRAM(tmp);							\
 	tmp++;											\
 	target |= RdRAM(tmp) << 8;						\
@@ -249,13 +234,13 @@ static uint8 ZNTable[256];
 #define GetIYRD(target) {							\
 	uint32 rt;										\
 	uint8 tmp;										\
-	tmp = RdMem(CPU_PC);								\
-	CPU_PC++;											\
+	tmp = RdMem(cpu.PC);								\
+	cpu.PC++;											\
 	rt = RdRAM(tmp);								\
 	tmp++;											\
 	rt |= RdRAM(tmp) << 8;							\
 	target = rt;									\
-	target += CPU_Y;									\
+	target += cpu.Y;									\
 	if ((target ^ rt) & 0x100) {					\
 		target &= 0xFFFF;							\
 		RdMem(target ^ 0x100);						\
@@ -267,13 +252,13 @@ static uint8 ZNTable[256];
 #define GetIYWR(target) {							\
 	uint32 rt;										\
 	uint8 tmp;										\
-	tmp = RdMem(CPU_PC);								\
-	CPU_PC++;											\
+	tmp = RdMem(cpu.PC);								\
+	cpu.PC++;											\
 	rt = RdRAM(tmp);								\
 	tmp++;											\
 	rt |= RdRAM(tmp) << 8;							\
 	target = rt;									\
-	target += CPU_Y;									\
+	target += cpu.Y;									\
 	target &= 0xFFFF;								\
 	RdMem((target & 0x00FF) | (rt & 0xFF00));		\
 }
@@ -283,34 +268,34 @@ and operation macros.  Note that operation macros will always operate(redundant
 redundant) on the variable "x".
 */
 
-#define RMWCPU_A(op)       { uint8 x = CPU_A; op; CPU_A = x; break; }	/* Meh... */
+#define RMWCPU_A(op)       { uint8 x = cpu.A; op; cpu.A = x; break; }	/* Meh... */
 #define RMWCPU_AB(op)      { uint32 A; uint8 x; GetAB(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
 #define RMWCPU_ABI(reg, op) { uint32 A; uint8 x; GetABIWR(A, reg); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
-#define RMWCPU_ABX(op)     RMWCPU_ABI(CPU_X, op)
-#define RMWCPU_ABY(op)     RMWCPU_ABI(CPU_Y, op)
+#define RMWCPU_ABX(op)     RMWCPU_ABI(cpu.X, op)
+#define RMWCPU_ABY(op)     RMWCPU_ABI(cpu.Y, op)
 #define RMW_IX(op)      { uint32 A; uint8 x; GetIX(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
 #define RMW_IY(op)      { uint32 A; uint8 x; GetIYWR(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
 #define RMW_ZP(op)      { uint8 A; uint8 x; GetZP(A); x = RdRAM(A); op; WrRAM(A, x); break; }
-#define RMW_ZPX(op)     { uint8 A; uint8 x; GetZPI(A, CPU_X); x = RdRAM(A); op; WrRAM(A, x); break; }
+#define RMW_ZPX(op)     { uint8 A; uint8 x; GetZPI(A, cpu.X); x = RdRAM(A); op; WrRAM(A, x); break; }
 
-#define LD_IM(op)       { uint8 x; x = RdMem(CPU_PC); CPU_PC++; op; break; }
+#define LD_IM(op)       { uint8 x; x = RdMem(cpu.PC); cpu.PC++; op; break; }
 #define LD_ZP(op)       { uint8 A; uint8 x; GetZP(A); x = RdRAM(A); op; break; }
-#define LD_ZPX(op)      { uint8 A; uint8 x; GetZPI(A, CPU_X); x = RdRAM(A); op; break; }
-#define LD_ZPY(op)      { uint8 A; uint8 x; GetZPI(A, CPU_Y); x = RdRAM(A); op; break; }
+#define LD_ZPX(op)      { uint8 A; uint8 x; GetZPI(A, cpu.X); x = RdRAM(A); op; break; }
+#define LD_ZPY(op)      { uint8 A; uint8 x; GetZPI(A, cpu.Y); x = RdRAM(A); op; break; }
 #define LDCPU_AB(op)       { uint32 A; uint8 x; GetAB(A); x = RdMem(A); op; break; }
 #define LDCPU_ABI(reg, op) { uint32 A; uint8 x; GetABIRD(A, reg); x = RdMem(A); op; break; }
-#define LDCPU_ABX(op)      LDCPU_ABI(CPU_X, op)
-#define LDCPU_ABY(op)      LDCPU_ABI(CPU_Y, op)
+#define LDCPU_ABX(op)      LDCPU_ABI(cpu.X, op)
+#define LDCPU_ABY(op)      LDCPU_ABI(cpu.Y, op)
 #define LD_IX(op)       { uint32 A; uint8 x; GetIX(A); x = RdMem(A); op; break; }
 #define LD_IY(op)       { uint32 A; uint8 x; GetIYRD(A); x = RdMem(A); op; break; }
 
 #define ST_ZP(r)        { uint8 A; GetZP(A); WrRAM(A, r); break; }
-#define ST_ZPX(r)       { uint8 A; GetZPI(A, CPU_X); WrRAM(A, r); break; }
-#define ST_ZPY(r)       { uint8 A; GetZPI(A, CPU_Y); WrRAM(A, r); break; }
+#define ST_ZPX(r)       { uint8 A; GetZPI(A, cpu.X); WrRAM(A, r); break; }
+#define ST_ZPY(r)       { uint8 A; GetZPI(A, cpu.Y); WrRAM(A, r); break; }
 #define STCPU_AB(r)        { uint32 A; GetAB(A); WrMem(A, r); break; }
 #define STCPU_ABI(reg, r)  { uint32 A; GetABIWR(A, reg); WrMem(A, r); break; }
-#define STCPU_ABX(r)       STCPU_ABI(CPU_X, r)
-#define STCPU_ABY(r)       STCPU_ABI(CPU_Y, r)
+#define STCPU_ABX(r)       STCPU_ABI(cpu.X, r)
+#define STCPU_ABY(r)       STCPU_ABI(cpu.Y, r)
 #define ST_IX(r)        { uint32 A; GetIX(A); WrMem(A, r); break; }
 #define ST_IY(r)        { uint32 A; GetIYWR(A); WrMem(A, r); break; }
 
@@ -335,23 +320,23 @@ static uint8 CycTable[256] =
 };
 
 void X6502_IRQBegin(int w) {
-	CPU_IRQlow |= w;
+	cpu.IRQlow |= w;
 }
 
 void X6502_IRQEnd(int w) {
-	CPU_IRQlow &= ~w;
+	cpu.IRQlow &= ~w;
 }
 
 void TriggerNMI(void) {
-	CPU_IRQlow |= FCEU_IQNMI;
+	cpu.IRQlow |= FCEU_IQNMI;
 }
 
 void TriggerNMI2(void) {
-	CPU_IRQlow |= FCEU_IQNMI2;
+	cpu.IRQlow |= FCEU_IQNMI2;
 }
 
 void X6502_Reset(void) {
-	CPU_IRQlow = FCEU_IQRESET;
+	cpu.IRQlow = FCEU_IQRESET;
 }
 
 void X6502_Init(void) {
@@ -368,8 +353,8 @@ void X6502_Init(void) {
 }
 
 void X6502_Power(void) {
-	CPU_count = CPU_tcount = CPU_IRQlow = CPU_PC = CPU_A = CPU_X = CPU_Y = CPU_P = CPU_PI = CPU_DB = CPU_jammed = 0;
-	CPU_S = 0xFD;
+	cpu.count = cpu.tcount = cpu.IRQlow = cpu.PC = cpu.A = cpu.X = cpu.Y = cpu.P = cpu.mooPI = cpu.openbus = cpu.jammed = 0;
+	cpu.S     = 0xFD;
 	timestamp = sound_timestamp = 0;
 	X6502_Reset();
 }
@@ -381,84 +366,74 @@ void X6502_Run(int32 cycles)
 	#define RdMem RdMemNorm
 	#define WrMem WrMemNorm
 
-	uint16 pbackus = CPU_PC;
-
-	#undef CPU_PC
-	#define CPU_PC pbackus
-
 	if (PAL)
 		cycles *= 15;	/* 15*4=60 */
 	else
 		cycles *= 16;	/* 16*4=64 */
 
-	CPU_count += cycles;
+	cpu.count += cycles;
 
-	while (CPU_count > 0) {
+	while (cpu.count > 0) {
 		int32 temp;
 		uint8 b1;
 
-		if (CPU_IRQlow) {
-			if (CPU_IRQlow & FCEU_IQRESET) {
-				CPU_PC = RdMem(0xFFFC);
-				CPU_PC |= RdMem(0xFFFD) << 8;
-				CPU_jammed = 0;
-				CPU_PI = CPU_P = I_FLAG;
-				CPU_IRQlow &= ~FCEU_IQRESET;
-			} else if (CPU_IRQlow & FCEU_IQNMI2) {
-				CPU_IRQlow &= ~FCEU_IQNMI2;
-				CPU_IRQlow |= FCEU_IQNMI;
-			} else if (CPU_IRQlow & FCEU_IQNMI) {
-				if (!CPU_jammed) {
+		if (cpu.IRQlow) {
+			if (cpu.IRQlow & FCEU_IQRESET) {
+				cpu.PC = RdMem(0xFFFC);
+				cpu.PC |= RdMem(0xFFFD) << 8;
+				cpu.jammed = 0;
+				cpu.mooPI = cpu.P = I_FLAG;
+				cpu.IRQlow &= ~FCEU_IQRESET;
+			} else if (cpu.IRQlow & FCEU_IQNMI2) {
+				cpu.IRQlow &= ~FCEU_IQNMI2;
+				cpu.IRQlow |= FCEU_IQNMI;
+			} else if (cpu.IRQlow & FCEU_IQNMI) {
+				if (!cpu.jammed) {
 					ADDCYC(7);
-					PUSH(CPU_PC >> 8);
-					PUSH(CPU_PC);
-					PUSH((CPU_P & ~B_FLAG) | (U_FLAG));
-					CPU_P |= I_FLAG;
-					CPU_PC = RdMem(0xFFFA);
-					CPU_PC |= RdMem(0xFFFB) << 8;
-					CPU_IRQlow &= ~FCEU_IQNMI;
+					PUSH(cpu.PC >> 8);
+					PUSH(cpu.PC);
+					PUSH((cpu.P & ~B_FLAG) | (U_FLAG));
+					cpu.P |= I_FLAG;
+					cpu.PC = RdMem(0xFFFA);
+					cpu.PC |= RdMem(0xFFFB) << 8;
+					cpu.IRQlow &= ~FCEU_IQNMI;
 				}
 			} else {
-				if (!(CPU_PI & I_FLAG) && !CPU_jammed) {
+				if (!(cpu.mooPI & I_FLAG) && !cpu.jammed) {
 					ADDCYC(7);
-					PUSH(CPU_PC >> 8);
-					PUSH(CPU_PC);
-					PUSH((CPU_P & ~B_FLAG) | (U_FLAG));
-					CPU_P |= I_FLAG;
-					CPU_PC = RdMem(0xFFFE);
-					CPU_PC |= RdMem(0xFFFF) << 8;
+					PUSH(cpu.PC >> 8);
+					PUSH(cpu.PC);
+					PUSH((cpu.P & ~B_FLAG) | (U_FLAG));
+					cpu.P |= I_FLAG;
+					cpu.PC = RdMem(0xFFFE);
+					cpu.PC |= RdMem(0xFFFF) << 8;
 				}
 			}
-			CPU_IRQlow &= ~(FCEU_IQTEMP);
-			if (CPU_count <= 0) {
-				CPU_PI = CPU_P;
-				cpu.PC = pbackus;
+			cpu.IRQlow &= ~(FCEU_IQTEMP);
+			if (cpu.count <= 0) {
+				cpu.mooPI = cpu.P;
 				return;
 			}	/* Should increase accuracy without a
 				 * major speed hit.
 				 */
 		}
 
-		CPU_PI = CPU_P;
-		b1 = RdMem(CPU_PC);
+		cpu.mooPI = cpu.P;
+		b1 = RdMem(cpu.PC);
 
 		ADDCYC(CycTable[b1]);
 
-		temp = CPU_tcount;
-		CPU_tcount = 0;
+		temp = cpu.tcount;
+		cpu.tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
 		if (!overclocked)
 			FCEU_SoundCPUHook(temp);
-		cpu.PC = pbackus;
-		CPU_PC++;
+		cpu.PC++;
 		switch (b1) {
-			#include "ops.h"
+			#include "x6502ops.inc"
 		}
 	}
 
-	#undef CPU_PC
-	#define CPU_PC cpu.PC
-	CPU_PC = pbackus;
 	#undef RdRAM
 	#undef WrRAM
 }

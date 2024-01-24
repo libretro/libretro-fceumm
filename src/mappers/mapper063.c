@@ -38,7 +38,7 @@ static uint16 openBus;
 
 static uint8 M63Read(uint32 A) {
 	if (openBus)
-		return cpu.DB;
+		return cpu.openbus;
 	return CartBR(A);
 }
 

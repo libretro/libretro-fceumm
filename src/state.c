@@ -60,7 +60,7 @@ SFORMAT SFCPU[] = {
    { &cpu.Y, 1, "Y\0\0" },
    { &cpu.S, 1, "S\0\0" },
    { &cpu.P, 1, "P\0\0" },
-   { &cpu.DB, 1, "DB"},
+   { &cpu.openbus, 1, "DB"},
    { RAM, 0x800, "RAM" },
    { 0 }
 };
