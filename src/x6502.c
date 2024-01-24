@@ -40,22 +40,19 @@ void (*MapIRQHook)(int a);
 	if (!overclocked) sound_timestamp +=  __x; \
 }
 
-static INLINE uint8 RdMemNorm(uint32 A) {
+static INLINE uint8 RdMem(uint32 A) {
 	return ((cpu.openbus = ARead[A](A)));
 }
 
-static INLINE void WrMemNorm(uint32 A, uint8 V) {
+static INLINE void WrMem(uint32 A, uint8 V) {
 	BWrite[A](A, V);
 }
 
-static INLINE uint8 RdRAMFast(uint32 A) {
+static INLINE uint8 RdRAM(uint32 A) {
 	return ((cpu.openbus = RAM[A]));
 }
 
-static INLINE void WrRAMFast(uint32 A, uint8 V) {
-	RAM[A] = V;
-	cpu.openbus = V;
-}
+static INLINE void WrRAM(uint32 A, uint8 V) { RAM[A] = V; }
 
 uint8 X6502_DMR(uint32 A) {
 	ADDCYC(1);
@@ -361,11 +358,6 @@ void X6502_Power(void) {
 
 void X6502_Run(int32 cycles)
 {
-	#define RdRAM RdMemNorm
-	#define WrRAM WrMemNorm
-	#define RdMem RdMemNorm
-	#define WrMem WrMemNorm
-
 	if (PAL)
 		cycles *= 15;	/* 15*4=60 */
 	else
@@ -433,7 +425,4 @@ void X6502_Run(int32 cycles)
 			#include "x6502ops.inc"
 		}
 	}
-
-	#undef RdRAM
-	#undef WrRAM
 }
