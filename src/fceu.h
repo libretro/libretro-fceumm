@@ -30,8 +30,6 @@ readfunc GetReadHandler(int32 a);
 int AllocGenieRW(void);
 void FlushGenieRW(void);
 
-void FCEU_ResetVidSys(void);
-
 void ResetMapping(void);
 void ResetNES(void);
 void PowerNES(void);
