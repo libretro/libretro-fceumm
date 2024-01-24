@@ -40,8 +40,17 @@ extern X6502 cpu;
 
 extern void (*MapIRQHook)(int a);
 
-#define NTSC_CPU (isDendy ? 1773447.467 : 1789772.7272727272727272)
-#define PAL_CPU  1662607.125
+/* 21.47~ MHz ÷ 12 = 1.789773 MHz */
+#define NTSC_CLOCK_SPEED  1789772.7272727272727272
+
+/* 26.60~ MHz ÷ 16 = 1.662607 MHz */
+#define PAL_CLOCK_SPEED   1662607.125
+
+/* 26.60~ MHz ÷ 15 = 1.773448 MHz */
+#define DENDY_CLOCK_SPEED 1773447.467
+
+#define NTSC_CPU (isDendy ? DENDY_CLOCK_SPEED : NTSC_CLOCK_SPEED)
+#define PAL_CPU  PAL_CLOCK_SPEED
 
 #define FCEU_IQEXT      0x001
 #define FCEU_IQEXT2     0x002
