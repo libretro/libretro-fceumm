@@ -62,7 +62,7 @@ static void Sync(void) {
 static uint8 M235Read(uint32 A) {
 	if (openbus) {
 		openbus = 0;
-		return X.DB;
+		return cpu.DB;
 	}
 	return CartBR(A);
 }

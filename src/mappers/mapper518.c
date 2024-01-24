@@ -58,9 +58,8 @@ static void UNLD2000Write(uint32 A, uint8 V) {
 
 static uint8 UNLD2000Read(uint32 A) {
 	if (prg & 0x40)
-		return X.DB;
-	else
-		return CartBR(A);
+		return cpu.DB;
+	return CartBR(A);
 }
 
 static void UNLD2000Power(void) {

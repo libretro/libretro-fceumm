@@ -61,7 +61,7 @@ static void MBWRAM(uint32 A, uint8 V) {
 
 static uint8 MAWRAM(uint32 A) {
 	if (!MMC1WRAMEnabled() && !is155)
-		return X.DB;			/* WRAM is disabled */
+		return cpu.DB;			/* WRAM is disabled */
 	return(Page[A >> 11][A]);
 }
 

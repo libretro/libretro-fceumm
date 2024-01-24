@@ -38,8 +38,8 @@ static void M334Write(uint32 A, uint8 V) {
 
 static uint8 M334Read(uint32 A) {
     if (A & 2)
-        return ((X.DB & 0xFE) | (dipswitch & 1));
-    return X.DB;
+        return ((cpu.DB & 0xFE) | (dipswitch & 1));
+    return cpu.DB;
 }
 
 static void M334Reset(void) {

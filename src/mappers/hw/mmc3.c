@@ -482,7 +482,7 @@ static void M45CW(uint32 A, uint8 V) {
 }
 
 static uint8 M45ReadOB(uint32 A) {
-	return X.DB;
+	return cpu.DB;
 }
 
 static void M45PW(uint32 A, uint8 V) {
@@ -515,8 +515,8 @@ static void M45Write(uint32 A, uint8 V) {
 static uint8 M45Read(uint32 A) {
 	uint32 addr = 1 << (EXPREGS[5] + 4);
 	if (A & (addr | (addr - 1)))
-		return X.DB | 1;
-	return X.DB;
+		return cpu.DB | 1;
+	return cpu.DB;
 }
 
 static void M45Reset(void) {

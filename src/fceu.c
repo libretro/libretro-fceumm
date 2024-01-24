@@ -61,7 +61,7 @@ static writefunc *BWriteG = NULL;
 static int RWWrap = 0;
 
 static void BNull(uint32 A, uint8 V) { }
-static uint8 ANull(uint32 A) { return(X.DB); }
+static uint8 ANull(uint32 A) { return(cpu.DB); }
 
 int AllocGenieRW(void)
 {

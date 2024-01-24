@@ -364,7 +364,7 @@ static void ResetRL(uint8 *target) {
 	Plinef = target;
 	Pline = target;
 	firsttile = 0;
-	linestartts = timestamp * 48 + X.count;
+	linestartts = timestamp * 48 + cpu.count;
 	tofix = 0;
 	FCEUPPU_LineUpdate();
 	tofix = 1;

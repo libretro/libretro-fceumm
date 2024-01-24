@@ -68,7 +68,7 @@ static void M225LoWrite(uint32 A, uint8 V) {
 
 static uint8 M225LoRead(uint32 A) {
 	if (A & 0x800) return extraRAM[A & 3];
-	return X.DB;
+	return cpu.DB;
 }
 
 static void M225Power(void) {

@@ -71,7 +71,7 @@ static void UNLKS7017Write(uint32 A, uint8 V) {
 
 static uint8 FDSRead4030(uint32 A) {
 	X6502_IRQEnd(FCEU_IQEXT);
-	return X.IRQlow & FCEU_IQEXT ? 1 : 0;
+	return cpu.IRQlow & FCEU_IQEXT ? 1 : 0;
 }
 
 static void UNL7017IRQ(int a) {

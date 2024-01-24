@@ -324,8 +324,8 @@ static uint8 FDSRead4030(uint32 A) {
 	uint8 ret = 0;
 
 	/* Cheap hack. */
-	if (X.IRQlow & FCEU_IQEXT) ret |= 1;
-	if (X.IRQlow & FCEU_IQEXT2) ret |= 2;
+	if (cpu.IRQlow & FCEU_IQEXT) ret |= 1;
+	if (cpu.IRQlow & FCEU_IQEXT2) ret |= 2;
 
 	X6502_IRQEnd(FCEU_IQEXT);
 	X6502_IRQEnd(FCEU_IQEXT2);
@@ -370,9 +370,7 @@ static uint8 FDSRead4031(uint32 A) {
 }
 
 static uint8 FDSRead4032(uint32 A) {
-	uint8 ret;
-
-	ret = X.DB & ~7;
+	uint8 ret = cpu.DB & ~7;
 	if (InDisk == 255)
 		ret |= 5;
 

@@ -301,7 +301,7 @@ static uint8 NSFVectorRead(uint32 A) {
 		else if (A == 0xFFFD) {
 			doreset = 0; return(0x38);
 		}
-		return(X.DB);
+		return(cpu.DB);
 	}
 	return(CartBR(A));
 }

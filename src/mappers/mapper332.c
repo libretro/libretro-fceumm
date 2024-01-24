@@ -53,7 +53,7 @@ static void Sync(void) {
 
 static uint8 BMCWSRead(uint32 A) {
 	if ((creg >> 6) & (dipSwitch &3))
-		return X.DB;
+		return cpu.DB;
 	return CartBR(A);
 }
 

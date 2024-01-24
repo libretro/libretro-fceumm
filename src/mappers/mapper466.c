@@ -28,7 +28,7 @@ static SFORMAT StateRegs[] =
    { 0 }
 };
 
-static uint8 Mapper466_ReadOB(uint32 A) { return X.DB; }
+static uint8 Mapper466_ReadOB(uint32 A) { return cpu.DB; }
 
 static void Mapper466_Sync(void)
 {

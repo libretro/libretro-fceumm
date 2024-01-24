@@ -26,24 +26,24 @@
 #include "fceu.h"
 #include "sound.h"
 
-X6502 X;
+X6502 cpu;
 
 uint32 timestamp;
 uint32 sound_timestamp;
 void (*MapIRQHook)(int a);
 
-#define CPU_PC     X.PC
-#define CPU_A      X.A
-#define CPU_X      X.X
-#define CPU_Y      X.Y
-#define CPU_S      X.S
-#define CPU_P      X.P
-#define CPU_PI     X.mooPI
-#define CPU_DB        X.DB
-#define CPU_count     X.count
-#define CPU_tcount    X.tcount
-#define CPU_IRQlow    X.IRQlow
-#define CPU_jammed    X.jammed
+#define CPU_PC     cpu.PC
+#define CPU_A      cpu.A
+#define CPU_X      cpu.X
+#define CPU_Y      cpu.Y
+#define CPU_S      cpu.S
+#define CPU_P      cpu.P
+#define CPU_PI     cpu.mooPI
+#define CPU_DB        cpu.DB
+#define CPU_count     cpu.count
+#define CPU_tcount    cpu.tcount
+#define CPU_IRQlow    cpu.IRQlow
+#define CPU_jammed    cpu.jammed
 
 #define ADDCYC(x) {									\
 	int __x = x;									\
@@ -74,7 +74,7 @@ static INLINE void WrRAMFast(uint32 A, uint8 V) {
 
 uint8 X6502_DMR(uint32 A) {
 	ADDCYC(1);
-	return(X.DB = ARead[A](A));
+	return(cpu.DB = ARead[A](A));
 }
 
 void X6502_DMW(uint32 A, uint8 V) {
@@ -357,7 +357,7 @@ void X6502_Reset(void) {
 void X6502_Init(void) {
 	int x;
 
-	memset((void*)&X, 0, sizeof(X));
+	memset((void*)&cpu, 0, sizeof(cpu));
 	for (x = 0; x < 256; x++)
 		if (!x)
 			ZNTable[x] = Z_FLAG;
@@ -432,7 +432,7 @@ void X6502_Run(int32 cycles)
 			CPU_IRQlow &= ~(FCEU_IQTEMP);
 			if (CPU_count <= 0) {
 				CPU_PI = CPU_P;
-				X.PC = pbackus;
+				cpu.PC = pbackus;
 				return;
 			}	/* Should increase accuracy without a
 				 * major speed hit.
@@ -449,7 +449,7 @@ void X6502_Run(int32 cycles)
 		if (MapIRQHook) MapIRQHook(temp);
 		if (!overclocked)
 			FCEU_SoundCPUHook(temp);
-		X.PC = pbackus;
+		cpu.PC = pbackus;
 		CPU_PC++;
 		switch (b1) {
 			#include "ops.h"
@@ -457,7 +457,7 @@ void X6502_Run(int32 cycles)
 	}
 
 	#undef CPU_PC
-	#define CPU_PC X.PC
+	#define CPU_PC cpu.PC
 	CPU_PC = pbackus;
 	#undef RdRAM
 	#undef WrRAM

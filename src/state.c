@@ -54,24 +54,24 @@ extern SFORMAT FCEUSND_STATEINFO[];
 extern SFORMAT FCEUCTRL_STATEINFO[];
 
 SFORMAT SFCPU[] = {
-   { &X.PC, 2 | RLSB, "PC\0" },
-   { &X.A, 1, "A\0\0" },
-   { &X.X, 1, "X\0\0" },
-   { &X.Y, 1, "Y\0\0" },
-   { &X.S, 1, "S\0\0" },
-   { &X.P, 1, "P\0\0" },
-   { &X.DB, 1, "DB"},
+   { &cpu.PC, 2 | RLSB, "PC\0" },
+   { &cpu.A, 1, "A\0\0" },
+   { &cpu.X, 1, "X\0\0" },
+   { &cpu.Y, 1, "Y\0\0" },
+   { &cpu.S, 1, "S\0\0" },
+   { &cpu.P, 1, "P\0\0" },
+   { &cpu.DB, 1, "DB"},
    { RAM, 0x800, "RAM" },
    { 0 }
 };
 
 SFORMAT SFCPUC[] = {
-   { &X.jammed, 1, "JAMM" },
-   { &X.IRQlow, 4 | RLSB, "IQLB" },
-   { &X.tcount, 4 | RLSB, "ICoa" },
-   { &X.count, 4 | RLSB, "ICou" },
+   { &cpu.jammed, 1, "JAMM" },
+   { &cpu.IRQlow, 4 | RLSB, "IQLB" },
+   { &cpu.tcount, 4 | RLSB, "ICoa" },
+   { &cpu.count, 4 | RLSB, "ICou" },
    { &timestampbase, sizeof(timestampbase) | RLSB, "TSBS" },
-   { &X.mooPI, 1, "MooP"},
+   { &cpu.mooPI, 1, "MooP"},
    { 0 }
 };
 
@@ -231,7 +231,7 @@ static int ReadStateChunks(memstream_t *st, int32 totalsize)
             if (!ReadStateChunk(st, SFCPUC, size))
                ret = 0;
             /* else
-               X.mooPI = X.P; */ /* Quick and dirty hack. */
+               cpu.mooPI = cpu.P; */ /* Quick and dirty hack. */
             break;
          case 3:
             if (!ReadStateChunk(st, FCEUPPU_STATEINFO, size))
@@ -321,7 +321,7 @@ void FCEUSS_Load_Mem(void)
    x = ReadStateChunks(mem, totalsize);
 
    if (stateversion < 9500)
-      X.IRQlow = 0;
+      cpu.IRQlow = 0;
 
    if (GameStateRestore)
       GameStateRestore(stateversion);

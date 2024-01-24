@@ -27,7 +27,7 @@ void X6502_Run(int32 cycles);
 
 extern uint32 timestamp;
 extern uint32 sound_timestamp;
-extern X6502 X;
+extern X6502 cpu;
 
 #define N_FLAG  0x80
 #define V_FLAG  0x40

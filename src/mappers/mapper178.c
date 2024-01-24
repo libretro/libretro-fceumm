@@ -115,8 +115,8 @@ static void M178WriteSnd(uint32 A, uint8 V) {
 
 static uint8 M178ReadSnd(uint32 A) {
 	if (A == 0x5800)
-		return (X.DB & 0xBF) | ((pcm_enable ^ 1) << 6);
-	return X.DB;
+		return (cpu.DB & 0xBF) | ((pcm_enable ^ 1) << 6);
+	return cpu.DB;
 }
 
 static void M178Power(void) {

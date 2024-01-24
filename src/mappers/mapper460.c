@@ -22,7 +22,7 @@
 
 static uint8 *CHRRAM =NULL;
 
-static uint8 Mapper460_ReadOB(uint32 A) { return X.DB; }
+static uint8 Mapper460_ReadOB(uint32 A) { return cpu.DB; }
 
 static void Mapper460_PRGWrap(uint32 A, uint8 V) {
 	int prgAND =0x0F;
