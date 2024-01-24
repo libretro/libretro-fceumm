@@ -2868,7 +2868,6 @@ static void retro_run_blit(uint8_t *gfx)
 
 void retro_run(void)
 {
-   uint8_t *gfx;
    int32_t ssize = 0;
    bool updated  = false;
 
@@ -2876,12 +2875,12 @@ void retro_run(void)
       check_variables(false);
 
    FCEUD_UpdateInput();
-   FCEUI_Emulate(&gfx, &sound, &ssize, 0);
+   ssize = FCEUI_Emulate();
 
-   retro_run_blit(gfx);
+   retro_run_blit(XBuf);
 
-   stereo_filter_apply(sound, ssize);
-   audio_batch_cb((const int16_t*)sound, ssize);
+   stereo_filter_apply(WaveFinal, ssize);
+   audio_batch_cb((const int16_t*)WaveFinal, ssize);
 }
 
 size_t retro_serialize_size(void)
@@ -2970,7 +2969,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    int    c;
    int    type = 1;
 
-   if (code == NULL)
+   if (!code)
       return;
 
    sprintf(name, "N/A");

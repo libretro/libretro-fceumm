@@ -21,8 +21,6 @@ extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
                            * found on some famiclones/Dendy models.
                            */
 
-void ResetGameLoaded(void);
-
 void FCEU_MemoryRand(uint8 *ptr, uint32 size);
 void SetReadHandler(int32 start, int32 end, readfunc func);
 void SetWriteHandler(int32 start, int32 end, writefunc func);

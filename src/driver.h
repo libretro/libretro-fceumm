@@ -96,7 +96,7 @@ FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufs
 int FCEUI_Initialize(void);
 
 /* Emulates a frame. */
-void FCEUI_Emulate(uint8 **, int32 **, int32 *, int);
+int FCEUI_Emulate(void);
 
 /* Closes currently loaded game */
 void FCEUI_CloseGame(void);
@@ -109,12 +109,6 @@ void FCEUI_SetGameGenie(int a);
 
 /* Set video system a=0 NTSC, a=1 PAL */
 void FCEUI_SetVidSystem(int a);
-
-/* Convenience function; returns currently emulated video system(0=NTSC, 1=PAL).  */
-int FCEUI_GetCurrentVidSystem(int *slstart, int *slend);
-
-/* First and last scanlines to render, for ntsc and pal emulation. */
-void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall);
 
 /* Sets the base directory (bios and palette files are saved
    in this directory. */
