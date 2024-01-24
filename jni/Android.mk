@@ -1,6 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 
 CORE_DIR := $(LOCAL_PATH)/../src
+LINK_T := $(LOCAL_PATH)/../libretro/link.T
 
 HAVE_NTSC := 1
 
@@ -17,5 +18,5 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := retro
 LOCAL_SRC_FILES := $(SOURCES_C)
 LOCAL_CFLAGS    := $(COREFLAGS)
-LOCAL_LDFLAGS   := -Wl,-version-script=$(CORE_DIR)/libretro/link.T
+LOCAL_LDFLAGS   := -Wl,-version-script=$(LINK_T)
 include $(BUILD_SHARED_LIBRARY)

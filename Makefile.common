@@ -1,5 +1,5 @@
 SOURCE_DIR := $(CORE_DIR)
-LIBRETRO_DIR := $(SOURCE_DIR)/libretro
+LIBRETRO_DIR := $(CORE_DIR)/../libretro
 LIBRETRO_COMM_DIR := $(LIBRETRO_DIR)/libretro-common
 
 INCFLAGS := \
