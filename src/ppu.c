@@ -118,10 +118,11 @@ static int deempcnt[8];
 void (*GameHBIRQHook)(void), (*GameHBIRQHook2)(void);
 void (*PPU_hook)(uint32 A);
 
-uint8 vtoggle = 0;
-uint8 XOffset = 0;
+static uint8 vtoggle = 0;
+static uint8 XOffset = 0;
 
-uint32 TempAddr = 0, RefreshAddr = 0;
+static uint32 TempAddr = 0;
+uint32 RefreshAddr = 0;
 
 static int maxsprites = 8;
 
