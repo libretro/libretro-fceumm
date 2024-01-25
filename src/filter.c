@@ -138,17 +138,17 @@ void MakeFilters(int32 rate) {
 		nco = NCOEFFS;
 
 	mrindex = (nco + 1) << 16;
-	mrratio = (PAL ? (int64)(PAL_CPU * 65536) : (int64)(NTSC_CPU * 65536)) / rate;
+	mrratio = (isPAL ? (int64)(PAL_CPU * 65536) : (int64)(NTSC_CPU * 65536)) / rate;
 
 	if (FSettings.soundq == 2)
 	{
-		int32 *tmp = sq2tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
+		int32 *tmp = sq2tabs[(isPAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
 		for (x = 0; x < (SQ2NCOEFFS >> 1); x++)
 			sq2coeffs[x] = sq2coeffs[SQ2NCOEFFS - 1 - x] = tmp[x];
 	}
 	else
 	{
-		int32 *tmp = tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
+		int32 *tmp = tabs[(isPAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
 		for (x = 0; x < (NCOEFFS >> 1); x++)
 			coeffs[x] = coeffs[NCOEFFS - 1 - x] = tmp[x];
 	}

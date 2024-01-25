@@ -426,7 +426,7 @@ static uint8 NSF_read(uint32 A) {
 			}
 			return(CurrentSong - 1);
 		}
-	case 0x3FF3: return PAL;
+	case 0x3FF3: return isPAL;
 	}
 	return 0;
 }
@@ -455,18 +455,15 @@ void DrawNSF(uint8 *XBuf) {
 
 
 	{
-		int32 *Bufpl;
 		int32 mul = 0;
-
-		int l;
-		l = GetSoundBuffer(&Bufpl);
+		int l = GetSoundBuffer();
 
 		if (special == 0) {
 			if (FSettings.SoundVolume)
 				mul = 8192 * 240 / (16384 * FSettings.SoundVolume / 50);
 			for (x = 0; x < 256; x++) {
 				uint32 y;
-				y = 142 + ((Bufpl[(x * l) >> 8] * mul) >> 14);
+				y = 142 + ((WaveFinal[(x * l) >> 8] * mul) >> 14);
 				if (y < 240)
 					XBuf[x + y * 256] = 3;
 			}
@@ -477,7 +474,7 @@ void DrawNSF(uint8 *XBuf) {
 				double r;
 				uint32 xp, yp;
 
-				r = (Bufpl[(x * l) >> 8] * mul) >> 14;
+				r = (WaveFinal[(x * l) >> 8] * mul) >> 14;
 				xp = 128 + r*cos(x*M_PI*2 / 256);
 				yp = 120 + r*sin(x*M_PI*2 / 256);
 				xp &= 255;
@@ -494,7 +491,7 @@ void DrawNSF(uint8 *XBuf) {
 				uint32 m, n;
 
 				xc = (double)128 - x;
-				yc = 0 - ((double)(((Bufpl[(x * l) >> 8]) * mul) >> 14));
+				yc = 0 - ((double)(((WaveFinal[(x * l) >> 8]) * mul) >> 14));
 				t = M_PI + atan(yc / xc);
 				r = sqrt(xc * xc + yc * yc);
 
@@ -511,7 +508,7 @@ void DrawNSF(uint8 *XBuf) {
 				uint32 m, n;
 
 				xc = (double)x - 128;
-				yc = (double)((Bufpl[(x * l) >> 8] * mul) >> 14);
+				yc = (double)((WaveFinal[(x * l) >> 8] * mul) >> 14);
 				t = atan(yc / xc);
 				r = sqrt(xc * xc + yc * yc);
 

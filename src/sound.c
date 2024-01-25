@@ -154,7 +154,7 @@ static void (*DoSQ2)(void) = Dummyfunc;
 static uint32 ChannelBC[5];
 
 static void LoadDMCPeriod(uint8 V) {
-	if (PAL)
+	if (isPAL)
 		DMCPeriod = PALDMCTable[V];
 	else
 		DMCPeriod = NTSCDMCTable[V];
@@ -435,7 +435,6 @@ static void FrameSoundUpdate(void) {
 }
 
 static INLINE void tester(void) {
-	if (DMCBitCount == 0) {
 		if (!DMCHaveDMA)
 			DMCHaveSample = 0;
 		else {
@@ -443,7 +442,6 @@ static INLINE void tester(void) {
 			DMCShift = DMCDMABuf;
 			DMCHaveDMA = 0;
 		}
-	}
 }
 
 static INLINE void DMCDMA(void) {
@@ -496,7 +494,8 @@ void FCEU_SoundCPUHook(int cycles) {
 		DMCacc += DMCPeriod;
 		DMCBitCount = (DMCBitCount + 1) & 7;
 		DMCShift >>= 1;
-		tester();
+		if (DMCBitCount == 0)
+			tester();
 	}
 }
 
@@ -527,9 +526,8 @@ static INLINE void RDoSQ(int x) {
 	!CheckFreq(curfreq[x], PSG[(x << 2) | 0x1]) ||
 	!lengthcount[x]) {
 		rc -= V;
-		if (rc <= 0) {
+		if (rc <= 0)
 			rc = cf - (-rc % cf);
-		}
 	} else {
 		int dutyCycle;
 
@@ -763,7 +761,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				/* used to added <<(16+2) when the noise table
 				 * values were half.
 				 */
-				if (PAL)
+				if (isPAL)
 					lq_noiseacc += PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
 				else
 					lq_noiseacc += NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
@@ -800,7 +798,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				/* used to be added <<(16+2) when the noise table
 				 * values were half.
 				 */
-				if (PAL)
+				if (isPAL)
 					lq_noiseacc += PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
 				else
 					lq_noiseacc += NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
@@ -842,9 +840,8 @@ static void RDoNoise(void) {
 
 	outo = amptab[(nreg >> 0xe) & 1];
 
-	if (!lengthcount[3]) {
+	if (!lengthcount[3])
 		outo = amptab[0] = 0;
-	}
 
 	if (PSG[0xE] & 0x80) {/* "short" noise */
 		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
@@ -852,7 +849,7 @@ static void RDoNoise(void) {
 			wlcount[3]--;
 			if (!wlcount[3]) {
 				uint8 feedback;
-				if (PAL)
+				if (isPAL)
 					wlcount[3] = PALNoiseFreqTable[PSG[0xE] & 0xF];
 				else
 					wlcount[3] = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
@@ -868,7 +865,7 @@ static void RDoNoise(void) {
 			wlcount[3]--;
 			if (!wlcount[3]) {
 				uint8 feedback;
-				if (PAL)
+				if (isPAL)
 					wlcount[3] = PALNoiseFreqTable[PSG[0xE] & 0xF];
 				else
 					wlcount[3] = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
@@ -972,10 +969,7 @@ int FlushEmulateSound(void) {
 	return end;
 }
 
-int GetSoundBuffer(int32 **W) {
-	*W = WaveFinal;
-	return(inbuf);
-}
+int GetSoundBuffer(void) { return(inbuf); }
 
 /* FIXME:  Find out what sound registers get reset on reset.  I know $4001/$4005 don't,
 due to that whole MegaMan 2 Game Genie thing.
@@ -1042,7 +1036,7 @@ void FCEUSND_Power(void) {
 void SetSoundVariables(void) {
 	int x;
 
-	fhinc = PAL ? 16626 : 14915;	/* *2 CPU clock rate */
+	fhinc  = isPAL ? 16626 : 14915;	/* *2 CPU clock rate */
 	fhinc *= 24;
 
 	if (FSettings.SndRate) {
@@ -1080,26 +1074,13 @@ void SetSoundVariables(void) {
 	if (GameExpSound.RChange)
 		GameExpSound.RChange();
 
-	nesincsize = (int64)(((int64)1 << 17) * (double)(PAL ? PAL_CPU : NTSC_CPU) / (FSettings.SndRate * 16));
+	nesincsize = (int64)(((int64)1 << 17) * (double)(isPAL ? PAL_CPU : NTSC_CPU) / (FSettings.SndRate * 16));
 	memset(sqacc, 0, sizeof(sqacc));
 	memset(ChannelBC, 0, sizeof(ChannelBC));
 
 	LoadDMCPeriod(DMCFormat & 0xF);	/* For changing from PAL to NTSC */
 
-	soundtsinc = (uint32)((uint64)(PAL ? (long double)PAL_CPU * 65536 : (long double)NTSC_CPU * 65536) / (FSettings.SndRate * 16));
-}
-
-void FCEUI_Sound(int Rate) {
-	FSettings.SndRate = Rate;
-	SetSoundVariables();
-}
-
-void FCEUI_SetLowPass(int q) { FSettings.lowpass = q; }
-void FCEUI_SetSoundVolume(uint32 volume) { FSettings.SoundVolume = volume; }
-
-void FCEUI_SetSoundQuality(int quality) {
-	FSettings.soundq = quality;
-	SetSoundVariables();
+	soundtsinc = (uint32)((uint64)(isPAL ? (long double)PAL_CPU * 65536 : (long double)NTSC_CPU * 65536) / (FSettings.SndRate * 16));
 }
 
 SFORMAT FCEUSND_STATEINFO[] = {

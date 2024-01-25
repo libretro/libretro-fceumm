@@ -160,7 +160,7 @@ void SetWriteHandler(int32 start, int32 end, writefunc func)
 
 uint8 RAM[0x800];
 
-uint8 PAL = 0;
+uint8 isPAL = 0;
 
 static void BRAML(uint32 A, uint8 V) { RAM[A] = V; }
 static uint8 ARAML(uint32 A) { return RAM[A]; }
@@ -200,7 +200,7 @@ static void ResetGameLoaded(void)
 	MapIRQHook = NULL;
 	MMC5Hack = 0;
 	PEC586Hack = 0;
-	PAL &= 1;
+	isPAL &= 1;
 	pale = 0;
 }
 
@@ -223,9 +223,9 @@ static void FCEU_ResetVidSys(void)
 	else
 		w = FSettings.PAL;
 
-	PAL = w ? 1 : 0;
+	isPAL = w ? 1 : 0;
 
-   if (PAL)
+   if (isPAL)
       isDendy = 0;
 
    normal_scanlines = isDendy ? 290 : 240;

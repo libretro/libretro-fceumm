@@ -61,7 +61,7 @@ extern void (*GameStateRestore)(int version);
 #include "git.h"
 extern FCEUGI *GameInfo;
 
-extern uint8 PAL;
+extern uint8 isPAL;
 
 #include "driver.h"
 

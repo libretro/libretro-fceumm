@@ -358,7 +358,7 @@ void X6502_Power(void) {
 
 void X6502_Run(int32 cycles)
 {
-	if (PAL)
+	if (isPAL)
 		cycles *= 15;	/* 15*4=60 */
 	else
 		cycles *= 16;	/* 16*4=64 */

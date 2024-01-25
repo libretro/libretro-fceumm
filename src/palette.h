@@ -7,7 +7,6 @@ typedef struct {
 
 extern pal *palo;
 extern int ipalette;
-void FCEU_ResetPalette(void);
 
 void FCEU_ResetPalette(void);
 void FCEU_LoadGamePalette(void);

@@ -119,20 +119,9 @@ void FCEUI_SetBaseDirectory(const char *dir);
 */
 void FCEUI_SetPaletteArray(uint8 *pal);
 
-/* Sets up sound code to render sound at the specified rate, in samples
-   per second.  Only sample rates of 44100, 48000, and 96000 are currently
-   supported.
-   If "Rate" equals 0, sound is disabled.
-*/
-void FCEUI_Sound(int Rate);
-void FCEUI_SetSoundVolume(uint32 volume);
-void FCEUI_SetSoundQuality(int quality);
-
 int FCEUI_DecodePAR(const char *code, uint16 *a, uint8 *v, int *c, int *type);
 int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c);
 int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int type);
-
-void FCEUI_SetLowPass(int q);
 
 void FCEUI_NSFSetVis(int mode);
 int FCEUI_NSFChange(int amount);
