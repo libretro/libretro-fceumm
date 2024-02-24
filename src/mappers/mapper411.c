@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,55 +32,58 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M411CW(uint32 A, uint8 V) {
-	uint32 mask = (EXPREGS[1] & 2) ? 0xFF : 0x7F;
-	V &= mask;
-	setchr1(A, V | ((EXPREGS[1] << 5) & 0x80) | ((EXPREGS[0] << 4) & 0x100));
+static uint8 reg[2];
+
+static void M411CW(uint16 A, uint16 V) {
+	uint16 mask = (reg[1] & 0x02) ? 0xFF : 0x7F;
+	uint16 base = ((reg[0] << 4) & 0x100) | ((reg[1] << 5) & 0x80);
+
+	setchr1(A, (base & ~mask) | (V & mask));
 }
 
-static void M411PW(uint32 A, uint8 V) {
+static void M411PW(uint16 A, uint16 V) {
+	uint16 mask = (reg[1] & 0x02) ? 0x1F : 0x0F;
+	uint16 base = ((reg[1] >> 2) & 0x10) | (reg[1] & 0x08) | (reg[0] & 0x04) | ((reg[0] >> 2) & 0x02) | (reg[0] & 0x01);
+
 	/* NROM Mode */
-	if (EXPREGS[0] & 0x40)
-	{
-		uint32 bank = (EXPREGS[0] & 1) | ((EXPREGS[0] >> 2) & 2) | (EXPREGS[0] & 4) | (EXPREGS[1] & 8) | ((EXPREGS[1] >> 2) & 0x10);
-
-		/* NROM-256 */
-		if (EXPREGS[0] & 0x02) {
-			setprg32(0x8000, bank >> 1);
-
-		/* NROM-128 */
-		} else {
-			setprg16(0x8000, bank);
-			setprg16(0xC000, bank);
+	if ((reg[0] & 0x40) && !(reg[0] & 0x20)) { /* $5xx0 bit 5 check required for JY-212 */
+		if (reg[0] & 0x02) { /* NROM-256 */
+			setprg32(0x8000, base >> 1);
+		} else { /* NROM-128 */
+			setprg16(0x8000, base);
+			setprg16(0xC000, base);
 		}
-	}
-
-	/* MMC3 Mode */
-	else
-	{
-		uint32 mask = (EXPREGS[1] & 2) ? 0x1F : 0x0F;
-		V &= mask;
-		setprg8(A, V | ((EXPREGS[1] << 1) & 0x10) | ((EXPREGS[1] >> 1) & 0x20));
+	} else { /* MMC3 */
+		setprg8(A, ((base << 1) & ~mask) | (V & mask));
 	}
 }
 
-static void M411Write5000(uint32 A, uint8 V) {
-	EXPREGS[A & 1] = V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(M411Write) {
+	if (A & 0x800) {
+		reg[A & 0x01] = V;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+	}
+}
+
+static void M411Reset(void) {
+	reg[0] = 0x80;
+	reg[1] = 0x82;
+	MMC3_Reset();
 }
 
 static void M411Power(void) {
-	EXPREGS[0] = 0x80;
-	EXPREGS[1] = 0x82;
-	GenMMC3Power();
-	SetWriteHandler(0x5000, 0x5FFF, M411Write5000);
+	reg[0] = 0x80;
+	reg[1] = 0x82;
+	MMC3_Power();
+	SetWriteHandler(0x5000, 0x5FFF, M411Write);
 }
 
 void Mapper411_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	pwrap = M411PW;
-	cwrap = M411CW;
+	MMC3_Init(info, 0, 0);
+	MMC3_pwrap = M411PW;
+	MMC3_cwrap = M411CW;
 	info->Power = M411Power;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+	info->Reset = M411Reset;
+	AddExState(reg, 2, 0, "EXPR");
 }

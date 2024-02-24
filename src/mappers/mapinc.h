@@ -12,6 +12,7 @@
 #include "../cheat.h"
 #include "../unif.h"
 #include "../ines.h"
+#include "../nsf.h"
 #include <string.h>
 
 #endif /* _MAPINC_H */

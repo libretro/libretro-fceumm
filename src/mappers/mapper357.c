@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,86 +28,85 @@
 
 #include "mapinc.h"
 
-static uint8 preg[4];
-static uint8 dipswitch;
+static uint8 reg[4];
+static uint8 dipsw;
 static uint8 IRQa;
 static uint16 IRQCount;
 
-static const uint8 banks[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };
-static const uint8 outer_bank[4] = { 0x00, 0x08, 0x10, 0x18 };
-
-static SFORMAT StateRegs[] =
-{
-	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
-	{ &IRQa, 1 | FCEUSTATE_RLSB, "IRQA" },
-	{ &dipswitch, 1, "DPSW" },
-	{ &preg, 4, "REG" },
+static SFORMAT StateRegs[] = {
+	{ reg, 4, "REG" },
+	{ &dipsw, 1, "DPSW" },
+	{ &IRQCount, 2, "IRQC" },
+	{ &IRQa, 1, "IRQA" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (dipswitch == 0) {
+	if (dipsw == 0) {
+		static const uint8 banks[2][8] = {
+			{ 4, 3, 5, 3, 6, 3, 7, 3 },
+			{ 1, 1, 5, 1, 4, 1, 5, 1 }
+		};
 		/* SMB2J Mode */
-		setprg4(0x5000, 16);
-		setprg8(0x6000, preg[1] ? 0 : 2);
-		setprg8(0x8000, 1);
-		setprg8(0xa000, 0);
-		setprg8(0xc000, banks[preg[0]]);
-		setprg8(0xe000, preg[1] ? 8 : 10);
+		setprg8(0x6000, reg[1] ? 0 : 2);
+		setprg8(0x8000, reg[1] ? 0 : 1);
+		setprg8(0xA000, 0);
+		setprg8(0xC000, banks[reg[1]][reg[0]]);
+		setprg8(0xE000, reg[1] ? 8 : 10);
 	} else {
 		/* UNROM Mode */
-		setprg16(0x8000, outer_bank[dipswitch] | preg[2]);
-		setprg16(0xc000, outer_bank[dipswitch] | 7);
-	}
-	setchr8(0);
-	setmirror(dipswitch == 3 ? MI_H : MI_V);
-}
-
-static void M357WriteLo(uint32 A, uint8 V) {
-	switch (A & 0x71ff) {
-		case 0x4022: preg[0] = V & 7; Sync(); break;
-		case 0x4120: preg[1] = V & 1; Sync(); break;
+		setprg16(0x8000, (dipsw << 3) | reg[2]);
+		setprg16(0xc000, (dipsw << 3) | 0x07);
 	}
 }
 
-static void M357WriteIRQ(uint32 A, uint8 V) {
-	IRQa = V & 1;
-	if (!IRQa) {
+static DECLFW(M357Write) {
+	if (A & 0x8000) {
+		reg[2] = V & 0x07;
+		Sync();
+	}
+	if ((A & 0x71FF) == 0x4022) {
+		reg[0] = V & 0x07;
+		Sync();
+	}
+	if ((A & 0x71FF) == 0x4120) {
+		reg[1] = V & 0x01;
+		Sync();
+	}
+	if ((A & 0xF1FF) == 0x4122) {
+		IRQa = V & 0x01;
 		IRQCount = 0;
 		X6502_IRQEnd(FCEU_IQEXT);
 	}
 }
 
-static void M357WriteUNROM(uint32 A, uint8 V) {
-	preg[2] = V & 7;
-	Sync();
-}
-
 static void M357Power(void) {
-	preg[0] = 0;
-	preg[1] = 0;
+	reg[0] = 0;
+	reg[1] = 0;
+	reg[2] = 0;
 	IRQa = IRQCount = 0;
+	setchr8(0);
+	setmirror(MI_V);
 	Sync();
-	SetReadHandler(0x5000, 0xffff, CartBR);
-	SetWriteHandler(0x4022, 0x4022, M357WriteLo);
-	SetWriteHandler(0x4120, 0x4120, M357WriteLo);
-	SetWriteHandler(0x4122, 0x4122, M357WriteIRQ);
-	SetWriteHandler(0x8000, 0xffff, M357WriteUNROM);
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x4020, 0xFFFF, M357Write);
 }
 
 static void M357Reset(void) {
+	reg[0] = 0;
+	reg[1] = 0;
+	reg[2] = 0;
 	IRQa = IRQCount = 0;
-	dipswitch++;
-	dipswitch &= 3;
+	dipsw++;
+	dipsw &= 3;
+	setmirror((dipsw == 3) ? MI_H : MI_V);
 	Sync();
 }
 
 static void M357IRQHook(int a) {
 	if (IRQa) {
-		if (IRQCount < 4096)
-			IRQCount += a;
-		else {
-			IRQa = 0;
+		IRQCount += a;
+		if (IRQCount & 0x1000) {
 			X6502_IRQBegin(FCEU_IQEXT);
 		}
 	}
@@ -121,5 +121,5 @@ void Mapper357_Init(CartInfo *info) {
 	info->Power = M357Power;
 	MapIRQHook = M357IRQHook;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

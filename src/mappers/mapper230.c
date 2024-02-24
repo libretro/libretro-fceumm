@@ -1,8 +1,9 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
  *  Copyright (C) 2009 qeed
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,56 +24,45 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 latche, reset;
-static SFORMAT StateRegs[] =
-{
-	{ &reset, 1, "RST" },
-	{ &latche, 1, "LATC" },
+static uint8 mode;
+
+static SFORMAT StateRegs[] = {
+	{ &mode, 1, "MODE" },
 	{ 0 }
 };
 
-static void M230Sync(void) {
-	if (reset) {
-		setprg16(0x8000, latche & 7);
-		setprg16(0xC000, 7);
+static void Sync(void) {
+	if (mode) {  /* Contra mode */
+		setprg16(0x8000, latch.data & 0x07);
+		setprg16(0xC000, 0x07);
 		setmirror(MI_V);
-	} else {
-		uint32 bank = (latche & 0x1F) + 8;
-		if (latche & 0x20) {
-			setprg16(0x8000, bank);
-			setprg16(0xC000, bank);
-		} else
-			setprg32(0x8000, bank >> 1);
-		setmirror((latche >> 6) & 1);
+	} else { /* multicart mode */
+		if (latch.data & 0x20) {
+			setprg16(0x8000, 8 + (latch.data & 0x1F));
+			setprg16(0xC000, 8 + (latch.data & 0x1F));
+		} else {
+			setprg32(0x8000, (8 + (latch.data & 0x1F)) >> 1);
+		}
+		setmirror((latch.data >> 6) & 0x01);
 	}
 	setchr8(0);
 }
 
-static void M230Write(uint32 A, uint8 V) {
-	latche = V;
-	M230Sync();
-}
-
 static void M230Reset(void) {
-	reset ^= 1;
-	M230Sync();
+	mode ^= 1;
+	Latch_RegReset();
 }
 
 static void M230Power(void) {
-	latche = reset = 0;
-	M230Sync();
-	SetWriteHandler(0x8000, 0xFFFF, M230Write);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-}
-
-static void M230StateRestore(int version) {
-	M230Sync();
+	mode = 0;
+	Latch_Power();
 }
 
 void Mapper230_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
 	info->Power = M230Power;
 	info->Reset = M230Reset;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = M230StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

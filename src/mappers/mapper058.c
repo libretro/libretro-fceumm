@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,27 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-/* forward declarations */
-extern uint16 latche;
-void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram);
-
-/*------------------ Map 058 ---------------------------*/
-
-static void M58Sync(void) {
-	if (latche & 0x40) {
-		setprg16(0x8000, latche & 7);
-		setprg16(0xC000, latche & 7);
-	} else
-		setprg32(0x8000, (latche >> 1) & 3);
-	setchr8((latche >> 3) & 7);
-	setmirror(((latche & 0x80) >> 7) ^ 1);
+static void Sync(void) {
+	if (latch.addr & 0x40) {
+		setprg16(0x8000, latch.addr & 0x07);
+		setprg16(0xC000, latch.addr & 0x07);
+	} else {
+		setprg32(0x8000, (latch.addr >> 1) & 0x03);
+	}
+	setchr8((latch.addr >> 3) & 0x07);
+	setmirror(((latch.addr & 0x80) >> 7) ^ 0x01);
 }
 
-void Mapper58_Init(CartInfo *info) {
-	Latch_Init(info, M58Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+void Mapper058_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Reset = Latch_RegReset;
 }
-

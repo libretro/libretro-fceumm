@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,87 +25,83 @@
 
 #include "mapinc.h"
 #include "mmc3.h"
+#include "vrc2and4.h"
 
-static uint8 chrcmd[8], prg0, prg1, bbrk, mirr, swap;
-static SFORMAT StateRegs[] =
-{
-	{ chrcmd, 8, "CHRC" },
-	{ &prg0, 1, "PRG0" },
-	{ &prg1, 1, "PRG1" },
-	{ &bbrk, 1, "BRK" },
-	{ &mirr, 1, "MIRR" },
-	{ &swap, 1, "SWAP" },
-	{ 0 }
+static uint8 reg;
+
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 },
 };
 
-static void Sync(void) {
-	int i;
-	setprg8(0x8000, prg0);
-	setprg8(0xA000, prg1);
-	setprg8(0xC000, ~1);
-	setprg8(0xE000, ~0);
-	for (i = 0; i < 8; i++)
-		setchr1(i << 10, chrcmd[i]);
-	setmirror(mirr ^ 1);
+static uint8 GetChrBase(uint16 A) {
+	if (A & 0x1000) {
+		if (A & 0x800) {
+			return ((reg & 0x80) >> 7);
+		} else {
+			return ((reg & 0x20) >> 5);
+		}
+	}
+	return ((reg & 0x08) >> 3);
 }
 
-static void UNLSL1632CW(uint32 A, uint8 V) {
-	int cbase = (MMC3_cmd & 0x80) << 5;
-	int page0 = (bbrk & 0x08) << 5;
-	int page1 = (bbrk & 0x20) << 3;
-	int page2 = (bbrk & 0x80) << 1;
-	setchr1(cbase ^ 0x0000, page0 | (DRegBuf[0] & (~1)));
-	setchr1(cbase ^ 0x0400, page0 | DRegBuf[0] | 1);
-	setchr1(cbase ^ 0x0800, page0 | (DRegBuf[1] & (~1)));
-	setchr1(cbase ^ 0x0C00, page0 | DRegBuf[1] | 1);
-	setchr1(cbase ^ 0x1000, page1 | DRegBuf[2]);
-	setchr1(cbase ^ 0x1400, page1 | DRegBuf[3]);
-	setchr1(cbase ^ 0x1800, page2 | DRegBuf[4]);
-	setchr1(cbase ^ 0x1c00, page2 | DRegBuf[5]);
+static void M014MMC3CW(uint16 A, uint16 V) {
+	uint16 mask = 0xFF;
+	uint16 base = GetChrBase(A) << 8;
+
+	setchr1(A, (base & ~mask) | (V & mask));
 }
 
-static void UNLSL1632CMDWrite(uint32 A, uint8 V) {
-	if (A == 0xA131)
-		bbrk = V;
-	if (bbrk & 2) {
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-		if (A < 0xC000)
-			MMC3_CMDWrite(A, V);
-		else
-			MMC3_IRQWrite(A, V);
+static void M014VRC24CW(uint16 A, uint16 V) {
+	uint16 mask = 0xFF;
+	uint16 base = GetChrBase(A) << 8;
+
+	setchr1(A, (base & ~mask) | (V & mask));
+}
+
+static DECLFW(M014Write) {
+	if (A == 0xA131) {
+		reg = V;
+		if (reg & 0x02) {
+			MMC3_FixCHR();
+		} else {
+			VRC24_FixCHR();
+		}
+	}
+	if (reg & 0x02) {
+		MMC3_Write(A, V);
 	} else {
-		if ((A >= 0xB000) && (A <= 0xE003)) {
-			int ind = ((((A & 2) | (A >> 10)) >> 1) + 2) & 7;
-			int sar = ((A & 1) << 2);
-			chrcmd[ind] = (chrcmd[ind] & (0xF0 >> sar)) | ((V & 0x0F) << sar);
-		} else
-			switch (A & 0xF003) {
-			case 0x8000: prg0 = V; break;
-			case 0xA000: prg1 = V; break;
-			case 0x9000: mirr = V & 1; break;
-			}
-		Sync();
+		VRC24_Write(A, V);
 	}
 }
 
 static void StateRestore(int version) {
-	if (bbrk & 2) {
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	} else
-		Sync();
+	if (reg & 0x02) {
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+		MMC3_FixMIR();
+	} else {
+		VRC24_FixPRG();
+		VRC24_FixCHR();
+		VRC24_FixMIR();
+	}
 }
 
-static void UNLSL1632Power(void) {
-	GenMMC3Power();
-	SetWriteHandler(0x4100, 0xFFFF, UNLSL1632CMDWrite);
+static void M014Power(void) {
+	reg = 0;
+	VRC24_Power();
+	SetWriteHandler(0x8000, 0xFFFF, M014Write);
 }
 
-void UNLSL1632_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 512, 0, 0);
-	cwrap = UNLSL1632CW;
-	info->Power = UNLSL1632Power;
+void Mapper014_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M014MMC3CW;
+
+	VRC24_Init(info, VRC2, 0x01, 0x02, FALSE, TRUE);
+	VRC24_cwrap = M014VRC24CW;
+
+	info->Power = M014Power;
+
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

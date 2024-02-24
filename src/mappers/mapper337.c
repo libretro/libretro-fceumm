@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,73 +22,58 @@
 /* NES 2.0 Mapper 337 - BMC-CTC-12IN1
  * 12-in-1 Game Card multicart
  * https://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_337
-
- * NES 2.0 Mapper 350 - BMC-891227
- * Super 15-in-1 Game Card 
- * https://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_350
  */
 
 #include "mapinc.h"
 
-static uint8 latche, m350;
+static uint8 reg;
 
-static SFORMAT StateRegs[] =
-{
-	{ &latche, 1, "LATC" },
-	{ &m350, 1, "M350" },
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	uint8 mirroring = m350 ? ((latche >> 7) & 1) : ((latche >> 5) & 1);
-	uint8 mode      = m350 ? ((latche >> 5) & 0x03) : ((latche >> 6) & 0x03);
-	uint8 base      = m350 ? ((latche & 0x40) ? (latche & 0x20) : 0) : 0;
+	uint8 bank = reg & 0x1F;
 
-	setchr8(0);
 	setprg8(0x6000, 1);
-	setprg16r(0, 0x8000, base | (latche & 0x1F));
-	setprg16r(0, 0xC000, base | ((latche & 0x1F) | ((mode & 2) ? 0x07 : (mode & 1))));
-	setmirror(mirroring ^ 1);
+	if (reg & 0x80) { /* UNROM */
+		setprg16(0x8000, bank);
+		setprg16(0xC000, bank | 0x07);
+	} else {
+		if (reg & 0x40) { /* NROM-256 */
+			setprg32(0x8000, bank >> 1);
+		} else { /* NROM-128 */
+			setprg16(0x8000, bank);
+			setprg16(0xC000, bank);
+		}
+	}
+	setchr8(0);
+	setmirror(((reg >> 5) & 0x01) ^ 0x01);
 }
 
-static void BMCCTC12IN1Write8(uint32 A, uint8 V) {
-	latche = (latche & 7) | (V & ~7);
+static DECLFW(M337Write) {
+	if (A < 0xC000) {
+		reg = (reg & 0x07) | (V & ~0x07);
+	} else {
+		reg = (reg & ~0x07) | (V & 0x07);
+	}
 	Sync();
 }
 
-static void BMCCTC12IN1WriteC(uint32 A, uint8 V) {
-	latche = (latche & ~7) | (V & 7);
+static void StateRestore(int version) {
 	Sync();
 }
 
-static void BMCCTC12IN1Power(void) {
+static void M337Power(void) {
+	reg = 0;
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xBFFF, BMCCTC12IN1Write8);
-	SetWriteHandler(0xC000, 0xFFFF, BMCCTC12IN1WriteC);
+	SetWriteHandler(0x8000, 0xFFFF, M337Write);
 }
 
-static void BMCCTC12IN1Reset(void) {
-	latche = 0;
-	Sync();
-}
-
-static void StateRestore(int version) { Sync(); }
-
-/* Mapper 337 - BMC-CTC-12IN1 */
-void BMCCTC12IN1_Init(CartInfo *info) {
-	m350 = 0;
-	info->Power = BMCCTC12IN1Power;
-	info->Reset = BMCCTC12IN1Reset;
+void Mapper337_Init(CartInfo *info) {
+	info->Power = M337Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
-}
-
-/* Mapper 350 - BMC-891227 */
-void BMC891227_Init(CartInfo *info) {
-	m350 = 1;
-	info->Power = BMCCTC12IN1Power;
-	info->Reset = BMCCTC12IN1Reset;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

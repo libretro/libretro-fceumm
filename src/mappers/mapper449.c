@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,84 +19,41 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint16 latchAddr;
-static uint8  latchData;
-static uint8  dipswitch;
-static uint8  dipselect;
+static uint8 dipsw;
 
-static SFORMAT StateRegs[] =
-{
-   { &latchAddr, 2, "ADDR" },
-   { &latchData, 1, "DATA" },
-   { &latchData, 1, "DIPS" },
-   { &dipselect, 1, "DSEL" },
-   { 0 }
+static SFORMAT StateRegs[] = {
+    { &dipsw,  1, "DPSW" },
+    { 0 }
 };
 
-static void Mapper449_Sync(void)
-{
-   int prg =latchAddr >>2 &0x1F | latchAddr >>3 &0x20;
-   if (~latchAddr &0x080)
-   {
-      setprg16(0x8000, prg);
-      setprg16(0xC000, prg |7);
-   }
-   else
-   {
-      if (latchAddr &0x001)
-      {
-         setprg32(0x8000, prg >>1);
-      }
-      else
-      {
-         setprg16(0x8000, prg);
-         setprg16(0xC000, prg);
-      }
-   }
-   setchr8(latchData);
-   setmirror(latchAddr &0x002? MI_H: MI_V);
+static void Sync(void) {
+	uint32 prg = ((latch.addr >> 3) & 0x20) | ((latch.addr >> 2) & 0x1F);
+	uint32 cpuA14 = latch.addr & 0x01;
+	uint32 nrom = (latch.addr >> 7) & 0x01;
+
+	setprg16(0x8000, prg & ~(cpuA14 * nrom));
+	setprg16(0xC000, prg | (cpuA14 * nrom) | (0x07 * !nrom));
+
+	setchr8(latch.data);
+    setmirror((((latch.addr >> 1) & 0x01) ^ 0x01));
 }
 
-static uint8 Mapper449_Read(uint32 A)
-{
-   if (dipselect)
-      return dipswitch &0x3;
-   else
-   if (latchAddr &0x200)
-      return CartBR(A | dipswitch &0xF);
-   return CartBR(A);
+static DECLFR(M449Read) {
+	if (latch.addr & 0x200) {
+		A |= dipsw;
+	}
+	return CartBR(A);
 }
 
-static void Mapper449_WriteDIPSelect(uint32 A, uint8 V) { dipselect = V & 1; }
-
-static void Mapper449_WriteLatch(uint32 A, uint8 V)
-{
-   latchData =V;
-   latchAddr =A &0xFFFF;
-   Mapper449_Sync();
+static void M449Reset(void) {
+	dipsw  = (dipsw + 1) & 0xF;
+	Latch_RegReset();
 }
 
-static void Mapper449_Reset(void)
-{
-   dipswitch++;
-   latchAddr =latchData =0;
-   Mapper449_Sync();
-}
-
-static void Mapper449_Power(void)
-{
-   dipselect =dipswitch =latchAddr =latchData =0;
-   Mapper449_Sync();
-   SetWriteHandler(0x6000, 0x7FFF, Mapper449_WriteDIPSelect);
-   SetWriteHandler(0x8000, 0xFFFF, Mapper449_WriteLatch);
-   SetReadHandler(0x6000, 0x7FFF, CartBR);
-   SetReadHandler(0x8000, 0xFFFF, Mapper449_Read);
-}
-
-void Mapper449_Init(CartInfo *info)
-{
-   info->Power       = Mapper449_Power;
-   info->Reset       = Mapper449_Reset;
-   AddExState(StateRegs, ~0, 0, 0);
+void Mapper449_Init(CartInfo *info) {
+	Latch_Init(info, Sync, M449Read, FALSE, FALSE);
+	info->Reset = M449Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

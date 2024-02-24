@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,58 +22,52 @@
 #include "mapinc.h"
 
 static uint8 latch;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
 static writefunc old4016;
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
 	{ &latch, 1, "LATC" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setchr8((latch >> 2) & 1);
 	setprg8r(0x10, 0x6000, 0);
 	setprg32(0x8000, 0);
-	setprg8(0x8000, latch & 4);			/* Special for VS Gumshoe */
+	setprg8(0x8000, latch & 4); /* Special for VS Gumshoe */
+	setchr8((latch >> 2) & 1);
 }
 
-static void M99Write(uint32 A, uint8 V) {
+static DECLFW(M099Write) {
 	latch = V;
 	Sync();
 	old4016(A, V);
 }
 
-static void M99Power(void) {
+static void M099Power(void) {
 	latch = 0;
 	Sync();
 	old4016 = GetWriteHandler(0x4016);
-	SetWriteHandler(0x4016, 0x4016, M99Write);
+	SetWriteHandler(0x4016, 0x4016, M099Write);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void M99Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
+static void M099Close(void) {
 }
 
 static void StateRestore(int version) {
 	Sync();
 }
 
-void Mapper99_Init(CartInfo *info) {
-	info->Power = M99Power;
-	info->Close = M99Close;
-
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+void Mapper099_Init(CartInfo *info) {
+	info->Power = M099Power;
+	info->Close = M099Close;
 
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
+
+	WRAMSIZE = 8192;
+	WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 }

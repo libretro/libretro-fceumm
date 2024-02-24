@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,35 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 latch;
-
-static void DoNovel(void) {
-	setprg32(0x8000, latch & 3);
-	setchr8(latch & 7);
+static void Sync(void) {
+	setprg32(0x8000, latch.addr);
+	setchr8(latch.addr);
 }
 
-static void NovelWrite(uint32 A, uint8 V) {
-	latch = A & 0xFF;
-	DoNovel();
-}
-
-static void NovelReset(void) {
-	SetWriteHandler(0x8000, 0xFFFF, NovelWrite);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	setprg32(0x8000, 0);
-	setchr8(0);
-}
-
-static void NovelRestore(int version) {
-	DoNovel();
-}
-
-void Novel_Init(CartInfo *info) {
-	AddExState(&latch, 1, 0, "L1");
-	info->Power = NovelReset;
-	GameStateRestore = NovelRestore;
+void Mapper201_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Reset = Latch_RegReset;
 }

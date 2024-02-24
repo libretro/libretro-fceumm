@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,47 +25,30 @@
  */
 
 #include "mapinc.h"
-
-static uint8 latch;
-
-static SFORMAT StateRegs[] =
-{
-	{ &latch, 1, "LATC" },
-	{ 0 }
-};
+#include "latch.h"
 
 static void Sync(void) {
 	setchr8(0);
-	setprg16(0x8000, ((latch & 0x70) >> 1) | (latch & 0x07));
-	setprg16(0xC000, ((latch & 0x70) >> 1) | 0x07 );
+	setprg16(0x8000, ((latch.data & 0x70) >> 1) | (latch.data & 0x07));
+	setprg16(0xC000, ((latch.data & 0x70) >> 1) | 0x07 );
 }
 
-static void FARIDUNROMWrite(uint32 A, uint8 V) {
-	V &= CartBR(A);
-	if ((V & 0x80) && !(latch & 0x80) && !(latch & 0x08))
-		latch = (latch & 0x87) | (V & 0x78);
-	latch = (latch & 0x78) | (V & 0x87);
-	Sync();
+static DECLFW(M324Write) {
+	if ((V & 0x80) && !(latch.data & 0x80) && !(latch.data & 0x08)) {
+		Latch_Write(A, V);
+	} else {
+		latch.data = (latch.data & ~0x07) | (V & 0x07);
+		Sync();
+	}
 }
 
-static void FARIDUNROMPower(void) {
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, FARIDUNROMWrite);
+static void M324Power(void) {
+	Latch_Power();
+	SetWriteHandler(0x8000, 0xFFFF, M324Write);
 }
 
-static void FARIDUNROMReset(void) {
-	latch &= ~0x78;
-	Sync();
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-void FARIDUNROM_Init(CartInfo *info) {
-	info->Power = FARIDUNROMPower;
-	info->Reset = FARIDUNROMReset;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper324_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, TRUE);
+	info->Power = M324Power;
+	info->Reset = Latch_RegReset;
 }

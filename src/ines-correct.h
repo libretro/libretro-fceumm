@@ -1,10 +1,26 @@
 #ifndef _FCEU_INES_CORRECT_H
 #define _FCEU_INES_CORRECT_H
 
-	/* ROM images that have the battery-backed bit set in the header that really
-	don't have battery-backed RAM is not that big of a problem, so I'll
-	treat this differently by only listing games that should have battery-backed RAM.
-	*/
+#include "fceu-types.h"
+#include "cart.h"
+
+struct CHINF {
+	uint32 crc32;
+	int mapper;
+	int submapper;
+	int mirror;
+	int battery;
+	int prgram; /* ines2 prgram format */
+	int chrram; /* ines2 chrram format */
+	int region;
+	int extra;
+};
+
+/* ROM images that have the battery-backed bit set in the header that really
+don't have battery-backed RAM is not that big of a problem, so I'll
+treat this differently by only listing games that should have battery-backed RAM.
+*/
+static struct CHINF nesdb[] = {
 	/* CRC32, mapperNum, SubMapper, Mirroring, hasBattery, prgRam, chrRam, region, extra flags */
 	{ 0xb17574f3,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Heroes of the Lance */
 	{ 0x5de61639,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* AD&D Hillsfar */
@@ -14,6 +30,7 @@
 	{ 0x506e259d,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* DW 4*/
 	{ 0xa86a5318,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Dw 3 */
 	{ 0x45f03d2e,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Faria */
+	{ 0xBC7485B5,    1, DEFAULT, DEFAULT, 1,    0x70,    0X07, NES_PAL, NOEXTRA }, /* Elite (PAL) */
 	{ 0xb8b88130,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy (FFE Hack) */
 	{ 0xcebd2a31,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy */
 	{ 0xd29db3c7,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Final Fantasy 2 */
@@ -21,11 +38,6 @@
 	{ 0xeaf7ed72,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Legend of Zelda */
 	{ 0x3fe272fb,    1, DEFAULT, DEFAULT, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Legend of Zelda */
 	{ 0xba322865,    1, DEFAULT, DEFAULT, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Zelda 2 */
-	{ 0x25952141,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Pool of Radiance */
-	{ 0x1335cb05,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crystalis */
-	{ 0x57e220d0,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 3 */
-	{ 0x889129cb,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics */
-	{ 0xd054ffb0,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics 2*/
 	{ 0xb5ff71ab,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Battle Fleet */
 	{ 0x0c1792da,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Famista '90 */
 	{ 0x47c2020b,   19, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hydlide 3*/
@@ -54,34 +66,34 @@
 	{ 0x330de468,    0, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Obake no Q Tarou - Wanwan Panic (Japan).nes */
 	{ 0xe28f2596,    0, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pac-Land (J) [b2].nes */
 	{ 0x5112dc21,    0, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Wild Gunman (World) (Rev 1).nes */
-	{ 0xd8ee7669,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Adventures of Rad Gravity, The (USA).nes */
-	{ 0x5b837e8d,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alien Syndrome (Japan).nes */
-	{ 0x37ba3261,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Back to the Future Part II & III (USA).nes */
-	{ 0x5b6ca654,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Barbie (USA).nes */
-	{ 0x61a852ea,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Battle Stadium - Senbatsu Pro Yakyuu (Japan).nes */
-	{ 0xf6fa4453,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bigfoot (U) [b4].nes */
-	{ 0x391aa1b8,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Bloody Warriors - Shan-Go no Gyakushuu (Japan).nes */
-	{ 0xa5e8d2cd,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* BreakThru (USA).nes */
-	{ 0x3f56a392,    1, DEFAULT, DFAULT8, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Captain ED (Japan).nes */
-	{ 0x078ced30,    1, DEFAULT, DFAULT8, 1,    0x07, DEFAULT, DEFAULT, NOEXTRA }, /* Choujin - Ultra Baseball (Japan).nes */
-	{ 0xfe364be5,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Deep Dungeon IV - Kuro no Youjutsushi (Japan).nes */
-	{ 0x57c12280,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Demon Sword (U) [b1].nes */
-	{ 0xd09b74dc,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Great Tank (Japan).nes */
-	{ 0xe8baa782,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Gunhed - Aratanaru Tatakai (Japan).nes */
-	{ 0x970bd9c2,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hanjuku Eiyuu (J) [b1].nes */
-	{ 0xcd7a2fd7,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hanjuku Hero (Japan).nes */
-	{ 0x63469396,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hokuto no Ken 4 - Shichisei Haken Den - Hokuto Shinken no Kanata e (Japan).nes */
-	{ 0xe94d5181,    1, DEFAULT, DFAULT8, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Future Wars - Mirai Senshi Lios (Japan).nes */
-	{ 0x7156cb4d,    1, DEFAULT, DFAULT8, 0,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Muppet Adventure - Chaos at the Carnival (USA).nes */
-	{ 0x70f67ab7,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Musashi no Bouken (Japan).nes */
-	{ 0x958e4bae,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Orb-3D (USA).nes */
-	{ 0x291bcd7d,    1, DEFAULT, DFAULT8, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Pachio-kun 2 (Japan).nes */
-	{ 0xa9a4ea4c,    1, DEFAULT, DFAULT8, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Satomi Hakkenden (J) [b2].nes */
-	{ 0xcc3544b0,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Triathron, The (Japan).nes */
-	{ 0x52ab2d17,    1, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Toukyou Pachi-Slot Adventure (Japan).nes */
+	{ 0xd8ee7669,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Adventures of Rad Gravity, The (USA).nes */
+	{ 0x5b837e8d,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alien Syndrome (Japan).nes */
+	{ 0x37ba3261,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Back to the Future Part II & III (USA).nes */
+	{ 0x5b6ca654,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Barbie (USA).nes */
+	{ 0x61a852ea,    1, DEFAULT,    MI_H, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Battle Stadium - Senbatsu Pro Yakyuu (Japan).nes */
+	{ 0xf6fa4453,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bigfoot (U) [b4].nes */
+	{ 0x391aa1b8,    1, DEFAULT,    MI_H, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Bloody Warriors - Shan-Go no Gyakushuu (Japan).nes */
+	{ 0xa5e8d2cd,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* BreakThru (USA).nes */
+	{ 0x3f56a392,    1, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Captain ED (Japan).nes */
+	{ 0x078ced30,    1, DEFAULT,    MI_H, 1,    0x07, DEFAULT, DEFAULT, NOEXTRA }, /* Choujin - Ultra Baseball (Japan).nes */
+	{ 0xfe364be5,    1, DEFAULT,    MI_H, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Deep Dungeon IV - Kuro no Youjutsushi (Japan).nes */
+	{ 0x57c12280,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Demon Sword (U) [b1].nes */
+	{ 0xd09b74dc,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Great Tank (Japan).nes */
+	{ 0xe8baa782,    1, DEFAULT,    MI_H, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Gunhed - Aratanaru Tatakai (Japan).nes */
+	{ 0x970bd9c2,    1, DEFAULT,    MI_H, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hanjuku Eiyuu (J) [b1].nes */
+	{ 0xcd7a2fd7,    1, DEFAULT,    MI_H, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hanjuku Hero (Japan).nes */
+	{ 0x63469396,    1, DEFAULT,    MI_H, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Hokuto no Ken 4 - Shichisei Haken Den - Hokuto Shinken no Kanata e (Japan).nes */
+	{ 0xe94d5181,    1, DEFAULT,    MI_H, 1,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Future Wars - Mirai Senshi Lios (Japan).nes */
+	{ 0x7156cb4d,    1, DEFAULT,    MI_H, 0,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Muppet Adventure - Chaos at the Carnival (USA).nes */
+	{ 0x70f67ab7,    1, DEFAULT,    MI_H, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Musashi no Bouken (Japan).nes */
+	{ 0x958e4bae,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Orb-3D (USA).nes */
+	{ 0x291bcd7d,    1, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Pachio-kun 2 (Japan).nes */
+	{ 0xa9a4ea4c,    1, DEFAULT,    MI_H, 1,    0x70, DEFAULT, DEFAULT, NOEXTRA }, /* Satomi Hakkenden (J) [b2].nes */
+	{ 0xcc3544b0,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Triathron, The (Japan).nes */
+	{ 0x52ab2d17,    1, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Toukyou Pachi-Slot Adventure (Japan).nes */
 	{ 0x934db14a,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* All-Pro Basketball (USA).nes */
 	{ 0xf74dfc91,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Win, Lose or Draw (USA).nes */
-	{ 0xcfe02ada,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Darkman (Europe).nes */
+	{ 0xcfe02ada,    1, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Darkman (Europe).nes */
 	{ 0x1a71fd06,    1, DEFAULT,    MI_H, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Kujaku Ou.nes */
 
 	/* MMC1 games with more than 8K wram */
@@ -127,7 +139,7 @@
 	{ 0xdbf90772,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alpha Mission (USA).nes */
 	{ 0xd858033d,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ASO - Armored Scrum Object (J).nes */
 	{ 0xd858033d,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ASO - Armored Scrum Object (J).nes */
-	{ 0x637ba508,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Adan y Eva (Spain) (Gluk Video) (Unl).nes */
+	{ 0x637ba508,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Adan y Eva (Spain) (Gluk Video) (Unl).nes */
 	{ 0x9bde3267,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Adventures of Dino Riki (USA).nes */
 	{ 0xd8eff0df,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Gradius (Japan).nes */
 	{ 0x1d41cc8c,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Gyruss (USA).nes */
@@ -139,24 +151,40 @@
 	{ 0x8dedea07,    3, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Shui Guo Li (Ch) [a1].nes */
 	{ 0x684afccd,    3, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Space Hunter (Japan).nes */
 
-	{ 0x97b6cb19,    4, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Aladdin (SuperGame) (Mapper 4) [!].nes */
+	{ 0x97b6cb19,    4,       4, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Aladdin (SuperGame) (Mapper 4) [!].nes */
 	{ 0xd97c31b0,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Lasalle Ishii no Child's Quest (Japan).nes */
 	{ 0x404b2e8b,    4, DEFAULT,    MI_4, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Rad Racer II (USA).nes */
-	{ 0x15141401,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Asmik-kun Land (Japan).nes */
-	{ 0x4cccd878,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kyatto Ninden Teyandee (J) [b1].nes */
-	{ 0x59280bec,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Jackie Chan (Japan).nes */
-	{ 0x7474ac92,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kabuki - Quantum Fighter (USA).nes */
-	{ 0xf2594374,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Matendouji (Japan).nes */
-	{ 0x5337f73c,    4, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Niji no Silk Road (Japan).nes */
-	{ 0x9eefb4b4,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pachi-Slot Adventure 2 - Sorotta-kun no Pachi-Slot Tanteidan (Japan).nes */
-	{ 0xafe03802,    4, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pachio-kun 3 (Japan) (Rev A).nes */
+	{ 0x15141401,    4, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Asmik-kun Land (Japan).nes */
+	{ 0x4cccd878,    4, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kyatto Ninden Teyandee (J) [b1].nes */
+	{ 0x59280bec,    4, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Jackie Chan (Japan).nes */
+	{ 0x7474ac92,    4, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kabuki - Quantum Fighter (USA).nes */
+	{ 0xf2594374,    4, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Matendouji (Japan).nes */
+	{ 0x5337f73c,    4, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Niji no Silk Road (Japan).nes */
+	{ 0x9eefb4b4,    4, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pachi-Slot Adventure 2 - Sorotta-kun no Pachi-Slot Tanteidan (Japan).nes */
+	{ 0xafe03802,    4, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pachio-kun 3 (Japan) (Rev A).nes */
 	{ 0x21a653c7,    4, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Sky Kid (VS).nes */
+	{ 0xF011AFD6,    4,       0, DEFAULT, 0,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Rockman 4- Minus Infinity [Infinite Life]. Basically oversize MMC3 that fails to enable WRAM before accessing it. */
 	{ 0xdb7f07be,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Toki (USA) (Beta).nes */
 	{ 0x8F6CC85A,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (KT-220B) Totally Rad 4-in-1.nes [overdump] */
 	{ 0xAB9DE91F,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (KT-220B) Totally Rad 4-in-1.nes, Commonly set to mapper 176 */
+	{ 0x25952141,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AD&D Pool of Radiance */
+	{ 0x1335cb05,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crystalis */
+	{ 0x57e220d0,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Final Fantasy 3 */
+	{ 0x889129cb,    4,       1, DEFAULT, 1,    0x40, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics */
+	{ 0xd054ffb0,    4,       1, DEFAULT, 1,    0x40, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics 2*/
+	{ 0x33751782,    4,       1, DEFAULT, 1,    0x40, DEFAULT, DEFAULT, NOEXTRA }, /* Zoda's Revenge - StarTropics II (USA, Europe) (Virtual Console).nes */
+	{ 0xE7B34C02,    4,       1, DEFAULT, 1,    0x40, DEFAULT, DEFAULT, NOEXTRA }, /* StarTropics (NTSC).nes */
+	{ 0xF6A64735,    4,       1, DEFAULT, 1,    0x40, DEFAULT, DEFAULT, NOEXTRA }, /* StarTropics (PAL).nes */
+	{ 0xFCEDB11A,    4,       1, DEFAULT, 1,    0x40, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics [music synchronization].nes */
+	{ 0x998422FC,    4,       1, DEFAULT, 1,    0x40, DEFAULT, DEFAULT, NOEXTRA }, /* Startropics_1.nes */
+
+	{ 0x57D162F1,    4,       0, DEFAULT, 0,    0x07, DEFAULT, DEFAULT, NOEXTRA }, /* Mickey Mouse III */
+	{ 0x762653B1,    4,       0, DEFAULT, 0,    0x07, DEFAULT, DEFAULT, NOEXTRA }, /* Mickey Mouse III Dream Balloon (T-Eng) */
+
+	/* CRC32, mapperNum, SubMapper, Mirroring, hasBattery, prgRam, chrRam, region, extra flags */
 
 	/* MMC5 */
-	{ 0x671f23a8,    5, DEFAULT, DEFAULT, 0,       0,        0,     PAL, NOEXTRA }, /* Castlevania III - Dracula's Curse (E) */
+	{ 0x671f23a8,    5, DEFAULT, DEFAULT, 0,       0,        0, NES_PAL, NOEXTRA }, /* Castlevania III - Dracula's Curse (E) */
 	{ 0xcd4e7430,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Castlevania III - Dracula's Curse (KC) */
 	{ 0xed2465be,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Castlevania III - Dracula's Curse (U) */
 	{ 0x0afb395e,    5, DEFAULT, DEFAULT, 0,       0,        0, DEFAULT, NOEXTRA }, /* Gun Sight */
@@ -183,8 +211,8 @@
 	{ 0x184c2124,    5, DEFAULT, DEFAULT, 1,    0x90,        0, DEFAULT, NOEXTRA }, /* Sangokushi II (J) (PRG0) */
 	{ 0xee8e6553,    5, DEFAULT, DEFAULT, 1,    0x90,        0, DEFAULT, NOEXTRA }, /* Sangokushi II (J) (PRG1) */
 
-	{ 0xf518dd58,    7, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Skyhawk (USA).nes */
-	{ 0x6c4a9735,    7, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* WWF Wrestlemania (Europe).nes */
+	{ 0xf518dd58,    7, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Skyhawk (USA).nes */
+	{ 0x6c4a9735,    7, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* WWF Wrestlemania (Europe).nes */
 	{ 0x84382231,    9, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Punch-Out!! (Japan) (Gold Edition).nes */
 	{ 0xbe939fce,    9, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Punch-Out!! (U) [b1].nes */
 	{ 0x7b837fde,    9, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mike Tyson's Punch-Out!! (PC10) [b1].nes */
@@ -192,8 +220,8 @@
 	{ 0xb79f2651,   11, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Chiller (USA) (Unl).nes */
 	{ 0x5e66eaea,   13, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Videomation (USA).nes */
 	{ 0xcd373baa,   14, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 武士魂 (8 characters).nes */
-	{ 0xbfc7a2e9,   16, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball 3 - Gokuu Den (Japan) (Rev 1).nes */
-	{ 0x6e68e31a,   16, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball 3 - Gokuu Den (Japan).nes */
+	{ 0xbfc7a2e9,   16, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball 3 - Gokuu Den (Japan) (Rev 1).nes */
+	{ 0x6e68e31a,   16, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball 3 - Gokuu Den (Japan).nes */
 	{ 0x33b899c9,   16, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Ball - Daimaou Fukkatsu (Japan).nes */
 	{ 0xa262a81f,   16, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Rokudenashi Blues (Japan).nes */
 	{ 0x286fcd20,   21, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (Japan).nes */
@@ -207,23 +235,23 @@
 	{ 0x43753886,   27, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mi Hun Che (Ch)(replaced copyrights)[p1][!].nes */
 	{ 0x5b3de3d1,   27, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* -- */
 	{ 0x511e73f8,   27, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mi Hun Che (Ch) [p1][b2].nes */
-	{ 0x5555fca3,   32, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ai Sensei no Oshiete - Watashi no Hoshi (J) [b1].nes */
-	{ 0x283ad224,   32, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ai Sensei no Oshiete - Watashi no Hoshi (Japan).nes */
-	{ 0x243a8735,   32, DEFAULT,  0x10|4, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Major League (Japan).nes */
-	{ 0x8a7d0abe,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Akira (Japan).nes */
-	{ 0x376138d8,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Akira (J) [a1].nes */
-	{ 0xadf606f6,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bakushou!! Jinsei Gekijou (Japan).nes */
-	{ 0xbc7b1d0f,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bakushou!! Jinsei Gekijou 2 (Japan).nes */
-	{ 0x7a497ae3,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Don Doko Don (Japan).nes */
-	{ 0xbaca10a9,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Golfkko Open (Japan).nes */
-	{ 0xf80bdc50,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Insector X (Japan).nes */
-	{ 0x2a6559a1,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Operation Wolf (Japan).nes */
-	{ 0xaeb7fce9,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Power Blazer (Japan).nes */
-	{ 0xd920f9df,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Takeshi no Sengoku Fuuunji (Japan).nes */
-	{ 0x3cd4b420,   33, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Takeshi no Sengoku Fuuunji (Japan) (Beta).nes */
+	{ 0x5555fca3,   32, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ai Sensei no Oshiete - Watashi no Hoshi (J) [b1].nes */
+	{ 0x283ad224,   32, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ai Sensei no Oshiete - Watashi no Hoshi (Japan).nes */
+	{ 0x243a8735,   32, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Major League (Japan).nes */
+	{ 0x8a7d0abe,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Akira (Japan).nes */
+	{ 0x376138d8,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Akira (J) [a1].nes */
+	{ 0xadf606f6,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bakushou!! Jinsei Gekijou (Japan).nes */
+	{ 0xbc7b1d0f,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bakushou!! Jinsei Gekijou 2 (Japan).nes */
+	{ 0x7a497ae3,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Don Doko Don (Japan).nes */
+	{ 0xbaca10a9,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Golfkko Open (Japan).nes */
+	{ 0xf80bdc50,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Insector X (Japan).nes */
+	{ 0x2a6559a1,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Operation Wolf (Japan).nes */
+	{ 0xaeb7fce9,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Power Blazer (Japan).nes */
+	{ 0xd920f9df,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Takeshi no Sengoku Fuuunji (Japan).nes */
+	{ 0x3cd4b420,   33, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Takeshi no Sengoku Fuuunji (Japan) (Beta).nes */
 	{ 0x4c7c1af3,   34, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Caesars Palace (U) [b1].nes */
 	{ 0x932ff06e,   34, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Classic Concentration (U) [b1].nes */
-	{ 0xf46ef39a,   37, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Super Mario Bros. + Tetris + Nintendo World Cup (Europe) (Rev 1).nes */
+	{ 0xf46ef39a,   37, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Super Mario Bros. + Tetris + Nintendo World Cup (Europe) (Rev 1).nes */
 	{ 0x4686c5dd,   41, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Caltron - 6 in 1 (USA) (Unl).nes */
 	{ 0x090c0c17,   42, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ai Senshi Nicol (FDS Conversion) [p1][!].nes */
 	{ 0x4df84825,   42, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ai Senshi Nicol (FDS Conversion) [p2][!].nes */
@@ -235,33 +263,33 @@
 	{ 0x50ab1ab2,   42, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ?? Green Beret (FDS Conversion, LH09) (Unl) [U][!][t1] (160K PRG */
 	{ 0x7ccb12a3,   43, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ?? SMB2j */
 	{ 0x6c71feae,   45, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kunio 8-in-1 [p1].nes */
-	{ 0x40c0ad47,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Flintstones, The - The Rescue of Dino & Hoppy (Japan).nes */
-	{ 0xaebd6549,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bakushou!! Jinsei Gekijou 3 (Japan).nes */
-	{ 0x6cdc0cd9,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bubble Bobble 2 (Japan).nes */
-	{ 0x99c395f9,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Saver (Japan).nes */
-	{ 0xa7b0536c,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Don Doko Don 2 (Japan).nes */
-	{ 0xb17c828a,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Don Doko Don 2 (J) [a1].nes */
-	{ 0x40c0ad47,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Flintstones, The - The Rescue of Dino & Hoppy (J).nes */
-	{ 0x1500e835,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Jetsons, The - Cogswell's Caper (Japan).nes */
-	{ 0xe2c94bc2,   48, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Bros 8 (Unl) [!].nes */
-	{ 0xa912b064,   51, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT,   0x800 }, /* 11-in-1 Ball Games [p1][o1].nes (has CHR ROM when it shouldn't) */
-	{ 0x2e72a5d9,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 11-in-1 (66-in-1, 86-in-1, 63-in-1).nes */
-	{ 0x39f514fd,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 18 in 1 (118-in-1, 138-in-1, 198-in-1)VTxxxx.nes */
-	{ 0xd8b1f465,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 26-in-1 (36-in-1, 46-in-1,56-in-1) VT 335.nes */
-	{ 0xcf82fae9,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 28 in 1 (38-in-1, 48-in-1, 58-in1)VTxxxx.nes */
-	{ 0xa7a98698,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 28-in-1 (46-in-1, 63-in-1, 118-in-1)VT-5116.nes */
-	{ 0x21fd7143,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 41-in-1 (5-in-1,71-in-1)  VT345.nes */
-	{ 0x49ec88d6,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 42-in-1 NT-234 Bad Game Road Fighter.nes */
-	{ 0x60306f19,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 42-in-1 PCB 3840.nes */
-	{ 0x450cd86e,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 48-in-1 (62-in-1,73-in-1,88-in-1) VTxxx.nes */
-	{ 0xd774e041,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 50-in-1 (60-in-1,70-in-1,80-in-1) NT-113.nes */
-	{ 0x3c4e94f6,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 51-in-1 (61-in-1, 71-in-1, 81-in-1) VT5310.nes */
-	{ 0x0422ed44,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 7-in-1 (32-in-1,66-in-1,119-in-1) VT15004.nes */
-	{ 0x7efc0d2c,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 7-in-1 (5000-in-1, 999999999-in-1, 10000000-in-1)NC-07N.nes */
-	{ 0x6d92dff1,   59, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* TN 95-in-1 (6-in-1) [p1].nes */
+	{ 0x40c0ad47,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Flintstones, The - The Rescue of Dino & Hoppy (Japan).nes */
+	{ 0xaebd6549,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bakushou!! Jinsei Gekijou 3 (Japan).nes */
+	{ 0x6cdc0cd9,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bubble Bobble 2 (Japan).nes */
+	{ 0x99c395f9,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Captain Saver (Japan).nes */
+	{ 0xa7b0536c,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Don Doko Don 2 (Japan).nes */
+	{ 0xb17c828a,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Don Doko Don 2 (J) [a1].nes */
+	{ 0x40c0ad47,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Flintstones, The - The Rescue of Dino & Hoppy (J).nes */
+	{ 0x1500e835,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Jetsons, The - Cogswell's Caper (Japan).nes */
+	{ 0xe2c94bc2,   48, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Bros 8 (Unl) [!].nes */
+	{ 0xa912b064,   51, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT,   0x800 }, /* 11-in-1 Ball Games [p1][o1].nes (has CHR ROM when it shouldn't) */
+	{ 0x2e72a5d9,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 11-in-1 (66-in-1, 86-in-1, 63-in-1).nes */
+	{ 0x39f514fd,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 18 in 1 (118-in-1, 138-in-1, 198-in-1)VTxxxx.nes */
+	{ 0xd8b1f465,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 26-in-1 (36-in-1, 46-in-1,56-in-1) VT 335.nes */
+	{ 0xcf82fae9,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 28 in 1 (38-in-1, 48-in-1, 58-in1)VTxxxx.nes */
+	{ 0xa7a98698,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 28-in-1 (46-in-1, 63-in-1, 118-in-1)VT-5116.nes */
+	{ 0x21fd7143,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 41-in-1 (5-in-1,71-in-1)  VT345.nes */
+	{ 0x49ec88d6,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 42-in-1 NT-234 Bad Game Road Fighter.nes */
+	{ 0x60306f19,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 42-in-1 PCB 3840.nes */
+	{ 0x450cd86e,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 48-in-1 (62-in-1,73-in-1,88-in-1) VTxxx.nes */
+	{ 0xd774e041,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 50-in-1 (60-in-1,70-in-1,80-in-1) NT-113.nes */
+	{ 0x3c4e94f6,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 51-in-1 (61-in-1, 71-in-1, 81-in-1) VT5310.nes */
+	{ 0x0422ed44,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 7-in-1 (32-in-1,66-in-1,119-in-1) VT15004.nes */
+	{ 0x7efc0d2c,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 7-in-1 (5000-in-1, 999999999-in-1, 10000000-in-1)NC-07N.nes */
+	{ 0x6d92dff1,   59, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* TN 95-in-1 (6-in-1) [p1].nes */
 	{ 0xF2CCE424,   59, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 78-in-1 (69, 98, 1800-in-1) (VT1512A_20210626) (Unl) [p1].nes */
-	{ 0x39ab0fc7,   64, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hard Drivin' (USA) (Proto) (Unl).nes */
-	{ 0xb19a55dd,   64, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Road Runner (USA) (Unl).nes */
+	{ 0x39ab0fc7,   64, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Hard Drivin' (USA) (Proto) (Unl).nes */
+	{ 0xb19a55dd,   64, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Road Runner (USA) (Unl).nes */
 	{ 0xf92be3ec,   64, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Rolling Thunder (USA) (Unl).nes */
 	{ 0xd114f544,   66, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* AV Super Real Pachinko (Japan) (Unl).nes */
 	{ 0xe84274c5,   66, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mississippi Satsujin Jiken (J) [h2].nes */
@@ -279,21 +307,21 @@
 	{ 0x496ac8f7,   74, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Ji Jia Zhan Shi (Ch) [b3].nes */
 	{ 0xae854cef,   74, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Jia A Fung Yun (Ch).nes */
 	{ 0xba51ac6f,   78, DEFAULT,    MI_4, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Holy Diver (Japan).nes */
-	{ 0x3d1c3137,   78, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Uchuusen Cosmo Carrier (Japan).nes */
+	{ 0x3d1c3137,   78, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Uchuusen Cosmo Carrier (Japan).nes */
 	{ 0xa4fbb438,   79, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* F-15 City War (AVE) (REV1.x) [b1].nes */
 	{ 0xd4a76b07,   79, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* F-15 City War (AVE) (REV1.x) [b2].nes */
 	{ 0x8eab381c,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Deathbots (USA) (Rev 1) (Unl).nes */
 	{ 0x1eb4a920,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Double Strike - Aerial Attack Force (USA) (v1.1) (Unl).nes */
 	{ 0x3e1271d5,   79, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tiles of Fate (USA) (Unl).nes */
 	{ 0xd2699893,   88, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Dragon Spirit - Aratanaru Densetsu (Japan).nes */
-	{ 0xbb7c5f7a,   89, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenka no Goikenban - Mito Koumon (J) [f1].nes */
+	{ 0xbb7c5f7a,   89, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tenka no Goikenban - Mito Koumon (J) [f1].nes */
 	{ 0x082778e6,   91,       1,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Fighter III.nes */
-	{ 0x10119e6b,   93, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Fantasy Zone (Japan) (Sunsoft).nes */
+	{ 0x10119e6b,   93, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Fantasy Zone (Japan) (Sunsoft).nes */
 	{ 0x2b750bf9,  101, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Urusei Yatsura - Lum no Wedding Bell (Japan) (Beta).nes */
 	{ 0x0da5e32e,  101, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Urusei Yatsura - Lum no Wedding Bell (Japan).nes */
 	{ 0x6096f84e,  104, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pegasus 5-in-1 (Golden Five) (Unl).nes */
 	{ 0x3d3ff543,  113, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kazama Jun to Asama Yuuko no AV Dragon Mahjong (Japan) (Unl).nes */
-	{ 0x68379fdb,  113, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Pipemania (Australia) (HES) (Unl).nes */
+	{ 0x68379fdb,  113, DEFAULT,    MI_V, 1, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Pipemania (Australia) (HES) (Unl).nes */
 	{ 0x6a03d3f3,  114, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Lion King, The (Unl) (Mapper 114).nes */
 	{ 0x0d98db53,  114, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pocahontas (Unl).nes */
 	{ 0xf5676f0b,  114, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super Donkey Kong (Unl) [b1].nes */
@@ -308,7 +336,7 @@
 	{ 0x318e5502,  121, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sonic 3D Blast 6 (Unl).nes */
 	{ 0xddcfb058,  121, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Street Fighter Zero 2 '97 (Unl) [!].nes */
 	{ 0xd2674b0a,  132, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Qi Wang - Chinese Chess (Asia) (Ja) (Unl).nes */
-	{ 0x5aefbc94,  133, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Jovial Race (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0x5aefbc94,  133, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Jovial Race (Asia) (Ja) (PAL) (Unl).nes */
 	{ 0xB550B627,  136, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Incantation (Dip Bin) (Joy Van).nes */
 	{ 0xc2df0a00,  140, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Bio Senshi Dan - Increaser Tono Tatakai (J) [hM66][b3].nes */
 	{ 0xe46b1c5d,  140, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mississippi Satsujin Jiken (Japan).nes */
@@ -320,35 +348,35 @@
 	{ 0xa62b79e1,  146, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sidewinder (HES) [o1].nes */
 	{ 0xcc868d4e,  149, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Taiwan Mahjong 16 (Sachen) [a1][!].nes */
 	{ 0x29582ca1,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Mei Nu Quan (Honey Peach) (Sachen) [!].nes */
-	{ 0x40dbf7a2,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Olympic IQ (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0x40dbf7a2,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Olympic IQ (Asia) (Ja) (PAL) (Unl).nes */
 	{ 0x73fb55ac,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Lightgun Game 2 in 1 - Cosmocop + Cyber Monster (Asia) (Ja) (Unl).nes */
 	{ 0xddcbda16,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Lightgun Game 2 in 1 - Tough Cop + Super Tough Cop (Asia) (Ja) (Unl).nes */
-	{ 0x47918d84,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Auto-Upturn (Asia) (Ja) (PAL) (Unl).nes */
-	{ 0x471173e7,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Chinese Checkers (Asia) (Ja) (PAL) (Unl).nes */
-	{ 0x2394ae1c,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Happy Pairs (Asia) (Ja) (PAL) (Unl).nes */
-	{ 0xcab40a6c,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Magic Cube (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0x47918d84,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Auto-Upturn (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0x471173e7,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Chinese Checkers (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0x2394ae1c,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Happy Pairs (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0xcab40a6c,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Magic Cube (Asia) (Ja) (PAL) (Unl).nes */
 	{ 0xbe17e27b,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Poker III (Asia) (Ja) (Alt 2) (Unl).nes */
 	{ 0x34ddf806,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Strategist (Asia) (Ja) (NTSC) (Unl).nes */
-	{ 0xc06facfc,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT,     PAL, NOEXTRA }, /* Strategist (Asia) (Ja) (PAL) (Unl).nes */
+	{ 0xc06facfc,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, NES_PAL, NOEXTRA }, /* Strategist (Asia) (Ja) (PAL) (Unl).nes */
 	{ 0xa95a915a,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tasac (Asia) (Ja) (Unl).nes */
-	{ 0x0f141525,  152, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Arkanoid II (Japan).nes */
-	{ 0xbda8f8e4,  152, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Gegege no Kitarou 2 - Youkai Gundan no Chousen (Japan).nes */
-	{ 0xb1a94b82,  152, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pocket Zaurus - Juu Ouken no Nazo (Japan).nes */
-	{ 0x026c5fca,  152, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Saint Seiya - Ougon Densetsu (Japan).nes */
-	{ 0x3f15d20d,  153, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Famicom Jump II - Saikyou no 7 Nin (Japan).nes */
-	{ 0xd1691028,  154, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Devil Man (Japan).nes */
-	{ 0xcfd4a281,  155, DEFAULT, DFAULT8, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Money Game, The (Japan).nes */
-	{ 0x2f27cdef,  155, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (J) [b1].nes */
-	{ 0xc1719664,  155, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (Japan).nes */
+	{ 0x0f141525,  152, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Arkanoid II (Japan).nes */
+	{ 0xbda8f8e4,  152, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Gegege no Kitarou 2 - Youkai Gundan no Chousen (Japan).nes */
+	{ 0xb1a94b82,  152, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Pocket Zaurus - Juu Ouken no Nazo (Japan).nes */
+	{ 0x026c5fca,  152, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Saint Seiya - Ougon Densetsu (Japan).nes */
+	{ 0x3f15d20d,  153, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Famicom Jump II - Saikyou no 7 Nin (Japan).nes */
+	{ 0xd1691028,  154, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Devil Man (Japan).nes */
+	{ 0xcfd4a281,  155, DEFAULT,    MI_H, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Money Game, The (Japan).nes */
+	{ 0x2f27cdef,  155, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (J) [b1].nes */
+	{ 0xc1719664,  155, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Tatakae!! Rahmen Man - Sakuretsu Choujin 102 Gei (Japan).nes */
 	{ 0xccc03440,  156, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Buzz & Waldog (USA) (Proto) (Unl).nes */
-	{ 0x983d8175,  157, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Battle Rush - Build Up Robot Tournament (Japan).nes */
-	{ 0x894efdbc,  157, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Crayon Shin-chan - Ora to Poi Poi (Japan).nes */
-	{ 0x19e81461,  157, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Dragon Ball Z - Gekitou Tenkaichi Budoukai (Japan).nes */
-	{ 0xbe06853f,  157, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - J.League Super Top Players (Japan).nes */
-	{ 0x0be0a328,  157, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - SD Gundam - Gundam Wars (Japan).nes */
-	{ 0x5b457641,  157, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Ultraman Club - Supokon Fight! (Japan).nes */
-	{ 0xf51a7f46,  157, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Yu Yu Hakusho - Bakutou Ankoku Bujutsukai (Japan).nes */
-	{ 0xcbf4366f,  158, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alien Syndrome (USA) (Unl).nes */
+	{ 0x983d8175,  157, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Battle Rush - Build Up Robot Tournament (Japan).nes */
+	{ 0x894efdbc,  157, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Crayon Shin-chan - Ora to Poi Poi (Japan).nes */
+	{ 0x19e81461,  157, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Dragon Ball Z - Gekitou Tenkaichi Budoukai (Japan).nes */
+	{ 0xbe06853f,  157, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - J.League Super Top Players (Japan).nes */
+	{ 0x0be0a328,  157, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - SD Gundam - Gundam Wars (Japan).nes */
+	{ 0x5b457641,  157, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Ultraman Club - Supokon Fight! (Japan).nes */
+	{ 0xf51a7f46,  157, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Datach - Yu Yu Hakusho - Bakutou Ankoku Bujutsukai (Japan).nes */
+	{ 0xcbf4366f,  158, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Alien Syndrome (USA) (Unl).nes */
 	{ 0xe170404c,  159, DEFAULT, DEFAULT, 1,    0x10, DEFAULT, DEFAULT, NOEXTRA }, /* SD Gundam Gaiden - Knight Gundam Monogatari (Japan).nes */
 	{ 0x276ac722,  159, DEFAULT, DEFAULT, 1,    0x10, DEFAULT, DEFAULT, NOEXTRA }, /* SD Gundam Gaiden - Knight Gundam Monogatari (Japan) (Rev 1).nes */
 	{ 0x0cf42e69,  159, DEFAULT, DEFAULT, 1,    0x10, DEFAULT, DEFAULT, NOEXTRA }, /* Magical Taruruuto-kun - Fantastic World!! (Japan).nes */
@@ -596,7 +624,6 @@
 	{ 0xE3A0B9E5,  176,       0, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (YH-8027) Super Game 4-in-1 */
 	{ 0x5A0E3E69,  176,       0, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (YH-8033) Super Game 4-in-1 */
 	{ 0x21D4484A,  176,       0, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (YH-8042) Super Game 4-in-1 */
-	{ 0xF011AFD6,    4,       0, DEFAULT, 0,    0x70,    0x07, DEFAULT, NOEXTRA }, /* Rockman 4- Minus Infinity [Infinite Life]. Basically oversize MMC3 that fails to enable WRAM before accessing it. */
 	{ 0x576D9589,  176,       1, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (BS-0210A PCB) Super Mario 4-in-1.nes */
 	{ 0x01B3EDD2,  176,       1, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (BS-6002) Super Game 16-in-1.nes */
 	{ 0x291F5318,  176,       1, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* (BS-6008) 210-in-1.nes */
@@ -743,8 +770,8 @@
 	{ 0x1923A8C5,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 水滸神獸 [protection removed].nes */
 	{ 0x6B4CAC80,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 水滸神獸.nes */
 	{ 0xC9D968AF,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 混沌世界.nes */
-	{ 0x7F3DBF1B,  176,       2, DEFAULT, 1,    0x90,    0x07,     PAL, NOEXTRA }, /* 混沌世界 [VirtuaNES PAL].nes */
-	{ 0xB616885C,  176,       2, DEFAULT, 1,    0x90,    0x07,     PAL, NOEXTRA }, /* 混沌世界 [VirtuaNES PAL, SRAM bank switch removed].nes */
+	{ 0x7F3DBF1B,  176,       2, DEFAULT, 1,    0x90,    0x07, NES_PAL, NOEXTRA }, /* 混沌世界 [VirtuaNES PAL].nes */
+	{ 0xB616885C,  176,       2, DEFAULT, 1,    0x90,    0x07, NES_PAL, NOEXTRA }, /* 混沌世界 [VirtuaNES NES_PAL, SRAM bank switch removed].nes */
 	{ 0xF031E7CD,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 激战弗利萨之孙悟饭.nes */
 	{ 0xD871D3E6,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 激战弗利萨之孙悟饭 [bad CHR].nes */
 	{ 0xC35E9AA8,  176,       2, DEFAULT, 1,    0x90,    0x07,   DENDY, NOEXTRA }, /* 激战弗利萨之孙悟饭 [Traditional Chinese].nes */
@@ -788,7 +815,7 @@
 
 	/* Nanjing games that are sometimes found erroneously set to mapper 163 even though they use other mappers */
 	{ 0x3CD15707,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ027] Fang Shi Yu (C) */
-	{ 0x2779BB41,  534,       0,    MI_V, 0, DEFAULT,    0x07,   DENDY, NOEXTRA }, /* [NJ064] Shu Du (Sudoku) (C) */
+	{ 0x2779BB41,  534,       0,    MI_H, 0, DEFAULT,    0x07,   DENDY, NOEXTRA }, /* [NJ064] Shu Du (Sudoku) (C) */
 	{ 0x1DE558A1,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ085] Shan Shan De Hong Xing (C) */
 	{ 0xF814EC57,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ090] Yong Zhe Chuan Shuo (C) */
 	{ 0x53A1F436,  178,       0,    MI_V, 1,    0x70,    0x07,   DENDY, NOEXTRA }, /* [NJ091] Xian Jian Wen Qing (C) */
@@ -798,8 +825,8 @@
 
 	{ 0x558c0dc3,  178, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 2-in-1 (Soccer Game & Crazy Dance) (Unl) [!].nes */
 	{ 0xc68363f6,  180, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Crazy Climber (Japan).nes */
-	{ 0x0f05ff0a,  181, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Seicross (Japan) (Rev 1).nes */
-	{ 0x96ce586e,  189, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Street Fighter II - The World Warrior (Unl) [!].nes */
+	{ 0x0f05ff0a,  185,       4, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Seicross (Japan) (Rev 1).nes */
+	{ 0x96ce586e,  189, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Street Fighter II - The World Warrior (Unl) [!].nes */
 	{ 0x0e76e4c1,  190, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Magic Kid Googoo (Korea) (Unl).nes */
 	{ 0x555a555e,  191, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sugoro Quest - Dice no Senshitachi (Ch).nes */
 	{ 0x2cc381f6,  191, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sugoro Quest - Dice no Senshitachi (Ch) [o1].nes */
@@ -831,7 +858,7 @@
 	{ 0x96dfc776,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* R.B.I. Baseball 2 (USA) (Unl).nes */
 	{ 0xfd63e7ac,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* R.B.I. Baseball 3 (USA) (Unl).nes */
 	{ 0x2a01f9d1,  206, DEFAULT,    MI_V, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Wagyan Land (Japan).nes */
-	{ 0x7678f1d5,  207, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Fudou Myouou Den (Japan).nes */
+	{ 0x7678f1d5,  207, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Fudou Myouou Den (Japan).nes */
 	{ 0x07eb2c12,  208, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* FC25-台湾格斗游戏+快打传说.nes */
 	{ 0xdd8ced31,  209, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Power Rangers III (Unl) [!].nes */
 	{ 0x063b1151,  209, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Power Rangers IV (Unl) [!].nes */
@@ -852,7 +879,7 @@
 	{ 0x046d70cc,  217, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ?? 500-in-1 (Anim Splash, Alt Mapper)[p1][!] */
 	{ 0x12f86a4d,  217, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 500-in-1.nes */
 	{ 0xd09f778d,  217, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* ?? 9999999-in-1 (Static Splash, Alt Mapper)[p1][!] */
-	{ 0x62ef6c79,  232, DEFAULT, DFAULT8, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Quattro Sports (Camerica) (Aladdin) [b1].nes */
+	{ 0x62ef6c79,  232, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Quattro Sports (Camerica) (Aladdin) [b1].nes */
 	{ 0x2705eaeb,  234, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Maxi 15 (USA) (Unl).nes */
 	{ 0x80cbcacb,  235, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 100-in-1 (Unl).nes */
 	{ 0x6175b9a0,  235, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 150_in_1_199x-ASp.nes */
@@ -932,7 +959,6 @@
 	{ 0x19c1ed51,  150, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Poker III (Asia) (Ja) (Unl).nes */
 	{ 0x282745c5,  141, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Q Boy (Asia) (Ja) (Unl).nes */
 	{ 0x4b9ecfb2,   21, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Wai Wai World 2 - SOS!! Paseri Jou (Japan) (Virtual Console).nes */
-	{ 0x33751782,    4, DEFAULT, DEFAULT, 1, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Zoda's Revenge - StarTropics II (USA, Europe) (Virtual Console).nes */
 	{ 0x9bbf3e5d,   15, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 168-in-1 [p1][!].nes */
 
 	/* TXC / Sachen / JoyVan */
@@ -949,6 +975,7 @@
 	{ 0xf6bd8e31,  281, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 1997 Super HIK 4-in-1 (JY-052) [p1][!].nes */
 	/* dumps are assigned 281, but its 293 on nesdev */
 	{ 0x06256C80,  293, DEFAULT, DEFAULT, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* Super 12-in-1 NewStar (UNL) */
+
 	{ 0x5aa23a15,  361, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (OK-411)[p1][!].nes */
 	{ 0xf6b9d088,  366, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (K-3131GS, GN-45) [p1][!].nes */
 	{ 0x503566b2,  366, DEFAULT,    MI_H, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 4-in-1 (K-3131SS, GN-45) [p1][!].nes */
@@ -956,6 +983,7 @@
 	{ 0x87f83ea2,  380, DEFAULT, DEFAULT, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* 42 to 80,000 */
 	{ 0xc4b94bd5,  389, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Caltron - 9 in 1 (USA) (Proto) (Unl).nes */
 	{ 0x2F497313,  401, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Super 19-in-1 (VIP19) */
+	{ 0x592175B3,  520, DEFAULT, DEFAULT, 0, DEFAULT,    0x07, DEFAULT, NOEXTRA }, /* 2-in-1 Datach Yuu Yuu Hakusho + Datach Dragon Ball Z */
 
 	/* ines mappers that uses unif boards */
 
@@ -967,7 +995,11 @@
 	{ 0x1df10182,  263, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Boogerman II (Rex-Soft) [!].nes */
 	{ 0xf956fcea,  521, DEFAULT, DEFAULT, 0, DEFAULT,    0x70, DEFAULT, NOEXTRA }, /* Korean Igo (Korea) (Unl).nes */
 	{ 0x2eed2e34,  289, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* 76-in-1 [p1][a1].nes 2048 PRG, 0 CHR */
+	{ 0x3470F395,  343,       1, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p1] */
+	{ 0x39F9140F,  343,       1, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Sheng Tian 2-in-1(Unl,ResetBase)[p2] */
+	{ 0x2076CABF,  352, DEFAULT, DEFAULT, 0, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }, /* Kaiser 4-in-1(Unl,KS106C)[p1] */
 
 	{ 0x00000000, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT, NOEXTRA }
+};
 
 #endif

@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,25 +19,24 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-/* forward declarations */
-extern uint16 latche;
-void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram);
+static void Sync(void) {
+	uint8 prg  = latch.addr >> 7;
+	uint8 chr  = latch.addr & 0x1F;
+	uint8 mirr = ((latch.addr >> 5) & 0x01) ^ 0x01;
 
-/*------------------ Map 464 ---------------------------*/
-static void M464Sync(void) {
-	int p =latche >>7;
-	int c =latche &0x1F;
-	if (latche &0x40) {
-		setprg32(0x8000, p >> 1);
+	if (latch.addr & 0x40) {
+		setprg32(0x8000, prg >> 1);
 	} else {
-		setprg16(0x8000, p);
-		setprg16(0xC000, p);
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
 	}
-	setchr8(c);
-	setmirror(latche &0x20? MI_H: MI_V);
+	setchr8(chr);
+	setmirror(mirr);
 }
 
 void Mapper464_Init(CartInfo *info) {
-	Latch_Init(info, M464Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+    info->Reset = Latch_RegReset;
 }

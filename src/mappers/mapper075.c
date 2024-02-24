@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,54 +18,74 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * VRC-1
+ * Konami VRC-1
  *
  */
 
 #include "mapinc.h"
 
-static uint8 preg[3], creg[2], mode;
-static SFORMAT StateRegs[] =
-{
+static uint8 prg[3], chr[2], mode;
+
+static SFORMAT StateRegs[] = {
 	{ &mode, 1, "MODE" },
-	{ creg, 2, "CREG" },
-	{ preg, 3, "PREG" },
+	{ chr, 2, "CREG" },
+	{ prg, 3, "PREG" },
 	{ 0 }
 };
 
-static void VRC1Sync(void) {
-	setprg8(0x8000, preg[0]);
-	setprg8(0xA000, preg[1]);
-	setprg8(0xC000, preg[2]);
+static void Sync(void) {
+	setprg8(0x8000, prg[0]);
+	setprg8(0xA000, prg[1]);
+	setprg8(0xC000, prg[2]);
 	setprg8(0xE000, ~0);
-	setchr4(0x0000, creg[0] | ((mode & 2) << 3));
-	setchr4(0x1000, creg[1] | ((mode & 4) << 2));
-	setmirror((mode & 1) ^ 1);
+
+	setchr4(0x0000, (chr[0] & 0x0F) | ((mode & 2) << 3));
+	setchr4(0x1000, (chr[1] & 0x0F) | ((mode & 4) << 2));
+
+	if (iNESCart.mirror != MI_4) { /* VS rom conversion uses 4-screen mirroring */
+		setmirror((mode & 1) ^ 1);
+	}
 }
 
-static void M75Write(uint32 A, uint8 V) {
+static DECLFW(M75Write) {
 	switch (A & 0xF000) {
-	case 0x8000: preg[0] = V; VRC1Sync(); break;
-	case 0x9000: mode = V; VRC1Sync(); break;
-	case 0xA000: preg[1] = V; VRC1Sync(); break;
-	case 0xC000: preg[2] = V; VRC1Sync(); break;
-	case 0xE000: creg[0] = V & 0xF; VRC1Sync(); break;
-	case 0xF000: creg[1] = V & 0xF; VRC1Sync(); break;
+	case 0x8000:
+	case 0xA000:
+	case 0xC000:
+		prg[(A >> 13) & 0x03] = V;
+		Sync();
+		break;
+	case 0x9000:
+		mode = V;
+		Sync();
+		break;
+	case 0xE000:
+	case 0xF000:
+		chr[(A >> 12) & 0x01] = V;
+		Sync();
+		break;
 	}
 }
 
 static void M75Power(void) {
-	VRC1Sync();
+	Sync();
 	SetWriteHandler(0x8000, 0xFFFF, M75Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void VRC1StateRestore(int version) {
-	VRC1Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-void Mapper75_Init(CartInfo *info) {
+void Mapper075_Init(CartInfo *info) {
 	info->Power = M75Power;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = VRC1StateRestore;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }
+
+void Mapper151_Init(CartInfo *info) {
+	Mapper075_Init(info);
+	info->mirror = MI_4;
+	setmirror(MI_4);
+}
+

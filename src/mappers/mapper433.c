@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,50 +23,22 @@
  */
 
 #include "mapinc.h"
-
-static uint8 latche;
-
-static SFORMAT StateRegs[] =
-{
-	{ &latche, 1, "LATC" },
-	{ 0 }
-};
+#include "latch.h"
 
 static void Sync(void) {
-	if (!(latche & 0x20))
-		setprg32(0x8000, (latche & 0x1f) >> 1);
-	else {
-		setprg16(0x8000, (latche & 0x1f));
-		setprg16(0xC000, (latche & 0x1f));
+	uint8 prg = latch.data & 0x1F;
+
+	if (latch.data & 0x20) {
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
+	} else {
+		setprg32(0x8000, prg >> 1);
 	}
-    setmirror(((latche >> 6) & 1) ^ 1);
+	setmirror(((latch.data >> 6) & 0x01) ^ 0x01);
 	setchr8(0);
 }
 
-static void M433Write(uint32 A, uint8 V) {
-	latche = V;
-	Sync();
-}
-
-static void M433Power(void) {
-	latche = 0;
-	Sync();
-	SetWriteHandler(0x8000, 0xFFFF, M433Write);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-static void M433Reset(void) {
-	latche = 0;
-	Sync();
-}
-
 void Mapper433_Init(CartInfo *info) {
-	info->Power = M433Power;
-	info->Reset = M433Reset;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Reset = Latch_RegReset;
 }

@@ -3,41 +3,31 @@
 
 #define SQ2NCOEFFS 1024
 
-static int32 sq2coeffs[SQ2NCOEFFS];
-
-static int32 SQ2C44100NTSC[SQ2NCOEFFS / 2] =
-{
-	#include "fir/c44100ntsc.h"
+static int32 SQ2C44100NTSC[SQ2NCOEFFS / 2] = {
+#include "fir/c44100ntsc.h"
 };
 
-static int32 SQ2C48000NTSC[SQ2NCOEFFS / 2] =
-{
-	#include "fir/c48000ntsc.h"
+static int32 SQ2C48000NTSC[SQ2NCOEFFS / 2] = {
+#include "fir/c48000ntsc.h"
 };
 
-static int32 SQ2C96000NTSC[SQ2NCOEFFS / 2] =
-{
-	#include "fir/c96000ntsc.h"
+static int32 SQ2C96000NTSC[SQ2NCOEFFS / 2] = {
+#include "fir/c96000ntsc.h"
 };
 
-static int32 SQ2C44100PAL[SQ2NCOEFFS / 2] =
-{
-	#include "fir/c44100pal.h"
+static int32 SQ2C44100PAL[SQ2NCOEFFS / 2] = {
+#include "fir/c44100pal.h"
 };
 
-static int32 SQ2C48000PAL[SQ2NCOEFFS / 2] =
-{
-	#include "fir/c48000pal.h"
+static int32 SQ2C48000PAL[SQ2NCOEFFS / 2] = {
+#include "fir/c48000pal.h"
 };
 
-static int32 SQ2C96000PAL[SQ2NCOEFFS / 2] =
-{
-	#include "fir/c96000pal.h"
+static int32 SQ2C96000PAL[SQ2NCOEFFS / 2] = {
+#include "fir/c96000pal.h"
 };
 
 #define NCOEFFS 484
-
-static int32 coeffs[NCOEFFS];
 
 /* 96000hz filter could probably be improved. */
 

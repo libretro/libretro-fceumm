@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,48 +21,68 @@
 
 #include "mapinc.h"
 
-static uint8 reg[16], IRQa;
+static uint8 prg[4], chr[8];
+static uint8 mirr, IRQa;
 static uint32 IRQCount;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
+	{ prg, 4, "PREGS" },
+	{ chr, 8, "CREGS" },
 	{ &IRQa, 1, "IRQA" },
 	{ &IRQCount, 4, "IRQC" },
-	{ reg, 16, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setchr1(0x0000, reg[0] & 0xfe);
-	setchr1(0x0400, reg[1] | 1);
-	setchr1(0x0800, reg[2] & 0xfe);
-	setchr1(0x0c00, reg[3] | 1);
-	setchr1(0x1000, reg[4]);
-	setchr1(0x1400, reg[5]);
-	setchr1(0x1800, reg[6]);
-	setchr1(0x1c00, reg[7]);
 	setprg8r(0x10, 0x6000, 0);
-	setprg8(0x8000, (reg[0x8] & 0xf) | 0x10);
-	setprg8(0xA000, (reg[0x9] & 0x1f));
-	setprg8(0xC000, (reg[0xa] & 0x1f));
-	setprg8(0xE000, (reg[0xb] & 0xf) | 0x10);
-	setmirror((reg[0xc] & 1) ^ 1);
+	setprg8(0x8000, (prg[0] & 0x0F) | 0x10);
+	setprg8(0xA000, (prg[1] & 0x1F));
+	setprg8(0xC000, (prg[2] & 0x1F));
+	setprg8(0xE000, (prg[3] & 0x0F) | 0x10);
+
+	setchr1(0x0000, chr[0] & ~1);
+	setchr1(0x0400, chr[1] |  1);
+	setchr1(0x0800, chr[2] & ~1);
+	setchr1(0x0c00, chr[3] |  1);
+	setchr1(0x1000, chr[4]);
+	setchr1(0x1400, chr[5]);
+	setchr1(0x1800, chr[6]);
+	setchr1(0x1C00, chr[7]);
+	
+	setmirror((mirr & 0x01) ^ 0x01);
 }
 
-static void M106Write(uint32 A, uint8 V) {
-	A &= 0xF;
-	switch (A) {
-	case 0xD: IRQa = 0; IRQCount = 0; X6502_IRQEnd(FCEU_IQEXT); break;
-	case 0xE: IRQCount = (IRQCount & 0xFF00) | V; break;
-	case 0xF: IRQCount = (IRQCount & 0x00FF) | (V << 8); IRQa = 1; break;
-	default: reg[A] = V; Sync(); break;
+static DECLFW(M106Write) {
+	switch (A & 0x0F) {
+	case 0x00: case 0x01: case 0x02: case 0x03:
+	case 0x04: case 0x05: case 0x06: case 0x07:
+		chr[A & 0x07] = V;
+		Sync();
+		break;
+	case 0x08: case 0x09: case 0x0A: case 0x0B:
+		prg[A & 0x03] = V;
+		Sync();
+		break;
+	case 0x0C:
+		mirr = V;
+		Sync();
+		break;
+	case 0x0D:
+		IRQa = 0;
+		IRQCount = 0;
+		X6502_IRQEnd(FCEU_IQEXT);
+		break;
+	case 0x0E:
+		IRQCount = (IRQCount & 0xFF00) | V;
+		break;
+	case 0x0F:
+		IRQCount = (IRQCount & 0x00FF) | (V << 8);
+		IRQa = 1;
+		break;
 	}
 }
 
 static void M106Power(void) {
-	reg[8] = reg[9] = reg[0xa] = reg[0xb] = -1;
 	Sync();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
@@ -69,16 +90,12 @@ static void M106Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M106Write);
 }
 
-static void M106Reset(void) {
-}
+static void M106Reset(void) { }
 
 static void M106Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
 }
 
-void M106CpuHook(int a) {
+static void M106CpuHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
 		if (IRQCount > 0x10000) {
@@ -98,11 +115,10 @@ void Mapper106_Init(CartInfo *info) {
 	info->Close = M106Close;
 	MapIRQHook = M106CpuHook;
 	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-
-	AddExState(&StateRegs, ~0, 0, 0);
 }

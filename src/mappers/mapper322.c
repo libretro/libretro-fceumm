@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,60 +28,70 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMCK3033CW(uint32 A, uint8 V) {
-	if (EXPREGS[2]) {
-		if (EXPREGS[3]) {
-			setchr1(A, (EXPREGS[1] << 8) | (V & 0xFF));
+static uint8 reg;
+
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 }
+};
+
+static void M322CW(uint16 A, uint16 V) {
+	if (reg & 0x20) {
+		uint16 base = ((reg >> 4) & 0x04) | ((reg >> 3) & 0x03);
+
+		if (reg & 0x80) {
+			setchr1(A, (base << 8) | (V & 0xFF));
 		} else {
-			setchr1(A, (EXPREGS[1] << 7) | (V & 0x7F));
+			setchr1(A, (base << 7) | (V & 0x7F));
 		}
 	} else {
 		setchr1(A, (V & 0x7F));
 	}
 }
 
-static void BMCK3033PW(uint32 A, uint8 V) {
-	if (EXPREGS[2]) {
-		if (EXPREGS[3] ) {
-			setprg8(A, (EXPREGS[1] << 5) | (V & 0x1F));
+static void M322PW(uint16 A, uint16 V) {
+	uint16 base = ((reg >> 4) & 0x04) | ((reg >> 3) & 0x03);
+
+	if (reg & 0x20) {
+		if (reg & 0x80) {
+			setprg8(A, (base << 5) | (V & 0x1F));
 		} else {
-			setprg8(A, (EXPREGS[1] << 4) | (V & 0x0F));
+			setprg8(A, (base << 4) | (V & 0x0F));
 		}
 	} else {
-		uint32 base = (EXPREGS[1] << 3);
-		if (EXPREGS[0] & 0x03) {
-			setprg32(0x8000, base | EXPREGS[0] >> 1);
+		if (reg & 0x03) {
+			setprg32(0x8000, (base << 3) | ((reg >> 1) & 0x03));
 		} else {
-			setprg16(0x8000, base | EXPREGS[0]);
-			setprg16(0xC000, base | EXPREGS[0]);
+			setprg16(0x8000, (base << 3) | (reg & 0x07));
+			setprg16(0xC000, (base << 3) | (reg & 0x07));
 		}
 	}
 }
 
-static void BMCK3033Write(uint32 A, uint8 V) {
-	EXPREGS[0] = (A & 0x07);
-	EXPREGS[1] = ((A & 0x18) >> 3) | ((A & 0x40) >> 4);
-	EXPREGS[2] = (A & 0x20);
-	EXPREGS[3] = (A & 0x80);
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(M322Write) {
+	if (MMC3_WramIsWritable()) {
+		reg = A & 0xFF;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+	}
 }
 
-static void BMCK3033Power(void) {
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, BMCK3033Write);
+static void M322Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M322Write);
 }
 
-static void BMCK3033Reset(void) {
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = 0;
-	MMC3RegReset();
+static void M322Reset(void) {
+	reg = 0;
+	MMC3_Reset();
 }
 
-void BMCK3033_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 1, 0);
-	pwrap = BMCK3033PW;
-	cwrap = BMCK3033CW;
-	info->Power = BMCK3033Power;
-	info->Reset = BMCK3033Reset;
-	AddExState(EXPREGS, 4, 0, "EXPR");
+void Mapper322_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	MMC3_pwrap = M322PW;
+	MMC3_cwrap = M322CW;
+	info->Power = M322Power;
+	info->Reset = M322Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

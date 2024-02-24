@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2016 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,41 +28,45 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMC8IN1CW(uint32 A, uint8 V) {
-	setchr1(A, ((EXPREGS[0] & 0xC) << 5) | (V & 0x7F));
+static uint8 reg;
+
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 }
+};
+
+static void M333CW(uint16 A, uint16 V) {
+	setchr1(A, ((reg & 0x0C) << 5) | (V & 0x7F));
 }
 
-static void BMC8IN1PW(uint32 A, uint8 V) {
-	if(EXPREGS[0] & 0x10) {		/* MMC3 mode */
-		setprg8(A, ((EXPREGS[0] & 0xC) << 2) | (V & 0xF));
+static void M333PW(uint16 A, uint16 V) {
+	if (reg & 0x10) { /* MMC3 mode */
+		setprg8(A, ((reg & 0x0C) << 2) | (V & 0x0F));
 	} else {
-		setprg32(0x8000, EXPREGS[0] & 0xF);
+		setprg32(0x8000, reg & 0x0F);
 	}
 }
 
-static void BMC8IN1Write(uint32 A, uint8 V) {
-	if(A & 0x1000) {
-		EXPREGS[0] = V;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
+static DECLFW(M333Write) {
+	if (A & 0x1000) {
+		reg = V;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
 	} else {
-		if(A < 0xC000)
-			MMC3_CMDWrite(A, V);
-		else
-			MMC3_IRQWrite(A, V);
+		MMC3_Write(A, V);
 	}
 }
 
-static void BMC8IN1Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x8000, 0xFFFF, BMC8IN1Write);
+static void M333Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x8000, 0xFFFF, M333Write);
 }
 
-void BMC8IN1_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 0, 0);
-	cwrap = BMC8IN1CW;
-	pwrap = BMC8IN1PW;
-	info->Power = BMC8IN1Power;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+void Mapper333_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M333CW;
+	MMC3_pwrap = M333PW;
+	info->Power = M333Power;
+	AddExState(&StateRegs, ~0, 0, NULL);
 }

@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,56 +19,47 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "mapinc.h"
+/* NES 2.0 Mapper 265 - BMC-T-262 */
 
-static uint8 bank, base, lock, mirr, mode;
-static SFORMAT StateRegs[] =
-{
-	{ &bank, 1, "BANK" },
-	{ &base, 1, "BASE" },
-	{ &lock, 1, "LOCK" },
-	{ &mirr, 1, "MIRR" },
-	{ &mode, 1, "MODE" },
-	{ 0 }
-};
+#include "mapinc.h"
+#include "latch.h"
 
 static void Sync(void) {
-	setchr8(0);
-	setprg16(0x8000, base | bank);
-	setprg16(0xC000, base | (mode ? bank : 7));
-	setmirror(mirr);
-}
+	uint8 bank  = ((latch.addr >> 3) & 0x60) | ((latch.addr >> 2) & 0x18) | (latch.data & 0x07);
 
-static void BMCT262Write(uint32 A, uint8 V) {
-	if (!lock) {
-		base = ((A & 0x60) >> 2) | ((A & 0x100) >> 3);
-		mode = A & 0x80;
-		mirr = ((A & 2) >> 1) ^ 1;
-		lock = (A & 0x2000) >> 13;
+	if (latch.addr & 0x80) {
+		if (!bank) {
+			/* NOTE: Unofficial support but Tetris II in 11-in-1 variant
+			works as if its NROM-256 */
+			setprg32(0x8000, bank >> 1);
+		} else {
+			setprg16(0x8000, bank);
+			setprg16(0xC000, bank);
+		}
+	} else {
+		setprg16(0x8000, bank);
+		setprg16(0xC000, bank | 0x07);
 	}
-	bank = V & 7;
+	setchr8(0);
+	setmirror(((latch.addr >> 1) & 0x01) ^ 0x01);
+}
+
+static DECLFW(M265Write) {
+	if (!(latch.addr & 0x2000)) {
+		latch.addr = A;
+	}
+	latch.data = V;
 	Sync();
 }
 
-static void BMCT262Power(void) {
-	lock = bank = base = mode = 0;
-	Sync();
-	SetWriteHandler(0x8000, 0xFFFF, BMCT262Write);
+static void M265Power(void) {
+	Latch_Power();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0xFFFF, M265Write);
 }
 
-static void BMCT262Reset(void) {
-	lock = bank = base = mode = 0;
-	Sync();
-}
-
-static void BMCT262Restore(int version) {
-	Sync();
-}
-
-void BMCT262_Init(CartInfo *info) {
-	info->Power = BMCT262Power;
-	info->Reset = BMCT262Reset;
-	GameStateRestore = BMCT262Restore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper265_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M265Power;
+	info->Reset = Latch_RegReset;
 }

@@ -40,53 +40,54 @@
 
 #include "driver.h"
 
-static char BaseDirectory[2048] = {0};
+#include "md5.h"
 
-void FCEUI_SetBaseDirectory(const char *dir)
-{
+static char BaseDirectory[2048] = { 0 };
+
+void FCEUI_SetBaseDirectory(const char *dir) {
 	strncpy(BaseDirectory, dir, 2047);
 	BaseDirectory[2047] = 0;
 }
 
-char *FCEU_MakeFName(int type, int id1, char *cd1)
-{
-   char tmp[4096 + 512] = {0}; /* +512 for no reason :D */
-   char *ret      = 0;
+char *FCEU_MakeFName(int type, int id1, char *cd1) {
+	char tmp[4096 + 512] = { 0 }; /* +512 for no reason :D */
+	char *ret = 0;
 
-   switch (type)
-   {
-      case FCEUMKF_GGROM:
-         fill_pathname_join(tmp, BaseDirectory,
-               "gamegenie.nes", sizeof(tmp));
-         break;
-      case FCEUMKF_FDSROM:
-         fill_pathname_join(tmp, BaseDirectory,
-               "disksys.rom", sizeof(tmp));
-         break;
-      case FCEUMKF_PALETTE:
-         fill_pathname_join(tmp, BaseDirectory,
-               "nes.pal", sizeof(tmp));
-         break;
-      default:
-         break;
-   }
+	switch (type) {
+	case FCEUMKF_GGROM:
+		fill_pathname_join(tmp, BaseDirectory, "gamegenie.nes", sizeof(tmp));
+		break;
+	case FCEUMKF_FDSROM:
+		fill_pathname_join(tmp, BaseDirectory, "disksys.rom", sizeof(tmp));
+		break;
+	case FCEUMKF_PALETTE:
+		fill_pathname_join(tmp, BaseDirectory, "nes.pal", sizeof(tmp));
+		break;
+   case FCEUMKF_PALETTE_512:
+		fill_pathname_join(tmp, BaseDirectory, "nes512.pal", sizeof(tmp));
+		break;
+	default:
+		break;
+	}
 
-   ret = (char*)malloc(strlen(tmp) * sizeof(char) + 1);
-   strcpy(ret, tmp);
+	FCEU_printf(" FCEU_MakeFName: %s\n", tmp);
 
-   return(ret);
+	ret = (char *)malloc(strlen(tmp) * sizeof(char) + 1);
+	strcpy(ret, tmp);
+
+	return (ret);
 }
 
-uint32 uppow2(uint32 n)
-{
-   int x;
+uint32 uppow2(uint32 n) {
+	int x;
 
-   for (x = 31; x >= 0; x--)
-      if (n & (1 << x))
-      {
-         if ((1 << x) != n)
-            return(1 << (x + 1));
-         break;
-      }
-   return n;
+	for (x = 31; x >= 0; x--) {
+		if (n & (1 << x)) {
+			if ((uint32)(1 << x) != n) {
+				return (1 << (x + 1));
+         }
+			break;
+		}
+   }
+	return n;
 }

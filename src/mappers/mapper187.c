@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,62 +26,53 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M187CW(uint32 A, uint8 V) {
-	if ((A & 0x1000) == ((MMC3_cmd & 0x80) << 5))
+static uint8 reg;
+
+static void M187CW(uint16 A, uint16 V) {
+	if ((A & 0x1000) == ((mmc3.cmd & 0x80) << 5)) {
 		setchr1(A, V | 0x100);
-	else
+	} else {
 		setchr1(A, V);
+	}
 }
 
-static void M187PW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x80) {
-		uint8 bank = EXPREGS[0] & 0x1F;
-		if (EXPREGS[0] & 0x20) {
-			if (EXPREGS[0] & 0x40)
-				setprg32(0x8000, bank >> 2);
-			else
-				setprg32(0x8000, bank >> 1);	/* hacky hacky! two mappers in one! need real hw carts to test */
+static void M187PW(uint16 A, uint16 V) {
+	if (reg & 0x80) {
+		uint8 bank = (reg >> 1) & 0x0F;
+
+		if (reg & 0x20) {
+			setprg32(0x8000, bank >> 1);
 		} else {
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);
 		}
-	} else
+	} else {
 		setprg8(A, V & 0x3F);
-}
-
-static void M187Write8000(uint32 A, uint8 V) {
-	EXPREGS[1] = 1;
-	MMC3_CMDWrite(A, V);
-}
-
-static void M187Write8001(uint32 A, uint8 V) {
-	if (EXPREGS[1])
-		MMC3_CMDWrite(A, V);
-}
-
-static void M187WriteLo(uint32 A, uint8 V) {
-	if ((A == 0x5000) || (A == 0x6000)) {
-		EXPREGS[0] = V;
-		FixMMC3PRG(MMC3_cmd);
 	}
 }
 
-static uint8 prot_data[4] = { 0x83, 0x83, 0x42, 0x00 };
-static uint8 M187Read(uint32 A) { return prot_data[EXPREGS[1] & 3]; }
+static DECLFW(M187Write) {
+	if (!(A & 0x01)) {
+		reg = V;
+		MMC3_FixPRG();
+	}
+}
+
+static DECLFR(M187Read) {
+	return cpu.openbus | 0x80;
+}
 
 static void M187Power(void) {
-	EXPREGS[0] = EXPREGS[1] = 0;
-	GenMMC3Power();
+	reg = 0;
+	MMC3_Power();
 	SetReadHandler(0x5000, 0x5FFF, M187Read);
-	SetWriteHandler(0x5000, 0x6FFF, M187WriteLo);
-	SetWriteHandler(0x8000, 0x8000, M187Write8000);
-	SetWriteHandler(0x8001, 0x8001, M187Write8001);
+	SetWriteHandler(0x5000, 0x5FFF, M187Write);
 }
 
 void Mapper187_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	pwrap = M187PW;
-	cwrap = M187CW;
+	MMC3_Init(info, 0, 0);
+	MMC3_pwrap = M187PW;
+	MMC3_cwrap = M187CW;
 	info->Power = M187Power;
-	AddExState(EXPREGS, 3, 0, "EXPR");
+	AddExState(&reg, 1, 0, "EXPR");
 }

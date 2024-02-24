@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2006 CaH4e3
+ * 	Copyright (C) 2023
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,61 +19,76 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* NES 2.0 Mapper 262 - UNL-SHERO */
+
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 *CHRRAM;
-static uint8 tekker;
+static uint8 reg;
+static uint8 dipsw;
 
-static void MSHCW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x40)
+static uint8 *CHRRAM;
+
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ &dipsw, 1, "DPSW" },
+	{ 0 }
+};
+
+static void M262CW(uint16 A, uint16 V) {
+	if (reg & 0x40) {
 		setchr8r(0x10, 0);
-	else {
-		if (A < 0x800)
-			setchr1(A, V | ((EXPREGS[0] & 8) << 5));
-		else if (A < 0x1000)
-			setchr1(A, V | ((EXPREGS[0] & 4) << 6));
-		else if (A < 0x1800)
-			setchr1(A, V | ((EXPREGS[0] & 1) << 8));
-		else
-			setchr1(A, V | ((EXPREGS[0] & 2) << 7));
+	} else {
+		uint8 lsh[] = { 3, 2, 0, 1 };
+		uint8 bank = (A >> 11) & 0x03;
+
+		setchr1(A, (((reg >> lsh[bank]) << 8) & 0x100) | (V & 0xFF));
 	}
 }
 
-static void MSHWrite(uint32 A, uint8 V) {
-	EXPREGS[0] = V;
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(M262Write) {
+	if (A & 0x100) {
+		reg = V;
+		MMC3_FixCHR();
+	}
 }
 
-static uint8 MSHRead(uint32 A) { return(tekker); }
-
-static void MSHReset(void) {
-	MMC3RegReset();
-	tekker ^= 0xFF;
+static DECLFR(M262Read) {
+	if (A & 0x100) {
+		return(dipsw);
+	}
+	return cpu.openbus;
 }
 
-static void MSHPower(void) {
-	tekker = 0x00;
-	GenMMC3Power();
-	SetWriteHandler(0x4100, 0x4100, MSHWrite);
-	SetReadHandler(0x4100, 0x4100, MSHRead);
+static void M262Reset(void) {
+	MMC3_Reset();
+	dipsw ^= 0xFF;
 }
 
-static void MSHClose(void) {
-	GenMMC3Close();
-	if (CHRRAM)
+static void M262Power(void) {
+	dipsw = 0x00;
+	MMC3_Power();
+	SetWriteHandler(0x4100, 0x4FFF, M262Write);
+	SetReadHandler(0x4100, 0x4FFF, M262Read);
+}
+
+static void M262Close(void) {
+	MMC3_Close();
+	if (CHRRAM) {
 		FCEU_gfree(CHRRAM);
+	}
 	CHRRAM = NULL;
 }
 
-void UNLSHeroes_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 512, 0, 0);
-	cwrap = MSHCW;
-	info->Power = MSHPower;
-	info->Reset = MSHReset;
-	info->Close = MSHClose;
+void Mapper262_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M262CW;
+	info->Power = M262Power;
+	info->Reset = M262Reset;
+	info->Close = M262Close;
+	AddExState(StateRegs, ~0, 0, NULL);
+
 	CHRRAM = (uint8*)FCEU_gmalloc(8192);
 	SetupCartCHRMapping(0x10, CHRRAM, 8192, 1);
-	AddExState(EXPREGS, 4, 0, "EXPR");
-	AddExState(&tekker, 1, 0, "DIPSW");
+	AddExState(CHRRAM, 8192, 0, "CHRR");
 }

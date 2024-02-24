@@ -1,7 +1,8 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- * Copyright (C) 2020
+ *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,35 +23,30 @@
 
 static uint8 game = 0;
 
-static void M60Sync(void)
-{
-    setchr8(game);
+static void Sync(void) {
+	setchr8(game);
 	setprg16(0x8000, game);
 	setprg16(0xC000, game);
 }
 
-static void M60Reset(void)
-{
-    game = (game + 1) & 3;
-    M60Sync();
+static void M060Reset(void) {
+	game++;
+	Sync();
 }
 
-static void M60Power(void)
-{
-    game = 0;
-    M60Sync();
-    SetReadHandler(0x8000, 0xFFFF, CartBR);
-    SetWriteHandler(0x8000, 0xFFFF, CartBW);
+static void M060Power(void) {
+	game = 0;
+	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void M60StateRestore(int version) {
-	M60Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-void Mapper60_Init(CartInfo *info)
-{
-    info->Power = M60Power;
-    info->Reset = M60Reset;
-    GameStateRestore = M60StateRestore;
+void Mapper060_Init(CartInfo *info) {
+	info->Power = M060Power;
+	info->Reset = M060Reset;
+	GameStateRestore = StateRestore;
 	AddExState(&game, 1, 0, "GAME");
 }

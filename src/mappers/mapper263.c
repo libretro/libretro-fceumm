@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,29 +19,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* NES 2.0 Mapper 263 - UNL-KOF97 */
+
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void UNLKOF97CMDWrite(uint32 A, uint8 V) {
-	V = (V & 0xD8) | ((V & 0x20) >> 4) | ((V & 4) << 3) | ((V & 2) >> 1) | ((V & 1) << 2);	/* 76143502 */
-	if (A == 0x9000) A = 0x8001;
-	MMC3_CMDWrite(A, V);
+static uint32 unscrambleAddr(uint32 A) {
+	return ((A & 0xE000) | ((A >> 12) & 0x01));
 }
 
-static void UNLKOF97IRQWrite(uint32 A, uint8 V) {
-	V = (V & 0xD8) | ((V & 0x20) >> 4) | ((V & 4) << 3) | ((V & 2) >> 1) | ((V & 1) << 2);
-	if (A == 0xD000) A = 0xC001;
-	else if (A == 0xF000) A = 0xE001;
-	MMC3_IRQWrite(A, V);
+static uint8 unscrambleData(uint8 V) {
+	return ((V & 0xD8) | ((V & 0x20) >> 4) | ((V & 0x04) << 3) | ((V & 0x02) >> 1) | ((V & 0x01) << 2));
 }
 
-static void UNLKOF97Power(void) {
-	GenMMC3Power();
-	SetWriteHandler(0x8000, 0xA000, UNLKOF97CMDWrite);
-	SetWriteHandler(0xC000, 0xF000, UNLKOF97IRQWrite);
+static DECLFW(M263Write) {
+	MMC3_Write(unscrambleAddr(A), unscrambleData(V));
 }
 
-void UNLKOF97_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 256, 0, 0);
-	info->Power = UNLKOF97Power;
+static void M263Power(void) {
+	MMC3_Power();
+	SetWriteHandler(0x8000, 0xFFFF, M263Write);
+}
+
+void Mapper263_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	info->Power = M263Power;
 }

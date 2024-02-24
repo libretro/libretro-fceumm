@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,60 +20,18 @@
  */
 
 #include "mapinc.h"
+#include "n118.h"
 
-static uint8 cmd;
-static uint8 DRegs[8];
-
-static SFORMAT StateRegs[] =
-{
-	{ &cmd, 1, "CMD" },
-	{ DRegs, 8, "DREG" },
-	{ 0 }
-};
-
-static void Sync(void) {
-	int x;
-	setchr2(0x0000, DRegs[0]);
-	setchr2(0x0800, DRegs[1]);
-	for (x = 0; x < 4; x++)
-		setchr1(0x1000 + (x << 10), DRegs[2 + x]);
-	setprg8(0x8000, DRegs[6]);
-	setprg8(0xa000, DRegs[7]);
-	setprg8(0xc000, ~1);
-	setprg8(0xe000, ~0);
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-static void M206Write(uint32 A, uint8 V) {
-	switch (A & 0x8001) {
-	case 0x8000: cmd = V & 0x07; break;
-	case 0x8001:
-		if (cmd <= 0x05)
-			V &= 0x3F;
-		else
-			V &= 0x0F;
-		if (cmd <= 0x01) V >>= 1;
-		DRegs[cmd & 0x07] = V;
-		Sync();
-		break;
+static void M206PW(uint16 A, uint16 V) {
+	if (iNESCart.submapper == 1) {
+		/* 3407, 3417 and 3451 PCBs */
+		setprg32(0x8000, 0);
+	} else {
+		setprg8(A, V & 0x0F);
 	}
 }
 
-static void M206Power(void) {
-	cmd = 0;
-	DRegs[6] = 0;
-	DRegs[7] = 1;
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M206Write);
-}
-
-
 void Mapper206_Init(CartInfo *info) {
-	info->Power = M206Power;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	N118_Init(info, 0, 0);
+	N118_pwrap = M206PW;
 }

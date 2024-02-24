@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,84 +26,77 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 WRAM[0x2000];
+static uint8 reg[4];
+static uint8 cmd;
+
 static uint32 CHRRAMSIZE;
 static uint8 *CHRRAM;
 
-static void M372CW(uint32 A, uint8 V) {
-	if (!UNIFchrrama) {
-		uint32 NV = V;
-		if (EXPREGS[2] & 8)
-			NV &= (1 << ((EXPREGS[2] & 7) + 1)) - 1;
-		else if (EXPREGS[2])
-			NV &= 0;	/* hack ;( don't know exactly how it should be */
-		NV |= EXPREGS[0] | ((EXPREGS[2] & 0xF0) << 4);
-		if (EXPREGS[2] & 0x20)
-			setchr1r(0x10, A, V);
-		else
-			setchr1(A, NV);
-	} else
-		/* setchr8(0); */		/* i don't know what cart need this, but a new one need other lol */
-		setchr1(A, V);
-}
+static SFORMAT StateRegs[] = {
+	{ reg, 4, "REGS" },
+	{ &cmd, 1, "CMD0" },
+	{ 0 }
+};
 
-static void M372PW(uint32 A, uint8 V) {
-	uint32 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
-	MV |= EXPREGS[1];
-	if(UNIFchrrama)
-		MV |= ((EXPREGS[2] & 0x40) << 2);
-	setprg8(A, MV);
-}
+static void M372CW(uint16 A, uint16 V) {
+	if (reg[2] & 0x20) {
+		setchr8r(0x10, 0);
+	} else {
+		uint32 mask = 0xFF >> (~reg[2] & 0x0F);
+		uint32 base = ((reg[2] << 4) & 0xF00) | reg[0];
 
-static void M372Write(uint32 A, uint8 V) {
-	if (EXPREGS[3] & 0x40) {
-		WRAM[A - 0x6000] = V;
-		return;
+		setchr1(A, (base & ~mask) | (V & mask));
 	}
-	EXPREGS[EXPREGS[4]] = V;
-	EXPREGS[4] = (EXPREGS[4] + 1) & 3;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
 }
 
-static uint8 M372Read(uint32 A) {
-	uint32 addr = 1 << (EXPREGS[5] + 4);
-	if (A & (addr | (addr - 1)))
-		return cpu.openbus | 1;
-	return cpu.openbus;
+static void M372PW(uint16 A, uint16 V) {
+	uint32 mask = ~reg[3] & 0x3F;
+	uint32 base = ((reg[2] << 2) & 0x300) | reg[1];
+
+	setprg8(A, (base & ~mask) | (V & mask));
+}
+
+static DECLFW(M372Write) {
+	if (!(reg[3] & 0x40)) {
+		reg[cmd] = V;
+		cmd = (cmd + 1) & 0x03;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+	}
 }
 
 static void M372Reset(void) {
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = EXPREGS[4] = 0;
-	EXPREGS[5]++;
-	EXPREGS[5] &= 7;
-	MMC3RegReset();
+	reg[0] = reg[1] = reg[3] = cmd = 0;
+	reg[2] = 0x0F;
+	MMC3_Reset();
 }
 
 static void M372Power(void) {
-	GenMMC3Power();
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = EXPREGS[3] = EXPREGS[4] = EXPREGS[5] = 0;
-	SetWriteHandler(0x5000, 0x7FFF, M372Write);
-	SetReadHandler(0x5000, 0x5FFF, M372Read);
+	reg[0] = reg[1] = reg[3] = cmd = 0;
+	reg[2] = 0x0F;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M372Write);
 }
 
 static void M372Close(void) {
-	GenMMC3Close();
-	if (CHRRAM)
+	MMC3_Close();
+	if (CHRRAM) {
 		FCEU_gfree(CHRRAM);
+	}
 	CHRRAM = NULL;
 }
 
 void Mapper372_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 256, 8, info->battery);
-	cwrap = M372CW;
-	pwrap = M372PW;
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M372CW;
+	MMC3_pwrap = M372PW;
 	info->Reset = M372Reset;
 	info->Power = M372Power;
 	info->Close = M372Close;
+	AddExState(StateRegs, ~0, 0, NULL);
+
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
-	AddExState(EXPREGS, 5, 0, "EXPR");
 }

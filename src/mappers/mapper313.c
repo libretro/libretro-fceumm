@@ -2,7 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2019 Libretro Team
- *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,56 +28,51 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
+static uint8 reg;
 
-static void M313CW(uint32 A, uint8 V) {
-	uint32_t bank;
-	switch (submapper) {
-	default: bank = (EXPREGS[0] << 7) | (V & 0x7F); break;
-	case 1: bank = (EXPREGS[0] << 7) | (V & 0x7F); break;
-	case 2: bank = (EXPREGS[0] << 8) | (V & 0xFF); break;
-	case 3: bank = (EXPREGS[0] << 8) | (V & 0xFF); break;
-	case 4: bank = (EXPREGS[0] << 7) | (V & 0x7F); break;
+static void M313CW(uint16 A, uint16 V) {
+	switch (iNESCart.submapper) {
+	default: setchr1(A, (reg << 7) | (V & 0x7F)); break;
+	case 1:  setchr1(A, (reg << 7) | (V & 0x7F)); break;
+	case 2:  setchr1(A, (reg << 8) | (V & 0xFF)); break;
+	case 3:  setchr1(A, (reg << 8) | (V & 0xFF)); break;
+	case 4:  setchr1(A, (reg << 7) | (V & 0x7F)); break;
 	}
-	setchr1(A, bank);
 }
 
-static void M313PW(uint32 A, uint8 V) {
-	uint32_t bank;
-	switch (submapper) {
-	default: bank = (EXPREGS[0] << 4) | (V & 0x0F); break;
-	case 1: bank = (EXPREGS[0] << 5) | (V & 0x1F); break;
-	case 2: bank = (EXPREGS[0] << 4) | (V & 0x0F); break;
-	case 3: bank = (EXPREGS[0] << 5) | (V & 0x1F); break;
+static void M313PW(uint16 A, uint16 V) {
+	switch (iNESCart.submapper) {
+	default: setprg8(A, (reg << 4) | (V & 0x0F)); break;
+	case 1:  setprg8(A, (reg << 5) | (V & 0x1F)); break;
+	case 2:  setprg8(A, (reg << 4) | (V & 0x0F)); break;
+	case 3:  setprg8(A, (reg << 5) | (V & 0x1F)); break;
 	case 4:
-		if (EXPREGS[0] == 0)
-			bank = (EXPREGS[0] << 5) | (V & 0x1F);
-		else
-			bank = (EXPREGS[0] << 4) | (V & 0x0F);
+		if (reg == 0) {
+			setprg8(A, (reg << 5) | (V & 0x1F));
+		} else {
+			setprg8(A, (reg << 4) | (V & 0x0F));
+		}
 		break;
 	}
-	setprg8(A, bank);
 }
 
 static void M313Reset(void) {
-	EXPREGS[0]++;
-	EXPREGS[0] &= 0x03;
-	MMC3RegReset();
+	reg++;
+	reg &= 0x03;
+	MMC3_Reset();
 }
 
 static void M313Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
+	reg = 0;
+	MMC3_Power();
 }
 
 /* NES 2.0 313, UNIF BMC-RESET-TXROM */
-void BMCRESETTXROM_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 8, 0);
-	cwrap = M313CW;
-	pwrap = M313PW;
-	submapper = info->submapper;
+void Mapper313_Init(CartInfo *info) {
+	MMC3_Init(info, 8, 0);
+	MMC3_cwrap = M313CW;
+	MMC3_pwrap = M313PW;
 	info->Power = M313Power;
 	info->Reset = M313Reset;
-	AddExState(&EXPREGS[0], 1, 0, "EXPR");
-	AddExState(&submapper, 1, 0, "SUBM");
+	AddExState(&reg, 1, 0, "EXPR");
 }

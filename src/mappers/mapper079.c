@@ -1,8 +1,9 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
  *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,29 +22,27 @@
 
 #include "mapinc.h"
 
-static uint8 creg, preg;
-static SFORMAT StateRegs[] =
-{
-	{ &creg, 1, "CREG" },
-	{ &preg, 1, "PREG" },
+static uint8 reg;
+
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setprg32(0x8000, preg);
-	setchr8(creg);
+	setprg32(0x8000, (reg >> 3) & 0x01);
+	setchr8(reg & 0x07);
 }
 
-static void M79Write(uint32 A, uint8 V) {
+static DECLFW(M79Write) {
 	if (A & 0x100) {
-		preg = (V >> 3) & 1;
-		creg = V & 7;
+		reg = V;
 		Sync();
 	}
 }
 
-static void M79Power(void) {
-	preg = 0;
+static void M079Power(void) {
+	reg = 0;
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x4100, 0x5FFF, M79Write);
@@ -53,8 +52,8 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-void Mapper79_Init(CartInfo *info) {
-	info->Power = M79Power;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper079_Init(CartInfo *info) {
+	info->Power = M079Power;
 	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

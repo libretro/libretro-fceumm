@@ -22,8 +22,6 @@
 
 static uint8 reg[8];
 static uint32 lastnt = 0;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -68,23 +66,26 @@ static void Sync(void) {
 	}
 }
 
-static void UNLPEC586Write(uint32 A, uint8 V) {
+static DECLFW(M257Write) {
 	reg[(A & 0x700) >> 8] = V;
-	PEC586Hack = (reg[0] & 0x80) >> 7;
+	PEC586Hack = (reg[0] & 0x80) ? TRUE : FALSE;
+/*	FCEU_printf("bs %04x %02x\n", A, V); */
 	Sync();
 }
 
-static uint8 UNLPEC586Read(uint32 A) {
+static DECLFR(M257Read) {
+/*	FCEU_printf("read %04x\n", A); */
 	return (cpu.openbus & 0xD8) | br_tbl[reg[4] >> 4];
 }
 
-static uint8 UNLPEC586ReadHi(uint32 A) {
+static DECLFR(M257ReadHi) {
 	if((reg[0] & 0x10) || ((reg[0] & 0x40) && (A < 0xA000)))
 		return CartBR(A);
-	return PRGptr[0][((0x0107 | ((A >> 7) & 0x0F8)) << 10) | (A & 0x3FF)];
+	else
+		return PRGptr[0][((0x0107 | ((A >> 7) & 0x0F8)) << 10) | (A & 0x3FF)];
 }
 
-static void UNLPEC586Power(void) {
+static void M257Power(void) {
 	if(PRGsize[0] == 512 * 1024)
 		reg[0] = 0x00;
 	else
@@ -93,27 +94,24 @@ static void UNLPEC586Power(void) {
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	if(PRGsize[0] == 512 * 1024)
-		SetReadHandler(0x8000, 0xFFFF, UNLPEC586ReadHi);
+		SetReadHandler(0x8000, 0xFFFF, M257ReadHi);
 	else
 		SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x5000, 0x5fff, UNLPEC586Write);
-	SetReadHandler(0x5000, 0x5fff, UNLPEC586Read);
+	SetWriteHandler(0x5000, 0x5fff, M257Write);
+	SetReadHandler(0x5000, 0x5fff, M257Read);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void UNLPEC586Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
+static void M257Close(void) {
 }
 
 static void StateRestore(int version) {
 	Sync();
 }
 
-void UNLPEC586Init(CartInfo *info) {
-	info->Power = UNLPEC586Power;
-	info->Close = UNLPEC586Close;
+void Mapper257_Init(CartInfo *info) {
+	info->Power = M257Power;
+	info->Close = M257Close;
 	GameStateRestore = StateRestore;
 
 	WRAMSIZE = 8192;
@@ -121,5 +119,5 @@ void UNLPEC586Init(CartInfo *info) {
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

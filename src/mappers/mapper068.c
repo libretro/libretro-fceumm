@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,145 +21,130 @@
 
 #include "mapinc.h"
 
-static uint8 chr_reg[4];
-static uint8 kogame, prg_reg, nt1, nt2, mirr;
+/* FIXME: needs updating, submapper 1 support etc */
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE, count;
+static uint8 chr[4];
+static uint8 nt[2];
+static uint8 kogame, prg, mirr;
+static uint32 count;
 
-static SFORMAT StateRegs[] =
-{
-	{ &nt1, 1, "NT1" },
-	{ &nt2, 1, "NT2" },
+static SFORMAT StateRegs[] = {
 	{ &mirr, 1, "MIRR" },
-	{ &prg_reg, 1, "PRG" },
+	{ &prg, 1, "PRG" },
 	{ &kogame, 1, "KGME" },
 	{ &count, 4, "CNT" },
-	{ chr_reg, 4, "CHR" },
+	{ chr, 4, "CHR" },
+	{ nt, 2, "NTAR" },
 	{ 0 }
 };
 
-static void M68NTfix(void) {
+static void Sync(void) {
+	setprg8r(0x10, 0x6000, 0);
+	setprg16r((PRGptr[1]) ? kogame : 0, 0x8000, prg);
+	setprg16(0xC000, 0x07);
+
+	setchr2(0x0000, chr[0]);
+	setchr2(0x0800, chr[1]);
+	setchr2(0x1000, chr[2]);
+	setchr2(0x1800, chr[3]);
+
 	if ((!UNIFchrrama) && (mirr & 0x10)) {
+		int i;
 		PPUNTARAM = 0;
-		switch (mirr & 3) {
-		case 0:
-			vnapage[0] = vnapage[2] = CHRptr[0] + (((nt1 | 128) & CHRmask1[0]) << 10);
-			vnapage[1] = vnapage[3] = CHRptr[0] + (((nt2 | 128) & CHRmask1[0]) << 10);
-			break;
-		case 1:
-			vnapage[0] = vnapage[1] = CHRptr[0] + (((nt1 | 128) & CHRmask1[0]) << 10);
-			vnapage[2] = vnapage[3] = CHRptr[0] + (((nt2 | 128) & CHRmask1[0]) << 10);
-			break;
-		case 2:
-			vnapage[0] = vnapage[1] = vnapage[2] = vnapage[3] = CHRptr[0] + (((nt1 | 128) & CHRmask1[0]) << 10);
-			break;
-		case 3:
-			vnapage[0] = vnapage[1] = vnapage[2] = vnapage[3] = CHRptr[0] + (((nt2 | 128) & CHRmask1[0]) << 10);
-			break;
+		for (i = 0; i < 4; i++) {
+			switch (mirr & 0x03) {
+			case 0: vnapage[i] = CHRptr[0] + (((nt[i & 0x01] | 0x80) & CHRmask1[0]) << 10); break;
+			case 1: vnapage[i] = CHRptr[0] + (((nt[(i >> 0x01) & 0x01] | 0x80) & CHRmask1[0]) << 10); break;
+			case 2: vnapage[i] = CHRptr[0] + (((nt[0] | 0x80) & CHRmask1[0]) << 10); break;
+			case 3: vnapage[i] = CHRptr[0] + (((nt[1] | 0x80) & CHRmask1[0]) << 10); break;
+			}
 		}
-	} else
-		switch (mirr & 3) {
+	} else {
+		switch (mirr & 0x03) {
 		case 0: setmirror(MI_V); break;
 		case 1: setmirror(MI_H); break;
 		case 2: setmirror(MI_0); break;
 		case 3: setmirror(MI_1); break;
 		}
+	}
 }
 
-static void Sync(void) {
-	setchr2(0x0000, chr_reg[0]);
-	setchr2(0x0800, chr_reg[1]);
-	setchr2(0x1000, chr_reg[2]);
-	setchr2(0x1800, chr_reg[3]);
-	setprg8r(0x10, 0x6000, 0);
-	setprg16r((PRGptr[1]) ? kogame : 0, 0x8000, prg_reg);
-	setprg16(0xC000, 0x07);
-}
-
-static uint8 M68Read(uint32 A) {
-	if (!(kogame & 8)) {
+static DECLFR(M68Read) {
+	if (!(kogame & 0x08)) {
 		count++;
-		if (count == 1784)
-			setprg16r(0, 0x8000, prg_reg);
+		if (count == 1784) {
+			setprg16r(0, 0x8000, prg);
+		}
 	}
 	return CartBR(A);
 }
 
-static void M68WriteLo(uint32 A, uint8 V) {
+static DECLFW(M68WriteLo) {
 	if (!V) {
 		count = 0;
-		setprg16r((PRGptr[1]) ? kogame : 0, 0x8000, prg_reg);
+		setprg16r((PRGptr[1]) ? kogame : 0, 0x8000, prg);
 	}
 	CartBW(A, V);
 }
 
-static void M68WriteCHR(uint32 A, uint8 V) {
-	chr_reg[(A >> 12) & 3] = V;
-	Sync();
-}
-
-static void M68WriteNT1(uint32 A, uint8 V) {
-	nt1 = V;
-	M68NTfix();
-}
-
-static void M68WriteNT2(uint32 A, uint8 V) {
-	nt2 = V;
-	M68NTfix();
-}
-
-static void M68WriteMIR(uint32 A, uint8 V) {
-	mirr = V;
-	M68NTfix();
-}
-
-static void M68WriteROM(uint32 A, uint8 V) {
-	prg_reg = V & 7;
-	kogame = ((V >> 3) & 1) ^ 1;
-	Sync();
+static DECLFW(M068Write) {
+	switch (A & 0xF000) {
+	case 0x8000:
+	case 0x9000:
+	case 0xA000:
+	case 0xB000:
+		chr[(A >> 12) & 0x03] = V;
+		Sync();
+		break;
+	case 0xC000:
+	case 0xD000:
+		nt[(A >> 12) & 0x01] = V;
+		Sync();
+		break;
+	case 0xE000:
+		mirr = V;
+		Sync();
+		break;
+	case 0xF000:
+		prg = V & 0x07;
+		kogame = ((V >> 3) & 0x01) ^ 0x01;
+		Sync();
+		break;
+	}
 }
 
 static void M68Power(void) {
-	prg_reg = 0;
+	prg = 0;
 	kogame = 0;
 	Sync();
-	M68NTfix();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetReadHandler(0x8000, 0xBFFF, M68Read);
 	SetReadHandler(0xC000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xBFFF, M68WriteCHR);
-	SetWriteHandler(0xC000, 0xCFFF, M68WriteNT1);
-	SetWriteHandler(0xD000, 0xDFFF, M68WriteNT2);
-	SetWriteHandler(0xE000, 0xEFFF, M68WriteMIR);
-	SetWriteHandler(0xF000, 0xFFFF, M68WriteROM);
+	SetWriteHandler(0x8000, 0xFFFF, M068Write);
 	SetWriteHandler(0x6000, 0x6000, M68WriteLo);
 	SetWriteHandler(0x6001, 0x7FFF, CartBW);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M68Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
 }
 
 static void StateRestore(int version) {
 	Sync();
-	M68NTfix();
 }
 
-void Mapper68_Init(CartInfo *info) {
+void Mapper068_Init(CartInfo *info) {
 	info->Power = M68Power;
 	info->Close = M68Close;
 	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
+
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;
 		info->SaveGameLen[0] = WRAMSIZE;
 	}
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-	AddExState(&StateRegs, ~0, 0, 0);
 }

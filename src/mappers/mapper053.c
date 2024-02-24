@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,59 +19,61 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* Mapper 053 - BMC-Supervision16in1 */
+
 #include "mapinc.h"
 
-static uint8 cmd0, cmd1;
-static SFORMAT StateRegs[] =
-{
-	{ &cmd0, 1, "L1" },
-	{ &cmd1, 1, "L2" },
+static uint8 reg[2];
+
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setchr8(0);
-	setprg8(0x6000, (((cmd0 & 0xF) << 4) | 0xF) + 4);
-	if (cmd0 & 0x10) {
-			setprg16(0x8000, (((cmd0 & 0xF) << 3) | (cmd1 & 7)) + 2);
-			setprg16(0xc000, (((cmd0 & 0xF) << 3) | 7) + 2);
-	} else
+	setprg8(0x6000, 0x04 + (((reg[0] & 0x0F) << 4) | 0x0F));
+	if (reg[0] & 0x10) {
+		setprg16(0x8000, 0x02 + (((reg[0] & 0x0F) << 3) | (reg[1] & 0x07)));
+		setprg16(0xc000, 0x02 + (((reg[0] & 0x0F) << 3) | 0x07));
+	} else {
 		setprg32(0x8000, 0);
-	setmirror(((cmd0 & 0x20) >> 5) ^ 1);
+	}
+	setchr8(0);
+	setmirror(((reg[0] & 0x20) >> 5) ^ 0x01);
 }
 
-static void SuperWriteLo(uint32 A, uint8 V) {
-	if (!(cmd0 & 0x10)) {
-		cmd0 = V;
+static DECLFW(M053Write6) {
+	if (!(reg[0] & 0x10)) {
+		reg[0] = V;
 		Sync();
 	}
 }
 
-static void SuperWriteHi(uint32 A, uint8 V) {
-	cmd1 = V;
+static DECLFW(M053Write8) {
+	reg[1] = V;
 	Sync();
 }
 
-static void SuperPower(void) {
-	SetWriteHandler(0x6000, 0x7FFF, SuperWriteLo);
-	SetWriteHandler(0x8000, 0xFFFF, SuperWriteHi);
+static void M053Power(void) {
+	SetWriteHandler(0x6000, 0x7FFF, M053Write6);
+	SetWriteHandler(0x8000, 0xFFFF, M053Write8);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	cmd0 = cmd1 = 0;
+	reg[0] = reg[1] = 0;
 	Sync();
 }
 
-static void SuperReset(void) {
-	cmd0 = cmd1 = 0;
+static void M053Reset(void) {
+	reg[0] = reg[1] = 0;
 	Sync();
 }
 
-static void SuperRestore(int version) {
+static void StateRestore(int version) {
 	Sync();
 }
 
-void Supervision16_Init(CartInfo *info) {
-	info->Power = SuperPower;
-	info->Reset = SuperReset;
-	GameStateRestore = SuperRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper053_Init(CartInfo *info) {
+	info->Power = M053Power;
+	info->Reset = M053Reset;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

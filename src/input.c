@@ -19,7 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
- /* merged pad.c 2017-9-30 */
+/* merged pad.c 2017-9-30 */
 
 #include <string.h>
 
@@ -29,15 +29,22 @@
 #include "fceu.h"
 #include "state.h"
 
+#include "cart.h"
 #include "input.h"
 #include "vsuni.h"
 #include "fds.h"
+
+#include "input/zapper.h"
 
 extern INPUTC *FCEU_InitZapper(int w);
 extern INPUTC *FCEU_InitMouse(int w);
 extern INPUTC *FCEU_InitPowerpadA(int w);
 extern INPUTC *FCEU_InitPowerpadB(int w);
 extern INPUTC *FCEU_InitArkanoid(int w);
+extern INPUTC *FCEU_InitLCDCompZapper(int w);
+extern INPUTC *FCEU_InitSNESMouse(int w);
+extern INPUTC *FCEU_InitSNESGamepad(int w);
+extern INPUTC *FCEU_InitVirtualBoy(int w);
 
 extern INPUTCFC *FCEU_InitArkanoidFC(void);
 extern INPUTCFC *FCEU_InitSpaceShadow(void);
@@ -46,388 +53,543 @@ extern INPUTCFC *FCEU_InitSuborKB(void);
 extern INPUTCFC *FCEU_InitPEC586KB(void);
 extern INPUTCFC *FCEU_InitHS(void);
 extern INPUTCFC *FCEU_InitMahjong(void);
-extern INPUTCFC *FCEU_InitQuizKing(void);
+extern INPUTCFC *FCEU_InitPartyTap(void);
 extern INPUTCFC *FCEU_InitFamilyTrainerA(void);
 extern INPUTCFC *FCEU_InitFamilyTrainerB(void);
 extern INPUTCFC *FCEU_InitOekaKids(void);
 extern INPUTCFC *FCEU_InitTopRider(void);
+extern INPUTCFC *FCEU_InitFamiNetSys(void);
 extern INPUTCFC *FCEU_InitBarcodeWorld(void);
+extern INPUTCFC *FCEU_InitExcitingBoxing(void);
+
+typedef struct JOYPORT {
+	uint8 type;
+	uint8 attrib;
+	void *dataptr;
+	INPUTC *driver;
+} JOYPORT;
+
+typedef struct PORTFC {
+	uint8 type;
+	uint8 attrib;
+	void *dataptr;
+	INPUTCFC *driver;
+} PORTFC;
 
 static uint8 joy_readbit[2];
 static uint8 joy[4] = { 0, 0, 0, 0 };
 static uint8 LastStrobe;
 
-extern uint8 coinon;
+static int FourScoreAttached = FALSE; /* Set to 1 if NES-style four-player adapter is disabled. */
 
-static int FSDisable = 0; /* Set to 1 if NES-style four-player adapter is disabled. */
-static int JPAttrib[2] = { 0, 0 };
-static int JPType[2] = { 0, 0 };
-static void *InputDataPtr[2];
-
-static int JPAttribFC = 0;
-static int JPTypeFC = 0;
-static void *InputDataPtrFC;
+static JOYPORT joyport[2];
+static PORTFC portFC;
 
 static INPUTC DummyJPort = { 0, 0, 0, 0, 0, 0 };
-static INPUTC *JPorts[2] = { &DummyJPort, &DummyJPort };
-static INPUTCFC *FCExp = 0;
 
-void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
+static DECLFR(JPRead) {
+	uint8 ret               = 0;
+	static uint8 microphone = 0;
 
-static uint8 JPRead(uint32 A)
-{
-	uint8 ret = 0;
+	if (joyport[A & 0x01].driver->Read) {
+		ret |= joyport[A & 0x01].driver->Read(A & 0x01);
+	}
 
-	if (JPorts[A & 1]->Read)
-		ret |= JPorts[A & 1]->Read(A & 1);
+	/* Test if the port 2 start button is being pressed.
+	 * On a famicom, port 2 start shouldn't exist, so this removes it.
+	 * Games can't automatically be checked for NES/Famicom status,
+	 * so it's an all-encompassing change in the input config menu.
+	 */
+	if ((FSettings.ReplaceP2StartWithMicrophone) && (A & 0x01) && (joy_readbit[1] == 0x04)) {
+		/* Nullify Port 2 Start Button */
+		ret &= 0xFE;
+	}
 
-	if (FCExp)
-		if (FCExp->Read)
-			ret = FCExp->Read(A & 1, ret);
+	if (portFC.driver && portFC.driver->Read) {
+		ret = portFC.driver->Read(A & 0x01, ret);
+	}
 
-	ret |= cpu.openbus & 0xC0;
+	/* Not verified against hardware. */
+	if (FSettings.ReplaceP2StartWithMicrophone) {
+		if (joy[1] & 0x08) {
+			microphone = !microphone;
+			if (microphone) {
+				ret |= 0x04;
+			}
+		} else {
+			microphone = 0;
+		}
+	}
 
-	return(ret);
+	ret |= (cpu.openbus & 0xC0);
+
+	return (ret);
 }
 
-static void B4016(uint32 A, uint8 V)
-{
-	if (FCExp)
-		if (FCExp->Write)
-			FCExp->Write(V & 7);
+static DECLFW(B4016) {
+	int x;
 
-	if (JPorts[0]->Write)
-		JPorts[0]->Write(V & 1);
-	if (JPorts[1]->Write)
-		JPorts[1]->Write(V & 1);
+	if (portFC.driver && portFC.driver->Write) {
+		portFC.driver->Write(V & 0x07);
+	}
 
-	if ((LastStrobe & 1) && (!(V & 1)))
-   {
-      if (JPorts[0]->Strobe)
-         JPorts[0]->Strobe(0);
-      if (JPorts[1]->Strobe)
-         JPorts[1]->Strobe(1);
-      if (FCExp)
-         if (FCExp->Strobe)
-            FCExp->Strobe();
-   }
-	LastStrobe = V & 0x1;
-}
+	for (x = 0; x < 2; x++) {
+		if (joyport[x].driver->Write) {
+			joyport[x].driver->Write(V & 0x01);	
+		}
+	}
 
-void FCEU_DrawInput(uint8 *buf)
-{
-   int x;
+	if ((LastStrobe & 0x01) && (!(V & 0x01))) {
+		for (x = 0; x < 2; x++) {
+			if (joyport[x].driver->Strobe) {
+				joyport[x].driver->Strobe(x);
+			}
+		}
+		if (portFC.driver && portFC.driver->Strobe) {
+			portFC.driver->Strobe();
+		}
+	}
 
-   for (x = 0; x < 2; x++)
-      if (JPorts[x]->Draw)
-         JPorts[x]->Draw(x, buf, JPAttrib[x]);
-   if (FCExp)
-      if (FCExp->Draw)
-         FCExp->Draw(buf, JPAttribFC);
+	LastStrobe = V;
 }
 
 /**********************************************************************/
 /* This function is a quick hack to get the NSF player to use emulated gamepad
-   input.
+	input.
 */
 uint8 FCEU_GetJoyJoy(void) {
-	return(joy[0] | joy[1] | joy[2] | joy[3]);
+	return (joy[0] | joy[1] | joy[2] | joy[3]);
 }
 
 /* 4-player support for famicom expansion */
 static uint8 F4ReadBit[2];
-
 static void StrobeFami4(void) {
 	F4ReadBit[0] = F4ReadBit[1] = 0;
 }
 
 static uint8 ReadFami4(int w, uint8 ret) {
-	ret &= 1;
-	ret |= ((joy[2 + w] >> (F4ReadBit[w])) & 1) << 1;
-	if (F4ReadBit[w] >= 8) ret |= 2;
-	else F4ReadBit[w]++;
-	return(ret);
+	ret &= 0x01;
+	ret |= ((joy[2 + w] >> (F4ReadBit[w])) & 0x01) << 1;
+
+	if (F4ReadBit[w] >= 8) {
+		ret |= 0x02;
+	} else {
+		F4ReadBit[w]++;
+	}
+
+	return (ret);
+}
+
+/* Hori 4 player driver for expansion port */
+static uint8 Hori4ReadBit[2];
+static void StrobeHori4(void) {
+	Hori4ReadBit[0] = Hori4ReadBit[1] = 0;
+}
+
+static uint8 ReadHori4(int w, uint8 ret) {
+	ret &= 0x01;
+	if (Hori4ReadBit[w] < 8) {
+		ret |= ((joy[w] >> (Hori4ReadBit[w])) & 0x01) << 1;
+	} else if (Hori4ReadBit[w] < 16) {
+		ret |= ((joy[2 + w] >> (Hori4ReadBit[w] - 8)) & 0x01) << 1;
+	} else if (Hori4ReadBit[w] < 24) {
+		ret |= (((w ? 0x10 : 0x20) >> (7 - (Hori4ReadBit[w] - 16))) & 0x01) << 1;
+	}
+
+	if (Hori4ReadBit[w] >= 24) {
+		ret |= 0x02;
+	} else {
+		Hori4ReadBit[w]++;
+	}
+
+	return (ret);
 }
 
 /* VS. Unisystem inputs */
 static uint8 ReadGPVS(int w) {
 	uint8 ret = 0;
-	if (joy_readbit[w] >= 8)
+
+	if (joy_readbit[w] >= 8) {
 		ret = 1;
-	else {
+	} else {
 		ret = ((joy[w] >> (joy_readbit[w])) & 1);
-		joy_readbit[w]++;
+#ifdef FCEUDEF_DEBUGGER
+		if (!fceuindbg)
+#endif
+			joy_readbit[w]++;
 	}
 	return ret;
 }
 
 /* standard gamepad inputs */
 static uint8 ReadGP(int w) {
-	uint8 ret;
-	if (joy_readbit[w] >= 8)
-		ret = ((joy[2 + w] >> (joy_readbit[w] & 7)) & 1);
-	else
-		ret = ((joy[w] >> (joy_readbit[w])) & 1);
-	if (joy_readbit[w] >= 16) ret = 0;
-	if (FSDisable) {
-		if (joy_readbit[w] >= 8)
-			ret |= 1;
+	uint8 ret = 0;
+
+	if (joy_readbit[w] >= 8) {
+		ret = ((joy[2 + w] >> (joy_readbit[w] & 0x07)) & 0x01);
 	} else {
-		if (joy_readbit[w] == 19 - w)
-			ret |= 1;
+		ret = ((joy[w] >> (joy_readbit[w])) & 0x01);
 	}
-	joy_readbit[w]++;
+	if (joy_readbit[w] >= 16) {
+		ret = 0;
+	}
+	if (!FourScoreAttached) {
+		if (joy_readbit[w] >= 8) {
+			ret |= 0x01;
+		}
+	} else {
+		if (joy_readbit[w] == 19 - w) {
+			ret |= 0x01;
+		}
+	}
+#ifdef FCEUDEF_DEBUGGER
+	if (!fceuindbg)
+#endif
+		joy_readbit[w]++;
 	return ret;
 }
 
 static void UpdateGP(int w, void *data, int arg) {
-	uint32 *ptr = (uint32*)data;
+	uint32 *ptr = (uint32 *)data;
 	if (!w) {
-		joy[0] = *(uint32*)ptr;
-		joy[2] = *(uint32*)ptr >> 16;
+		joy[0] = *(uint32 *)ptr;
+		joy[2] = *(uint32 *)ptr >> 16;
 	} else {
-		joy[1] = *(uint32*)ptr >> 8;
-		joy[3] = *(uint32*)ptr >> 24;
+		joy[1] = *(uint32 *)ptr >> 8;
+		joy[3] = *(uint32 *)ptr >> 24;
 	}
 }
 
-static void StrobeGP(int w) { joy_readbit[w] = 0; }
+static void StrobeGP(int w) {
+	joy_readbit[w] = 0;
+}
 
-static INPUTC GPC = { ReadGP, 0, StrobeGP, UpdateGP, 0, 0 };
-static INPUTC GPCVS = { ReadGPVS, 0, StrobeGP, UpdateGP, 0, 0 };
+static INPUTC GPC      = { ReadGP, 0, StrobeGP, UpdateGP, 0, 0 };
+static INPUTC GPCVS    = { ReadGPVS, 0, StrobeGP, UpdateGP, 0, 0 };
 static INPUTCFC FAMI4C = { ReadFami4, 0, StrobeFami4, 0, 0, 0 };
+static INPUTCFC HORI4C = { ReadHori4, 0, StrobeHori4, 0, 0, 0 };
 
 /**********************************************************************/
+void FCEU_DrawInput(uint8 *buf) {
+	int x;
 
-void FCEU_UpdateInput(void)
-{
-   int x;
+	for (x = 0; x < 2; x++) {
+		if (joyport[x].driver->Draw) {
+			joyport[x].driver->Draw(x, buf, joyport[x].attrib);
+		}
+	}
 
-   for (x = 0; x < 2; x++)
-   {
-      if (JPorts[x] && JPorts[x]->Update)
-         JPorts[x]->Update(x, InputDataPtr[x], JPAttrib[x]);
-   }
-
-   if (FCExp && FCExp->Update)
-      FCExp->Update(InputDataPtrFC, JPAttribFC);
-
-   if (GameInfo && GameInfo->type == GIT_VSUNI)
-   {
-      if (coinon) coinon--;
-      FCEU_VSUniSwap(&joy[0], &joy[1]);
-   }
+	if (portFC.driver && portFC.driver->Draw) {
+		portFC.driver->Draw(buf, portFC.attrib);
+	}
 }
 
-static uint8 VSUNIRead0(uint32 A)
-{
-   uint8 ret = 0;
+void FCEU_UpdateInput(void) {
+	int x;
 
-   if (JPorts[0]->Read)
-      ret |= (JPorts[0]->Read(0)) & 1;
+	for (x = 0; x < 2; x++) {
+		if (joyport[x].driver && joyport[x].driver->Update) {
+			joyport[x].driver->Update(x, joyport[x].dataptr, joyport[x].attrib);
+		}
+	}
 
-   ret |= (vsdip & 3) << 3;
-   if (coinon)
-      ret |= 0x4;
-   return ret;
+	if (portFC.driver && portFC.driver->Update) {
+		portFC.driver->Update(portFC.dataptr, portFC.attrib);
+	}
+
+	if (GameInfo && ((GameInfo->type == GIT_VSUNI) || (iNESCart.mapper == 124))) {
+		for (x = 0; x < 2; x++) {
+			if (vsuni_system.coinon[x]) {
+				vsuni_system.coinon[x]--;
+			}	
+		}
+		if (vsuni_system.service) {
+			vsuni_system.service--;
+		}
+	}
+
+	if (GameInfo->type == GIT_VSUNI) {
+		FCEU_VSUniSwap(&joy[0], &joy[1]);
+	}
 }
 
-static uint8 VSUNIRead1(uint32 A)
-{
+static DECLFR(VSUNIRead0) {
 	uint8 ret = 0;
 
-	if (JPorts[1] && JPorts[1]->Read)
-		ret |= (JPorts[1]->Read(1)) & 1;
-	ret |= vsdip & 0xFC;
-	return ret;
+	if (joyport[0].driver->Read) {
+		ret |= (joyport[0].driver->Read(0)) & 0x01;
+	}
+
+	ret |= (vsuni_system.vsdip & 0x03) << 3;
+
+	if (vsuni_system.coinon[0]) {
+		ret |= 0x20;
+	}
+	if (vsuni_system.coinon[1]) {
+		ret |= 0x40;
+	}
+	if (vsuni_system.service) {
+		ret |= 0x04;
+	}
+
+	return (ret);
 }
 
-static void SLHLHook(uint8 *bg, uint8 *spr, uint32 linets, int final)
-{
-   int x;
+static DECLFR(VSUNIRead1) {
+	uint8 ret = 0;
 
-   for (x = 0; x < 2; x++)
-      if (JPorts[x] && JPorts[x]->SLHook)
-         JPorts[x]->SLHook(x, bg, spr, linets, final);
+	if (joyport[1].driver && joyport[1].driver->Read) {
+		ret |= (joyport[1].driver->Read(1)) & 0x01;
+	}
 
-   if (FCExp && FCExp->SLHook)
-      FCExp->SLHook(bg, spr, linets, final);
+	ret |= vsuni_system.vsdip & 0xFC;
+
+	return (ret);
 }
 
-static void CheckSLHook(void)
-{
-   InputScanlineHook = 0;
+void InputScanlineHook(uint8 *bg, uint8 *spr, uint32 linets, int final) {
+	int x;
 
-   if ((JPorts[0] && JPorts[0]->SLHook) || (JPorts[1] && JPorts[1]->SLHook))
-      InputScanlineHook = SLHLHook;
+	for (x = 0; x < 2; x++) {
+		if (joyport[x].driver && joyport[x].driver->SLHook) {
+			joyport[x].driver->SLHook(x, bg, spr, linets, final);
+		}
+	}
 
-   if (FCExp && FCExp->SLHook)
-      InputScanlineHook = SLHLHook;
+	if (portFC.driver && portFC.driver->SLHook) {
+		portFC.driver->SLHook(bg, spr, linets, final);
+	}
 }
 
-static void SetInputStuff(int x)
-{
-	switch (JPType[x])
-   {
-      case SI_NONE:
-         JPorts[x] = &DummyJPort;
-         break;
-      case SI_GAMEPAD:
-         if (GameInfo->type == GIT_VSUNI)
-            JPorts[x] = &GPCVS;
-         else
-            JPorts[x] = &GPC;
-         break;
-      case SI_ARKANOID:
-         JPorts[x] = FCEU_InitArkanoid(x);
-         break;
-      case SI_MOUSE:
-         JPorts[x] = FCEU_InitMouse(x);
-         break;
-      case SI_ZAPPER:
-         JPorts[x] = FCEU_InitZapper(x);
-         break;
-      case SI_POWERPADA:
-         JPorts[x] = FCEU_InitPowerpadA(x);
-         break;
-      case SI_POWERPADB:
-         JPorts[x] = FCEU_InitPowerpadB(x);
-         break;
-   }
-	CheckSLHook();
+static void SetInputStuff(int x) {
+	switch (joyport[x].type) {
+	case SI_NONE:
+		joyport[x].driver = &DummyJPort;
+		break;
+	case SI_GAMEPAD:
+		if (GameInfo->type == GIT_VSUNI)
+			joyport[x].driver = &GPCVS;
+		else
+			joyport[x].driver = &GPC;
+		break;
+	case SI_ARKANOID:
+		joyport[x].driver = FCEU_InitArkanoid(x);
+		break;
+	case SI_MOUSE:
+		joyport[x].driver = FCEU_InitMouse(x);
+		break;
+	case SI_ZAPPER:
+		joyport[x].driver = FCEU_InitZapper(x);
+		break;
+	case SI_POWERPADA:
+		joyport[x].driver = FCEU_InitPowerpadA(x);
+		break;
+	case SI_POWERPADB:
+		joyport[x].driver = FCEU_InitPowerpadB(x);
+		break;
+	case SI_LCDCOMP_ZAPPER:
+		joyport[x].driver = FCEU_InitLCDCompZapper(x);
+		break;
+	case SI_SNES_GAMEPAD:
+		joyport[x].driver = FCEU_InitSNESGamepad(x);
+		break;
+	case SI_SNES_MOUSE:
+		joyport[x].driver = FCEU_InitSNESMouse(x);
+		break;
+	case SI_VIRTUALBOY:
+		joyport[x].driver = FCEU_InitVirtualBoy(x);
+		break;
+	}
 }
 
-static void SetInputStuffFC(void)
-{
-	switch (JPTypeFC)
-   {
-      case SIFC_NONE:
-         FCExp = 0;
-         break;
-      case SIFC_ARKANOID:
-         FCExp = FCEU_InitArkanoidFC();
-         break;
-      case SIFC_SHADOW:
-         FCExp = FCEU_InitSpaceShadow();
-         break;
-      case SIFC_OEKAKIDS:
-         FCExp = FCEU_InitOekaKids();
-         break;
-      case SIFC_4PLAYER:
-         FCExp = &FAMI4C;
-         memset(&F4ReadBit, 0, sizeof(F4ReadBit));
-         break;
-      case SIFC_FKB:
-         FCExp = FCEU_InitFKB();
-         break;
-      case SIFC_SUBORKB:
-         FCExp = FCEU_InitSuborKB();
-         break;
-      case SIFC_PEC586KB:
-         FCExp = FCEU_InitPEC586KB();
-         break;
-      case SIFC_HYPERSHOT:
-         FCExp = FCEU_InitHS();
-         break;
-      case SIFC_MAHJONG:
-         FCExp = FCEU_InitMahjong();
-         break;
-      case SIFC_QUIZKING:
-         FCExp = FCEU_InitQuizKing();
-         break;
-      case SIFC_FTRAINERA:
-         FCExp = FCEU_InitFamilyTrainerA();
-         break;
-      case SIFC_FTRAINERB:
-         FCExp = FCEU_InitFamilyTrainerB();
-         break;
-      case SIFC_BWORLD:
-         FCExp = FCEU_InitBarcodeWorld();
-         break;
-      case SIFC_TOPRIDER:
-         FCExp = FCEU_InitTopRider();
-         break;
-   }
-	CheckSLHook();
+static void SetInputStuffFC(void) {
+	switch (portFC.type) {
+	case SIFC_NONE:
+		portFC.driver = 0;
+		break;
+	case SIFC_ARKANOID:
+		portFC.driver = FCEU_InitArkanoidFC();
+		break;
+	case SIFC_SHADOW:
+		portFC.driver = FCEU_InitSpaceShadow();
+		break;
+	case SIFC_OEKAKIDS:
+		portFC.driver = FCEU_InitOekaKids();
+		break;
+	case SIFC_4PLAYER:
+		portFC.driver = &FAMI4C;
+		memset(&F4ReadBit, 0, sizeof(F4ReadBit));
+		break;
+	case SIFC_FKB:
+		portFC.driver = FCEU_InitFKB();
+		break;
+	case SIFC_SUBORKB:
+		portFC.driver = FCEU_InitSuborKB();
+		break;
+	case SIFC_PEC586KB:
+		portFC.driver = FCEU_InitPEC586KB();
+		break;
+	case SIFC_HYPERSHOT:
+		portFC.driver = FCEU_InitHS();
+		break;
+	case SIFC_MAHJONG:
+		portFC.driver = FCEU_InitMahjong();
+		break;
+	case SIFC_PARTYTAP:
+		portFC.driver = FCEU_InitPartyTap();
+		break;
+	case SIFC_FTRAINERA:
+		portFC.driver = FCEU_InitFamilyTrainerA();
+		break;
+	case SIFC_FTRAINERB:
+		portFC.driver = FCEU_InitFamilyTrainerB();
+		break;
+	case SIFC_BWORLD:
+		portFC.driver = FCEU_InitBarcodeWorld();
+		break;
+	case SIFC_TOPRIDER:
+		portFC.driver = FCEU_InitTopRider();
+		break;
+	case SIFC_FAMINETSYS:
+		portFC.driver = FCEU_InitFamiNetSys();
+		break;
+	case SIFC_EXCITINGBOXING:
+		portFC.driver = FCEU_InitExcitingBoxing();
+		break;
+	case SIFC_HORI4PLAYER:
+		portFC.driver = &HORI4C;
+		memset(&Hori4ReadBit, 0, sizeof(Hori4ReadBit));
+		break;
+	}
 }
 
-void InitializeInput(void)
-{
-   memset(joy_readbit,0,sizeof(joy_readbit));
-   memset(joy,0,sizeof(joy));
-   LastStrobe = 0;
+void FCEUINPUT_Power(void) {
+	memset(joy_readbit, 0, sizeof(joy_readbit));
+	memset(joy, 0, sizeof(joy));
+	LastStrobe = 0;
 
-   if (GameInfo && GameInfo->type == GIT_VSUNI)
-   {
-      SetReadHandler(0x4016, 0x4016, VSUNIRead0);
-      SetReadHandler(0x4017, 0x4017, VSUNIRead1);
-   }
-   else
-      SetReadHandler(0x4016, 0x4017, JPRead);
+	if (GameInfo && GameInfo->type == GIT_VSUNI) {
+		SetReadHandler(0x4016, 0x4016, VSUNIRead0);
+		SetReadHandler(0x4017, 0x4017, VSUNIRead1);
+	} else {
+		SetReadHandler(0x4016, 0x4017, JPRead);
+	}
 
-   SetWriteHandler(0x4016, 0x4016, B4016);
+	SetWriteHandler(0x4016, 0x4016, B4016);
 
-   SetInputStuff(0);
-   SetInputStuff(1);
-   SetInputStuffFC();
-}
-
-void FCEUI_SetInput(int port, int type, void *ptr, int attrib)
-{
-   JPAttrib[port] = attrib;
-   JPType[port] = type;
-   InputDataPtr[port] = ptr;
-   SetInputStuff(port);
-}
-
-void FCEUI_SetInputFC(int type, void *ptr, int attrib)
-{
-	JPAttribFC = attrib;
-	JPTypeFC = type;
-	InputDataPtrFC = ptr;
+	SetInputStuff(0);
+	SetInputStuff(1);
 	SetInputStuffFC();
 }
 
-void FCEUI_DisableFourScore(int s) { FSDisable = s; }
+void FCEUI_SetInput(int port, int type, void *ptr, int attrib) {
+	joyport[port].attrib  = attrib;
+	joyport[port].type    = type;
+	joyport[port].dataptr = ptr;
+	SetInputStuff(port);
+}
+
+void FCEUI_SetInputFC(int type, void *ptr, int attrib) {
+	portFC.attrib  = attrib;
+	portFC.type    = type;
+	portFC.dataptr = ptr;
+	SetInputStuffFC();
+}
+
+void FCEUI_SetInputFourScore(int useFourScore) {
+	FourScoreAttached = useFourScore;
+}
 
 SFORMAT FCEUCTRL_STATEINFO[] = {
 	{ joy_readbit, 2, "JYRB" },
 	{ joy, 4, "JOYS" },
 	{ &LastStrobe, 1, "LSTS" },
-	{ 0 }
+	{ &ZD[0].bogo, 1, "ZBG0" },
+	{ &ZD[1].bogo, 1, "ZBG1" },
+	{ &ZD[0].zaphit, sizeof(ZD[0].zaphit), "ZHT0" },
+	{ &ZD[1].zaphit, sizeof(ZD[1].zaphit), "ZHT1" },
+	{ &ZD[0].zappo, sizeof(ZD[0].zappo), "ZAP0" },
+	{ &ZD[1].zappo, sizeof(ZD[1].zappo), "ZAP1" },
+	{ &ZD[0].zap_readbit, sizeof(ZD[0].zap_readbit), "ZRB0" },
+	{ &ZD[1].zap_readbit, sizeof(ZD[1].zap_readbit), "ZRB1" },
+	{ 0 },
 };
 
-void FCEU_DoSimpleCommand(int cmd)
-{
-   switch (cmd)
-   {
-      case FCEUNPCMD_FDSINSERT:
-         FCEU_FDSInsert(-1);
-         break;
-      case FCEUNPCMD_FDSSELECT:
-         FCEU_FDSSelect();
-         break;
-      case FCEUNPCMD_FDSEJECT:
-         FCEU_FDSEject();
-         break;
-      case FCEUNPCMD_VSUNICOIN:
-         FCEU_VSUniCoin();
-         break;
-      case FCEUNPCMD_VSUNIDIP0:
-      case (FCEUNPCMD_VSUNIDIP0 + 1):
-      case (FCEUNPCMD_VSUNIDIP0 + 2):
-      case (FCEUNPCMD_VSUNIDIP0 + 3):
-      case (FCEUNPCMD_VSUNIDIP0 + 4):
-      case (FCEUNPCMD_VSUNIDIP0 + 5):
-      case (FCEUNPCMD_VSUNIDIP0 + 6):
-      case (FCEUNPCMD_VSUNIDIP0 + 7):
-         FCEU_VSUniToggleDIP(cmd - FCEUNPCMD_VSUNIDIP0);
-         break;
-      case FCEUNPCMD_POWER:
-	 PowerNES();
-         break;
-      case FCEUNPCMD_RESET:
-         ResetNES();
-         break;
-   }
+void FCEU_DoSimpleCommand(int cmd) {
+	switch (cmd) {
+	case FCEUNPCMD_FDSINSERT:
+		FCEU_FDSInsert(-1);
+		break;
+	case FCEUNPCMD_FDSSELECT:
+		FCEU_FDSSelect();
+		break;
+	case FCEUNPCMD_FDSEJECT:
+		FCEU_FDSEject();
+		break;
+	case FCEUNPCMD_VSUNICOIN:
+		FCEU_VSUniCoin(0);
+		break;
+	case FCEUNPCMD_VSUNICOIN2:
+		FCEU_VSUniCoin(1);
+		break;
+	case FCEUNPCMD_VSUNISERVICE:
+		FCEU_VSUniService();
+		break;
+	case FCEUNPCMD_VSUNIDIP0:
+	case (FCEUNPCMD_VSUNIDIP0 + 1):
+	case (FCEUNPCMD_VSUNIDIP0 + 2):
+	case (FCEUNPCMD_VSUNIDIP0 + 3):
+	case (FCEUNPCMD_VSUNIDIP0 + 4):
+	case (FCEUNPCMD_VSUNIDIP0 + 5):
+	case (FCEUNPCMD_VSUNIDIP0 + 6):
+	case (FCEUNPCMD_VSUNIDIP0 + 7):
+		FCEU_VSUniToggleDIP(cmd - FCEUNPCMD_VSUNIDIP0);
+		break;
+	case FCEUNPCMD_POWER:
+		PowerNES();
+		break;
+	case FCEUNPCMD_RESET:
+		ResetNES();
+		break;
+	}
+}
+
+static void FCEU_QSimpleCommand(int cmd) {
+	FCEU_DoSimpleCommand(cmd);
+}
+
+void FCEUI_FDSSelect(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_FDSSELECT);
+}
+
+void FCEUI_FDSInsert(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_FDSINSERT);
+}
+
+void FCEUI_FDSEject(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_FDSEJECT);
+}
+
+void FCEUI_VSUniToggleDIP(int w) {
+	FCEU_QSimpleCommand(FCEUNPCMD_VSUNIDIP0 + w);
+}
+
+void FCEUI_VSUniCoin(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_VSUNICOIN);
+}
+
+void FCEUI_VSUniCoin2(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_VSUNICOIN2);
+}
+
+void FCEUI_VSUniService(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_VSUNISERVICE);
+}
+
+void FCEUI_ResetNES(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_RESET);
+}
+
+void FCEUI_PowerNES(void) {
+	FCEU_QSimpleCommand(FCEUNPCMD_POWER);
 }

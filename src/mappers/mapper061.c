@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,26 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-/* Forward declarations */
-extern uint16 latche;
-void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram);
-
-/*------------------ Map 061 ---------------------------*/
-static void M61Sync(void) {
-	if (((latche & 0x10) << 1) ^ (latche & 0x20)) {
-		setprg16(0x8000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
-		setprg16(0xC000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
-	} else
-		setprg32(0x8000, latche & 0xF);
-	setchr8(0);
-	setmirror(((latche >> 7) & 1) ^ 1);
+static void Sync(void) {
+	if (latch.addr & 0x10) {
+		setprg16(0x8000, ((latch.addr & 0x0F) << 1) | ((latch.addr & 0x20) >> 5));
+		setprg16(0xC000, ((latch.addr & 0x0F) << 1) | ((latch.addr & 0x20) >> 5));
+	} else {
+		setprg32(0x8000, latch.addr & 0x0F);
+	}
+	setchr8(latch.addr >> 8 & 0x0F);
+	setmirror(((latch.addr >> 7) & 0x01) ^ 0x01);
 }
 
-void Mapper61_Init(CartInfo *info) {
-	Latch_Init(info, M61Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+void Mapper061_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Reset = Latch_RegReset;
 }
-

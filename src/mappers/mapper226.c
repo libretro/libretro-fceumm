@@ -1,9 +1,10 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
  *  Copyright (C) 2009 qeed
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,41 +28,41 @@
 
 #include "mapinc.h"
 
-static uint8 reorder_banks = 0;
-static uint8 latche[2], reset;
-static uint8 banks[4] = { 0, 0, 1, 2 };
-static SFORMAT StateRegs[] =
-{
-	{ &reset, 1, "RST" },
-	{ latche, 2, "LATC" },
+static uint8 reg[2], dipsw;
+static SFORMAT StateRegs[] = {
+	{ &dipsw, 1, "RST" },
+	{ reg, 2, "LATC" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	uint8 bank = 0;
-	uint8 base = ((latche[0] & 0x80) >> 7) | ((latche[1] & 1) << 1);
+	uint8 base = (reg[0] >> 7) | ((reg[1] & 0x01) << 1);
+	uint8 prg  = reg[0] & 0x1F;
 
-	if (reorder_banks) /* for 1536 KB prg roms */
-		base = banks[base];
-	bank = (base << 5) | (latche[0] & 0x1f);
-
-	if (!(latche[0] & 0x20))
-		setprg32(0x8000, bank >> 1);
-	else {
-		setprg16(0x8000, bank);
-		setprg16(0xC000, bank);
+	/* 1536KiB PRG roms have different bank order */
+	if (((ROM.prg.size * 16) == 1536) && base > 0) {
+		base--;
 	}
-	setmirror((latche[0] >> 6) & 1);
+
+	if (reg[0] & 0x20) {
+		setprg16(0x8000, (base << 5) | prg);
+		setprg16(0xC000, (base << 5) | prg);
+	} else {
+		setprg32(0x8000, ((base << 5) | prg) >> 1);
+	}
+
+	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], !(reg[1] & 0x02));
 	setchr8(0);
+	setmirror((reg[0] >> 6) & 0x01);
 }
 
-static void M226Write(uint32 A, uint8 V) {
-	latche[A & 1] = V;
+static DECLFW(M226Write) {
+	reg[A & 0x01] = V;
 	Sync();
 }
 
 static void M226Power(void) {
-	latche[0] = latche[1] = 0;
+	reg[0] = reg[1] = 0;
 	Sync();
 	SetWriteHandler(0x8000, 0xFFFF, M226Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
@@ -72,15 +73,13 @@ static void StateRestore(int version) {
 }
 
 static void M226Reset(void) {
-	latche[0] = latche[1] = 0;
+	reg[0] = reg[1] = 0;
 	Sync();
 }
 
 void Mapper226_Init(CartInfo *info) {
-	/* 1536KiB PRG roms have different bank order */
-	reorder_banks = ((info->PRGRomSize / 1024) == 1536) ? 1 : 0;
 	info->Power = M226Power;
 	info->Reset = M226Reset;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 	GameStateRestore = StateRestore;
 }

@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +26,7 @@
 
 static uint8 reg;
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
 	{ &reg, 1, "REG" },
 	{ 0 }
 };
@@ -37,9 +37,9 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static void M120Write(uint32 A, uint8 V) {
-	if (A == 0x41FF) {
-		reg = V & 7;
+static DECLFW(M120Write) {
+	if ((A & 0xE100) == 0x4100) {
+		reg = V & 0x07;
 		Sync();
 	}
 }
@@ -58,5 +58,5 @@ static void StateRestore(int version) {
 void Mapper120_Init(CartInfo *info) {
 	info->Power = M120Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,51 +18,60 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* 850335C PCB */
+/* 841026C and 850335C multicart circuit boards */
 
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void Mapper441_PRGWrap(uint32 A, uint8 V) {
-	int prgAND =EXPREGS[0] &0x08? 0x0F: 0x1F;
-	int prgOR  =EXPREGS[0] <<4 &0x30;
-	if (EXPREGS[0] &0x04) {
-		if (~A &0x4000) {
-			setprg8(A,         ~2 &V &prgAND | prgOR &~prgAND);
-			setprg8(A |0x4000,  2 |V &prgAND | prgOR &~prgAND);
+static uint8 reg;
+
+static void M441PW(uint16 A, uint16 V) {
+	uint8 mask = (reg & 0x08) ? 0x0F : 0x1F;
+	uint8 base  = (reg << 4) & 0x30;
+
+	if (reg & 0x04) {
+		setprg8(0x8000, (base & ~mask) | ((mmc3.reg[6] & ~0x02) & mask));
+		setprg8(0xA000, (base & ~mask) | ((mmc3.reg[7] & ~0x02) & mask));
+		setprg8(0xC000, (base & ~mask) | ((mmc3.reg[6] |  0x02) & mask));
+		setprg8(0xE000, (base & ~mask) | ((mmc3.reg[7] |  0x02) & mask));
+	} else {
+		setprg8(A, (base & ~mask) | (V & mask));
+	}
+}
+
+static void M441CW(uint16 A, uint16 V) {
+	uint16 mask = (reg & 0x40) ? 0x7F : 0xFF;
+	uint16 base  = (reg << 3) & 0x180;
+
+	setchr1(A, (base & ~mask) | (V & mask));
+}
+
+static DECLFW(M441Write) {
+	if (MMC3_WramIsWritable()) {
+		if (!(reg & 0x80)) {
+			reg = V;
+			MMC3_FixPRG();
+			MMC3_FixCHR();
 		}
-	} else
-		setprg8(A, V &prgAND | prgOR &~prgAND);
+	}
 }
 
-static void Mapper441_CHRWrap(uint32 A, uint8 V) {
-	int chrAND =EXPREGS[0] &0x40? 0x7F: 0xFF;
-	int chrOR  =EXPREGS[0] <<3 &0x180;
-	setchr1(A, V &chrAND | chrOR &~chrAND);
+static void M441Reset(void) {
+	reg = 0;
+	MMC3_Reset();
 }
 
-static void Mapper441_Write(uint32 A, uint8 V) {
-	if (~EXPREGS[0] &0x80) EXPREGS[0] =V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
-}
-
-static void Mapper441_Reset(void) {
-	EXPREGS[0] =0;
-	MMC3RegReset();
-}
-
-static void Mapper441_Power(void) {
-	EXPREGS[0] =0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, Mapper441_Write);
+static void M441Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M441Write);
 }
 
 void Mapper441_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = Mapper441_CHRWrap;
-	pwrap = Mapper441_PRGWrap;
-	info->Power = Mapper441_Power;
-	info->Reset = Mapper441_Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M441CW;
+	MMC3_pwrap = M441PW;
+	info->Power = M441Power;
+	info->Reset = M441Reset;
+	AddExState(&reg, 1, 0, "EXPR");
 }

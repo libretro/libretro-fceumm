@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,79 +23,74 @@
  */
 
 #include "mapinc.h"
-#include "sound/fdssound.h"
+#include "fdssound.h"
 
-static uint8 reg0, reg1, reg2;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8 reg[3];
 
-static SFORMAT StateRegs[] =
-{
-	{ &reg0, 1, "REG0" },
-	{ &reg1, 1, "REG1" },
-	{ &reg2, 1, "REG2" },
+static SFORMAT StateRegs[] = {
+	{ reg, 3, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setchr8(0);
-	setprg8(0x8000, 0xc);
-	setprg8(0xe000, 0xf);
-	if (reg2 & 0x10) {
-		setprg8(0x6000, reg0);
-		setprg8(0xa000, 0xd);
-		setprg8(0xc000, 0xe);
+	setprg8(0x8000, 0x0C);
+	setprg8(0xE000, 0x0F);
+	if (reg[2] & 0x10) {
+		setprg8(0x6000, reg[0] & 0x0F);
+		setprg8(0xA000, 0x0D);
+		setprg8(0xC000, 0x0E);
 	} else {
 		setprg8r(0x10, 0x6000, 0);
-		setprg4(0xa000, (0xd << 1));
-		setprg2(0xb000, (0xd << 2) + 2);
-		setprg2r(0x10, 0xb800, 4);
-		setprg2r(0x10, 0xc000, 5);
-		setprg2r(0x10, 0xc800, 6);
-		setprg2r(0x10, 0xd000, 7);
-		setprg2(0xd800, (0xe << 2) + 3);
+		setprg4(0xA000, (0x0D << 1));
+		setprg2(0xB000, (0x0D << 2) + 2);
+		setprg2r(0x10, 0xB800, 4);
+		setprg2r(0x10, 0xC000, 5);
+		setprg2r(0x10, 0xC800, 6);
+		setprg2r(0x10, 0xD000, 7);
+		setprg2(0xD800, (0x0E << 2) + 3);
 	}
-	setmirror(reg1 ^ 1);
+	setchr8(0);
+	setmirror(((reg[1] >> 3) & 0x01) ^ 0x01);
 }
 
-static void M103RamWrite0(uint32 A, uint8 V) { WRAM[A & 0x1FFF] = V; }
+static DECLFW(M103RamWrite0) {
+	WRAM[A & 0x1FFF] = V;
+}
 
-static void M103RamWrite1(uint32 A, uint8 V) {
+static DECLFW(M103RamWrite1) {
 	WRAM[0x2000 + ((A - 0xB800) & 0x1FFF)] = V;
 }
 
-static void M103Write0(uint32 A, uint8 V) {
-	reg0 = V & 0xf;
+static DECLFW(M103WritePRG) {
+	reg[0] = V;
 	Sync();
 }
 
-static void M103Write1(uint32 A, uint8 V) {
-	reg1 = (V >> 3) & 1;
+static DECLFW(M103WriteMirror) {
+	reg[1] = V;
 	Sync();
 }
 
-static void M103Write2(uint32 A, uint8 V) {
-	reg2 = V;
+static DECLFW(M103WriteRAMEnable) {
+	reg[2] = V;
 	Sync();
 }
 
 static void M103Power(void) {
-	FDSSoundPower();
-	reg0 = reg1 = 0; reg2 = 0;
+	FDSSound_Power();
+	reg[0] = reg[1] = 0;
+	reg[2] = 0;
 	Sync();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, M103RamWrite0);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0xB800, 0xD7FF, M103RamWrite1);
-	SetWriteHandler(0x8000, 0x8FFF, M103Write0);
-	SetWriteHandler(0xE000, 0xEFFF, M103Write1);
-	SetWriteHandler(0xF000, 0xFFFF, M103Write2);
+	SetWriteHandler(0x8000, 0x8FFF, M103WritePRG);
+	SetWriteHandler(0xE000, 0xEFFF, M103WriteMirror);
+	SetWriteHandler(0xF000, 0xFFFF, M103WriteRAMEnable);
 }
 
 static void M103Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
 }
 
 static void StateRestore(int version) {
@@ -105,11 +101,10 @@ void Mapper103_Init(CartInfo *info) {
 	info->Power = M103Power;
 	info->Close = M103Close;
 	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 
 	WRAMSIZE = 16384;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-
-	AddExState(&StateRegs, ~0, 0, 0);
 }

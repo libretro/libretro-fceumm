@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,100 +19,68 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* iNES Mapper 33 - Taito TC0190/TC0350 */
+
 #include "mapinc.h"
 
-static uint8 is48;
-static uint8 regs[8], mirr;
-static uint8 IRQa;
-static int16 IRQCount, IRQLatch;
+static uint8 prg[2], chr[6];
 
-static SFORMAT StateRegs[] =
-{
-	{ regs, 8, "PREG" },
-	{ &mirr, 1, "MIRR" },
-	{ &IRQa, 1, "IRQA" },
-	{ &IRQCount, 2, "IRQC" },
-	{ &IRQLatch, 2, "IRQL" },
+static SFORMAT StateRegs[] = {
+	{ prg, 2, "PREG" },
+	{ chr, 6, "CREG" },
 	{ 0 }
 };
 
-static void M33Sync(void) {
-	setmirror(mirr);
-	setprg8(0x8000, regs[0]);
-	setprg8(0xA000, regs[1]);
-	setprg8(0xC000, ~1);
-	setprg8(0xE000, ~0);
-	setchr2(0x0000, regs[2]);
-	setchr2(0x0800, regs[3]);
-	setchr1(0x1000, regs[4]);
-	setchr1(0x1400, regs[5]);
-	setchr1(0x1800, regs[6]);
-	setchr1(0x1C00, regs[7]);
+static void Sync(void) {
+	setprg8(0x8000, prg[0]);
+	setprg8(0xA000, prg[1]);
+	setprg16(0xC000, ~0);
+
+	setchr2(0x0000, chr[0]);
+	setchr2(0x0800, chr[1]);
+	setchr1(0x1000, chr[2]);
+	setchr1(0x1400, chr[3]);
+	setchr1(0x1800, chr[4]);
+	setchr1(0x1C00, chr[5]);
+
+	setmirror(((prg[0] >> 6) & 0x01) ^ 0x01);
 }
 
-static void M33Write(uint32 A, uint8 V) {
-	A &= 0xF003;
-	switch (A) {
-	case 0x8000: regs[0] = V & 0x3F; if (!is48) mirr = ((V >> 6) & 1) ^ 1; M33Sync(); break;
-	case 0x8001: regs[1] = V & 0x3F; M33Sync(); break;
-	case 0x8002: regs[2] = V; M33Sync(); break;
-	case 0x8003: regs[3] = V; M33Sync(); break;
-	case 0xA000: regs[4] = V; M33Sync(); break;
-	case 0xA001: regs[5] = V; M33Sync(); break;
-	case 0xA002: regs[6] = V; M33Sync(); break;
-	case 0xA003: regs[7] = V; M33Sync(); break;
-	}
-}
-
-static void M48Write(uint32 A, uint8 V) {
-	switch (A & 0xF003) {
-	case 0xC000: IRQLatch = V; break;
-	case 0xC001: IRQCount = IRQLatch; break;
-	case 0xC003: IRQa = 0; X6502_IRQEnd(FCEU_IQEXT); break;
-	case 0xC002: IRQa = 1; break;
-	case 0xE000: mirr = ((V >> 6) & 1) ^ 1; M33Sync(); break;
+static DECLFW(M033Write) {
+	switch (A & 0xE003) {
+	case 0x8000:
+	case 0x8001:
+		prg[A & 0x01] = V;
+		Sync();
+		break;
+	case 0x8002:
+	case 0x8003:
+		chr[A & 0x01] = V;
+		Sync();
+		break;
+	case 0xA000:
+	case 0xA001:
+	case 0xA002:
+	case 0xA003:
+		chr[2 + (A & 0x03)] = V;
+		Sync();
+		break;
 	}
 }
 
 static void M33Power(void) {
-	M33Sync();
+	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M33Write);
+	SetWriteHandler(0x8000, 0xBFFF, M033Write);
 }
 
-static void M48Power(void) {
-	M33Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xBFFF, M33Write);
-	SetWriteHandler(0xC000, 0xFFFF, M48Write);
+static void StateRestore(int version) {
+	Sync();
 }
 
-static void M48IRQ(void) {
-	if (IRQa) {
-		IRQCount++;
-		if (IRQCount == 0x100) {
-			X6502_IRQBegin(FCEU_IQEXT);
-			IRQa = 0;
-		}
-	}
-}
-
-static void M33StateRestore(int version) {
-	M33Sync();
-}
-
-void Mapper33_Init(CartInfo *info) {
-	is48 = 0;
+void Mapper033_Init(CartInfo *info) {
 	info->Power = M33Power;
-	GameStateRestore = M33StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
-}
-
-void Mapper48_Init(CartInfo *info) {
-	is48 = 1;
-	info->Power = M48Power;
-	GameHBIRQHook = M48IRQ;
-	GameStateRestore = M33StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }
 

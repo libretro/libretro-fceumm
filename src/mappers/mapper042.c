@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,74 +19,183 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  * FDS Conversion
- * - Ai Senshi Nicol (256K PRG, 128K CHR)
- * - Bio Miracle Bokutte Upa (J) (128K PRG, 0K CHR)
+ * - Submapper 1 - Ai Senshi Nicol (256K PRG, 128K CHR, fixed Mirroring)
+ * - Submapper 3 - Bio Miracle Bokutte Upa (J) (128K PRG, 0K CHR, IRQ)
+ *
+ * - Submapper 2
+ * - KS-018/AC-08/LH09
+ * - UNIF UNL-AC08
+ * - [UNIF] Green Beret (FDS Conversion, LH09) (Unl) [U][!][t1] (160K PRG)
+ * - Green Beret (FDS Conversion) (Unl) (256K PRG)
  */
 
 #include "mapinc.h"
-#include "sound/fdssound.h"
+#include "fdssound.h"
 
-static uint8 preg, creg, mirr;
-static uint32 IRQCount, IRQa;
+static uint8 reg[2];
+static uint8 IRQa;
+static uint16 IRQCount;
 
-static SFORMAT StateRegs[] =
-{
-	{ &preg, 1, "PREG" },
-	{ &creg, 1, "CREG" },
-	{ &mirr, 1, "MIRR" },
-	{ &IRQCount, 4, "IRQC" },
-	{ &IRQa, 4, "IRQA" },
+static void (*WSync)(void);
+
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REGS" },
+	{ &IRQa, 1, "IRQA" },
+	{ &IRQCount, 2, "IRQC" },
 	{ 0 }
 };
 
-static void M42Sync(void) {
-	setprg8(0x6000, preg);
+/* Submapper 1 - Ai Senshi Nicol */
+
+static void M042_Sub1_Sync(void) {
+	setprg8(0x6000, reg[1] & 0x0F);
 	setprg32(0x8000, ~0);
-	setchr8(creg);
-	setmirror(mirr);
+	setchr8(reg[0] & 0x0F);
 }
 
-static void M42Write(uint32 A, uint8 V) {
-	switch (A & 0xE003) {
-	case 0x8000: creg = V; M42Sync(); break;
-	case 0xE000: preg = V & 0x0F; M42Sync(); break;
-	case 0xE001: mirr = ((V >> 3) & 1) ^ 1; M42Sync(); break;
-	case 0xE002: IRQa = V & 2; if (!IRQa) IRQCount = 0; X6502_IRQEnd(FCEU_IQEXT); break;
+static DECLFW(M042_Sub1_Write) {
+	switch (A & 0xE000) {
+	case 0x8000:
+		reg[0] = V;
+		WSync();
+		break;
+	case 0xE000:
+		reg[1] = V;
+		WSync();
+		break;
 	}
 }
 
-static void M42Power(void) {
-	FDSSoundPower();
-	preg = 0;
-	mirr = 1;	/* Ai Senshi Nicol actually has fixed mirroring, but mapper forcing it's default value now */
-	M42Sync();
-	SetReadHandler(0x6000, 0xffff, CartBR);
-	SetWriteHandler(0x6000, 0xffff, M42Write);
+static void M042_Sub1_Power(void) {
+	reg[1] = 0;
+	reg[0] = 0;
+	FDSSound_Power();
+	WSync();
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0xFFFF, M042_Sub1_Write);
 }
 
-static void M42IRQHook(int a) {
+/* Submapper 2 - Green Beret */
+
+static void M042_Sub2_Sync(void) {
+	setprg8(0x6000, (reg[0] >> 1) & 0x0F);
+	setprg32(0x8000, (ROM.prg.size & 0x0F) ? 4 : 7);
+	setchr8(0);
+	setmirror(((reg[1] >> 3) & 1) ^ 1);
+}
+
+static DECLFW(M042_Sub2_Write) {
+	switch (A & 0xF001) {
+	case 0x4001:
+	case 0x4000:
+		if ((A & 0xFF) != 0x25) {
+			break;
+		}
+		reg[1] = V;
+		WSync();
+		break;
+	case 0x8001:
+		reg[0] = V;
+		WSync();
+		break;
+	}
+}
+
+static void M042_Sub2_Power(void) {
+	reg[0] = 0;
+	reg[1] = 0;
+	WSync();
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x4020, 0xFFFF, M042_Sub2_Write);
+}
+
+/* Submapper 3 - Mario Baby */
+
+static void M042_Sub3_Sync(void) {
+	setprg8(0x6000, reg[0] & 0x0F);
+	setprg32(0x8000, ~0);
+	setchr8(0);
+	setmirror(((reg[1] >> 3) & 1) ^ 1);
+}
+
+static DECLFW(M042_Sub3_Write) {
+	switch (A & 0xE003) {
+	case 0xE000:
+		reg[0] = V;
+		WSync();
+		break;
+	case 0xE001:
+		reg[1] = V;
+		WSync();
+		break;
+	case 0xE002:
+		IRQa = (V & 0x02) != 0;
+		if (!IRQa) {
+			IRQCount = 0;
+			X6502_IRQEnd(FCEU_IQEXT);
+		}
+		break;
+	}
+}
+
+static void M042_Sub3_Power(void) {
+	reg[0] = 0;
+	reg[1] = 0;
+	IRQa = IRQCount = 0;
+	WSync();
+	FDSSound_Power();
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0xE000, 0xFFFF, M042_Sub3_Write);
+}
+
+static void M042_Sub3_IRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
-		if (IRQCount >= 32768) IRQCount -= 32768;
-		if (IRQCount >= 24576)
+		if (IRQCount >= 24576) {
 			X6502_IRQBegin(FCEU_IQEXT);
-		else
+		} else {
 			X6502_IRQEnd(FCEU_IQEXT);
+		}
 	}
 }
 
-static void M42StateRestore(int version) {
-	M42Sync();
+/* Mapper 42 Loader */
+static void StateRestore(int version) {
+	WSync();
 }
 
-void Mapper42_Init(CartInfo *info) {
-	if (info->CHRRomSize == 0 && info->PRGRomSize > 131072) {
-		/* Green Beret FDS Conversion can be 160K or 256K */
-		AC08_Init(info);
-		return;
+void Mapper042_Init(CartInfo *info) {
+	if (info->submapper == 0 || info-> submapper > 3) {
+		if (!UNIFchrrama) {
+			/* Ai Senshi Nicole, only cart with CHR-ROM, all others use CHR-RAM */
+			info->submapper = 1;
+		} else {
+			if ((ROM.prg.size * 16) > 128) {
+				/* Green Beret LH09 FDS Conversion can be 160K or 256K */
+				info->submapper = 2;
+			} else {
+				/* Mario Baby has only 128K PRG */
+				info->submapper = 3;
+			}
+		}
 	}
-	info->Power = M42Power;
-	MapIRQHook = M42IRQHook;
-	GameStateRestore = M42StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
+
+	switch (info->submapper) {
+	case 1:
+		info->Power = M042_Sub1_Power;
+		WSync = M042_Sub1_Sync;
+		break;
+	case 2:
+		info->Power = M042_Sub2_Power;
+		WSync = M042_Sub2_Sync;
+		break;
+	default:
+		info->Power = M042_Sub3_Power;
+		WSync = M042_Sub3_Sync;
+		MapIRQHook = M042_Sub3_IRQHook;
+		break;
+	}
 }

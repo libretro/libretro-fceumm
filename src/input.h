@@ -19,12 +19,20 @@ typedef struct {
 	void (*Draw)(uint8 *buf, int arg);
 } INPUTCFC;
 
+uint8 FCEU_GetJoyJoy(void);
+
 void FCEU_DrawInput(uint8 *buf);
 void FCEU_UpdateInput(void);
-void InitializeInput(void);
+void FCEUINPUT_Power(void);
+
 extern void (*PStrobe[2])(void);
-extern void (*InputScanlineHook)(uint8 *bg, uint8 *spr, uint32 linets, int final);
+void InputScanlineHook(uint8 *bg, uint8 *spr, uint32 linets, int final);
 
 void FCEU_DoSimpleCommand(int cmd);
+
+void FCEU_ZapperSetTolerance(int t);
+void FCEU_ZapperSetSTMode(int mode);
+void FCEU_ZapperInvertTrigger(int invert);
+void FCEU_ZapperInvertSensor(int invert);
 
 #endif

@@ -34,48 +34,54 @@
 #include "nsf.h"
 #include "input.h"
 #include "vsuni.h"
+#include "ppu.h"
 
 uint8 *XBuf = NULL;
 uint8 *XDBuf = NULL;
-int show_crosshair = 0;
 
 void FCEU_KillVirtualVideo(void)
 {
 	if (XBuf)
-		free(XBuf);
-   XBuf = 0;
+		FCEU_afree(XBuf);
+   XBuf = NULL;
    if (XDBuf)
-		free(XDBuf);
-   XDBuf = 0;
+		FCEU_afree(XDBuf);
+   XDBuf = NULL;
 }
 
 int FCEU_InitVirtualVideo(void)
 {
+   if (XBuf) return 1;
+
    /* 256 bytes per scanline, * 240 scanline maximum, +8 for alignment, */
    if (!XBuf)
-      XBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
+      XBuf = (uint8*)FCEU_amalloc(256 * 256);
    if (!XDBuf)
-      XDBuf = (uint8*)(FCEU_malloc(256 * (256 + extrascanlines + 8)));
+      XDBuf = (uint8*)FCEU_amalloc(256 * 256);
 
    if (!XBuf || !XDBuf)
       return 0;
 
-   memset(XBuf, 128, 256 * (256 + extrascanlines + 8));
-   memset(XDBuf, 0,  256 * (256 + extrascanlines + 8));
+   memset(XBuf, 0, 256 * 256);
+   memset(XDBuf, 0, 256 * 256);
    return 1;
 }
 
-void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...)
+void FCEU_PutImage(void)
 {
-   static char msg[512] = {0};
-   va_list ap;
-
-   if (!format || (*format == '\0'))
-      return;
-
-   va_start(ap, format);
-   vsprintf(msg, format, ap);
-   va_end(ap);
-
-   FCEUD_DispMessage(level, duration, msg);
+	if (GameInfo->type == GIT_NSF)
+		DrawNSF(XBuf);
+   else
+   {
+		if (GameInfo->type == GIT_VSUNI)
+			FCEU_VSUniDraw(XBuf);
+	}
+	if (FSettings.ShowCrosshair)
+		FCEU_DrawInput(XBuf);
 }
+
+#ifdef FRAMESKIP
+void FCEU_PutImageDummy(void)
+{
+}
+#endif

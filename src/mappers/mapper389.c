@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,56 +30,55 @@ static SFORMAT StateRegs[] = {
    { 0 }
 };
 
-static void Sync(void)
-{
-   if (regs[1] & 0x02)
-   {
-      /* UNROM-064 */
-      setprg16(0x8000, (regs[0] >> 2) | ((regs[2] >> 2) & 0x03));
-      setprg16(0xC000, (regs[0] >> 2) | 0x03);
-   }
-   else
-   {
-      /* NROM-256 */
-      setprg32(0x8000, regs[0] >> 3);
-   }
-   setchr8(((regs[1] >> 1) & 0x1C) | (regs[2] & 0x03));
-   setmirror((regs[0] & 0x01) ^ 1);
+static void Sync(void) {
+	if (regs[1] & 0x02) {
+		/* UNROM-064 */
+		setprg16(0x8000, (regs[0] >> 2) | ((regs[2] >> 2) & 0x03));
+		setprg16(0xC000, (regs[0] >> 2) | 0x03);
+	} else {
+		/* NROM-256 */
+		setprg32(0x8000, regs[0] >> 3);
+	}
+	setchr8(((regs[1] >> 1) & 0x1C) | (regs[2] & 0x03));
+	setmirror((regs[0] & 0x01) ^ 1);
 }
 
-static void M389Write(uint32 A, uint8 V)
-{
-   switch (A & 0xF000)
-   {
-   case 0x8000: regs[0] = (A & 0xFF); Sync(); break;
-   case 0x9000: regs[1] = (A & 0xFF); Sync(); break;
-   default:     regs[2] = (A & 0xFF); Sync(); break;
-   }
+static DECLFW(M389Write) {
+	switch (A & 0xF000) {
+	case 0x8000:
+		regs[0] = (A & 0xFF);
+		Sync();
+		break;
+	case 0x9000:
+		regs[1] = (A & 0xFF);
+		Sync();
+		break;
+	default:
+		regs[2] = (A & 0x0F);
+		Sync();
+		break;
+	}
 }
 
-static void M389Reset(void)
-{
-   regs[0] = regs[1] = regs[2] = 0;
-   Sync();
+static void M389Reset(void) {
+	regs[0] = regs[1] = regs[2] = 0;
+	Sync();
 }
 
-static void M389Power(void)
-{
-   regs[0] = regs[1] = regs[2] = 0;
-   Sync();
-   SetReadHandler(0x8000, 0xFFFF, CartBR);
-   SetWriteHandler(0x8000, 0xFFFF, M389Write);
+static void M389Power(void) {
+	regs[0] = regs[1] = regs[2] = 0;
+	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0xFFFF, M389Write);
 }
 
-static void StateRestore(int version)
-{
-   Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-void Mapper389_Init(CartInfo *info)
-{
-   info->Power = M389Power;
-   info->Reset = M389Reset;
-   GameStateRestore = StateRestore;
-   AddExState(&StateRegs, ~0, 0, 0);
+void Mapper389_Init(CartInfo *info) {
+	info->Power = M389Power;
+	info->Reset = M389Reset;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

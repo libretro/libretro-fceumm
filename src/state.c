@@ -38,16 +38,16 @@
 #include "fceu-memory.h"
 #include "ppu.h"
 #include "video.h"
+#include "gamegenie.h"
+
+#define SFMDATA_SIZE 128
+#define RLSB         FCEUSTATE_RLSB
 
 static void (*SPreSave)(void);
 static void (*SPostSave)(void);
 
-/* static int SaveStateStatus[10]; */
-
-static SFORMAT SFMDATA[64];
-int SFEXINDEX;
-
-#define RLSB     FCEUSTATE_RLSB     /* 0x80000000 */
+static SFORMAT SFMDATA[SFMDATA_SIZE];
+static int SFEXINDEX;
 
 extern SFORMAT FCEUPPU_STATEINFO[];
 extern SFORMAT FCEUSND_STATEINFO[];
@@ -60,8 +60,8 @@ SFORMAT SFCPU[] = {
    { &cpu.Y, 1, "Y\0\0" },
    { &cpu.S, 1, "S\0\0" },
    { &cpu.P, 1, "P\0\0" },
-   { &cpu.openbus, 1, "DB"},
-   { RAM, 0x800, "RAM" },
+   { &cpu.openbus, 1, "DB\0"},
+   { &RAM, RAM_SIZE | FCEUSTATE_INDIRECT, "RAM" },
    { 0 }
 };
 
@@ -74,27 +74,6 @@ SFORMAT SFCPUC[] = {
    { &cpu.mooPI, 1, "MooP"},
    { 0 }
 };
-
-#ifdef MSB_FIRST
-static void FlipByteOrder(uint8 *src, uint32 count)
-{
-   uint8 *start = src;
-   uint8 *end = src + count - 1;
-
-   if ((count & 1) || !count)
-      return;     /* This shouldn't happen. */
-
-   while (count--)
-   {
-      uint8 tmp = *end;
-      *end = *start;
-      *start = tmp;
-      end--;
-      start++;
-   }
-}
-
-#endif
 
 static int SubWrite(memstream_t *mem, SFORMAT *sf)
 {
@@ -114,23 +93,27 @@ static int SubWrite(memstream_t *mem, SFORMAT *sf)
       }
 
       acc += 8; /* Description + size */
-      acc += sf->s & (~RLSB);
+      acc += sf->s & (~FCEUSTATE_FLAGS);
 
       if(mem) /* Are we writing or calculating the size of this block? */
       {
          memstream_write(mem, sf->desc, 4);
-         write32le_mem(sf->s & (~RLSB), mem);
+         write32le_mem(sf->s & (~FCEUSTATE_FLAGS), mem);
 
 #ifdef MSB_FIRST
          if(sf->s & RLSB)
-            FlipByteOrder((uint8 *)sf->v, sf->s & (~RLSB));
+            FlipByteOrder((uint8 *)sf->v, sf->s & (~FCEUSTATE_FLAGS));
 #endif
-         memstream_write(mem, (char *)sf->v, sf->s & (~RLSB));
+         if (sf->s & FCEUSTATE_INDIRECT) {
+            memstream_write(mem, *(char **)sf->v, sf->s & (~FCEUSTATE_FLAGS));
+         } else {
+            memstream_write(mem, (char *)sf->v, sf->s & (~FCEUSTATE_FLAGS));
+         }
 
          /* Now restore the original byte order. */
 #ifdef MSB_FIRST
          if(sf->s & RLSB)
-            FlipByteOrder((uint8 *)sf->v, sf->s & (~RLSB));
+            FlipByteOrder((uint8 *)sf->v, sf->s & (~FCEUSTATE_FLAGS));
 #endif
       }
       sf++;
@@ -167,7 +150,7 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
       }
       if (!strncmp(desc, sf->desc, 4))
       {
-         if (tsize != (sf->s & (~RLSB)))
+         if (tsize != (sf->s & (~FCEUSTATE_FLAGS)))
             return(0);
          return(sf);
       }
@@ -193,11 +176,15 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 
       if((tmp = CheckS(sf, tsize, toa)))
       {
-         memstream_read(mem, (char *)tmp->v, tmp->s & (~RLSB));
+         if (tmp->s & FCEUSTATE_INDIRECT) {
+            memstream_read(mem, *(char **)tmp->v, tmp->s & (~FCEUSTATE_FLAGS));
+         } else {
+            memstream_read(mem, (char *)tmp->v, tmp->s & (~FCEUSTATE_FLAGS));
+         }
 
 #ifdef MSB_FIRST
          if(tmp->s & RLSB)
-            FlipByteOrder((uint8 *)tmp->v, tmp->s & (~RLSB));
+            FlipByteOrder((uint8 *)tmp->v, tmp->s & (~FCEUSTATE_FLAGS));
 #endif
       }
       else
@@ -259,37 +246,32 @@ endo:
    return ret;
 }
 
-extern int geniestage;
-
 void FCEUSS_Save_Mem(void)
 {
    memstream_t *mem = memstream_open(1);
-
-   uint32 totalsize;
    uint8 header[16] = {0};
+   size_t totalsize = 0;
 
    header[0] = 'F';
    header[1] = 'C';
    header[2] = 'S';
-   header[3] = 0xFF;
+   header[3] = 'M';
 
    FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
    memstream_write(mem, header, 16);
 
    FCEUPPU_SaveState();
+   FCEUSND_SaveState();
+
    totalsize  = WriteStateChunk(mem, 1, SFCPU);
    totalsize += WriteStateChunk(mem, 2, SFCPUC);
    totalsize += WriteStateChunk(mem, 3, FCEUPPU_STATEINFO);
    totalsize += WriteStateChunk(mem, 4, FCEUCTRL_STATEINFO);
    totalsize += WriteStateChunk(mem, 5, FCEUSND_STATEINFO);
 
-   if (SPreSave)
-      SPreSave();
-
+   if (SPreSave) SPreSave();
    totalsize += WriteStateChunk(mem, 0x10, SFMDATA);
-
-   if (SPreSave)
-      SPostSave();
+   if (SPostSave) SPostSave();
 
    memstream_seek(mem, 4, SEEK_SET);
    write32le_mem(totalsize, mem);
@@ -300,28 +282,20 @@ void FCEUSS_Save_Mem(void)
 void FCEUSS_Load_Mem(void)
 {
    memstream_t *mem = memstream_open(0);
-
-   uint8 header[16];
-   int stateversion;
-   int totalsize;
-   int x;
+   uint8 header[16] = {0};
+   size_t totalsize = 0;
+   int stateversion = 0;
+   int x = 0;
 
    memstream_read(mem, header, 16);
 
-   if (memcmp(header, "FCS", 3) != 0)
+   if (memcmp(header, "FCSM", 4) != 0)
       return;
 
-   if (header[3] == 0xFF)
-      stateversion = FCEU_de32lsb(header + 8);
-   else
-      stateversion = header[3] * 100;
-   
    totalsize = FCEU_de32lsb(header + 4);
+   stateversion = FCEU_de32lsb(header + 8);
 
    x = ReadStateChunks(mem, totalsize);
-
-   if (stateversion < 9500)
-      cpu.IRQlow = 0;
 
    if (GameStateRestore)
       GameStateRestore(stateversion);
@@ -354,7 +328,16 @@ void AddExState(void *v, uint32 s, int type, char *desc)
    SFMDATA[SFEXINDEX].s = s;
    if (type)
       SFMDATA[SFEXINDEX].s |= RLSB;
-   if (SFEXINDEX < 63)
+   if (SFEXINDEX < (SFMDATA_SIZE - 1)) {
       SFEXINDEX++;
+   } else {
+      static int warn_once = 1;
+      if (warn_once) {
+         FCEU_printf("\n");
+         FCEU_PrintError(" Error in AddExState: SFEINDEX overflow. SFMDATA_SIZE too small.\n");
+         FCEU_printf("\n");
+         warn_once = 0;
+      }
+   }
    SFMDATA[SFEXINDEX].v = 0;   /* End marker. */
 }

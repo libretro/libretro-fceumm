@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2015 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * NES 2.0 Mapper 259 - BMC-F-15
  * BMC F-15 PCB (256+266 MMC3 based, with 16/32Kb banking discrete logic)
  * 150-in-1 Unchaied Melody FIGHT version with system test (START+SELECT)
  *
@@ -33,30 +35,36 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMCF15PW(uint32 A, uint8 V) {
-	uint32 bank = EXPREGS[0] & 0xF;
-	uint32 mode = (EXPREGS[0] & 8) >> 3;
-	uint32 mask = ~(mode);
-	setprg16(0x8000, (bank & mask));
-	setprg16(0xC000, (bank & mask) | mode);
+static uint8 reg;
+
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 }
+};
+
+static void M259PW(uint16 A, uint16 V) {
+	uint8 mode = (reg & 0x08) >> 3;
+
+	setprg16(0x8000, ((reg & 0x0F) & ~mode));
+	setprg16(0xC000, ((reg & 0x0F) |  mode));
 }
 
-static void BMCF15Write(uint32 A, uint8 V) {
-	if (A001B & 0x80) {
-		EXPREGS[0] = V & 0xF;
-		FixMMC3PRG(MMC3_cmd);
+static DECLFW(M259Write) {
+	if (MMC3_WramIsWritable()) {
+		reg = V;
+		MMC3_FixPRG();
 	}
 }
 
-static void BMCF15Power(void) {
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, BMCF15Write);
-	SetWriteHandler(0x6000, 0x7FFF, BMCF15Write);
+static void M259Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M259Write);
 }
 
-void BMCF15_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	pwrap = BMCF15PW;
-	info->Power = BMCF15Power;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+void Mapper259_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	MMC3_pwrap = M259PW;
+	info->Power = M259Power;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

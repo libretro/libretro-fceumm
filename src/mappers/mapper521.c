@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,32 +21,32 @@
 
 #include "mapinc.h"
 
-static uint8 latche;
+static uint8 prg;
 
 static void Sync(void) {
-	setprg16(0x8000, latche);
-	setprg16(0xC000, 8);
-}
-
-static void DREAMWrite(uint32 A, uint8 V) {
-	latche = V & 7;
-	Sync();
-}
-
-static void DREAMPower(void) {
-	latche = 0;
-	Sync();
+	setprg16(0x8000, prg);
+	setprg16(0xC000, 0x08);
 	setchr8(0);
+}
+
+static DECLFW(M521Write) {
+	prg = V;
+	Sync();
+}
+
+static void M521Power(void) {
+	prg = 0;
+	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x5020, 0x5020, DREAMWrite);
+	SetWriteHandler(0x5020, 0x5020, M521Write);
 }
 
 static void Restore(int version) {
 	Sync();
 }
 
-void DreamTech01_Init(CartInfo *info) {
+void Mapper521_Init(CartInfo *info) {
 	GameStateRestore = Restore;
-	info->Power = DREAMPower;
-	AddExState(&latche, 1, 0, "LATC");
+	info->Power = M521Power;
+	AddExState(&prg, 1, 0, "LATC");
 }

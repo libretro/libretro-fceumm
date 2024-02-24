@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -10,85 +11,65 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR reg[0] PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * Mapper 221 - UNL-N625092
  * 700in1 and 400in1 carts
  * 1000-in-1
  */
 
 #include "mapinc.h"
 
-static uint16 cmd, bank;
+static uint16 reg[2];
 
-static SFORMAT StateRegs[] =
-{
-	{ &cmd, 2 | FCEUSTATE_RLSB, "CMD" },
-	{ &bank, 2 | FCEUSTATE_RLSB, "BANK" },
+static SFORMAT StateRegs[] = {
+	{ reg, 4, "REGS" },
 	{ 0 }
 };
 
-static void UNLN625092Sync(void) {
-	setmirror((cmd & 1) ^ 1);
-	setchr8(0);
-	if (cmd & 2) {
-		if (cmd & 0x100) {
-			setprg16(0x8000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | bank);
-			setprg16(0xC000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | 7);
+static void Sync(void) {
+	uint16 prg = ((reg[0] >> 3) & 0x40) | ((reg[0] >> 2) & 0x38) | (reg[1] & 0x07);
+
+	if (!(reg[0] & 0x02)) {
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
+	} else {
+		if (reg[0] & 0x100) {
+			setprg16(0x8000, prg);
+			setprg16(0xC000, prg | 0x07);
 		} else {
-			setprg16(0x8000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | (bank & 6));
-			setprg16(0xC000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | ((bank & 6) | 1));
+			setprg16(0x8000, prg & ~1);
+			setprg16(0xC000, prg |  1);
 		}
-	} else {
-		setprg16(0x8000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | bank);
-		setprg16(0xC000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | bank);
 	}
+	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], !(reg[1] & 0x08));
+	setchr8(0);
+	setmirror((reg[0] & 0x01) ^ 0x01);
 }
 
-static uint16 ass = 0;
-
-static void UNLN625092WriteCommand(uint32 A, uint8 V) {
-	cmd = A;
-	if (A == 0x80F8) {
-		setprg16(0x8000, ass);
-		setprg16(0xC000, ass);
-	} else {
-		UNLN625092Sync();
-	}
+static DECLFW(M221Write) {
+	reg[(A >> 14) & 0x01] = A;
+	Sync();
 }
 
-static void UNLN625092WriteBank(uint32 A, uint8 V) {
-	bank = A & 7;
-	UNLN625092Sync();
-}
-
-static void UNLN625092Power(void) {
-	cmd = 0;
-	bank = 0;
-	UNLN625092Sync();
+static void M221Power(void) {
+	reg[0] = reg[1] = 0;
+	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xBFFF, UNLN625092WriteCommand);
-	SetWriteHandler(0xC000, 0xFFFF, UNLN625092WriteBank);
+	SetWriteHandler(0x8000, 0xFFFF, M221Write);
 }
 
-static void UNLN625092Reset(void) {
-	cmd = 0;
-	bank = 0;
-	ass++;
-	UNLN625092Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-static void UNLN625092StateRestore(int version) {
-	UNLN625092Sync();
-}
-
-void UNLN625092_Init(CartInfo *info) {
-	info->Reset = UNLN625092Reset;
-	info->Power = UNLN625092Power;
-	GameStateRestore = UNLN625092StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper221_Init(CartInfo *info) {
+	info->Power = M221Power;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

@@ -33,17 +33,19 @@
 #include "palette.h"
 #include "palettes/palettes.h"
 
-static uint8 lastd = 0;
-
 /* These are dynamically filled/generated palettes: */
-static pal palettei[64];	/* Custom palette for an individual game. */
-static pal palettec[64];	/* Custom "global" palette. */
+pal palette_game[PALETTE_ARRAY_SIZE] = { 0 }; /* Custom palette for an individual game. */
+pal palette_user[PALETTE_ARRAY_SIZE] = { 0 }; /* Custom "global" palette. */
 
-int ipalette = 0;
-uint8 pale = 0;
-pal *palo;
+int palette_user_available = FALSE;
+int palette_game_available = FALSE;
+int palette_nes_selected = PAL_NES_DEFAULT;
 
-static pal *palpoint[8] =
+static void ChoosePalette(void);
+static void WritePalette(void);
+
+pal *palo = NULL;
+static pal *palette_nes_default[8] =
 {
 	palette,
 	rp2c04_0001,
@@ -53,51 +55,154 @@ static pal *palpoint[8] =
 	rp2c03,
 };
 
-static void ChoosePalette(void) {
-	if (GameInfo->type == GIT_NSF)
-		palo = 0;
-	else if (ipalette)
-		palo = palettei;
-	else
-		palo = palpoint[pale];
+static float bisqwit_gammafix(float f, float gamma) {
+	return f < 0.f ? 0.f : pow(f, 2.2f / gamma);
+}
+static int bisqwit_clamp(int v) {
+	return v < 0 ? 0 : v > 255 ? 255 : v;
 }
 
-/* Forward declaration */
-static void WritePalette(void) {
-	int x;
-
-	for (x = 0; x < 7; x++)
-		FCEUD_SetPalette(x, unvpalette[x].r, unvpalette[x].g, unvpalette[x].b);
-	if (GameInfo->type == GIT_NSF) {
-	} else {
-		for (x = 0; x < 64; x++)
-			FCEUD_SetPalette(128 + x, palo[x].r, palo[x].g, palo[x].b);
-		SetNESDeemph(lastd, 1);
-	}
+/* Calculate the luma and chroma by emulating the relevant circuits: */
+static int bisqwit_wave(int p, int color) {
+	return (color + p + 8) % 12 < 6;
 }
 
-void FCEU_ResetPalette(void) {
-	if (GameInfo) {
-		ChoosePalette();
-		WritePalette();
-	}
-}
+#define BCLAMP(x) ((x) < 0 ? 0 : ((x) > 255 ? 255 : (x)))
 
-void FCEUI_SetPaletteArray(uint8 *pal) {
-	if (!pal)
-		palpoint[0] = palette;
-	else {
-		int x;
-		palpoint[0] = palettec;
-		for (x = 0; x < 64; x++) {
-			palpoint[0][x].r = *((uint8*)pal + x + x + x);
-			palpoint[0][x].g = *((uint8*)pal + x + x + x + 1);
-			palpoint[0][x].b = *((uint8*)pal + x + x + x + 2);
+static void ApplyDeemphasisBisqwit(int entry, uint8 *r, uint8 *g, uint8 *b) {
+	int myr = 0, myg = 0, myb = 0;
+
+	/* The input value is a NES color index (with de-emphasis bits).
+	 * We need RGB values. Convert the index into RGB.
+	 * For most part, this process is described at:
+	 *    http://wiki.nesdev.com/w/index.php/NTSC_video
+	 */
+
+	/* Decode the color index */
+	int color = (entry & 0x0F), level = color < 0xE ? (entry >> 4) & 3 : 1;
+
+	/* Voltage levels, relative to synch voltage */
+	static const float black = .518f, white = 1.962f, attenuation = .746f,
+	                   levels[8] = { .350f, .518f, .962f, 1.550f, /* Signal low */
+		                   1.094f, 1.506f, 1.962f, 1.962f };      /* Signal high */
+
+	float lo_and_hi[2]; /* = { levels[level + 4 * (color == 0x0)], levels[level + 4 * (color < 0xD)] }; */
+
+	int p, pass;
+
+	if (entry < 64)
+		return;
+
+	lo_and_hi[0] = levels[level + 4 * (color == 0x0)];
+	lo_and_hi[1] = levels[level + 4 * (color < 0xD)];
+
+	/* fceux alteration: two passes
+	 * 1st pass calculates bisqwit's base color
+	 * 2nd pass calculates it with deemph
+	 * finally, we'll do something dumb: find a 'scale factor' between them and apply it to the input palette. (later,
+	 * we could pregenerate the scale factors) whatever, it gets the job done.
+	 */
+	for (pass = 0; pass < 2; pass++) {
+		float y = 0.f, i = 0.f, q = 0.f, gamma = 1.8f;
+		int rt, gt, bt;
+
+		for (p = 0; p < 12; ++p) /* 12 clock cycles per pixel. */
+		{
+			/* NES NTSC modulator (square wave between two voltage levels): */
+			float spot = lo_and_hi[bisqwit_wave(p, color)];
+			float v;
+
+			/* De-emphasis bits attenuate a part of the signal: */
+			if (pass == 1) {
+				if (((entry & 0x40) && bisqwit_wave(p, 12)) || ((entry & 0x80) && bisqwit_wave(p, 4)) ||
+				    ((entry & 0x100) && bisqwit_wave(p, 8)))
+					spot *= attenuation;
+			}
+
+			/* Normalize: */
+			v = (spot - black) / (white - black) / 12.f;
+
+			/* Ideal TV NTSC demodulator: */
+			y += v;
+			i += v * cos(3.141592653 * p / 6);
+			q += v * sin(3.141592653 * p / 6); /* Or cos(... p-3 ... )
+			                                    * Note: Integrating cos() and sin() for p-0.5 .. p+0.5 range gives
+			                                    *       the exactly same result, scaled by a factor of 2*cos(pi/12).
+												*/
 		}
+
+		/* Convert YIQ into RGB according to FCC-sanctioned conversion matrix. */
+
+		rt = bisqwit_clamp(255 * bisqwit_gammafix(y + 0.946882f * i + 0.623557f * q, gamma));
+		gt = bisqwit_clamp(255 * bisqwit_gammafix(y + -0.274788f * i + -0.635691f * q, gamma));
+		bt = bisqwit_clamp(255 * bisqwit_gammafix(y + -1.108545f * i + 1.709007f * q, gamma));
+
+		if (pass == 0)
+			myr = rt, myg = gt, myb = bt;
+		else {
+			float rscale = (float)rt / myr;
+			float gscale = (float)gt / myg;
+			float bscale = (float)bt / myb;
+
+			if (myr != 0) *r = (uint8)(BCLAMP(*r * rscale));
+			if (myg != 0) *g = (uint8)(BCLAMP(*g * gscale));
+			if (myb != 0) *b = (uint8)(BCLAMP(*b * bscale));
+		}
+	}
+}
+
+#if 0
+static void ApplyDeemphasisClassic(int entry, uint8 *r, uint8 *g, uint8 *b) {
+	static const float rtmul[] = { 1.239f, 0.794f, 1.019f, 0.905f, 1.023f, 0.741f, 0.75f };
+	static const float gtmul[] = { 0.915f, 1.086f, 0.98f,  1.026f, 0.908f, 0.987f, 0.75f };
+	static const float btmul[] = { 0.743f, 0.882f, 0.653f, 1.277f, 0.979f, 0.101f, 0.75f };
+
+	int nr, ng, nb, d;
+	int deemph_bits = entry >> 6;
+
+	if (deemph_bits == 0) return;
+
+	d = deemph_bits - 1;
+	nr = *r;
+	ng = *g;
+	nb = *b;
+	nr = (int)(nr * rtmul[d]);
+	ng = (int)(ng * gtmul[d]);
+	nb = (int)(nb * btmul[d]);
+	if (nr > 0xFF) nr = 0xFF;
+	if (ng > 0xFF) ng = 0xFF;
+	if (nb > 0xFF) nb = 0xFF;
+	*r = (uint8)nr;
+	*g = (uint8)ng;
+	*b = (uint8)nb;
+}
+#endif
+
+static void ApplyDeemphasisComplete(pal *pal512) {
+	int i, p, idx;
+
+	/* for each deemph level beyond 0 */
+	for (i = 0, idx = 0; i < 8; i++) {
+		/* for each palette entry */
+		for (p = 0; p < 64; p++, idx++) {
+			pal512[idx] = pal512[p];
+			ApplyDeemphasisBisqwit(idx, &pal512[idx].r, &pal512[idx].g, &pal512[idx].b);
+		}
+	}
+}
+
+void FCEUI_SetPaletteUser(pal *data, int nEntries) {
+	if (!data || !nEntries)
+		palette_user_available = FALSE;
+	else {
+		memcpy(palette_user, data, nEntries * 3);
+		if (nEntries != PALETTE_ARRAY_SIZE) ApplyDeemphasisComplete(palette_user);
+		palette_user_available = TRUE;
 	}
 	FCEU_ResetPalette();
 }
 
+static uint8 lastd = 0;
 void SetNESDeemph(uint8 d, int force) {
 	static uint16 rtmul[7] = { 32768 * 1.239, 32768 * .794, 32768 * 1.019, 32768 * .905, 32768 * 1.023, 32768 * .741, 32768 * .75 };
 	static uint16 gtmul[7] = { 32768 * .915, 32768 * 1.086, 32768 * .98, 32768 * 1.026, 32768 * .908, 32768 * .987, 32768 * .75 };
@@ -155,11 +260,11 @@ void SetNESDeemph(uint8 d, int force) {
 }
 
 void FCEU_LoadGamePalette(void) {
-	uint8 ptmp[192];
+	uint8 ptmp[64 * 8 * 3] = {0};
 	RFILE *fp = NULL;
 	char *fn = NULL;
 
-	ipalette = 0;
+	palette_game_available = 0;
 
 	fn = FCEU_MakeFName(FCEUMKF_PALETTE, 0, 0);
 
@@ -169,15 +274,50 @@ void FCEU_LoadGamePalette(void) {
 				RETRO_VFS_FILE_ACCESS_HINT_NONE);
 
 	if (fp) {
-		int x;
-		filestream_read(fp, ptmp, 192);
+		int64 readed = filestream_read(fp, ptmp, 64 * 8 * 3);
+		int nEntries = readed / 3;
 		filestream_close(fp);
-		for (x = 0; x < 64; x++) {
-			palettei[x].r = ptmp[x + x + x];
-			palettei[x].g = ptmp[x + x + x + 1];
-			palettei[x].b = ptmp[x + x + x + 2];
-		}
-		ipalette = 1;
+		
+		memcpy(palette_game, ptmp, readed);
+		if (nEntries != PALETTE_ARRAY_SIZE) ApplyDeemphasisComplete(palette_game);
+
+		palette_game_available = 1;
 	}
 	free(fn);
+}
+
+void FCEU_ResetPalette(void) {
+	if (GameInfo) {
+		ChoosePalette();
+		WritePalette();
+	}
+}
+
+static void ChoosePalette(void) {
+	if (GameInfo->type == GIT_NSF) {
+		palo = palette_nes_default[0];
+	} else if (palette_user_available) {
+		palo = palette_user;
+	} else if (palette_game_available) {
+		palo = palette_game;
+	} else {
+		palo = palette_nes_default[palette_nes_selected];
+		ApplyDeemphasisComplete(palo);
+	}
+}
+
+static void WritePalette(void) {
+	int x;
+	int unvaried = sizeof(unvpalette) / sizeof(unvpalette[0]);
+
+	for (x = 0; x < unvaried; x++)
+		FCEUD_SetPalette(x, unvpalette[x].r, unvpalette[x].g, unvpalette[x].b);
+	for (x = unvaried; x < 256; x++)
+		FCEUD_SetPalette(x, 205, 205, 205);
+	for (x = 0; x < 64; x++)
+		FCEUD_SetPalette(128 + x, palo[x].r, palo[x].g, palo[x].b);
+	SetNESDeemph(lastd, 1);
+	for (x = 0; x < PALETTE_ARRAY_SIZE; x++) {
+		FCEUD_SetPalette(256 + x, palo[x].r, palo[x].g, palo[x].b);
+	}
 }

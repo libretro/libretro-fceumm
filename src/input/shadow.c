@@ -22,16 +22,9 @@
 #include        <stdlib.h>
 
 #include        "share.h"
+#include        "zapper.h"
 
-typedef struct {
-	uint32 mzx, mzy, mzb;
-	int zap_readbit;
-	int bogo;
-	int zappo;
-	uint64 zaphit;
-} ZAPPER;
-
-static ZAPPER ZD;
+#define ZD ZD[0]
 
 static void ZapperFrapper(uint8 * bg, uint8 * spr, uint32 linets, int final) {
 	int xs, xe;
@@ -122,7 +115,9 @@ static void UpdateZapper(void *data, int arg) {
 	ZD.mzb = ptr[2];
 }
 
-static void StrobeShadow(void) { ZD.zap_readbit = 0; }
+static void StrobeShadow(void) {
+	ZD.zap_readbit = 0;
+}
 
 static INPUTCFC SHADOWC = { ReadZapper, 0, StrobeShadow, UpdateZapper, ZapperFrapper, DrawZapper };
 

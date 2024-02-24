@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,64 +22,59 @@
 #include "mapinc.h"
 
 static uint8 reg[2];
-static uint8 dip;
-static uint8 chrramvariant;
-static SFORMAT StateRegs[] =
-{
-	{ reg,  2, "REG " },
-	{ &dip, 1, "DIP " },
+static uint8 dipsw;
+
+static SFORMAT StateRegs[] = {
+	{ reg,  2, "REGS" },
+	{ &dipsw, 1, "DPSW " },
 	{ 0 }
 };
 
-static void Sync(void)
-{
-	int prg;
-	int chr;
-	if (chrramvariant)
-	{
-		prg = reg[1] &7 | reg[0] <<3;
+static void Sync(void) {
+	uint8 prg;
+	uint8 chr;
+
+	if (UNIFchrrama) {
+		prg = (reg[1] & 0x07) | (reg[0] << 3);
 		chr = 0;
-	}
-	else
-	{
+	} else {
 		prg = reg[1] & 0x0F;
 		chr = reg[0] & 0x0F;
 	}
-	switch (reg[1] >>4 &3)
-	{
-		case 0:
-		case 1:
-			setprg16(0x8000, prg);
-			setprg16(0xC000, prg |7);
-			break;
-		case 2:
-			setprg32(0x8000, prg >>1);
-			break;
-		case 3:
-			setprg16(0x8000, prg);
-			setprg16(0xC000, prg);
-			break;
+	switch (reg[1] >> 4 & 3) {
+	case 0:
+	case 1:
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg | 0x07);
+		break;
+	case 2:
+		setprg32(0x8000, prg >> 1);
+		break;
+	case 3:
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
+		break;
 	}
 	setchr8(chr);
-	setmirror((reg[0] >>5 &1) ^1);
+	setmirror(((reg[0] >> 5) & 0x01) ^ 0x01);
 }
 
-static uint8 M236Read(uint32 A)
-{
-	if ((reg[1] >>4 &3) ==1)
-		return CartBR(A &~0xF | dip &0xF);
+static DECLFR(M236Read) {
+	uint8 ret = CartBR(A);
+
+	if (((reg[1] >> 4) & 0x03) == 1) {
+		return ((ret & ~0x0F) | (dipsw & 0x0F));
+	}
 	return CartBR(A);
 }
 
-static void M236WriteReg(uint32 A, uint8 V)
-{
-	reg[A >>14 &1] =A &0xFF;
+static DECLFW(M236WriteReg) {
+	reg[(A >> 14) & 0x01] = A & 0xFF;
 	Sync();
 }
 
-static void M236Power(void)
-{
-	dip = 0;
+static void M236Power(void) {
+	dipsw = 0;
 	reg[0] = 0;
 	reg[1] = 0;
 	Sync();
@@ -86,25 +82,21 @@ static void M236Power(void)
 	SetReadHandler(0x8000, 0xFFFF, M236Read);
 }
 
-static void M236Reset(void)
-{
-	++dip;
+static void M236Reset(void) {
+	++dipsw;
 	/* Soft-reset returns to menu */
 	reg[0] = 0;
 	reg[1] = 0;
 	Sync();
 }
 
-static void StateRestore(int version)
-{
+static void StateRestore(int version) {
 	Sync();
 }
 
-void Mapper236_Init(CartInfo *info)
-{
+void Mapper236_Init(CartInfo *info) {
 	info->Power = M236Power;
 	info->Reset = M236Reset;
-	AddExState(&StateRegs, ~0, 0, 0);
 	GameStateRestore = StateRestore;
-	chrramvariant = info->CHRRomSize == 0;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

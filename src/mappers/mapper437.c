@@ -1,8 +1,9 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
  *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,50 +19,40 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
- 
-/* NTDEC TH2348 circuit board. UNROM plus outer bank register at $5FFx. */
- 
+
+/* NTDEC TH2348 circuit board. UNROM plus reg bank register at $5FFx. */
+
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 latch;
+static uint8 reg;
 
-static void Mapper437_Sync(void) {	
-	setprg16(0x8000, latch);
-	setprg16(0xC000, latch |7);
+static void Sync(void) {
+	setprg16(0x8000, (reg << 3) | (latch.data & 0x07));
+	setprg16(0xC000, (reg << 3) | 0x07);
 	setchr8(0);
-	setmirror(latch >>6 &1 ^1);
+	setmirror(((reg >> 3) & 0x01) ^ 0x01);
 }
 
-static void Mapper437_WriteOuterBank(uint32 A, uint8 V) {
-	latch = latch & 7 | A <<3;
-	Mapper437_Sync();
+static DECLFW(M437Write) {
+	reg = A & 0x0F;
+	Sync();
 }
 
-static void Mapper437_WriteInnerBank(uint32 A, uint8 V) {
-	latch =latch &~7 | V &CartBR(A) &7;
-	Mapper437_Sync();
+static void M437_Reset(void) {
+	reg = 0;
+	Sync();
 }
 
-static void Mapper437_Reset(void) {
-	latch =0;
-	Mapper437_Sync();
-}
-
-static void Mapper437_Power(void) {
-	latch =0;
-	Mapper437_Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x5000, 0x5FFF, Mapper437_WriteOuterBank);
-	SetWriteHandler(0x8000, 0xFFFF, Mapper437_WriteInnerBank);
-}
-
-static void StateRestore(int version) {
-	Mapper437_Sync();
+static void M437_Power(void) {
+	reg = 0;
+	Latch_Power();
+	SetWriteHandler(0x5000, 0x5FFF, M437Write);
 }
 
 void Mapper437_Init(CartInfo *info) {
-	info->Reset = Mapper437_Reset;
-	info->Power = Mapper437_Power;
-	GameStateRestore = StateRestore;
-	AddExState(&latch, 1, 0, "LATC");
+	Latch_Init(info, Sync, NULL, FALSE, TRUE);
+	info->Reset = M437_Reset;
+	info->Power = M437_Power;
+	AddExState(&reg, 1, 0, "OUTB");
 }

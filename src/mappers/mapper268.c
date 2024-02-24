@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022 
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,141 +17,166 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
+
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 *CHRRAM =NULL;
-static uint8 submapper;
+static uint8 reg[8];
 
-static void Mapper268_PRGWrap(uint32 A, uint8 V) {
-	int prgMaskMMC3, prgMaskGNROM, prgOffset;
-	
-	prgMaskMMC3 =(EXPREGS[3] &0x10? 0x00: 0x0F) /* PRG A13-A16 */
-	            |(EXPREGS[0] &0x40? 0x00: 0x10) /* PRG A17     */
-	            |(EXPREGS[1] &0x80? 0x00: 0x20) /* PRG A18     */
-	            |(EXPREGS[1] &0x40? 0x40: 0x00) /* PRG A19     */
-	            |(EXPREGS[1] &0x20? 0x80: 0x00) /* PRG A20     */
-	;
-	switch(submapper &~1) {
-	default:	/* Original implementation */
-		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x02? 0x03: 0x01): 0x00;
-		prgOffset    =EXPREGS[3]     &0x00E
-		             |EXPREGS[0] <<4 &0x070
-			     |EXPREGS[1] <<3 &0x080
-			     |EXPREGS[1] <<6 &0x300
-			     |EXPREGS[0] <<6 &0xC00;
-		break;
-	case 2:		/* Later revision with different arrangement of register 1 */
-		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x10? 0x01: 0x03): 0x00;
-		prgOffset    =EXPREGS[3]     &0x00E
-		             |EXPREGS[0] <<4 &0x070
-			     |EXPREGS[1] <<4 &0x080
-			     |EXPREGS[1] <<6 &0x100
-			     |EXPREGS[1] <<8 &0x200
-			     |EXPREGS[0] <<6 &0xC00;
-		break;
-	case 4:		/* LD622D: PRG A20-21 moved to register 0 */
-		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x02? 0x03: 0x01): 0x00;
-		prgOffset    =EXPREGS[3]     &0x00E
-		             |EXPREGS[0] <<4 &0x070
-			     |EXPREGS[0] <<3 &0x180;
-		break;
-	case 6:		/* J-852C: CHR A17 selects between two PRG chips */
-		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x02? 0x03: 0x01): 0x00;
-		prgOffset    =EXPREGS[3]     &0x00E
-		             |EXPREGS[0] <<4 &0x070
-			     |EXPREGS[1] <<3 &0x080
-			     |EXPREGS[1] <<6 &0x300
-			     |EXPREGS[0] <<6 &0xC00;
-		prgOffset &=ROM_size -1;
-		if (EXPREGS[0] &0x80? !!(EXPREGS[0] &0x08): !!(DRegBuf[0] &0x80)) prgOffset |=ROM_size;
-		break;
-	}
-	prgOffset &=~(prgMaskMMC3 | prgMaskGNROM);
-	setprg8(A, V &prgMaskMMC3 | prgOffset | A >>13 &prgMaskGNROM);
+static uint8 *CHRRAM = NULL;
+static uint32 CHRRAMSize = 0;
+
+static void M268CW(uint16 A, uint16 V) {
+	uint16 base = ((reg[0] << 4) & 0x380) | ((reg[2] << 3) & 0x078);
+	uint16 mask = (reg[0] & 0x80) ? 0x7F : 0xFF;
+	uint8  ram  = CHRRAM && (reg[4] & 0x01) && ((V & 0xFE) == (reg[4] & 0xFE));
 
 	/* CHR-RAM write protect on submapper 8/9) */
-	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], (submapper &~1) ==8 && EXPREGS[0] &0x10? 0: 1);
+	if ((iNESCart.submapper & ~1) == 8) {
+		if (reg[0] & 0x10) {
+			SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], 0);
+		} else {
+			SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], 1);
+		}
+	}
+	if (reg[3] & 0x10) {
+		/* GNROM */
+		mask = 0x07;
+		V = A >> 10;
+	}
+	setchr1r(ram ? 0x10 : 0x00, A, (base & ~mask) | (V & mask));
 }
 
-static void Mapper268_CHRWrap(uint32 A, uint8 V) {
-	int chrMaskMMC3, chrMaskGNROM, chrOffset;
-	
-	chrMaskMMC3  =EXPREGS[3] &0x10? 0x00: EXPREGS[0] &0x80? 0x7F: 0xFF;
-	chrMaskGNROM =EXPREGS[3] &0x10? 0x07: 0x00;
-	chrOffset    =EXPREGS[0] <<4 &0x380 | EXPREGS[2] <<3 &0x078;
-	chrOffset   &=~(chrMaskMMC3 | chrMaskGNROM);
-	
-	setchr1r(CHRRAM && EXPREGS[4] &0x01 && (V &0xFE) ==(EXPREGS[4] &0xFE)? 0x10: 0x00, A, V &chrMaskMMC3 | chrOffset | A >>10 &chrMaskGNROM);
+static void M268PW(uint16 A, uint16 V) {
+	uint16 base;
+	uint16 mask = 0x0F				/* PRG A13-A16 */
+	    | ((~reg[0] >> 2) & 0x10)	/* PRG A17     */
+	    | ((~reg[1] >> 2) & 0x20)	/* PRG A18     */
+	    | ((reg[1] >> 0) & 0x40)	/* PRG A19     */
+	    | ((reg[1] << 2) & 0x80)	/* PRG A20     */
+	    ;
+
+	switch (iNESCart.submapper & ~1) {
+	default: /* Original implementation */
+		base = (reg[3] & 0x0E) | ((reg[0] << 4) & 0x70) | ((reg[1] << 3) & 0x80) |
+		    ((reg[1] << 6) & 0x300) | ((reg[0] << 6) & 0xC00);
+		break;
+	case 2: /* Later revision with different arrangement of register 1 */
+		base = (reg[3] & 0x0E) | ((reg[0] << 4) & 0x70) | ((reg[1] << 4) & 0x80) |
+		    ((reg[1] << 6) & 0x100) | ((reg[1] << 8) & 0x200) | ((reg[0] << 6) & 0xC00);
+		break;
+	case 4: /* LD622D: PRG A20-21 moved to register 0 */
+		base = (reg[3] & 0x0E) | ((reg[0] << 4) & 0x70) | ((reg[0] << 3) & 0x180);
+		break;
+	case 6: /* J-852C: CHR A17 selects between two PRG chips */
+		base = (reg[3] & 0x0E) | ((reg[0] << 4) & 0x70) | ((reg[1] << 3) & 0x80) |
+		    ((reg[1] << 6) & 0x300) | ((reg[0] << 6) & 0xC00);
+		base &= ROM.prg.size - 1;
+		if ((reg[0] & 0x80) ? !!(reg[0] & 0x08) : !!(mmc3.reg[0] & 0x80)) {
+			base |= ROM.prg.size;
+		}
+		break;
+	}
+	if (reg[3] & 0x10) {
+		/* GNROM */
+		switch (iNESCart.submapper & ~1) {
+		default:
+			mask = (reg[1] & 0x02) ? 0x03 : 0x01;
+			break;
+		case 2:
+			mask = (reg[1] & 0x10) ? 0x01 : 0x03;
+			break;
+		}
+		V = A >> 13;
+	}
+	setprg8(A, (base & ~mask) | (V & mask));
 }
 
-static uint8 Mapper268_ReadWRAM(uint32 A) {
-	return A001B &0xA0? CartBR(A): cpu.openbus;
+static DECLFR(M268WramRead) {
+	if (MMC3_WramIsWritable() || (mmc3.wram & 0x20)) {
+		return CartBR(A);
+	}
+	return cpu.openbus;
 }
 
-static void Mapper268_WriteWRAM(uint32 A, uint8 V) {
-	if (A001B &0x80 && ~A001B &0x40 || A001B &0x20) CartBW(A, V);
-}
-
-static void Mapper268_WriteReg(uint32 A, uint8 V) {
-	int index =A &7;
-	if (~submapper &1) Mapper268_WriteWRAM(A, V);
-	if (~EXPREGS[3] &0x80 || index ==2) {
-		if (index ==2) {
-			if (EXPREGS[2] &0x80) V =V &0x0F | EXPREGS[2] &~0x0F;
-			V &=~EXPREGS[2] >>3 &0xE |0xF1;
-		}		
-		EXPREGS[index] =V;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
+static DECLFW(M268WramWrite) {
+	if (MMC3_WramIsWritable() || (mmc3.wram & 0x20)) {
+		CartBW(A, V);
 	}
 }
 
-static void Mapper268_Reset(void) {
-	EXPREGS[0] =EXPREGS[1] =EXPREGS[2] =EXPREGS[3] =EXPREGS[4] =EXPREGS[5] =0;
-	MMC3RegReset();
-}
+static DECLFW(M268Write) {
+	uint8 index = A & 0x07;
 
-static void Mapper268_Power(void) {	
-	EXPREGS[0] =EXPREGS[1] =EXPREGS[2] =EXPREGS[3] =EXPREGS[4] =EXPREGS[5] =0;
-	GenMMC3Power();
-	SetReadHandler(0x6000, 0x7FFF, Mapper268_ReadWRAM);
-	if (submapper &1) {
-		SetWriteHandler(0x5000, 0x5FFF, Mapper268_WriteReg);
-		SetWriteHandler(0x6000, 0x7FFF, Mapper268_WriteWRAM);
-	} else
-		SetWriteHandler(0x6000, 0x7FFF, Mapper268_WriteReg);
-}
-
-static void Mapper268_close(void) {
-	if (CHRRAM) FCEU_gfree(CHRRAM);
-	CHRRAM =NULL;
-	GenMMC3Close();
-}
-
-void Mapper268_Init(CartInfo *info) {
-	submapper = info->submapper;
-	GenMMC3_Init(info, 512, 256, (info->PRGRamSize +info->PRGRamSaveSize) >>10, info->battery);
-	cwrap = Mapper268_CHRWrap;
-	pwrap = Mapper268_PRGWrap;
-	info->Power = Mapper268_Power;
-	info->Reset = Mapper268_Reset;
-	info->Close = Mapper268_close;
-	AddExState(EXPREGS, 8, 0, "EXPR");
-	
-	if (info->CHRRomSize && info->CHRRamSize + info->CHRRamSaveSize) {
-		CHRRAM =(uint8 *)FCEU_gmalloc(info->CHRRamSize + info->CHRRamSaveSize);
-		SetupCartCHRMapping(0x10, CHRRAM, info->CHRRamSize + info->CHRRamSaveSize, 1);
-		AddExState(CHRRAM, info->CHRRamSize + info->CHRRamSaveSize, 0, "CRAM");
+	if (!(iNESCart.submapper & 0x01)) {
+		M268WramWrite(A, V);
 	}
+	if (!(reg[3] & 0x80) || (index == 2)) {
+		if (index == 2) {
+			if (reg[2] & 0x80) {
+				V = (V & 0x0F) | (reg[2] & ~0x0F);
+			}
+			V &= ((~reg[2] >> 3) & 0x0E) | 0xF1;
+		}
+		reg[index] = V;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+	}
+}
+
+static void M268Reset(void) {
+	reg[0] = reg[1] = reg[2] = reg[3] = 0x00;
+	reg[4] = reg[5] = reg[6] = reg[7] = 0x00;
+	MMC3_Reset();
+}
+
+static void M268Power(void) {
+	reg[0] = reg[1] = reg[2] = reg[3] = 0x00;
+	reg[4] = reg[5] = reg[6] = reg[7] = 0x00;
+	MMC3_Power();
+	SetReadHandler(0x6000, 0x7FFF, M268WramRead);
+	if (iNESCart.submapper & 1) {
+		SetWriteHandler(0x5000, 0x5FFF, M268Write);
+	} else {
+		SetWriteHandler(0x6000, 0x7FFF, M268Write);
+	}
+}
+
+static void M268Close(void) {
+	MMC3_Close();
+	if (CHRRAM) {
+		FCEU_gfree(CHRRAM);
+	}
+	CHRRAM = NULL;
+}
+
+static void Common_Init(CartInfo *info, int _submapper) {
+	MMC3_Init(info, (info->PRGRamSize + info->PRGRamSaveSize) >> 10, info->battery);
+	if (info->submapper != _submapper) {
+		info->submapper = _submapper;
+	}
+	MMC3_pwrap = M268PW;
+	MMC3_cwrap = M268CW;
+	info->Power = M268Power;
+	info->Reset = M268Reset;
+	info->Close = M268Close;
+	CHRRAMSize = info->CHRRamSize + info->CHRRamSaveSize;
+	if (!UNIFchrrama && CHRRAMSize) {
+		CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSize);
+		SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);
+		AddExState(CHRRAM, CHRRAMSize, 0x00, "CRAM");
+	}
+	AddExState(reg, 8, 0, "EXPR");
 }
 
 void COOLBOY_Init(CartInfo *info) {
-	info->submapper =0;
-	Mapper268_Init(info);
+	Common_Init(info, 0);
 }
 
-void MINDKIDS_Init(CartInfo *info) {
-	info->submapper =1;
-	Mapper268_Init(info);
+void MINDKIDS_Init(CartInfo *info) { /* M224 */
+	Common_Init(info, 1);
+}
+
+void Mapper268_Init(CartInfo *info) {
+	Common_Init(info, info->submapper);
 }

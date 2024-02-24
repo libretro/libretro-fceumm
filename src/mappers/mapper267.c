@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  * Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,40 +24,46 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-#define OUTER_BANK (((EXPREGS[0] & 0x20) >> 2) | (EXPREGS[0] & 0x06))
+static uint8 reg;
 
-static void M267CW(uint32 A, uint8 V) {
-	setchr1(A, (V & 0x7F) | (OUTER_BANK << 6));
+static void M267CW(uint16 A, uint16 V) {
+	uint16 base = ((reg & 0x20) >> 2) | (reg & 0x06);
+
+	setchr1(A, (base << 6) | (V & 0x7F));
 }
 
-static void M267PW(uint32 A, uint8 V) {
-	setprg8(A, (V & 0x1F) | (OUTER_BANK << 4));
+static void M267PW(uint16 A, uint16 V) {
+	uint16 base = ((reg & 0x20) >> 2) | (reg & 0x06);
+
+	setprg8(A, (base << 4) | (V & 0x1F));
 }
 
-static void M267Write(uint32 A, uint8 V) {
-	if (!(EXPREGS[0] & 0x80)) {
-		EXPREGS[0] = V;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
+static DECLFW(M267Write) {
+	if (MMC3_WramIsWritable()) {
+		if (!(reg & 0x80)) {
+			reg = V;
+			MMC3_FixPRG();
+			MMC3_FixCHR();
+		}
 	}
 }
 
 static void M267Reset(void) {
-	EXPREGS[0] = 0;
-	MMC3RegReset();
+	reg = 0;
+	MMC3_Reset();
 }
 
 static void M267Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, M267Write);
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x6FFF, M267Write);
 }
 
 void Mapper267_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 128, 0, 0);
-	cwrap = M267CW;
-	pwrap = M267PW;
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M267CW;
+	MMC3_pwrap = M267PW;
 	info->Reset = M267Reset;
 	info->Power = M267Power;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+	AddExState(&reg, 1, 0, "EXPR");
 }

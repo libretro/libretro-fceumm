@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2022 NewRisingSun
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,42 +21,43 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 latch;
+static uint8 reg;
 
-static void Mapper294_sync (void) {
-	setprg16(0x8000, latch);
-	setprg16(0xC000, latch |7);
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 }
+};
+
+static void Sync(void) {
+	setprg16(0x8000, (reg << 3) | (latch.data & 0x07));
+	setprg16(0xC000, (reg << 3) | 0x07);
 	setchr8(0);
-	setmirror(latch &0x80? MI_H: MI_V);
+	setmirror(((reg >> 4) & 0x01) ^ 0x01);
 }
 
-static void Mapper294_writeInnerBank(uint32 A, uint8 V) {
-	latch =latch &~7 | V&7;
-	Mapper294_sync();
-}
-
-static void Mapper294_writeOuterBank(uint32 A, uint8 V) {
-	if (A &0x100) {
-		latch =latch &7 | V <<3;
-		Mapper294_sync();
+static DECLFW(M294Write) {
+	if (A & 0x100) {
+		reg = V;
+		Sync();
 	}
 }
 
-static void Mapper294_reset(void) {
-	latch =0;
-	Mapper294_sync();
+static void M294Reset(void) {
+	reg = 0;
+	Latch_RegReset();
 }
 
-static void Mapper294_power(void) {
-	Mapper294_reset();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, Mapper294_writeInnerBank);
-	SetWriteHandler(0x4020, 0x7FFF, Mapper294_writeOuterBank);
+static void M294Power(void) {
+	reg = 0;
+	Latch_Power();
+	SetWriteHandler(0x4100, 0x5FFF, M294Write);
 }
 
 void Mapper294_Init(CartInfo *info) {
-	info->Power = Mapper294_power;
-	info->Reset = Mapper294_reset;
-	AddExState(&latch, 1, 0, "LATC");
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M294Power;
+	info->Reset = M294Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

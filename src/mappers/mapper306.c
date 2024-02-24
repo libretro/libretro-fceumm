@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2016 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * NES 2.0 Mapper 306 - Kaiser 7016
+ * UNIF UNL-KS7016
  * FDS Conversion (Exciting Basket), weird banking addressing, seems because
  * of used addressing scheme, made to disable the lower system banks from 6000
  * but the kaiser mapper chip and PCB are the same as usual
@@ -25,59 +28,48 @@
  */
 
 #include "mapinc.h"
-#include "sound/fdssound.h"
+#include "fdssound.h"
 
-static uint8 preg;
+static uint8 reg;
 
-static SFORMAT StateRegs[] =
-{
-	{ &preg, 1, "PREG" },
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setprg8(0x6000, preg);
-	setprg8(0x8000, 0xC);
-	setprg8(0xA000, 0xD);
-	setprg8(0xC000, 0xE);
-	setprg8(0xE000, 0xF);
+	setprg8( 0x6000, reg);
+	setprg32(0x8000, 3);
 	setchr8(0);
 }
 
-static void UNLKS7016Write(uint32 A, uint8 V) {
-	unsigned short mask = (A & 0x30);
-	switch(A & 0xD943) {
-	case 0xD943: {
-		if(mask == 0x30)
-			preg = 8 | 3;				/* or A, or no bus (all FF) */
-		else
-			preg = (A >> 2) & 0xF;		/* can be anything but C-F */
+static DECLFW(M306Write) {
+	if ((A & 0xD903) == 0xD903) {
+		if (A & 0x40) {
+			reg = (A >> 2) & 0x0F;
+		} else {
+			reg = 0x08 | ((A >> 2) & 0x03);
+		}
 		Sync();
-		break;
-	}
-	case 0xD903: {						/* this case isn't usedby the game, but addressing does this as a side effect */
-		if(mask == 0x30)
-			preg = 8 | ((A >> 2) & 3);	/* also masked C-F from output */
-		else
-			preg = 8 | 3;
-		Sync();
-		break;
-	}
 	}
 }
 
-static void UNLKS7016Power(void) {
-	FDSSoundPower();
-	preg = 8;
+static void M306Power(void) {
+	FDSSound_Power();
+
+	reg = 0;
 	Sync();
-	SetReadHandler(0x6000, 0xffff, CartBR);
-	SetWriteHandler(0x8000, 0xffff, UNLKS7016Write);
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0xD000, 0xDFFF, M306Write);
+	SetWriteHandler(0xF000, 0xFFFF, M306Write);
 }
 
-static void StateRestore(int version) { Sync(); }
+static void StateRestore(int version) {
+	Sync();
+}
 
-void UNLKS7016_Init(CartInfo *info) {
-	info->Power = UNLKS7016Power;
+void Mapper306_Init(CartInfo *info) {
+	info->Power = M306Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

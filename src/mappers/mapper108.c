@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,44 +20,79 @@
  *
  * FDS Conversion
  *
- * Meikyuu Jin Dababa
- * Bubble Bobble Kaiser
- *
+ * Bubble Bobble (LH31)
+ * - submapper 1: CHR-RAM 8K
+ * - submapper 2: CHR-ROM 32K - UNIF UNL-BB
+ * Submapper 3:
+ * - Falsion (LH54)
+ * - Meikyuu Jiin Dababa (LH28)
+ * Submapper 4: UNIF UNL-BB
+ * - Pro Wrestling (LE05)
  */
 
 #include "mapinc.h"
+#include "fdssound.h"
 
 static uint8 reg;
 
-static SFORMAT StateRegs[] =
-{
-	{ &reg, 1, "REG" },
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setprg8(0x6000, reg);
+	if (iNESCart.submapper == 4) {
+		setprg8(0x6000, ~0);	
+	} else {
+		setprg8(0x6000, reg);
+	}
 	setprg32(0x8000, ~0);
-	setchr8(0);
+	if (UNIFchrrama) {
+		setchr8(0);
+	} else {
+		setchr8(reg);
+	}
 }
 
-static void M108Write(uint32 A, uint8 V) {
+static DECLFW(M108Write) {
 	reg = V;
 	Sync();
 }
 
 static void M108Power(void) {
+	reg = 0;
 	Sync();
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0x8FFF, M108Write);	/* regular 108 */
-	SetWriteHandler(0xF000, 0xFFFF, M108Write);	/* simplified Kaiser BB Hack */
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	switch (iNESCart.submapper) {
+	case 1:  SetWriteHandler(0xF000, 0xFFFF, M108Write); break;
+	case 2:  SetWriteHandler(0xE000, 0xFFFF, M108Write); break;
+	default: SetWriteHandler(0x8000, 0xFFFF, M108Write); break;
+	}
+	FDSSound_Power();
 }
 
-static void StateRestore(int version) { Sync(); }
+static void StateRestore(int version) {
+	Sync();
+}
 
 void Mapper108_Init(CartInfo *info) {
 	info->Power = M108Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
+
+	if (!info->iNES2 || !info->submapper) {
+		if (UNIFchrrama) {
+			if (info->mirror == MI_H) {
+				info->submapper = 1;
+			} else {
+				info->submapper = 3;
+			}
+		} else {
+			if (CHRsize[0] > (16 * 1024)) {
+				info->submapper = 2;
+			} else {
+				info->submapper = 4;
+			}
+		}
+	}
 }

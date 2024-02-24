@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,57 +24,61 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 dip;
+static uint8 reg;
+static uint8 dipsw;
 
-static void Mapper443_PRGWrap(uint32 A, uint8 V) {
-	int prgAND =0x0F;
-	int prgOR  =EXPREGS[0] <<4 &0x20 | EXPREGS[0] &0x10;
-	if (EXPREGS[0] &0x04) {
-		if (~A &0x4000) {
-			setprg8(A,         (~EXPREGS[0] &0x08? ~2: ~0) &V &prgAND | prgOR &~prgAND);
-			setprg8(A |0x4000, (~EXPREGS[0] &0x08?  2:  0) |V &prgAND | prgOR &~prgAND);
+static void M443PW(uint16 A, uint16 V) {
+	uint8 mask = 0x0F;
+	uint8 base = ((reg << 4) & 0x20) | (reg & 0x10);
+
+	if (reg & 0x04) { /* NROM */
+		uint16 bank = (base & ~mask) | (mmc3.reg[6] & mask);
+		if (reg & 0x08) { /* NROM-128 */
+			setprg16(0x8000, bank >> 1);
+			setprg16(0xC000, bank >> 1);
+		} else { /* NROM-256 */
+			setprg32(0x8000, bank >> 2);
 		}
-	} else
-		setprg8(A, V &prgAND | prgOR &~prgAND);
+	} else { /*  MMC3 */
+		setprg8(A, (base & ~mask) | (V & mask));
+	}
 }
 
-static void Mapper443_CHRWrap(uint32 A, uint8 V) {
-	int chrAND =0xFF;
-	int chrOR  =EXPREGS[0] <<8;
-	setchr1(A, V &chrAND | chrOR &~chrAND);
+static void M443CW(uint16 A, uint16 V) {
+	setchr1(A, ((reg << 8) & ~0xFF) | (V & 0xFF));
 }
 
-static uint8 Mapper443_Read(uint32 A) {
-	return (EXPREGS[0] &0x0C) ==0x08? dip: CartBR(A);
+static DECLFR(M443Read) {
+	return (((reg & 0x0C) == 0x08) ? dipsw : CartBR(A));
 }
 
-static void Mapper443_Write(uint32 A, uint8 V) {
-	EXPREGS[0] =A &0xFF;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(M443Write) {
+	reg = A & 0xFF;
+	MMC3_FixPRG();
+	MMC3_FixCHR();
 }
 
-static void Mapper443_Reset(void) {
-	dip++;
-	dip &= 15;
-	EXPREGS[0] =0;
-	MMC3RegReset();
+static void M443Reset(void) {
+	dipsw++;
+	dipsw &= 15;
+	reg = 0;
+	MMC3_Reset();
 }
 
-static void Mapper443_Power(void) {
-	dip =0;
-	EXPREGS[0] =0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, Mapper443_Write);
-	SetReadHandler(0x8000, 0xFFFF, Mapper443_Read);
+static void M443Power(void) {
+	dipsw = 0;
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M443Write);
+	SetReadHandler(0x8000, 0xFFFF, M443Read);
 }
 
 void Mapper443_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = Mapper443_CHRWrap;
-	pwrap = Mapper443_PRGWrap;
-	info->Power = Mapper443_Power;
-	info->Reset = Mapper443_Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
-	AddExState(&dip, 1, 0, "DIPS");
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M443CW;
+	MMC3_pwrap = M443PW;
+	info->Power = M443Power;
+	info->Reset = M443Reset;
+	AddExState(&reg, 1, 0, "EXPR");
+	AddExState(&dipsw, 1, 0, "DIPS");
 }

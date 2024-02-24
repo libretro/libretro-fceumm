@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,110 +21,36 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint16 latchea;
-static uint8 latched;
-static uint8 *WRAM = NULL;
+static void Sync(void) {
+	uint8 prg   = latch.data & 0x3F;
 
-#ifndef WRAM_SIZE
-#define WRAM_SIZE 8192
-#endif
-
-static SFORMAT StateRegs[] =
-{
-	{ &latchea, 2 | FCEUSTATE_RLSB, "AREG" },
-	{ &latched, 1, "DREG" },
-	{ 0 }
-};
-
-static void M15Sync(void) {
-	uint32 preg[4];
-	uint32 bank = (latched & 0x3F) << 1;
-	switch (latchea & 0x03) {
+	setprg8r(0x10, 0x6000, 0);
+	switch (latch.addr & 0x03) {
 	case 0:
-		preg[0] = bank + 0;
-		preg[1] = bank + 1;
-		preg[2] = bank + 2;
-		preg[3] = bank + 3;
-		break;
-	case 2:
-		bank = bank | (latched >> 7);
-		preg[0] = bank;
-		preg[1] = bank;
-		preg[2] = bank;
-		preg[3] = bank;
+		setprg32(0x8000, prg >> 1);
 		break;
 	case 1:
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg | 0x07);
+		break;
+	case 2:
+		setprg8(0x8000, (prg << 1) | (latch.data >> 7));
+		setprg8(0xA000, (prg << 1) | (latch.data >> 7));
+		setprg8(0xC000, (prg << 1) | (latch.data >> 7));
+		setprg8(0xE000, (prg << 1) | (latch.data >> 7));
+		break;
 	case 3:
-		preg[0] = bank + 0;
-		preg[1] = bank + 1;
-		preg[2] = (((latchea & 0x02) == 0) ? (bank | 0xE) : bank) + 0;
-		preg[3] = (((latchea & 0x02) == 0) ? (bank | 0xE) : bank) + 1;
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
 		break;
 	}
-
-	setprg8(0x8000, preg[0]);
-	setprg8(0xA000, preg[1]);
-	setprg8(0xC000, preg[2]);
-	setprg8(0xE000, preg[3]);
-	setmirror(((latched >> 6) & 1) ^ 1);
 	setchr8(0);
+	setmirror(((latch.data >> 6) & 0x01) ^ 0x01);
 }
 
-static void M15Write(uint32 A, uint8 V) {
-	latchea = A;
-	latched = V;
-	/* cah4e3 02.10.19 once again, there may be either two similar mapper 15 exist. the one for 110in1 or 168in1 carts with complex multi game features.
-	   and another implified version for subor/waixing chinese originals and hacks with no different modes, working only in mode 0 and which does not
-	   expect there is any CHR write protection. protecting CHR writes only for mode 3 fixes the problem, all roms may be run on the same source again. */
-	if((latchea & 3) == 3)
-		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
-	else
-		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
-	M15Sync();
+void Mapper015_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, TRUE, FALSE);
+	info->Reset = Latch_RegReset;
 }
-
-static void M15StateRestore(int version) {
-	M15Sync();
-}
-
-static void M15Power(void) {
-	latchea = 0x8000;
-	latched = 0;
-	setchr8(0);
-	setprg8r(0x10, 0x6000, 0);
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
-	SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	SetWriteHandler(0x8000, 0xFFFF, M15Write);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	FCEU_CheatAddRAM(WRAM_SIZE >> 10, 0x6000, WRAM);
-	M15Sync();
-}
-
-static void M15Reset(void) {
-	latchea = 0x8000;
-	latched = 0;
-	M15Sync();
-}
-
-static void M15Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
-}
-
-void Mapper15_Init(CartInfo *info) {
-	info->Power = M15Power;
-	info->Reset = M15Reset;
-	info->Close = M15Close;
-	GameStateRestore = M15StateRestore;
-	WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAM_SIZE, 1);
-	if (info->battery) {
-		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAM_SIZE;
-	}
-	AddExState(WRAM, WRAM_SIZE, 0, "WRAM");
-	AddExState(&StateRegs, ~0, 0, 0);
-}
-

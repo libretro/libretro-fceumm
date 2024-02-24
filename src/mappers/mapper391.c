@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,49 +23,68 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void Mapper391_PRGWrap(uint32 A, uint8 V) {
-	int prgAND =EXPREGS[0] &0x08? 0x0F: 0x1F;
-	int prgOR  =EXPREGS[0] <<4 &0x30;
-	if (EXPREGS[0] &0x20) {
-		if (~A &0x4000) {
-			setprg8(A,         (EXPREGS[0] &0x04? ~2: ~0) &V &prgAND | prgOR &~prgAND);
-			setprg8(A |0x4000, (EXPREGS[0] &0x04?  2:  0) |V &prgAND | prgOR &~prgAND);
+static uint8 reg[2];
+
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REGS" },
+	{ 0 }
+};
+
+static void M391PW(uint16 A, uint16 V) {
+	uint8 mask = (reg[0] & 0x08) ? 0x0F : 0x1F;
+	uint8 base = (reg[0] << 4) & 0x30;
+
+	if (reg[0] & 0x20) {
+		if (reg[0] & 0x04) { /* NROM-256 */
+			setprg8(0x8000, (base & ~mask) | ((mmc3.reg[6] & mask) & ~0x03) | 0);
+			setprg8(0xA000, (base & ~mask) | ((mmc3.reg[7] & mask) & ~0x03) | 1);
+			setprg8(0xC000, (base & ~mask) | ((mmc3.reg[6] & mask) & ~0x03) | 2);
+			setprg8(0xE000, (base & ~mask) | ((mmc3.reg[7] & mask) & ~0x03) | 3);
+		} else { /* NROM-128 */
+			setprg8(0x8000, (base & ~mask) | ((mmc3.reg[6] & mask) & ~0x01) | 0);
+			setprg8(0xA000, (base & ~mask) | ((mmc3.reg[7] & mask) & ~0x01) | 1);
+			setprg8(0xC000, (base & ~mask) | ((mmc3.reg[6] & mask) & ~0x01) | 0);
+			setprg8(0xE000, (base & ~mask) | ((mmc3.reg[7] & mask) & ~0x01) | 1);
 		}
-	} else
-		setprg8(A, V &prgAND | prgOR &~prgAND);
-}
-
-static void Mapper391_CHRWrap(uint32 A, uint8 V) {
-	int chrAND =EXPREGS[0] &0x40? 0x7F: 0xFF;
-	int chrOR  =EXPREGS[0] <<3 &0x80 | EXPREGS[1] <<8 &0x100;
-	setchr1(A, V &chrAND | chrOR &~chrAND);
-}
-
-static void Mapper391_Write(uint32 A, uint8 V) {
-	if (~EXPREGS[0] &0x80) {
-		EXPREGS[0] =V;
-		EXPREGS[1] =A >>8 &0xFF;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
+	} else {
+		setprg8(A, (base & ~mask) | (V & mask));
 	}
 }
 
-static void Mapper391_Reset(void) {
-	EXPREGS[0] =EXPREGS[1] =0;
-	MMC3RegReset();
+static void M391CW(uint16 A, uint16 V) {
+	uint16 mask = (reg[0] & 0x40) ? 0x7F : 0xFF;
+	uint16 base = ((reg[0] << 3) & 0x80) | ((reg[1] << 8) & 0x100);
+
+	setchr1(A, (base & ~mask) | (V & mask));
 }
 
-static void Mapper391_Power(void) {
-	EXPREGS[0] =EXPREGS[1] =0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, Mapper391_Write);
+static DECLFW(M391Write) {
+	if (MMC3_WramIsWritable()) {
+		if (!(reg[0] & 0x80)) {
+			reg[0] = V;
+			reg[1] = ((A >> 8) & 0xFF);
+			MMC3_FixPRG();
+			MMC3_FixCHR();
+		}
+	}
+}
+
+static void M391Reset(void) {
+	reg[0] = reg[1] = 0;
+	MMC3_Reset();
+}
+
+static void M391Power(void) {
+	reg[0] = reg[1] = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M391Write);
 }
 
 void Mapper391_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = Mapper391_CHRWrap;
-	pwrap = Mapper391_PRGWrap;
-	info->Power = Mapper391_Power;
-	info->Reset = Mapper391_Reset;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M391CW;
+	MMC3_pwrap = M391PW;
+	info->Power = M391Power;
+	info->Reset = M391Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

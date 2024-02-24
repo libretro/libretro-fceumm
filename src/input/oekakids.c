@@ -26,8 +26,9 @@ static uint32 OKData;
 static uint32 OKX, OKY, OKB;
 
 static uint8 OK_Read(int w, uint8 ret) {
-	if (w)
+	if (w) {
 		ret |= OKValR;
+	}
 	return(ret);
 }
 

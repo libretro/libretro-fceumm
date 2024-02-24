@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,59 +22,69 @@
 
 #include "mapinc.h"
 
-static uint8 regs[2];
-static uint8 hrd_flag;
+static uint8 reg[2];
+static uint8 dipsw;
 
-static SFORMAT StateRegs[] =
-{
-	{ &hrd_flag, 1, "DPSW" },
-	{ regs, 2, "REGS" },
+static SFORMAT StateRegs[] = {
+	{ &dipsw, 1, "DPSW" },
+	{ reg, 2, "REGS" },
 	{ 0 }
 };
 
-static void M57Sync(void) {
-	if (regs[1] & 0x10)
-		setprg32(0x8000, (regs[1] >> 6) & 3);
-	else {
-		setprg16(0x8000, (regs[1] >> 5) & 7);
-		setprg16(0xC000, (regs[1] >> 5) & 7);
+static void Sync(void) {
+	uint8 prg = (reg[1] >> 5) & 0x07;
+	uint8 chr = ((reg[0] >> 3) & 0x08) | (reg[1] & 0x07);
+
+	if (reg[1] & 0x10) {
+		setprg32(0x8000, prg >> 1);
+	} else {
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
 	}
-	setmirror((regs[1] & 8) >> 3 ^ 1);
-	setchr8((regs[0] & 7) | (regs[1] & 7) | ((regs[0] & 0x40) >> 3));
+	if (reg[0] & 0x80) {
+		setchr8(chr);
+	} else {
+		setchr8((chr & ~0x03) | (reg[0] & 0x03));
+	}
+	setmirror(((reg[1] >> 3) & 0x01) ^ 0x01);
 }
 
-static uint8 M57Read(uint32 A) { return hrd_flag; }
-
-static void M57Write(uint32 A, uint8 V) {
-	switch (A & 0x8800) {
-		case 0x8000: regs[0] = V; M57Sync(); break;
-		case 0x8800: regs[1] = V; M57Sync(); break;
-	}
+static DECLFR(M057Read) {
+	return dipsw & 0x03;
 }
 
-static void M57Power(void) {
-	regs[1] = regs[0] = 0; /* Always reset to menu */
-	hrd_flag = 1; /* YH-xxx "Olympic" multicarts disable the menu after one selection */
+static DECLFW(M057Write) {
+	if (A & 0x2000) {
+		reg[(A >> 11) & 0x01] = (reg[(A >> 11) & 0x01] & ~0x40) | (V & 0x40);
+	} else {
+		reg[(A >> 11) & 0x01] = V;
+	}
+	Sync();
+}
+
+static void M057Power(void) {
+	reg[1] = reg[0] = 0; /* Always reset to menu */
+	dipsw = 1; /* YH-xxx "Olympic" multicarts disable the menu after one selection */
+	SetReadHandler(0x5000, 0x6FFF, M057Read);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M57Write);
-	SetReadHandler(0x6000, 0x6000, M57Read);
-	M57Sync();
+	SetWriteHandler(0x8000, 0xFFFF, M057Write);
+	Sync();
 }
 
-static void M57Reset(void) {
-	regs[1] = regs[0] = 0; /* Always reset to menu */
-	hrd_flag++;
-	hrd_flag &= 3;
-	M57Sync();
+static void M057Reset(void) {
+	reg[1] = reg[0] = 0; /* Always reset to menu */
+	dipsw++;
+	FCEU_printf("Select Register = %02x\n", dipsw);
+	Sync();
 }
 
-static void M57StateRestore(int version) {
-	M57Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-void Mapper57_Init(CartInfo *info) {
-	info->Power = M57Power;
-	info->Reset = M57Reset;
-	GameStateRestore = M57StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper057_Init(CartInfo *info) {
+	info->Power = M057Power;
+	info->Reset = M057Reset;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

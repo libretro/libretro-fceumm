@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,36 +35,43 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	setprg8(0x6000, reg);
-    setprg8(0x8000, 10);
-    setprg8(0xA000, 11);
-    setprg8(0xC000, 6);
-    setprg8(0xE000, 7);
-    setchr8(reg);
+	setprg8(0x8000, 0x0A);
+	setprg8(0xA000, 0x0B);
+	setprg8(0xC000, 0x06);
+	setprg8(0xE000, 0x07);
+	setchr8(reg);
 }
 
-static uint8 M554Read(uint32 A) {
-    int A1 = A &~1;
-    if ((A >= 0xCAB6) && (A <= 0xCAD7))
-    {
-        reg = (A >> 2) & 0x0F;
-        Sync();
-    }
-    else if ((A1 == 0xEBE2) || (A1 == 0xEE32))
-    {
-        reg = (A >> 2) & 0x0F;
-        Sync();
-    }
-    else if (A1 == 0xFFFC)
-    {
-        reg = (A >> 2) & 0x0F;
-        Sync();
-    }
-    return CartBR(A);
+static DECLFR(M544Read) {
+	uint16 adr = A & 0xFFFE;
+
+	switch (A & 0xF000) {
+	case 0xC000:
+		if ((adr >= 0xCAB6) && (adr <= 0xCAD7)) {
+			reg = (adr >> 2) & 0x0F;
+			Sync();
+		}
+		break;
+	case 0xE000:
+		if ((adr == 0xEBE2) || (adr == 0xEE32)) {
+			reg = (A >> 2) & 0x0F;
+			Sync();
+		}
+		break;
+	case 0xF000:
+		if (adr == 0xFFFC) {
+			reg = (A >> 2) & 0x0F;
+			Sync();
+		}
+		break;
+	}
+
+	return CartBR(A);
 }
 
 static void M554Power(void) {
 	Sync();
-    SetReadHandler(0x6000, 0xFFFF, M554Read);
+	SetReadHandler(0x6000, 0xFFFF, M544Read);
 }
 
 static void StateRestore(int version) {
@@ -74,5 +81,5 @@ static void StateRestore(int version) {
 void Mapper554_Init(CartInfo *info) {
 	info->Power = M554Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

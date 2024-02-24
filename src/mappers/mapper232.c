@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,49 +21,42 @@
 
 #include "mapinc.h"
 
-static uint8 bank, preg;
-static SFORMAT StateRegs[] =
-{
-	{ &bank, 1, "BANK" },
-	{ &preg, 1, "PREG" },
+static uint8 reg[2];
+
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REGS" },
 	{ 0 }
 };
 
-static void M232Sync(void) {
-	uint32 bbank = ((bank & 0x10) >> 2) | (bank & 8);	/* some dumps have bbanks swapped, if swap commands,
-								 * then all roms can be played, but with some swapped
-								 * games in menu. if not, some dumps are unplayable
-								 * make hard dump for both cart types to check
-								 */
-	setprg16(0x8000, bbank | (preg & 3));
-	setprg16(0xC000, bbank | 3);
+static void Sync(void) {
+	uint8 base = (reg[0] >> 1) & 0x0C;
+
+	if (iNESCart.submapper == 1) {
+		base =  ((base << 1) & 0x08) | ((base >> 1) & 0x04);
+	}
+	setprg16(0x8000, base | (reg[1] & 0x03));
+	setprg16(0xC000, base | 0x03);
 	setchr8(0);
 }
 
-static void M232WriteBank(uint32 A, uint8 V) {
-	bank = V;
-	M232Sync();
-}
-
-static void M232WritePreg(uint32 A, uint8 V) {
-	preg = V;
-	M232Sync();
+static DECLFW(M232Write) {
+	reg[(A >> 14) & 0x01] = V;
+	Sync();
 }
 
 static void M232Power(void) {
-	bank = preg = 0;
-	M232Sync();
-	SetWriteHandler(0x8000, 0xBFFF, M232WriteBank);
-	SetWriteHandler(0xC000, 0xFFFF, M232WritePreg);
+	reg[0] = reg[1] = 0;
+	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0xFFFF, M232Write);
 }
 
-static void M232StateRestore(int version) {
-	M232Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
 void Mapper232_Init(CartInfo *info) {
 	info->Power = M232Power;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = M232StateRestore;
+	GameStateRestore = StateRestore;
+	AddExState(&StateRegs, ~0, 0, NULL);
 }

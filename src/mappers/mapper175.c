@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,58 +21,58 @@
 
 #include "mapinc.h"
 
-static uint8 reg, delay, mirr;
+static uint8 reg[2], mirr;
 
-static SFORMAT StateRegs[] =
-{
-	{ &reg, 1, "REG" },
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REG" },
 	{ &mirr, 1, "MIRR" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setchr8(reg);
-	if (!delay) {
-		setprg16(0x8000, reg);
-		setprg8(0xC000, reg << 1);
-	}
-	setprg8(0xE000, (reg << 1) + 1);
-	setmirror(((mirr & 4) >> 2) ^ 1);
+	setprg16(0x8000, reg[0]);
+	setprg16(0xC000, reg[0]);
+	setchr8(reg[0]);
+	setmirror(((mirr >> 2) & 0x01) ^ 0x01);
 }
 
-static void M175Write1(uint32 A, uint8 V) {
-	mirr = V;
-	delay = 1;
-	Sync();
-}
-
-static void M175Write2(uint32 A, uint8 V) {
-	reg = V & 0x0F;
-	delay = 1;
-	Sync();
-}
-
-static uint8 M175Read(uint32 A) {
-	if (A == 0xFFFC) {
-		delay = 0;
-		Sync();
+static DECLFR(M175Read) {
+	switch (A & 0xF000) {
+	case 0xF000:
+		if (reg[0] != reg[1]) {
+			reg[0] = reg[1];
+			Sync();
+		}
+		break;
 	}
 	return CartBR(A);
 }
 
+static DECLFW(M175Write) {
+	switch (A & 0xF000) {
+	case 0x8000:
+		mirr = V;
+		Sync();
+		break;
+	case 0xA000:
+		reg[1] = V;
+		break;
+	}
+}
+
 static void M175Power(void) {
-	reg = mirr = delay = 0;
+	reg[0] = reg[1] = mirr = 0;
 	SetReadHandler(0x8000, 0xFFFF, M175Read);
-	SetWriteHandler(0x8000, 0x8000, M175Write1);
-	SetWriteHandler(0xA000, 0xA000, M175Write2);
+	SetWriteHandler(0x8000, 0xFFFF, M175Write);
 	Sync();
 }
 
-static void StateRestore(int version) { Sync(); }
+static void StateRestore(int version) {
+	Sync();
+}
 
 void Mapper175_Init(CartInfo *info) {
 	info->Power = M175Power;
 	GameStateRestore = StateRestore;
-
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

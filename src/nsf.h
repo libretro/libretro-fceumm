@@ -21,7 +21,14 @@
 #ifndef _FCEU_NSF_H
 #define _FCEU_NSF_H
 
-typedef struct {
+#define	NSFSOUND_VRC6	0x01
+#define	NSFSOUND_VRC7	0x02
+#define	NSFSOUND_FDS	0x04
+#define	NSFSOUND_MMC5	0x08
+#define	NSFSOUND_N163	0x10
+#define	NSFSOUND_S5B	0x20
+
+typedef struct NSF_HEADER {
 	char ID[5];				/* NESM^Z */
 	uint8 Version;
 	uint8 TotalSongs;
@@ -32,7 +39,7 @@ typedef struct {
 	uint8 InitAddressHigh;
 	uint8 PlayAddressLow;
 	uint8 PlayAddressHigh;
-	uint8 SongName[32];
+	uint8 GameName[32];
 	uint8 Artist[32];
 	uint8 Copyright[32];
 	uint8 NTSCspeed[2];		/* Unused */
@@ -43,10 +50,35 @@ typedef struct {
 	uint8 Expansion[4];
 	uint8 reserve[8];
 } NSF_HEADER;
+
+typedef struct NSFINFO {
+	char SongName[256];
+	char Artist[256];
+	char Copyright[256];
+	char Dumper[256];
+	char SongNames[100][256];
+
+	uint8 TotalSongs;
+	uint8 StartingSong;
+	uint8 CurrentSong;
+	uint8 VideoSystem;
+
+	uint16 PlayAddr, InitAddr, LoadAddr;
+	uint8 BankSwitch[8];
+	uint8 SoundChip;
+
+	uint8 *NSFDATA;
+	size_t NSFMaxBank;
+	size_t NSFSize;
+} NSFINFO;
+
+extern NSFINFO *NSFInfo;
+
 void NSF_init(void);
-void DrawNSF(uint8 *XBuf);
-void NSFDealloc(void);
-void NSFDodo(void);
+void DrawNSF(uint8 *target);
 void DoNSFFrame(void);
+
+/* NSF Expansion Chip Set Write Handler for mappers */
+void NFSSetWriteHandler(int chip, int32 start, int32 end, writefunc func);
 
 #endif

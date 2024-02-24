@@ -1,9 +1,10 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
  *  Copyright (C) 2009 qeed
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,62 +27,46 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 latche;
 static uint8 reset;
 
-static SFORMAT StateRegs[] =
-{
-	{ &reset, 1, "RST" },
-	{ &latche, 1, "LATC" },
+static SFORMAT StateRegs[] = {
+	{ &reset, 1, "RST0" },
 	{ 0 }
 };
 
-static void M233Sync(void) {
-	uint8 bank = (latche & 0x1f) | (reset << 5);
+static void Sync(void) {
+	uint8 bank = (latch.data & 0x1F) | (reset << 5);
 
-	if (!(latche & 0x20))
-		setprg32(0x8000, bank >> 1);
-	else {
+	if (latch.data & 0x20) {
 		setprg16(0x8000, bank);
 		setprg16(0xC000, bank);
+	} else {
+		setprg32(0x8000, bank >> 1);
 	}
-
-	switch ((latche >> 6) & 3) {
+	setchr8(0);
+	switch ((latch.data >> 6) & 0x03) {
 	case 0: setmirror(MI_0); break;
 	case 1: setmirror(MI_V); break;
 	case 2: setmirror(MI_H); break;
 	case 3: setmirror(MI_1); break;
 	}
-
-	setchr8(0);
-}
-
-static void M233Write(uint32 A, uint8 V) {
-	latche = V;
-	M233Sync();
 }
 
 static void M233Power(void) {
-	latche = reset = 0;
-	M233Sync();
-	SetWriteHandler(0x8000, 0xFFFF, M233Write);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-}
-
-static void M233StateRestore(int version) {
-	M233Sync();
+	reset = 0;
+	Latch_Power();
 }
 
 static void M233Reset(void) {
-	latche = 0;
 	reset ^= 1;
-	M233Sync();
+	Sync();
 }
 
 void Mapper233_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
 	info->Power = M233Power;
 	info->Reset = M233Reset;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = M233StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

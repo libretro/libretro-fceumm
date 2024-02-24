@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,43 +20,28 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-extern uint32 ROM_size;
-static uint8 latche;
-
-static void M188Sync(void) {
-	if (latche) {
-		if (latche & 0x10)
-			setprg16(0x8000, (latche & 7));
-		else
-			setprg16(0x8000, (latche & 7) | 8);
-	} else
-		setprg16(0x8000, 7 + (ROM_size >> 4));
-}
-
-static void M188Write(uint32 A, uint8 V) {
-	latche = V;
-	M188Sync();
-}
-
-static uint8 M188ExtDev(uint32 A) { return 3; }
-
-static void M188Power(void) {
-	latche = 0;
-	M188Sync();
+static void Sync(void) {
+	if (latch.data & 0x10) {
+		setprg16(0x8000, (latch.data & 0x07));
+	} else {
+		setprg16(0x8000, (0x08 | latch.data));
+	}
+	setprg16(0xC000, 0x07);
 	setchr8(0);
-	setprg16(0xc000, 0x7);
-	SetReadHandler(0x6000, 0x7FFF, M188ExtDev);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M188Write);
 }
 
-static void M188StateRestore(int version) {
-	M188Sync();
+static DECLFR(ExtDev) {
+	return(3);
+}
+
+static void M118Power(void) {
+	Latch_Power();
+	SetReadHandler(0x6000, 0x7FFF, ExtDev);
 }
 
 void Mapper188_Init(CartInfo *info) {
-	info->Power = M188Power;
-	GameStateRestore = M188StateRestore;
-	AddExState(&latche, 1, 0, "LATC");
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M118Power;
 }

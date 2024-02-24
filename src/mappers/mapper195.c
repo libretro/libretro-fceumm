@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,81 +17,94 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
+
 #include "mapinc.h"
 #include "mmc3.h"
 
-writefunc writePPU;
-static uint8 *CHRRAM;
+static uint8 chrRamMask;
+static uint8 chrRamBankSelect;
+
+static uint8 *CHRRAM = NULL;
 static uint32 CHRRAMSIZE;
-static uint8 mask;
-static uint8 compare;
+
+static writefunc writePPU;
 extern uint32 RefreshAddr;
 
-static void Mapper195_CHRWrap(uint32 A, uint8 V) {
-	if ((V &mask) ==compare)
+static void M195CW(uint16 A, uint16 V) {
+	if ((V & chrRamMask) == chrRamBankSelect) {
 		setchr1r(0x10, A, V);
-	else
-		setchr1r(0, A, V);
+    } else {
+		setchr1(A, V);
+    }
 }
 
-static const uint8 compares[8] = { 0x28, 0x00, 0x4C, 0x64, 0x46, 0x7C, 0x04, 0xFF };
-static void Mapper195_InterceptPPUWrite(uint32 A, uint8 V) {
-	if (RefreshAddr <0x2000) {
-		int addr =RefreshAddr;
-		int reg, bank;
+static const uint8 chrRamLut[8] = {
+    0x28, 0x00, 0x4C, 0x64, 0x46, 0x7C, 0x04, 0xFF,
+};
 
-		if (MMC3_cmd &0x80) addr ^=0x1000;
-		if (addr <0x1000)
-			reg =addr >>11;
-		else
-			reg =(addr >>10) -2;
+static DECLFW(M195PPUWrite) {
+	if (RefreshAddr < 0x2000) {
+		uint8 reg, chrBank;
+        uint32 addr = RefreshAddr;
 
-		bank =DRegBuf[reg];
-		if (bank &0x80) {
-			if (bank &0x10) {
-				mask =0x00;
-				compare =0xFF;
+		if (mmc3.cmd & 0x80) {
+			addr ^= 0x1000;
+        }
+		if (addr & 0x1000) {
+			reg = (addr >> 10) - 2;
+        } else {
+			reg = addr >> 11;
+        }
+
+		chrBank = mmc3.reg[reg];
+		if (chrBank & 0x80) {
+			if (chrBank & 0x10) {
+                /* CHR-RAM disable */
+				chrRamMask = 0x00;
+				chrRamBankSelect = 0xFF;
 			} else {
-				int index =(bank &0x02? 1: 0) | (bank &0x08? 2: 0) | (bank &0x40? 4: 0);
-				mask =bank &0x40? 0xFE: 0xFC;
-				compare =compares[index];
+                uint8 index = ((chrBank >> 4) & 0x04) | ((chrBank >> 2) & 0x02) | ((chrBank >> 1) & 0x01);
+
+				chrRamMask = (chrBank & 0x40) ? 0xFE : 0xFC;
+				chrRamBankSelect = chrRamLut[index];
 			}
-			FixMMC3CHR(MMC3_cmd);
+            MMC3_FixCHR();
 		}
 	}
 	writePPU(A, V);
 }
 
-static void Mapper195_Power(void) {
-	mask =0xFC;
-	compare =0x00;
-	GenMMC3Power();
+static void M195Power(void) {
+	chrRamMask = 0xFC;
+	chrRamBankSelect = 0x00;
+	MMC3_Power();
 	setprg4r(0x10, 0x5000, 2);
 	SetWriteHandler(0x5000, 0x5FFF, CartBW);
 	SetReadHandler(0x5000, 0x5FFF, CartBR);
-	
-	if (GetWriteHandler(0x2007) !=Mapper195_InterceptPPUWrite) {
-		writePPU =GetWriteHandler(0x2007);
-		SetWriteHandler(0x2007, 0x2007, Mapper195_InterceptPPUWrite);
-	}
+
+	writePPU = GetWriteHandler(0x2007);
+	SetWriteHandler(0x2007, 0x2007, M195PPUWrite);
 }
 
-void Mapper195_Close(void) {
-	if (CHRRAM)
+static void M195Close(void) {
+	MMC3_Close();
+	if (CHRRAM) {
 		FCEU_gfree(CHRRAM);
+    }
 	CHRRAM = NULL;
 }
 
 void Mapper195_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 256, 16, info->battery);
-	cwrap = Mapper195_CHRWrap;
-	info->Power = Mapper195_Power;
-	info->Reset = MMC3RegReset;
-	info->Close = Mapper195_Close;
-	CHRRAMSIZE =4096;
-	CHRRAM =(uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	MMC3_Init(info, 16, info->battery);
+	info->Power = M195Power;
+	info->Close = M195Close;
+	MMC3_cwrap = M195CW;
+
+	CHRRAMSIZE = 4096;
+	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
-	AddExState(&mask, 1, 0, "EXP0");
-	AddExState(&compare, 1, 0, "EXP1");
+
+	AddExState(&chrRamMask, 1, 0, "CHRM");
+	AddExState(&chrRamBankSelect, 1, 0, "CHRB");
 }

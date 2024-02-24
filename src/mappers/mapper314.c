@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,58 +22,42 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
 static uint8 regs[4];
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
 	{ regs, 4, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
+	uint8 prg = regs[1] & 0x3F;
+
 	if (regs[0] & 0x80) { /* NROM mode */
-		if (regs[1] & 0x80)
-			setprg32(0x8000, regs[1] & 0x3F);
-		else {
-			int bank = ((regs[1] & 0x3F) << 1) | ((regs[1] >> 6) & 1);
-			setprg16(0x8000, bank);
-			setprg16(0xC000, bank);
+		if (regs[1] & 0x80) {
+			setprg32(0x8000, prg);
+		} else {
+			setprg16(0x8000, (prg << 1) | ((regs[1] >> 6) & 0x01));
+			setprg16(0xC000, (prg << 1) | ((regs[1] >> 6) & 0x01));
 		}
 	} else { /* UNROM mode */
-		setprg16(0x8000, regs[1] <<1 | regs[3] &7);
-		setprg16(0xC000, regs[1] <<1 |          7);
+		setprg16(0x8000, (prg << 1) | (latch.data & 0x07));
+		setprg16(0xC000, (prg << 1) | 0x07);
 	}
-	if (regs[0] & 0x20)
-		setmirror(MI_H);
-	else
-		setmirror(MI_V);
-	setchr8((regs[2] << 2) | ((regs[0] >> 1) & 3));
+	setchr8((regs[2] << 2) | ((regs[0] >> 1) & 0x03));
+	setmirror(((regs[0] >> 5) & 0x01) ^ 0x01);
+	
 }
 
-static void BMC64in1nrWriteLo(uint32 A, uint8 V) {
-	A &=3;
-	if (A ==3) A =1; /* K-42001's "Aladdin III" */
-	regs[A & 3] = V;
+static DECLFW(M314Write) {
+	A &= 0x03;
+	if (A == 0x03) A = 0x01; /* K-42001's "Aladdin III" */
+	regs[A] = V;
 	Sync();
 }
 
-static void BMC64in1nrWriteHi(uint32 A, uint8 V) {
-	regs[3] = V;
-	Sync();
-}
-
-static void BMC64in1nrPower(void) {
-	regs[0] = 0x80;
-	regs[1] = 0x43;
-	regs[2] = regs[3] = 0;
-	Sync();
-	SetWriteHandler(0x5000, 0x5FFF, BMC64in1nrWriteLo);
-	SetWriteHandler(0x8000, 0xFFFF, BMC64in1nrWriteHi);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-}
-
-static void BMC64in1nrReset(void) {
+static void M314Reset(void) {
 	/* Reset returns to menu */
 	regs[0] = 0x80;
 	regs[1] = 0x43;
@@ -80,15 +65,17 @@ static void BMC64in1nrReset(void) {
 	Sync();
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M314Power(void) {
+	regs[0] = 0x80;
+	regs[1] = 0x43;
+	regs[2] = regs[3] = 0;
+	Latch_Power();
+	SetWriteHandler(0x5000, 0x5FFF, M314Write);
 }
 
-void BMC64in1nr_Init(CartInfo *info) {
-	info->Power = BMC64in1nrPower;
-	info->Reset = BMC64in1nrReset;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = StateRestore;
+void Mapper314_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, TRUE);
+	info->Power = M314Power;
+	info->Reset = M314Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }
-
-

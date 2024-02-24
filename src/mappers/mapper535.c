@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +18,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * NES 2.0 Mapper 535 - UNL-M535
  * FDS Conversion - Nazo no Murasamejō
  *
  */
 
 #include "mapinc.h"
-#include "sound/fdssound.h"
+#include "fdssound.h"
 
 static uint8 reg, IRQa;
 static int32 IRQCount;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -40,71 +40,60 @@ static SFORMAT StateRegs[] =
 static void Sync(void) {
 	setchr8(0);
 	setprg8(0x6000, reg);
-	setprg8(0x8000, 0xc);
-	setprg4(0xa000, (0xd << 1));
-	setprg2(0xb000, (0xd << 2) + 2);
-	setprg2r(0x10, 0xb800, 4);
-	setprg2r(0x10, 0xc000, 5);
-	setprg2r(0x10, 0xc800, 6);
-	setprg2r(0x10, 0xd000, 7);
-	setprg2(0xd800, (0xe << 2) + 3);
-	setprg8(0xe000, 0xf);
+	setprg32(0x8000, 0x03);
+	setprg8r(0x10, 0xB800, 0);
 }
 
-static void LH53RamWrite(uint32 A, uint8 V) {
+static DECLFW(M535RamWrite) {
 	WRAM[(A - 0xB800) & 0x1FFF] = V;
 }
 
-static void LH53Write(uint32 A, uint8 V) {
+static DECLFW(M535Write) {
 	reg = V;
 	Sync();
 }
 
-static void LH53IRQaWrite(uint32 A, uint8 V) {
-	IRQa = V & 2;
+static DECLFW(M535IRQaWrite) {
+	IRQa = V & 0x02;
 	IRQCount = 0;
-	if (!IRQa)
-		X6502_IRQEnd(FCEU_IQEXT);
+	X6502_IRQEnd(FCEU_IQEXT);
 }
 
-static void LH53IRQ(int a) {
+static void M535IRQHook(int a) {
 	if (IRQa) {
 		IRQCount += a;
-		if (IRQCount > 7560)
+		if (IRQCount > 7560) {
 			X6502_IRQBegin(FCEU_IQEXT);
+		}
 	}
 }
 
-static void LH53Power(void) {
-	FDSSoundPower();
+static void M535Power(void) {
+	FDSSound_Power();
 	Sync();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0xB800, 0xD7FF, LH53RamWrite);
-	SetWriteHandler(0xE000, 0xEFFF, LH53IRQaWrite);
-	SetWriteHandler(0xF000, 0xFFFF, LH53Write);
+	SetWriteHandler(0xB800, 0xD7FF, M535RamWrite);
+	SetWriteHandler(0xE000, 0xEFFF, M535IRQaWrite);
+	SetWriteHandler(0xF000, 0xFFFF, M535Write);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void LH53Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
+static void M535Close(void) {
 }
 
 static void StateRestore(int version) {
 	Sync();
 }
 
-void LH53_Init(CartInfo *info) {
-	info->Power = LH53Power;
-	info->Close = LH53Close;
-	MapIRQHook = LH53IRQ;
+void Mapper535_Init(CartInfo *info) {
+	info->Power = M535Power;
+	info->Close = M535Close;
+	MapIRQHook = M535IRQHook;
 	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 
 	WRAMSIZE = 8192;
 	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-
-	AddExState(&StateRegs, ~0, 0, 0);
 }

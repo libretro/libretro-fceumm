@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2011 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,61 +18,43 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * NES 2.0 Mapper 312 - Kaiser 7013B
+ * UNIF UNL-KS7013B
  * Just another pirate cart with pirate mapper, instead of original MMC1
  * Kaiser Highway Star
  *
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 reg, mirr;
+static uint8 reg;
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
 	{ &reg, 1, "REGS" },
-	{ &mirr, 1, "MIRR" },
 	{ 0 }
 };
 
 static void Sync(void) {
 	setprg16(0x8000, reg);
 	setprg16(0xc000, ~0);
-	setmirror(mirr);
+	setmirror((latch.data & 0x01) ^ 0x01);
 	setchr8(0);
 }
 
-static void UNLKS7013BLoWrite(uint32 A, uint8 V) {
+static DECLFW(M312LoWrite) {
 	reg = V;
 	Sync();
 }
 
-static void UNLKS7013BHiWrite(uint32 A, uint8 V) {
-	mirr = (V & 1) ^ 1;
-	Sync();
-}
-
-static void UNLKS7013BPower(void) {
+static void M312Power(void) {
 	reg = 0;
-	mirr = 0;
-	Sync();
-	SetWriteHandler(0x6000, 0x7FFF, UNLKS7013BLoWrite);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, UNLKS7013BHiWrite);
+	Latch_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M312LoWrite);
 }
 
-static void UNLKS7013BReset(void) {
-	reg = 0;
-	Sync();
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-void UNLKS7013B_Init(CartInfo *info) {
-	info->Power = UNLKS7013BPower;
-	info->Reset = UNLKS7013BReset;
-
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper312_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M312Power;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

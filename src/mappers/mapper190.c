@@ -1,6 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
- * Copyright (C) 2017 FCEUX Team
+ * Copyright notice for this file:
+ *  Copyright (C) 2017 FCEUX Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,58 +23,51 @@
 
 #include "mapinc.h"
 
-static uint8 preg, creg[4];
-static uint8 *WRAM = NULL;
+static uint8 prg, chr[4];
 
-static SFORMAT StateRegs[] =
-{
-	{ &preg, 1, "PREG" },
-	{ creg, 4, "CREG" },
+static SFORMAT StateRegs[] =  {
+	{ &prg, 1, "PREG" },
+	{ chr, 4, "CREG" },
 	{ 0 }
 };
 
 static void Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
-	setprg16(0x8000, preg);
+	setprg16(0x8000, prg);
 	setprg16(0xC000, 0);
-	setchr2(0x0000, creg[0]);
-	setchr2(0x0800, creg[1]);
-	setchr2(0x1000, creg[2]);
-	setchr2(0x1800, creg[3]);
+	setchr2(0x0000, chr[0]);
+	setchr2(0x0800, chr[1]);
+	setchr2(0x1000, chr[2]);
+	setchr2(0x1800, chr[3]);
 }
 
-static void M190Write89(uint32 A, uint8 V) {
-	preg = V & 7;
-	Sync();
-}
-
-static void M190WriteCD(uint32 A, uint8 V) {
-	preg = 8 | (V & 7);
-	Sync();
-}
-
-static void M190WriteAB(uint32 A, uint8 V) {
-	creg[A & 3] = V;
-	Sync();
+static DECLFW(M190Write) {
+	switch (A & 0xE000) {
+	case 0x8000:
+	case 0xC000:
+		prg = (A << 11) | (V & 0x07);
+		Sync();
+		break;
+	case 0xA000:
+		chr[A & 0x03] = V;
+		Sync();
+		break;
+	}
 }
 
 static void M190Power(void) {
-	creg[0] = creg[1] = creg[2] = creg[3] = 0;
-	preg = 0;
-	FCEU_CheatAddRAM(0x2000 >> 10, 0x6000, WRAM);
-	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	SetWriteHandler(0x8000, 0x9FFF, M190Write89);
-	SetWriteHandler(0xA000, 0xBFFF, M190WriteAB);
-	SetWriteHandler(0xC000, 0xDFFF, M190WriteCD);
+	chr[0] = chr[1] = chr[2] = chr[3] = 0;
+	prg = 0;
 	setmirror(MI_V);
 	Sync();
+
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	SetWriteHandler(0x8000, 0xFFFF, M190Write);
+	FCEU_CheatAddRAM(0x2000 >> 10, 0x6000, WRAM);
 }
 
 static void M190Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
 }
 
 static void StateRestore(int version) {
@@ -82,9 +77,10 @@ static void StateRestore(int version) {
 void Mapper190_Init(CartInfo *info) {
 	info->Power = M190Power;
 	info->Close = M190Close;
-	WRAM = (uint8*)FCEU_gmalloc(0x2000);
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
+
+	WRAM = (uint8 *)FCEU_gmalloc(0x2000);
 	SetupCartPRGMapping(0x10, WRAM, 0x2000, 1);
 	AddExState(WRAM, 0x2000, 0, "WRAM");
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
 }

@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- * Copyright (C) 2020
+ * Copyright (C) 2023
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,15 +20,36 @@
 
 #include "mapinc.h"
 
+extern uint8 **VPageR;
+static const uint8 mirrorings[]  = { MI_V, MI_H, MI_0, MI_1 };
+static const uint8 mapping[4][8] = {
+	{ 0, 1, 0, 1, 0, 1, 0, 1 }, /* MI_V */
+	{ 0, 0, 1, 1, 0, 0, 1, 1 }, /* MI_H */
+	{ 0, 0, 0, 0, 1, 1, 1, 1 }, /* MI_0 */
+	{ 0, 0, 0, 0, 0, 0, 0, 0 }  /* MI_1 */
+};
+
 static void M218Power(void) {
 	setchr8(0);
 	setprg32(0x8000, 0);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-void Mapper218_Init(CartInfo* info) {
-	if (head.ROM_type & 0x08)
-		SetupCartMirroring(MI_0 + (head.ROM_type & 0x01), 1,  NULL);
-	SetupCartCHRMapping(0, NTARAM, 2048, 1);
+void Mapper218_Init(CartInfo *info) {
 	info->Power = M218Power;
+
+	/* similar to mapper 30, this mapper interprets the two bits in headers mirroring in idiosyncratic ways */
+	SetupCartMirroring(mirrorings[info->mirror2bits], 1, NULL);
+
+	/* cryptic logic to effect the CHR RAM mappings by mapping 1k blocks to NTARAM according to how the pins are wired
+	 this could be done by bit logic, but this is self-documenting */
+	VPageR[0] = &NTARAM[mapping[info->mirror2bits][0]];
+	VPageR[1] = &NTARAM[mapping[info->mirror2bits][1]];
+	VPageR[2] = &NTARAM[mapping[info->mirror2bits][2]];
+	VPageR[3] = &NTARAM[mapping[info->mirror2bits][3]];
+	VPageR[4] = &NTARAM[mapping[info->mirror2bits][4]];
+	VPageR[5] = &NTARAM[mapping[info->mirror2bits][5]];
+	VPageR[6] = &NTARAM[mapping[info->mirror2bits][6]];
+	VPageR[7] = &NTARAM[mapping[info->mirror2bits][7]];
+	PPUCHRRAM = 0xFF;
 }

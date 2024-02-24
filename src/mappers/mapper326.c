@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,75 +25,65 @@
 
 #include "mapinc.h"
 
-static uint8 PRG[3], CHR[8], NTAPage[4];
+static uint8 prg[4], chr[8], nt[4];
 
-static SFORMAT StateRegs[] =
-{
-	{ PRG, 3, "PRG" },
-	{ CHR, 8, "CHR" },
-	{ NTAPage, 4, "NT" },
+static SFORMAT StateRegs[] = {
+	{ prg, 4, "PREG" },
+	{ chr, 8, "CREG" },
+	{ nt, 4, "NTAR" },
 	{ 0 }
 };
 
-static void SyncPRG(void) {
-	setprg8(0x8000, PRG[0]);
-	setprg8(0xA000, PRG[1]);
-	setprg8(0xC000, PRG[2]);
-	setprg8(0xE000, ~0);
+static void Sync(void) {
+	int i;
+
+	for (i = 0; i < 4; i++) setprg8(0x8000 + (i << 13), prg[i]);
+	for (i = 0; i < 8; i++) setchr1(i << 10, chr[i]);
+	for (i = 0; i < 3; i++) setntamem(NTARAM + 0x400 * (nt[i] & 0x01), 1, i);
 }
 
-static void DoCHR(int x, uint8 V) {
-	CHR[x] = V;
-	setchr1(x << 10, V);
-}
-
-static void FixCHR(void) {
-	int x;
-	for (x = 0; x < 8; x++)
-		DoCHR(x, CHR[x]);
-}
-
-static void DoNTARAM(int w, uint8 V) {
-	NTAPage[w] = V;
-	setntamem(NTARAM + ((V & 1) << 10), 1, w);
-}
-
-static void FixNTAR(void) {
-	int x;
-	for (x = 0; x < 4; x++)
-		DoNTARAM(x, NTAPage[x]);
-}
-
-static void M326Write(uint32 A, uint8 V) {
+static DECLFW(M326Write) {
 	switch (A & 0xE010) {
-	case 0x8000: PRG[0] = V; SyncPRG(); break;
-	case 0xA000: PRG[1] = V; SyncPRG(); break;
-	case 0xC000: PRG[2] = V; SyncPRG(); break;
+	case 0x8000: prg[0] = V; break;
+	case 0xA000: prg[1] = V; break;
+	case 0xC000: prg[2] = V; break;
+	default: break;
 	}
 
-	A &= 0x801F;
-	if ((A >= 0x8010) && (A <= 0x8017))
-		DoCHR(A - 0x8010, V);
-	else if ((A >= 0x8018) && (A <= 0x801B))
-		DoNTARAM(A - 0x8018, V);
+	switch (A & 0x1F) {
+	case 0x10: case 0x11: case 0x12: case 0x13:
+	case 0x14: case 0x15: case 0x16: case 0x17:
+		chr[A & 0x07] = V;
+		break;
+	case 0x18: case 0x19: case 0x1A: case 0x1B:
+		nt[A & 0x03] = V;
+		break;
+	default:
+		break;
+	}
+
+	Sync();
 }
 
 static void M326Power(void) {
-	SyncPRG();
-	FixCHR();
-	FixNTAR();
+	int i;
+	
+	for (i = 0; i < 4; i++) prg[i] = 0xFC | i;
+	for (i = 0; i < 8; i++) chr[i] = i;
+	for (i = 0; i < 4; i++) nt[i] = (i >> 1) & 0x01;
+
+	Sync();
+
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, M326Write);
 }
 
 static void StateRestore(int version) {
-	SyncPRG();
-	FixCHR();
-	FixNTAR();
+	Sync();
 }
 
 void Mapper326_Init(CartInfo *info) {
 	info->Power = M326Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

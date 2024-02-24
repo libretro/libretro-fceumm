@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +25,6 @@
 #include "mapinc.h"
 
 static uint8 prg, mode;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
 static uint32 lastnt = 0;
 
 static SFORMAT StateRegs[] =
@@ -41,38 +40,39 @@ static void Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
 	setchr4(0x0000, lastnt);
 	setchr4(0x1000, 1);
-	if (mode & 4)
+	if (mode & 4) {
 		setprg32(0x8000, prg & 7);
-	else {
+	} else {
 		setprg16(0x8000, prg & 0x0f);
 		setprg16(0xC000, 0);
 	}
 }
 
-static void UNLD2000Write(uint32 A, uint8 V) {
+static DECLFW(M518Write) {
 	switch (A) {
 	case 0x5000: prg = V; Sync(); break;
 	case 0x5200: mode = V; if (mode & 4) Sync(); break;
 	}
 }
 
-static uint8 UNLD2000Read(uint32 A) {
+static DECLFR(M518Read) {
 	if (prg & 0x40)
 		return cpu.openbus;
-	return CartBR(A);
+	else
+		return CartBR(A);
 }
 
-static void UNLD2000Power(void) {
+static void M518Power(void) {
 	prg = mode = 0;
 	Sync();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	SetReadHandler(0x8000, 0xFFFF, UNLD2000Read);
-	SetWriteHandler(0x5000, 0x5FFF, UNLD2000Write);
+	SetReadHandler(0x8000, 0xFFFF, M518Read);
+	SetWriteHandler(0x5000, 0x5FFF, M518Write);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void UNL2000Hook(uint32 A) {
+static void M518PPUHook(uint32 A) {
 	if (mode & 2) {
 		if ((A & 0x3000) == 0x2000) {
 			uint32 curnt = A & 0x800;
@@ -87,20 +87,17 @@ static void UNL2000Hook(uint32 A) {
 	}
 }
 
-static void UNLD2000Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
+static void M518Close(void) {
 }
 
 static void StateRestore(int version) {
 	Sync();
 }
 
-void UNLD2000_Init(CartInfo *info) {
-	info->Power = UNLD2000Power;
-	info->Close = UNLD2000Close;
-	PPU_hook = UNL2000Hook;
+void Mapper518_Init(CartInfo *info) {
+	info->Power = M518Power;
+	info->Close = M518Close;
+	PPU_hook = M518PPUHook;
 	GameStateRestore = StateRestore;
 
 	WRAMSIZE = 8192;
@@ -108,5 +105,5 @@ void UNLD2000_Init(CartInfo *info) {
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

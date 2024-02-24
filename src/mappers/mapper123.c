@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,53 +19,55 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* iNES Mapper 123 - UNL-H2288 */
+
 #include "mapinc.h"
 #include "mmc3.h"
 
-extern uint8 m114_perm[8];
+static uint8 reg;
 
-static void H2288PW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x40) {
-		uint8 bank = (EXPREGS[0] & 5) | ((EXPREGS[0] & 8) >> 2) | ((EXPREGS[0] & 0x20) >> 2);
-		if (EXPREGS[0] & 2)
+static void M123PW(uint16 A, uint16 V) {
+	if (reg & 0x40) {
+		uint8 bank = ((reg & 0x28) >> 2) | (reg & 0x05);
+
+		if (reg & 2) {
 			setprg32(0x8000, bank >> 1);
-		else {
+		} else {
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);
 		}
-	} else
+	} else {
 		setprg8(A, V & 0x3F);
-}
-
-static void H2288WriteHi(uint32 A, uint8 V) {
-	switch (A & 0x8001) {
-	case 0x8000: MMC3_CMDWrite(0x8000, (V & 0xC0) | (m114_perm[V & 7])); break;
-	case 0x8001: MMC3_CMDWrite(0x8001, V); break;
 	}
 }
 
-static void H2288WriteLo(uint32 A, uint8 V) {
+static DECLFW(M123WriteHi) {
+	static const uint8 m114_perm[8] = { 0, 3, 1, 5, 6, 7, 2, 4 };
+
+	if (!(A & 0x01)) {
+		V = (V & 0xC0) | m114_perm[V & 0x07];
+	}
+
+	MMC3_CMDWrite(A, V);
+}
+
+static DECLFW(M123WriteLo) {
 	if (A & 0x800) {
-		if (A & 1)
-			EXPREGS[1] = V;
-		else
-			EXPREGS[0] = V;
-		FixMMC3PRG(MMC3_cmd);
+		reg = V;
+		MMC3_FixPRG();
 	}
 }
 
-static void H2288Power(void) {
-	EXPREGS[0] = EXPREGS[1] = 0;
-	GenMMC3Power();
-/*	SetReadHandler(0x5000,0x5FFF,H2288Read); */
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x5000, 0x5FFF, H2288WriteLo);
-	SetWriteHandler(0x8000, 0x9FFF, H2288WriteHi);
+static void M123Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x5000, 0x5FFF, M123WriteLo);
+	SetWriteHandler(0x8000, 0x9FFF, M123WriteHi);
 }
 
-void UNLH2288_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	pwrap = H2288PW;
-	info->Power = H2288Power;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+void Mapper123_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	MMC3_pwrap = M123PW;
+	info->Power = M123Power;
+	AddExState(&reg, 1, 0, "EXPR");
 }

@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2009 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,42 +25,36 @@
 #include "mapinc.h"
 
 static uint8 reg[8];
-static uint8 mirror, cmd, bank;
+static uint8 mirror;
 
-static SFORMAT StateRegs[] =
-{
-	{ &cmd, 1, "CMD" },
+static SFORMAT StateRegs[] = {
 	{ &mirror, 1, "MIRR" },
-	{ &bank, 1, "BANK" },
 	{ reg, 8, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	setmirror(mirror ^ 1);
 	setprg8(0x8000, reg[3]);
-	setprg8(0xA000, 0xD);
-	setprg8(0xC000, 0xE);
-	setprg8(0xE000, 0xF);
+	setprg8(0xA000, ~2);
+	setprg8(0xC000, ~1);
+	setprg8(0xE000, ~0);
 	setchr4(0x0000, reg[0] >> 2);
 	setchr2(0x1000, reg[1] >> 1);
 	setchr2(0x1800, reg[2] >> 1);
+	setmirror((mirror & 0x01) ^ 0x01);
 }
 
-static void M193Write(uint32 A, uint8 V) {
-	reg[A & 3] = V;
+static DECLFW(M193Write) {
+	reg[A & 7] = V;
 	Sync();
 }
 
 static void M193Power(void) {
-	bank = 0;
+	memset(reg, 0, sizeof(reg));
 	Sync();
-	SetWriteHandler(0x6000, 0x6003, M193Write);
+	SetWriteHandler(0x6000, 0x7FFF, M193Write);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xFFFF, CartBW);
-}
-
-static void M193Reset(void) {
 }
 
 static void StateRestore(int version) {
@@ -67,8 +62,7 @@ static void StateRestore(int version) {
 }
 
 void Mapper193_Init(CartInfo *info) {
-	info->Reset = M193Reset;
 	info->Power = M193Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

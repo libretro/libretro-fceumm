@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- * Copyright (C) 2020
+ * Copyright (C) 2023
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,41 +26,23 @@
  */
 
 #include "mapinc.h"
-
-static uint8 latche;
-
-static SFORMAT StateRegs[] = {
-	{ &latche, 1, "LATC" },
-	{ 0 }
-};
+#include "latch.h"
 
 static void Sync(void) {
 	setprg32(0x8000, 0);
-	setchr8((latche >> 4) & 1);
+	setchr8((latch.data >> 4) & 0x01);
 }
 
-static uint8 M533Read(uint32 A) {
-	return ((PRGptr[0][A] & 0xF0) | (latche >> 4));
+static DECLFR(M533Read) {
+	switch (A & 0xF000) {
+	case 0xE000:
+		return ((PRGptr[0][0x6000 | (A & 0xFFFF)] & 0xF0) | (latch.data >> 4));
+	default:
+		break;
+	}
+	return CartBROB(A);
 }
 
-static void M533Write(uint32 A, uint8 V) {
-	latche = (V & CartBR(A));
-	Sync();
-}
-
-static void M533Power(void) {
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBROB);
-	SetReadHandler(0xE000, 0xEFFF, M533Read);
-	SetWriteHandler(0x8000, 0xFFFF, M533Write);
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-void Mapper533_Init(CartInfo* info) {
-	info->Power = M533Power;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper533_Init(CartInfo *info) {
+	Latch_Init(info, Sync, M533Read, FALSE, TRUE);
 }

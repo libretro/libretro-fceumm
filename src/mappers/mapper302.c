@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2011 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,81 +18,37 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * NES 2.0 Mapper 302 - UNL-KS7057
  * FDS Conversion
- *
  */
 
 #include "mapinc.h"
+#include "vrc2and4.h"
 
-static uint8 reg[8], mirror;
-static SFORMAT StateRegs[] =
-{
-	{ reg, 8, "PRG" },
-	{ &mirror, 1, "MIRR" },
-	{ 0 }
-};
+static void M302PW(uint16 A, uint16 V) {
+	setprg8( 0x8000, 0x00);
+	setprg8( 0xA000, 0x0D);
+	setprg16(0xC000, 0x07);
+}
 
-static void Sync(void) {
-	setprg2(0x6000, reg[4]);
-	setprg2(0x6800, reg[5]);
-	setprg2(0x7000, reg[6]);
-	setprg2(0x7800, reg[7]);
-	setprg2(0x8000, reg[0]);
-	setprg2(0x8800, reg[1]);
-	setprg2(0x9000, reg[2]);
-	setprg2(0x9800, reg[3]);
-	setprg8(0xA000, 0xd);
-	setprg16(0xC000, 7);
+static void M302CW(uint16 A, uint16 V) {
 	setchr8(0);
-	setmirror(mirror);
 }
 
-static void UNLKS7057Write(uint32 A, uint8 V) {
-	switch (A & 0xF003) {
-	case 0x8000:
-	case 0x8001:
-	case 0x8002:
-	case 0x8003:
-	case 0x9000:
-	case 0x9001:
-	case 0x9002:
-	case 0x9003: mirror = V & 1; Sync(); break;
-	case 0xB000: reg[0] = (reg[0] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xB001: reg[0] = (reg[0] & 0x0F) | (V << 4); Sync(); break;
-	case 0xB002: reg[1] = (reg[1] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xB003: reg[1] = (reg[1] & 0x0F) | (V << 4); Sync(); break;
-	case 0xC000: reg[2] = (reg[2] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xC001: reg[2] = (reg[2] & 0x0F) | (V << 4); Sync(); break;
-	case 0xC002: reg[3] = (reg[3] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xC003: reg[3] = (reg[3] & 0x0F) | (V << 4); Sync(); break;
-	case 0xD000: reg[4] = (reg[4] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xD001: reg[4] = (reg[4] & 0x0F) | (V << 4); Sync(); break;
-	case 0xD002: reg[5] = (reg[5] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xD003: reg[5] = (reg[5] & 0x0F) | (V << 4); Sync(); break;
-	case 0xE000: reg[6] = (reg[6] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xE001: reg[6] = (reg[6] & 0x0F) | (V << 4); Sync(); break;
-	case 0xE002: reg[7] = (reg[7] & 0xF0) | (V & 0x0F); Sync(); break;
-	case 0xE003: reg[7] = (reg[7] & 0x0F) | (V << 4); Sync(); break;
-	}
+static DECLFR(M302Read) {
+	uint8 bank = (((A - 0x6000) >> 11) & 0x06) | ((A >> 11) & 0x01);
+
+	return PRGptr[0][(vrc24.chr[bank ^ 4] << 11) | (A & 0x07FF)];
 }
 
-static void UNLKS7057Power(void) {
-	Sync();
-	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, UNLKS7057Write);
+static void M302Power(void) {
+	VRC24_Power();
+	SetReadHandler(0x6000, 0x9FFF, M302Read);
 }
 
-static void UNLKS7057Reset(void) {
-	Sync();
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-void UNLKS7057_Init(CartInfo *info) {
-	info->Power = UNLKS7057Power;
-	info->Reset = UNLKS7057Reset;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper302_Init(CartInfo *info) {
+	VRC24_Init(info, VRC2, 0x01, 0x02, FALSE, TRUE);
+	info->Power = M302Power;
+	VRC24_pwrap = M302PW;
+	VRC24_cwrap = M302CW;;
 }

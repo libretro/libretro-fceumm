@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,51 +23,49 @@
 
 #include "mapinc.h"
 
-static uint8 preg[2];
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8 reg[2];
 
-static SFORMAT StateRegs[] =
-{
-	{ preg, 2, "PREG" },
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REGS" },
 	{ 0 }
 };
 
 static void Sync(void) {
 	setprg8r(0x10, 0x6000, 0);
-	setprg16(0x8000, preg[0]);
-	setprg16(0xC000, preg[1]);
+	setprg16(0x8000, (reg[1] << 4) | (reg[0] & 0x0F));
+	setprg16(0xC000, (reg[1] << 4) | 0x0F);
 	setchr8(0);
 }
 
-static void M104WriteBank(uint32 A, uint8 V) {
-	if ((V & 8) > 0) {
-		preg[0]  = ((V << 4) & 0x70) | (preg[0] & 0x0F);
-		preg[1]  = ((V << 4) & 0x70) | 0x0F;
+static DECLFW(M104Write) {
+	switch (A & 0xF000) {
+	case 0x8000:
+	case 0x9000:
+	case 0xA000:
+	case 0xB000:
+		if (!(reg[1] & 0x08)) {
+			reg[1] = V;
+			Sync();
+		}
+		break;
+	case 0xC000:
+	case 0xD000:
+	case 0xE000:
+	case 0xF000:
+		reg[0] = V;
 		Sync();
+		break;
 	}
 }
 
-static void M104WritePreg(uint32 A, uint8 V) {
-	preg[0] = (preg[0] & 0x70) | (V & 0x0F);
-	Sync();
-}
-
 static void M104Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
 }
 
 static void M104Power(void) {
-	preg[1] = 0x0F;
+	reg[0] = reg[1] = 0;
 	Sync();
-	SetReadHandler(0x6000, 0x7fff, CartBR);
-	SetWriteHandler(0x6000, 0x7fff, CartBW);
-	SetWriteHandler(0x8000, 0x9FFF, M104WriteBank);
-	SetWriteHandler(0xC000, 0xFFFF, M104WritePreg);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	setmirror(MI_V);
+	SetWriteHandler(0x8000, 0xFFFF, M104Write);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
@@ -77,16 +76,6 @@ static void StateRestore(int version) {
 void Mapper104_Init(CartInfo *info) {
 	info->Power = M104Power;
 	info->Close = M104Close;
-	AddExState(&StateRegs, ~0, 0, 0);
-
-	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-	if (info->battery) {
-		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
-	}
-
 	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

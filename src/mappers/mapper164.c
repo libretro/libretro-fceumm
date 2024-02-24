@@ -1,9 +1,10 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
  *  Copyright (C) 2005 CaH4e3
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,112 +27,120 @@
 */
 
 #include "mapinc.h"
-#include "eeprom_93C66.h"
+#include "eeprom_93Cx6.h"
 
-static uint8 *WRAM;
-static uint32 WRAMSIZE;
-static uint8 reg[8];
+static uint8 reg[4];
 static uint8 eeprom_data[512];
-static SFORMAT StateRegs[] =
-{
-        { reg,           8, "REGS" },
-        { eeprom_data, 512, "EEPR" },
-        { 0 }
+
+static SFORMAT StateRegs[] = {
+	{ reg, 4, "REGS" },
+	{ eeprom_data, 512, "EEPR" },
+	{ 0 }
 };
 
-static void M164Sync(void)
-{
-   uint8 prgLow  = reg[0] &0x0F | reg[0] >>1 &0x10;
-   uint8 prgHigh = reg[1] <<5;
-   switch (reg[0] >>5 &2 | reg[0] >>4 &1)
-   {
-      case 0: /* UNROM-512 */
-         setprg16(0x8000, prgHigh | prgLow);
-         setprg16(0xC000, prgHigh |   0x1F);
-         break;
-      case 1: /* Open Bus on Yancheng cy2000-3 PCB, expansion cartridge on the Dongda PEC-9588 */
-         break;
-      case 2: /* UNROM-448+64. Very strange mode, used for the LOGO program on the Dongda PEC-9588 */
-         setprg16(0x8000, prgHigh | prgLow);
-         setprg16(0xC000, prgHigh |(prgLow >=0x1C? 0x1C: 0x1E));
-         break;
-      case 3: /* UNROM-128 or BNROM */
-         if (prgLow &0x10)
-         {
-            setprg16(0x8000, prgHigh | prgLow <<1 &0x10 | prgLow &0x0F);
-            setprg16(0xC000, prgHigh | prgLow <<1 &0x10 |         0x0F);
-         }
-         else
-            setprg32(0x8000, prgHigh >>1 | prgLow);
-         break;
-   }
-   setprg8r(0x10, 0x6000, 0);
+static void Sync(void) {
+	uint8 prgLow = (reg[0] & 0x0F) | ((reg[0] >> 1) & 0x10);
+	uint8 prgHigh = reg[1] << 5;
 
-   setchr8(0);
-   PEC586Hack = !!(reg[0] &0x80);
+	uint8 mode = ((reg[0] >> 5) & 0x02) | ((reg[0] >> 4) & 0x01);
+	uint8 mirr = ((reg[0] & 0x10) && !(reg[3] & 0x80)) ? MI_H : MI_V;
 
-   setmirror(reg[0] &0x10 && ~reg[3] &0x80? MI_H: MI_V);
+    switch (mode) {
+	case 0: /* UNROM-512 */
+		setprg16(0x8000, prgHigh | prgLow);
+		setprg16(0xC000, prgHigh | 0x1F);
+		break;
+	case 1: /* Open Bus on Yancheng cy2000-3 PCB, expansion cartridge on the Dongda PEC-9588 */
+		break;
+	case 2: /* UNROM-448+64. Very strange mode, used for the LOGO program on the Dongda PEC-9588 */
+		setprg16(0x8000, prgHigh | prgLow);
+		setprg16(0xC000, prgHigh | ((prgLow >= 0x1C) ? 0x1C : 0x1E));
+		break;
+	case 3: /* UNROM-128 or BNROM */
+		if (prgLow & 0x10) {
+			setprg16(0x8000, prgHigh | ((prgLow << 1) & 0x10) | (prgLow & 0x0F));
+			setprg16(0xC000, prgHigh | ((prgLow << 1) & 0x10) | 0x0F);
+		} else {
+			setprg32(0x8000, (prgHigh >> 1) | prgLow);
+		}
+		break;
+	}
 
-   eeprom_93C66_write(reg[2] &0x10, reg[2] &0x04, reg[2] &0x01);
+	setprg8r(0x10, 0x6000, 0);
+
+	setchr8(0);
+	PEC586Hack = (reg[0] & 0x80) ? TRUE : FALSE;
+
+	setmirror(mirr);
 }
 
-static uint8 readReg(uint32 A)
-{
-   return eeprom_93C66_read()? 0x00: 0x04;
+static DECLFR(readReg) {
+	return eeprom_93Cx6_read() ? 0x00 : 0x04;
 }
 
-static void writeReg(uint32 A, uint8 V)
-{
-   reg[A >>8 &7] = V;
-   M164Sync();
+static DECLFW(writeReg) {
+	switch (A & 0xFF00) {
+	case 0x5000:
+		reg[0] = V;
+		Sync();
+		break;
+	case 0x5100:
+		reg[1] = V;
+		Sync();
+		break;
+	case 0x5200:
+		reg[2] = V;
+		eeprom_93Cx6_write((reg[2] & 0x10), (reg[2] & 0x04), (reg[2] & 0x01));
+		break;
+	case 0x5300:
+		reg[3] = V;
+		Sync();
+		break;
+	}
 }
 
-static void M164Power(void)
-{
-   memset(reg, 0, sizeof(reg));
-   eeprom_93C66_init();
-   M164Sync();
-   SetReadHandler (0x5400, 0x57FF, readReg);
-   SetWriteHandler(0x5000, 0x57FF, writeReg);
-   SetReadHandler (0x6000, 0xFFFF, CartBR);
-   SetWriteHandler(0x6000, 0x7FFF, CartBW);
+static void M164Power(void) {
+	memset(reg, 0, sizeof(reg));
+	Sync();
+	SetReadHandler(0x5400, 0x57FF, readReg);
+	SetWriteHandler(0x5000, 0x57FF, writeReg);
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void M164Reset(void)
-{
-   memset(reg, 0, sizeof(reg));
-   M164Sync();
+static void M164Reset(void) {
+	memset(reg, 0, sizeof(reg));
+	Sync();
 }
 
-static void M164Close(void)
-{
-   if (WRAM)
-      FCEU_gfree(WRAM);
-   WRAM = NULL;
+static void M164Close(void) {
 }
 
-static void M164StateRestore(int version)
-{
-   M164Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-void Mapper164_Init (CartInfo *info)
-{
-   info->Power   = M164Power;
-   info->Reset   = M164Reset;
-   info->Close   = M164Close;
+void Mapper164_Init(CartInfo *info) {
+	info->Power = M164Power;
+	info->Reset = M164Reset;
+	info->Close = M164Close;
 
-   GameStateRestore = M164StateRestore;
-   AddExState(StateRegs, ~0, 0, 0);
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 
-   WRAMSIZE = info->iNES2? (info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF)): 8192;
-   WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
-   SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-   AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-   FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	WRAMSIZE = 8192;
+	if (info->iNES2) {
+		WRAMSIZE = info->iNES2 ? (info->PRGRamSize + (info->PRGRamSaveSize & ~0x7FF)) : 8192;
+	}
+	if (WRAMSIZE) {
+		WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	}
 
-   eeprom_93C66_storage = eeprom_data;
-   info->battery = 1;
-   info->SaveGame[0] = eeprom_data;
-   info->SaveGameLen[0] = 512;
+	eeprom_93Cx6_init(eeprom_data, 512, 8);
+	info->battery = 1;
+	info->SaveGame[0] = eeprom_data;
+	info->SaveGameLen[0] = 512;
 }

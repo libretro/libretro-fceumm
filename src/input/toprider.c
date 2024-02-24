@@ -34,7 +34,9 @@ static uint8 Read(int w, uint8 ret) {
 	return(ret);
 }
 
-static void Write(uint8 V) { bs = bss; }
+static void Write(uint8 V) {
+	bs = bss;
+}
 
 static void Update(void *data, int arg) {
 	bss = *(uint8*)data;
@@ -44,4 +46,7 @@ static void Update(void *data, int arg) {
 
 static INPUTCFC TopRider = { Read, Write, 0, Update, 0, 0 };
 
-INPUTCFC *FCEU_InitTopRider(void) { return(&TopRider); }
+INPUTCFC *FCEU_InitTopRider(void) {
+	return(&TopRider);
+}
+

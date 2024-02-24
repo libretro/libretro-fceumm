@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022 NewRisingSun
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,318 +19,266 @@
  */
 
 #include "mapinc.h"
+#include "mmc1.h"
+#include "mmc3.h"
+#include "vrc2and4.h"
 
-static uint8 reg[4], dip;
-static uint8 MMC1_reg[4], MMC1_shift, MMC1_count, MMC1_filter;
-static uint8 MMC3_reg[8], MMC3_index, MMC3_mirroring, MMC3_wram, MMC3_reload, MMC3_count, MMC3_irq;
-static uint8 VRC4_prg[2];
-static uint8 VRC4_mirroring;
-static uint8 VRC4_misc;
-static uint16 VRC4_chr[8];
-static uint8 VRCIRQ_latch;
-static uint8 VRCIRQ_mode;
-static uint8 VRCIRQ_count;
-static signed short int VRCIRQ_cycles;
-static uint8 *CHRRAM =NULL;
-static uint8 *PRGCHR =NULL;
+static uint8 reg[4], dipsw;
+
+static uint8 *CHRRAM = NULL;
+static uint8 *PRGCHR = NULL;
 
 static SFORMAT stateRegs[] = {
-	{ reg,             4, "REGS" },
-	{ &dip,            1, "DIPS" },
-	{ MMC1_reg,        4, "MMC1" },
-	{ &MMC1_shift,     1, "M1SH" },
-	{ &MMC1_count,     1, "M1CN" },
-	{ &MMC1_filter,    1, "M1FI" },
-	{ MMC3_reg,        1, "MMC3" },
-	{ &MMC3_index,     1, "M3IX" },
-	{ &MMC3_mirroring, 1, "M3MI" },
-	{ &MMC3_wram,      1, "M3WR" },
-	{ &MMC3_reload,    1, "M3RL" },
-	{ &MMC3_count,     1, "M3CN" },
-	{ &MMC3_irq,       1, "M3IQ" },
-	{ VRC4_prg,        2, "V4PR" },
-	{ &VRC4_mirroring, 1, "V4MI" },
-	{ &VRC4_misc,      1, "V4MS" },
-	{ VRC4_chr,       16, "V4CH" },
-	{ &VRCIRQ_latch,   1, "VILA" },
-	{ &VRCIRQ_mode,    1, "VIMO" },
-	{ &VRCIRQ_count,   1, "VICO" },
-	{ &VRCIRQ_cycles,  2, "VICY" },
-	{ 0 }
+	{ reg, 4, "REGS" },
+	{ &dipsw, 1, "DIPS" },
+	{ 0 },
 };
 
+static uint32 GetPRGChip(void) {
+	return (((reg[2] & 0x01) && CHRRAM) ? 0x10 : 0x00);
+}
 
-static void sync () {
-	int chrAND;
-	int chrOR;
-	int prgAND =reg[2] &0x04? 0x0F: 0x1F;
-	int prgOR  =reg[1] >>1;
-	int chip   =reg[2] &0x01 && CHRRAM? 0x10: 0x00;
-	
-	if (reg[2] &0x10) { /* NROM mode */
-		if (reg[2] &0x08) { /* NROM-64 */
-			setprg8r(chip, 0x8000, prgOR);
-			setprg8r(chip, 0xA000, prgOR);
-			setprg8r(chip, 0xC000, prgOR);
-			setprg8r(chip, 0xE000, prgOR);
-		} else
-		if (reg[2] &0x04) { /* NROM-128 */
-			setprg16r(chip, 0x8000, prgOR >>1);
-			setprg16r(chip, 0xC000, prgOR >>1);
-		} else      /* NROM-256 */
-			setprg32r(chip, 0x8000, prgOR >>2);
-	} else
-	if (~reg[0] &0x02) { /* MMC3 mode */
-		setprg8r(chip, 0x8000 ^(MMC3_index <<8 &0x4000), MMC3_reg[6] &prgAND | prgOR &~prgAND);
-		setprg8r(chip, 0xA000,                           MMC3_reg[7] &prgAND | prgOR &~prgAND);
-		setprg8r(chip, 0xC000 ^(MMC3_index <<8 &0x4000),        0xFE &prgAND | prgOR &~prgAND);
-		setprg8r(chip, 0xE000,                                  0xFF &prgAND | prgOR &~prgAND);
-	} else
-	if (reg[0] &0x01) { /* VRC4 mode */
-		setprg8r(chip, 0x8000 ^(VRC4_misc <<13 &0x4000), VRC4_prg[0] &prgAND | prgOR &~prgAND);
-		setprg8r(chip, 0xA000,                           VRC4_prg[1] &prgAND | prgOR &~prgAND);
-		setprg8r(chip, 0xC000 ^(VRC4_misc <<13 &0x4000),        0xFE &prgAND | prgOR &~prgAND);
-		setprg8r(chip, 0xE000,                                  0xFF &prgAND | prgOR &~prgAND);
-	} else { /* MMC1 mode */
-		prgAND >>=1;
-		prgOR  >>=1;
-		if (MMC1_reg[0] &0x8) { /* 16 KiB mode */
-			if (MMC1_reg[0] &0x04) { /* OR logic */
-				setprg16r(chip, 0x8000, MMC1_reg[3] &prgAND | prgOR &~prgAND);
-				setprg16r(chip, 0xC000,        0xFF &prgAND | prgOR &~prgAND);
-			} else {                 /* AND logic */
-				setprg16r(chip, 0x8000,        0x00 &prgAND | prgOR &~prgAND);
-				setprg16r(chip, 0xC000, MMC1_reg[3] &prgAND | prgOR &~prgAND);
-			}
-		} else
-			setprg32(0x8000, (MMC1_reg[3] &prgAND | prgOR &~prgAND) >>1);
+static uint32 GetPRGMask(void) {
+	return ((reg[2] & 0x04) ? 0x0F : 0x1F);
+}
+
+static uint32 GetPRGBase(void) {
+	return (reg[1] >> 1);
+}
+
+static uint32 GetCHRMask(void) {
+	if ((reg[2] & 0x10) && !(reg[2] & 0x20)) {
+		return 0x1F;
 	}
-	
-	chrAND =reg[2] &0x10 && ~reg[2] &0x20? 0x1F: reg[2] &0x20? 0x7F: 0xFF;
-	chrOR  =reg[0] <<1;
-	if (reg[2] &0x01)  /* CHR RAM mode */
+	return ((reg[2] & 0x20) ? 0x7F : 0xFF);
+}
+
+static uint32 GetCHRBase(void) {
+	return (reg[0] << 1);
+}
+
+static void M351MMC1PW(uint16 A, uint16 V) {
+	uint8 mask = GetPRGMask() >> 1;
+	uint8 bank = GetPRGBase() >> 1;
+
+	setprg16r(GetPRGChip(), A, (bank & ~mask) | (V & mask));
+}
+
+static void M351MMC1CW(uint16 A, uint16 V) {
+	uint16 mask = GetCHRMask() >> 2;
+	uint16 bank = GetCHRBase() >> 2;
+
+	setchr4(A, (bank & ~mask) | (V & mask));
+}
+
+static void M351MMC3PW(uint16 A, uint16 V) {
+	uint8 mask = GetPRGMask();
+	uint8 bank = GetPRGBase();
+
+	setprg8r(GetPRGChip(), A, (bank & ~mask) | (V & mask));
+}
+
+static void M351MMC3CW(uint16 A, uint16 V) {
+	uint16 mask = GetCHRMask();
+	uint16 bank = GetCHRBase();
+
+	setchr1(A, (bank & ~mask) | (V & mask));
+}
+
+static void M351VRC24PW(uint16 A, uint16 V) {
+	uint8 mask = GetPRGMask();
+	uint8 bank = GetPRGBase();
+
+	setprg8r(GetPRGChip(), A, (bank & ~mask) | (V & mask));
+}
+
+static void M351VRC24CW(uint16 A, uint16 V) {
+	uint16 mask = GetCHRMask();
+	uint16 bank = GetCHRBase();
+
+	setchr1(A, (bank & ~mask) | (V & mask));
+}
+
+static void SyncPRG(void) {
+	if (reg[2] & 0x10) { /* NROM mode */
+		uint32 bank = GetPRGBase();
+		uint32 chip = GetPRGChip();
+
+		if (reg[2] & 0x08) { /* NROM-64 */
+			setprg8r(chip, 0x8000, bank);
+			setprg8r(chip, 0xA000, bank);
+			setprg8r(chip, 0xC000, bank);
+			setprg8r(chip, 0xE000, bank);
+		} else {
+			if (reg[2] & 0x04) { /* NROM-128 */
+				setprg16r(chip, 0x8000, bank >> 1);
+				setprg16r(chip, 0xC000, bank >> 1);
+			} else { /* NROM-256 */
+				setprg32r(chip, 0x8000, bank >> 2);
+			}
+		}
+	} else {
+		switch (reg[0] & 0x03) {
+		default:
+		case 1: MMC3_FixPRG(); break;
+		case 2: MMC1_FixPRG(); break;
+		case 3: VRC24_FixPRG(); break;
+		}
+	}
+}
+
+static void SyncCHR(void) {
+	if (reg[2] & 0x01) { /* CHR RAM mode */
 		setchr8r(0x10, 0);
-	else
-	if (reg[2] &0x40)  /* CNROM mode */
-		setchr8(chrOR >>3);
-	else
-	if (~reg[0] &0x02) { /* MMC3 mode */
-		setchr1(0x0000 ^(MMC3_index <<5 &0x1000),(MMC3_reg[0] &0xFE)&chrAND | chrOR &~chrAND);
-		setchr1(0x0400 ^(MMC3_index <<5 &0x1000),(MMC3_reg[0] |0x01)&chrAND | chrOR &~chrAND);
-		setchr1(0x0800 ^(MMC3_index <<5 &0x1000),(MMC3_reg[1] &0xFE)&chrAND | chrOR &~chrAND);
-		setchr1(0x0C00 ^(MMC3_index <<5 &0x1000),(MMC3_reg[1] |0x01)&chrAND | chrOR &~chrAND);
-		setchr1(0x1000 ^(MMC3_index <<5 &0x1000), MMC3_reg[2]       &chrAND | chrOR &~chrAND);
-		setchr1(0x1400 ^(MMC3_index <<5 &0x1000), MMC3_reg[3]       &chrAND | chrOR &~chrAND);
-		setchr1(0x1800 ^(MMC3_index <<5 &0x1000), MMC3_reg[4]       &chrAND | chrOR &~chrAND);
-		setchr1(0x1C00 ^(MMC3_index <<5 &0x1000), MMC3_reg[5]       &chrAND | chrOR &~chrAND);
-	} else
-	if (reg[0] &0x01) { /* VRC4 mode */
-		setchr1(0x0000, VRC4_chr[0] &chrAND | chrOR &~chrAND);
-		setchr1(0x0400, VRC4_chr[1] &chrAND | chrOR &~chrAND);
-		setchr1(0x0800, VRC4_chr[2] &chrAND | chrOR &~chrAND);
-		setchr1(0x0C00, VRC4_chr[3] &chrAND | chrOR &~chrAND);
-		setchr1(0x1000, VRC4_chr[4] &chrAND | chrOR &~chrAND);
-		setchr1(0x1400, VRC4_chr[5] &chrAND | chrOR &~chrAND);
-		setchr1(0x1800, VRC4_chr[6] &chrAND | chrOR &~chrAND);
-		setchr1(0x1C00, VRC4_chr[7] &chrAND | chrOR &~chrAND);
-	} else { /* MMC1 mode */
-		chrAND >>=2;
-		chrOR  >>=2;
-		if (MMC1_reg[0] &0x10) { /* 4 KiB mode */
-			setchr4(0x0000, MMC1_reg[1] &chrAND | chrOR &~chrAND);
-			setchr4(0x1000, MMC1_reg[2] &chrAND | chrOR &~chrAND);
-		} else                   /* 8 KiB mode */
-			setchr8((MMC1_reg[1] &chrAND |chrOR &~chrAND) >>1);		
-	}
-	
-	if (~reg[0] &0x02)  /* MMC3 mode */
-		setmirror(MMC3_mirroring &1 ^1);
-	else
-	if ( reg[0] &0x01) /* VRC4 mode */
-		setmirror(VRC4_mirroring &3 ^(VRC4_mirroring &2? 0: 1));
-	else               /* MMC1 mode */
-		setmirror(MMC1_reg[0] &3 ^3);
-}
-
-static void writeMMC3(uint32 A, uint8 V) {
-	switch(A &0xE001) {
-	case 0x8000: MMC3_index =V;              sync();    break;
-	case 0x8001: MMC3_reg[MMC3_index &7] =V; sync();    break;
-	case 0xA000: MMC3_mirroring =V;          sync();    break;
-	case 0xA001: MMC3_wram =V;               sync();    break;
-	case 0xC000: MMC3_reload =V;                        break;
-	case 0xC001: MMC3_count =0;                         break;
-	case 0xE000: MMC3_irq =0; X6502_IRQEnd(FCEU_IQEXT); break;
-	case 0xE001: MMC3_irq =1;                           break;
-	}
-}
-
-static void writeMMC1(uint32 A, uint8 V) {
-	if (V &0x80) {
-		MMC1_shift =MMC1_count =0;
-		MMC1_reg[0] |=0x0C;
-		sync();
-	} else
-	if (!MMC1_filter) {
-		MMC1_shift |=(V &1) <<MMC1_count++;
-		if (MMC1_count ==5) {
-			MMC1_reg[A >>13 &3] =MMC1_shift;
-			MMC1_count =0;
-			MMC1_shift =0;
-			sync();
+	} else if (reg[2] & 0x40) { /* CNROM mode */
+		setchr8(GetCHRBase() >> 3);
+	} else {
+		switch (reg[0] & 0x03) {
+		default:
+		case 1: MMC3_FixCHR(); break;
+		case 2: MMC1_FixCHR(); break;
+		case 3: VRC24_FixCHR(); break;
 		}
 	}
-	MMC1_filter =2;
 }
 
-static void writeVRC4(uint32 A, uint8 V) {
-	uint8 index;
-	A =A &0xF000 | (A &0x800? ((A &8? 1: 0) | (A &4? 2: 0)): ((A &4? 1: 0) | (A &8? 2: 0)));
-	switch (A &0xF000) {
-	case 0x8000: case 0xA000:
-		VRC4_prg[A >>13 &1] =V;
-		sync();
-		break;
-	case 0x9000:
-		if (~A &2)
-			VRC4_mirroring =V;
-		else
-		if (~A &1)
-			VRC4_misc =V;
-		sync();
-		break;
-	case 0xF000:
-		switch (A &3) {
-		case 0: VRCIRQ_latch =VRCIRQ_latch &0xF0 | V &0x0F; break;
-		case 1: VRCIRQ_latch =VRCIRQ_latch &0x0F | V <<4;   break;
-		case 2: VRCIRQ_mode =V;
-		        if (VRCIRQ_mode &0x02) {
-				VRCIRQ_count =VRCIRQ_latch;
-				VRCIRQ_cycles =341;
-			}
-			X6502_IRQEnd(FCEU_IQEXT);
-			break;
-		case 3: VRCIRQ_mode =VRCIRQ_mode &~0x02 | VRCIRQ_mode <<1 &0x02;
-			X6502_IRQEnd(FCEU_IQEXT);
-			break;
-		}
-		break;
+static void SyncMIR(void) {
+	switch (reg[0] & 0x03) {
 	default:
-		index =(A -0xB000) >>11 | A >>1 &1;
-		if (A &1)
-			VRC4_chr[index] =VRC4_chr[index] & 0x0F | V <<4;
-		else
-			VRC4_chr[index] =VRC4_chr[index] &~0x0F | V &0x0F;
-		sync();
+	case 1: MMC3_FixMIR(); break;
+	case 2: MMC1_FixMIR(); break;
+	case 3: VRC24_FixMIR(); break;
+	}
+}
+
+static void Sync(void) {
+	SyncPRG();
+	SyncCHR();
+	SyncMIR();
+}
+
+static void M351CPUHook(int a) {
+	if ((reg[0] & 0x03) == 0x03) {
+		VRC24_IRQCPUHook(a);
+	}
+}
+
+static void M351HBHook(void) {
+	if (!(reg[0] & 0x02)) { /* MMC3 mode */
+		MMC3_IRQHBHook();
+	}
+}
+
+static DECLFR(M351ReadDIP) {
+	return dipsw;
+}
+
+static DECLFW(M351WriteMirr) {
+	/* FDS mirroring */
+	mmc3.mirr = (V >> 3) & 0x01;
+	SyncMIR();
+}
+
+static DECLFW(M351WriteReg) {
+	reg[A & 0x03] = V;
+	Sync();
+}
+
+static DECLFW(M351Write) {
+	switch (reg[0] & 0x03) {
+	default:
+	case 1:
+		MMC3_Write(A, V);
+		Sync();
+		break;
+	case 2:
+		MMC1_Write(A, V);
+		break;
+	case 3:
+		if (A & 0x800) {
+			A = (A & 0xFFF3) | ((A << 1) & 0x08) | ((A >> 1) & 0x04);
+		}
+		VRC24_Write(A, V);
 		break;
 	}
 }
 
-static void cpuCycle(int a) {
-	if ((reg[0] &3) ==3) while (a--) { /* VRC4 mode */
-		if (VRCIRQ_mode &0x02 && (VRCIRQ_mode &0x04 || (VRCIRQ_cycles -=3) <=0)) {
-			if (~VRCIRQ_mode &0x04) VRCIRQ_cycles +=341;
-			if (!++VRCIRQ_count) {
-				VRCIRQ_count =VRCIRQ_latch;
-				X6502_IRQBegin(FCEU_IQEXT);
-			}
-		}
-	}
-	if (MMC1_filter) MMC1_filter--;
-}
-	
-static void horizontalBlanking(void) {
-	if (~reg[0] &2) { /* MMC3 mode */
-		MMC3_count =!MMC3_count? MMC3_reload: --MMC3_count;
-		if (!MMC3_count && MMC3_irq) X6502_IRQBegin(FCEU_IQEXT);
-	}
-}
+static void M351Power(void) {
+	reg[0] = reg[1] = reg[2] = reg[3] = 0;
+	dipsw = 0;
 
-static void applyMode() {
-	switch (reg[0] &3) {
-	case 0:
-	case 1: SetWriteHandler(0x8000, 0xFFFF, writeMMC3); break;
-	case 2: SetWriteHandler(0x8000, 0xFFFF, writeMMC1); break;	
-	case 3: SetWriteHandler(0x8000, 0xFFFF, writeVRC4); break;
-	}
-}
+	VRC24_Reset();
+	MMC1_Reset();
+	MMC3_Reset();
 
-static void Mapper351_restore (int version) {
-	applyMode();
-	sync();
-}
-
-static uint8 readDIP(uint32 A) { return dip; }
-
-static void writeReg(uint32 A, uint8 V) {
-	uint8 previousMode =reg[0] &3;
-	reg[A &3] =V;
-	if ((reg[0] &3) !=previousMode) applyMode();
-	sync();
-}
-
-static void writeFDSMirroring(uint32 A, uint8 V) {
-	MMC3_mirroring =V >>3 &1;
-	sync();
-}
-
-static void Mapper351_power(void) {
-	int i;
-	for (i =0; i <4; i++) reg[i] =0;
-	for (i =0; i <4; i++) MMC1_reg[i] =0;
-	for (i =0; i <8; i++) MMC3_reg[i] =0;
-	for (i =0; i <2; i++) VRC4_prg[i] =0;
-	for (i =0; i <8; i++) VRC4_chr[i] =0;
-	MMC1_shift =MMC1_count =MMC1_filter =0;
-	MMC1_reg[0] =0x0C;
-	MMC3_index =MMC3_mirroring =MMC3_wram =MMC3_reload =MMC3_count =MMC3_irq =0;	
-	VRC4_mirroring =VRC4_misc =VRCIRQ_latch =VRCIRQ_mode =VRCIRQ_count =VRCIRQ_cycles =0;
-	dip =0;
-	
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetReadHandler(0x5000, 0x5FFF, readDIP);
-	SetWriteHandler(0x5000, 0x5FFF, writeReg);
-	SetWriteHandler(0x4025, 0x4025, writeFDSMirroring);
-	applyMode();
-	sync();
+	SetReadHandler(0x5000, 0x5FFF, M351ReadDIP);
+	SetWriteHandler(0x4025, 0x4025, M351WriteMirr);
+	SetWriteHandler(0x5000, 0x5FFF, M351WriteReg);
+	SetWriteHandler(0x8000, 0xFFFF, M351Write);
 }
 
-static void Mapper351_reset (void) {
-	int i;
-	for (i =0; i <4; i++) reg[i] =0;
-	dip++;
-	applyMode();
-	sync();
+static void M531Reset(void) {
+	reg[0] = reg[1] = reg[2] = reg[3] = 0;
+	dipsw++;
+
+	VRC24_Reset();
+	MMC1_Reset();
+	MMC3_Reset();
+
+	FCEU_printf(" Mapper Reset! dpsw:%d\n", dipsw);
 }
 
-static void Mapper351_close(void) {
-	if (CHRRAM) FCEU_gfree(CHRRAM);
-	if (PRGCHR) FCEU_gfree(PRGCHR);
-	CHRRAM =NULL;
-	PRGCHR =NULL;
+static void M351Close(void) {
+	if (CHRRAM) {
+		FCEU_gfree(CHRRAM);
+	}
+	if (PRGCHR) {
+		FCEU_gfree(PRGCHR);
+	}
+	CHRRAM = NULL;
+	PRGCHR = NULL;
 }
 
-void Mapper351_Init (CartInfo *info) {
-	int CHRRAMSIZE =info->CHRRamSize + info->CHRRamSaveSize;
-	
-	info->Reset = Mapper351_reset;
-	info->Power = Mapper351_power;
-	info->Close = Mapper351_close;
-	MapIRQHook = cpuCycle;
-	GameHBIRQHook = horizontalBlanking;
-	GameStateRestore = Mapper351_restore;
+static void StateRestore(int version) {
+	Sync();
+}
+
+void Mapper351_Init(CartInfo *info) {
+	int CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
+
+	VRC24_Init(info, VRC2, 0x04, 0x08, FALSE, TRUE);
+	VRC24_pwrap = M351VRC24PW;
+	VRC24_cwrap = M351VRC24CW;
+
+	MMC1_Init(info, FALSE, FALSE);
+	MMC1_pwrap = M351MMC1PW;
+	MMC1_cwrap = M351MMC1CW;
+
+	MMC3_Init(info, FALSE, FALSE);
+	MMC3_pwrap = M351MMC3PW;
+	MMC3_cwrap = M351MMC3CW;
+
+	info->Reset = M531Reset;
+	info->Power = M351Power;
+	info->Close = M351Close;
+
+	MapIRQHook = M351CPUHook;
+	GameHBIRQHook = M351HBHook;
+
+	GameStateRestore = StateRestore;
 	AddExState(stateRegs, ~0, 0, 0);
-	
-	if (CHRRAMSIZE) {
-		CHRRAM =(uint8 *)FCEU_gmalloc(CHRRAMSIZE);
+
+	if (!UNIFchrrama && CHRRAMSIZE) {
+		CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 		SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 		AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
-		
-		/* This crazy thing can map CHR-ROM into CPU address space. Allocate a combined PRG+CHR address space and treat it a second "chip". */
-		PRGCHR =(uint8 *)FCEU_gmalloc(PRGsize[0] +CHRsize[0]);
+
+		/* This crazy thing can map CHR-ROM into CPU address space. Allocate a combined PRG+CHR address space and treat
+		 * it a second "chip". */
+		PRGCHR = (uint8 *)FCEU_gmalloc(PRGsize[0] + CHRsize[0]);
 		memcpy(PRGCHR, PRGptr[0], PRGsize[0]);
-		memcpy(PRGCHR +PRGsize[0], CHRptr[0], CHRsize[0]);
-		SetupCartPRGMapping(0x10, PRGCHR, PRGsize[0] +CHRsize[0], 0);
+		memcpy(PRGCHR + PRGsize[0], CHRptr[0], CHRsize[0]);
+		SetupCartPRGMapping(0x10, PRGCHR, PRGsize[0] + CHRsize[0], 0);
 	}
 }
-

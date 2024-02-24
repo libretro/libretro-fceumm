@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,74 +18,59 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- * (VRC4 mapper)
+ * iNES Mapper 222 - (CTC-31?)
+ * (VRC2 mapper)
  *
  */
 
 #include "mapinc.h"
+#include "vrc2and4.h"
 
-static uint8 IRQCount;	/*, IRQPre; */
+static uint8 IRQCount;
 static uint8 IRQa;
-static uint8 prg_reg[2];
-static uint8 chr_reg[8];
-static uint8 mirr;
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
 	{ &IRQCount, 1, "IRQC" },
 	{ &IRQa, 1, "IRQA" },
-	{ prg_reg, 2, "PRG" },
-	{ chr_reg, 8, "CHR" },
-	{ &mirr, 1, "MIRR" },
 	{ 0 }
 };
 
 static void M222IRQ(void) {
 	if (IRQa) {
 		IRQCount++;
-		if (IRQCount >= 238)
+		if (IRQCount >= 238) {
 			X6502_IRQBegin(FCEU_IQEXT);
+		}
 	}
 }
 
-static void Sync(void) {
-	int i;
-	setprg8(0x8000, prg_reg[0]);
-	setprg8(0xA000, prg_reg[1]);
-	for (i = 0; i < 8; i++)
-		setchr1(i << 10, chr_reg[i]);
-	setmirror(mirr ^ 1);
+static DECLFW(M222WriteCHR) {
+	if (!(A & 0x01)) {
+		VRC24_Write(A, V);
+		VRC24_Write(A | 0x01, V >> 4);
+	}
 }
 
-static void M222Write(uint32 A, uint8 V) {
-	switch (A & 0xF003) {
-	case 0x8000: prg_reg[0] = V; break;
-	case 0x9000: mirr = V & 1; break;
-	case 0xA000: prg_reg[1] = V; break;
-	case 0xB000: chr_reg[0] = V; break;
-	case 0xB002: chr_reg[1] = V; break;
-	case 0xC000: chr_reg[2] = V; break;
-	case 0xC002: chr_reg[3] = V; break;
-	case 0xD000: chr_reg[4] = V; break;
-	case 0xD002: chr_reg[5] = V; break;
-	case 0xE000: chr_reg[6] = V; break;
-	case 0xE002: chr_reg[7] = V; break;
-	case 0xF000: IRQa = IRQCount = V; if (scanline < 240) IRQCount -= 8; else IRQCount += 4; X6502_IRQEnd(FCEU_IQEXT); break;
-	}
-	Sync();
+static DECLFW(M222WriteIRQ) {
+	/* TODO: Update this */
+	IRQa = IRQCount = V;
+	if (scanline < 240)
+		IRQCount -= 8;
+	else
+		IRQCount += 4;
+	X6502_IRQEnd(FCEU_IQEXT);
 }
 
 static void M222Power(void) {
-	setprg16(0xC000, ~0);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M222Write);
+	VRC24_Power();
+	SetWriteHandler(0xB000, 0xEFFF, M222WriteCHR);
+	SetWriteHandler(0xF000, 0xFFFF, M222WriteIRQ);
 }
 
-static void StateRestore(int version) { Sync(); }
-
 void Mapper222_Init(CartInfo *info) {
+	VRC24_Init(info, VRC2, 0x01, 0x02, 0, 1);
 	info->Power = M222Power;
+	MapIRQHook = NULL;
 	GameHBIRQHook = M222IRQ;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

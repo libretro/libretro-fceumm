@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,64 +21,75 @@
  * VRC-2/VRC-4 Konami
  * VRC-4 Pirate
  *
+ * VRC2
+ * Nickname	PCB		A0	A1	Registers					iNES mapper	submapper
+ * VRC2a	351618	A1	A0	$x000, $x002, $x001, $x003	22			0
+ * VRC2b	many†	A0	A1	$x000, $x001, $x002, $x003	23			3
+ * VRC2c	351948	A1	A0	$x000, $x002, $x001, $x003	25			3
+ * VRC4
+ * Nickname	PCB		A0	A1	Registers					iNES mapper	submapper
+ * VRC4a	352398	A1	A2	$x000, $x002, $x004, $x006	21			1
+ * VRC4b	351406	A1	A0	$x000, $x002, $x001, $x003	25			1
+ * VRC4c	352889	A6	A7	$x000, $x040, $x080, $x0C0	21			2
+ * VRC4d	352400	A3	A2	$x000, $x008, $x004, $x00C	25			2
+ * VRC4e	352396	A2	A3	$x000, $x004, $x008, $x00C	23			2
+ * VRC4f	-		A0	A1	$x000, $x001, $x002, $x003	23			1
+ *
  */
 
 #include "mapinc.h"
+#include "vrc2and4.h"
+#include "vrcirq.h"
 
-static uint8 isPirate, is22;
-static uint16 IRQCount;
-static uint8 IRQLatch, IRQa;
-static uint8 prgreg[4], chrreg[8];
-static uint16 chrhi[8];
-static uint8 regcmd, irqcmd, mirr, big_bank;
-static uint16 acount = 0;
+uint8 vrc2and4_VRC4;
+uint32 vrc2and4_A0;
+uint32 vrc2and4_A1;
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+void (*VRC24_FixPRG)(void);
+void (*VRC24_FixCHR)(void);
+void (*VRC24_FixMIR)(void);
 
-static uint8 prgMask = 0x1F;
+void (*VRC24_pwrap)(uint16 A, uint16 V);
+void (*VRC24_cwrap)(uint16 A, uint16 V);
+void (*VRC24_miscWrite)(uint16 A, uint8 V);
 
-static SFORMAT StateRegs[] =
-{
-	{ prgreg, 4, "PREG" },
-	{ chrreg, 8, "CREG" },
-	{ &chrhi[0], 2 | FCEUSTATE_RLSB, "CRH0" },
-	{ &chrhi[1], 2 | FCEUSTATE_RLSB, "CRH1" },
-	{ &chrhi[2], 2 | FCEUSTATE_RLSB, "CRH2" },
-	{ &chrhi[3], 2 | FCEUSTATE_RLSB, "CRH3" },
-	{ &chrhi[4], 2 | FCEUSTATE_RLSB, "CRH4" },
-	{ &chrhi[5], 2 | FCEUSTATE_RLSB, "CRH5" },
-	{ &chrhi[6], 2 | FCEUSTATE_RLSB, "CRH6" },
-	{ &chrhi[7], 2 | FCEUSTATE_RLSB, "CRH7" },
-	{ &regcmd, 1, "CMDR" },
-	{ &irqcmd, 1, "CMDI" },
-	{ &mirr, 1, "MIRR" },
-	{ &prgMask, 1, "MAK" },
-	{ &big_bank, 1, "BIGB" },
-	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
-	{ &IRQLatch, 1, "IRQL" },
-	{ &IRQa, 1, "IRQA" },
+VRC24 vrc24;
+
+static SFORMAT StateRegs[] = {
+	{ vrc24.prg, 2, "PREG" },
+	{ vrc24.chr, 16, "CREG" },
+	{ &vrc24.cmd, 1, "CMDR" },
+	{ &vrc24.mirr, 1, "MIRR" },
+	{ &vrc24.latch, 1, "LATC" },
+
 	{ 0 }
 };
 
-static void Sync(void) {
-	if (regcmd & 2) {
-		setprg8(0xC000, prgreg[0] | big_bank);
-		setprg8(0x8000, (prgreg[2] & prgMask) | big_bank);
+static void GENFIXPRG(void) {
+	if (vrc24.cmd & 2) {
+		VRC24_pwrap(0x8000, ~1);
+		VRC24_pwrap(0xC000, vrc24.prg[0]);
 	} else {
-		setprg8(0x8000, prgreg[0] | big_bank);
-		setprg8(0xC000, (prgreg[2] & prgMask) | big_bank);
+		VRC24_pwrap(0x8000, vrc24.prg[0]);
+		VRC24_pwrap(0xC000, ~1);
 	}
-	setprg8(0xA000, prgreg[1] | big_bank);
-	setprg8(0xE000, (prgreg[3] & prgMask) | big_bank);
-	if (UNIFchrrama)
-		setchr8(0);
-	else {
-		uint8 i;
-		for (i = 0; i < 8; i++)
-			setchr1(i << 10, (chrhi[i] | chrreg[i]) >> is22);
-	}
-	switch (mirr & 0x3) {
+	VRC24_pwrap(0xA000, vrc24.prg[1]);
+	VRC24_pwrap(0xE000, ~0);
+}
+
+static void GENFIXCHR(void) {
+	VRC24_cwrap(0x0000, vrc24.chr[0]);
+	VRC24_cwrap(0x0400, vrc24.chr[1]);
+	VRC24_cwrap(0x0800, vrc24.chr[2]);
+	VRC24_cwrap(0x0C00, vrc24.chr[3]);
+	VRC24_cwrap(0x1000, vrc24.chr[4]);
+	VRC24_cwrap(0x1400, vrc24.chr[5]);
+	VRC24_cwrap(0x1800, vrc24.chr[6]);
+	VRC24_cwrap(0x1C00, vrc24.chr[7]);
+}
+
+static void GENFIXMIR(void) {
+	switch (vrc24.mirr & (vrc2and4_VRC4 ? 0x03 : 0x01)) {
 	case 0: setmirror(MI_V); break;
 	case 1: setmirror(MI_H); break;
 	case 2: setmirror(MI_0); break;
@@ -85,295 +97,181 @@ static void Sync(void) {
 	}
 }
 
-static void VRC24Write(uint32 A, uint8 V) {
-	A &= 0xF003;
-	if ((A >= 0xB000) && (A <= 0xE003)) {
-		if (UNIFchrrama)
-			big_bank = (V & 8) << 2;							/* my personally many-in-one feature ;) just for support pirate cart 2-in-1 */
-		else {
-			uint16 i = ((A >> 1) & 1) | ((A - 0xB000) >> 11);
-			uint16 nibble = ((A & 1) << 2);
-			chrreg[i] = (chrreg[i] & (0xF0 >> nibble)) | ((V & 0xF) << nibble);
-			if (nibble)
-				chrhi[i] = (V & 0x10) << 4;						/* another one many in one feature from pirate carts */
+static DECLFR(VRC24WRAMRead) {
+	A = 0x6000 | (A & (WRAMSIZE - 1));
+	return CartBR(A);
+}
+
+static DECLFW(VRC24WRAMWrite) {
+	A = 0x6000 | (A & (WRAMSIZE - 1));
+	CartBW(A, V);
+}
+
+static DECLFR(VRC24LatchRead) {
+	return (cpu.openbus & ~0x01) | (vrc24.latch & 0x01);
+}
+
+static DECLFW(VRC24LatchWrite) {
+	vrc24.latch = V;
+	VRC24_FixPRG();
+	VRC24_FixCHR();
+}
+
+DECLFW(VRC24_Write) {
+	uint8 index;
+
+	switch (A & 0xF000) {
+	case 0x8000:
+	case 0xA000:
+		vrc24.prg[(A >> 13) & 0x01] = V & 0x1F;
+		VRC24_FixPRG();
+		break;
+
+	case 0x9000:
+		index = ((A & vrc2and4_A1) ? 0x02 : 0x00) | ((A & vrc2and4_A0) ? 0x01 : 0x00);
+		switch (index & (vrc2and4_VRC4 ? 0x03 : 0x00)) {
+		case 0:
+		case 1:
+			if (V != 0xFF) {
+				vrc24.mirr = V;
+				VRC24_FixMIR();
+			}
+			break;
+		case 2:
+			vrc24.cmd = V;
+			VRC24_FixPRG();
+			break;
+		case 3:
+			if (VRC24_miscWrite) {
+				VRC24_miscWrite(A, V);
+			}
+			break;
 		}
-		Sync();
-	} else {
-		switch (A & 0xF003) {
-		case 0x8000:
-		case 0x8001:
-		case 0x8002:
-		case 0x8003:
-			if (!isPirate) {
-				prgreg[0] = V & prgMask;
-				Sync();
-			}
-			break;
-		case 0xA000:
-		case 0xA001:
-		case 0xA002:
-		case 0xA003:
-			if (!isPirate)
-			{
-				prgreg[1] = V & prgMask;
-			}
-			else {
-				prgreg[0] = (V & prgMask) << 1;
-				prgreg[1] = ((V & prgMask) << 1) | 1;
-			}
-			Sync();
-			break;
-		case 0x9000:
-		case 0x9001: if (V != 0xFF) mirr = V; Sync(); break;
-		case 0x9002:
-		case 0x9003: regcmd = V; Sync(); break;
-        case 0xF000: X6502_IRQEnd(FCEU_IQEXT); IRQLatch &= 0xF0; IRQLatch |= V & 0xF; break;
-		case 0xF001: X6502_IRQEnd(FCEU_IQEXT); IRQLatch &= 0x0F; IRQLatch |= V << 4; break;
-		case 0xF002: X6502_IRQEnd(FCEU_IQEXT); acount = 0; IRQCount = IRQLatch; IRQa = V & 2; irqcmd = V & 1; break;
-		case 0xF003: X6502_IRQEnd(FCEU_IQEXT); IRQa = irqcmd; break;
-        }
+		break;
+
+	case 0xF000:
+		index = ((A & vrc2and4_A1) ? 0x02 : 0x00) | ((A & vrc2and4_A0) ? 0x01 : 0x00);
+		switch (index) {
+		case 0x00: VRCIRQ_LatchNibble(V, 0); break;
+		case 0x01: VRCIRQ_LatchNibble(V, 1); break;
+		case 0x02: VRCIRQ_Control(V); break;
+		case 0x03: VRCIRQ_Acknowledge(); break;
+		}
+		break;
+
+	default:
+		index = (((A - 0xB000) >> 11) & 0x06) | ((A & vrc2and4_A1) ? 0x01 : 0x00);
+		if (A & vrc2and4_A0) {
+			/* m25 can be 512K, rest are 256K or less */
+			vrc24.chr[index] = (vrc24.chr[index] & 0x000F) | (V << 4);
+		} else {
+			vrc24.chr[index] = (vrc24.chr[index] & 0x0FF0) | (V & 0x0F);
+		}
+		VRC24_cwrap(index << 10, vrc24.chr[index]);
+		break;
 	}
 }
 
-static void M21Write(uint32 A, uint8 V) {
-	A = (A & 0xF000) | ((A >> 1) & 0x3) | ((A >> 6) & 0x3);		/* Ganbare Goemon Gaiden 2 - Tenka no Zaihou (J) [!] is Mapper 21*/
-	VRC24Write(A, V);
+static void GENPWRAP(uint16 A, uint16 V) {
+	setprg8(A, V & 0x1F);
 }
 
-static void M22Write(uint32 A, uint8 V) {
-	A |= ((A >> 2) & 0x3);										/* It's just swapped lines from 21 mapper
-																 */
-	VRC24Write((A & 0xF000) | ((A >> 1) & 1) | ((A << 1) & 2), V);
+static void GENCWRAP(uint16 A, uint16 V) {
+	setchr1(A, V & 0x1FF);
 }
 
-static void M23Write(uint32 A, uint8 V) {
-	A |= ((A >> 2) & 0x3) | ((A >> 4) & 0x3);	/* actually there is many-in-one mapper source, some pirate or
-												 * licensed games use various address bits for registers
-												 */
-	VRC24Write(A, V);
+void VRC24_IRQCPUHook(int a) {
+	VRCIRQ_CPUHook(a);
 }
 
-static void VRC24PowerCommon(void (*WRITEFUNC)(uint32 A, uint8 V)) {
-	Sync();
-	if (WRAMSIZE) {
-		setprg8r(0x10, 0x6000, 0);	/* Only two Goemon games are have battery backed RAM, three more shooters
-									 * (Parodius Da!, Gradius 2 and Crisis Force uses 2k or SRAM at 6000-67FF only
-									 */
-		SetReadHandler(0x6000, 0x7FFF, CartBR);
-		SetWriteHandler(0x6000, 0x7FFF, CartBW);
-		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
-	}
+void VRC24_Reset(void) {
+	vrc24.prg[0] = 0;
+	vrc24.prg[1] = 1;
+
+	vrc24.chr[0] = 0;
+	vrc24.chr[1] = 1;
+	vrc24.chr[2] = 2;
+	vrc24.chr[3] = 3;
+	vrc24.chr[4] = 4;
+	vrc24.chr[5] = 5;
+	vrc24.chr[6] = 6;
+	vrc24.chr[7] = 7;
+
+	vrc24.cmd = vrc24.mirr = 0;
+
+	VRC24_FixPRG();
+	VRC24_FixCHR();
+}
+
+void VRC24_Power(void) {
+	VRC24_Reset();
+
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, WRITEFUNC);
-}
+	SetWriteHandler(0x8000, 0xFFFF, VRC24_Write);
 
-static void M21Power(void) {
-	VRC24PowerCommon(M21Write);
-}
+	if (WRAMSIZE) {
+		setprg8r(0x10, 0x6000, 0);
+		SetReadHandler(0x6000, 0x7FFF, VRC24WRAMRead);
+		SetWriteHandler(0x6000, 0x7FFF, VRC24WRAMWrite);
+		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	} else if (!vrc2and4_VRC4) {
+		/* microwire interface */
+		SetReadHandler(0x6000, 0x6FFF, VRC24LatchRead);
+		SetWriteHandler(0x6000, 0x6FFF, VRC24LatchWrite);
+	}
 
-static void M22Power(void) {
-	VRC24PowerCommon(M22Write);
-}
-
-static void M23Power(void) {
-	big_bank = 0x20;
-	if ((prgreg[2] == 0x30) && (prgreg[3] == 0x31))
-		big_bank = 0x00;
-	VRC24PowerCommon(M23Write);
-}
-
-static void M25Power(void) {
-	big_bank = 0x20;
-	VRC24PowerCommon(M22Write);
-}
-
-void VRC24IRQHook(int a) {
-	#define LCYCS 341
-	if (IRQa) {
-		acount += a * 3;
-		if (acount >= LCYCS) {
-			while (acount >= LCYCS) {
-				acount -= LCYCS;
-				IRQCount++;
-				if (IRQCount & 0x100) {
-					X6502_IRQBegin(FCEU_IQEXT);
-					IRQCount = IRQLatch;
-				}
-			}
-		}
+	if (UNIFchrrama) {
+		setchr8(0);
 	}
 }
 
 static void StateRestore(int version) {
-	Sync();
+	VRC24_FixPRG();
+	VRC24_FixCHR();
+	VRC24_FixMIR();
 }
 
-static void VRC24Close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
+void VRC24_Close(void) {
 }
 
-static void VRC24_Init(CartInfo *info, uint32 hasWRAM) {
-	info->Close = VRC24Close;
-	MapIRQHook = VRC24IRQHook;
-	GameStateRestore = StateRestore;
+void VRC24_Init(CartInfo *info, uint8 vrc4, uint32 A0, uint32 A1, int wram, int irqRepeated) {
+	VRC24_FixPRG = GENFIXPRG;
+	VRC24_FixCHR = GENFIXCHR;
+	VRC24_FixMIR = GENFIXMIR;
 
-	prgMask = 0x1F;
-	prgreg[2] = ~1;
-	prgreg[3] = ~0;
+	VRC24_pwrap = GENPWRAP;
+	VRC24_cwrap = GENCWRAP;
+	VRC24_miscWrite = NULL;
 
-	WRAMSIZE = 0;
+	vrc2and4_A0 = A0;
+	vrc2and4_A1 = A1;
+	vrc2and4_VRC4 = vrc4;
 
-	/* 400K PRG + 128K CHR Contra rom hacks */
-	if (info->PRGRomSize == 400 * 1024 && info->CHRRomSize == 128 * 1024) {
-		prgreg[2] = 0x30;
-		prgreg[3] = 0x31;
-		prgMask = 0x3F;
-	}
+	if (wram) {
+		if (info->iNES2) {
+			WRAMSIZE = info->PRGRamSize + info->PRGRamSaveSize;
+		} else {
+			WRAMSIZE = 8192;
+		}
+		if (WRAMSIZE) {
+			WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+			SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+			AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
-	if (hasWRAM) {
-		WRAMSIZE = 8192;
-		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
-
-		if (info->battery) {
-			info->SaveGame[0] = WRAM;
-			info->SaveGameLen[0] = WRAMSIZE;
+			if (info->battery) {
+				info->SaveGame[0] = WRAM;
+				info->SaveGameLen[0] = WRAMSIZE;
+			}
 		}
 	}
 
-	AddExState(&StateRegs, ~0, 0, 0);
-}
+	AddExState(StateRegs, ~0, 0, NULL);
 
-void Mapper21_Init(CartInfo *info) {
-	isPirate = 0;
-	is22 = 0;
-	info->Power = M21Power;
-	VRC24_Init(info, 1);
-}
+	info->Power = VRC24_Power;
+	info->Close = VRC24_Close;
+	GameStateRestore = StateRestore;
 
-void Mapper22_Init(CartInfo *info) {
-	isPirate = 0;
-	is22 = 1;
-	info->Power = M22Power;
-	VRC24_Init(info, 0);
-}
-
-void Mapper23_Init(CartInfo *info) {
-	isPirate = 0;
-	is22 = 0;
-	info->Power = M23Power;
-	VRC24_Init(info, 1);
-}
-
-void Mapper25_Init(CartInfo *info) {
-	isPirate = 0;
-	is22 = 0;
-	info->Power = M25Power;
-	VRC24_Init(info, 1);
-}
-
-void UNLT230_Init(CartInfo *info) {
-	isPirate = 1;
-	is22 = 0;
-	info->Power = M23Power;
-	VRC24_Init(info, 1);
-}
-
-/* -------------------- UNL-TH2131-1 -------------------- */
-/* https://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_308
- * NES 2.0 Mapper 308 is used for a bootleg version of the Sunsoft game Batman
- * similar to Mapper 23 Submapper 3) with custom IRQ functionality.
- * UNIF board name is UNL-TH2131-1.
- */
-
-static void TH2131Write(uint32 A, uint8 V) {
-	switch (A & 0xF003) {
-	case 0xF000: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; IRQCount = 0; break;
-	case 0xF001: IRQa = 1; break;
-	case 0xF003: IRQLatch = (V & 0xF0) >> 4; break;
-	}
-}
-
-void TH2131IRQHook(int a) {
-	int count;
-
-	if (!IRQa)
-		return;
-
-	for (count = 0; count < a; count++) {
-		IRQCount++;
-		if ((IRQCount & 0x0FFF) == 2048)
-			IRQLatch--;
-		if (!IRQLatch && (IRQCount & 0x0FFF) < 2048)
-			X6502_IRQBegin(FCEU_IQEXT);
-	}
-}
-
-static void TH2131Power(void) {
-	VRC24PowerCommon(VRC24Write);
-	SetWriteHandler(0xF000, 0xFFFF, TH2131Write);
-}
-
-void UNLTH21311_Init(CartInfo *info) {
-	info->Power = TH2131Power;
-	VRC24_Init(info, 1);
-	MapIRQHook = TH2131IRQHook;
-}
-
-/* -------------------- UNL-KS7021A -------------------- */
-/* http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_525
- * NES 2.0 Mapper 525 is used for a bootleg version of versions of Contra and 月風魔伝 (Getsu Fūma Den).
- * Its similar to Mapper 23 Submapper 3) with non-nibblized CHR-ROM bank registers.
- */
-
-static void KS7021AWrite(uint32 A, uint8 V) {
-	switch (A & 0xB000) {
-	case 0xB000: chrreg[A & 0x07] = V; Sync(); break;
-	}
-}
-
-static void KS7021APower(void) {
-	VRC24PowerCommon(VRC24Write);
-	SetWriteHandler(0xB000, 0xBFFF, KS7021AWrite);
-}
-
-void UNLKS7021A_Init(CartInfo *info) {
-	info->Power = KS7021APower;
-	VRC24_Init(info, 1);
-}
-
-/* -------------------- BTL-900218 -------------------- */
-/* http://wiki.nesdev.com/w/index.php/UNIF/900218
- * NES 2.0 Mapper 524 describes the PCB used for the pirate port Lord of King or Axe of Fight.
- * UNIF board name is BTL-900218.
- */
-
-static void BTL900218Write(uint32 A, uint8 V) {
-	switch (A & 0xF00C) {
-	case 0xF008: IRQa = 1; break;
-	case 0xF00C: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; IRQCount = 0; break;
-	}
-}
-
-void BTL900218IRQHook(int a) {
-	if (!IRQa)
-		return;
-
-	IRQCount += a;
-	if (IRQCount & 1024)
-		X6502_IRQBegin(FCEU_IQEXT);
-}
-
-static void BTL900218Power(void) {
-	VRC24PowerCommon(VRC24Write);
-	SetWriteHandler(0xF000, 0xFFFF, BTL900218Write);
-}
-
-void BTL900218_Init(CartInfo *info) {
-	info->Power = BTL900218Power;
-	VRC24_Init(info, 1);
-	MapIRQHook = BTL900218IRQHook;
+	VRCIRQ_Init(irqRepeated);
+	MapIRQHook = VRCIRQ_CPUHook;
+	AddExState(&VRCIRQ_StateRegs, ~0, 0, 0);
 }

@@ -29,15 +29,28 @@
 #include "sound.h"
 #include "filter.h"
 #include "state.h"
+#include "ppu.h"
+
+#define SQ_SHIFT      24
+#define TRINPCM_SHIFT 16
 
 static uint32 wlookup1[32];
 static uint32 wlookup2[203];
 
-int32 Wave[2048 + 512];
+int32 Wave[8192 + 512];
 int32 WaveHi[40000];
-int32 WaveFinal[2048 + 512];
+int32 WaveFinal[8192 + 512];
 
-EXPSOUND GameExpSound = { 0, 0, 0, 0, 0, 0 };
+/* FIXME: Very ugly hack and only relevant in multichip NSF playback */
+/* Indexing is based on sound channel enum */
+EXPSOUND GameExpSound[GAMEEXPSOUND_COUNT] = { 
+	{ 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0 },
+};
 
 static uint8 TriCount = 0;
 static uint8 TriMode = 0;
@@ -50,17 +63,8 @@ static uint8 IRQFrameMode = 0;				/* $4017 / xx000000 */
 static uint8 PSG[0x10];
 static uint8 RawDALatch = 0;				/* $4011 0xxxxxxx */
 
-static uint8 EnabledChannels = 0;					/* Byte written to $4015 */
+uint8 EnabledChannels = 0;					/* Byte written to $4015 */
 
-typedef struct {
-	uint8 Speed;
-	uint8 Mode;	/* Fixed volume(1), and loop(2) */
-	uint8 DecCountTo1;
-	uint8 decvolume;
-	int reloaddec;
-} ENVUNIT;
-
-unsigned DMC_7bit = 0; /* used to skip overclocking */
 static ENVUNIT EnvUnits[3];
 
 static const int RectDuties[4] = { 1, 2, 4, 6 };
@@ -70,6 +74,8 @@ static uint8 sweepon[2];
 static int32 curfreq[2];
 static uint8 SweepCount[2];
 static uint8 sweepReload[2];
+static uint8 sweepShift[2];
+static uint8 sweepPeriod[2];
 
 static uint16 nreg = 0;
 
@@ -82,7 +88,6 @@ uint32 soundtsoffs = 0;
 /* Variables exclusively for low-quality sound. */
 int32 nesincsize = 0;
 uint32 soundtsinc = 0;
-uint32 soundtsi = 0;
 static int32 sqacc[2];
 static uint32 lq_tcout;
 static int32 lq_triacc;
@@ -154,10 +159,11 @@ static void (*DoSQ2)(void) = Dummyfunc;
 static uint32 ChannelBC[5];
 
 static void LoadDMCPeriod(uint8 V) {
-	if (isPAL)
+	if (isPAL) {
 		DMCPeriod = PALDMCTable[V];
-	else
+	} else {
 		DMCPeriod = NTSCDMCTable[V];
+	}
 }
 
 static void PrepDPCM(void) {
@@ -171,138 +177,166 @@ static int CheckFreq(uint32 cf, uint8 sr) {
 	uint32 mod;
 	if (!(sr & 0x8)) {
 		mod = cf >> (sr & 7);
-		if ((mod + cf) & 0x800)
-			return(0);
+		if ((mod + cf) & 0x800) {
+			return 0;
+		}
 	}
-	return(1);
+	return 1;
 }
 
 static void SQReload(int x, uint8 V) {
-	if (EnabledChannels & (1 << x))
+	if (EnabledChannels & (1 << x)) {
 		lengthcount[x] = lengthtable[(V >> 3) & 0x1f];
+	}
 
 	curfreq[x] = (curfreq[x] & 0xff) | ((V & 7) << 8);
 	RectDutyCount[x] = 7;
 	EnvUnits[x].reloaddec = 1;
 }
 
-static void Write_PSG(uint32 A, uint8 V) {
+static DECLFW(Write_PSG) {
 	A &= 0x1F;
+
 	switch (A) {
 	case 0x0:
 		DoSQ1();
 		EnvUnits[0].Mode = (V & 0x30) >> 4;
 		EnvUnits[0].Speed = (V & 0xF);
-		if (swapDuty)
+		if (FSettings.SwapDutyCycles) {
 			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
+		}
 		break;
+
 	case 0x1:
 		DoSQ1();
 		sweepReload[0] = 1;
-		sweepon[0] = (V & 0x80);
+		sweepShift[0] = V & 0x07;
+		sweepPeriod[0] = ((V >> 4) & 0x7) + 1;
+		sweepon[0] = (V & 0x80) && sweepShift[0];
 		break;
+
 	case 0x2:
 		DoSQ1();
 		curfreq[0] &= 0xFF00;
 		curfreq[0] |= V;
 		break;
+
 	case 0x3:
 		DoSQ1();
 		SQReload(0, V);
 		break;
+
 	case 0x4:
 		DoSQ2();
 		EnvUnits[1].Mode = (V & 0x30) >> 4;
 		EnvUnits[1].Speed = (V & 0xF);
-		if (swapDuty)
+		if (FSettings.SwapDutyCycles) {
 			V = (V & 0x3F) | ((V & 0x80) >> 1) | ((V & 0x40) << 1);
+		}
 		break;
+
 	case 0x5:
 		DoSQ2();
 		sweepReload[1] = 1;
-		sweepon[1] = (V & 0x80);
+		sweepShift[1] = V & 0x07;
+		sweepPeriod[1] = ((V >> 4) & 0x7) + 1;
+		sweepon[1] = (V & 0x80) && sweepShift[1];
 		break;
+
 	case 0x6:
 		DoSQ2();
 		curfreq[1] &= 0xFF00;
 		curfreq[1] |= V;
 		break;
+
 	case 0x7:
 		DoSQ2();
 		SQReload(1, V);
 		break;
+
 	case 0xa:
 		DoTriangle();
 		break;
+
 	case 0xb:
 		DoTriangle();
-		if (EnabledChannels & 0x4)
+		if (EnabledChannels & 0x4) {
 			lengthcount[2] = lengthtable[(V >> 3) & 0x1f];
+		}
 		TriMode = 1;	/* Load mode */
 		break;
+
 	case 0xC:
 		DoNoise();
 		EnvUnits[2].Mode = (V & 0x30) >> 4;
 		EnvUnits[2].Speed = (V & 0xF);
 		break;
+
 	case 0xE:
 		DoNoise();
 		break;
+
 	case 0xF:
 		DoNoise();
-		if (EnabledChannels & 0x8)
+		if (EnabledChannels & 0x8) {
 			lengthcount[3] = lengthtable[(V >> 3) & 0x1f];
+		}
 		EnvUnits[2].reloaddec = 1;
 		break;
-	case 0x10:
+	}
+
+	PSG[A] = V;
+}
+
+static DECLFW(Write_DMCRegs) {
+	A &= 0xF;
+
+	switch (A) {
+	case 0x00:
 		DoPCM();
 		LoadDMCPeriod(V & 0xF);
 
 		if (SIRQStat & 0x80) {
-			if (!(V & 0x80)) {
+			if ((V & 0xC0) != 0x80) {
 				X6502_IRQEnd(FCEU_IQDPCM);
 				SIRQStat &= ~0x80;
-			} else X6502_IRQBegin(FCEU_IQDPCM);
-		}
-		break;
-	}
-	PSG[A] = V;
-}
-
-static void Write_DMCRegs(uint32 A, uint8 V) {
-	A &= 0xF;
-
-	switch (A) {
-	case 0x00: DoPCM();
-		LoadDMCPeriod(V & 0xF);
-
-		if (SIRQStat & 0x80) {
-			if (!(V & 0x80)) {
-				X6502_IRQEnd(FCEU_IQDPCM);
-				SIRQStat &= ~0x80;
-			} else X6502_IRQBegin(FCEU_IQDPCM);
+			}
 		}
 		DMCFormat = V;
 		break;
-	case 0x01: DoPCM();
-		RawDALatch = V & 0x7F;
-		if (RawDALatch)
-			DMC_7bit = 1;
+
+	case 0x01: {
+		uint8 newval = V & 0x07F;
+		uint8 lastval = RawDALatch;
+		DoPCM();
+		RawDALatch = newval;
+		if (FSettings.ReduceDMCPopping) {
+			RawDALatch -= (RawDALatch - lastval) / 2;
+		}
+		if ((GameInfo->type != GIT_NSF) && FSettings.PPUOverclockEnabled &&
+		    FSettings.SkipDMC7BitOverclock && V) {
+			ppu.overclock.DMC_7bit_in_use = 1;
+		}
 		break;
+	}
+
 	case 0x02:
 		DMCAddressLatch = V;
-		if (V)
-			DMC_7bit = 0;
+		if ((GameInfo->type != GIT_NSF) && FSettings.SkipDMC7BitOverclock && V) {
+			ppu.overclock.DMC_7bit_in_use = 0;
+		}
 		break;
+
 	case 0x03:
 		DMCSizeLatch = V;
-		if (V)
-			DMC_7bit = 0;
+		if ((GameInfo->type != GIT_NSF) && FSettings.SkipDMC7BitOverclock && V) {
+			ppu.overclock.DMC_7bit_in_use = 0;
+		}
       break;
 	}
 }
 
-static void StatusWrite(uint32 A, uint8 V) {
+static DECLFW(StatusWrite) {
 	int x;
 
 	DoSQ1();
@@ -311,28 +345,44 @@ static void StatusWrite(uint32 A, uint8 V) {
 	DoNoise();
 	DoPCM();
 
-	for (x = 0; x < 4; x++)
-		if (!(V & (1 << x))) lengthcount[x] = 0;	/* Force length counters to 0. */
+	for (x = 0; x < 4; x++) {
+		if (!(V & (1 << x))) {
+			lengthcount[x] = 0; /* Force length counters to 0. */
+		}
+	}
 
 	if (V & 0x10) {
-		if (!DMCSize)
+		if (!DMCSize) {
 			PrepDPCM();
-	} else
+		}
+	} else {
 		DMCSize = 0;
+	}
+
 	SIRQStat &= ~0x80;
 	X6502_IRQEnd(FCEU_IQDPCM);
 	EnabledChannels = V & 0x1F;
 }
 
-static uint8 StatusRead(uint32 A) {
+static DECLFR(StatusRead) {
 	int x;
-	uint8 ret = SIRQStat;
+	uint8 ret;
 
-	for (x = 0; x < 4; x++) ret |= lengthcount[x] ? (1 << x) : 0;
-	if (DMCSize) ret |= 0x10;
+	ret = SIRQStat;
+	for (x = 0; x < 4; x++) {
+		ret |= lengthcount[x] ? (1 << x) : 0;
+	}
+	if (DMCSize) {
+		ret |= 0x10;
+	}
 
-	SIRQStat &= ~0x40;
-	X6502_IRQEnd(FCEU_IQFCOUNT);
+#ifdef FCEUDEF_DEBUGGER
+	if (!fceuindbg)
+#endif
+	{
+		SIRQStat &= ~0x40;
+		X6502_IRQEnd(FCEU_IQFCOUNT);
+	}
 	return ret;
 }
 
@@ -344,41 +394,48 @@ static void FrameSoundStuff(int V) {
 	DoNoise();
 	DoTriangle();
 
-	if (!(V & 1)) {	/* Envelope decay, linear counter, length counter, freq sweep */
-		if (!(PSG[8] & 0x80))
-			if (lengthcount[2] > 0)
+	if (V & 1) {	/* Envelope decay, linear counter, length counter, freq sweep */
+		if (!(PSG[8] & 0x80)) {
+			if (lengthcount[2] > 0) {
 				lengthcount[2]--;
+			}
+		}
 
-		if (!(PSG[0xC] & 0x20))	/* Make sure loop flag is not set. */
-			if (lengthcount[3] > 0)
+		if (!(PSG[0xC] & 0x20))	{ /* Make sure loop flag is not set. */
+			if (lengthcount[3] > 0) {
 				lengthcount[3]--;
+			}
+		}
 
 		for (P = 0; P < 2; P++) {
-			if (!(PSG[P << 2] & 0x20))	/* Make sure loop flag is not set. */
-				if (lengthcount[P] > 0)
+			if (!(PSG[P << 2] & 0x20)) { /* Make sure loop flag is not set. */
+				if (lengthcount[P] > 0) {
 					lengthcount[P]--;
+				}
+			}
 
 			/* Frequency Sweep Code Here */
 			/* xxxx 0000 */
 			/* xxxx = hz.  120/(x+1)*/
 			/* http://wiki.nesdev.com/w/index.php/APU_Sweep */
-			if (SweepCount[P] > 0) SweepCount[P]--;
-			if (SweepCount[P] <= 0) {
-				uint32 sweepShift = (PSG[(P << 2) + 0x1] & 7);
-				if (sweepon[P] && sweepShift && curfreq[P] >= 8) {
-					int32 mod = (curfreq[P] >> sweepShift);
+			if (SweepCount[P]) {
+				SweepCount[P]--;
+			}
+			if (!SweepCount[P]) {
+				SweepCount[P] = sweepPeriod[P];
+				if (sweepon[P] && (curfreq[P] >= 8)) {
+					int32 offset = (curfreq[P] >> sweepShift[P]);
+
 					if (PSG[(P << 2) + 0x1] & 0x8) {
-						curfreq[P] -= (mod + (P ^ 1));
-					} else if ((mod + curfreq[P]) < 0x800) {
-						curfreq[P] += mod;
+						curfreq[P] -= (offset + (P ^ 1));
+					} else if ((offset + curfreq[P]) < 0x800) {
+						curfreq[P] += offset;
 					}
 				}
-
-				SweepCount[P] = (((PSG[(P << 2) + 0x1] >> 4) & 7) + 1);
 			}
 
 			if (sweepReload[P]) {
-				SweepCount[P] = (((PSG[(P << 2) + 0x1] >> 4) & 7) + 1);
+				SweepCount[P] = sweepPeriod[P];
 				sweepReload[P] = 0;
 			}
 		}
@@ -386,13 +443,15 @@ static void FrameSoundStuff(int V) {
 
 	/* Now do envelope decay + linear counter. */
 
-	if (TriMode)/* In load mode? */
+	if (TriMode) { /* In load mode? */
 		TriCount = PSG[0x8] & 0x7F;
-	else if (TriCount)
+	} else if (TriCount) {
 		TriCount--;
+	}
 
-	if (!(PSG[0x8] & 0x80))
+	if (!(PSG[0x8] & 0x80)) {
 		TriMode = 0;
+	}
 
 	for (P = 0; P < 3; P++) {
 		if (EnvUnits[P].reloaddec) {
@@ -402,8 +461,10 @@ static void FrameSoundStuff(int V) {
 			continue;
 		}
 
-		if (EnvUnits[P].DecCountTo1 > 0) EnvUnits[P].DecCountTo1--;
-		if (EnvUnits[P].DecCountTo1 == 0) {
+		if (EnvUnits[P].DecCountTo1) {
+			EnvUnits[P].DecCountTo1--;
+		}
+		if (!EnvUnits[P].DecCountTo1) {
 			EnvUnits[P].DecCountTo1 = EnvUnits[P].Speed + 1;
 			if (EnvUnits[P].decvolume || (EnvUnits[P].Mode & 0x2)) {
 				EnvUnits[P].decvolume--;
@@ -423,18 +484,31 @@ static void FrameSoundUpdate(void) {
 			fhcnt += fhinc;
 	}
 
-	FrameSoundStuff(fcnt);
 	fcnt = (fcnt + 1) & 3;
+	FrameSoundStuff(fcnt);
 
-	/* has to be moved here to fix Dragon Warrior 4
-	 * after irq inhibit fix for $4017 */
 	if (!fcnt && !(IRQFrameMode & 0x3)) {
 		SIRQStat |= 0x40;
 		X6502_IRQBegin(FCEU_IQFCOUNT);
 	}
 }
 
+static DECLFW(Write_IRQFM) {
+	V = (V & 0xC0) >> 6;
+	fcnt = 0;
+	if (V & 2) {
+		FrameSoundUpdate();
+	}
+	fhcnt = fhinc;
+	if (V & 1) {
+		X6502_IRQEnd(FCEU_IQFCOUNT);
+		SIRQStat &= ~0x40;
+	}
+	IRQFrameMode = V;
+}
+
 static INLINE void tester(void) {
+	if (DMCBitCount == 0) {
 		if (!DMCHaveDMA)
 			DMCHaveSample = 0;
 		else {
@@ -442,6 +516,7 @@ static INLINE void tester(void) {
 			DMCShift = DMCDMABuf;
 			DMCHaveDMA = 0;
 		}
+	}
 }
 
 static INLINE void DMCDMA(void) {
@@ -454,9 +529,9 @@ static INLINE void DMCDMA(void) {
 		DMCAddress = (DMCAddress + 1) & 0x7fff;
 		DMCSize--;
 		if (!DMCSize) {
-			if (DMCFormat & 0x40)
+			if (DMCFormat & 0x40) {
 				PrepDPCM();
-			else {
+			} else {
 				if (DMCFormat & 0x80) {
 					SIRQStat |= 0x80;
 					X6502_IRQBegin(FCEU_IQDPCM);
@@ -467,12 +542,6 @@ static INLINE void DMCDMA(void) {
 }
 
 void FCEU_SoundCPUHook(int cycles) {
-	fhcnt -= cycles * 48;
-	if (fhcnt <= 0) {
-		FrameSoundUpdate();
-		fhcnt += fhinc;
-	}
-
 	DMCDMA();
 	DMCacc -= cycles;
 
@@ -480,99 +549,123 @@ void FCEU_SoundCPUHook(int cycles) {
 		if (DMCHaveSample) {
 			uint8 bah = RawDALatch;
 			int t = ((DMCShift & 1) << 2) - 2;
+
 			/* Unbelievably ugly hack */
 			if (FSettings.SndRate) {
-				soundtsoffs += DMCacc;
+				const uint32 fudge = MIN((uint32)(-DMCacc), (uint32)(soundtsoffs + timestamp));
+
+				soundtsoffs -= fudge;
 				DoPCM();
-				soundtsoffs -= DMCacc;
+				soundtsoffs += fudge;
 			}
 			RawDALatch += t;
-			if (RawDALatch & 0x80)
+			if (RawDALatch & 0x80) {
 				RawDALatch = bah;
+			}
 		}
 
 		DMCacc += DMCPeriod;
 		DMCBitCount = (DMCBitCount + 1) & 7;
 		DMCShift >>= 1;
-		if (DMCBitCount == 0)
-			tester();
+		tester();
+	}
+
+	/* This needs to come after the DMC code because of the "soundtsoffs" +=/-= hack */
+	fhcnt -= cycles * 48;
+	if (fhcnt <= 0) {
+		FrameSoundUpdate();
+		fhcnt += fhinc;
 	}
 }
 
-void RDoPCM(void) {
+static void RDoPCM(void) {
 	uint32 V;
 
-	for (V = ChannelBC[4]; V < SOUNDTS; V++)
+	for (V = ChannelBC[4]; V < SOUNDTS; V++) {
 		/* TODO: get rid of floating calculations to binary. set log volume scaling. */
-		WaveHi[V] += (((RawDALatch << 16) / 256) * FSettings.PCMVolume ) & (~0xFFFF);
+		int32 pcmout = GetOutput(SND_DMC, RawDALatch);
+		WaveHi[V] += ((pcmout << TRINPCM_SHIFT) & (~0xFFFF));
+	}
 
 	ChannelBC[4] = SOUNDTS;
 }
 
 /* This has the correct phase.  Don't mess with it. */
 static INLINE void RDoSQ(int x) {
+	int32 V;
 	int32 amp;
 	int32 rthresh;
 	int32 *D;
 	int32 currdc;
-	int32 V = SOUNDTS - ChannelBC[x];
-	int32 cf = (curfreq[x] + 1) * 2;
-	int32 rc = wlcount[x];
+	int32 cf;
+	int32 rc;
+
+	if (EnvUnits[x].Mode & 0x1) {
+		amp = EnvUnits[x].Speed;
+	} else {
+		amp = EnvUnits[x].decvolume;
+	}
+
+	amp = GetOutput(SND_SQUARE1 + x, amp);
+	amp <<= SQ_SHIFT;
+
+	rthresh = RectDuties[(PSG[(x << 2)] & 0xC0) >> 6];
+	
+	D = &WaveHi[ChannelBC[x]];
+	V = SOUNDTS - ChannelBC[x];
+
+	currdc = RectDutyCount[x];
+	cf = (curfreq[x] + 1) * 2;
+	rc = wlcount[x];
 
 	/* added 2018/12/08 */
 	/* when pulse channel is silenced, resets length counters but not
 	 * duty cycle, instead of resetting both */
-	if ((curfreq[x] < 8 || curfreq[x] > 0x7ff) ||
-	!CheckFreq(curfreq[x], PSG[(x << 2) | 0x1]) ||
-	!lengthcount[x]) {
+	/* revised 2023-06-28 */
+	if ((curfreq[x] < 8) || !CheckFreq(curfreq[x], PSG[(x << 2) | 0x1]) || !lengthcount[x]) {
 		rc -= V;
-		if (rc <= 0)
+		if (rc <= 0) {
 			rc = cf - (-rc % cf);
-	} else {
-		int dutyCycle;
-
-		if (EnvUnits[x].Mode & 0x1)
-			amp = EnvUnits[x].Speed;
-		else
-			amp = EnvUnits[x].decvolume;
-
-		/* Modify Square wave volume based on channel volume modifiers
-		 * Note: the formulat x = x * y /100 does not yield exact results,
-		 * but is "close enough" and avoids the need for using double values
-		 * or implicit cohersion which are slower (we need speed here) */
-		/* TODO: Optimize this. */
-		if (FSettings.SquareVolume[x] != 256)
-			amp = (amp * FSettings.SquareVolume[x]) / 256;
-
-		amp <<= 24;
-		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
-		rthresh = RectDuties[dutyCycle];
-		currdc = RectDutyCount[x];
-		D = &WaveHi[ChannelBC[x]];
-
-		while (V > 0) {
-			if (currdc < rthresh)
-				*D += amp;
-			rc--;
-			if (!rc) {
-				rc = cf;
-				currdc = (currdc + 1) & 7;
-			}
-			V--;
-			D++;
 		}
-
-		RectDutyCount[x] = currdc;
+		V = 0;
 	}
 
+	if (rthresh == 6) { /* Reversed below */
+		currdc = (currdc - 2) & 0x7;
+	}
+
+	while (V > 0) {
+		if (currdc < rthresh) {
+			*D += amp;
+		}
+		rc--;
+		if (!rc) {
+			rc = cf;
+			currdc = (currdc + 1) & 7;
+		}
+		V--;
+		D++;
+	}
+
+	if (rthresh == 6) { /* Reverse above */
+		currdc = (currdc + 2) & 0x7;
+	}
+
+	RectDutyCount[x] = currdc;
 	wlcount[x] = rc;
 	ChannelBC[x] = SOUNDTS;
 }
 
-static void RDoSQ1(void) { RDoSQ(0); }
-static void RDoSQ2(void) { RDoSQ(1); }
+static void RDoSQ1(void) {
+	RDoSQ(0);
+}
+
+static void RDoSQ2(void) {
+	RDoSQ(1);
+}
 
 static void RDoSQLQ(void) {
+	int32 start, end;
 	int32 V;
 	int32 amp[2];
 	int32 rthresh[2];
@@ -582,9 +675,12 @@ static void RDoSQLQ(void) {
 
 	int32 ttable[2][8];
 	int32 totalout;
-	int32 start = ChannelBC[0];
-	int32 end = (SOUNDTS << 16) / soundtsinc;
-	if (end <= start) return;
+
+	start = ChannelBC[0];
+	end = (SOUNDTS << 16) / soundtsinc;
+	if (end <= start) {
+		return;
+	}
 	ChannelBC[0] = end;
 
 	for (x = 0; x < 2; x++) {
@@ -592,37 +688,37 @@ static void RDoSQLQ(void) {
 		int dutyCycle;
 
 		inie[x] = nesincsize;
-		if (curfreq[x] < 8 || curfreq[x] > 0x7ff)
+		if (curfreq[x] < 8 || curfreq[x] > 0x7ff) {
 			inie[x] = 0;
-		if (!CheckFreq(curfreq[x], PSG[(x << 2) | 0x1]))
+		}
+		if (!CheckFreq(curfreq[x], PSG[(x << 2) | 0x1])) {
 			inie[x] = 0;
-		if (!lengthcount[x])
+		}
+		if (!lengthcount[x]) {
 			inie[x] = 0;
+		}
 
-		if (EnvUnits[x].Mode & 0x1)
+		if (EnvUnits[x].Mode & 0x1) {
 			amp[x] = EnvUnits[x].Speed;
-		else
+		} else {
 			amp[x] = EnvUnits[x].decvolume;
+		}
 
-		/* Modify Square wave volume based on channel volume modifiers
-		 * Note: the formulat x = x * y /100 does not yield exact results,
-		 * but is "close enough" and avoids the need for using double vales
-		 * or implicit cohersion which are slower (we need speed here)
-		 * fixed - setting up maximum volume for square2 caused complete mute square2 channel.
-		 * TODO: Optimize this. */
-		if (FSettings.SquareVolume[x] != 256)
-			amp[x] = (amp[x] * FSettings.SquareVolume[x]) / 256;
+		amp[x] = GetOutput(SND_SQUARE1 + x, amp[x]);
 
-		if (!inie[x]) amp[x] = 0;	/* Correct? Buzzing in MM2, others otherwise... */
+		if (!inie[x]) {
+			amp[x] = 0;	/* Correct? Buzzing in MM2, others otherwise... */
+		}
 
 		dutyCycle = (PSG[(x << 2)] & 0xC0) >> 6;
 		rthresh[x] = RectDuties[dutyCycle];
 
 		for (y = 0; y < 8; y++) {
-			if (y < rthresh[x])
+			if (y < rthresh[x]) {
 				ttable[x][y] = amp[x];
-			else
+			} else {
 				ttable[x][y] = 0;
+			}
 		}
 		freq[x] = (curfreq[x] + 1) << 1;
 		freq[x] <<= 17;
@@ -631,11 +727,12 @@ static void RDoSQLQ(void) {
 	totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
 
 	if (!inie[0] && !inie[1]) {
-		for (V = start; V < end; V++)
+		for (V = start; V < end; V++) {
 			Wave[V >> 4] += totalout;
+		}
 	} else {
 		for (V = start; V < end; V++) {
-			Wave[V >> 4] += totalout;	/* tmpamp; */
+			Wave[V >> 4] += totalout;
 
 			sqacc[0] -= inie[0];
 			sqacc[1] -= inie[1];
@@ -644,7 +741,9 @@ static void RDoSQLQ(void) {
  rea:
 				sqacc[0] += freq[0];
 				RectDutyCount[0] = (RectDutyCount[0] + 1) & 7;
-				if (sqacc[0] <= 0) goto rea;
+				if (sqacc[0] <= 0) {
+					goto rea;
+				}
 				totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
 			}
 
@@ -652,36 +751,46 @@ static void RDoSQLQ(void) {
  rea2:
 				sqacc[1] += freq[1];
 				RectDutyCount[1] = (RectDutyCount[1] + 1) & 7;
-				if (sqacc[1] <= 0) goto rea2;
+				if (sqacc[1] <= 0) {
+					goto rea2;
+				}
 				totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
 			}
 		}
 	}
 }
 
+static INLINE int32 GetTriSample(void) {
+	int32 sample = (tristep & 0xF);
+	if (!(tristep & 0x10)) {
+		sample ^= 0xF;
+	}
+	sample = (sample * 3);
+	return GetOutput(SND_TRIANGLE, sample);
+}
+
 static void RDoTriangle(void) {
 	uint32 V;
-	int32 tcout = (tristep & 0xF);
-	if (!(tristep & 0x10)) tcout ^= 0xF;
-	tcout = (tcout * 3) << 16;	/* (tcout<<1); */
+	int32 tcout;
+
+	tcout = GetTriSample();
 
 	if (!lengthcount[2] || !TriCount) {	/* Counter is halted, but we still need to output. */
 		int32 *start = &WaveHi[ChannelBC[2]];
 		int32 count = SOUNDTS - ChannelBC[2];
+
 		while (count--) {
-			*start += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME */
+			*start += ((tcout << TRINPCM_SHIFT) & (~0xFFFF));
 			start++;
 		}
 	} else {
 		for (V = ChannelBC[2]; V < SOUNDTS; V++) {
-			WaveHi[V] += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME! */
+			WaveHi[V] += ((tcout << TRINPCM_SHIFT) & (~0xFFFF));
 			wlcount[2]--;
 			if (!wlcount[2]) {
 				wlcount[2] = (PSG[0xa] | ((PSG[0xb] & 7) << 8)) + 1;
 				tristep++;
-				tcout = (tristep & 0xF);
-				if (!(tristep & 0x10)) tcout ^= 0xF;
-				tcout = (tcout * 3) << 16;
+				tcout = GetTriSample();
 			}
 		}
     }
@@ -691,52 +800,64 @@ static void RDoTriangle(void) {
 
 static void RDoTriangleNoisePCMLQ(void) {
 	int32 V;
+	int32 start, end;
 	int32 freq[2];
 	int32 inie[2];
 	uint32 amptab[2];
 	uint32 noiseout;
+    uint32 pcmout;
 	int nshift;
+
 	int32 totalout;
-	int32 start = ChannelBC[2];
-	int32 end = (SOUNDTS << 16) / soundtsinc;
-	if (end <= start) return;
+	int32 wl;
+
+	start = ChannelBC[2];
+	end = (SOUNDTS << 16) / soundtsinc;
+
+	if (end <= start) {
+		return;
+	}
+
 	ChannelBC[2] = end;
-
 	inie[0] = inie[1] = nesincsize;
-
 	freq[0] = (((PSG[0xa] | ((PSG[0xb] & 7) << 8)) + 1));
 
-	if (!lengthcount[2] || !TriCount || freq[0] <= 4)
+	if (!lengthcount[2] || !TriCount || (freq[0] <= 4)) {
 		inie[0] = 0;
+	}
 
 	freq[0] <<= 17;
-	if (EnvUnits[2].Mode & 0x1)
+	if (EnvUnits[2].Mode & 0x1) {
 		amptab[0] = EnvUnits[2].Speed;
-	else
+	} else {
 		amptab[0] = EnvUnits[2].decvolume;
+	}
 
-	/* Modify Triangle wave volume based on channel volume modifiers
-	 * Note: the formulat x = x * y /100 does not yield exact results,
-	 * but is "close enough" and avoids the need for using double vales
-	 * or implicit cohersion which are slower (we need speed here)
-	 * TODO: Optimize this. */
-	if (FSettings.TriangleVolume != 256)
-		amptab[0] = (amptab[0] * FSettings.TriangleVolume) / 256;
+    pcmout = GetOutput(SND_DMC, RawDALatch);
+    amptab[0] = GetOutput(SND_NOISE, amptab[0]);
 
 	amptab[1] = 0;
 	amptab[0] <<= 1;
 
-	if (!lengthcount[3])
+	if (!lengthcount[3]) {
 		amptab[0] = inie[1] = 0;	/* Quick hack speedup, set inie[1] to 0 */
+	}
 
 	noiseout = amptab[(nreg >> 0xe) & 1];
 
-	if (PSG[0xE] & 0x80)
+	if (PSG[0xE] & 0x80) {
 		nshift = 8;
-	else
+	} else {
 		nshift = 13;
+	}
 
-	totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+	totalout = wlookup2[lq_tcout + noiseout + pcmout];
+
+	if (isPAL) {
+		wl = PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
+	} else {
+		wl = NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
+	}
 
 	if (inie[0] && inie[1]) {
 		for (V = start; V < end; V++) {
@@ -749,29 +870,30 @@ static void RDoTriangleNoisePCMLQ(void) {
  rea:
 				lq_triacc += freq[0];	/* t; */
 				tristep = (tristep + 1) & 0x1F;
-				if (lq_triacc <= 0) goto rea;
+				if (lq_triacc <= 0) {
+					goto rea;
+				}
 				lq_tcout = (tristep & 0xF);
-				if (!(tristep & 0x10)) lq_tcout ^= 0xF;
+				if (!(tristep & 0x10)) {
+					lq_tcout ^= 0xF;
+				}
 				lq_tcout = lq_tcout * 3;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+                lq_tcout = GetOutput(SND_TRIANGLE, lq_tcout);
+				totalout = wlookup2[lq_tcout + noiseout + pcmout];
 			}
 
 			if (lq_noiseacc <= 0) {
  rea2:
-				/* used to added <<(16+2) when the noise table
-				 * values were half.
-				 */
-				if (isPAL)
-					lq_noiseacc += PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
-				else
-					lq_noiseacc += NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
+				lq_noiseacc += wl;
 				nreg = (nreg << 1) + (((nreg >> nshift) ^ (nreg >> 14)) & 1);
 				nreg &= 0x7fff;
 				noiseout = amptab[(nreg >> 0xe) & 1];
-				if (lq_noiseacc <= 0) goto rea2;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
-			}	/* noiseacc<=0 */
-		}	/* for(V=... */
+				if (lq_noiseacc <= 0) {
+					goto rea2;
+				}
+				totalout = wlookup2[lq_tcout + noiseout + pcmout];
+			}
+		}
 	} else if (inie[0]) {
 		for (V = start; V < end; V++) {
 			Wave[V >> 4] += totalout;
@@ -782,11 +904,16 @@ static void RDoTriangleNoisePCMLQ(void) {
  area:
 				lq_triacc += freq[0];	/* t; */
 				tristep = (tristep + 1) & 0x1F;
-				if (lq_triacc <= 0) goto area;
+				if (lq_triacc <= 0) {
+					goto area;
+				}
 				lq_tcout = (tristep & 0xF);
-				if (!(tristep & 0x10)) lq_tcout ^= 0xF;
+				if (!(tristep & 0x10)) {
+					lq_tcout ^= 0xF;
+				}
 				lq_tcout = lq_tcout * 3;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+                lq_tcout = GetOutput(SND_TRIANGLE, lq_tcout);
+				totalout = wlookup2[lq_tcout + noiseout + pcmout];
 			}
 		}
 	} else if (inie[1]) {
@@ -795,23 +922,20 @@ static void RDoTriangleNoisePCMLQ(void) {
 			lq_noiseacc -= inie[1];
 			if (lq_noiseacc <= 0) {
  area2:
-				/* used to be added <<(16+2) when the noise table
-				 * values were half.
-				 */
-				if (isPAL)
-					lq_noiseacc += PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
-				else
-					lq_noiseacc += NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
+				lq_noiseacc += wl;
 				nreg = (nreg << 1) + (((nreg >> nshift) ^ (nreg >> 14)) & 1);
 				nreg &= 0x7fff;
 				noiseout = amptab[(nreg >> 0xe) & 1];
-				if (lq_noiseacc <= 0) goto area2;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
-			}	/* noiseacc<=0 */
+				if (lq_noiseacc <= 0) {
+					goto area2;
+				}
+				totalout = wlookup2[lq_tcout + noiseout + pcmout];
+			}
 		}
 	} else {
-		for (V = start; V < end; V++)
+		for (V = start; V < end; V++) {
 			Wave[V >> 4] += totalout;
+		}
 	}
 }
 
@@ -819,87 +943,54 @@ static void RDoNoise(void) {
 	uint32 V;
 	int32 outo;
 	uint32 amptab[2];
+	int32 wl;
+	int nshift;
 
-	if (EnvUnits[2].Mode & 0x1)
+	if (EnvUnits[2].Mode & 0x1) {
 		amptab[0] = EnvUnits[2].Speed;
-	else
+	} else {
 		amptab[0] = EnvUnits[2].decvolume;
+	}
 
-	/* Modify Noise wave volume based on channel volume modifiers
-	* Note: the formulat x = x * y /100 does not yield exact results,
-	* but is "close enough" and avoids the need for using double vales
-	* or implicit cohersion which are slower (we need speed here)
-	* TODO: Optimize this. */
-	if (FSettings.NoiseVolume != 256)
-		amptab[0] = (amptab[0] * FSettings.NoiseVolume) / 256;
+	amptab[0] = GetOutput(SND_NOISE, amptab[0]);
 
-	amptab[0] <<= 16;
+	amptab[0] <<= TRINPCM_SHIFT;
 	amptab[1] = 0;
 
 	amptab[0] <<= 1;
 
 	outo = amptab[(nreg >> 0xe) & 1];
 
-	if (!lengthcount[3])
+	if (!lengthcount[3]) {
 		outo = amptab[0] = 0;
+	}
 
-	if (PSG[0xE] & 0x80) {/* "short" noise */
-		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
-			WaveHi[V] += outo;
-			wlcount[3]--;
-			if (!wlcount[3]) {
-				uint8 feedback;
-				if (isPAL)
-					wlcount[3] = PALNoiseFreqTable[PSG[0xE] & 0xF];
-				else
-					wlcount[3] = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
-				feedback = ((nreg >> 8) & 1) ^ ((nreg >> 14) & 1);
-				nreg = (nreg << 1) + feedback;
-				nreg &= 0x7fff;
-				outo = amptab[(nreg >> 0xe) & 1];
-			}
-		}
+	if (isPAL) {
+		wl = PALNoiseFreqTable[PSG[0xE] & 0xF];
 	} else {
-		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
-			WaveHi[V] += outo;
-			wlcount[3]--;
-			if (!wlcount[3]) {
-				uint8 feedback;
-				if (isPAL)
-					wlcount[3] = PALNoiseFreqTable[PSG[0xE] & 0xF];
-				else
-					wlcount[3] = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
-				feedback = ((nreg >> 13) & 1) ^ ((nreg >> 14) & 1);
-				nreg = (nreg << 1) + feedback;
-				nreg &= 0x7fff;
-				outo = amptab[(nreg >> 0xe) & 1];
-			}
+		wl = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
+	}
+
+	if (PSG[0xE] & 0x80) {
+		nshift = 8;
+	} else {
+		nshift = 13;
+	}
+
+	for (V = ChannelBC[3]; V < SOUNDTS; V++) {
+		WaveHi[V] += outo;
+		wlcount[3]--;
+		if (!wlcount[3]) {
+			uint8 feedback;
+
+			wlcount[3] = wl;
+			feedback = ((nreg >> nshift) & 1) ^ ((nreg >> 14) & 1);
+			nreg = (nreg << 1) + feedback;
+			nreg &= 0x7fff;
+			outo = amptab[(nreg >> 0xe) & 1];
 		}
 	}
 	ChannelBC[3] = SOUNDTS;
-}
-
-static void Write_IRQFM(uint32 A, uint8 V) {
-	V = (V & 0xC0) >> 6;
-	fcnt = 0;
-	if (V & 2)
-		FrameSoundUpdate();
-	/* fcnt = 1; */
-	fhcnt = fhinc;
-	if (V & 1) {
-		X6502_IRQEnd(FCEU_IQFCOUNT);
-		SIRQStat &= ~0x40;
-	}
-	IRQFrameMode = V;
-}
-
-void SetNESSoundMap(void) {
-	SetWriteHandler(0x4000, 0x400F, Write_PSG);
-	SetWriteHandler(0x4010, 0x4013, Write_DMCRegs);
-	SetWriteHandler(0x4017, 0x4017, Write_IRQFM);
-
-	SetWriteHandler(0x4015, 0x4015, StatusWrite);
-	SetReadHandler(0x4015, 0x4015, StatusRead);
 }
 
 static int32 inbuf = 0;
@@ -907,7 +998,9 @@ int FlushEmulateSound(void) {
 	int x;
 	int32 end, left;
 
-	if (!sound_timestamp) return(0);
+	if (!sound_timestamp) {
+		return(0);
+	}
 
 	if (!FSettings.SndRate) {
 		left = 0;
@@ -924,11 +1017,17 @@ int FlushEmulateSound(void) {
 	if (FSettings.soundq >= 1) {
 		int32 *tmpo = &WaveHi[soundtsoffs];
 
-		if (GameExpSound.HiFill) GameExpSound.HiFill();
+		for (x = 0; x < GAMEEXPSOUND_COUNT; x++) {
+			if (GameExpSound[x].HiFill) {
+				GameExpSound[x].HiFill();
+			}
+		}
 
 		for (x = sound_timestamp; x; x--) {
 			uint32 b = *tmpo;
-			*tmpo = (b & 65535) + wlookup2[(b >> 16) & 255] + wlookup1[b >> 24];
+			int32 sample = wlookup2[(b >> TRINPCM_SHIFT) & 0xFF] + wlookup1[b >> SQ_SHIFT];
+
+			*tmpo = (b & 0xFFFF) + sample;
 			tmpo++;
 		}
 
@@ -937,39 +1036,53 @@ int FlushEmulateSound(void) {
 		memmove(WaveHi, WaveHi + SOUNDTS - left, left * sizeof(uint32));
 		memset(WaveHi + left, 0, sizeof(WaveHi) - left * sizeof(uint32));
 
-		if (GameExpSound.HiSync) GameExpSound.HiSync(left);
-		for (x = 0; x < 5; x++)
+		for (x = 0; x < GAMEEXPSOUND_COUNT; x++) {
+			if (GameExpSound[x].HiSync) {
+				GameExpSound[x].HiSync(left);
+			}
+		}
+		for (x = 0; x < 5; x++) {
 			ChannelBC[x] = left;
+		}
 	} else {
 		end = (SOUNDTS << 16) / soundtsinc;
-		if (GameExpSound.Fill)
-			GameExpSound.Fill(end & 0xF);
+		for (x = 0; x < GAMEEXPSOUND_COUNT; x++) {
+			if (GameExpSound[x].Fill) {
+				GameExpSound[x].Fill(end & 0xF);
+			}
+		}
 
 		SexyFilter(Wave, WaveFinal, end >> 4);
 
-		if (FSettings.lowpass)
+		if (FSettings.lowpass) {
 			SexyFilter2(WaveFinal, end >> 4);
+		}
 
-		if (end & 0xF)
+		if (end & 0xF) {
 			Wave[0] = Wave[(end >> 4)];
+		}
 		Wave[end >> 4] = 0;
 	}
-
  nosoundo:
-	if (FSettings.soundq >= 1)
+
+	if (FSettings.soundq >= 1) {
 		soundtsoffs = left;
-	else {
-		for (x = 0; x < 5; x++)
+	} else {
+		for (x = 0; x < 5; x++) {
 			ChannelBC[x] = end & 0xF;
+		}
 		soundtsoffs = (soundtsinc * (end & 0xF)) >> 16;
 		end >>= 4;
 	}
 	inbuf = end;
 
-	return end;
+	return(end);
 }
 
-int GetSoundBuffer(void) { return(inbuf); }
+int GetSoundBuffer(int32 **W) {
+	*W = WaveFinal;
+	return(inbuf);
+}
 
 /* FIXME:  Find out what sound registers get reset on reset.  I know $4001/$4005 don't,
 due to that whole MegaMan 2 Game Genie thing.
@@ -984,16 +1097,18 @@ void FCEUSND_Reset(void) {
 
 	for (x = 0; x < 2; x++) {
 		wlcount[x] = 2048;
-		if (nesincsize)	/* lq mode */
-			sqacc[x] = ((uint32)2048 << 17) / nesincsize;
-		else
-			sqacc[x] = 1;
 		sweepon[x] = 0;
 		curfreq[x] = 0;
+		if (nesincsize) { /* lq mode */
+			sqacc[x] = ((uint32)2048 << 17) / nesincsize;
+		} else {
+			sqacc[x] = 1;
+		}
 	}
-	wlcount[2] = 1;	/* 2048; */
+
+	wlcount[2] = 1; /* 2048; */
 	wlcount[3] = 2048;
-	DMCHaveDMA = DMCHaveSample = 0;
+	
 	SIRQStat = 0x00;
 
 	RawDALatch = 0x00;
@@ -1001,8 +1116,9 @@ void FCEUSND_Reset(void) {
 	TriMode = 0;
 	tristep = 0;
 	EnabledChannels = 0;
-	for (x = 0; x < 4; x++)
+	for (x = 0; x < 4; x++) {
 		lengthcount[x] = 0;
+	}
 
 	DMCAddressLatch = 0;
 	DMCSizeLatch = 0;
@@ -1010,14 +1126,18 @@ void FCEUSND_Reset(void) {
 	DMCAddress = 0;
 	DMCSize = 0;
 	DMCShift = 0;
-	DMCacc=1;
-	DMCBitCount=0;
+
+	DMCacc = 1;
+	DMCBitCount = 0;
+
+	DMCHaveDMA = 0;
+	DMCDMABuf = 0;
+	DMCHaveSample = 0;
 }
 
 void FCEUSND_Power(void) {
 	int x;
 
-	SetNESSoundMap();
 	memset(PSG, 0x00, sizeof(PSG));
 	FCEUSND_Reset();
 
@@ -1025,30 +1145,44 @@ void FCEUSND_Power(void) {
 	memset(WaveHi, 0, sizeof(WaveHi));
 	memset(&EnvUnits, 0, sizeof(EnvUnits));
 
-	for (x = 0; x < 5; x++)
+	for (x = 0; x < 5; x++) {
 		ChannelBC[x] = 0;
+	}
+
 	soundtsoffs = 0;
 	IRQFrameMode = 0x0; /* Only initialized by power-on reset, not by soft reset */
+
 	LoadDMCPeriod(DMCFormat & 0xF);
+
+	SetWriteHandler(0x4000, 0x400F, Write_PSG);
+	SetWriteHandler(0x4010, 0x4013, Write_DMCRegs);
+	SetWriteHandler(0x4017, 0x4017, Write_IRQFM);
+
+	SetWriteHandler(0x4015, 0x4015, StatusWrite);
+	SetReadHandler(0x4015, 0x4015, StatusRead);
 }
 
 
 void SetSoundVariables(void) {
 	int x;
 
-	fhinc  = isPAL ? 16626 : 14915;	/* *2 CPU clock rate */
+	fhinc = isPAL ? 16626 : 14915;	/* *2 CPU clock rate */
 	fhinc *= 24;
 
 	if (FSettings.SndRate) {
 		wlookup1[0] = 0;
 		for (x = 1; x < 32; x++) {
 			wlookup1[x] = (double)16 * 16 * 16 * 4 * 95.52 / ((double)8128 / (double)x + 100);
-			if (!FSettings.soundq) wlookup1[x] >>= 4;
+			if (!FSettings.soundq) {
+				wlookup1[x] >>= 4;
+			}
 		}
 		wlookup2[0] = 0;
 		for (x = 1; x < 203; x++) {
 			wlookup2[x] = (double)16 * 16 * 16 * 4 * 163.67 / ((double)24329 / (double)x + 100);
-			if (!FSettings.soundq) wlookup2[x] >>= 4;
+			if (!FSettings.soundq) {
+				wlookup2[x] >>= 4;
+			}
 		}
 		if (FSettings.soundq >= 1) {
 			DoNoise = RDoNoise;
@@ -1071,8 +1205,11 @@ void SetSoundVariables(void) {
 
 	MakeFilters(FSettings.SndRate);
 
-	if (GameExpSound.RChange)
-		GameExpSound.RChange();
+	for (x = 0; x < GAMEEXPSOUND_COUNT; x++) {
+		if (GameExpSound[x].RChange) {
+			GameExpSound[x].RChange();
+		}
+	}
 
 	nesincsize = (int64)(((int64)1 << 17) * (double)(isPAL ? PAL_CPU : NTSC_CPU) / (FSettings.SndRate * 16));
 	memset(sqacc, 0, sizeof(sqacc));
@@ -1081,6 +1218,57 @@ void SetSoundVariables(void) {
 	LoadDMCPeriod(DMCFormat & 0xF);	/* For changing from PAL to NTSC */
 
 	soundtsinc = (uint32)((uint64)(isPAL ? (long double)PAL_CPU * 65536 : (long double)NTSC_CPU * 65536) / (FSettings.SndRate * 16));
+}
+
+void FCEUI_Sound(int Rate) {
+	FSettings.SndRate = Rate;
+	SetSoundVariables();
+}
+
+void FCEUI_SetLowPass(int q) {
+	FSettings.lowpass = q;
+}
+
+void FCEUI_SetSoundQuality(int quality) {
+	FSettings.soundq = quality;
+	SetSoundVariables();
+}
+
+void FCEUI_ReduceDmcPopping(int d) {
+	FSettings.ReduceDMCPopping = d;
+}
+
+void FCEUI_SetSoundVolume(int channel, int volume) {
+	if (volume > 256) {
+		volume = 256;
+	}
+	if (channel == SND_MASTER) {
+		if (volume == 256) {
+			volume = 255;
+		}
+	}
+	FSettings.volume[channel] = volume;
+}
+
+int FCEUI_GetSoundVolume(int channel) {
+	if ((channel >= SND_MASTER) && (channel < SND_LAST)) {
+		return FSettings.volume[channel];
+	}
+	return 0;
+}
+
+int32 GetOutput(int channel, int32 in) {
+	if ((channel > SND_MASTER) && (channel < SND_LAST)) {
+		int mod = FCEUI_GetSoundVolume(channel);
+
+		if (in == 0 || mod == 0) {
+			return 0; /* silence */
+		}
+		if (mod != 256) {
+			return (int32)((in * mod) / 256);
+		}
+	}
+	return in;
 }
 
 SFORMAT FCEUSND_STATEINFO[] = {
@@ -1117,6 +1305,9 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &curfreq[0], 4 | FCEUSTATE_RLSB, "CRF1" },
 	{ &curfreq[1], 4 | FCEUSTATE_RLSB, "CRF2" },
 	{ SweepCount, 2, "SWCT" },
+	{ sweepReload, 2, "SWRL" },
+	{ sweepPeriod, 2, "SWPD" },
+	{ sweepShift, 2, "SWSH" },
 
 	{ &SIRQStat, 1, "SIRQ" },
 
@@ -1159,67 +1350,64 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &sexyfilter_acc2, sizeof(sexyfilter_acc2) | FCEUSTATE_RLSB, "FAC2" },
 	{ &lq_tcout, sizeof(lq_tcout) | FCEUSTATE_RLSB, "TCOU"},
 
-/* 2018-12-14 - Wii and possibly other big-endian platforms are having
- * issues loading states with this. Increasing it only helps a few games.
- * Disabling this state variable for Wii/WiiU/GC for now. */
-/* TODO: fix this for better runahead feature for big-endian */
-/* UPDATE: Try to ignore this for all big-endian for now */
-#ifndef MSB_FIRST
 	/* wave buffer is used for filtering, only need first 17 values from it */
 	{ &Wave, 32 * sizeof(int32), "WAVE"},
-#endif
 
 	{ 0 }
 };
 
+void FCEUSND_SaveState(void) {
+}
+
 void FCEUSND_LoadState(int version) {
 	int i;
+
 	LoadDMCPeriod(DMCFormat & 0xF);
 	RawDALatch &= 0x7F;
 	DMCAddress &= 0x7FFF;
 
 	/* minimal validation */
-	if (FSettings.soundq == 2)
-	{
-		for (i = 0; i < 5; i++)
-		{
-			if (ChannelBC[i] > 1025)
-				ChannelBC[i] = 0;
+	for (i = 0; i < 5; i++) {
+		uint32 BC_max = 15;
+
+		if (FSettings.soundq == 2) {
+			BC_max = 1025;
+		} else if (FSettings.soundq == 1) {
+			BC_max = 485;
+		}
+		if (/* ChannelBC[i] < 0 || */ ChannelBC[i] > BC_max) {
+			ChannelBC[i] = 0;
 		}
 	}
-	else if (FSettings.soundq == 1)
-	{
-		for (i = 0; i < 5; i++)
-		{
-			if (ChannelBC[i] > 485)
-				ChannelBC[i] = 0;
-		}
+	if (DMCacc <= 0) {
+		DMCacc = 1;
 	}
-	else
-	{
-		for (i = 0; i < 5; i++)
-		{
-			if (ChannelBC[i] > 15)
-				ChannelBC[i] = 0;
+	for (i = 0; i < 4; i++) {
+		wlcount[i] = MAX((int32)(1), (int32)MIN((int32)(0xFFFF), (int32)(wlcount[i])));
+	}
+	for (i = 0; i < 2; i++) {
+		RectDutyCount[i] &= 0x7;
+		curfreq[i] &= 0xFFFF;
+		sweepShift[i] &= 0x7;
+		if (!sweepShift[i]) {
+			sweepon[i] = 0;
 		}
 	}
 
-	for (i = 0; i < 4; i++)
+	/* Comparison is always false because access to array >= 0. */
+	/* if (sound_timestamp < 0)
 	{
-		if (wlcount[i] < 0 || wlcount[i] > 2048)
-			wlcount[i] = 2048;
+	    sound_timestamp = 0;
 	}
-	for (i = 0; i < 2; i++)
+	if (soundtsoffs < 0)
 	{
-		if (RectDutyCount[i] < 0 || RectDutyCount[i] > 7)
-			RectDutyCount[i] = 7;
-	}
-
-	if (soundtsoffs + sound_timestamp >= soundtsinc)
-	{
+	    soundtsoffs = 0;
+	} */
+	if (soundtsoffs + sound_timestamp >= soundtsinc) {
 		soundtsoffs = 0;
 		sound_timestamp = 0;
 	}
-	if (tristep > 32)
+	if (tristep > 32) {
 		tristep &= 0x1F;
+	}
 }

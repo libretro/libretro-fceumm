@@ -1,6 +1,8 @@
 /* FCEUmm - NES/Famicom Emulator
  *
- * Copyright (C) 2019 Libretro Team
+ * Copyright notice for this file: 
+ *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,55 +27,58 @@
 
 #include "mapinc.h"
 
-static uint8 regs[2], mode;
+static uint8 reg[2], extraChip;
 
-static SFORMAT StateRegs[] =
-{
-	{ &regs[0], 1, "REG0" },
-	{ &regs[1], 1, "REG1" },
-	{ &mode, 1, "MODE" },
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REGS" },
+	{ &extraChip, 1, "CHIP" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (mode & 0x02)
-		setprg16(0x8000, (regs[0] & 0x0F) | (regs[1] & 0x70));
-	else
-		setprg16(0x8000, (regs[0] & ((ROM_size - 1) & 0x0F)) | 0x80);
-	setprg16(0xC000, regs[1]);
-	setmirror(((regs[0] >> 4) & 1) ^ 1);
-}
-
-static void BMC80013BWrite(uint32 A, uint8 V) {
-	uint8 reg = (A >> 13) & 0x03;
-	if (!reg)
-		regs[0] = V & 0x1F;
-	else {
-		regs[1] = V & 0x7F;
-		mode = reg;
+	if (extraChip) {
+		setprg16(0x8000, 0x80 | (reg[0] & ((ROM.prg.size - 1) & 0x0F)));
+	} else {
+		setprg16(0x8000, (reg[1] & 0x70) | (reg[0] & 0x0F));
 	}
-	Sync();
-}
-
-static void BMC80013BPower(void) {
-	Sync();
+	setprg16(0xC000, reg[1] & 0x7F);
 	setchr8(0);
+	setmirror(((reg[0] >> 4) & 0x01) ^ 0x01);
+}
+
+static DECLFW(M274Write8) {
+	reg[0] = V;
+	Sync();
+}
+
+static DECLFW(M274WriteA) {
+	reg[1] = V;
+	extraChip = (A & 0x4000) == 0;
+	Sync();
+}
+
+static void M274Power(void) {
+	reg[0] = reg[1] = 0;
+	extraChip = 1;
+	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, BMC80013BWrite);
+	SetWriteHandler(0x8000, 0x9FFF, M274Write8);
+	SetWriteHandler(0xA000, 0xFFFF, M274WriteA);
 }
 
-static void BMC80013BReset(void) {
-	regs[0] = regs[1] = mode = 0;
+static void M274Reset(void) {
+	reg[0] = reg[1] = 0;
+	extraChip = 1;
 	Sync();
 }
 
-static void BMC80013BRestore(int version) {
+static void M274Restore(int version) {
 	Sync();
 }
 
-void BMC80013B_Init(CartInfo *info) {
-	info->Power = BMC80013BPower;
-	info->Reset = BMC80013BReset;
-	GameStateRestore = BMC80013BRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper274_Init(CartInfo *info) {
+	info->Power = M274Power;
+	info->Reset = M274Reset;
+	GameStateRestore = M274Restore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

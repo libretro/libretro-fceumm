@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,54 +23,32 @@
  * BMC-RESETNROM-XIN1
  * - Sheng Tian 2-in-1(Unl,ResetBase)[p1] - Kung Fu (Spartan X), Super Mario Bros (alt)
  * - Sheng Tian 2-in-1(Unl,ResetBase)[p2] - B-Wings, Twin-bee
- *
- * BMC-KS106C
- * - Kaiser 4-in-1(Unl,KS106C)[p1] - B-Wings, Kung Fu, 1942, SMB1 (wrong mirroring)
  */
 
 #include "mapinc.h"
-
-static uint8 gameblock, limit;
-
-static SFORMAT StateRegs[] =
-{
-	{ &gameblock, 1, "GAME" },
-	{ 0 }
-};
+#include "latch.h"
 
 static void Sync(void) {
-	setchr8(gameblock);
-	setprg32(0x8000, gameblock);
+	if (iNESCart.submapper == 1) {
+		setprg32(0x8000, latch.data);
+	} else {
+		setprg16(0x8000, latch.data);
+		setprg16(0xC000, latch.data);
+	}
+	setchr8(latch.data);
+	setmirror((latch.data >> 7) & 0x01);
 }
 
-static void BMCRESETNROMXIN1Power(void) {
-	gameblock = 0;
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
+static DECLFW(M343Write) {
+	Latch_Write(A, V ^ 0xFF);
 }
 
-static void BMCRESETNROMXIN1Reset(void) {
-	gameblock++;
-	gameblock &= limit;
-	Sync();
+static void M343Power(void) {
+	Latch_Power();
+	SetWriteHandler(0x8000, 0xFFFF, M343Write);
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
-
-void BMCRESETNROMXIN1_Init(CartInfo *info) {
-	limit = 0x01;
-	info->Power = BMCRESETNROMXIN1Power;
-	info->Reset = BMCRESETNROMXIN1Reset;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
-}
-
-void BMCKS106C_Init(CartInfo *info) {
-	limit = 0x03;
-	info->Power = BMCRESETNROMXIN1Power;
-	info->Reset = BMCRESETNROMXIN1Reset;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper343_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M343Power;
 }

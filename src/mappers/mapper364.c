@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,32 +22,41 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M364CW(uint32 A, uint8 V) {
-	V &= (EXPREGS[0] & 0x20) ? 0x7F : 0xFF;
-	setchr1(A, V | ((EXPREGS[0] << 4) & 0x100));
+static uint8 reg;
+
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 }
+};
+
+static void M364CW(uint16 A, uint16 V) {
+	uint8 mask = (reg & 0x20) ? 0x7F : 0xFF;
+
+	setchr1(A, ((reg << 4) & 0x100) | (V & mask));
 }
 
-static void M364PW(uint32 A, uint8 V) {
-	V &= (EXPREGS[0] & 0x20) ? 0x0F : 0x1F;
-	setprg8(A, V | ((EXPREGS[0] >> 1) & 0x20));
+static void M364PW(uint16 A, uint16 V) {
+	uint8 mask = (reg & 0x20) ? 0x0F : 0x1F;
+
+	setprg8(A, ((reg >> 1) & 0x20) | (V & mask));
 }
 
-static void M364Write(uint32 A, uint8 V) {
-	EXPREGS[0] = V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(M364Write) {
+	reg = V;
+	MMC3_FixPRG();
+	MMC3_FixCHR();
 }
 
 static void M364Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x7000, 0x7FFF, M364Write);
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M364Write);
 }
 
 void Mapper364_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 512, 8, 0);
-	pwrap = M364PW;
-	cwrap = M364CW;
+	MMC3_Init(info, 8, 0);
+	MMC3_pwrap = M364PW;
+	MMC3_cwrap = M364CW;
 	info->Power = M364Power;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+	AddExState(StateRegs, ~0, 0, NULL);
 }

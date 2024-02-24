@@ -25,7 +25,12 @@ static uint32 MReal, MRet;
 
 static uint8 MJ_Read(int w, uint8 ret) {
 	if (w) {
+/*  ret|=(MRet&1)<<1; */
 		ret |= ((MRet & 0x80) >> 6) & 2;
+/*  MRet>>=1; */
+  #ifdef FCEUDEF_DEBUGGER
+		if (!fceuindbg)
+  #endif
 		MRet <<= 1;
 	}
 	return(ret);
@@ -49,7 +54,9 @@ static void MJ_Write(uint8 v) {
 		MRet = (MReal >> 8) & 0x3F;
 }
 
-static void MJ_Update(void *data, int arg) { MReal = *(uint32*)data; }
+static void MJ_Update(void *data, int arg) {
+	MReal = *(uint32*)data;
+}
 
 static INPUTCFC Mahjong = { MJ_Read, MJ_Write, 0, MJ_Update, 0, 0 };
 

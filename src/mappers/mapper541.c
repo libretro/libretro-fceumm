@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +16,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
-#include "mapinc.h"
-
-/* Forward declarations */
-extern uint16 latche;
-void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram);
-
-/*------------------ Map 541 ---------------------------*/
 /* LittleCom 160-in-1 multicart */
-static void M541Sync(void) {
-	if (latche & 2) {
-		/* NROM-128 */
-		setprg16(0x8000, latche >> 2);
-		setprg16(0xC000, latche >> 2);
-	} else {
-		/* NROM=256 */
-		setprg32(0x8000, latche >> 3);
+
+#include "mapinc.h"
+#include "latch.h"
+
+static void Sync(void) {
+	if (latch.addr & 2) { /* NROM-128 */
+		setprg16(0x8000, latch.addr >> 2);
+		setprg16(0xC000, latch.addr >> 2);
+	} else { /* NROM=256 */
+		setprg32(0x8000, latch.addr >> 3);
 	}
 	setchr8(0);
-	setmirror(latche & 1);
+	setmirror(latch.addr & 0x01);
+}
+
+static DECLFW(M541Write) {
+	if (A >= 0xC000) {
+		latch.addr = A;
+		Sync();
+	}
+}
+
+static void M541Power(void) {
+	Latch_Power();
+	SetWriteHandler(0x8000, 0xFFFF, M541Write);
 }
 
 void Mapper541_Init(CartInfo *info) {
-	Latch_Init(info, M541Sync, NULL, 0x0000, 0xC000, 0xFFFF, 0);
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M541Power;
+	info->Reset = Latch_RegReset;
 }

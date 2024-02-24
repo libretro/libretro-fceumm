@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2006 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,34 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-/* Forward declarations */
-extern uint16 latche;
-void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram);
-
-/*------------------ Map 212 ---------------------------*/
-
-static uint8 M212Read(uint32 A) {
-	uint8 ret = CartBROB(A);
-	if ((A & 0xE010) == 0x6000)
-		ret |= 0x80;
-	return ret;
+static void Sync(void) {
+	if (latch.addr & 0x4000) {
+		setprg32(0x8000, latch.addr >> 1);
+	} else {
+		setprg16(0x8000, latch.addr);
+		setprg16(0xC000, latch.addr);
+	}
+	setchr8(latch.addr);
+	setmirror(((latch.addr >> 3) & 0x01) ^ 0x01);
 }
 
-static void M212Sync(void) {
-	if (latche & 0x4000) {
-		setprg32(0x8000, (latche >> 1) & 3);
-	} else {
-		setprg16(0x8000, latche & 7);
-		setprg16(0xC000, latche & 7);
-	}
-	setchr8(latche & 7);
-	setmirror(((latche >> 3) & 1) ^ 1);
+static DECLFR(M212Read) {
+	return (cpu.openbus & ~0x80) | ((A & 0x10) ? 0 : 0x80);
+}
+
+static void M212Power(void) {
+	Latch_Power();
+	SetReadHandler(0x6000, 0x7FFF, M212Read);
 }
 
 void Mapper212_Init(CartInfo *info) {
-	Latch_Init(info, M212Sync, M212Read, 0x0000, 0x8000, 0xFFFF, 0);
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M212Power;
 }

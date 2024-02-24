@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2015 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,67 +19,68 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
- /* Updated 6-27-19 */
+/* NES 2.0 Mapper 519
+ * UNIF board name UNL-EH8813A
+ */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 datalatch, addrlatch, lock, hw_mode;
+static uint8 lock, dipsw, chr, ram[4];
 
-static SFORMAT StateRegs[] =
-{
-	{ &addrlatch, 1, "ADRL" },
-	{ &datalatch, 1, "DATL" },
-	{ &hw_mode,   1, "HWMO" },
-	{ &lock,      1, "LOCK" },
+static SFORMAT StateRegs[] = {
+	{ &dipsw, 1, "DPSW" },
+	{ &lock, 1, "LOCK" },
+	{ &chr, 1, "CREG" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	uint8 prg = (addrlatch & 0x3F);
-	setchr8(datalatch);
-	if (addrlatch & 0x80) {
-		setprg16(0x8000,prg);
-		setprg16(0xC000,prg);
-	} else {
-		setprg32(0x8000,prg >> 1);
-	}
-	setmirror(((datalatch >> 7) & 1) ^ 1);
-}
-
-static void EH8813AWrite(uint32 A, uint8 V) {
 	if (lock == 0) {
-		addrlatch = A & 0xFF;
-		datalatch = V & 0xFC;
-		lock = (A & 0x100) >> 8;
+		if (latch.addr & 0x80) {
+			setprg16(0x8000, latch.addr);
+			setprg16(0xC000, latch.addr);
+		} else {
+			setprg32(0x8000, latch.addr >> 1);
+		}
+		setmirror(((latch.data >> 7) & 0x01) ^ 0x01);
+		lock = (latch.addr & 0x100) == 0x100;
+		chr = latch.data & 0x7C;
 	}
-	datalatch = (datalatch & ~0x03) | (V & 0x03);
-	Sync();
+	setchr8(chr | (latch.data & 0x03));
 }
 
-static uint8 EH8813ARead(uint32 A) {
-	if (addrlatch & 0x40)
-		A= (A & 0xFFF0) + hw_mode;
+static DECLFR(M519ReadRAM) {
+	return ram[A & 0x03];
+}
+
+static DECLFW(M519WriteRAM) {
+	ram[A & 0x03] = V & 0x0F;
+}
+
+static DECLFR(M519Read) {
+	if (latch.addr & 0x40) {
+		return CartBR((A & 0xFFF0) | (dipsw & 0x0F));
+	}
 	return CartBR(A);
 }
 
-static void EH8813APower(void) {
-	addrlatch = datalatch = hw_mode = lock = 0;
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, EH8813ARead);
-	SetWriteHandler(0x8000, 0xFFFF, EH8813AWrite);
+static void M519Power(void) {
+	dipsw = lock = 0;
+	Latch_Power();
+	SetReadHandler(0x5800, 0x5FFF, M519ReadRAM);
+	SetWriteHandler(0x5800, 0x5FFF, M519WriteRAM);
 }
 
-static void EH8813AReset(void) {
-	addrlatch = datalatch = lock = 0;
-	hw_mode = (hw_mode + 1) & 0xF;
-	Sync();
+static void M519Reset(void) {
+	lock = 0;
+	dipsw++;
+	Latch_RegReset();
 }
 
-static void StateRestore(int version) { Sync(); }
-
-void UNLEH8813A_Init(CartInfo *info) {
-	info->Reset = EH8813AReset;
-	info->Power = EH8813APower;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper519_Init(CartInfo *info) {
+	Latch_Init(info, Sync, M519Read, FALSE, FALSE);
+	info->Reset = M519Reset;
+	info->Power = M519Power;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

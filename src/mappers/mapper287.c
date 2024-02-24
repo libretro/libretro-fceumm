@@ -1,8 +1,9 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2008 CaH4e3
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,69 +29,70 @@
  * - 19-in-1(K-3088)(810849-C)(Unl)
  */
 
+/* 2023-03-02
+ - use PRG size to determine variant
+ - remove forced mask for outer-bank (rely on internal mask set during PRG/CHR mapping)
+ */
+
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 reset_flag = 0;
+static uint8 reg;
+static uint8 dipsw;
 
-static void BMCK3088CCW(uint32 A, uint8 V) {
-	setchr1(A, V | ((EXPREGS[0] & 0x07) << 7));
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ &dipsw, 1, "DPSW" },
+	{ 0 }
+};
+
+static void M287CW(uint16 A, uint16 V) {
+	uint16 base = reg & 0x07;
+
+	setchr1(A, (base << 7) | (V & 0x7F));
 }
 
-static void BMCK3088CPW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 8) { 	/* 32K Mode */
-		if (A == 0x8000)
-			/* bit 0-1 of register should be used as outer bank regardless of banking modes */
-			setprg32(A, ((EXPREGS[0] >> 4) & 3) | ((EXPREGS[0] & 0x07) << 2));
-	} else													/* MMC3 Mode */
-		setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 0x07) << 4));
+static void M287PW(uint16 A, uint16 V) {
+	uint16 mode = reg & ((dipsw && ((ROM.prg.size * 16) <= 512)) ? 0x0C : 0x08);
+	uint16 base = reg & 0x07;
+
+	if (mode) {
+		/* 32K Mode */
+		setprg32(0x8000, (base << 2) | ((reg >> 4) & 0x03));
+		/* FCEU_printf("32K mode: bank:%02x\n", ((reg >> 4) & 3) | ((reg & 7) << 2)); */
+	} else {
+		/* MMC3 Mode */
+		setprg8(A, (base << 4) | (V & 0x0F));
+		/* FCEU_printf("MMC3: %04x:%02x\n", A, (V & 0x0F) | ((reg & 7) << 4)); */
+	}
 }
 
-static void BMC411120CCW(uint32 A, uint8 V) {
-	setchr1(A, V | ((EXPREGS[0] & 0x03) << 7));
+static DECLFW(M287WriteReg) {
+	/*	printf("Wr: A:%04x V:%02x\n", A, V); */
+	if (MMC3_WramIsWritable()) {
+		reg = A;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+	}
 }
 
-static void BMC411120CPW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & (8 | reset_flag)) { 	/* 32K Mode */
-		if (A == 0x8000)
-			/* bit 0-1 of register should be used as outer bank regardless of banking modes */
-			setprg32(A, ((EXPREGS[0] >> 4) & 3) | ((EXPREGS[0] & 0x03) << 2));
-	} else													/* MMC3 Mode */
-		setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 0x03) << 4));
+static void M287Reset(void) {
+	reg = 0;
+	dipsw ^= 4;
+	MMC3_Reset();
 }
 
-static void BMC411120CLoWrite(uint32 A, uint8 V) {
-	EXPREGS[0] = A;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static void M287Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M287WriteReg);
 }
 
-static void BMC411120CReset(void) {
-	EXPREGS[0] = 0;
-	reset_flag ^= 4;
-	MMC3RegReset();
-}
-
-static void BMC411120CPower(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, BMC411120CLoWrite);
-}
-
-void BMC411120C_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 8, 0);
-	pwrap       = BMC411120CPW;
-	cwrap       = BMC411120CCW;
-	info->Power = BMC411120CPower;
-	info->Reset = BMC411120CReset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
-}
-
-void BMCK3088_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 8, 0);
-	pwrap       = BMCK3088CPW;
-	cwrap       = BMCK3088CCW;
-	info->Power = BMC411120CPower;
-	info->Reset = BMC411120CReset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+void Mapper287_Init(CartInfo *info) {
+	MMC3_Init(info, 0, 0);
+	MMC3_pwrap = M287PW;
+	MMC3_cwrap = M287CW;
+	info->Power = M287Power;
+	info->Reset = M287Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

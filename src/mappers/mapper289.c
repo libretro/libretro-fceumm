@@ -23,59 +23,59 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 latch, reg[2];
+static uint8 reg[2];
+static uint8 dipsw;
 
-static SFORMAT StateRegs[] =
-{
-	{ &latch, 1, "LATC" },
+static SFORMAT StateRegs[] = {
 	{ reg, 2, "REGS" },
+	{ &dipsw, 1, "DPSW" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (reg[0] &2) { /* UNROM */
-		setprg16(0x8000, latch &7 | reg[1] &~7);
-		setprg16(0xC000,        7 | reg[1] &~7);
-	} else
-	if (reg[0] &1)   /* NROM-256 */
-		setprg32(0x8000, reg[1] >>1);
-	else {           /* NROM-128 */
-		setprg16(0x8000, reg[1]);
-		setprg16(0xC000, reg[1]);
+	uint32 bank = reg[1] & 0x7F;
+
+	if (reg[0] & 0x02) {
+		setprg16(0x8000, (bank & ~0x07) | ((reg[0] & 0x01) ? 0x07 : (latch.data & 0x07)));
+		setprg16(0xC000, bank | 0x07);
+	} else {
+		setprg16(0x8000, bank & ~(reg[0] & 0x01));
+		setprg16(0xC000, bank |  (reg[0] & 0x01));
 	}
-	SetupCartCHRMapping(0, CHRptr[0], 0x2000, !(reg[0] &4)); /* CHR-RAM write-protect */
+	/* CHR-RAM write-protect */
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, ((reg[0] >> 2) & 0x01) ^ 0x01);
 	setchr8(0);
-	setmirror(!(reg[0] &8));
+	setmirror(((reg[0] >> 3) & 0x01) ^ 0x01);
 }
 
-static void WriteReg(uint32 A, uint8 V) {
-	reg[A &1] =V;
+static DECLFR(M289Read) {
+	return (cpu.openbus & ~0x03) | (dipsw & 0x03);
+}
+
+static DECLFW(M289Write) {
+	reg[A & 0x01] = V;
 	Sync();
 }
 
-static void WriteLatch(uint32 A, uint8 V) { latch = V; Sync(); }
-
-static void BMC60311CPower(void) {
-	latch =reg[0] =reg[1] =0;
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x6000, 0x6001, WriteReg);
-	SetWriteHandler(0x8000, 0xFFFF, WriteLatch);
+static void M289Power(void) {
+	dipsw = 0;
+	reg[0] = reg[1] = 0;
+	Latch_Power();
+	SetReadHandler(0x6000, 0x7FFF, M289Read);
+	SetWriteHandler(0x6000, 0x7FFF, M289Write);
 }
 
-static void BMC60311CReset(void) {
-	latch =reg[0] =reg[1] =0;
-	Sync();
+static void M289Reset(void) {
+	dipsw++;
+	reg[0] = reg[1] = 0;
+	Latch_RegReset();
 }
 
-static void BMC60311CRestore(int version) {
-	Sync();
-}
-
-void BMC60311C_Init(CartInfo *info) {
-	info->Power = BMC60311CPower;
-	info->Reset = BMC60311CReset;
-	GameStateRestore = BMC60311CRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper289_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Power = M289Power;
+	info->Reset = M289Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

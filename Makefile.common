@@ -38,19 +38,24 @@ endif
 SOURCES_C += \
 	$(LIBRETRO_DIR)/libretro.c \
 	$(LIBRETRO_DIR)/libretro_dipswitch.c \
+	$(LIBRETRO_DIR)/libretro_input.c \
 	$(SOURCE_DIR)/cart.c \
 	$(SOURCE_DIR)/cheat.c \
 	$(SOURCE_DIR)/crc32.c \
+	$(SOURCE_DIR)/drawing.c \
 	$(SOURCE_DIR)/fceu-endian.c \
 	$(SOURCE_DIR)/fceu-memory.c \
 	$(SOURCE_DIR)/fceu.c \
 	$(SOURCE_DIR)/fds.c \
 	$(SOURCE_DIR)/file.c \
 	$(SOURCE_DIR)/filter.c \
+	$(SOURCE_DIR)/gamegenie.c \
 	$(SOURCE_DIR)/general.c \
 	$(SOURCE_DIR)/input.c \
+	$(SOURCE_DIR)/mappers.c \
 	$(SOURCE_DIR)/md5.c \
 	$(SOURCE_DIR)/nsf.c \
+	$(SOURCE_DIR)/nsfe.c \
 	$(SOURCE_DIR)/palette.c \
 	$(SOURCE_DIR)/ppu.c \
 	$(SOURCE_DIR)/sound.c \
@@ -71,6 +76,7 @@ ifneq ($(STATIC_LINKING), 1)
 		$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
 		$(LIBRETRO_COMM_DIR)/file/file_path.c \
 		$(LIBRETRO_COMM_DIR)/file/file_path_io.c \
+		$(LIBRETRO_COMM_DIR)/memmap/memalign.c \
 		$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
 		$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
 		$(LIBRETRO_COMM_DIR)/streams/memory_stream.c \

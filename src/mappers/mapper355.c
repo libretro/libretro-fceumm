@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,76 +18,118 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+/* NOTE: This only emulates the UNIF variant of 3D-Blocks */
+
 #include "mapinc.h"
 
-static uint8 reg[4], IRQa;
-static int16 IRQCount, IRQPause;
+#include "mapper355.h"
+#include "hw/pic16c5x.h"
 
-static int16 Count = 0x0000;
+static uint32 address;
+static uint8 *eprom = NULL;
 
-static SFORMAT StateRegs[] =
-{
-	{ reg, 4, "REGS" },
-	{ &IRQa, 1, "IRQA" },
-	{ &IRQCount, 2, "IRQC" },
-	{ 0 }
-};
-
-static void UNL3DBlockSync(void) {
-	setprg32(0x8000, 0);
-	setchr8(0);
-}
-
-#define Pause 0x010
-
-static void UNL3DBlockWrite(uint32 A, uint8 V) {
-	switch (A) {
-/* 4800 32 */
-/* 4900 37 */
-/* 4a00 01 */
-/* 4e00 18 */
-	case 0x4800: reg[0] = V; break;
-	case 0x4900: reg[1] = V; break;
-	case 0x4a00: reg[2] = V; break;
-	case 0x4e00: reg[3] = V; IRQCount = Count; IRQPause = Pause; IRQa = 1; X6502_IRQEnd(FCEU_IQEXT); break;
+static uint8_t pci16c5x_read(int port) {
+	if (port == 0) {
+		return (1 |
+			(address & 0x0040 ? 0x02 : 0) | /*  A6 -> RA1 */
+			(address & 0x0020 ? 0x04 : 0) | /*  A5 -> RA2 */
+			(address & 0x0010 ? 0x08 : 0)); /*  A4 -> RA3 */
+	} else if (port == 1) {
+		return (
+			(address & 0x1000 ? 0x01 : 0) | /* A12 -> RB0 */
+			(address & 0x0080 ? 0x02 : 0) | /*  A7 -> RB1 */
+			(address & 0x0400 ? 0x04 : 0) | /* A10 -> RB2 */
+			(address & 0x0800 ? 0x08 : 0) | /* A11 -> RB3 */
+			(address & 0x0200 ? 0x10 : 0) | /*  A9 -> RB4 */
+			(address & 0x0100 ? 0x20 : 0) | /*  A8 -> RB5 */
+			(address & 0x2000 ? 0x40 : 0) | /* A13 -> RB6 */
+			(address & 0x4000 ? 0x80 : 0)); /* A14 -> RB7 */
 	}
+	return (0xFF);
 }
 
-static void UNL3DBlockPower(void) {
-	UNL3DBlockSync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x4800, 0x4E00, UNL3DBlockWrite);
-}
-
-static void UNL3DBlockReset(void) {
-	Count += 0x10;
-}
-
-static void  UNL3DBlockIRQHook(int a) {
-	if (IRQa) {
-		if (IRQCount > 0) {
-			IRQCount -= a;
+static void pci16c5x_write(int port, int val) {
+	if (port == 0) {
+		if (val & 0x1001) {
+			X6502_IRQEnd(FCEU_IQEXT);
 		} else {
-			if (IRQPause > 0) {
-				IRQPause -= a;
-				X6502_IRQBegin(FCEU_IQEXT);
-			} else {
-				IRQCount = Count;
-				IRQPause = Pause;
-				X6502_IRQEnd(FCEU_IQEXT);
-			}
+			X6502_IRQBegin(FCEU_IQEXT);
 		}
 	}
 }
 
-static void UNL3DBlockStateRestore(int version) {
-	UNL3DBlockSync();
+static void M355CPUIRQHook(int a) {
+	while (a--) {
+		pic16c5x_run();
+	}
 }
 
-void UNL3DBlock_Init(CartInfo *info) {
-	info->Power = UNL3DBlockPower;
-	info->Reset = UNL3DBlockReset;
-	MapIRQHook = UNL3DBlockIRQHook;
-	GameStateRestore = UNL3DBlockStateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+static readfunc cpuRead[0x10000];
+static writefunc cpuWrite[0x10000];
+
+static DECLFR(M555Read) {
+	address = A;
+	if (A >= 0x8000) {
+		return CartBR(A);
+	}
+	return cpuRead[A](A);
+}
+
+static DECLFW(M555Write) {
+	address = A;
+	if (cpuWrite[A]) {
+		cpuWrite[A](A, V);
+	}
+}
+
+static void M555Power(void) {
+	int x;
+
+	address = 0;
+
+	pic16c5x_reset(1);
+
+	setprg32(0x8000, 0);
+	setchr8(0);
+
+	for (x = 0; x < 0x10000; x++) {
+		cpuRead[x] = GetReadHandler(x);
+		cpuWrite[x] = GetWriteHandler(x);
+	}
+
+	SetReadHandler(0, 0xFFFF, M555Read);
+	SetWriteHandler(0, 0xFFFF, M555Write);
+}
+
+static void M555Reset(void) {
+	address = 0;
+	pic16c5x_reset(0);
+}
+
+static void M555Close(void) {
+	eprom = NULL;
+}
+
+void Mapper355_Init(CartInfo *info) {
+	if (ROM.misc.data && (ROM.misc.size == 1024)) {
+		eprom = ROM.misc.data;
+	} else {
+		if (info->CRC32 == 0x86DBA660) { /* 3D Block (Hwang Shinwei) [!].nes */
+			eprom = &eprom_3d_block[0];
+		} else if ((info->CRC32 == 0x3C43939D) || /* Block Force.nes */
+		           (info->CRC32 == 0xB655C53A)) { /* Block Force (Hwang Shinwei).nes */
+			eprom = &eprom_block_force[0];
+		}
+	}
+
+	if (eprom) {
+		pic16c54_init(eprom, pci16c5x_read, pci16c5x_write);
+		pic16c5x_add_statesinfo();
+	}
+
+	info->Power = M555Power;
+	info->Reset = M555Reset;
+	info->Close = M555Close;
+	MapIRQHook = M355CPUIRQHook;
+	AddExState(&address, sizeof(address), 0, "ADDR");
 }

@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,59 +23,46 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint16 cmdreg;
-static uint8 reset;
-static SFORMAT StateRegs[] =
-{
-	{ &reset, 1, "REST" },
-	{ &cmdreg, 2, "CREG" },
+static uint8 dipsw;
+
+static SFORMAT StateRegs[] = {
+	{ &dipsw, 1, "DPSW" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	uint32 base = ((cmdreg & 0x060) | ((cmdreg & 0x100) >> 1)) >> 2;
-	uint32 bank = (cmdreg & 0x01C) >> 2;
-	uint32 lbank = (cmdreg & 0x200) ? 7 : ((cmdreg & 0x80) ? bank : 0);
+	uint8 prg   = (latch.addr >> 2) & 0x1F;
+	uint8 nrom  = (latch.addr & 0x80) != 0;
+	uint8 unrom = (latch.addr & 0x200) != 0;
 
-	setprg16(0x8000, base | bank);
-	setprg16(0xC000, base | lbank);
-	setmirror(((cmdreg & 2) >> 1) ^ 1);
+	setprg16(0x8000, prg);
+	setprg16(0xC000, (prg & ~(0x07 * nrom)) | (0x07 * unrom));
+	setchr8(0);
+	setmirror(((latch.addr & 2) >> 1) ^ 1);
 }
 
-static uint8 UNL8157Read(uint32 A) {
-	if ((cmdreg & 0x100) && (PRGsize[0] < (1024 * 1024)))
-		A = (A & 0xFFF0) + reset;
+static DECLFR(M301Read) {
+	if ((latch.addr & 0x100) && (PRGsize[0] <= (512 * 1024))) {
+		A = (A & 0xFFFE) + (dipsw & 0x01);
+	}
 	return CartBR(A);
 }
 
-static void UNL8157Write(uint32 A, uint8 V) {
-	cmdreg = A;
-	Sync();
+static void M301Power(void) {
+	dipsw = 0;
+	Latch_Power();
 }
 
-static void UNL8157Power(void) {
-	setchr8(0);
-	SetWriteHandler(0x8000, 0xFFFF, UNL8157Write);
-	SetReadHandler(0x8000, 0xFFFF, UNL8157Read);
-	cmdreg = reset = 0;
-	Sync();
+static void M301Reset(void) {
+	dipsw++;
+	Latch_RegReset();
 }
 
-static void UNL8157Reset(void) {
-	cmdreg = reset = 0;
-	reset++;
-	reset &= 0x1F;
-	Sync();
-}
-
-static void UNL8157Restore(int version) {
-	Sync();
-}
-
-void UNL8157_Init(CartInfo *info) {
-	info->Power = UNL8157Power;
-	info->Reset = UNL8157Reset;
-	GameStateRestore = UNL8157Restore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper301_Init(CartInfo *info) {
+	Latch_Init(info, Sync, M301Read, FALSE, FALSE);
+	info->Power = M301Power;
+	info->Reset = M301Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

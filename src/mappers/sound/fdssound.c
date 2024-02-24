@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,231 +15,331 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 
-/* Begin FDS sound */
-#include <string.h>
-#include "fceu-types.h"
-#include "../../x6502.h"
-#include "../../fceu.h"
-#include "../../sound.h"
-#include "../../state.h"
+/* FDSSound rewrite based on MDFN NES fds sound implementation, modifed for fceumm's use. */
+/* WIP as some crackling sounds can be annoyingly heard and other issues. */
 
-#define FDSClock (1789772.7272727272727272 / 2)
+#include "mapinc.h"
+#include "fdssound.h"
 
-typedef struct {
-	int64 cycles;		/* Cycles per PCM sample */
-	int64 count;		/* Cycle counter */
-	int64 envcount;		/* Envelope cycle counter */
-	uint32 b19shiftreg60;
-	uint32 b24adder66;
-	uint32 b24latch68;
-	uint32 b17latch76;
-	int32 clockcount;	/* Counter to divide frequency by 8. */
-	uint8 b8shiftreg88;	/* Modulation register. */
-	uint8 amplitude[2];	/* Current amplitudes. */
-	uint8 speedo[2];
-	uint8 mwcount;
-	uint8 mwstart;
-	uint8 mwave[0x20];	/* Modulation waveform */
-	uint8 cwave[0x40];	/* Game-defined waveform(carrier) */
-	uint8 SPSG[0xB];
-} FDSSOUND;
+static void RenderSoundHQ(void);
+static void RenderSound(void);
 
-static FDSSOUND fdso;
+static const int32 mod_bias_tab[8] = { 0, 1, 2, 4, 0, -4, -2, -1 };
+
+static FDSSOUND fdso = { 0 };
 static int32 FBC = 0;
 
-#define  SPSG  fdso.SPSG
-#define b19shiftreg60  fdso.b19shiftreg60
-#define b24adder66  fdso.b24adder66
-#define b24latch68  fdso.b24latch68
-#define b17latch76  fdso.b17latch76
-#define b8shiftreg88  fdso.b8shiftreg88
-#define clockcount  fdso.clockcount
-#define amplitude  fdso.amplitude
-#define speedo    fdso.speedo
+void FDSSound_AddStateInfo(void) {
+	AddExState(&fdso.EnvUnits[EVOL].speed,    1, 0, "SPD0");
+	AddExState(&fdso.EnvUnits[EVOL].control,  1, 0, "CTL0");
+	AddExState(&fdso.EnvUnits[EVOL].volume,   1, 0, "VOL0");
+	AddExState(&fdso.EnvUnits[EVOL].counter,  1, 0, "CNT0");
 
-void FDSSoundStateAdd(void) {
-	AddExState(fdso.cwave, 64, 0, "WAVE");
-	AddExState(fdso.mwave, 32, 0, "MWAV");
-	AddExState(amplitude, 2, 0, "AMPL");
-	AddExState(SPSG, 0xB, 0, "SPSG");
+	AddExState(&fdso.EnvUnits[EMOD].speed,    1, 0, "SPD1");
+	AddExState(&fdso.EnvUnits[EMOD].control,  1, 0, "CTL1");
+	AddExState(&fdso.EnvUnits[EMOD].volume,   1, 0, "VOL1");
+	AddExState(&fdso.EnvUnits[EMOD].counter,  1, 0, "CNT1");
 
-	AddExState(&b8shiftreg88, 1, 0, "B88");
+	AddExState(fdso.cwave,                   64, 0, "WAVE");
+	AddExState(fdso.mwave,                   32, 0, "MWAV");
 
-	AddExState(&clockcount, 4, 1, "CLOC");
-	AddExState(&b19shiftreg60, 4, 1, "B60");
-	AddExState(&b24adder66, 4, 1, "B66");
-	AddExState(&b24latch68, 4, 1, "B68");
-	AddExState(&b17latch76, 4, 1, "B76");
+	AddExState(&fdso.cwave_freq,              2, 0, "WFRQ");
+	AddExState(&fdso.cwave_pos,               4, 0, "WPOS");
+	AddExState(&fdso.cwave_control,           1, 0, "WCTL");
+
+	AddExState(&fdso.mod_freq,                2, 0, "MFRQ");
+	AddExState(&fdso.mod_pos,                 4, 0, "MPOS");
+	AddExState(&fdso.mod_control,             1, 0, "MCTL");
+
+	AddExState(&fdso.sweep_bias,              4, 0, "SWBS");
+
+	AddExState(&fdso.master_control,          1, 0, "MCTL");
+	AddExState(&fdso.master_env_speed,        1, 0, "MSPD");
+
+	AddExState(&fdso.envcount,                2, 0, "EDIV");
 }
 
-static uint8 FDSSRead(uint32 A) {
-	switch (A & 0xF) {
-	case 0x0: return(amplitude[0] | (cpu.openbus & 0xC0));
-	case 0x2: return(amplitude[1] | (cpu.openbus & 0xC0));
-	}
-	return(cpu.openbus);
-}
-
-static void RenderSound(void);
-static void RenderSoundHQ(void);
-
-static void FDSSWrite(uint32 A, uint8 V) {
+static void FDSSoundUpdate(void) {
 	if (FSettings.SndRate) {
-		if (FSettings.soundq >= 1)
+		if (FSettings.soundq >= 1) {
 			RenderSoundHQ();
-		else
-			RenderSound();
-	}
-	A -= 0x4080;
-	switch (A) {
-	case 0x0:
-	case 0x4:
-		if (V & 0x80)
-			amplitude[(A & 0xF) >> 2] = V & 0x3F;
-		break;
-	case 0x7:
-		b17latch76 = 0;
-		SPSG[0x5] = 0;
-		break;
-	case 0x8:
-		b17latch76 = 0;
-		fdso.mwave[SPSG[0x5] & 0x1F] = V & 0x7;
-		SPSG[0x5] = (SPSG[0x5] + 1) & 0x1F;
-		break;
-	}
-	SPSG[A] = V;
-}
-
-/* $4080 - Fundamental wave amplitude data register 92
- * $4082 - Fundamental wave frequency data register 58
- * $4083 - Same as $4082($4083 is the upper 4 bits).
- *
- * $4084 - Modulation amplitude data register 78
- * $4086 - Modulation frequency data register 72
- * $4087 - Same as $4086($4087 is the upper 4 bits)
- */
-
-
-static void DoEnv(void) {
-	int x;
-
-	for (x = 0; x < 2; x++)
-		if (!(SPSG[x << 2] & 0x80) && !(SPSG[0x3] & 0x40)) {
-			static int counto[2] = { 0, 0 };
-
-			if (counto[x] <= 0) {
-				if (!(SPSG[x << 2] & 0x80)) {
-					if (SPSG[x << 2] & 0x40) {
-						if (amplitude[x] < 0x3F)
-							amplitude[x]++;
-					} else {
-						if (amplitude[x] > 0)
-							amplitude[x]--;
-					}
-				}
-				counto[x] = (SPSG[x << 2] & 0x3F);
-			} else
-				counto[x]--;
-		}
-}
-
-static uint8 FDSWaveRead(uint32 A) {
-	return(fdso.cwave[A & 0x3f] | (cpu.openbus & 0xC0));
-}
-
-static void FDSWaveWrite(uint32 A, uint8 V) {
-	if (SPSG[0x9] & 0x80)
-		fdso.cwave[A & 0x3f] = V & 0x3F;
-}
-
-static INLINE void ClockRise(void) {
-	if (!clockcount) {
-		b19shiftreg60 = (SPSG[0x2] | ((SPSG[0x3] & 0xF) << 8));
-		b17latch76 = (SPSG[0x6] | ((SPSG[0x07] & 0xF) << 8)) + b17latch76;
-
-		if (!(SPSG[0x7] & 0x80)) {
-			int t = fdso.mwave[(b17latch76 >> 13) & 0x1F] & 7;
-			int t2 = amplitude[1];
-			int adj = 0;
-
-			if ((t & 3)) {
-				if ((t & 4))
-					adj -= (t2 * ((4 - (t & 3))));
-				else
-					adj += (t2 * ((t & 3)));
-			}
-			adj *= 2;
-			if (adj > 0x7F) adj = 0x7F;
-			if (adj < -0x80) adj = -0x80;
-			b8shiftreg88 = 0x80 + adj;
 		} else {
-			b8shiftreg88 = 0x80;
+			RenderSound();
 		}
-	} else {
-		b19shiftreg60 <<= 1;
-		b8shiftreg88 >>= 1;
 	}
-	b24adder66 = (b24latch68 + b19shiftreg60) & 0x1FFFFFF;
 }
 
-static INLINE void ClockFall(void) {
-	if ((b8shiftreg88 & 1))
-		b24latch68 = b24adder66;
-	clockcount = (clockcount + 1) & 7;
+DECLFR(FDSWaveRead) {
+	if (fdso.master_control & WAVE_WRITE_MODE) {
+		return (OPENBUS | fdso.cwave[A & 0x3F]);
+	}
+	return (OPENBUS | fdso.cwave[(fdso.cwave_pos >> 21) & 0x3F]);
 }
+
+DECLFW(FDSWaveWrite) {
+	if (fdso.master_control & WAVE_WRITE_MODE) {
+		fdso.cwave[A & 0x3f] = V & 0x3F;
+	}
+}
+
+DECLFW(FDSSReg0Write) {
+	FDSSoundUpdate();
+
+	fdso.EnvUnits[EVOL].speed = V & 0x3F;
+	fdso.EnvUnits[EVOL].control = V & 0xC0;
+
+	fdso.EnvUnits[EVOL].counter = fdso.EnvUnits[EVOL].speed + 1;
+
+	if (fdso.EnvUnits[EVOL].control & ENV_CTRL_DISABLE) {
+		fdso.EnvUnits[EVOL].volume = fdso.EnvUnits[EVOL].speed;
+	}
+}
+
+DECLFW(FDSSReg1Write) {
+	FDSSoundUpdate();
+
+	fdso.cwave_freq &= 0x0F00;
+	fdso.cwave_freq |= V;
+}
+
+DECLFW(FDSSReg2Write) {
+	FDSSoundUpdate();
+
+	fdso.cwave_freq &= 0x00FF;
+	fdso.cwave_freq |= (V & 0x0F) << 8;
+
+	fdso.cwave_control = V & 0xC0;
+
+	if ((fdso.cwave_control & WAVE_DISABLE)) {
+		fdso.cwave_pos = 0;
+	}
+}
+
+DECLFW(FDSSReg3Write) {
+	FDSSoundUpdate();
+
+	fdso.EnvUnits[EMOD].speed = V & 0x3F;
+	fdso.EnvUnits[EMOD].control = V & 0xC0;
+
+	fdso.EnvUnits[EMOD].counter = fdso.EnvUnits[EMOD].speed + 1;
+
+	if (fdso.EnvUnits[EMOD].control & ENV_CTRL_DISABLE) {
+		fdso.EnvUnits[EMOD].volume = fdso.EnvUnits[EMOD].speed;
+	}
+}
+
+DECLFW(FDSSReg4Write) {
+	FDSSoundUpdate();
+
+	fdso.sweep_bias = (V & 0x7F) << 4;
+	fdso.mod_pos = 0;
+}
+
+DECLFW(FDSSReg5Write) {
+	FDSSoundUpdate();
+
+	fdso.mod_freq &= 0x0F00;
+	fdso.mod_freq |= V;
+}
+
+DECLFW(FDSSReg6Write) {
+	FDSSoundUpdate();
+
+	fdso.mod_freq &= 0x00FF;
+	fdso.mod_freq |= (V & 0x0F) << 8;
+
+	fdso.mod_control = V & 0xC0;
+
+	if (fdso.mod_control & MOD_WRITE_MODE) {
+		fdso.mod_pos = 0;
+	}
+}
+
+DECLFW(FDSSReg7Write) {
+	FDSSoundUpdate();
+
+	if (fdso.mod_control & MOD_WRITE_MODE) {
+		int i;
+		for (i = 0; i < 31; i++) {
+			fdso.mwave[i] = fdso.mwave[i + 1];
+		}
+		fdso.mwave[0x1F] = mod_bias_tab[V & 0x07];
+		if ((V & 0x07) == 0x04) {
+			fdso.mwave[0x1F] = 0x10;
+		}
+	}
+}
+
+DECLFW(FDSSReg8Write) {
+	FDSSoundUpdate();
+
+	fdso.master_control = V;
+}
+
+DECLFW(FDSSReg9Write) {
+	FDSSoundUpdate();
+
+	fdso.master_env_speed = V;
+}
+
+DECLFR(FDSEnvVolumeRead) {
+	FDSSoundUpdate();
+	return (OPENBUS | fdso.EnvUnits[EVOL].volume);
+}
+
+DECLFR(FDSEnvModRead) {
+	FDSSoundUpdate();
+	return (OPENBUS | fdso.EnvUnits[EMOD].volume);
+}
+
+#define sign_x_to_s32(n, v) ((int32)((uint32)(v) << (32 - (n))) >> (32 - (n)))
 
 static INLINE int32 FDSDoSound(void) {
+	uint32 prev_cwave_pos = fdso.cwave_pos;
+	static int32 temp;
+
 	fdso.count += fdso.cycles;
 	if (fdso.count >= ((int64)1 << 40)) {
- dogk:
+dogk:
 		fdso.count -= (int64)1 << 40;
-		ClockRise();
-		ClockFall();
-		fdso.envcount--;
-		if (fdso.envcount <= 0) {
-			fdso.envcount += SPSG[0xA] * 3;
-			DoEnv();
+
+		if (!(fdso.cwave_control & ENVELOPES_DISABLE) && fdso.master_env_speed) {
+			if (fdso.envcount) {
+				fdso.envcount--;
+			} else {
+				fdso.envcount = fdso.master_env_speed * 3;
+				if (!(fdso.EnvUnits[EVOL].control & ENV_CTRL_DISABLE)) {
+					if (fdso.EnvUnits[EVOL].counter) {
+						fdso.EnvUnits[EVOL].counter--;
+					} else {
+						fdso.EnvUnits[EVOL].counter = fdso.EnvUnits[EVOL].speed + 1;
+						if ((fdso.EnvUnits[EVOL].control & ENV_CTRL_INCREASE)) {
+							if (fdso.EnvUnits[EVOL].volume < 0x20) {
+								fdso.EnvUnits[EVOL].volume++;
+							}
+						} else {
+							if (fdso.EnvUnits[EVOL].volume > 0) {
+								fdso.EnvUnits[EVOL].volume--;
+							}
+						}
+					}
+				}
+
+				if (!(fdso.EnvUnits[EMOD].control & ENV_CTRL_DISABLE)) {
+					if (fdso.EnvUnits[EMOD].counter) {
+						fdso.EnvUnits[EMOD].counter--;
+					} else {
+						fdso.EnvUnits[EMOD].counter = fdso.EnvUnits[EMOD].speed + 1;
+						if ((fdso.EnvUnits[EMOD].control & ENV_CTRL_INCREASE)) {
+							if (fdso.EnvUnits[EMOD].volume < 0x20) {
+								fdso.EnvUnits[EMOD].volume++;
+							}
+						} else {
+							if (fdso.EnvUnits[EMOD].volume > 0) {
+								fdso.EnvUnits[EMOD].volume--;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (!(fdso.mod_control & MOD_WRITE_MODE)) {
+			uint32 prev_mod_pos = fdso.mod_pos;
+
+			fdso.mod_pos += fdso.mod_freq;
+			if ((fdso.mod_pos & (0x3F << 11)) !=
+			    (prev_mod_pos & (0x3F << 11))) {
+				const int32 mw = fdso.mwave[((fdso.mod_pos >> 16) & 0x1F)];
+
+				fdso.sweep_bias = (fdso.sweep_bias + mw) & 0x7FF;
+				if (mw == 0x10) {
+					fdso.sweep_bias = 0;
+				}
+			}
+
+			temp = sign_x_to_s32(11, fdso.sweep_bias) *
+			       ((fdso.EnvUnits[EMOD].volume > 0x20) ? 0x20 : fdso.EnvUnits[EMOD].volume);
+
+			if (temp & 0x0F0) {
+				temp /= 256;
+				if (fdso.sweep_bias & 0x400) {
+					temp--;
+				} else {
+					temp += 2;
+				}
+			} else {
+				temp /= 256;
+			}
+
+			if (temp >= 192) {
+				temp -= 256;
+			}
+			if (temp < -64) {
+				temp += 256;
+			}
+		}
+
+		if (!(fdso.cwave_control & WAVE_DISABLE)) {
+			int32 cur_cwave_freq = (int32)(fdso.cwave_freq << 6);
+
+			if (!(fdso.mod_control & MOD_WRITE_MODE)) {
+				cur_cwave_freq += (int32)fdso.cwave_freq * temp;
+				if (cur_cwave_freq < 0) {
+					cur_cwave_freq = 0;
+				}
+			}
+			fdso.cwave_pos = (fdso.cwave_pos + cur_cwave_freq) & 0x7FFFFFF;
 		}
 	}
-	if (fdso.count >= 32768) goto dogk;
+	if (fdso.count >= 32768) {
+		goto dogk;
+	}
 
 	/* Might need to emulate applying the amplitude to the waveform a bit better... */
 	{
-		int k = amplitude[0];
-		if (k > 0x20) k = 0x20;
-		return (fdso.cwave[b24latch68 >> 19] * k) * 4 / ((SPSG[0x9] & 0x3) + 2);
+		int k = fdso.EnvUnits[EVOL].volume;
+		if (k > 0x20) {
+			k = 0x20;
+		}
+		return (fdso.cwave[fdso.cwave_pos >> 21] * FSettings.volume[SND_FDS] * k * 4 / ((fdso.master_control & MASTER_VOLUME) + 2)) >> 8;
 	}
 }
 
 static void RenderSound(void) {
+	int32 end, start;
 	int32 x;
-	int32 start = FBC;
-	int32 end = (SOUNDTS << 16) / soundtsinc;
-	if (end <= start)
+
+	start = FBC;
+	end = (SOUNDTS << 16) / soundtsinc;
+	if (end <= start) {
 		return;
+	}
 	FBC = end;
 
-	if (!(SPSG[0x9] & 0x80))
+	if (!(fdso.master_control & WAVE_WRITE_MODE)) {
 		for (x = start; x < end; x++) {
 			uint32 t = FDSDoSound();
 			t += t >> 1;
 			t >>= 4;
 			Wave[x >> 4] += t;	/* (t>>2)-(t>>3); */ /* >>3; */
 		}
+	}
 }
 
 static void RenderSoundHQ(void) {
 	uint32 x;
 
-	if (!(SPSG[0x9] & 0x80))
+	if (!(fdso.master_control & WAVE_WRITE_MODE)) {
 		for (x = FBC; x < SOUNDTS; x++) {
 			uint32 t = FDSDoSound();
 			t += t >> 1;
 			WaveHi[x] += t;	/* (t<<2)-(t<<1); */
 		}
+	}
 	FBC = SOUNDTS;
 }
 
@@ -247,12 +347,17 @@ static void HQSync(int32 ts) {
 	FBC = ts;
 }
 
-void FDSSound(int c) {
+static void FDSSound(int c) {
 	RenderSound();
 	FBC = c;
 }
 
-static void FDS_ESI(void) {
+void FDSSound_SC(void) {
+	GameExpSound[SND_FDS - 6].HiSync = HQSync;
+	GameExpSound[SND_FDS - 6].HiFill = RenderSoundHQ;
+	GameExpSound[SND_FDS - 6].Fill = FDSSound;
+	GameExpSound[SND_FDS - 6].RChange = FDSSound_SC;
+
 	if (FSettings.SndRate) {
 		if (FSettings.soundq >= 1) {
 			fdso.cycles = (int64)1 << 39;
@@ -261,33 +366,52 @@ static void FDS_ESI(void) {
 			fdso.cycles /= FSettings.SndRate * 16;
 		}
 	}
-	SetReadHandler(0x4040, 0x407f, FDSWaveRead);
-	SetWriteHandler(0x4040, 0x407f, FDSWaveWrite);
-	SetWriteHandler(0x4080, 0x408A, FDSSWrite);
-	SetReadHandler(0x4090, 0x4092, FDSSRead);
 }
 
-void FDSSoundReset(void) {
+void FDSSoundRegReset(void) {
 	memset(&fdso, 0, sizeof(fdso));
-	FDS_ESI();
-	GameExpSound.HiSync = HQSync;
-	GameExpSound.HiFill = RenderSoundHQ;
-	GameExpSound.Fill = FDSSound;
-	GameExpSound.RChange = FDS_ESI;
+
+	/* https://github.com/bbbradsmith/nsfplay/blob/f563b9fe32df9ef0a94944026642d8ce5144c000/xgm/devices/Sound/nes_fds.cpp#L109 */
+
+	/* NOTE: the FDS BIOS reset only does the following related to audio: */
+	/*   $4023 = $00
+	 *   $4023 = $83 enables master_io
+	 *   $4080 = $80 output volume = 0, envelope disabled
+	 *   $408A = $E8 master envelope speed
+	 *   $4023 = $00
+	 *   $4023 = $83 */
+	FDSSReg0Write(0x4080, 0x80);
+	FDSSReg9Write(0x408A, 0xE8);
+
+	/* reset other stuff */
+	FDSSReg1Write(0x4082, 0x00); /* wav freq 0 */
+	FDSSReg2Write(0x4083, 0x80); /* wav disable */
+	FDSSReg3Write(0x4084, 0x80); /* mod strength 0 */
+	FDSSReg4Write(0x4085, 0x00); /* mod position 0 */
+	FDSSReg5Write(0x4086, 0x00); /* mod freq 0 */
+	FDSSReg6Write(0x4087, 0x80); /* mod disable */
+	FDSSReg8Write(0x4089, 0x00); /* wav write disable, max global volume} */
 }
 
-uint8 FDSSoundRead(uint32 A) {
-	if (A >= 0x4040 && A < 0x4080) return FDSWaveRead(A);
-	if (A >= 0x4090 && A < 0x4093) return FDSSRead(A);
-	return cpu.openbus;
-}
+/* callback for bootleg mappers */
 
-void FDSSoundWrite(uint32 A, uint8 V) {
-	if (A >= 0x4040 && A < 0x4080) FDSWaveWrite(A, V);
-	else if (A >= 0x4080 && A < 0x408B) FDSSWrite(A, V);
-}
+void FDSSound_Power(void) {
+	FDSSoundRegReset();
+	FDSSound_SC();	
 
-void FDSSoundPower(void) {
-	FDSSoundReset();
-	FDSSoundStateAdd();
+	SetReadHandler(0x4040, 0x407F, FDSWaveRead);
+	SetReadHandler(0x4090, 0x4090, FDSEnvVolumeRead);
+	SetReadHandler(0x4092, 0x4092, FDSEnvModRead);
+
+	SetWriteHandler(0x4040, 0x407F, FDSWaveWrite);
+	SetWriteHandler(0x4080, 0x4080, FDSSReg0Write);
+	SetWriteHandler(0x4082, 0x4082, FDSSReg1Write);
+	SetWriteHandler(0x4083, 0x4083, FDSSReg2Write);
+	SetWriteHandler(0x4084, 0x4084, FDSSReg3Write);
+	SetWriteHandler(0x4085, 0x4085, FDSSReg4Write);
+	SetWriteHandler(0x4086, 0x4086, FDSSReg5Write);
+	SetWriteHandler(0x4087, 0x4087, FDSSReg6Write);
+	SetWriteHandler(0x4088, 0x4088, FDSSReg7Write);
+	SetWriteHandler(0x4089, 0x4089, FDSSReg8Write);
+	SetWriteHandler(0x408A, 0x408A, FDSSReg9Write);
 }

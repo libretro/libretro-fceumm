@@ -62,6 +62,9 @@ static void PEC586KB_Write(uint8 v) {
 }
 
 static uint8 PEC586KB_Read(int w, uint8 ret) {
+#ifdef FCEUDEF_DEBUGGER
+	if (!fceuindbg) {
+#endif
 	if (w) {
 		ret &= ~2;
 		if(bufit[matrix[kspos][7-ksindex]])
@@ -69,10 +72,17 @@ static uint8 PEC586KB_Read(int w, uint8 ret) {
 		ksindex++;
 		ksindex&=7;
 	}
+#ifdef FCEUDEF_DEBUGGER
+	}
+#endif
 	return(ret);
 }
 
-static void PEC586KB_Strobe(void) { }
+static void PEC586KB_Strobe(void) {
+/*	kstrobe = 0; 
+	ksindex = 0;
+*/
+}
 
 static void PEC586KB_Update(void *data, int arg) {
 	memcpy(bufit + 1, data, sizeof(bufit) - 1);

@@ -40,12 +40,12 @@ static void Sync(void) {
 	setprg16(0xc000, ~0);
 }
 
-static void M168Write(uint32 A, uint8 V) {
+static DECLFW(M168Write) {
 	reg = V;
 	Sync();
 }
 
-static void M168Dummy(uint32 A, uint8 V) { }
+static DECLFW(M168Dummy) { }
 
 static void M168Power(void) {
 	reg = 0;
@@ -63,16 +63,18 @@ static void M168Close(void) {
 	CHRRAM = NULL;
 }
 
-static void StateRestore(int version) { Sync(); }
+static void StateRestore(int version) {
+	Sync();
+}
 
 void Mapper168_Init(CartInfo *info) {
 	info->Power = M168Power;
 	info->Close = M168Close;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 
 	CHRRAMSIZE = 8192 * 8;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
 }

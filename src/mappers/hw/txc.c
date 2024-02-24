@@ -3,7 +3,7 @@
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
  *  Copyright (C) 2019 Libretro Team
- *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,20 +50,9 @@
  */
 
 #include "mapinc.h"
+#include "txc.h"
 
-typedef struct {
-	uint8 mask;
-	uint8 isJV001;
-	uint8 accumulator;
-	uint8 inverter;
-	uint8 staging;
-	uint8 output;
-	uint8 increase;
-	uint8 Y;
-	uint8 invert;
-} TXC;
-
-static TXC txc;
+TXC txc;
 
 static void Dummyfunc(void) { }
 static void (*WSync)(void) = Dummyfunc;
@@ -75,62 +64,66 @@ static SFORMAT StateRegs[] =
 	{ &txc.staging,     1, "STG0" },
 	{ &txc.output,      1, "OUT0" },
 	{ &txc.increase,    1, "INC0" },
-	{ &txc.Y,        1, "YFLG" },
+	{ &txc.X,           1, "XFLG" },
+	{ &txc.Y,           1, "YFLG" },
 	{ &txc.invert,      1, "INVT" },
 	{ 0 }
 };
 
-static uint8 TXC_CMDRead(void) {
-	uint8 ret = ((txc.accumulator & txc.mask) | ((txc.inverter ^ txc.invert) & ~txc.mask));
-	txc.Y = !txc.invert || ((ret & 0x10) != 0);
-	WSync();
+DECLFR(TXC_Read) {
+	uint8 ret = cpu.openbus;
+	if ((A & 0x103) == 0x100) {
+		ret = ((txc.accumulator & 0x07) | ((txc.inverter ^ txc.invert) & ~0x07));
+		txc.Y = txc.X || ((ret & 0x10) != 0);
+		WSync();
+	}
 	return ret;
 }
 
-static void TXC_CMDWrite(uint32 A, uint8 V) {
+DECLFW(TXC_Write) {
 	if (A & 0x8000) {
-	  if (txc.isJV001)
-		 txc.output = (txc.accumulator & 0x0F) | (txc.inverter & 0xF0);
-	  else
-		 txc.output = (txc.accumulator & 0x0F) | ((txc.inverter << 1) & 0x10);
+		txc.output = (txc.accumulator & 0x0F) | ((txc.inverter << 1) & 0x10);
 	} else {
-	  switch (A & 0x103) {
-	  case 0x100:
-		 if (txc.increase)
-			txc.accumulator++;
-		 else
-			txc.accumulator = ((txc.accumulator & ~txc.mask) | ((txc.staging ^ txc.invert) & txc.mask));
-		 break;
-	  case 0x101:
-		 txc.invert = (V & 0x01) ? 0xFF : 0x00;
-		 break;
-	  case 0x102:
-		 txc.staging = V & txc.mask;
-		 txc.inverter = V & ~txc.mask;
-		 break;
-	  case 0x103:
-		 txc.increase = ((V & 0x01) != 0);
-		 break;
-	  }
+		switch (A & 0x103) {
+		case 0x100:
+			if (txc.increase) {
+				txc.accumulator++;
+			} else {
+				txc.accumulator = ((txc.accumulator & ~0x07) | ((txc.staging ^ txc.invert) & 0x07));
+			}
+			break;
+		case 0x101:
+			txc.invert = (V & 0x01) ? 0xFF : 0x00;
+			break;
+		case 0x102:
+			txc.staging  = V & 0x07;
+			txc.inverter = V & ~0x07;
+			break;
+		case 0x103:
+			txc.increase = ((V & 0x01) != 0);
+			break;
+		}
 	}
-	txc.Y = !txc.invert || ((V & 0x10) != 0);
+    txc.X = txc.invert ? txc.A : txc.B;
+	txc.Y = txc.X || ((V & 0x10) != 0);
 	WSync();
 }
 
 static void TXCRegReset(void) {
+	WSync();
+}
+
+void TXC_Power(void) {
 	txc.output      = 0;
 	txc.accumulator = 0;
 	txc.inverter    = 0;
 	txc.staging     = 0;
 	txc.increase    = 0;
-	txc.Y       = 0;
-	txc.mask        = txc.isJV001 ? 0x0F : 0x07;
-	txc.invert      = txc.isJV001 ? 0xFF : 0x00;
-
-	WSync();
-}
-
-static void GenTXCPower(void) {
+    txc.invert      = 0;
+	txc.X           = 0;
+	txc.Y           = 0;
+	txc.A           = 0;
+	txc.B           = 1;
 	TXCRegReset();
 }
 
@@ -138,256 +131,8 @@ static void StateRestore(int version) {
 	WSync();
 }
 
-static void GenTXC_Init(CartInfo *info, void (*proc)(void), uint32 jv001) {
-	txc.isJV001 = jv001;
-	WSync   = proc;
+void TXC_Init(CartInfo *info, void (*proc)(void)) {
+	WSync = proc;
 	GameStateRestore = StateRestore;
-	AddExState(StateRegs, ~0, 0, 0);
-}
-
-static int CheckHash(CartInfo *info) {
-	int x = 0;
-	uint64 partialmd5 = 0;
-
-	/* These carts do not work with new mapper implementation.
-	* This is a hack to use previous mapper implementation for such carts. */
-	for (x = 0; x < 8; x++)
-	  partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
-	switch (partialmd5) {
-	case 0x2dd8f958850f21f4LL: /* Jin Gwok Sei Chuen Saang (Ch) [U][!] */
-	  FCEU_printf(" WARNING: Using alternate mapper implementation.\n");
-	  UNL22211_Init(info);
-	  return 1;
-	}
-	return 0;
-}
-
-/* --------------- Mapper 36 --------------- */
-
-static uint8 creg = 0;
-
-static void M36Sync(void) {
-	setprg32(0x8000, txc.output & 0x03);
-	setchr8(creg & 0x0F);
-}
-
-static void M36Write(uint32 A, uint8 V) {
-	if ((A & 0xF200) == 0x4200) creg = V;
-	TXC_CMDWrite(A, (V >> 4) & 0x03);
-}
-
-static uint8 M36Read(uint32 A) {
-	uint8 ret = cpu.openbus;
-	if ((A & 0x103) == 0x100)
-	  ret = (cpu.openbus & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
-	return ret;
-}
-
-static void M36Power(void) {
-	creg = 0;
-	GenTXCPower();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0x4100, 0x5FFF, M36Read);
-	SetWriteHandler(0x4100, 0xFFFF, M36Write);
-}
-
-void Mapper36_Init(CartInfo *info) {
-	GenTXC_Init(info, M36Sync, 0);
-	info->Power = M36Power;
-	AddExState(&creg, 1, 0, "CREG");
-}
-
-/* --------------- Mapper 132 --------------- */
-
-static void M132Sync(void) {
-	setprg32(0x8000, (txc.output >> 2) & 0x01);
-	setchr8(txc.output & 0x03);
-}
-
-static void M132Write(uint32 A, uint8 V) {
-	TXC_CMDWrite(A, V & 0x0F);
-}
-
-static uint8 M132Read(uint32 A) {
-	uint8 ret = cpu.openbus;
-	if ((A & 0x103) == 0x100)
-	  ret = ((cpu.openbus & 0xF0) | (TXC_CMDRead() & 0x0F));
-	return ret;
-}
-
-static void M132Power(void) {
-	GenTXCPower();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0x4100, 0x5FFF, M132Read);
-	SetWriteHandler(0x4100, 0xFFFF, M132Write);
-}
-
-void Mapper132_Init(CartInfo *info) {
-	if (CheckHash(info) != 0) return;
-	GenTXC_Init(info, M132Sync, 0);
-	info->Power = M132Power;
-}
-
-/* --------------- Mapper 173 --------------- */
-
-static void M173Sync(void) {
-	setprg32(0x8000, 0);
-	if (CHRsize[0] > 0x2000)
-	  setchr8(((txc.output & 0x01) | (txc.Y ? 0x02 : 0x00) | ((txc.output & 2) << 0x01)));
-	else
-	  setchr8(0);
-}
-
-void Mapper173_Init(CartInfo *info) {
-	GenTXC_Init(info, M173Sync, 0);
-	info->Power = M132Power;
-}
-
-/* ---------------- Joy/Van ----------------- */
-
-/* --------------- Mapper 136 --------------- */
-
-static void M136Sync(void) {
-	setprg32(0x8000, (txc.output >> 4) & 0x01);
-	setchr8(txc.output & 0x07);
-}
-
-static void M136Write(uint32 A, uint8 V) {
-	TXC_CMDWrite(A, V & 0x3F);
-}
-
-static uint8 M136Read(uint32 A) {
-	uint8 ret = cpu.openbus;
-	if ((A & 0x103) == 0x100)
-	  ret = ((cpu.openbus & 0xC0) | (TXC_CMDRead() & 0x3F));
-	return ret;
-}
-
-static void M136Power(void) {
-	GenTXCPower();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0x4100, 0x5FFF, M136Read);
-	SetWriteHandler(0x4100, 0xFFFF, M136Write);
-}
-
-void Mapper136_Init(CartInfo *info) {
-	GenTXC_Init(info, M136Sync, 1);
-	info->Power = M136Power;
-}
-
-/* --------------- Mapper 147 --------------- */
-
-static void M147Sync(void) {
-	setprg32(0x8000, ((txc.output >> 4) & 0x02) | (txc.output & 0x01));
-	setchr8((txc.output >> 1) & 0x0F);
-}
-
-static void M147Write(uint32 A, uint8 V) {
-	TXC_CMDWrite(A, ((V >> 2) & 0x3F) | ((V << 6) & 0xC0));
-}
-
-static uint8 M147Read(uint32 A) {
-	uint8 ret = cpu.openbus;
-	if ((A & 0x103) == 0x100) {
-	  uint8 value = TXC_CMDRead();
-	  ret = ((value << 2) & 0xFC) | ((value >> 6) & 0x03);
-	}
-	return ret;
-}
-
-static void M147Power(void) {
-	GenTXCPower();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0x4100, 0x5FFF, M147Read);
-	SetWriteHandler(0x4100, 0xFFFF, M147Write);
-}
-
-void Mapper147_Init(CartInfo *info) {
-	GenTXC_Init(info, M147Sync, 1);
-	info->Power = M147Power;
-}
-
-/* --------------- Mapper 172 --------------- */
-
-static void M172Sync(void) {
-	setprg32(0x8000, 0);
-	setchr8(txc.output);
-	setmirror(txc.invert ? 1 : 0);
-}
-
-static uint8 GetValue(uint8 value) {
-	return (((value << 5) & 0x20) | ((value << 3) & 0x10) | ((value << 1) & 0x08) |
-		 ((value >> 1) & 0x04) | ((value >> 3) & 0x02) | ((value >> 5) & 0x01));
-}
-
-static void M172Write(uint32 A, uint8 V) { TXC_CMDWrite(A, GetValue(V)); }
-
-static uint8 M172Read(uint32 A) {
-	uint8 ret = cpu.openbus;
-	if ((A & 0x103) == 0x100)
-	  ret = (cpu.openbus & 0xC0) | GetValue(TXC_CMDRead());
-	return ret;
-}
-
-static void M172Power(void) {
-	GenTXCPower();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0x4100, 0x5FFF, M172Read);
-	SetWriteHandler(0x4100, 0xFFFF, M172Write);
-}
-
-void Mapper172_Init(CartInfo *info) {
-	GenTXC_Init(info, M172Sync, 1);
-	info->Power = M172Power;
-}
-
-/* === LEGACY MAPPER IMPLEMENTATION === */
-
-static uint8 reg[4], cmd, is172, is173;
-
-static SFORMAT UNL22211StateRegs[] =
-{
-	{ reg, 4, "REGS" },
-	{ &cmd, 1, "CMD" },
-	{ 0 }
-};
-
-static void UNL22211Sync(void) {
-	setprg32(0x8000, (reg[2] >> 2) & 1);
-	if (is172)
-	  setchr8((((cmd ^ reg[2]) >> 3) & 2) | (((cmd ^ reg[2]) >> 5) & 1));	/* 1991 DU MA Racing probably CHR bank sequence is WRONG, so it is possible to
-														  * rearrange CHR banks for normal UNIF board and mapper 172 is unneccessary */
-	else
-	  setchr8(reg[2] & 3);
-}
-
-static void UNL22211WriteLo(uint32 A, uint8 V) { reg[A & 3] = V; }
-
-static void UNL22211WriteHi(uint32 A, uint8 V) {
-	cmd = V;
-	UNL22211Sync();
-}
-
-static uint8 UNL22211ReadLo(uint32 A) {
-	return (reg[1] ^ reg[2]) | (is173 ? 0x01 : 0x40);
-}
-
-static void UNL22211Power(void) {
-	UNL22211Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0x4100, 0x4100, UNL22211ReadLo);
-	SetWriteHandler(0x4100, 0x4103, UNL22211WriteLo);
-	SetWriteHandler(0x8000, 0xFFFF, UNL22211WriteHi);
-}
-
-static void UNL22211StateRestore(int version) {
-	UNL22211Sync();
-}
-
-void UNL22211_Init(CartInfo *info) {
-	is172 = 0;
-	is173 = 0;
-	info->Power = UNL22211Power;
-	GameStateRestore = UNL22211StateRestore;
-	AddExState(&UNL22211StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

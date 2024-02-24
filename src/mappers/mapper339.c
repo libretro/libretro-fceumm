@@ -1,6 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,45 +27,51 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMCK3006CW(uint32 A, uint8 V) {
-	setchr1(A, (V & 0x7F) | (EXPREGS[0] & 0x18) << 4);
+static uint8 reg;
+
+static void M339CW(uint16 A, uint16 V) {
+	setchr1(A, ((reg << 4) & ~0x7F) | (V & 0x7F));
 }
 
-static void BMCK3006PW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x20) {				/* MMC3 mode */
-		setprg8(A, (V & 0x0F) | (EXPREGS[0] & 0x18) << 1);
+static void M339PW(uint16 A, uint16 V) {
+	uint16 base = reg & 0x1F;
+
+	if (reg & 0x20) { /* MMC3 mode */
+		setprg8(A, ((base << 1) & ~0x0F) | (V & 0x0F));
 	} else {
-		if ((EXPREGS[0] & 0x07) == 0x06) {	/* NROM-256 */
-			setprg32(0x8000, (EXPREGS[0] >> 1) & 0x0F);
-		} else {							/* NROM-128 */
-			setprg16(0x8000, EXPREGS[0] & 0x1F);
-			setprg16(0xC000, EXPREGS[0] & 0x1F);
+		if ((reg & 0x07) == 0x06) { /* NROM-256 */
+			setprg32(0x8000, base >> 1);
+		} else { /* NROM-128 */
+			setprg16(0x8000, base);
+			setprg16(0xC000, base);
 		}
 	}
 }
 
-static void BMCK3006Write(uint32 A, uint8 V) {
-	EXPREGS[0] = A & 0x3F;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(M339Write) {
+	if (MMC3_WramIsWritable()) {
+		reg = A & 0x3F;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+	}
 }
 
-static void BMCK3006Reset(void) {
-	EXPREGS[0] = 0;
-	MMC3RegReset();
+static void M339Reset(void) {
+	reg = 0;
+	MMC3_Reset();
 }
 
-static void BMCK3006Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, BMCK3006Write);
+static void M339Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M339Write);
 }
 
-void BMCK3006_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 512, 8, 0);
-	pwrap = BMCK3006PW;
-	cwrap = BMCK3006CW;
-	info->Power = BMCK3006Power;
-	info->Reset = BMCK3006Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+void Mapper339_Init(CartInfo *info) {
+	MMC3_Init(info, 8, 0);
+	MMC3_pwrap = M339PW;
+	MMC3_cwrap = M339CW;
+	info->Power = M339Power;
+	info->Reset = M339Reset;
+	AddExState(&reg, 1, 0, "EXPR");
 }

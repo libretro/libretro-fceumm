@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,46 +20,41 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 latch_data;
-static uint32 latch_addr;
+static uint8 dipsw;
 
-static SFORMAT StateRegs[] =
-{
-	{ &latch_addr, 4, "ADDR" },
-	{ &latch_data, 1, "DATA" },
+static SFORMAT StateRegs[] = {
+	{ &dipsw, 1, "DPSW" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (latch_addr & 0x2000) { /* NROM-256 */
-		setprg32(0x8000, latch_addr >> 2);
+	if (latch.addr & 0x2000) { /* NROM-256 */
+		setprg32(0x8000, latch.addr >> 2);
 	} else { /* NROM-128 */
-		setprg16(0x8000, latch_addr >> 1);
-		setprg16(0xC000, latch_addr >> 1);
+		setprg16(0x8000, latch.addr >> 1);
+		setprg16(0xC000, latch.addr >> 1);
 	}
-	setchr8(latch_data);
-	setmirror((latch_addr & 1) ^ 1);
+	setchr8(latch.data);
+	setmirror((latch.addr & 0x01) ^ 0x01);
 }
 
-static void M414Write(uint32 A, uint8 V) {
-	latch_addr = A;
-	latch_data = V & CartBR(A);
-	Sync();
+static DECLFR(M414Read) {
+	if ((A >= 0xC000) && !(latch.addr & 0x100) && (latch.addr & (dipsw << 4))) {
+		return cpu.openbus;
+	}
+	return CartBR(A);
 }
 
-static void M414Power(void) {
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M414Write);
-}
-
-static void StateRestore(int version) {
+static void M414Reset(void) {
+	dipsw++;
+	dipsw &= 0x0F;
 	Sync();
 }
 
 void Mapper414_Init(CartInfo *info) {
-	info->Power = M414Power;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	Latch_Init(info, Sync, M414Read, FALSE, TRUE);
+	info->Reset = M414Reset;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,60 +19,61 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* N625836 PCB */
-
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void Mapper455_PRGWrap(uint32 A, uint8 V) {
-	int prgAND =EXPREGS[1] &0x01? 0x1F: 0x0F;
-	int prgOR  =EXPREGS[0] >>2 &0x07 | EXPREGS[1] <<1 &0x08 | EXPREGS[0] >>2 &0x10;
-	if (EXPREGS[0] &0x01) {
-		if (EXPREGS[0] &0x02) {
-			setprg32(0x8000, prgOR >>1);
+static uint8 reg[2];
+
+static void M455PW(uint16 A, uint16 V) {
+	uint16 mask = (reg[1] & 0x01) ? 0x1F : 0x0F;
+	uint16 base = ((reg[0] >> 2) & 0x10) | ((reg[1] << 1) & 0x08) | ((reg[0] >> 2) & 0x07);
+
+	if (reg[0] & 0x01) {
+		if (reg[0] & 0x02) {
+			setprg32(0x8000, base >> 1);
 		} else {
-			setprg16(0x8000, prgOR);
-			setprg16(0xC000, prgOR);
+			setprg16(0x8000, base);
+			setprg16(0xC000, base);
 		}
 	} else {
-		prgOR <<=1;
-		setprg8(A, V &prgAND | prgOR &~prgAND);
+		setprg8(A, ((base << 1) & ~mask) | (V & mask));
 	}
 }
 
-static void Mapper455_CHRWrap(uint32 A, uint8 V) {
-	int chrAND =EXPREGS[1] &0x02? 0xFF: 0x7F;
-	int chrOR  =(EXPREGS[0] >>2 &0x07 | EXPREGS[1] <<1 &0x08 | EXPREGS[0] >>2 &0x10) <<4;
-	setchr1(A, V &chrAND | chrOR &~chrAND);
+static void M455CW(uint16 A, uint16 V) {
+	uint16 mask = (reg[1] & 0x02) ? 0xFF : 0x7F;
+	uint16 base = ((reg[0] >> 2) & 0x10) | ((reg[1] << 1) & 0x08) | ((reg[0] >> 2) & 0x07);
+
+	setchr1(A, ((base << 4) & ~mask) | (V & mask));
 }
 
-static void Mapper455_Write(uint32 A, uint8 V) {
-	if (A &0x100) {
-		EXPREGS[0] =V;
-		EXPREGS[1] =A &0xFF;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
+static DECLFW(M455Write) {
+	if (A & 0x100) {
+		reg[0] = V;
+		reg[1] = A & 0xFF;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
 	}
 }
 
-static void Mapper455_Reset(void) {
-	EXPREGS[0] =1;
-	EXPREGS[1] =0;
-	MMC3RegReset();
+static void M455Reset(void) {
+	reg[0] = 1;
+	reg[1] = 0;
+	MMC3_Reset();
 }
 
-static void Mapper455_Power(void) {
-	EXPREGS[0] =1;
-	EXPREGS[1] =0;
-	GenMMC3Power();
-	SetWriteHandler(0x4100, 0x5FFF, Mapper455_Write);
+static void M455Power(void) {
+	reg[0] = 1;
+	reg[1] = 0;
+	MMC3_Power();
+	SetWriteHandler(0x4100, 0x5FFF, M455Write);
 }
 
 void Mapper455_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = Mapper455_CHRWrap;
-	pwrap = Mapper455_PRGWrap;
-	info->Power = Mapper455_Power;
-	info->Reset = Mapper455_Reset;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M455CW;
+	MMC3_pwrap = M455PW;
+	info->Power = M455Power;
+	info->Reset = M455Reset;
+	AddExState(reg, 2, 0, "EXPR");
 }

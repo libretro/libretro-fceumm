@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +22,11 @@
  *
  * Super Mario Bros 2j (Alt Full) is a BAD incomplete dump, should be mapper 43
  *
- * Both Volleyball and Zanac by Whirlind Manu shares the same PCB, but with
+ * Both Voleyball and Zanac by Whirlind Manu shares the same PCB, but with
  * some differences: Voleyball has 8K CHR ROM and 8K ROM at 6000K, Zanac
  * have 8K CHR RAM and banked 16K ROM mapper at 6000 as two 8K banks.
-*
+ *
+ * NES 2.0 Mapper 304 - UNL-SMB2J
  * Super Mario Bros 2j (Alt Small) uses additionally IRQ timer to drive framerate
  *
  * PCB for this mapper is "09-034A"
@@ -43,53 +45,55 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static void UNLSMB2JSync(void) {
+static void Sync(void) {
 	setprg8(0x6000, 4 | prg);
 	setprg32(0x8000, 0);
 	setchr8(0);
 }
 
-static void UNLSMB2JWrite1(uint32 A, uint8 V) {
-	prg = V & 1;
-	UNLSMB2JSync();
+static DECLFW(M304Write1) {
+	prg = V & 0x01;
+	Sync();
 }
 
-static void UNLSMB2JWrite2(uint32 A, uint8 V) {
-	IRQa = V & 1;
+static DECLFW(M304Write2) {
+	IRQa = V & 0x01;
 	IRQCount = 0;
 	X6502_IRQEnd(FCEU_IQEXT);
 }
 
-static uint8 UNLSMB2JRead(uint32 A) { return 0xFF; }
-
-static void UNLSMB2JPower(void) {
-	prg = 0;
-	UNLSMB2JSync();
-	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetReadHandler(0x4042, 0x4055, UNLSMB2JRead);
-	SetWriteHandler(0x4068, 0x4068, UNLSMB2JWrite2);
-	SetWriteHandler(0x4027, 0x4027, UNLSMB2JWrite1);
+static DECLFR(M304Read) {
+	return 0xFF;
 }
 
-static void UNLSMB2JIRQHook(int a) {
-	if (IRQa)
-	{
-		if (IRQCount < 5750)    /* completely by guess */
+static void M304Power(void) {
+	prg = 0;
+	IRQCount = IRQa = 0;
+	Sync();
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetReadHandler(0x4020, 0x4FFF, M304Read);
+	SetWriteHandler(0x4068, 0x4068, M304Write2);
+	SetWriteHandler(0x4027, 0x4027, M304Write1);
+}
+
+static void M304IRQHook(int a) {
+	if (IRQa) {
+		if (IRQCount < 5750) {
 			IRQCount += a;
-		else {
+		} else {
 			IRQa = 0;
 			X6502_IRQBegin(FCEU_IQEXT);
 		}
 	}
 }
 
-static void UNLSMB2JStateRestore(int version) {
-	UNLSMB2JSync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-void UNLSMB2J_Init(CartInfo *info) {
-	info->Power = UNLSMB2JPower;
-	MapIRQHook = UNLSMB2JIRQHook;
-	GameStateRestore = UNLSMB2JStateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper304_Init(CartInfo *info) {
+	info->Power = M304Power;
+	MapIRQHook = M304IRQHook;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

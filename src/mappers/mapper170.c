@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2011 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,36 +23,30 @@
 
 static uint8 reg;
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
 	{ &reg, 1, "REGS" },
 	{ 0 }
 };
 
-static void Sync(void) {
-	setprg16(0x8000, 0);
-	setprg16(0xc000, ~0);
-	setchr8(0);
+static DECLFW(M170ProtW) {
+	reg = ((V << 1) & 0x80);
 }
 
-static void M170ProtW(uint32 A, uint8 V) { reg = V << 1 & 0x80; }
-static uint8 M170ProtR(uint32 A) { return reg | (cpu.openbus & 0x7F); }
+static DECLFR(M170ProtR) {
+	return (reg | (cpu.openbus & 0x7F));
+}
 
 static void M170Power(void) {
-	Sync();
-	SetWriteHandler(0x6502, 0x6502, M170ProtW);
-	SetWriteHandler(0x7000, 0x7000, M170ProtW);
+	setprg32(0x8000, 0);
+	setchr8(0);
 	SetReadHandler(0x7001, 0x7001, M170ProtR);
 	SetReadHandler(0x7777, 0x7777, M170ProtR);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-}
-
-static void StateRestore(int version) {
-	Sync();
+	SetWriteHandler(0x6502, 0x6502, M170ProtW);
+	SetWriteHandler(0x7000, 0x7000, M170ProtW);
 }
 
 void Mapper170_Init(CartInfo *info) {
 	info->Power = M170Power;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

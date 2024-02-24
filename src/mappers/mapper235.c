@@ -1,8 +1,9 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2005 CaH4e3
  *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,83 +21,57 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint16 cmdreg;
-static uint8 unrom, reg, openbus;
+static uint8 mode;
 
-static uint32 PRGROMSize;
-
-static SFORMAT StateRegs[] =
-{
-	{ &cmdreg,  2 | FCEUSTATE_RLSB, "CREG" },
-	{ &unrom,   1, "UNRM" },
-	{ &reg,     1, "UNRG" },
-	{ &openbus, 1, "OPNB" },
+static SFORMAT StateRegs[] = {
+	{ &mode,   1, "UROM" },
 	{ 0 }
 };
 
 static void Sync(void) {
-	if (unrom) {
-		uint8 PRGPageSize = PRGROMSize / 16384;
-		setprg16(0x8000, (PRGPageSize & 0xC0) | (reg & 7));
-		setprg16(0xC000, (PRGPageSize & 0xC0) | 7);
+	if (mode) { /* Contra mode */
+		setprg16(0x8000, (ROM.prg.size & 0xC0) | (latch.data & 0x07));
+		setprg16(0xC000, (ROM.prg.size & 0xC0) | 0x07);
 		setchr8(0);
 		setmirror(MI_V);
 	} else {
-		uint8 bank = ((cmdreg & 0x300) >> 3) | (cmdreg & 0x1F);
-		if (cmdreg & 0x400)
-			setmirror(MI_0);
-		else
-			setmirror(((cmdreg >> 13) & 1) ^ 1);
-		if (bank >= PRGROMSize / 32768)
-			openbus = 1;
-		else if (cmdreg & 0x800) {
-			setprg16(0x8000, (bank << 1) | ((cmdreg >> 12) & 1));
-			setprg16(0xC000, (bank << 1) | ((cmdreg >> 12) & 1));
-		} else
+		uint8 bank = ((latch.addr >> 3) & 0x60) | (latch.addr & 0x1F);
+
+		if (latch.addr & 0x800) {
+			setprg16(0x8000, (bank << 1) | ((latch.addr >> 12) & 0x01));
+			setprg16(0xC000, (bank << 1) | ((latch.addr >> 12) & 0x01));
+		} else {
 			setprg32(0x8000, bank);
+		}
 		setchr8(0);
+		if (latch.addr & 0x400) {
+			setmirror(MI_0);
+		} else {
+			setmirror(((latch.addr >> 13) & 0x01) ^ 0x01);
+		}
 	}
 }
 
-static uint8 M235Read(uint32 A) {
-	if (openbus) {
-		openbus = 0;
+static DECLFR(M235Read) {
+	uint8 bank = ((latch.addr >> 3) & 0x60) | (latch.addr & 0x1F);
+
+	if (!mode && (bank >= (PRGsize[0] / 32768))) {
 		return cpu.openbus;
 	}
 	return CartBR(A);
 }
 
-static void M235Write(uint32 A, uint8 V) {
-	cmdreg = A;
-	reg = V;
-	Sync();
-}
-
 static void M235Reset(void) {
-	cmdreg = 0;
-	reg = 0;
-	if (PRGROMSize & 0x20000)
-		unrom = (unrom + 1) & 1;
-	Sync();
-}
-
-static void M235Power(void) {
-	SetWriteHandler(0x8000, 0xFFFF, M235Write);
-	SetReadHandler(0x8000, 0xFFFF, M235Read);
-	cmdreg = 0;
-	reg = 0;
-	Sync();
-}
-
-static void M235Restore(int version) {
-	Sync();
+	if ((ROM.prg.size * 16384) & 0x20000) {
+		mode = (mode + 1) & 1;
+	}
+	Latch_RegReset();
 }
 
 void Mapper235_Init(CartInfo *info) {
+	Latch_Init(info, Sync, M235Read, FALSE, FALSE);
 	info->Reset = M235Reset;
-	info->Power = M235Power;
-	GameStateRestore = M235Restore;
-	AddExState(&StateRegs, ~0, 0, 0);
-	PRGROMSize = info->PRGRomSize;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

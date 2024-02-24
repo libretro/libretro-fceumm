@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- * Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,110 +25,146 @@
 
 #include "mapinc.h"
 #include "mmc3.h"
-#include "sound/fdssound.h"
+#include "fdssound.h"
 
-static uint8* CHRRAM = NULL;
+static uint8 reg;
+
+static uint8 *CHRRAM = NULL;
 static uint32 CHRRAMSIZE;
-static uint8 PPUCHRBus;
-static uint8 MIR[8];
 
-static void M353PPU(uint32 A) {
-	A &= 0x1FFF;
-	A >>= 10;
-	PPUCHRBus = A;
-	if (EXPREGS[0] == 0)
-		setmirror(MI_0 + MIR[A]);
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 }
+};
+
+static void M353PW(uint16 A, uint16 V) {
+	uint16 base = reg << 5;
+	uint16 mask = 0x1F;
+
+	if (reg == 2) {
+		base |= (mmc3.reg[0] & 0x80) ? 0x10 : 0x00;
+		mask >>= 1;
+	} else if ((reg == 3) && !(mmc3.reg[0] & 0x80) && (A >= 0xC000)) {
+		base = 0x70;
+		mask = 0x0F;
+		V = mmc3.reg[6 + ((A >> 13) & 0x01)];
+	}
+
+	setprg8(A, (base & ~mask) | (V & mask));
 }
 
-static void M353PW(uint32 A, uint8 V) {
-	uint8 bank = V;
+static void M353CW(uint16 A, uint16 V) {
+	uint16 mask = 0x7F;
+	uint16 base = reg << 7;
 
-	if (EXPREGS[0] == 2) {
-		bank &= 0x0F;
-		bank |= (DRegBuf[0] & 0x80) ? 0x10 : 0x00;
-		bank |= (EXPREGS[0] << 5);
+	if ((reg == 2) && (mmc3.reg[0] & 0x80)) {
+		setchr8r(0x10, 0);
 	} else {
-		if ((EXPREGS[0] == 3) && !(DRegBuf[0] & 0x80)) {
-			switch (A & 0xF000) {
-			case 0xC000:
-			case 0xE000:
-				bank = DRegBuf[6 + ((A >> 13) & 1)] | 0x70;
+		setchr1(A, (base & ~mask) | (V & mask));
+	}
+}
+
+static void M353MIR(void) {
+	if (reg == 0) {
+		if (mmc3.cmd & 0x80) {
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[2] >> 7) & 0x01), 1, 0);
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[3] >> 7) & 0x01), 1, 1);
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[4] >> 7) & 0x01), 1, 2);
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[5] >> 7) & 0x01), 1, 3);
+		} else {
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[0] >> 7) & 0x01), 1, 0);
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[0] >> 7) & 0x01), 1, 1);
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[1] >> 7) & 0x01), 1, 2);
+			setntamem(NTARAM + 0x400 * ((mmc3.reg[1] >> 7) & 0x01), 1, 3);
+		}
+	} else {
+		setmirror((mmc3.mirr & 0x01) ^ 0x01);
+	}
+}
+
+static DECLFW(M353Write) {
+	if (A & 0x80) {
+		reg = (A >> 13) & 0x03;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
+		MMC3_FixMIR();
+	} else {
+		uint8 oldcmd = mmc3.cmd;
+
+		switch (A & 0xE001) {
+		case 0x8000:
+			mmc3.cmd = V;
+			if ((oldcmd & 0x40) != (mmc3.cmd & 0x40)) {
+				MMC3_FixPRG();
+			}
+			if ((oldcmd & 0x80) != (mmc3.cmd & 80)) {
+				MMC3_FixCHR();
+				MMC3_FixMIR();
+			}
+			break;
+		case 0x8001:
+			mmc3.reg[mmc3.cmd & 0x07] = V;
+			switch (mmc3.cmd & 0x07) {
+			case 0:
+				MMC3_FixPRG();
+				MMC3_FixCHR();
+				MMC3_FixMIR();
+				break;
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+			case 5:
+				MMC3_FixCHR();
+				MMC3_FixMIR();
+				break;
+			case 6:
+			case 7:
+				MMC3_FixPRG();
 				break;
 			}
-		} else {
-			bank &= 0x1F;
-			bank |= (EXPREGS[0] << 5);
+			break;
+		default:
+			MMC3_Write(A, V);
+			break;
 		}
-	}
-
-	setprg8(A, bank);
-}
-
-static void M353CW(uint32 A, uint8 V) {
-	if ((EXPREGS[0] == 2) && (DRegBuf[0] & 0x80))
-		setchr8r(0x10, 0);
-	else
-		setchr1(A, (V & 0x7F) | ((EXPREGS[0]) << 7));
-
-	MIR[A >> 10] = V >> 7;
-	if ((EXPREGS[0] == 0) && (PPUCHRBus == (A >> 10)))
-		setmirror(MI_0 + (V >> 7));
-}
-
-static void M353MW(uint8 V) {
-	if (EXPREGS[0] != 0) {
-		A000B = V;
-		setmirror((V & 1) ^ 1);
-	}
-}
-
-static void M353Write(uint32 A, uint8 V) {
-	if (A & 0x80) {
-		EXPREGS[0] = (A >> 13) & 0x03;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	} else {
-		if (A < 0xC000) {
-			MMC3_CMDWrite(A, V);
-			FixMMC3PRG(MMC3_cmd);
-		} else
-			MMC3_IRQWrite(A, V);
 	}
 }
 
 static void M353Power(void) {
-	FDSSoundPower();
-	EXPREGS[0] = 0;
-	GenMMC3Power();
+	FDSSound_Power();
+	reg = 0;
+	MMC3_Power();
 	SetWriteHandler(0x8000, 0xFFFF, M353Write);
 }
 
 static void M353Reset(void) {
-	EXPREGS[0] = 0;
-	MMC3RegReset();
-	FDSSoundReset();
+	reg = 0;
+	MMC3_Reset();
+	FDSSoundRegReset();
+	FDSSound_SC();
 }
 
 static void M353Close(void) {
-	GenMMC3Close();
-	if (CHRRAM)
+	MMC3_Close();
+	if (CHRRAM) {
 		FCEU_gfree(CHRRAM);
+	}
 	CHRRAM = NULL;
 }
 
-void Mapper353_Init(CartInfo* info) {
-	GenMMC3_Init(info, 256, 128, 8, info->battery);
-	cwrap = M353CW;
-	pwrap = M353PW;
-	mwrap = M353MW;
-	PPU_hook = M353PPU;
+void Mapper353_Init(CartInfo *info) {
+	MMC3_Init(info, 8, info->battery);
+	MMC3_cwrap = M353CW;
+	MMC3_pwrap = M353PW;
+	MMC3_FixMIR = M353MIR;
 	info->Power = M353Power;
 	info->Close = M353Close;
 	info->Reset = M353Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+	AddExState(StateRegs, ~0, 0, NULL);
 
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }

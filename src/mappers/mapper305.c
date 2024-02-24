@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +18,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * NES 2.0 Mapper 305
+ * UNIF UNL-KS7031
  * FDS Conversion - dracula ii - noroi no fuuin [u][!]
  *
  */
 
 #include "mapinc.h"
-#include "sound/fdssound.h"
+#include "fdssound.h"
 
 static uint8 reg[4];
 
-static SFORMAT StateRegs[] =
-{
+static SFORMAT StateRegs[] = {
 	{ reg, 4, "REGS" },
 	{ 0 }
 };
@@ -59,24 +61,26 @@ static void Sync(void) {
 	setchr8(0);
 }
 
-static void UNLKS7031Write(uint32 A, uint8 V) {
-	reg[(A >> 11) & 3] = V;
+static DECLFW(M305Write) {
+	reg[(A >> 11) & 0x03] = V;
 	Sync();
 }
 
-static void UNLKS7031Power(void) {
-	FDSSoundPower();
+static void M305Power(void) {
+	memset(reg, 0, sizeof(reg));
+	FDSSound_Power();
 	Sync();
+	setmirror(MI_V);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xffff, UNLKS7031Write);
+	SetWriteHandler(0x8000, 0xFFFF, M305Write);
 }
 
 static void StateRestore(int version) {
 	Sync();
 }
 
-void UNLKS7031_Init(CartInfo *info) {
-	info->Power = UNLKS7031Power;
+void Mapper305_Init(CartInfo *info) {
+	info->Power = M305Power;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

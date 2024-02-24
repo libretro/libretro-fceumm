@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,60 +21,75 @@
 
 #include "mapinc.h"
 
-static uint8 bank, preg;
-static SFORMAT StateRegs[] =
-{
-	{ &bank, 1, "BANK" },
-	{ &preg, 1, "PREG" },
+static uint8 reg[3];
+
+static SFORMAT StateRegs[] = {
+	{ reg, 3, "REGS" },
 	{ 0 }
 };
 
-static void M234Sync(void) {
-	if (bank & 0x40) {
-		setprg32(0x8000, (bank & 0xE) | (preg & 1));
-		setchr8(((bank & 0xE) << 2) | ((preg >> 4) & 7));
+static void Sync(void) {
+	if (reg[0] & 0x40) {
+		setprg32(0x8000, (reg[0] & 0x0E) | (reg[1] & 0x01));
+		setchr8(((reg[0] & 0x0E) << 2) | ((reg[1] >> 4) & 0x07));
 	} else {
-		setprg32(0x8000, bank & 0xF);
-		setchr8(((bank & 0xF) << 2) | ((preg >> 4) & 3));
+		setprg32(0x8000, reg[0] & 0x0F);
+		setchr8(((reg[0] & 0x0F) << 2) | ((reg[1] >> 4) & 0x03));
 	}
-	setmirror((bank >> 7) ^ 1);
+	setmirror((reg[0] >> 7) ^ 0x01);
 }
 
-uint8 M234ReadBank(uint32 A) {
-	uint8 r = CartBR(A);
-	if (!bank) {
-		bank = r;
-		M234Sync();
-	}
-	return r;
-}
+static DECLFR(M234Read) {
+	uint8 ret = CartBR(A);
 
-uint8 M234ReadPreg(uint32 A) {
-	uint8 r = CartBR(A);
-	preg = r;
-	M234Sync();
-	return r;
+	switch (A & 0xFFF8) {
+	case 0xFF80:
+	case 0xFF88:
+	case 0xFF90:
+	case 0xFF98:
+		if (!reg[0]) {
+			reg[0] = ret;
+			Sync();
+		}
+		break;
+	case 0xFFC0:
+	case 0xFFC8:
+	case 0xFFD0:
+	case 0xFFD8:
+		if (!reg[0]) {
+			reg[2] = ret;
+			Sync();
+		}
+		break;
+	case 0xFFE8:
+	case 0xFFF0:
+		reg[1] = ret;
+		Sync();
+		break;
+	}
+
+	return ret;
 }
 
 static void M234Reset(void) {
-	bank = preg = 0;
-	M234Sync();
+	reg[0] = reg[1] = reg[2] = 0;
+	Sync();
 }
 
 static void M234Power(void) {
-	M234Reset();
+	reg[0] = reg[1] = reg[2] = 0;
+	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetReadHandler(0xFF80, 0xFF9F, M234ReadBank);
-	SetReadHandler(0xFFE8, 0xFFF7, M234ReadPreg);
+	SetReadHandler(0xFF80, 0xFFFF, M234Read);
 }
 
-static void M234StateRestore(int version) {
-	M234Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
 void Mapper234_Init(CartInfo *info) {
 	info->Power = M234Power;
 	info->Reset = M234Reset;
-	AddExState(&StateRegs, ~0, 0, 0);
-	GameStateRestore = M234StateRestore;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

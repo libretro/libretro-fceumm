@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,119 +32,112 @@ static uint8 prg[2];
 static uint8 chr[8];
 static uint8 mirr;
 static uint8 pal_mirr;
-static uint8 last_pa13;
 static uint8 IRQCount;
 static uint8 IRQa;
 
-static SFORMAT StateRegs[] =
-{
-	{ prg, 2, "PRG" },
-	{ chr, 8, "CHR" },
+static uint16 lastAddr;
+
+static SFORMAT StateRegs[] = {
+	{ prg, 2, "PREG" },
+	{ chr, 8, "CREG" },
 	{ &mirr, 1, "MIRR" },
-	{ &last_pa13, 1, "PA13" },
-	{ &IRQCount, 1, "CNTR" },
 	{ &pal_mirr, 1, "PALM" },
+	{ &IRQCount, 1, "CNTR" },
 	{ &IRQa, 1, "CCLK" },
+	{ &lastAddr, 1, "LADR" },
 	{ 0 }
 };
 
-/* shifts bit from position `bit` into position `pos` of expression `exp` */
-#define shi(exp, bit, pos) \
-	((((exp) & (1 << (bit))) >> (bit)) << (pos))
-
-static uint32 vrc_addr_mix(uint32 A) {
-	/* this game wires A0 to VRC_A0 and A1 to VRC_A1 */
-	return (A & 0xf000) | shi(A, 0, 0) | shi(A, 1, 1);
-}
-
 static void Sync(void) {
-	uint8 i;
 	setprg8(0x8000, prg[0]);
-	setprg8(0xa000, prg[1]);
-	setprg16(0xc000, -1);	
-	for (i = 0; i < 8; ++i)
-		setchr1(0x400 * i, chr[i]);
-	switch (pal_mirr) {
-	case 2: setmirror(MI_0); break;
-	case 3: setmirror(MI_1); break;
-	default: 
-		switch (mirr) {
-		case 0: setmirror(MI_V); break;
-		case 1: setmirror(MI_H); break;
-		}
+	setprg8(0xA000, prg[1]);
+	setprg16(0xC000, ~0);
+
+	setchr1(0x0000, chr[0]);
+	setchr1(0x0400, chr[1]);
+	setchr1(0x0800, chr[2]);
+	setchr1(0x0C00, chr[3]);
+	setchr1(0x1000, chr[4]);
+	setchr1(0x1400, chr[5]);
+	setchr1(0x1800, chr[6]);
+	setchr1(0x1C00, chr[7]);
+
+	if (pal_mirr & 0x02) {
+		setmirror(MI_0 + (pal_mirr & 0x01));
+	} else {
+		setmirror((mirr & 0x01) ^ 0x01);
 	}
 }
 
-static void M272Write(uint32 A, uint8 V) {
+static DECLFW(M272Write) {
 	/* writes to VRC chip */
-	switch (vrc_addr_mix(A)) {
+	switch (A & 0xF000) {
 	case 0x8000:
-	case 0x8001:
-	case 0x8002:
-	case 0x8003:
 		prg[0] = V;
 		break;
 	case 0x9000:
-	case 0x9001:
-	case 0x9002:
-	case 0x9003:
-		mirr = V & 1;
+		mirr = V;
 		break;
 	case 0xA000:
-	case 0xA001:
-	case 0xA002:
-	case 0xA003:
 		prg[1] = V;
 		break;
-	case 0xb000: chr[0] = (chr[0] & 0xF0) | (V & 0xF); break;
-	case 0xb001: chr[0] = (chr[0] & 0xF) | ((V & 0xF) << 4); break;
-	case 0xb002: chr[1] = (chr[1] & 0xF0) | (V & 0xF); break;
-	case 0xb003: chr[1] = (chr[1] & 0xF) | ((V & 0xF) << 4); break;
-	case 0xc000: chr[2] = (chr[2] & 0xF0) | (V & 0xF); break;
-	case 0xc001: chr[2] = (chr[2] & 0xF) | ((V & 0xF) << 4); break;
-	case 0xc002: chr[3] = (chr[3] & 0xF0) | (V & 0xF); break;
-	case 0xc003: chr[3] = (chr[3] & 0xF) | ((V & 0xF) << 4); break;
-	case 0xd000: chr[4] = (chr[4] & 0xF0) | (V & 0xF); break;
-	case 0xd001: chr[4] = (chr[4] & 0xF) | ((V & 0xF) << 4); break;
-	case 0xd002: chr[5] = (chr[5] & 0xF0) | (V & 0xF); break;
-	case 0xd003: chr[5] = (chr[5] & 0xF) | ((V & 0xF) << 4); break;
-	case 0xe000: chr[6] = (chr[6] & 0xF0) | (V & 0xF); break;
-	case 0xe001: chr[6] = (chr[6] & 0xF) | ((V & 0xF) << 4); break;
-	case 0xe002: chr[7] = (chr[7] & 0xF0) | (V & 0xF); break;
-	case 0xe003: chr[7] = (chr[7] & 0xF) | ((V & 0xF) << 4); break;
-		
-	default:
+	case 0xB000:
+	case 0xC000:
+	case 0xD000:
+	case 0xE000: {
+		int bank = (((A - 0xB000) >> 11) & 0x06) | ((A >> 1) & 0x01);
+		if (A & 0x01) {
+			chr[bank] = (chr[bank] & ~0xF0) | (V << 4);
+		} else {
+			chr[bank] = (chr[bank] & ~0x0F) | (V & 0x0F);
+		}
 		break;
+	}
 	}
 
 	/* writes to PAL chip */
 	switch (A & 0xC00C) {
-	case 0x8004: pal_mirr = V & 3; break;
-	case 0x800c: X6502_IRQBegin(FCEU_IQEXT); break;
-	case 0xc004: X6502_IRQEnd(FCEU_IQEXT); break;
-	case 0xc008: IRQa = 1; break;
-	case 0xc00c: IRQa = 0; IRQCount = 0; X6502_IRQEnd(FCEU_IQEXT); break;
+	case 0x8004:
+		pal_mirr = V;
+		break;
+	case 0x800c:
+		X6502_IRQBegin(FCEU_IQEXT);
+		break;
+	case 0xc004:
+		X6502_IRQEnd(FCEU_IQEXT);
+		break;
+	case 0xc008:
+		IRQa = 1;
+		break;
+	case 0xc00c:
+		IRQa = 0;
+		IRQCount = 0;
+		X6502_IRQEnd(FCEU_IQEXT);
+		break;
 	}
 
 	Sync();
 }
 
-static void M272Power(void) {
+static void M272Reset(void) {
 	prg[0] = prg[1] = 0;
 	chr[0] = chr[1] = chr[2] = chr[3] = 0;
 	chr[4] = chr[5] = chr[6] = chr[7] = 0;
 	mirr = pal_mirr = 0;
-	last_pa13 = 0;
+	lastAddr = 0;
 	IRQCount = 0;
 	IRQa = 0;
 	Sync();
-	SetWriteHandler(0x8000, 0xFFFF, M272Write);
+}
+
+static void M272Power(void) {
+	M272Reset();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0xFFFF, M272Write);
 }
 
 static void M272Hook(uint32 A) {
-	uint8 pa13 = (A >> 13) & 1;
-	if ((last_pa13 == 1) && (pa13 == 0)) {
+	if ((lastAddr & 0x2000) && !(A & 0x2000)) {
 		if (IRQa) {
 			IRQCount++;
 			if (IRQCount == 84) {
@@ -152,18 +146,7 @@ static void M272Hook(uint32 A) {
 			}
 		}
 	}
-	last_pa13 = pa13;
-}
-
-static void M272Reset(void) {
-	prg[0] = prg[1] = 0;
-	chr[0] = chr[1] = chr[2] = chr[3] = 0;
-	chr[4] = chr[5] = chr[6] = chr[7] = 0;
-	mirr = pal_mirr = 0;
-	last_pa13 = 0;
-	IRQCount = 0;
-	IRQa = 0;
-	Sync();
+	lastAddr = A;
 }
 
 static void StateRestore(int version) {
@@ -175,5 +158,5 @@ void Mapper272_Init(CartInfo *info) {
 	info->Reset = M272Reset;
 	PPU_hook = M272Hook;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }

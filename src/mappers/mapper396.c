@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
+ *
  * NES 2.0 Mapper 396 - BMC-830752C
  * 1995 Super 8-in-1 (JY-050 rev0)
  * Super 8-in-1 Gold Card Series (JY-085)
@@ -25,49 +25,32 @@
  */
 
 #include "mapinc.h"
+#include "latch.h"
 
-static uint8 reg[2];
+static uint8 reg;
 
-static void Sync (void) {
-	setprg16(0x8000, reg[1] << 3 | reg[0] & 7);
-	setprg16(0xC000, reg[1] << 3 | 7);
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
+	{ 0 }
+};
+
+static void Sync(void) {
+	if ((latch.addr & 0x6000) == 0x2000) {
+		reg = latch.data;
+	}
+	setprg16(0x8000, (reg << 3) | (latch.data & 0x07));
+	setprg16(0xC000, (reg << 3) | 0x07);
 	setchr8(0);
-	setmirror(reg[1] & 0x60 ? 0 : 1);
-}
-
-static void M396WriteInnerBank(uint32 A, uint8 V) {
-	reg[0] = V;
-	Sync();
-}
-
-static void M396WriteOuterBank(uint32 A, uint8 V) {
-	reg[1] = V;
-	Sync();
+	setmirror((reg & 0x60) ? MI_H : MI_V);
 }
 
 static void M396Reset(void) {
-	reg[0] = 0x00;
-	reg[1] = 0x00;
-	Sync();
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-static void M396Power(void) {
-	reg[0] = 0x00;
-	reg[1] = 0x00;
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0x9FFF, M396WriteInnerBank);
-	SetWriteHandler(0xA000, 0xBFFF, M396WriteOuterBank);
-	SetWriteHandler(0xC000, 0xFFFF, M396WriteInnerBank);
+	reg = 0;
+	Latch_RegReset();
 }
 
 void Mapper396_Init(CartInfo *info) {
-	info->Power = M396Power;
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
 	info->Reset = M396Reset;
-	GameStateRestore = StateRestore;
-	AddExState(reg, 2, 0, "REGS");
+	AddExState(StateRegs, ~0, 0, NULL);
 }

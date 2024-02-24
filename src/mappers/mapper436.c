@@ -1,8 +1,9 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2008 CaH4e3
  *  Copyright (C) 2019 Libretro Team
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,40 +25,42 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void Mapper436_PWrap(uint32 A, uint8 V) {
-	if (EXPREGS[0] &0x01)
-		setprg8(A, V &0x0F | EXPREGS[0] >>2 &0x30);
-	else
-	if (A == 0x8000)
-		setprg32(A, (EXPREGS[0] >>4));
+static uint8 reg;
+
+static void M436PW(uint16 A, uint16 V) {
+	if (reg & 0x01) {
+		setprg8(A, ((reg >> 2) & 0x30) | (V & 0x0F));
+	} else {
+		setprg32(0x8000, (reg >> 4));
+	}
 }
 
-static void Mapper436_CWrap(uint32 A, uint8 V) {
-	setchr1(A, V &0x7F | EXPREGS[0] <<1 &~0x7F);
+static void M436CW(uint16 A, uint16 V) {
+	setchr1(A, ((reg << 1) & ~0x7F) | (V & 0x7F));
 }
 
-static void Mapper436_Write(uint32 A, uint8 V) {
-	EXPREGS[0] = A &0xFF;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static DECLFW(M436Write) {
+	reg = A & 0xFF;
+	MMC3_FixPRG();
+	MMC3_FixCHR();
 }
 
-static void Mapper436_Reset(void) {
-	EXPREGS[0] = 0;
-	MMC3RegReset();
+static void M436Reset(void) {
+	reg = 0;
+	MMC3_Reset();
 }
 
-static void Mapper436_Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, Mapper436_Write);
+static void M436Power(void) {
+	reg = 0;
+	MMC3_Power();
+	SetWriteHandler(0x6000, 0x7FFF, M436Write);
 }
 
 void Mapper436_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 8, 0);
-	pwrap = Mapper436_PWrap;
-	cwrap = Mapper436_CWrap;
-	info->Power = Mapper436_Power;
-	info->Reset = Mapper436_Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
+	MMC3_Init(info, 8, 0);
+	MMC3_pwrap = M436PW;
+	MMC3_cwrap = M436CW;
+	info->Power = M436Power;
+	info->Reset = M436Reset;
+	AddExState(&reg, 1, 0, "EXPR");
 }

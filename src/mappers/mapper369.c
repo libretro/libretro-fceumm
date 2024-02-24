@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,172 +23,143 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 mode;
-static uint8 mmc3_count, mmc3_latch, mmc3_enabled, mmc3_reload;
-static uint8 smb2_reg;
-static uint8 smb2j_enabled;
-static uint16 smb2j_count;
+static uint8 reg;
+static uint8 smb2j;
+static uint8 IRQa;
+static uint16 IRQCount;
 
 static SFORMAT StateRegs[] = {
-	{ &mode, 1, "MODE" },
-	{ &mmc3_reload, 1, "IRQR" },
-	{ &mmc3_count, 1, "IRQC" },
-	{ &mmc3_latch, 1, "IRQL" },
-	{ &mmc3_enabled, 1, "IRQA" },
-	{ &smb2_reg, 1, "MBRG" },
-	{ &smb2j_enabled, 1, "MIRQ" },
-	{ &smb2j_count, 2 | FCEUSTATE_RLSB, "MIQC" },
+	{ &reg, 1, "MODE" },
+	{ &smb2j, 1, "SMB2" },
+	{ &IRQa, 1, "MIQA" },
+	{ &IRQCount, 2, "MIQC" },
 	{ 0 }
 };
 
-static void SyncPRG(uint32 A, uint8 V) {
-	switch (mode) {
+static void M369PW(uint16 A, uint16 V) {
+	uint8 mask = (reg == 0xFF) ? 0x1F : 0x0F;
+	uint8 base = (reg == 0xFF) ? 0x20 : 0x10;
+
+	setprg8(A, (base & ~mask) | (V & mask));
+}
+
+static void M369CW(uint16 A, uint16 V) {
+	uint16 mask = (reg == 0xFF) ? 0xFF : 0x7F;
+	uint16 base = (reg == 0xFF) ? 0x100 : 0x80;
+
+	setchr1(A, (base & ~mask) | (V & mask));
+}
+
+static void M369Sync(void) {
+	switch (reg) {
 	case 0x00:
 	case 0x01: /* NROM */
-		setprg32(0x8000, mode & 0x01);
+		setprg32(0x8000, reg);
+		setchr8(reg & 0x03);
 		break;
-	case 0x13: /* Mapper 40 */
+	case 0x13: /* SMB2J */
 		setprg8r(0, 0x6000, 0x0E);
 		setprg8(0x8000, 0x0C);
-		setprg8(0xa000, 0x0D);
-		setprg8(0xc000, smb2_reg | 0x08);
-		setprg8(0xe000, 0x0F);
+		setprg8(0xA000, 0x0D);
+		setprg8(0xC000, 0x08 | (smb2j & 0x03));
+		setprg8(0xE000, 0x0F);
+		setchr8(reg & 0x03);
 		break;
-	case 0x37: /* MMC3 128 PRG */
+	case 0x37: /* MMC3: 128 KiB CHR */
+	case 0xFF: /* MMC3: 256 KiB CHR */
 		setprg8r(0x10, 0x6000, 0);
-		setprg8(A, (V & 0x0F) | 0x10);
-		break;
-	case 0xFF: /* MMC3 256 PRG */
-		setprg8r(0x10, 0x6000, 0);
-		setprg8(A, (V & 0x1F) | 0x20);
-		break;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
 	}
 }
 
-static void SyncCHR(uint32 A, uint8 V) {
-	switch (mode) {
-	case 0x00:
-	case 0x01: /* NROM */
-	case 0x13: /* Mapper 40 */
-		setchr8(mode & 0x03);
-		break;
-	case 0x37: /* MMC3 128 CHR */
-		setchr1(A, (V & 0x7F) | 0x80);
-		break;
-	case 0xFF: /* MMC3 256 CHR */
-		setchr1(A, (V & 0xFF) | 0x100);
-		break;
+static DECLFW(M369WriteLo) {
+	if (A & 0x100) {
+		reg = V;
+		M369Sync();
 	}
 }
 
-static void M369WriteLo(uint32 A, uint8 V) {
-	if ((A & 0xC100) == 0x4100) {
-		mode = V;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	}
-}
-
-static void M369Write(uint32 A, uint8 V) {
-	if (mode == 0x13) {
-		switch (A & 0xE000) {
-		case 0x8000:
-			smb2j_enabled = 0;
-			smb2j_count = 0;
+static DECLFW(M369Write) {
+	switch (A & 0xE000) {
+	case 0x8000:
+		if (reg == 0x13) {
+			IRQa = 0;
 			X6502_IRQEnd(FCEU_IQEXT);
-			break;
-		case 0xA000:
-			smb2j_enabled = 1;
-			break;
-		case 0xE000:
-			smb2_reg = V & 7;
-			FixMMC3PRG(MMC3_cmd);
-			FixMMC3CHR(MMC3_cmd);
-			break;
 		}
-	} else {
-		switch (A & 0xE001) {
-		case 0x8000:
-		case 0x8001:
-		case 0xA000:
-		case 0xA001:
-			MMC3_CMDWrite(A, V);
-			FixMMC3PRG(MMC3_cmd);
-			FixMMC3CHR(MMC3_cmd);
-			break;
-		case 0xC000:
-			mmc3_latch = V;
-			break;
-		case 0xC001:
-			mmc3_reload = 1;
-			break;
-		case 0xE000:
-			X6502_IRQEnd(FCEU_IQEXT);
-			mmc3_enabled = 0;
-			break;
-		case 0xE001:
-			mmc3_enabled = 1;
-			break;
+		if (A & 0x01) {
+			mmc3.reg[mmc3.cmd & 0x07] = V;
+			M369Sync();
+		} else {
+			mmc3.cmd = V;
+			M369Sync();
 		}
+		break;
+	case 0xA000:
+		if (reg == 0x13) {
+			IRQa = (V & 0x02) != 0;
+		}
+		MMC3_CMDWrite(A, V);
+		break;
+	case 0xC000:
+		MMC3_IRQWrite(A, V);
+		break;
+	case 0xE000:
+		if (reg == 0x13) {
+			smb2j = V;
+			M369Sync();
+		}
+		MMC3_IRQWrite(A, V);
+		break;
 	}
 }
 
 static void SMB2JIRQHook(int a) {
-	if (mode != 0x13)
-		return;
-
-	if (smb2j_enabled) {
-		if (smb2j_count < 4096)
-			smb2j_count += a;
-		else {
-			smb2j_enabled = 0;
-			X6502_IRQBegin(FCEU_IQEXT);
+	if (reg == 0x13) {
+		if (IRQa) {
+			IRQCount += a;
+			if (IRQCount >= 4096) {
+				IRQCount -= 4096;
+				X6502_IRQBegin(FCEU_IQEXT);
+			}
 		}
 	}
 }
 
 static void MMC3IRQHook(void) {
-	int32 count = mmc3_count;
-
-	if (mode == 0x13)
-		return;
-	
-	if (!count || mmc3_reload) {
-		mmc3_count = mmc3_latch;
-		mmc3_reload = 0;
-	} else
-		mmc3_count--;
-	if (count && !mmc3_count && mmc3_enabled)
-		X6502_IRQBegin(FCEU_IQEXT);
+	if (reg != 0x13) {
+		MMC3_IRQHBHook();
+	}
 }
 
 static void M369Reset(void) {
-	mode = 0;
-	smb2_reg = 0;
-	smb2j_enabled = 0;
-	smb2j_count = 0;
-	mmc3_count = mmc3_latch = mmc3_enabled = 0;
-	MMC3RegReset();
+	reg = smb2j = 0;
+	IRQa = IRQCount = 0;
+	MMC3_Reset();
+	M369Sync();
+}
+
+static void StateRestore(int version) {
+	M369Sync();
 }
 
 static void M369Power(void) {
-	mode = 0;
-	smb2_reg = 0;
-	smb2j_enabled = 0;
-	smb2j_count = 0;
-	mmc3_count = mmc3_latch = mmc3_enabled = 0;
-	GenMMC3Power();
+	reg = smb2j = 0;
+	IRQa = IRQCount = 0;
+	MMC3_Power();
 	SetWriteHandler(0x4100, 0x4FFF, M369WriteLo);
 	SetWriteHandler(0x8000, 0xFFFF, M369Write);
+	M369Sync();
 }
 
 void Mapper369_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 384, 8, info->battery);
-	pwrap = SyncPRG;
-	cwrap = SyncCHR;
+	MMC3_Init(info, 8, 0);
+	MMC3_pwrap = M369PW;
+	MMC3_cwrap = M369CW;
 	info->Power = M369Power;
 	info->Reset = M369Reset;
 	MapIRQHook = SMB2JIRQHook;
 	GameHBIRQHook = MMC3IRQHook;
-	AddExState(&StateRegs, ~0, 0, 0);
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

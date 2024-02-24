@@ -2,6 +2,7 @@
  *
  * Copyright notice for this file:
  *  Copyright (C) 2020
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,33 +24,38 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M516CW(uint32 A, uint8 V) {
-	setchr1(A, (V & 0x7F) | ((EXPREGS[0] << 5) & 0x180));
+static uint8 reg;
+
+static void M516CW(uint16 A, uint16 V) {
+/*    FCEU_printf("CHR: A:%04x V:%02x R0:%02x\n", A, V, reg); */
+	setchr1(A, ((reg << 5) & 0x180) | (V & 0x7F));
 }
 
-static void M516PW(uint32 A, uint8 V) {
-	setprg8(A, (V & 0x0F) | ((EXPREGS[0] << 4) & 0x30));
+static void M516PW(uint16 A, uint16 V) {
+/*    FCEU_printf("PRG: A:%04x V:%02x R0:%02x\n", A, V, reg); */
+	setprg8(A, ((reg << 4) & 0x30) | (V & 0x0F));
 }
 
-static void M516Write(uint32 A, uint8 V) {
+static DECLFW(M516Write) {
+/*    FCEU_printf("Wr: A:%04x V:%02x R0:%02x\n", A, V, reg); */
 	if (A & 0x10) {
-		EXPREGS[0] = A & 0xF;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
+		reg = A & 0x0F;
+		MMC3_FixPRG();
+		MMC3_FixCHR();
 	}
-	MMC3_CMDWrite(A, V);
+	MMC3_Write(A, V);
 }
 
 static void M516Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
+	reg = 0;
+	MMC3_Power();
 	SetWriteHandler(0x8000, 0xFFFF, M516Write);
 }
 
 void Mapper516_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 0, 0);
-	cwrap = M516CW;
-	pwrap = M516PW;
+	MMC3_Init(info, 0, 0);
+	MMC3_cwrap = M516CW;
+	MMC3_pwrap = M516PW;
 	info->Power = M516Power;
-	AddExState(EXPREGS, 4, 0, "EXPR");
+	AddExState(&reg, 1, 0, "EXPR");
 }

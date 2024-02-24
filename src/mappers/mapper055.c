@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,27 +18,35 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
+ * Mapper 55 - UNL-MARIO1-M0552
  * FDS Conversion
  *
  */
 
 #include "mapinc.h"
 
-static uint8 WRAM[2048];
-
-static void MALEEPower(void) {
-	setprg2r(0x10, 0x7000, 0);
+static void M055Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetReadHandler(0x6000, 0x67FF, CartBR);
 	SetReadHandler(0x7000, 0x77FF, CartBR);
 	SetWriteHandler(0x7000, 0x77FF, CartBW);
+
 	setprg2(0x6000, 16);
+	setprg2r(0x10, 0x7000, 0);
 	setprg32(0x8000, 0);
 	setchr8(0);
 }
 
-void MALEE_Init(CartInfo *info) {
-	info->Power = MALEEPower;
-	SetupCartPRGMapping(0x10, WRAM, 2048, 1);
-	AddExState(WRAM, 2048, 0, "WRAM");
+void Mapper055_Init(CartInfo *info) {
+	info->Power = M055Power;
+	if (info->iNES2) {
+		WRAMSIZE = info->PRGRamSize + info->PRGRamSaveSize;
+	} else if (info->battery) {
+		WRAMSIZE = 2048;
+	}
+	if (WRAMSIZE) {
+		WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+	}
 }

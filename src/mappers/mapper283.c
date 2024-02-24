@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,45 +19,14 @@
  */
 
 #include "mapinc.h"
-
-static uint8 reg, mirr;
-static SFORMAT StateRegs[] =
-{
-	{ &reg, 1, "REGS" },
-	{ &mirr, 1, "MIRR" },
-	{ 0 }
-};
+#include "latch.h"
 
 static void Sync(void) {
-	setprg8(0x6000, (ROM_size == 17) ? 32 : 31); /* FIXME: Verify these */
-	setprg32(0x8000, reg);
+	setprg8(0x6000, ((ROM.prg.size * 16384) & 0x6000) ? 32 : 31);
+	setprg32(0x8000, latch.data);
 	setchr8(0);
 }
 
-static void M283Write(uint32 A, uint8 V) {
-	reg = V;
-	Sync();
-}
-
-static void M283Power(void) {
-	reg = 0;
-	Sync();
-	SetReadHandler(0x6000, 0x7FFF, CartBR);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M283Write);
-}
-
-static void M283Reset(void) {
-	reg = 0;
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
 void Mapper283_Init(CartInfo *info) {
-	info->Reset = M283Reset;
-	info->Power = M283Power;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	Latch_Init(info, Sync, NULL, TRUE, FALSE);
 }

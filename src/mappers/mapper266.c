@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2007 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,103 +22,46 @@
  */
 
 #include "mapinc.h"
+#include "vrc2and4.h"
 
-static int32 IRQCount;
-static uint8 IRQa;
-static uint8 prg_reg, prg_mode, mirr;
-static uint8 chr_reg[8];
-static writefunc pcmwrite;
+static uint8 reg;
+static writefunc pcm;
 
-static SFORMAT StateRegs[] =
-{
-	{ &IRQCount, 4, "IRQC" },
-	{ &IRQa, 1, "IRQA" },
-	{ &prg_reg, 1, "PREG" },
-	{ &prg_mode, 1, "PMOD" },
-	{ &mirr, 1, "MIRR" },
-	{ chr_reg, 8, "CREG" },
+static SFORMAT StateRegs[] = {
+	{ &reg, 1, "REGS" },
 	{ 0 }
 };
 
-static void Sync(void) {
-	int i;
-	setprg32(0x8000, prg_reg >> 2);
-	if (!prg_mode)
-		setprg8(0xC000, prg_reg);
-	for (i = 0; i < 8; i++)
-		setchr1(i << 10, chr_reg[i]);
-	switch (mirr) {
-	case 0: setmirror(MI_V); break;
-	case 1: setmirror(MI_H); break;
-	case 2: setmirror(MI_0); break;
-	case 3: setmirror(MI_1); break;
+static void M266PW(uint16 A, uint16 V) {
+	setprg32(0x8000, reg >> 2);
+}
+
+static DECLFW(M266Write) {
+	/* FCEU_printf("%04x %02x",A,V); */
+	A = (A & 0x9FFF) | ((A << 1) & 0x4000) | ((A >> 1) & 0x2000);
+	VRC24_Write(A, V);
+}
+
+static DECLFW(M266WriteMisc) {
+	if (A & 0x800) {
+		pcm(0x4011, (V & 0x0F) << 3);
+	} else {
+		reg = V & 0x0C;
+		VRC24_FixPRG();
 	}
 }
 
-static void UNLCITYFIGHTWrite(uint32 A, uint8 V) {
-	switch (A & 0xF00C) {
-	case 0x9000: prg_reg = V & 0xC; mirr = V & 3; break;
-	case 0x9004:
-	case 0x9008:
-	case 0x900C:
-		if (A & 0x800)
-			pcmwrite(0x4011, (V & 0xf) << 3);
-		else
-			prg_reg = V & 0xC;
-		break;
-	case 0xC000:
-	case 0xC004:
-	case 0xC008:
-	case 0xC00C: prg_mode = V & 1; break;
-	case 0xD000: chr_reg[0] = (chr_reg[0] & 0xF0) | (V & 0x0F); break;
-	case 0xD004: chr_reg[0] = (chr_reg[0] & 0x0F) | (V << 4); break;
-	case 0xD008: chr_reg[1] = (chr_reg[1] & 0xF0) | (V & 0x0F); break;
-	case 0xD00C: chr_reg[1] = (chr_reg[1] & 0x0F) | (V << 4); break;
-	case 0xA000: chr_reg[2] = (chr_reg[2] & 0xF0) | (V & 0x0F); break;
-	case 0xA004: chr_reg[2] = (chr_reg[2] & 0x0F) | (V << 4); break;
-	case 0xA008: chr_reg[3] = (chr_reg[3] & 0xF0) | (V & 0x0F); break;
-	case 0xA00C: chr_reg[3] = (chr_reg[3] & 0x0F) | (V << 4); break;
-	case 0xB000: chr_reg[4] = (chr_reg[4] & 0xF0) | (V & 0x0F); break;
-	case 0xB004: chr_reg[4] = (chr_reg[4] & 0x0F) | (V << 4); break;
-	case 0xB008: chr_reg[5] = (chr_reg[5] & 0xF0) | (V & 0x0F); break;
-	case 0xB00C: chr_reg[5] = (chr_reg[5] & 0x0F) | (V << 4); break;
-	case 0xE000: chr_reg[6] = (chr_reg[6] & 0xF0) | (V & 0x0F); break;
-	case 0xE004: chr_reg[6] = (chr_reg[6] & 0x0F) | (V << 4); break;
-	case 0xE008: chr_reg[7] = (chr_reg[7] & 0xF0) | (V & 0x0F); break;
-	case 0xE00C: chr_reg[7] = (chr_reg[7] & 0x0F) | (V << 4); break;
-	case 0xF000: IRQCount = ((IRQCount & 0x1E0) | ((V & 0xF) << 1)); break;
-	case 0xF004: IRQCount = ((IRQCount & 0x1E) | ((V & 0xF) << 5)); break;
-	case 0xF008: IRQa = V & 2; X6502_IRQEnd(FCEU_IQEXT); break;
-	default:
-		break;
-	}
-	Sync();
+static void M266Power(void) {
+	reg = 0;
+	VRC24_Power();
+	pcm = GetWriteHandler(0x4011);
+	SetWriteHandler(0x8000, 0xFFFF, M266Write);
 }
 
-static void UNLCITYFIGHTIRQ(int a) {
-	if (IRQa) {
-		IRQCount -= a;
-		if (IRQCount <= 0) {
-			X6502_IRQBegin(FCEU_IQEXT);
-		}
-	}
-}
-
-static void UNLCITYFIGHTPower(void) {
-	prg_reg = 0;
-	Sync();
-	pcmwrite = GetWriteHandler(0x4011);
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, UNLCITYFIGHTWrite);
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-void UNLCITYFIGHT_Init(CartInfo *info) {
-	info->Power = UNLCITYFIGHTPower;
-	MapIRQHook = UNLCITYFIGHTIRQ;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper266_Init(CartInfo *info) {
+	VRC24_Init(info, VRC4, 0x04, 0x08, FALSE, TRUE);
+	info->Power = M266Power;
+	VRC24_pwrap = M266PW;
+	VRC24_miscWrite = M266WriteMisc;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

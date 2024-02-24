@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,50 +21,52 @@
 
 #include "mapinc.h"
 
-static uint8 mainreg, chrreg, mirror;
+static uint8 reg[2];
 
-static SFORMAT StateRegs[] =
-{
-	{ &mainreg, 1, "MREG" },
-	{ &chrreg, 1, "CREG" },
-	{ &mirror, 1, "MIRR" },
+static SFORMAT StateRegs[] = {
+	{ reg, 2, "REGS" },
 	{ 0 }
 };
 
-static void M41Sync(void) {
-	setprg32(0x8000, mainreg & 7);
-	setchr8(chrreg);
-	setmirror(mirror);
+static void Sync(void) {
+	setprg32(0x8000, reg[0] & 0x07);
+	setchr8(((reg[0] >> 1) & 0x0C) | (reg[1] & 0x03));
+	setmirror(((reg[0] >> 5) & 0x01) ^ 0x01);
 }
 
-static void M41Write0(uint32 A, uint8 V) {
-	mainreg = A & 0xFF;
-	mirror = ((A >> 5) & 1) ^ 1;
-	chrreg = (chrreg & 3) | ((A >> 1) & 0xC);
-	M41Sync();
+static DECLFW(M041Write0) {
+	reg[0] = A;
+	Sync();
 }
 
-static void M41Write1(uint32 A, uint8 V) {
-	if (mainreg & 0x4) {
-		chrreg = (chrreg & 0xC) | (A & 3);
-		M41Sync();
+static DECLFW(M041Write1) {
+	if (reg[0] & 0x04) {
+		/* bus conflict */
+		reg[1] = (V & CartBR(A));
+		Sync();
 	}
 }
 
-static void M41Power(void) {
-	mainreg = chrreg = 0;
-	M41Sync();
+static void M041Reset(void) {
+	reg[0] = reg[1] = 0;
+	Sync();
+}
+
+static void M041Power(void) {
+	reg[0] = reg[1] = 0;
+	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x6000, 0x67FF, M41Write0);
-	SetWriteHandler(0x8000, 0xFFFF, M41Write1);
+	SetWriteHandler(0x6000, 0x67FF, M041Write0);
+	SetWriteHandler(0x8000, 0xFFFF, M041Write1);
 }
 
-static void M41StateRestore(int version) {
-	M41Sync();
+static void StateRestore(int version) {
+	Sync();
 }
 
-void Mapper41_Init(CartInfo *info) {
-	info->Power = M41Power;
-	GameStateRestore = M41StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper041_Init(CartInfo *info) {
+	info->Power = M041Power;
+	info->Reset = M041Reset;
+	GameStateRestore = StateRestore;
+	AddExState(StateRegs, ~0, 0, NULL);
 }

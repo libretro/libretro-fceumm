@@ -1,6 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright (C) 2019 Libretro Team
+ * Copyright (C) 2023
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,52 +19,32 @@
  *
  */
 
+/* NES 2.0 Mapper 340
+ * UNIF BMC-K-3036 */
+
 #include "mapinc.h"
-
-static uint8 regs[2];
-
-static SFORMAT StateRegs[] =
-{
-	{ regs,  2, "REGS" },
-	{ 0 }
-};
+#include "latch.h"
 
 static void Sync(void) {
-	if (regs[0] &0x20) { /* NROM-128 */
-		setprg16(0x8000, regs[0] >>2 &0x20 | regs[0] &0x1F);
-		setprg16(0xC000, regs[0] >>2 &0x20 | regs[0] &0x1F);
-	} else {	    /* UNROM */
-		setprg16(0x8000, regs[0] >>2 &0x20 | regs[0] | regs[1] &7);
-		setprg16(0xC000, regs[0] >>2 &0x20 | regs[0] |          7);
+	uint16 prg = ((latch.addr >> 2) & 0x20) | (latch.addr & 0x1F);
+
+	if (latch.addr & 0x20) { /* NROM-128 */
+		if (latch.addr & 0x01) {
+			setprg16(0x8000, prg);
+			setprg16(0xC000, prg);
+		} else { /* NROM-256 */
+			setprg32(0x8000, prg >> 1);
+		}
+	} else { /* UNROM */
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg | 0x07);
 	}
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, (~latch.addr & 0x20));
 	setchr8(0);
-	setmirror((regs[0] &0x40 || regs[0] &0x20 && regs[0] &0x04)? MI_H: MI_V);
+	setmirror(((latch.addr & 0x40) || ((latch.addr & 0x20) && (latch.addr & 0x04))) ? MI_H : MI_V);
 }
 
-static void M340Write(uint32 A, uint8 V) {
-	regs[0] = A & 0xFF;
-	regs[1] = V;
-	Sync();
-}
-
-static void BMCK3036Power(void) {
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M340Write);
-}
-
-static void BMCK3036Reset(void) {
-	regs[0] = regs[1] = 0;
-	Sync();
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-void BMCK3036_Init(CartInfo *info) {
-	info->Power = BMCK3036Power;
-	info->Reset = BMCK3036Reset;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+void Mapper340_Init(CartInfo *info) {
+	Latch_Init(info, Sync, NULL, FALSE, FALSE);
+	info->Reset = Latch_RegReset;
 }

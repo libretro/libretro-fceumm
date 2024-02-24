@@ -1,7 +1,8 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
  *  Copyright (C) 2012 CaH4e3
+ *  Copyright (C) 2023-2024 negativeExponent
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,14 +21,14 @@
 
 #include "mapinc.h"
 
-static uint8 preg[3], creg[8], mirr;
+static uint8 prg[2], chr[8], mirr, cmd;
 static uint8 IRQa;
 static int16 IRQCount, IRQLatch;
 
-static SFORMAT StateRegs[] =
-{
-	{ preg, 3, "PREG" },
-	{ creg, 8, "CREG" },
+static SFORMAT StateRegs[] = {
+	{ &cmd, 1, "CMD0" },
+	{ prg, 2, "PREG" },
+	{ chr, 8, "CREG" },
 	{ &mirr, 1, "MIRR" },
 	{ &IRQa, 1, "IRQA" },
 	{ &IRQCount, 2, "IRQC" },
@@ -36,57 +37,106 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	setmirror(mirr);
-	setprg8(0x8000, preg[0]);
-	setprg8(0xA000, preg[1]);
-	setprg8(0xC000, preg[2]);
-	setprg8(0xE000, ~0);
-	setchr1(0x0000, creg[0]);
-	setchr1(0x0400, creg[1]);
-	setchr1(0x0800, creg[2]);
-	setchr1(0x0C00, creg[3]);
-	setchr1(0x1000, creg[4]);
-	setchr1(0x1400, creg[5]);
-	setchr1(0x1800, creg[6]);
-	setchr1(0x1C00, creg[7]);
-	setmirror(mirr);
-}
+	if (cmd & 0x80) {
+		setprg8(0x8000, ~1);
+		setprg8(0xA000, prg[1]);
+		setprg8(0xC000, prg[0]);
+		setprg8(0xE000, ~0);
+	} else {
+		setprg8(0x8000, prg[0]);
+		setprg8(0xA000, prg[1]);
+		setprg8(0xC000, ~1);
+		setprg8(0xE000, ~0);
+	}
 
-static void M65Write(uint32 A, uint8 V) {
-	switch (A) {
-	case 0x8000: preg[0] = V; Sync(); break;
-	case 0xA000: preg[1] = V; Sync(); break;
-	case 0xC000: preg[2] = V; Sync(); break;
-	case 0x9001: mirr = ((V >> 7) & 1) ^ 1; Sync(); break;
-	case 0x9003: IRQa = V & 0x80; X6502_IRQEnd(FCEU_IQEXT); break;
-	case 0x9004: IRQCount = IRQLatch; break;
-	case 0x9005: IRQLatch &= 0x00FF; IRQLatch |= V << 8; break;
-	case 0x9006: IRQLatch &= 0xFF00; IRQLatch |= V; break;
-	case 0xB000: creg[0] = V; Sync(); break;
-	case 0xB001: creg[1] = V; Sync(); break;
-	case 0xB002: creg[2] = V; Sync(); break;
-	case 0xB003: creg[3] = V; Sync(); break;
-	case 0xB004: creg[4] = V; Sync(); break;
-	case 0xB005: creg[5] = V; Sync(); break;
-	case 0xB006: creg[6] = V; Sync(); break;
-	case 0xB007: creg[7] = V; Sync(); break;
+	setchr1(0x0000, chr[0]);
+	setchr1(0x0400, chr[1]);
+	setchr1(0x0800, chr[2]);
+	setchr1(0x0C00, chr[3]);
+	setchr1(0x1000, chr[4]);
+	setchr1(0x1400, chr[5]);
+	setchr1(0x1800, chr[6]);
+	setchr1(0x1C00, chr[7]);
+
+	switch (mirr >> 6) {
+	case 0:
+		setmirror(MI_V);
+		break;
+	case 2:
+		setmirror(MI_H);
+		break;
+	default:
+		setmirror(MI_0);
+		break;
 	}
 }
 
-static void M65Power(void) {
-	preg[2] = ~1;
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, M65Write);
+static DECLFW(M065Write) {
+	switch (A & 0xF000) {
+	case 0x8000:
+	case 0xA000:
+		prg[(A >> 13) & 0x01] = V;
+		Sync();
+		break;
+	case 0x9000:
+		switch (A & 0x07) {
+		case 0:
+			cmd = V;
+			Sync();
+			break;
+		case 1:
+			mirr = V;
+			Sync();
+			break;
+		case 3:
+			IRQa = V & 0x80;
+			X6502_IRQEnd(FCEU_IQEXT);
+			break;
+		case 4:
+			IRQCount = IRQLatch;
+			X6502_IRQEnd(FCEU_IQEXT);
+			break;
+		case 5:
+			IRQLatch &= 0x00FF;
+			IRQLatch |= V << 8;
+			break;
+		case 6:
+			IRQLatch &= 0xFF00;
+			IRQLatch |= V;
+			break;
+		}
+		break;
+	case 0xB000:
+		chr[A & 0x07] = V;
+		Sync();
+		break;
+	}
 }
 
-void M65IRQ(int a) {
+static void M065Power(void) {
+	prg[0] = 0;
+	prg[1] = 1;
+
+	chr[0] = 0;
+	chr[1] = 1;
+	chr[2] = 2;
+	chr[3] = 3;
+	chr[4] = 4;
+	chr[5] = 5;
+	chr[6] = 6;
+	chr[7] = 7;
+
+	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0xBFFF, M065Write);
+}
+
+static void M065IRQ(int a) {
 	if (IRQa) {
 		IRQCount -= a;
-		if (IRQCount < -4) {
+		if (IRQCount <= 0) {
 			X6502_IRQBegin(FCEU_IQEXT);
 			IRQa = 0;
-			IRQCount = 0xFFFF;
 		}
 	}
 }
@@ -95,10 +145,9 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-void Mapper65_Init(CartInfo *info) {
-	info->Power = M65Power;
-	MapIRQHook = M65IRQ;
+void Mapper065_Init(CartInfo *info) {
+	info->Power = M065Power;
+	MapIRQHook = M065IRQ;
 	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
+	AddExState(StateRegs, ~0, 0, NULL);
 }
-
