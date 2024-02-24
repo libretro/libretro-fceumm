@@ -6,7 +6,7 @@ uint8 tmpd;
 #endif
 
 #ifndef PPUT_MMC5SP
-	FCEU_MAYBE_UNUSED uint8 zz;
+	uint8 zz;
 #else
 	uint8 xs, ys;
 	xs = X1;

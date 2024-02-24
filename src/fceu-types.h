@@ -33,19 +33,8 @@ typedef uint8_t uint8;
 typedef uint16_t uint16;
 typedef uint32_t uint32;
 
-#ifdef __GNUC__
-typedef unsigned long long uint64;
-typedef long long int64;
-#elif MSVC | _MSC_VER
-typedef __int64 int64;
-typedef unsigned __int64 uint64;
-#else
-typedef unsigned long long uint64;
-typedef long long int64;
-#endif
-
-#define FCEU_UNUSED(x)    (void)(x)
-#define FCEU_MAYBE_UNUSED __attribute__((unused))
+typedef uint64_t uint64;
+typedef int64_t int64;
 
 #if !defined(FALSE)
 #define FALSE 0

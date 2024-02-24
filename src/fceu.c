@@ -414,7 +414,6 @@ void ResetNES(void) {
 
 static int ram_init_seed = 0;
 
-FCEU_MAYBE_UNUSED
 static uint64 splitmix64(uint32 input) {
 	uint64 z = (input + 0x9e3779b97f4a7c15);
 	z        = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;

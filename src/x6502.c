@@ -277,8 +277,8 @@ redundant) on the variable "x".
 #define LD_ZP(op)       { uint8 A; uint8 x; GetZP(A); x = RdRAM(A); op; break; }
 #define LD_ZPX(op)      { uint8 A; uint8 x; GetZPI(A, cpu.X); x = RdRAM(A); op; break; }
 #define LD_ZPY(op)      { uint8 A; uint8 x; GetZPI(A, cpu.Y); x = RdRAM(A); op; break; }
-#define LD_AB(op)       { uint16 A; uint8 x; FCEU_UNUSED(x); GetAB(A); x = RdMem(A); op; break; }
-#define LD_ABI(reg, op) { uint16 A; uint8 x; FCEU_UNUSED(x); GetABIRD(A, reg); x = RdMem(A); op; break; }
+#define LD_AB(op)       { uint16 A; uint8 x; GetAB(A); x = RdMem(A); op; break; }
+#define LD_ABI(reg, op) { uint16 A; uint8 x; GetABIRD(A, reg); x = RdMem(A); op; break; }
 #define LD_ABX(op)      LD_ABI(cpu.X, op)
 #define LD_ABY(op)      LD_ABI(cpu.Y, op)
 #define LD_IX(op)       { uint16 A; uint8 x; GetIX(A); x = RdMem(A); op; break; }
