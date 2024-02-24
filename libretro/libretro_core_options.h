@@ -264,6 +264,7 @@ struct retro_core_option_v2_definition option_defs[] = {
          { PAL_FBX_SMOOTH_V2,     "FBX's Smooth V2" },
          { PAL_FBX_NES_CLASSIC,   "FBX's NES Classic" },
          { PAL_ROYAL_TEA,         "Royal Tea (PVM-2530)" },
+         { PAL_MUGICHA,           "Mugicha" },
          { "raw",                 "Raw" },
          { "custom",              "Custom" },
          { NULL, NULL }
