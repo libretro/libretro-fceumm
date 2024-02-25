@@ -1027,6 +1027,8 @@ static void check_variables(bool startup) {
 			current_palette = 12;
 		else if (!strcmp(var.value, PAL_ROYAL_TEA))
 			current_palette = 13;
+		else if (!strcmp(var.value, PAL_MUGICHA))
+			current_palette = 14;
 
 		if (current_palette != orig_value) {
 			audio_video_updated = 1;
