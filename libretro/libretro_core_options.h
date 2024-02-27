@@ -262,6 +262,8 @@ struct retro_core_option_v2_definition option_defs[] = {
          { "magnum-fbx",           "FBX's Magnum" },
          { "smooth-v2-fbx",        "FBX's Smooth V2" },
          { "nes-classic-fbx",      "FBX's NES Classic" },
+         { "royaltea",             "Royaltea (PVM-2530)" },
+         { "mugicha",              "Mugicha" },
          { "raw",                  "Raw" },
          { "custom",               "Custom" },
          { NULL, NULL },
