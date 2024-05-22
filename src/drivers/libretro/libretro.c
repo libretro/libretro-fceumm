@@ -3520,6 +3520,7 @@ bool retro_load_game(const struct retro_game_info *info)
 #if defined(_3DS)
    fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
 #elif !defined(PSP)
+
 #ifdef HAVE_NTSC_FILTER
 #define FB_WIDTH NES_NTSC_WIDTH
 #define FB_HEIGHT NES_HEIGHT
@@ -3527,7 +3528,12 @@ bool retro_load_game(const struct retro_game_info *info)
 #define FB_WIDTH NES_WIDTH
 #define FB_HEIGHT NES_HEIGHT
 #endif
+
+#if defined(PS2)
+   fceu_video_out = (uint8_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(uint8_t));
+#else
    fceu_video_out = (uint16_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(uint16_t));
+#endif
 #endif
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)
