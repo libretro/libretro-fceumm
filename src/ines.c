@@ -595,7 +595,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "",                         171, Mapper171_Init         )
 	INES_BOARD( "Super Mega P-4070",        172, Mapper172_Init         )
 	INES_BOARD( "Idea-Tek ET.xx",           173, Mapper173_Init         )
-/*    INES_BOARD( "",                            174, Mapper174_Init ) */
+    	INES_BOARD( "",                         174, Mapper174_Init         )
 	INES_BOARD( "",                         175, Mapper175_Init         )
 	INES_BOARD( "BMCFK23C",                 176, Mapper176_Init         )
 	INES_BOARD( "",                         177, Mapper177_Init         )
