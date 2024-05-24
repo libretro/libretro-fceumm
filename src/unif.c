@@ -539,7 +539,7 @@ static BMAPPING bmap[] = {
 	{ "Supervision16in1",            53, Supervision16_Init,    0 },
 	{ "T-227-1",                NO_INES, BMCT2271_Init,         0 },
 	{ "T-230",                      529, UNLT230_Init,          0 },
-	{ "T-262",                      265, BMCT262_Init,          0 },
+	{ "T-262",                      265, Mapper265_Init,        0 },
 	{ "TBROM",                        4, TBROM_Init,            0 },
 	{ "TC-U01-1.5M",                147, Mapper147_Init,        0 },
 	{ "TEK90",                       90, Mapper90_Init,         0 },

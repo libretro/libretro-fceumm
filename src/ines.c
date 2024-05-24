@@ -688,7 +688,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "SHERO",                    262, UNLSHeroes_Init        )
 	INES_BOARD( "KOF97",                    263, UNLKOF97_Init          )
 	INES_BOARD( "YOKO",                     264, UNLYOKO_Init           )
-	INES_BOARD( "T-262",                    265, BMCT262_Init           )
+	INES_BOARD( "T-262",                    265, Mapper265_Init         )
 	INES_BOARD( "CITYFIGHT",                266, UNLCITYFIGHT_Init      )
 	INES_BOARD( "8-in-1 JY-119",            267, Mapper267_Init         )
 	INES_BOARD( "COOLBOY/MINDKIDS",         268, Mapper268_Init         ) /* Submapper distinguishes between COOLBOY and MINDKIDS */
