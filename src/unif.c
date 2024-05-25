@@ -446,6 +446,7 @@ static BMAPPING bmap[] = {
 	{ "AX5705",                     530, UNLAX5705_Init,        0 },
 	{ "BB",                         108, UNLBB_Init,            0 },
 	{ "BS-110",                     444, Mapper444_Init,        0 }, /* Due to a mix-up, UNIF MAPR BMC-BS-110 is actually the NC7000M PCB and refers to NES 2.0 Mapper 444 instead. */
+	{ "831128C",                    528, Mapper528_Init,        0 },
 	{ "BS-5",                       286, BMCBS5_Init,           0 },
 	{ "CC-21",                       27, UNLCC21_Init,          0 },
 	{ "CITYFIGHT",                  266, UNLCITYFIGHT_Init,     0 },
