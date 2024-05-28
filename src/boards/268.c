@@ -85,6 +85,14 @@ static void Mapper268_CHRWrap(uint32 A, uint8 V) {
 	setchr1r(CHRRAM && EXPREGS[4] &0x01 && (V &0xFE) ==(EXPREGS[4] &0xFE)? 0x10: 0x00, A, V &chrMaskMMC3 | chrOffset | A >>10 &chrMaskGNROM);
 }
 
+void Mapper268_MirrorWrap(uint8 V) {
+	A000B =V;
+	if ((submapper &~1) ==10 && ~EXPREGS[0] &0x20)
+		setmirror(EXPREGS[0] &0x10? MI_1: MI_0);
+	else
+		setmirror(A000B &1? MI_H: MI_V);
+}
+
 static DECLFR(Mapper268_ReadWRAM) {
 	return A001B &0xA0? CartBR(A): X.DB;
 }
@@ -104,6 +112,7 @@ static DECLFW(Mapper268_WriteReg) {
 		EXPREGS[index] =V;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
+		Mapper268_MirrorWrap(A000B);
 	}
 }
 
@@ -134,6 +143,7 @@ void Mapper268_Init(CartInfo *info) {
 	GenMMC3_Init(info, 512, 256, (info->PRGRamSize +info->PRGRamSaveSize) >>10, info->battery);
 	cwrap = Mapper268_CHRWrap;
 	pwrap = Mapper268_PRGWrap;
+	mwrap = Mapper268_MirrorWrap;
 	info->Power = Mapper268_Power;
 	info->Reset = Mapper268_Reset;
 	info->Close = Mapper268_close;
