@@ -109,7 +109,7 @@ static void wrapMirroring(uint8 V) {
 static DECLFW(writeWRAM) {
 	CartBW(A, V);
 	if ((A &3) ==2) { /* CNROM Bank (D0-D3), Bank Enable (D4-D6) and Bank Enable Lock (D7) */
-		int latchMask =0xFF &~(EXPREGS[2] &0x80? 0x70: 0x00) &~(EXPREGS [2] >>3 &0x0E);
+		int latchMask =0xFF &~(EXPREGS[2] &0x80? 0xF0: 0x00) &~(EXPREGS [2] >>3 &0x0E);
 		EXPREGS[2] =EXPREGS[2] &~latchMask | V &latchMask;
 		FixMMC3CHR(MMC3_cmd);
 	} else
