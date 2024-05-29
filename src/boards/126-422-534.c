@@ -109,7 +109,7 @@ static void wrapMirroring(uint8 V) {
 static DECLFW(writeWRAM) {
 	CartBW(A, V);
 	if ((A &3) ==2) { /* CNROM Bank (D0-D3), Bank Enable (D4-D6) and Bank Enable Lock (D7) */
-		int latchMask =0xFF &~(EXPREGS[2] &0x80? 0x70: 0x00) &~(EXPREGS [2] >>3 &0x0E);
+		int latchMask =0xFF &~(EXPREGS[2] &0x80? 0xF0: 0x00) &~(EXPREGS [2] >>3 &0x0E);
 		EXPREGS[2] =EXPREGS[2] &~latchMask | V &latchMask;
 		FixMMC3CHR(MMC3_cmd);
 	} else
@@ -118,18 +118,27 @@ static DECLFW(writeWRAM) {
 		EXPREGS[A &3] =V;
 		FixMMC3PRG(MMC3_cmd);
 		FixMMC3CHR(MMC3_cmd);
-		mwrap(A000B); /* After 6001 or 6003 swite */
+		mwrap(A000B); /* After 6001 or 6003 write */
 	}
 }
 
+static DECLFW(MMC3_CMDWriteA) { /* In mmc3.c, MMC3_cmd is updated *after* FixMMC3PRG is called, but we need MMC3_cmd in wrapPRG, so work around this problem until the MMC3 core is properly rewritten to actually make sense. */
+	if ((A &0xE001) ==0x8000) {
+		MMC3_cmd =V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	} else
+		MMC3_CMDWrite(A, V);	
+}
+	
 static DECLFW(writeCart) {
 	if ((EXPREGS[3] &0x09) ==0x09) /* UNROM and ANROM modes treat all writes to $8000-$FFFF as if they were going to $8000-$9FFF */
-		MMC3_CMDWrite(0x8000 | (EXPREGS[3] &0x08? 1: A) &1, V); /* A0 substitution only looks at bit 3 of register 3 */
+		MMC3_CMDWriteA(0x8000 | (EXPREGS[3] &0x08? 1: A) &1, V); /* A0 substitution only looks at bit 3 of register 3 */
 	else
 	if (A >=0xC000)
 		MMC3_IRQWrite(A, V ^(invertC000? 0xFF: 0x00)); /* Mapper 534 inverts the MMC3 scanline counter reload value */
 	else
-		MMC3_CMDWrite(A, V);	
+		MMC3_CMDWriteA(A, V);	
 }
 
 static DECLFR(readPRG) {
