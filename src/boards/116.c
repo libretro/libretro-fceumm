@@ -53,7 +53,8 @@ static uint8 IRQa          = 0;
 static uint8 IRQReload     = 0;
 static uint8 mode          = 0;
 
-static uint32 isHuang2     = 0;
+static uint8 submapper     = 0;
+static uint8 game          = 0;
 
 extern uint32 ROM_size;
 extern uint32 VROM_size;
@@ -74,32 +75,36 @@ static SFORMAT StateRegs[] =
 	{ mmc1_regs,    4, "M1RG" },
 	{ &mmc1_buffer, 1, "M1BF" },
 	{ &mmc1_shift,  1, "M1MR" },
+	{ &submapper,   1, "SUBM" },
+	{ &game,        1, "GAME" },
 	{ 0 }
 };
 
 static void SyncPRG(void) {
+	uint8 mask  = (submapper != 3) ? 0x3F : (game ? 0x0F : 0x1F);
+	uint8 outer = game ? (game + 1) * 0x10 : 0;
 	switch (mode & 3) {
 	case 0:
-		setprg8(0x8000, vrc2_prg[0]);
-		setprg8(0xA000, vrc2_prg[1]);
-		setprg8(0xC000, ~1);
-		setprg8(0xE000, ~0);
+		setprg8(0x8000, (outer & ~mask) | (vrc2_prg[0] & mask));
+		setprg8(0xA000, (outer & ~mask) | (vrc2_prg[1] & mask));
+		setprg8(0xC000, (outer & ~mask) | (~1 & mask));
+		setprg8(0xE000, (outer & ~mask) | (~0 & mask));
 		break;
 	case 1:
 	{
 		uint32 swap = (mmc3_ctrl >> 5) & 2;
-		setprg8(0x8000, mmc3_regs[6 + swap]);
-		setprg8(0xA000, mmc3_regs[7]);
-		setprg8(0xC000, mmc3_regs[6 + (swap ^ 2)]);
-		setprg8(0xE000, mmc3_regs[9]);
+		setprg8(0x8000, (outer & ~mask) | (mmc3_regs[6 + swap] & mask));
+		setprg8(0xA000, (outer & ~mask) | (mmc3_regs[7] & mask));
+		setprg8(0xC000, (outer & ~mask) | (mmc3_regs[6 + (swap ^ 2)] & mask));
+		setprg8(0xE000, (outer & ~mask) | (mmc3_regs[9] & mask));
 		break;
 	}
 	case 2:
 	case 3:
 	{
-		uint8 bank = mmc1_regs[3] & 0xF;
+		uint8 bank = mmc1_regs[3] & mask;
 		if (mmc1_regs[0] & 8) {
-			if (isHuang2)
+			if (submapper == 2)
 				bank >>= 1;
 			if (mmc1_regs[0] & 4) {
 				setprg16(0x8000, bank);
@@ -109,44 +114,46 @@ static void SyncPRG(void) {
 				setprg16(0xC000, bank);
 			}
 		} else
-			setprg32(0x8000, bank >> 1);
+			setprg32(0x8000, ((outer & ~mask) >> 1) | (bank >> 1));
 		}
 		break;
 	}
 }
 
 static void SyncCHR(void) {
-	uint32 base = (mode & 4) << 6;
+	uint32 mask  = game ? 0x7F : 0xFF;
+	uint32 outer = game ? (game + 1) * 0x80 : 0;
+	uint32 base  = (mode & 4) << 6;
 	switch (mode & 3) {
 	case 0:
-		setchr1(0x0000, base | vrc2_chr[0]);
-		setchr1(0x0400, base | vrc2_chr[1]);
-		setchr1(0x0800, base | vrc2_chr[2]);
-		setchr1(0x0c00, base | vrc2_chr[3]);
-		setchr1(0x1000, base | vrc2_chr[4]);
-		setchr1(0x1400, base | vrc2_chr[5]);
-		setchr1(0x1800, base | vrc2_chr[6]);
-		setchr1(0x1c00, base | vrc2_chr[7]);
+		setchr1(0x0000, ((outer | base) & ~mask) | (vrc2_chr[0] & mask));
+		setchr1(0x0400, ((outer | base) & ~mask) | (vrc2_chr[1] & mask));
+		setchr1(0x0800, ((outer | base) & ~mask) | (vrc2_chr[2] & mask));
+		setchr1(0x0c00, ((outer | base) & ~mask) | (vrc2_chr[3] & mask));
+		setchr1(0x1000, ((outer | base) & ~mask) | (vrc2_chr[4] & mask));
+		setchr1(0x1400, ((outer | base) & ~mask) | (vrc2_chr[5] & mask));
+		setchr1(0x1800, ((outer | base) & ~mask) | (vrc2_chr[6] & mask));
+		setchr1(0x1c00, ((outer | base) & ~mask) | (vrc2_chr[7] & mask));
 		break;
 	case 1: {
 		uint32 swap = (mmc3_ctrl & 0x80) << 5;
-		setchr1(0x0000 ^ swap, base | ((mmc3_regs[0]) & 0xFE));
-		setchr1(0x0400 ^ swap, base | (mmc3_regs[0] | 1));
-		setchr1(0x0800 ^ swap, base | ((mmc3_regs[1]) & 0xFE));
-		setchr1(0x0c00 ^ swap, base | (mmc3_regs[1] | 1));
-		setchr1(0x1000 ^ swap, base | mmc3_regs[2]);
-		setchr1(0x1400 ^ swap, base | mmc3_regs[3]);
-		setchr1(0x1800 ^ swap, base | mmc3_regs[4]);
-		setchr1(0x1c00 ^ swap, base | mmc3_regs[5]);
+		setchr1(0x0000 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[0] & 0xFE) & mask));
+		setchr1(0x0400 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[0] | 1) & mask));
+		setchr1(0x0800 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[1] & 0xFE) & mask));
+		setchr1(0x0c00 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[1] | 1) & mask));
+		setchr1(0x1000 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[2] & mask));
+		setchr1(0x1400 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[3] & mask));
+		setchr1(0x1800 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[4] & mask));
+		setchr1(0x1c00 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[5] & mask));
 		break;
 	}
 	case 2:
 	case 3:
 		if (mmc1_regs[0] & 0x10) {
-			setchr4(0x0000, mmc1_regs[1]);
-			setchr4(0x1000, mmc1_regs[2]);
+			setchr4(0x0000, (outer & ~mask) | (mmc1_regs[1] & mask));
+			setchr4(0x1000, (outer & ~mask) | (mmc1_regs[2] & mask));
 		} else
-			setchr8(mmc1_regs[1] >> 1);
+			setchr8(((outer & ~mask) >> 1) | (mmc1_regs[1] & mask) >> 1);
 		break;
 	}
 }
@@ -181,8 +188,7 @@ static void Sync(void) {
 }
 
 static DECLFW(UNLSL12ModeWrite) {
-/*  FCEU_printf("%04X:%02X\n",A,V); */
-	if ((A & 0x4100) == 0x4100) {
+	if (A & 0x100) {
 		mode = V;
 		if (A & 1) {	/* hacky hacky, there are two configuration modes on SOMARI HUANG-1 PCBs
 						 * Solder pads with P1/P2 shorted called SOMARI P,
@@ -299,8 +305,20 @@ static void StateRestore(int version) {
 	Sync();
 }
 
+static void UNLSL12Reset(void) {
+	/* this is suppose to increment during power cycle */
+	/* but we dont have a way to do that, so increment on reset instead. */
+	if (submapper == 3) {
+		game = game + 1;
+		if (game > 4)
+			game = 0;
+	}
+	Sync();
+}
+
 static void UNLSL12Power(void) {
-	mode = 0;
+	game = (submapper == 3) ? 4 : 0;
+	mode = 1;
 	vrc2_chr[0] = ~0;
 	vrc2_chr[1] = ~0;
 	vrc2_chr[2] = ~0;
@@ -331,16 +349,20 @@ static void UNLSL12Power(void) {
 	mmc1_shift = 0;
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x4100, 0x7FFF, UNLSL12ModeWrite);
+	SetWriteHandler(0x4100, 0x5FFF, UNLSL12ModeWrite);
 	SetWriteHandler(0x8000, 0xFFFF, UNLSL12Write);
 }
 
 void UNLSL12_Init(CartInfo *info) {
-	info->Power = UNLSL12Power;
-	GameHBIRQHook = UNLSL12HBIRQ;
+	info->Power      = UNLSL12Power;
+	info->Reset      = UNLSL12Reset;
+	GameHBIRQHook    = UNLSL12HBIRQ;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
-	/* PRG 128K and CHR 128K is Huang-2 */
-	if (ROM_size == 8 && VROM_size == 16)
-		isHuang2 = 1;
+	submapper        = info->submapper;
+	if (submapper == 0) {
+		/* PRG 128K and CHR 128K is Huang-2 (submapper 2) */
+		if (ROM_size == 8 && VROM_size == 16)
+			submapper = 2;
+	}
 }

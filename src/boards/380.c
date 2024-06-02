@@ -26,6 +26,7 @@
 static uint16 latche;
 static uint8 dipswitch;
 static uint8 isKN35A;
+static uint8 is4K1;
 
 static SFORMAT StateRegs[] = {
    { &latche, 2 | FCEUSTATE_RLSB, "LATC" },
@@ -50,13 +51,13 @@ static void Sync(void)
       setprg16(0x8000, latche >> 2);
       setprg16(0xC000, (latche >> 2) | 7 | (isKN35A && latche &0x100? 8: 0));
    }
-   setmirror(((latche >> 1) & 1) ^ 1);
+   setmirror(latche &(is4K1? 0x040: 0x002)? MI_H: MI_V);
 }
 
 static DECLFR(M380Read)
 {
    if (latche & 0x100 && !isKN35A)
-      return dipswitch;
+      return CartBR(A | dipswitch);
    return CartBR(A);
 }
 
@@ -91,6 +92,7 @@ static void StateRestore(int version)
 void Mapper380_Init(CartInfo *info)
 {
    isKN35A = info->iNES2 && info->submapper == 1;
+   is4K1 = info->iNES2 && info->submapper == 2;
    info->Power = M380Power;
    info->Reset = M380Reset;
    GameStateRestore = StateRestore;

@@ -59,6 +59,8 @@
 #define RETRO_DEVICE_FC_SHADOW    RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE,  4)
 #define RETRO_DEVICE_FC_4PLAYERS  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 2)
 #define RETRO_DEVICE_FC_HYPERSHOT RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 3)
+#define RETRO_DEVICE_FC_FTRAINERA RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 2)
+#define RETRO_DEVICE_FC_FTRAINERB RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 3)
 #define RETRO_DEVICE_FC_AUTO      RETRO_DEVICE_JOYPAD
 
 #define NES_WIDTH   256
@@ -88,10 +90,11 @@ static retro_audio_sample_batch_t audio_batch_cb = NULL;
 retro_environment_t environ_cb = NULL;
 #ifdef PSP
 static bool crop_overscan;
-#else
-static bool crop_overscan_h;
-static bool crop_overscan_v;
 #endif
+static int crop_overscan_h_left;
+static int crop_overscan_h_right;
+static int crop_overscan_v_top;
+static int crop_overscan_v_bottom;
 
 static bool use_raw_palette;
 static int aspect_ratio_par;
@@ -159,6 +162,9 @@ typedef struct {
 static NES_INPUT_T nes_input = { 0 };
 enum RetroZapperInputModes{RetroCLightgun, RetroSTLightgun, RetroMouse, RetroPointer};
 enum RetroZapperInputModes zappermode = RetroCLightgun;
+enum RetroArkanoidInputModes{RetroArkanoidMouse, RetroArkanoidPointer, RetroArkanoidAbsMouse, RetroArkanoidStelladaptor};
+enum RetroArkanoidInputModes arkanoidmode = RetroArkanoidMouse;
+static int mouseSensitivity = 100;
 extern int switchZapper;
 
 static bool libretro_supports_bitmasks = false;
@@ -734,6 +740,42 @@ struct st_palettes palettes[] = {
          0xECC1FC, 0xFAC3E7, 0xF7CEC3, 0xE2CDA7,
          0xDADB9C, 0xC8E39E, 0xBFE5B8, 0xB2EBC8,
          0xB7E5EB, 0xACACAC, 0x000000, 0x000000 }
+      },
+   { "royaltea", "Royaltea palette (PVM-2530)",
+      { 0x5A6165, 0x0023A8, 0x0F17B0, 0x28129F,
+         0x550B61, 0x6B0A11, 0x6E0D00, 0x5E1900,
+         0x3C2402, 0x003104, 0x003508, 0x00341F,
+         0x002C55, 0x000000, 0x000000, 0x000000,
+         0xA7B5BC, 0x0059FF, 0x2A44FF, 0x523CF1,
+         0x9F34BA, 0xB32846, 0xBB2D09, 0x9E4100,
+         0x865A00, 0x246D02, 0x007312, 0x007156,
+         0x0066A6, 0x000000, 0x000000, 0x000000,
+         0xFFFFFF, 0x4B9FFF, 0x5A91FF, 0x867EFF,
+         0xD97DFF, 0xFF95CF, 0xFF8E76, 0xF7A247,
+         0xEFB412, 0x8CC51C, 0x48D04A, 0x10D197,
+         0x00C9F0, 0x43484B, 0x000000, 0x000000,
+         0xFFFFFF, 0xB1D9FF, 0xB1CFFF, 0xBCC8FF,
+         0xE3C8FF, 0xFFD3F7, 0xFFD5CB, 0xFFDEB9,
+         0xFFE5AD, 0xDBF6AF, 0xB7FBC4, 0x9CFBE6,
+         0x96F7FF, 0xB1C0C7, 0x000000, 0x000000 }
+   },
+   { "mugicha", "Mugicha palette",
+      { 0x5c6164, 0x0021a0, 0x00109c, 0x290c91,
+        0x520a5c, 0x6d000e, 0x590000, 0x430d00,
+        0x352200, 0x003800, 0x003d00, 0x003621,
+        0x00294c, 0x000000, 0x000000, 0x000000,
+        0xaab5ba, 0x0059f0, 0x2945f7, 0x523cf7,
+        0xac2dc2, 0xbc095d, 0xbd2c08, 0x964200,
+        0x825400, 0x007600, 0x007a00, 0x007152,
+        0x0062a0, 0x000000, 0x000000, 0x000000,
+        0xffffff, 0x2daaff, 0x5a92ff, 0x967eff,
+        0xeb7dff, 0xff82d0, 0xff8e73, 0xf79b3d,
+        0xe6b610, 0x73c40f, 0x32d141, 0x05cb88,
+        0x00c8f0, 0x414548, 0x000000, 0x000000,
+        0xffffff, 0xb1d9ff, 0xc8d2ff, 0xe2ccff,
+        0xffccff, 0xffc6fb, 0xffd0cb, 0xffdeb9,
+        0xffe5ad, 0xdbf6af, 0xb7fbc4, 0x9cfbe6,
+        0x96f7ff, 0xb4c0c5, 0x000000, 0x000000 }
    }
 };
 
@@ -1235,6 +1277,14 @@ static void update_nes_controllers(unsigned port, unsigned device)
          FCEUI_SetInputFC(SIFC_HYPERSHOT, nes_input.FamicomData, 0);
          FCEU_printf(" Famicom Expansion: Konami Hyper Shot\n");
          break;
+      case RETRO_DEVICE_FC_FTRAINERA:
+         FCEUI_SetInputFC(SIFC_FTRAINERA, &nes_input.PowerPadData, 0);
+         FCEU_printf(" Famicom Expansion: Family Trainer A\n");
+         break;
+      case RETRO_DEVICE_FC_FTRAINERB:
+         FCEUI_SetInputFC(SIFC_FTRAINERB, &nes_input.PowerPadData, 0);
+         FCEU_printf(" Famicom Expansion: Family Trainer B\n");
+         break;
       case RETRO_DEVICE_NONE:
       default:
          FCEUI_SetInputFC(SIFC_NONE, &Dummy, 0);
@@ -1281,6 +1331,10 @@ static unsigned fc_to_libretro(int d)
       return RETRO_DEVICE_FC_4PLAYERS;
    case SIFC_HYPERSHOT:
       return RETRO_DEVICE_FC_HYPERSHOT;
+   case SIFC_FTRAINERA:
+      return RETRO_DEVICE_FC_FTRAINERA;
+   case SIFC_FTRAINERB:
+      return RETRO_DEVICE_FC_FTRAINERB;
    }
 
    return (RETRO_DEVICE_NONE);
@@ -1578,6 +1632,8 @@ void retro_set_environment(retro_environment_t cb)
       { "(Konami) Hyper Shot",   RETRO_DEVICE_FC_HYPERSHOT },
       { "Oeka Kids Tablet",      RETRO_DEVICE_FC_OEKAKIDS },
       { "4-Player Adapter",      RETRO_DEVICE_FC_4PLAYERS },
+      { "Family Trainer A",      RETRO_DEVICE_FC_FTRAINERA },
+      { "Family Trainer B",      RETRO_DEVICE_FC_FTRAINERB },
       { 0, 0 },
    };
 
@@ -1586,7 +1642,7 @@ void retro_set_environment(retro_environment_t cb)
       { pads2, 6 },
       { pads3, 4 },
       { pads4, 2 },
-      { pads5, 6 },
+      { pads5, 8 },
       { 0, 0 },
    };
 
@@ -1637,13 +1693,8 @@ static float get_aspect_ratio(unsigned width, unsigned height)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-#ifdef PSP
-   unsigned width  = NES_WIDTH  - (crop_overscan ? 16 : 0);
-   unsigned height = NES_HEIGHT - (crop_overscan ? 16 : 0);
-#else
-   unsigned width  = NES_WIDTH  - (crop_overscan_h ? 16 : 0);
-   unsigned height = NES_HEIGHT - (crop_overscan_v ? 16 : 0);
-#endif
+   unsigned width  = NES_WIDTH  - crop_overscan_h_left - crop_overscan_h_right;
+   unsigned height = NES_HEIGHT - crop_overscan_v_top - crop_overscan_v_bottom;
 #ifdef HAVE_NTSC_FILTER
    info->geometry.base_width = (use_ntsc ? NES_NTSC_OUT_WIDTH(width) : width);
    info->geometry.max_width = (use_ntsc ? NES_NTSC_WIDTH : NES_WIDTH);
@@ -1908,6 +1959,10 @@ static void check_variables(bool startup)
          current_palette = 18;
       else if (!strcmp(var.value, "nes-classic-fbx"))
          current_palette = 19;
+      else if (!strcmp(var.value, "royaltea"))
+         current_palette = 20;
+      else if (!strcmp(var.value, "mugicha"))
+         current_palette = 21;
 
       if (current_palette != orig_value)
       {
@@ -1995,11 +2050,36 @@ static void check_variables(bool startup)
       }
    }
 
+   var.key = "fceumm_arkanoid_mode";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (!strcmp(var.value, "touchscreen")) {
+         arkanoidmode = RetroArkanoidPointer;
+      }
+      else if (!strcmp(var.value, "abs_mouse")) {
+         arkanoidmode = RetroArkanoidAbsMouse;
+      }
+      else if (!strcmp(var.value, "stelladaptor")) {
+         arkanoidmode = RetroArkanoidStelladaptor;
+      }
+      else {
+         arkanoidmode = RetroArkanoidMouse; /*default setting*/
+      }
+   }
+
    var.key = "fceumm_zapper_tolerance";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       FCEU_ZapperSetTolerance(atoi(var.value));
+   }
+
+   var.key = "fceumm_mouse_sensitivity";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      mouseSensitivity = atoi(var.value);
    }
 
    var.key = "fceumm_show_crosshair";
@@ -2034,31 +2114,60 @@ static void check_variables(bool startup)
       bool newval = (!strcmp(var.value, "enabled"));
       if (newval != crop_overscan)
       {
+         crop_overscan_h_left = (newval == true ? 8 : 0);
+         crop_overscan_h_right = (newval == true ? 8 : 0);
+         crop_overscan_v_top = (newval == true ? 8 : 0);
+         crop_overscan_v_bottom = (newval == true ? 8 : 0);
+
          crop_overscan = newval;
          audio_video_updated = 1;
       }
    }
 #else
-   var.key = "fceumm_overscan_h";
+   var.key = "fceumm_overscan_h_left";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      bool newval = (!strcmp(var.value, "enabled"));
-      if (newval != crop_overscan_h)
+      int newval = atoi(var.value);
+      if (newval != crop_overscan_h_left)
       {
-         crop_overscan_h = newval;
+         crop_overscan_h_left = newval;
          audio_video_updated = 1;
       }
    }
 
-   var.key = "fceumm_overscan_v";
+   var.key = "fceumm_overscan_h_right";
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      bool newval = (!strcmp(var.value, "enabled"));
-      if (newval != crop_overscan_v)
+      int newval = atoi(var.value);
+      if (newval != crop_overscan_h_right)
       {
-         crop_overscan_v = newval;
+         crop_overscan_h_right = newval;
+         audio_video_updated = 1;
+      }
+   }
+
+   var.key = "fceumm_overscan_v_top";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      int newval = atoi(var.value);
+      if (newval != crop_overscan_v_top)
+      {
+         crop_overscan_v_top = newval;
+         audio_video_updated = 1;
+      }
+   }
+
+   var.key = "fceumm_overscan_v_bottom";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      int newval = atoi(var.value);
+      if (newval != crop_overscan_v_bottom)
+      {
+         crop_overscan_v_bottom = newval;
          audio_video_updated = 1;
       }
    }
@@ -2243,79 +2352,131 @@ void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata)
 
 static int mzx = 0, mzy = 0;
 
-void get_mouse_input(unsigned port, uint32_t *zapdata)
+void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
 {
-   bool adjx = false;
-   bool adjy = false;
    int min_width, min_height, max_width, max_height;
 
-#ifdef PSP
-   adjx = adjy = crop_overscan ? 1 : 0;
-#else
-   adjx        = crop_overscan_h ? 1 : 0;
-   adjy        = crop_overscan_v ? 1 : 0;
-#endif
    max_width   = 256;
    max_height  = 240;
-   zapdata[2]  = 0; /* reset click state */
+   mousedata[2]  = 0; /* reset click state */
+   
+   if (variant == RETRO_DEVICE_FC_ARKANOID)
+       variant = RETRO_DEVICE_ARKANOID;
 
-   if (zappermode == RetroMouse) /* mouse device */
+   if ((variant != RETRO_DEVICE_ARKANOID && zappermode == RetroMouse) || 
+       (variant == RETRO_DEVICE_ARKANOID && arkanoidmode == RetroArkanoidMouse)) /* mouse device */
    {
       int mouse_Lbutton;
       int mouse_Rbutton;
 
-      min_width   = (adjx ? 8 : 0) + 1;
-      min_height  = (adjy ? 8 : 0) + 1;
-      max_width  -= (adjx ? 8 : 0);
-      max_height -= (adjy ? 8 : 0);
+      min_width   = crop_overscan_h_left + 1;
+      min_height  = crop_overscan_v_top + 1;
+      max_width  -= crop_overscan_h_right;
+      max_height -= crop_overscan_v_bottom;
 
-      /* TODO: Add some sort of mouse sensitivity */
-      mzx += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-      mzy += input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+      mzx += mouseSensitivity * input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X) / 100;
+      mzy += mouseSensitivity * input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y) / 100;      
 
+      switch(variant) {
+        case RETRO_DEVICE_ARKANOID:
+            if (mzx < 0) mzx = 0;
+            else if (mzx > 240) mzx = 240;
+            if (mzy < min_height) mzy = min_height;
+            else if (mzy > max_height) mzy = max_height;
+            mousedata[1] = mzy;
+            break; 
+
+        case RETRO_DEVICE_ZAPPER:
+        default:
       /* Set crosshair within the limits of current screen resolution */
       if (mzx < min_width) mzx = min_width;
       else if (mzx > max_width) mzx = max_width;
+            break;
+      }
 
-      if (mzy < min_height) mzy = min_height;
-      else if (mzy > max_height) mzy = max_height;
-
-      zapdata[0] = mzx;
-      zapdata[1] = mzy;
+      mousedata[0] = mzx;
       
       mouse_Lbutton = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
       mouse_Rbutton = input_cb(port, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_RIGHT);
 
       if (mouse_Lbutton)
-         zapdata[2] |= 0x1;
+         mousedata[2] |= 0x1;
       if (mouse_Rbutton)
-         zapdata[2] |= 0x2;
+         mousedata[2] |= 0x2;
    }
-   else if (zappermode == RetroPointer) {
-      int offset_x = (adjx ? 0X8FF : 0);
-      int offset_y = (adjy ? 0X999 : 0);
+   else if (variant != RETRO_DEVICE_ARKANOID && zappermode == RetroPointer) {
+      int offset_x = (crop_overscan_h_left * 0x120) - 1;
+      int offset_y = (crop_overscan_v_top * 0x133) + 1;
 
       int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
       int _y = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 
       if (_x == 0 && _y == 0)
       {
-         zapdata[0] = 0;
-         zapdata[1] = 0;
+         mousedata[0] = 0;
       }
       else
       {
-         zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
-         zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
+         mousedata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         mousedata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
       }
 
       if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
-         zapdata[2] |= 0x1;
+         mousedata[2] |= 0x1;
+   }
+   else if (variant == RETRO_DEVICE_ARKANOID && (arkanoidmode == RetroArkanoidAbsMouse || arkanoidmode == RetroArkanoidPointer)) {
+      int offset_x = (crop_overscan_h_left * 0x120) - 1;
+
+      int _x = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+      int _y = input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+
+      if (_x != 0 || _y != 0)
+      {
+         int32 raw = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         if (arkanoidmode == RetroArkanoidAbsMouse) {
+             /* remap so full screen movement ends up within the encoder range 0-240
+                game board: 176 wide
+                paddle: 32
+                range of movement: 176-32 = 144
+                left edge: 16
+                right edge: 64
+             
+                increase movement by 10 to allow edges to be reached in case of problems
+	     */
+             raw = (raw - 128) * 140 / 128 + 128;
+             if (raw < 0)
+                 raw = 0;
+             else if (raw > 255)
+                 raw = 255;
+              
+             mousedata[0] = raw * 240 / 255;
+         }
+         else {
+             /* remap so full board movement ends up within the encoder range 0-240 */
+             if (mousedata[0] < 16+(32/2))
+                 mousedata[0] = 0;
+             else
+                 mousedata[0] -= 16+(32/2);
+             if (mousedata[0] > 144)
+                 mousedata[0] = 144;
+             mousedata[0] = raw * 240 / 144;
+         }
+      }
+      
+
+      if (input_cb(port, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED))
+         mousedata[2] |= 0x1;
+   }
+   else if (variant == RETRO_DEVICE_ARKANOID && arkanoidmode == RetroArkanoidStelladaptor) {
+      int x = input_cb(port, RETRO_DEVICE_ANALOG, 0, RETRO_DEVICE_ID_ANALOG_X);
+      mousedata[0] = (x+32768)*240/65535;
+      if (input_cb(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A) || input_cb(port, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B))
+         mousedata[2] |= 0x1;
    }
    else  if (zappermode == RetroCLightgun) /* Crosshair lightgun device */
    {
-      int offset_x = (adjx ? 0X8FF : 0);
-      int offset_y = (adjy ? 0X999 : 0);
+      int offset_x = (crop_overscan_h_left * 0x120) - 1;
+      int offset_y = (crop_overscan_v_top * 0x133) + 1;
       int offscreen;
       int offscreen_shot;
       int trigger;
@@ -2326,25 +2487,25 @@ void get_mouse_input(unsigned port, uint32_t *zapdata)
 
       if ( offscreen || offscreen_shot )
       {
-         zapdata[0] = 0;
-         zapdata[1] = 0;
+         mousedata[0] = 0;
+         mousedata[1] = 0;
       }
       else
       {
          int _x = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X );
          int _y = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y );
 
-         zapdata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
-         zapdata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
+         mousedata[0] = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         mousedata[1] = (_y + (0x7FFF + offset_y)) * max_height  / ((0x7FFF + offset_y) * 2);
       }
 
       if ( trigger || offscreen_shot )
-         zapdata[2] |= 0x1;
+         mousedata[2] |= 0x1;
    }
    else /* Sequential targets lightgun device integration */
    {
-      zapdata[2] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER );
-      zapdata[3] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_AUX_A );
+      mousedata[2] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_TRIGGER );
+      mousedata[3] = input_cb( port, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_AUX_A );
    }
 }
 
@@ -2491,8 +2652,9 @@ static void FCEUD_UpdateInput(void)
       switch (nes_input.type[port])
       {
          case RETRO_DEVICE_ARKANOID:
+         case RETRO_DEVICE_FC_ARKANOID:
          case RETRO_DEVICE_ZAPPER:
-               get_mouse_input(port, nes_input.MouseData[port]);
+               get_mouse_input(port, nes_input.type[port], nes_input.MouseData[port]);
             break;
       }
    }
@@ -2515,7 +2677,7 @@ static void FCEUD_UpdateInput(void)
       case RETRO_DEVICE_FC_ARKANOID:
       case RETRO_DEVICE_FC_OEKAKIDS:
       case RETRO_DEVICE_FC_SHADOW:
-         get_mouse_input(0, nes_input.FamicomData);
+         get_mouse_input(0, nes_input.type[4], nes_input.FamicomData);
          break;
       case RETRO_DEVICE_FC_HYPERSHOT:
       {
@@ -2548,6 +2710,10 @@ static void FCEUD_UpdateInput(void)
          }
          break;
       }
+      case RETRO_DEVICE_FC_FTRAINERB:
+      case RETRO_DEVICE_FC_FTRAINERA:
+         add_powerpad_input(4, nes_input.type[4], &nes_input.PowerPadData);
+         break;
    }
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
@@ -2670,10 +2836,10 @@ static void retro_run_blit(uint8_t *gfx)
       ps2->coreTexture->PSM = GS_PSM_T8;
       ps2->coreTexture->ClutPSM = GS_PSM_CT16;
       ps2->coreTexture->Filter = GS_FILTER_LINEAR;
-      ps2->padding = (struct retro_hw_ps2_insets){ crop_overscan_v ? 8.0f : 0.0f,
-                                                   crop_overscan_h ? 8.0f : 0.0f,
-                                                   crop_overscan_v ? 8.0f : 0.0f,
-                                                   crop_overscan_h ? 8.0f : 0.0f};
+      ps2->padding = (struct retro_hw_ps2_insets){ (float) crop_overscan_v_top,
+                                                   (float) crop_overscan_h_left,
+                                                   (float) crop_overscan_v_bottom,
+                                                   (float) crop_overscan_h_right };
    }
 
    ps2->coreTexture->Clut = (u32*)retro_palette;
@@ -2692,14 +2858,14 @@ static void retro_run_blit(uint8_t *gfx)
           NES_WIDTH, burst_phase, NES_WIDTH, NES_HEIGHT,
           ntsc_video_out, NES_NTSC_WIDTH * sizeof(uint16));
 
-      width    = NES_WIDTH - (crop_overscan_h ? 16 : 0);
+      width    = NES_WIDTH - crop_overscan_h_left - crop_overscan_h_right;
       width    = NES_NTSC_OUT_WIDTH(width);
-      height   = NES_HEIGHT - (crop_overscan_v ? 16 : 0);
+      height   = NES_HEIGHT - crop_overscan_v_top - crop_overscan_v_bottom;
       pitch    = width * sizeof(uint16_t);
 
       {
-         int32_t h_offset   = crop_overscan_h ?  NES_NTSC_OUT_WIDTH(8) : 0;
-         int32_t v_offset   = crop_overscan_v ? 8 : 0;
+         int32_t h_offset   = (crop_overscan_h_left ? NES_NTSC_OUT_WIDTH(crop_overscan_h_left) : 0);
+         int32_t v_offset   = crop_overscan_v_top;
          const uint16_t *in = ntsc_video_out + h_offset + NES_NTSC_WIDTH * v_offset;
          uint16_t *out      = fceu_video_out;
 
@@ -2715,11 +2881,11 @@ static void retro_run_blit(uint8_t *gfx)
    else
 #endif /* HAVE_NTSC_FILTER */
    {
-      incr   += (crop_overscan_h ? 16 : 0);
-      width  -= (crop_overscan_h ? 16 : 0);
-      height -= (crop_overscan_v ? 16 : 0);
-      pitch  -= (crop_overscan_h ? 32 : 0);
-      gfx    += (crop_overscan_v ? ((crop_overscan_h ? 8 : 0) + 256 * 8) : (crop_overscan_h ? 8 : 0));
+      incr   += (crop_overscan_h_left + crop_overscan_h_right);
+      width  -= (crop_overscan_h_left + crop_overscan_h_right);
+      height -= (crop_overscan_v_top + crop_overscan_v_bottom);
+      pitch  -= (crop_overscan_h_left + crop_overscan_h_right) * sizeof(uint16_t);
+      gfx    += (crop_overscan_v_top * 256) + crop_overscan_h_left;
 
       if (use_raw_palette)
       {
@@ -3354,6 +3520,7 @@ bool retro_load_game(const struct retro_game_info *info)
 #if defined(_3DS)
    fceu_video_out = (uint16_t*)linearMemAlign(256 * 240 * sizeof(uint16_t), 128);
 #elif !defined(PSP)
+
 #ifdef HAVE_NTSC_FILTER
 #define FB_WIDTH NES_NTSC_WIDTH
 #define FB_HEIGHT NES_HEIGHT
@@ -3361,7 +3528,12 @@ bool retro_load_game(const struct retro_game_info *info)
 #define FB_WIDTH NES_WIDTH
 #define FB_HEIGHT NES_HEIGHT
 #endif
+
+#if defined(PS2)
+   fceu_video_out = (uint8_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(uint8_t));
+#else
    fceu_video_out = (uint16_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(uint16_t));
+#endif
 #endif
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir) && system_dir)

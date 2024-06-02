@@ -186,6 +186,7 @@ void WAIXINGFS005_Init(CartInfo *info);
 
 void Mapper422_Init(CartInfo *info);
 void Mapper444_Init(CartInfo *info);
+void COOLGIRL_Init(CartInfo* info);		/* m342 */
 
 extern uint8 *UNIFchrrama;	/* Meh.  So I can stop CHR RAM
 							 * bank switcherooing with certain boards...

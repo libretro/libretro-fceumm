@@ -134,6 +134,8 @@ else ifeq ($(platform), tvos-arm64)
 	ifeq ($(IOSSDK),)
 		IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
 	endif
+	CC = clang -arch arm64 -isysroot $(IOSSDK)
+	CXX = clang++ -arch arm64 -isysroot $(IOSSDK)
 
 # Theos iOS
 else ifeq ($(platform), theos_ios)
@@ -348,7 +350,7 @@ else ifeq ($(platform), libnx)
 else ifeq ($(platform), classic_armv7_a7)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
+	SHARED := -fPIC -shared -Wl,--version-script=src/drivers/libretro/link.T -Wl,-no-undefined
 	CFLAGS += -Ofast \
 	-flto=4 -fwhole-program -fuse-linker-plugin \
 	-fdata-sections -ffunction-sections -Wl,--gc-sections \

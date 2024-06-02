@@ -185,7 +185,9 @@ static DECLFW(writeMMC1) {
 
 static DECLFW(writeVRC4) {
 	uint8 index;
-	A =A &0xF000 | (A &0x800? ((A &8? 1: 0) | (A &4? 2: 0)): ((A &4? 1: 0) | (A &8? 2: 0)));
+	if (~reg[2] &4) A =A &0xF800 | A >>1 &0x3FF; /* A2,A1 -> A1,A0 if 5002.2=1 */
+	A |=A >>2 &3; /* A3,A2 -> A1,A0 */
+	if (A &0x800) A =A >>1 &1 | A <<1 &2 | A &~3; /* A8==1 => Swap A1,A0 */
 	switch (A &0xF000) {
 	case 0x8000: case 0xA000:
 		VRC4_prg[A >>13 &1] =V;
@@ -216,7 +218,7 @@ static DECLFW(writeVRC4) {
 		}
 		break;
 	default:
-		index =(A -0xB000) >>11 | A >>1 &1;
+		index =(A -0xB000) >>11 &~1 | A >>1 &1;
 		if (A &1)
 			VRC4_chr[index] =VRC4_chr[index] & 0x0F | V <<4;
 		else
