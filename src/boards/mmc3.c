@@ -667,7 +667,7 @@ static void M52CW(uint32 A, uint8 V) {
 static void M52S14CW(uint32 A, uint8 V) {
 	uint32 mask = 0xFF ^ ((EXPREGS[0] & 0x40) << 1);
 	uint32 bank = EXPREGS[0] <<3 &0x80 | EXPREGS[0] <<7 &0x300;
-	if (EXPREGS[0] &0x20)
+	if (CHRRAM && EXPREGS[0] &0x20)
 		setchr1r(0x10, A, bank | (V & mask));
 	else
 		setchr1(A, bank | (V & mask));
@@ -703,7 +703,7 @@ void Mapper52_Init(CartInfo *info) {
 	info->Reset = M52Reset;
 	info->Power = M52Power;
 	AddExState(EXPREGS, 2, 0, "EXPR");
-	if (info->iNES2 && (info->submapper ==13 || info->submapper ==14)) {
+	if (info->iNES2 && info->CHRRomSize && info->CHRRamSize) {
 		CHRRAMSIZE = 8192;
 		CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
 		SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
