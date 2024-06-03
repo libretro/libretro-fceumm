@@ -41,7 +41,7 @@ static DECLFW(M364Write) {
 static void M364Power(void) {
 	EXPREGS[0] = 0;
 	GenMMC3Power();
-	SetWriteHandler(0x7000, 0x7FFF, M364Write);
+	SetWriteHandler(0x6000, 0x7FFF, M364Write);
 }
 
 void Mapper364_Init(CartInfo *info) {

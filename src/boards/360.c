@@ -22,37 +22,52 @@
 
 #include "mapinc.h"
 
-static uint8 dipswitch;
+static uint8 reg;
+static uint8 submapper;
 
 static SFORMAT StateRegs[] =
 {
-	{ &dipswitch, 1, "DPSW" },
+	{ &reg, 1, "DPSW" },
 	{ 0 }
 };
 
 static void Sync(void) {
+	if (~reg &0x20 && submapper ==1) {
+		setprg8(0x8000, 0x40);
+		setprg8(0xA000, 0x40);
+		setprg8(0xC000, 0x40);
+		setprg8(0xE000, 0x40);
+	} else
 	/* dip 0 and 1 is the same game SMB) */
-	if (dipswitch < 2)
-		setprg32(0x8000, dipswitch >> 1);
+	if ((reg &0x1F) < 2)
+		setprg32(0x8000, reg >> 1 &0x0F);
 	else {
-		setprg16(0x8000, dipswitch);
-		setprg16(0xC000, dipswitch);
+		setprg16(0x8000, reg &0x1F);
+		setprg16(0xC000, reg &0x1F);
 	}
-	setchr8(dipswitch);
-	setmirror(((dipswitch & 0x10) >> 4) ^ 1);
+	setchr8(reg);
+	setmirror(((reg & 0x10) >> 4) ^ 1);
+}
+
+static DECLFW(M360WriteReg) {
+	reg =V;
+	Sync();
 }
 
 static void M360Power(void) {
-	dipswitch = 0;
+	reg = 0;
 	Sync();
+	if (submapper ==1) SetWriteHandler(0x4100, 0x4FFF, M360WriteReg);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0XFFFF, CartBW);
 }
 
 static void M360Reset(void) {
-	dipswitch = (dipswitch + 1) & 31;
+	if (submapper ==0)
+		reg = (reg + 1) & 31;
+	else
+		reg = 0;
 	Sync();
-	FCEU_printf("dipswitch = %d\n", dipswitch);
 }
 
 static void StateRestore(int version) {
@@ -60,6 +75,7 @@ static void StateRestore(int version) {
 }
 
 void Mapper360_Init(CartInfo *info) {
+	submapper = info->submapper;
 	info->Reset = M360Reset;
 	info->Power = M360Power;
 	GameStateRestore = StateRestore;

@@ -23,71 +23,59 @@
 
 #include "mapinc.h"
 
-static uint16 cmd, bank;
+static uint16 reg[2];
+static uint8 submapper;
 
-static SFORMAT StateRegs[] =
-{
-	{ &cmd, 2 | FCEUSTATE_RLSB, "CMD" },
-	{ &bank, 2 | FCEUSTATE_RLSB, "BANK" },
+static SFORMAT StateRegs[] ={
+	{ reg, 4 | FCEUSTATE_RLSB, "REGS" },
 	{ 0 }
 };
 
-static void Sync(void) {
-	setmirror((cmd & 1) ^ 1);
+static DECLFR(Mapper221_ReadOB)
+{
+   return X.DB;
+}
+
+static void sync(void) {
+	uint8 prg =reg[0] >>(submapper ==1? 2: 3) &0x40 | reg[0] >>2 &0x38 | reg[1] &0x07;
+	SetReadHandler(0x8000, 0xFFFF, prg <<14 >=PRGsize[0]? Mapper221_ReadOB: CartBR); /* Selecting unpopulated banks results in open bus */
+	if (reg[0] &(submapper ==1? 0x200: 0x100)) { /* UNROM */
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg |7);
+	} else
+	if (reg[0] &0x0002) /* NROM-256 */
+		setprg32(0x8000, prg >>1);
+	else { /* NROM-128 */
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
+	}
 	setchr8(0);
-	if (cmd & 2) {
-		if (cmd & 0x100) {
-			setprg16(0x8000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | bank);
-			setprg16(0xC000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | 7);
-		} else {
-			setprg16(0x8000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | (bank & 6));
-			setprg16(0xC000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | ((bank & 6) | 1));
-		}
-	} else {
-		setprg16(0x8000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | bank);
-		setprg16(0xC000, ((cmd & 0x200) >> 3) | ((cmd & 0xfc) >> 2) | bank);
-	}
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, submapper ==1? !(reg[0] &0x0400): !(reg[1] &0x0008));
+	setmirror(reg[0] &0x0001? MI_H: MI_V);
 }
 
-static uint16 ass = 0;
-
-static DECLFW(UNLN625092WriteCommand) {
-	cmd = A;
-	if (A == 0x80F8) {
-		setprg16(0x8000, ass);
-		setprg16(0xC000, ass);
-	} else {
-		Sync();
-	}
-}
-
-static DECLFW(UNLN625092WriteBank) {
-	bank = A & 7;
-	Sync();
+static DECLFW(Mapper221Write) {
+	reg[A >>14 &1] =A;
+	sync();
 }
 
 static void UNLN625092Power(void) {
-	cmd = 0;
-	bank = 0;
-	Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xBFFF, UNLN625092WriteCommand);
-	SetWriteHandler(0xC000, 0xFFFF, UNLN625092WriteBank);
+	reg[0] =reg[1] =0;
+	sync();	
+	SetWriteHandler(0x8000, 0xFFFF, Mapper221Write);
 }
 
 static void UNLN625092Reset(void) {
-	cmd = 0;
-	bank = 0;
-	ass++;
-	FCEU_printf("%04x\n", ass);
-	Sync();
+	reg[0] =reg[1] =0;
+	sync();
 }
 
 static void StateRestore(int version) {
-	Sync();
+	sync();
 }
 
 void UNLN625092_Init(CartInfo *info) {
+	submapper =info->submapper;
 	info->Reset = UNLN625092Reset;
 	info->Power = UNLN625092Power;
 	GameStateRestore = StateRestore;

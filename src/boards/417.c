@@ -25,6 +25,7 @@ static uint8 creg[8];
 static uint8 nt[4];
 static uint8 IRQa;
 static uint16 IRQCount;
+static uint8 submapper;
 
 static SFORMAT StateRegs[] = {
 	{ preg, 4, "PREG" },
@@ -48,11 +49,18 @@ static void Sync(void) {
 static DECLFW(M417Write) {
     switch ((A >> 4) & 7) {
     case 0: preg[A & 3] = V; Sync(); break;
-    case 1: creg[0 | (A & 3)] = V; Sync(); break;
+    case 1: creg[0 | (A & 3)] = V; 
+            if (submapper ==1) nt[A & 3] =V >>7;
+            Sync();
+	    break;
     case 2: creg[4 | (A & 3)] = V; Sync(); break;break;
     case 3: IRQCount = 0; IRQa = 1; break;
     case 4: IRQa = 0; X6502_IRQEnd(FCEU_IQEXT); break;
-    case 5: nt[A & 3] = V; Sync(); break;
+    case 5: if (submapper ==0) {
+		nt[A & 3] = V;
+		Sync();
+            }
+            break;
     }
 }
 
@@ -64,7 +72,7 @@ static void M417Power(void) {
 
 static void M417IRQHook(int a) {
     IRQCount += a;
-    if (IRQa && IRQCount > 1024)
+    if (IRQa && IRQCount > (submapper ==1? 4096: 1024))
         X6502_IRQBegin(FCEU_IQEXT);
 }
 
@@ -73,8 +81,9 @@ static void StateRestore(int version) {
 }
 
 void Mapper417_Init(CartInfo *info) {
+	submapper =info->submapper;
 	info->Power = M417Power;
-    MapIRQHook = M417IRQHook;
+	MapIRQHook = M417IRQHook;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
