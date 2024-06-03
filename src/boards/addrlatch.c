@@ -555,8 +555,8 @@ void Mapper242_Init(CartInfo *info) {
  * - 64-in-1 (CF-015)
  */
 static void M288Sync(void) {
-	setchr8(latche & 7);
-	setprg32(0x8000, (latche >> 3) & 3);
+	setchr8(latche);
+	setprg32(0x8000, latche >> 3);
 }
 
 static DECLFR(M288Read) {
