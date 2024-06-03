@@ -181,7 +181,7 @@ static void M61Sync(void) {
 		setprg16(0xC000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
 	} else
 		setprg32(0x8000, latche & 0xF);
-	setchr8(0);
+	setchr8(latche >> 8);
 	setmirror(((latche >> 7) & 1) ^ 1);
 }
 
