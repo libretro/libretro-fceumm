@@ -563,7 +563,13 @@ static void M47CW(uint32 A, uint8 V) {
 }
 
 static DECLFW(M47Write) {
-	EXPREGS[0] = V & 1;
+	EXPREGS[0] = V;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
+}
+
+static void M47Reset(void) {
+	EXPREGS[0] = 0;	
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
@@ -579,6 +585,7 @@ void Mapper47_Init(CartInfo *info) {
 	GenMMC3_Init(info, 512, 256, 8, 0);
 	pwrap = M47PW;
 	cwrap = M47CW;
+	info->Reset = M47Reset;
 	info->Power = M47Power;
 	AddExState(EXPREGS, 1, 0, "EXPR");
 }
