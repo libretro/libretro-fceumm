@@ -31,55 +31,80 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
+uint8 submapper;
+
 static void M411CW(uint32 A, uint8 V) {
-	uint32 mask = (EXPREGS[1] & 2) ? 0xFF : 0x7F;
-	V &= mask;
-	setchr1(A, V | ((EXPREGS[1] << 5) & 0x80) | ((EXPREGS[0] << 4) & 0x100));
+	int chrAND, chrOR;
+	switch(submapper) {
+		default:chrOR =EXPREGS[1] <<5 &0x080 | EXPREGS[0] <<4 &0x100 | EXPREGS[1] <<2 &0x200;
+			chrAND =EXPREGS[1] &0x02? 0xFF: 0x7F;
+			break;
+		case 1: chrOR =EXPREGS[1] <<5 &0x080 | EXPREGS[1] <<2 &0x100;
+			chrAND =EXPREGS[1] &0x02? 0xFF: 0x7F;
+			break;
+		case 2: chrOR =EXPREGS[1] <<5 &0x080 | EXPREGS[0] <<4 &0x100 | EXPREGS[1] <<2 &0x200;
+			chrAND =EXPREGS[1] &0x02? 0xFF: 0x7F;
+			break;
+	}
+	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
 static void M411PW(uint32 A, uint8 V) {
-	/* NROM Mode */
-	if (EXPREGS[0] & 0x40)
-	{
-		uint32 bank = (EXPREGS[0] & 1) | ((EXPREGS[0] >> 2) & 2) | (EXPREGS[0] & 4) | (EXPREGS[1] & 8) | ((EXPREGS[1] >> 2) & 0x10);
-
-		/* NROM-256 */
-		if (EXPREGS[0] & 0x02) {
+	int prgAND, prgOR;
+	switch(submapper) {
+		default:prgOR =EXPREGS[1] <<1 &0x10 | EXPREGS[1] >>1 &0x60;
+			prgAND =EXPREGS[1] &0x02? 0x1F: 0x0F;
+			break;
+		case 1: prgOR =EXPREGS[1] <<1 &0x10 | EXPREGS[1] >>1 &0x60;
+			prgAND =EXPREGS[1] &0x02? 0x1F: 0x0F;
+			break;
+		case 2: prgOR =EXPREGS[1] <<1 &0x10 | EXPREGS[1] >>1 &0x60;
+			prgAND =EXPREGS[1] &0x01? 0x1F: 0x0F;
+			break;
+	}	
+	if (EXPREGS[0] & 0x40) { /* NROM Mode */
+		uint32 bank = EXPREGS[0] &5 | EXPREGS[0] >>2 &2 | prgOR >>1;		
+		if (EXPREGS[0] & 0x02) /* NROM-256 */
 			setprg32(0x8000, bank >> 1);
-
-		/* NROM-128 */
-		} else {
+		else { 	/* NROM-128 */
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);
 		}
-	}
+	} else
+		setprg8(A, V &prgAND | prgOR &~prgAND);
+}
 
-	/* MMC3 Mode */
-	else
-	{
-		uint32 mask = (EXPREGS[1] & 2) ? 0x1F : 0x0F;
-		V &= mask;
-		setprg8(A, V | ((EXPREGS[1] << 1) & 0x10) | ((EXPREGS[1] >> 1) & 0x20));
-	}
+static DECLFR(M411Read5000) {
+	return EXPREGS[2];
 }
 
 static DECLFW(M411Write5000) {
-	EXPREGS[A & 1] = V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+	if (submapper ==2 || A &0x800) {
+		EXPREGS[A & 1] = V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	}
+}
+
+static void M411Reset(void) {
+	EXPREGS[2]++;
 }
 
 static void M411Power(void) {
-	EXPREGS[0] = 0x80;
-	EXPREGS[1] = 0x82;
+	EXPREGS[0] = 0x0;
+	EXPREGS[1] = 0x3;
+	EXPREGS[2] = 0x0; /* Serves as DIP value */
 	GenMMC3Power();
+	SetReadHandler(0x5000, 0x5FFF, M411Read5000);
 	SetWriteHandler(0x5000, 0x5FFF, M411Write5000);
 }
 
 void Mapper411_Init(CartInfo *info) {
+	submapper =info->submapper;
 	GenMMC3_Init(info, 256, 256, 0, 0);
 	pwrap = M411PW;
 	cwrap = M411CW;
 	info->Power = M411Power;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+	info->Reset = M411Reset;
+	AddExState(EXPREGS, 3, 0, "EXPR");
 }
