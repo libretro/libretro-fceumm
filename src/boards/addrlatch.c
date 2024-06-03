@@ -263,7 +263,7 @@ static void M200Sync(void) {
 
 void Mapper200_Init(CartInfo *info) {
 	submapper = info->submapper;
-	Latch_Init(info, M200Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
+	Latch_Init(info, M200Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
 /*------------------ Map 201 ---------------------------*/
