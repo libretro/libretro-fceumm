@@ -835,45 +835,48 @@ void Mapper114_Init(CartInfo *info) {
 /* ---------------------------- Mapper 115 KN-658 board ------------------------------ */
 
 static void M115PW(uint32 A, uint8 V) {
+	int prgOR =EXPREGS[0] &0xF | EXPREGS[0] >>2 &0x10;
 	if (EXPREGS[0] & 0x80) {
 		if (EXPREGS[0] & 0x20)
-			setprg32(0x8000, (EXPREGS[0] & 0x0F) >> 1);	/* real hardware tests, info 100% now lol */
+			setprg32(0x8000, prgOR >> 1);
 		else {
-			setprg16(0x8000, (EXPREGS[0] & 0x0F));
-			setprg16(0xC000, (EXPREGS[0] & 0x0F));
+			setprg16(0x8000, prgOR);
+			setprg16(0xC000, prgOR);
 		}
 	} else
-		setprg8(A, V);
+		setprg8(A, V &0x1F | prgOR <<1 &~0x1F);
 }
 
 static void M115CW(uint32 A, uint8 V) {
-	setchr1(A, (uint32)V | ((EXPREGS[1] & 1) << 8));
-}
-
-static DECLFW(M115Write) {
-	if (A == 0x5080)
-		EXPREGS[2] = V;	/* Extra prot hardware 2-in-1 mode */
-	else if (A == 0x6000)
-		EXPREGS[0] = V;
-	else if (A == 0x6001)
-		EXPREGS[1] = V;
-	FixMMC3PRG(MMC3_cmd);
+	setchr1(A, V | EXPREGS[1] <<8);
 }
 
 static DECLFR(M115Read) {
-	return EXPREGS[2];
+	return (A &3) ==2? EXPREGS[2]: X.DB;
+}
+
+static DECLFW(M115Write) {
+	EXPREGS[A &3] =V;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
+}
+
+static void M115Reset(void) {
+	EXPREGS[2]++;
 }
 
 static void M115Power(void) {
+	EXPREGS[2] =0;
 	GenMMC3Power();
-	SetWriteHandler(0x4100, 0x7FFF, M115Write);
-	SetReadHandler(0x5000, 0x5FFF, M115Read);
+	SetWriteHandler(0x6000, 0x7FFF, M115Write);
+	SetReadHandler(0x6000, 0x7FFF, M115Read);
 }
 
 void Mapper115_Init(CartInfo *info) {
 	GenMMC3_Init(info, 128, 512, 0, 0);
 	cwrap = M115CW;
 	pwrap = M115PW;
+	info->Reset = M115Reset;
 	info->Power = M115Power;
 	AddExState(EXPREGS, 3, 0, "EXPR");
 }
