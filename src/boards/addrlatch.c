@@ -404,8 +404,7 @@ static void M227Sync(void) {
 		}
 	}
 
-	if (!hasBattery && (latche & 0x80) == 0x80)
-		/* CHR-RAM write protect hack, needed for some multicarts */
+	if (latche &0x80 && submapper >0) /* CHR-RAM write protection not used on single-game cartridges (submapper 0) */
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	else
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
@@ -416,7 +415,7 @@ static void M227Sync(void) {
 }
 
 static DECLFR(M227Read) {
-	if (latche &0x0400)
+	if (latche &0x0400 && submapper ==1) /* Support DIP switch/solder pad only with submapper 1 multicarts */
 		return CartBR(A | dipswitch);
 	else
 		return CartBR(A);
