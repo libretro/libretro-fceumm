@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-uint8 submapper;
+static uint8 submapper;
 
 static void M432CW(uint32 A, uint8 V) {
 	int chrAND = (EXPREGS[1] & 0x04) ? 0x7F : 0xFF;
