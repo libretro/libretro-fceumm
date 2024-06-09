@@ -20,6 +20,7 @@ void FixMMC3PRG(int V);
 void FixMMC3CHR(int V);
 DECLFW(MMC3_CMDWrite);
 DECLFW(MMC3_IRQWrite);
+int MMC3CanWriteToWRAM(void);
 
 void GenMMC3_Init(CartInfo *info, int prg, int chr, int wram, int battery);
 

@@ -70,6 +70,10 @@ void GenMMC3_Init(CartInfo *info, int prg, int chr, int wram, int battery);
  * ----------------------------------------------------------------------
  */
 
+int MMC3CanWriteToWRAM(void) {
+	return ((A001B & 0x80) && !(A001B & 0x40));
+}
+
 void FixMMC3PRG(int V) {
 	if (V & 0x40) {
 		pwrap(0xC000, DRegBuf[6]);
