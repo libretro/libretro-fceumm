@@ -19,6 +19,9 @@
  *
  * DSOUNDV1/FL-TR8MA boards (32K WRAM, 8/16M), 178 mapper boards (8K WRAM, 4/8M)
  * Various Education Cartridges
+ * 
+ * mapper 551
+ * Compared to INES Mapper 178, mirroring is hard-wired, and the chipset's internal CHR-RAM is not used in favor of CHR-ROM.
  *
  */
 
@@ -76,7 +79,7 @@ static uint8 decode(uint8 code) {
 	return (acc >> 8) & 0xff;
 }
 
-static void Sync(void) {
+static void M178Sync(void) {
 	uint32 sbank = reg[1] & 0x7;
 	uint32 bbank = reg[2];
 	setchr8(0);
@@ -95,37 +98,76 @@ static void Sync(void) {
 		} else
 			setprg32(0x8000, bank >> 1);
 	}
+
 	setmirror((reg[0] & 1) ^ 1);
+}
+
+static void M551Sync(void) {
+	uint32 sbank = reg[1] & 0x7;
+	uint32 bbank = reg[2];
+	if (reg[0] & 2) {	/* UNROM mode */
+		setprg16(0x8000, (bbank << 3) | sbank);
+		if (reg[0] & 4)
+			setprg16(0xC000, (bbank << 3) | 6 | (reg[1] & 1));
+		else
+			setprg16(0xC000, (bbank << 3) | 7);
+	} else {			/* NROM mode */
+		uint32 bank = (bbank << 3) | sbank;
+		if (reg[0] & 4) {
+			setprg16(0x8000, bank);
+			setprg16(0xC000, bank);
+		} else
+			setprg32(0x8000, bank >> 1);
+	}
+
+	setprg8r(0x10, 0x6000, 0);
+	setchr8(reg[3]);
+	setmirror(head.ROM_type & 1);
+}
+
+static DECLFW(M551Write) {
+	reg[A & 3] = V;
+	M551Sync();
 }
 
 static DECLFW(M178Write) {
 	reg[A & 3] = V;
-/*	FCEU_printf("cmd %04x:%02x\n", A, V); */
-	Sync();
+	M178Sync();
 }
 
 static DECLFW(M178WriteSnd) {
-	if (A == 0x5800) {
+	if (A == 0x5800)
+	{
 		if (V & 0xF0) {
 			pcm_enable = 1;
-/*			pcmwrite(0x4011, (V & 0xF) << 3); */
 			pcmwrite(0x4011, decode(V & 0xf));
 		} else
 			pcm_enable = 0;
-	} else
-		FCEU_printf("misc %04x:%02x\n", A, V);
+	}
 }
 
 static DECLFR(M178ReadSnd) {
 	if (A == 0x5800)
 		return (X.DB & 0xBF) | ((pcm_enable ^ 1) << 6);
-	else
-		return X.DB;
+	return X.DB;
+}
+
+static void M551Power(void) {
+	reg[0] = reg[1] = reg[2] = reg[3] = 0;
+	M551Sync();
+	pcmwrite = GetWriteHandler(0x4011);
+	SetWriteHandler(0x4800, 0x4fff, M551Write);
+	SetWriteHandler(0x5800, 0x5fff, M178WriteSnd);
+	SetReadHandler(0x5800, 0x5fff, M178ReadSnd);
+	SetReadHandler(0x6000, 0x7fff, CartBR);
+	SetWriteHandler(0x6000, 0x7fff, CartBW);
+	SetReadHandler(0x8000, 0xffff, CartBR);
+	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
 static void M178Power(void) {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
-	Sync();
+	M178Sync();
 	pcmwrite = GetWriteHandler(0x4011);
 	SetWriteHandler(0x4800, 0x4fff, M178Write);
 	SetWriteHandler(0x5800, 0x5fff, M178WriteSnd);
@@ -136,12 +178,21 @@ static void M178Power(void) {
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
-static void M178Reset(void) {
+static void M551Reset(void) {
 	/* Always reset to menu */
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
-	Sync();
+	M551Sync();
 }
-static void M178SndClk(int a) {
+
+static void M178Reset(void)
+{
+	/* Always reset to menu */
+	reg[0] = reg[1] = reg[2] = reg[3] = 0;
+	M178Sync();
+}
+
+static void M178SndClk(int a)
+{
 	if (pcm_enable) {
 		pcm_latch -= a;
 		if (pcm_latch <= 0) {
@@ -157,15 +208,19 @@ static void M178Close(void) {
 	WRAM = NULL;
 }
 
-static void StateRestore(int version) {
-	Sync();
+static void M551StateRestore(int version) {
+	M551Sync();
+}
+
+static void M178StateRestore(int version) {
+	M178Sync();
 }
 
 void Mapper178_Init(CartInfo *info) {
 	info->Power = M178Power;
 	info->Reset = M178Reset;
 	info->Close = M178Close;
-	GameStateRestore = StateRestore;
+	GameStateRestore = M178StateRestore;
 	MapIRQHook = M178SndClk;
 
 	jedi_table_init();
@@ -180,4 +235,11 @@ void Mapper178_Init(CartInfo *info) {
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
 	AddExState(&StateRegs, ~0, 0, 0);
+
+	if (info->mapper == 551)
+	{
+		info->Power      = M551Power;
+		info->Reset      = M551Reset;
+		GameStateRestore = M551StateRestore;
+	}
 }
