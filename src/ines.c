@@ -549,7 +549,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "FDS LH32",                 125, LH32_Init              )
 	INES_BOARD( "PowerJoy 84-in-1 PJ-008",  126, Mapper126_Init )
 /*    INES_BOARD( "",                            127, Mapper127_Init ) */
-/*    INES_BOARD( "",                            128, Mapper128_Init ) */
+	INES_BOARD( "1994 Super HiK 4-in-1",     128, Mapper128_Init )
 /*    INES_BOARD( "",                            129, Mapper129_Init ) */
 /*    INES_BOARD( "",                            130, Mapper130_Init ) */
 /*    INES_BOARD( "",                            131, Mapper131_Init ) */
