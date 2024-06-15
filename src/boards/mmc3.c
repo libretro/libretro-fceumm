@@ -21,7 +21,7 @@
  */
 
 /*  Code for emulating iNES mappers 4,12,44,45,47,49,52,74,114,115,116,118,
- 119,165,205,245,249,250,254
+ 119,165,205,245,249,250,254,555
 */
 
 #include "mapinc.h"
@@ -1426,6 +1426,115 @@ void Mapper254_Init(CartInfo *info) {
 	GenMMC3_Init(info, 128, 128, 8, info->battery);
 	info->Power = M254_Power;
 	AddExState(EXPREGS, 2, 0, "EXPR");
+}
+
+/* ---------------------------- Mapper 555 ------------------------------ */
+
+static uint8 m555_reg[2];
+static uint8 m555_count_expired;
+static uint32 m555_count;
+static uint32 m555_count_target = 0x20000000;
+
+static SFORMAT M555StateRegs[] = {
+	{ m555_reg, 2, "REGS" },
+	{ &m555_count, 2, "CNTR" },
+	{ &m555_count_expired, 2, "CNTE" },
+	{ 0 }
+};
+
+static void M555CW(uint32 A, uint8 V)
+{
+	uint16 base = (m555_reg[0] << 5) & 0x80;
+
+	if ((m555_reg[0] & 0x06) == 0x02) {
+		if (V & 0x40) {
+			setchr1r(0x10, A, base | (V & 0x07));
+		} else {
+			setchr1(A, base | (V & 0xFF));
+		}
+	} else {
+		setchr1(A, base | (V & 0x7F));
+	}
+}
+
+static void M555PW(uint32 A, uint8 V) {
+	uint16 mask = ((m555_reg[0] << 3) & 0x18) | 0x07;
+	uint16 base = ((m555_reg[0] << 3) & 0x20);
+
+	setprg8(A, base | (V & mask));
+}
+
+static DECLFR(M555Read5)
+{
+	if (A & 0x800)
+		return (0x5C | (m555_count_expired ? 0x80 : 0));
+	return WRAM[0x2000 | (A & 0xFFF)];
+}
+
+static DECLFW(M555Write5) {
+	if (A & 0x800) {
+		m555_reg[(A >> 10) & 0x01] = V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	} else {
+		WRAM[0x2000 | (A & 0xFFF)] = V;
+	}
+}
+
+static void M555Reset(void) {
+	m555_count_target = 0x20000000 | ((uint32)GameInfo->cspecial << 25);
+	m555_count = 0;
+	memset(m555_reg, 0, sizeof(m555_reg));
+	MMC3RegReset();
+}
+
+static void M555Power(void) {
+	m555_count_target = 0x20000000 | ((uint32)GameInfo->cspecial << 25);
+	m555_count = 0;
+	memset(m555_reg, 0, sizeof(m555_reg));
+	GenMMC3Power();
+
+	SetReadHandler(0x5000, 0x5FFF, M555Read5);
+	SetWriteHandler(0x5000, 0x5FFF, M555Write5);
+
+	setprg8r(0x10, 0x6000, 0);
+	SetReadHandler(0x6000, 0x7FFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
+}
+
+static void M555CPUIRQHook(int a) {
+	while (a--) {
+		if (!(m555_reg[0] & 0x08))
+		{
+			m555_count = 0;
+			m555_count_expired = false;
+		}
+		else
+		{
+			if (++m555_count == m555_count_target)
+				m555_count_expired = true;
+		}
+	}
+}
+
+void Mapper555_Init(CartInfo *info) {
+	GenMMC3_Init(info, 0, 0, 0, info->battery);
+	cwrap       = M555CW;
+	pwrap       = M555PW;
+	info->Power = M555Power;
+	info->Reset = M555Reset;
+	MapIRQHook  = M555CPUIRQHook;
+	AddExState(M555StateRegs, ~0, 0, NULL);
+
+	WRAMSIZE = 16 * 1024;
+	WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+
+	CHRRAMSIZE = 8 * 1024;
+	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
+	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
+	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }
 
 /* ---------------------------- UNIF Boards ----------------------------- */
