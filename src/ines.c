@@ -502,7 +502,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Irem 74HC161/32",           78, Mapper78_Init          )
 	INES_BOARD( "AVE/C&E/TXC BOARD",         79, Mapper79_Init          )
 	INES_BOARD( "TAITO X1-005 Rev. A",       80, Mapper80_Init          )
-/*    INES_BOARD( "",                             81, Mapper81_Init ) */
+	INES_BOARD( "Super Gun (NTDEC N715021)", 81, Mapper81_Init )
 	INES_BOARD( "TAITO X1-017",              82, Mapper82_Init          )
 	INES_BOARD( "YOKO VRC Rev. B",           83, Mapper83_Init          )
 /*    INES_BOARD( "",                            84, Mapper84_Init ) */
