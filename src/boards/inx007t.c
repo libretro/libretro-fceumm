@@ -44,7 +44,7 @@
 static uint8 latch_out, latch_in;
 
 static void INX_007T_Sync() {
-	setprg32(0x8000, (latch_in & 0b111) | (latch_out << 3));
+	setprg32(0x8000, (latch_in & 7) | (latch_out << 3));
 	setmirror(MI_0 + ((latch_in >> 4) & 1));
 	setchr8(0);
 }
