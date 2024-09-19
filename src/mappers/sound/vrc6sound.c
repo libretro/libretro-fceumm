@@ -290,9 +290,9 @@ DECLFW(VRC6Sound_Write) {
 }
 
 static void VRC6Sound_SC(void) {
-	GameExpSound.Fill   = VRC6RunSound;
-	GameExpSound.HiFill = VRC6RunSoundHQ;
-	GameExpSound.HiSync = VRC6SyncHQ;
+	GameExpSound[SND_VRC6].Fill   = VRC6RunSound;
+	GameExpSound[SND_VRC6].HiFill = VRC6RunSoundHQ;
+	GameExpSound[SND_VRC6].HiSync = VRC6SyncHQ;
 
 	VRC6Sound.square[0].vcount = 1;
 	VRC6Sound.square[1].vcount = 1;
@@ -315,7 +315,7 @@ static void VRC6Sound_SC(void) {
 
 void VRC6Sound_ESI(void) {
 	memset(&VRC6Sound, 0, sizeof(VRC6Sound));
-	GameExpSound.RChange = VRC6Sound_SC;
+	GameExpSound[SND_VRC6].RChange = VRC6Sound_SC;
 	VRC6Sound_SC();
 }
 

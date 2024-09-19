@@ -70,8 +70,8 @@ DECLFW(S5BSound_Write) {
 		PSG_writeIO(psg_chip, 0, V);
 		break;
 	case 0xE000:
-		GameExpSound.Fill = UpdatePSG;
-		GameExpSound.NeoFill = UpdatePSGNEO;
+		GameExpSound[SND_S5B].Fill = UpdatePSG;
+		GameExpSound[SND_S5B].NeoFill = UpdatePSGNEO;
 		PSG_writeIO(psg_chip, 1, V);
 		break;
 	}
@@ -97,8 +97,8 @@ void S5BSound_ESI(void) {
 		return;
 	}
 
-	GameExpSound.RChange = S5BSound_SC;
-	GameExpSound.Kill = S5BSound_KILL;
+	GameExpSound[SND_S5B].RChange = S5BSound_SC;
+	GameExpSound[SND_S5B].Kill = S5BSound_KILL;
 
 	S5BSound_SC();
 }
@@ -251,9 +251,9 @@ DECLFW(S5BSound_Write) {
 		sndcmd = V & 0x0F;
 		break;
 	case 0xE000:
-		GameExpSound.Fill = AYSound;
-		GameExpSound.HiFill = AYSoundHQ;
-		GameExpSound.HiSync = AYHiSync;
+		GameExpSound[SND_S5B].Fill = AYSound;
+		GameExpSound[SND_S5B].HiFill = AYSoundHQ;
+		GameExpSound[SND_S5B].HiSync = AYHiSync;
 		switch (sndcmd) {
 		case 0:
 		case 1:
@@ -310,7 +310,7 @@ static void S5BSound_SC(void) {
 } 
 
 void S5BSound_ESI(void) {
-	GameExpSound.RChange = S5BSound_SC;
+	GameExpSound[SND_S5B].RChange = S5BSound_SC;
 	S5BSound_SC();
 }
 

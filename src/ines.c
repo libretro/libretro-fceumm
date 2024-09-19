@@ -1170,7 +1170,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "YY860417C",                281, Mapper281_Init         )
 	INES_BOARD( "860224C",                  282, Mapper282_Init         )
 	INES_BOARD( "GS-2004/GS-2013",          283, Mapper283_Init         )
-	INES_BOARD( "DripGame",                 284, Mapper284_Init         )
+/*	INES_BOARD( "DripGame",                 284, Mapper284_Init         ) */ /* Runs only on newppu */
 	INES_BOARD( "A65AS",                    285, Mapper285_Init         )
 	INES_BOARD( "BS-5",                     286, Mapper286_Init         )
 	INES_BOARD( "411120-C, 811120-C",       287, Mapper287_Init         )

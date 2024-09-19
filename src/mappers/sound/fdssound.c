@@ -353,10 +353,10 @@ static void FDSSound(int c) {
 }
 
 void FDSSound_SC(void) {
-	GameExpSound.HiSync = HQSync;
-	GameExpSound.HiFill = RenderSoundHQ;
-	GameExpSound.Fill = FDSSound;
-	GameExpSound.RChange = FDSSound_SC;
+	GameExpSound[SND_FDS].HiSync = HQSync;
+	GameExpSound[SND_FDS].HiFill = RenderSoundHQ;
+	GameExpSound[SND_FDS].Fill = FDSSound;
+	GameExpSound[SND_FDS].RChange = FDSSound_SC;
 
 	if (FSettings.SndRate) {
 		if (FSettings.soundq >= 1) {

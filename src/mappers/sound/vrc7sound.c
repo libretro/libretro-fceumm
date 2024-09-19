@@ -58,8 +58,8 @@ DECLFW(VRC7Sound_Write) {
 		OPLL_writeIO(chip, 0, V);
         break;
 	case 0x9030:
-		GameExpSound.Fill = UpdateOPL;
-		GameExpSound.NeoFill = UpdateOPLNEO;
+		GameExpSound[SND_VRC7].Fill = UpdateOPL;
+		GameExpSound[SND_VRC7].NeoFill = UpdateOPLNEO;
 		OPLL_writeIO(chip, 1, V);
 		break;
 	}
@@ -85,8 +85,8 @@ void VRC7Sound_ESI(void) {
 		return;
 	}
 
-	GameExpSound.RChange = VRC7SC;
-	GameExpSound.Kill = VRC7SKill;
+	GameExpSound[SND_VRC7].RChange = VRC7SC;
+	GameExpSound[SND_VRC7].Kill = VRC7SKill;
 
 	VRC7SC();
 }
