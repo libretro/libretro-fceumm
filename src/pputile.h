@@ -1,6 +1,9 @@
 uint8 *C;
 uint8 cc;
 uint32 vadr;
+#ifdef PPU_VRC5FETCH
+uint8 tmpd;
+#endif
 
 #ifndef PPUT_MMC5SP
 	uint8 zz;
@@ -42,6 +45,10 @@ if (X1 >= 2) {
 #else
 	zz = RefreshAddr & 0x1F;
 	C = vnapage[(RefreshAddr >> 10) & 3];
+#ifdef PPU_VRC5FETCH
+	tmpd = QTAINTRAM[((((RefreshAddr >> 10) & 3) >> ((qtaintramreg >> 1)) & 1) << 10) | (RefreshAddr & 0x3FF)];
+	vofs = ((tmpd & 0x3F) << 12) | ((RefreshAddr >> 12) & 7);	/* recalculate VROM offset  */
+#endif
 	vadr = (C[RefreshAddr & 0x3ff] << 4) + vofs;	/* Fetch name table byte. */
 #endif
 
@@ -78,7 +85,20 @@ pshift[1] <<= 8;
 	#elif defined(PPUT_MMC5)
 		C = MMC5BGVRAMADR(vadr);
 	#else
+	#ifdef PPU_VRC5FETCH
+	extern uint8 *VROM;
+	extern uint32 VROM_size;
+	if (tmpd & 0x40) {
+		if ((VROM_size * 8) == 128) {
+		    vadr = ((vadr & 0x07) << 1) | ((vadr & 0x10) >> 4) | ((vadr & 0x3FFE0) >> 1);
+	    }
+		C = VROM + vadr;
+	} else {
 		C = VRAMADR(vadr);
+	}
+	#else
+		C = VRAMADR(vadr);
+	#endif
 	#endif
 #endif
 
@@ -95,8 +115,16 @@ pshift[1] <<= 8;
 		pshift[1] |= C[0];
 	}
 #else
+	#ifdef PPU_VRC5FETCH
+	pshift[0] |= C[0];
+	if (tmpd & 0x40)
+		pshift[1] |= (tmpd & 0x80) ? 0xFF : 0x00;
+	else
+		pshift[1] |= C[8];
+	#else
 	pshift[0] |= C[0];
 	pshift[1] |= C[8];
+	#endif
 #endif
 
 if ((RefreshAddr & 0x1f) == 0x1f)
