@@ -239,7 +239,7 @@ static void StateRestore(int version) {
 }
 
 static void MMC6_Power(void) {
-	if (!CHR_ROM_SIZE_8K) {
+	if (!CHR_ROM_SIZE) {
 		setchr8(0);
 	}
 

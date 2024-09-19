@@ -53,7 +53,7 @@ static void M287CW(uint16 A, uint16 V) {
 }
 
 static void M287PW(uint16 A, uint16 V) {
-	uint16 mode = reg & ((dipsw && (PRG_ROM_SIZE_16K <= (512 * 1024))) ? 0x0C : 0x08);
+	uint16 mode = reg & ((dipsw && (PRG_ROM_SIZE <= (512 * 1024))) ? 0x0C : 0x08);
 	uint16 base = reg & 0x07;
 
 	if (mode) {

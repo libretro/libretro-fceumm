@@ -123,11 +123,11 @@ void Mapper034_Init(CartInfo *info) {
 		type = M034_NESTICLE;
 		WSync = Sync_Nesticle;
 		info->Power = M034Power_Nesticle;
-	} else if ((info->submapper == 1) || ((info->submapper != 2) && CHR_ROM_SIZE_8K)) {
+	} else if ((info->submapper == 1) || ((info->submapper != 2) && CHR_ROM_SIZE)) {
 		type = M034_NINA001;
 		WSync = Sync_NINA001;
 		info->Power = M034Power_NINA001;
-	} else if ((info->submapper == 2) || ((info->submapper != 1) && !CHR_ROM_SIZE_8K)) {
+	} else if ((info->submapper == 2) || ((info->submapper != 1) && !CHR_ROM_SIZE)) {
 		type = M034_BNROM;
 		Latch_Init(info, Sync_BNROM, NULL, FALSE, TRUE);
 		info->Reset = Latch_RegReset;

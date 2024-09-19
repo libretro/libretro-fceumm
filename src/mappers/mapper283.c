@@ -22,7 +22,7 @@
 #include "latch.h"
 
 static void Sync(void) {
-	setprg8(0x6000, (PRG_ROM_SIZE_16K & 0x6000) ? 32 : 31);
+	setprg8(0x6000, (PRG_ROM_SIZE & 0x6000) ? 32 : 31);
 	setprg32(0x8000, latch.data);
 	setchr8(0);
 }

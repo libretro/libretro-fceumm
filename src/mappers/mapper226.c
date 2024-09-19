@@ -40,7 +40,7 @@ static void Sync(void) {
 	uint8 prg  = reg[0] & 0x1F;
 
 	/* 1536KiB PRG roms have different bank order */
-	if ((PRG_ROM_SIZE_16K == (1536 * 1024)) && (base > 0)) {
+	if ((PRG_ROM_SIZE == (1536 * 1024)) && (base > 0)) {
 		base = (base - 1);
 	}
 

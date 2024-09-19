@@ -24,7 +24,7 @@
 
 static void M173Sync(void) {
 	setprg32(0x8000, 0);
-	if (CHR_ROM_SIZE_8K >= (16 * 1024)) {
+	if (CHR_ROM_SIZE >= (16 * 1024)) {
 		setchr8(((txc.output & 0x01) | (txc.Y ? 0x02 : 0x00) | ((txc.output & 2) << 0x01)));
     } else {
 		setchr8(0);

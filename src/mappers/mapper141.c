@@ -33,7 +33,7 @@ static SFORMAT StateRegs[] = {
 
 static void Sync(void) {
 	setprg32(0x8000, reg[5]);
-	if (!CHR_ROM_SIZE_8K) {
+	if (!CHR_ROM_SIZE) {
 		setchr8(0);
 	} else {
 		setchr2(0x0000, (((reg[4] << 3) | (reg[(reg[7] & 0x01) ? 0 : 0] & 0x07)) << 1) | 0);

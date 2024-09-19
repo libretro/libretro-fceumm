@@ -28,19 +28,19 @@ extern uint32 miscROMSIZE;
 
 #define CPU_OPENBUS X.DB
 
-#define PRG_PAGE_SIZE (16 * 1024)
-#define CHR_PAGE_SIZE (8 * 1024)
+#define PRG_PAGE_SIZE     (16 * 1024)
+#define CHR_PAGE_SIZE     ( 8 * 1024)
 
-#define PRG_ROM_DATA ROM
-#define PRG_ROM_SIZE_16K ROM_size
+#define PRG_ROM_PTR       ROM
+#define PRG_ROM_SIZE      (ROM_size * PRG_PAGE_SIZE)
 
-#define CHR_ROM_DATA VROM
-#define CHR_ROM_SIZE_8K  VROM_size
+#define CHR_ROM_PTR       VROM
+#define CHR_ROM_SIZE      (VROM_size * CHR_PAGE_SIZE)
 
-#define PRG_BANK_COUNT(x) ((PRG_ROM_SIZE_16K * PRG_PAGE_SIZE) / ((x) * 1024))
-#define CHR_BANK_COUNT(x) ((CHR_ROM_SIZE_8K * CHR_PAGE_SIZE) / ((x) * 1024))
+#define PRG_BANK_COUNT(x) (PRG_ROM_SIZE / ((x) * 1024))
+#define CHR_BANK_COUNT(x) (CHR_ROM_SIZE / ((x) * 1024))
 
-#define MISC_ROM_DATA miscROM
-#define MISC_ROM_SIZE miscROMSIZE
+#define MISC_ROM_PTR      miscROM
+#define MISC_ROM_SIZE     miscROMSIZE
 
 #endif /* _MAPINC_H */

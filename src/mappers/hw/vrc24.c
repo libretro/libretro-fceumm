@@ -220,7 +220,7 @@ void VRC24_Power(void) {
 		SetWriteHandler(0x6000, 0x6FFF, VRC24LatchWrite);
 	}
 
-	if (!CHR_ROM_SIZE_8K) {
+	if (!CHR_ROM_SIZE) {
 		setchr8(0);
 	}
 }

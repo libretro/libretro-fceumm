@@ -310,7 +310,7 @@ static void SetTrainer(void) {
 			iNESCart.submapper << 8 | 0x5C00;
 
 		for (i = 0; i < (int)MISC_ROM_SIZE; i++) {
-			PRGPAGE_DMW((trainerAddr & 0x7F00) + i, MISC_ROM_DATA[i]);
+			PRGPAGE_DMW((trainerAddr & 0x7F00) + i, MISC_ROM_PTR[i]);
 		}
 
 		X6502_SetNewPC((iNESCart.mapper == 17) ? trainerAddr : 0x5000);
@@ -452,26 +452,26 @@ void Mapper006_Init(CartInfo *info) {
 
 	prg_size_8K = PRG_BANK_COUNT(8);
 
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		if (info->mapper == 12) {
 			int i;
-			size_t ssize;
+			size_t ssize, prgsize;
 
-			PRG_ROM_SIZE_16K = (512 * 1024);
-			PRG_ROM_DATA = realloc(PRG_ROM_DATA, PRG_ROM_SIZE_16K);
-			for (i = 0; i < ((CHR_ROM_SIZE_8K < (256 * 1024)) ? CHR_ROM_SIZE_8K : (256 * 1024)); i++) {
-				PRG_ROM_DATA[(256 * 1024) + i] = CHR_ROM_DATA[i];
+			prgsize = 512 * 1024;
+			PRG_ROM_PTR = realloc(PRG_ROM_PTR, prgsize);
+			for (i = 0; i < ((CHR_ROM_SIZE < (256 * 1024)) ? CHR_ROM_SIZE : (256 * 1024)); i++) {
+				PRG_ROM_PTR[(256 * 1024) + i] = CHR_ROM_PTR[i];
 			}
-			SetupCartPRGMapping(0, PRG_ROM_DATA, PRG_ROM_SIZE_16K, TRUE);
+			SetupCartPRGMapping(0, PRG_ROM_PTR, prgsize, TRUE);
 
-			memset(CHR_ROM_DATA, 0, CHR_ROM_SIZE_8K);
+			memset(CHR_ROM_PTR, 0, CHR_ROM_SIZE);
 			ssize = info->CHRRamSize ? info->CHRRamSize : (32 * 1024);
-			SetupCartCHRMapping(0, CHR_ROM_DATA, ssize, TRUE);
-			AddExState(CHR_ROM_DATA, ssize, 0, "CHRR");
-			CHR_ROM_SIZE_8K = 0;
+			SetupCartCHRMapping(0, CHR_ROM_PTR, ssize, TRUE);
+			AddExState(CHR_ROM_PTR, ssize, 0, "CHRR");
+			VROM_size = 0;
 		} else {
 			SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], TRUE);
-			AddExState(CHR_ROM_DATA, CHR_ROM_SIZE_8K, 0, "CHRR");
+			AddExState(CHR_ROM_PTR, CHR_ROM_SIZE, 0, "CHRR");
 		}
 	}
 

@@ -34,7 +34,7 @@ static void Sync(void) {
 	uint8 prg;
 	uint8 chr;
 
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		prg = reg[1] & 0x0F;
 		chr = reg[0] & 0x0F;
 	} else {

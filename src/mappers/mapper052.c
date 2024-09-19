@@ -101,7 +101,7 @@ void Mapper052_Init(CartInfo *info) {
 		iNESCart.CHRRamSize = 8192;
 	}
 
-	if (CHR_ROM_SIZE_8K && iNESCart.CHRRamSize) {
+	if (CHR_ROM_SIZE && iNESCart.CHRRamSize) {
 		CHRRAMSIZE = info->CHRRamSize ? info->CHRRamSize : 8192;
 		CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 		SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);

@@ -78,7 +78,7 @@ void Mapper513_Init(CartInfo *info) {
 	MMC3_pwrap = M513PW;
 	MMC3_cwrap = M513CW;
 	mmc3.opts |= 2;
-	info->SaveGame[0] = CHR_ROM_DATA;
+	info->SaveGame[0] = CHR_ROM_PTR;
 	info->SaveGameLen[0] = info->CHRRamSaveSize;
 	info->Power = M513Power;
 	AddExState(&reg, 1, 0, "EXPR");

@@ -95,7 +95,7 @@ static void CHRWRAP(uint16 A, uint16 V) {
 	uint8 bank = 0;
 
 	/* some workaround for chr rom / ram access */
-	if (!CHR_ROM_SIZE_8K) {
+	if (!CHR_ROM_SIZE) {
 		/* CHR-RAM only */
 		bank = 0;
 	} else if (CHRRAMSIZE) {
@@ -484,7 +484,7 @@ void Mapper176_Init(CartInfo *info) { /* .NES file */
 	if (info->iNES2) {
 		subType = info->submapper;
 		after_power = subType != 2; /* FS005 never has DIP switches, the others may have one, so use the heuristic. */
-		if (CHR_ROM_SIZE_8K) {
+		if (CHR_ROM_SIZE) {
 			CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
 		}
 		WRAMSIZE = info->PRGRamSize + info->PRGRamSaveSize;
@@ -498,22 +498,22 @@ void Mapper176_Init(CartInfo *info) { /* .NES file */
 			/* Always enable WRAM for iNES-headered files */
 			WRAMSIZE = 8 * 1024;
 
-			if ((PRG_ROM_SIZE_16K == (1024 * 1024)) && (CHR_ROM_SIZE_8K == (1024 * 1024))) {
+			if ((PRG_ROM_SIZE == (1024 * 1024)) && (CHR_ROM_SIZE == (1024 * 1024))) {
 				subType = 1;
-			} else if ((PRG_ROM_SIZE_16K == (256 * 1024)) && (CHR_ROM_SIZE_8K == (128 * 1024))) {
+			} else if ((PRG_ROM_SIZE == (256 * 1024)) && (CHR_ROM_SIZE == (128 * 1024))) {
 				subType = 1;
-			} else if ((PRG_ROM_SIZE_16K == (128 * 1024)) && (CHR_ROM_SIZE_8K == (64 * 1024))) {
+			} else if ((PRG_ROM_SIZE == (128 * 1024)) && (CHR_ROM_SIZE == (64 * 1024))) {
 				subType = 1;
-			} else if ((PRG_ROM_SIZE_16K >= (8192 * 1024)) && (CHR_ROM_SIZE_8K == (0 * 1024))) {
+			} else if ((PRG_ROM_SIZE >= (8192 * 1024)) && (CHR_ROM_SIZE == (0 * 1024))) {
 				subType = 2;
-			} else if ((PRG_ROM_SIZE_16K == (4096 * 1024)) && (CHR_ROM_SIZE_8K == (0 * 1024))) {
+			} else if ((PRG_ROM_SIZE == (4096 * 1024)) && (CHR_ROM_SIZE == (0 * 1024))) {
 				subType = 3;
 			}
 
 			/* Detect heuristically whether the address mask should be changed on every soft reset */
 			after_power = 1;
 
-			if (CHRRAMSIZE && !CHR_ROM_SIZE_8K) {
+			if (CHRRAMSIZE && !CHR_ROM_SIZE) {
 				/* FIXME: CHR-RAM is already set in iNES mapper initializer when there is no CHR ROM present */
 				/* so avoid reallocation it. */
 				CHRRAMSIZE = 0;
@@ -525,9 +525,9 @@ void Mapper176_Init(CartInfo *info) { /* .NES file */
 
 /* UNIF FK23C. Also includes mislabelled WAIXING-FS005, recognizable by their PRG-ROM size. */
 void BMCFK23C_Init(CartInfo *info) {
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		/* Rockman I-VI uses mixed chr rom/ram */
-		if (PRG_ROM_SIZE_16K == (2048 * 1024) && CHR_ROM_SIZE_8K == (512 * 1024)) {
+		if (PRG_ROM_SIZE == (2048 * 1024) && CHR_ROM_SIZE == (512 * 1024)) {
 			CHRRAMSIZE = 8 * 1024;
 		}
 	}
@@ -535,7 +535,7 @@ void BMCFK23C_Init(CartInfo *info) {
 
 	dipsw_enable = 0;
 	after_power = 1;
-	subType = (PRG_ROM_SIZE_16K >= (4096 * 1024)) ? 2 : (PRG_ROM_SIZE_16K == (64 * 1024) && CHR_ROM_SIZE_8K == (128 * 1024)) ? 1 : 0;
+	subType = (PRG_ROM_SIZE >= (4096 * 1024)) ? 2 : (PRG_ROM_SIZE == (64 * 1024) && CHR_ROM_SIZE == (128 * 1024)) ? 1 : 0;
 	if (subType == 2) {
 		CHRRAMSIZE = 256 * 1024;
 	}
@@ -549,7 +549,7 @@ void BMCFK23CA_Init(CartInfo *info) {
 
 	dipsw_enable = 0;
 	after_power = 1;
-	subType = (PRG_ROM_SIZE_16K >= (2048 * 1024)) ? 2 : 1;
+	subType = (PRG_ROM_SIZE >= (2048 * 1024)) ? 2 : 1;
 	if (subType == 2) {
 		CHRRAMSIZE = 256 * 1024;
 	}

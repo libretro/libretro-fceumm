@@ -29,7 +29,7 @@ static void Sync(void) {
 	uint32 cpuA14 = latch.addr & 0x01;
 	uint32 nrom = (latch.addr >> 7) & 0x01;
 	uint32 unrom = (latch.addr >> 9) & 0x01;
-    uint32 M242TwoChips = (PRG_ROM_SIZE_16K & 0x20000) && (PRG_ROM_SIZE_16K > 0x20000);
+    uint32 M242TwoChips = (PRG_ROM_SIZE & 0x20000) && (PRG_ROM_SIZE > 0x20000);
 
 	if (M242TwoChips) {
 		if (latch.addr & 0x600) { /* First chip */
@@ -46,7 +46,7 @@ static void Sync(void) {
 
 	setchr8(0);
 	setmirror(((latch.addr >> 1) & 0x01) ^ 0x01);
-	if (!iNESCart.battery && (latch.addr & 0x80) == 0x80 && (PRG_ROM_SIZE_16K > (256 * 1024))) {
+	if (!iNESCart.battery && (latch.addr & 0x80) == 0x80 && (PRG_ROM_SIZE > (256 * 1024))) {
 		/* CHR-RAM write protect hack, needed for some multicarts */
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	} else {

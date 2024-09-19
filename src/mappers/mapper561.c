@@ -200,14 +200,14 @@ static void M561Power(void) {
 		uint16 trainerLoadAddr = 0x7000;
 		uint16 trainerInitAddr = 0x7003;
 		uint32 trainerSize = 512;
-		uint8 *trainerData = MISC_ROM_DATA;
+		uint8 *trainerData = MISC_ROM_PTR;
 		int i;
 
 		if (MISC_ROM_SIZE != 512) {
-			trainerLoadAddr = (MISC_ROM_DATA[1] << 8) | MISC_ROM_DATA[0];
-			trainerInitAddr = (MISC_ROM_DATA[3] << 8) | MISC_ROM_DATA[2];
+			trainerLoadAddr = (MISC_ROM_PTR[1] << 8) | MISC_ROM_PTR[0];
+			trainerInitAddr = (MISC_ROM_PTR[3] << 8) | MISC_ROM_PTR[2];
 			trainerSize = MISC_ROM_SIZE - 4;
-			trainerData = MISC_ROM_DATA + 4;
+			trainerData = MISC_ROM_PTR + 4;
 		}
 
 		for (i = 0; i < MISC_ROM_SIZE; i++) {
@@ -251,6 +251,7 @@ static void M561CPUIRQHook(int a) {
 
 void Mapper561_Init(CartInfo *info) {
 	uint32 wramsize = info->PRGRamSize + info->PRGRamSaveSize;
+	int i, ssize = PRG_ROM_SIZE;
 
 	info->Power = M561Power;
 	info->Reset = M561Reset;
@@ -265,30 +266,28 @@ void Mapper561_Init(CartInfo *info) {
 		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	}
 
-		if ((info->submapper == 3) && (PRG_ROM_SIZE_16K < (256 * 1024))) {
-		uint8 *tmp = (uint8 *)FCEU_malloc(PRG_ROM_SIZE_16K);
-		int i;
+	if ((info->submapper == 3) && (PRG_ROM_SIZE < (256 * 1024))) {
+		uint8 *tmp = (uint8 *)FCEU_malloc(PRG_ROM_SIZE);
 
-		for (i = 0; i < PRG_ROM_SIZE_16K; i++) {
-			tmp[i] = PRG_ROM_DATA[i];
+		for (i = 0; i < ssize; i++) {
+			tmp[i] = PRG_ROM_PTR[i];
 		}
-		FCEU_free(PRG_ROM_DATA);
-		PRG_ROM_SIZE_16K = (256 * 1024);
-		PRG_ROM_DATA = (uint8 *)FCEU_malloc(PRG_ROM_SIZE_16K);
-		for (i = 0; i < PRG_ROM_SIZE_16K; i++) {
-			PRG_ROM_DATA[i] = tmp[i];
+		ssize = (256 * 1024);
+		PRG_ROM_PTR = (uint8 *)realloc(PRG_ROM_PTR, ssize);
+		for (i = 0; i < ssize; i++) {
+			PRG_ROM_PTR[i] = tmp[i];
 		}
 		FCEU_free(tmp);
-		SetupCartPRGMapping(0, PRG_ROM_DATA, PRG_ROM_SIZE_16K, FALSE);
+		SetupCartPRGMapping(0, PRG_ROM_PTR, ssize, FALSE);
 	}
 
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		/* Game Doctor only used CHR RAM, but some .nes files has CHR ROM instead. */
 		/* Remap CHR as writable. */
-		SetupCartCHRMapping(0, CHR_ROM_DATA, CHR_ROM_SIZE_8K, TRUE);
-		AddExState(CHR_ROM_DATA, CHR_ROM_SIZE_8K, 0, "CHRM");
+		SetupCartCHRMapping(0, CHR_ROM_PTR, CHR_ROM_SIZE, TRUE);
+		AddExState(CHR_ROM_PTR, CHR_ROM_SIZE, 0, "CHRM");
 	}
 
 	/* PRG memory can be writable, so add to states */
-	AddExState(PRG_ROM_DATA, PRG_ROM_SIZE_16K, 0, "PRGM");
+	AddExState(PRG_ROM_PTR, ssize, 0, "PRGM");
 }

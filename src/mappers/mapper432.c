@@ -54,7 +54,7 @@ static void M432PW(uint16 A, uint16 V) {
 }
 
 static DECLFR(M432Read) {
-	if ((reg[0] & 0x01) || ((reg[1] & 0x20) && (PRG_ROM_SIZE_16K < (1024 * 1024)))) {
+	if ((reg[0] & 0x01) || ((reg[1] & 0x20) && (PRG_ROM_SIZE < (1024 * 1024)))) {
 		return dipsw;
 	}
 	return CartBR(A);
@@ -63,7 +63,7 @@ static DECLFR(M432Read) {
 static DECLFW(M432Write) {
 	if (MMC3_WramIsWritable()) {
 		reg[A & 0x01] = V;
-		if (!(A & 0x01) && !(V & 0x01) && (PRG_ROM_SIZE_16K < (1024 * 1024))) {
+		if (!(A & 0x01) && !(V & 0x01) && (PRG_ROM_SIZE < (1024 * 1024))) {
 			reg[1] &= ~0x20; /* Writing 0 to register 0 clears register 1's DIP bit */
 		}
 		MMC3_FixPRG();

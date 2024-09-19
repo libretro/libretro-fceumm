@@ -202,7 +202,7 @@ void Mapper116_Init(CartInfo *info) {
 	AddExState(StateRegs, ~0, 0, NULL);
 
 	/* PRG 128K and CHR 128K is Huang-2 (iNESCart.submapper 2) */
-	if ((info->submapper != 2) && (PRG_ROM_SIZE_16K == (128 * 1024)) && (CHR_ROM_SIZE_8K == (128 * 1024))) {
+	if ((info->submapper != 2) && (PRG_ROM_SIZE == (128 * 1024)) && (CHR_ROM_SIZE == (128 * 1024))) {
 		info->submapper = 2;
 	}
 }
