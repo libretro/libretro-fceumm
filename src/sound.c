@@ -1143,6 +1143,26 @@ void FCEUI_SetSoundVolume(uint32 volume) {
 	FSettings.SoundVolume = volume;
 }
 
+int FCEUI_GetExpSoundVolume(int ch) {
+	return FSettings.ExpSoundVolume[ch];
+}
+
+int32 GetOutput(int ch, int32 in) {
+	if ((ch >= SND_VRC6) && (ch <= SND_LAST))
+	{
+		int mod = FCEUI_GetExpSoundVolume(ch);
+
+		if (in == 0 || mod == 0)
+		{
+			return 0; /* silence */
+		}
+		if (mod != 256)
+		{
+			return (int32)((in * mod) / 256);
+		}
+	}
+	return in;
+}
 
 SFORMAT FCEUSND_STATEINFO[] = {
 	{ &fhcnt, 4 | FCEUSTATE_RLSB, "FHCN" },

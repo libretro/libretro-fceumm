@@ -33,6 +33,8 @@
 #include "vsuni.h"
 #include "fds.h"
 
+#include "cart.h"
+
 extern INPUTC *FCEU_InitZapper(int w);
 extern INPUTC *FCEU_InitMouse(int w);
 extern INPUTC *FCEU_InitPowerpadA(int w);
@@ -220,7 +222,7 @@ void FCEU_UpdateInput(void)
    if (FCExp && FCExp->Update)
       FCExp->Update(InputDataPtrFC, JPAttribFC);
 
-   if (GameInfo && GameInfo->type == GIT_VSUNI)
+   if (GameInfo && GameInfo->type == GIT_VSUNI || iNESCart.mapper == 124)
       if (coinon) coinon--;
 
    if (GameInfo->type == GIT_VSUNI)

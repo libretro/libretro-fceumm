@@ -92,6 +92,10 @@ static uint8 ppudead = 1;
 static uint8 kook = 0;
 int fceuindbg = 0;
 
+uint8 QTAIHack = 0; /* bool */
+uint8 qtaintramreg = 0;
+uint8 QTAINTRAM[0x800];
+
 int MMC5Hack = 0, PEC586Hack = 0;
 uint32 MMC5HackVROMMask = 0;
 uint8 *MMC5HackExNTARAMPtr = 0;
@@ -135,6 +139,8 @@ uint8 UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
 #define VRAMADR(V)          &VPage[(V) >> 10][(V)]
 
+#if 0
+/* moved to MMC5 */
 uint8 * MMC5BGVRAMADR(uint32 V) {
 	if (!Sprite16) {
 		extern uint8 mmc5ABMode;				/* A=0, B=1 */
@@ -144,6 +150,7 @@ uint8 * MMC5BGVRAMADR(uint32 V) {
 			return &MMC5BGVPage[(V) >> 10][(V)];
 	} else return &MMC5BGVPage[(V) >> 10][(V)];
 }
+#endif
 
 static DECLFR(A2002) {
 	uint8 ret;
