@@ -175,7 +175,7 @@ static void DoDRIPSoundHQ(void) {
 	cvbc = SOUNDTS;
 }
 
-static void DoDripSound(int32 Count) {
+static void DoDripSound(int Count) {
 	DRIPSound();
 	cvbc = Count;
 }
