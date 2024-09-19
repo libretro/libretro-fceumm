@@ -39,8 +39,7 @@ typedef struct {
 } EXPSOUND;
 
 enum EXPSOUNDTYPE {
-	SND_NORM = 0,
-	SND_VRC6,
+	SND_VRC6 = 0,
 	SND_VRC7,
 	SND_FDS,
 	SND_N163,
