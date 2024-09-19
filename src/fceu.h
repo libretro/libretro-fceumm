@@ -77,11 +77,12 @@ extern uint8 PAL;
 typedef struct {
 	int PAL;
 	int SoundVolume;
-	int ExpSoundVolume[6];
 	int TriangleVolume;
 	int SquareVolume[2];
 	int NoiseVolume;
 	int PCMVolume;
+	int ExpSoundVolume[6];
+
 	int GameGenie;
 
 	/* Current first and last rendered scanlines. */
