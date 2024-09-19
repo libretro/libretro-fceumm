@@ -199,8 +199,8 @@ static void MMC5Square_Write(MMC5SQUARE *channel, uint8 reg, uint8 V) {
 }
 
 DECLFW(MMC5Sound_Write) {
-	GameExpSound.Fill   = MMC5RunSound;
-	GameExpSound.HiFill = MMC5RunSoundHQ;
+	GameExpSound[SND_MMC5].Fill   = MMC5RunSound;
+	GameExpSound[SND_MMC5].HiFill = MMC5RunSoundHQ;
 
 	switch (A) {
 	case 0x5010:
@@ -249,7 +249,7 @@ DECLFW(MMC5Sound_Write) {
 }
 
 static void MMC5SC(void) {
-	GameExpSound.HiSync = MMC5HiSync;
+	GameExpSound[SND_MMC5].HiSync = MMC5HiSync;
 
 	MMC5Sound.square[0].vcount = 0;
 	MMC5Sound.square[1].vcount = 0;
@@ -274,7 +274,7 @@ static void MMC5SC(void) {
 
 void MMC5Sound_ESI(void) {
 	memset(&MMC5Sound, 0, sizeof(MMC5Sound));
-	GameExpSound.RChange = MMC5SC;
+	GameExpSound[SND_MMC5].RChange = MMC5SC;
 	MMC5SC();
 }
 

@@ -240,9 +240,9 @@ DECLFW(N163Sound_Write) {
 		if (ramPos & 0x40) {
 			if (FSettings.SndRate) {
 				N163SoundHack();
-				GameExpSound.Fill = N163Sound;
-				GameExpSound.HiFill = DoN163SoundHQ;
-				GameExpSound.HiSync = SyncHQ;
+				GameExpSound[SND_N163].Fill = N163Sound;
+				GameExpSound[SND_N163].HiFill = DoN163SoundHQ;
+				GameExpSound[SND_N163].HiSync = SyncHQ;
 			}
 		}
 		IRAM[ramPos] = V;
@@ -276,7 +276,7 @@ static void N163SC(void) {
 }
 
 void N163Sound_ESI(void) {
-	GameExpSound.RChange = N163SC;
+	GameExpSound[SND_N163].RChange = N163SC;
 	N163SC();
 
 	if (iNESCart.battery) {

@@ -209,6 +209,8 @@ void FCEUI_CloseGame(void)
 
 void ResetGameLoaded(void)
 {
+	int i;
+
 	if (GameInfo)
       FCEUI_CloseGame();
 
@@ -216,8 +218,12 @@ void ResetGameLoaded(void)
 	PPU_hook = NULL;
 	GameHBIRQHook = NULL;
 
-	if (GameExpSound.Kill)
-		GameExpSound.Kill();
+	for (i = 0; i < GAMEEXPSOUND_COUNT; i++) {
+		if (GameExpSound[i].Kill) {
+			GameExpSound[i].Kill();
+		}
+	}
+
 	memset(&GameExpSound, 0, sizeof(GameExpSound));
 
 	MapIRQHook = NULL;
@@ -236,6 +242,7 @@ FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufs
       frontend_post_load_init_cb_t frontend_post_load_init_cb)
 {
    FCEUFILE *fp;
+   int i;
 
    ResetGameLoaded();
 

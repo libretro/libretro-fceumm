@@ -207,17 +207,17 @@ DECLFW(DRIPSound_Write) {
 }
 
 static void DRIPSound_SC(void) {
-	GameExpSound.Fill = DoDripSound;
-	GameExpSound.HiSync = SyncHQ;
-	GameExpSound.HiFill = DoDRIPSoundHQ;
-	GameExpSound.RChange = DRIPSound_SC;
+	GameExpSound[0].Fill = DoDripSound;
+	GameExpSound[0].HiSync = SyncHQ;
+	GameExpSound[0].HiFill = DoDRIPSoundHQ;
+	GameExpSound[0].RChange = DRIPSound_SC;
 	channel[0].timer = 0;
 	channel[1].timer = 0;
 	cvbc = 0;
 }
 
 void DRIPSound_ESI(void) {
-	GameExpSound.RChange = DRIPSound_SC;
+	GameExpSound[0].RChange = DRIPSound_SC;
 
 	ChannelReset(&channel[0]);
 	ChannelReset(&channel[1]);

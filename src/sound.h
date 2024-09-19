@@ -38,7 +38,18 @@ typedef struct {
 	void (*Kill)(void);
 } EXPSOUND;
 
-extern EXPSOUND GameExpSound;
+enum EXPSOUNDTYPE {
+	SND_VRC6     = 0,
+	SND_VRC7     = 1,
+	SND_FDS      = 2,
+	SND_N163     = 3,
+	SND_S5B      = 4,
+	SND_MMC5     = 5,
+	SND_LAST,
+};
+
+#define GAMEEXPSOUND_COUNT 6
+extern EXPSOUND GameExpSound[GAMEEXPSOUND_COUNT];
 
 extern int32 nesincsize;
 
