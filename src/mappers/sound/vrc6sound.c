@@ -187,7 +187,7 @@ static void DoSawVHQ(void) {
 	VRC6Sound.saw.cvbc = SOUNDTS;
 }
 
-static void VRC6RunSound(int32 Count) {
+static void VRC6RunSound(int Count) {
 	DoSQV1();
 	DoSQV2();
 	DoSawV();
