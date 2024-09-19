@@ -330,8 +330,12 @@ static DECLFW(B2007) {
 		if (PPUCHRRAM & (1 << (tmp >> 10)))
 			VPage[tmp >> 10][tmp] = V;
 	} else if (tmp < 0x3F00) {
-		if (PPUNTARAM & (1 << ((tmp & 0xF00) >> 10)))
-			vnapage[((tmp & 0xF00) >> 10)][tmp & 0x3FF] = V;
+		if (QTAIHack && (qtaintramreg & 1)) {
+			QTAINTRAM[((((tmp & 0xF00) >> 10) >> ((qtaintramreg >> 1)) & 1) << 10) | (tmp & 0x3FF)] = V;
+		} else {
+			if (PPUNTARAM & (1 << ((tmp & 0xF00) >> 10)))
+				vnapage[((tmp & 0xF00) >> 10)][tmp & 0x3FF] = V;
+		}
 	} else {
 		if (!(tmp & 3)) {
 			if (!(tmp & 0xC))
@@ -571,6 +575,12 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 				#include "pputile.h"
 			}
 			#undef PPU_BGFETCH
+		} else if (QTAIHack) {
+			#define PPU_VRC5FETCH
+			for (X1 = firsttile; X1 < lasttile; X1++) {
+				#include "pputile.h"
+			}
+			#undef PPU_VRC5FETCH
 		} else {
 			for (X1 = firsttile; X1 < lasttile; X1++) {
 				#include "pputile.h"
