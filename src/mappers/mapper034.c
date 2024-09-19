@@ -119,7 +119,7 @@ static void StateRestore(int version) {
 }
 
 void Mapper034_Init(CartInfo *info) {
-	if (info->trainer) {
+	if (info->HasTrainer) {
 		type = M034_NESTICLE;
 		WSync = Sync_Nesticle;
 		info->Power = M034Power_Nesticle;

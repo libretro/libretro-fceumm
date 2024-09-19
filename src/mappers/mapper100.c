@@ -150,7 +150,7 @@ static void M100Power(void) {
 	MMC3_Power();
 	SetWriteHandler(0x8000, 0x9FFF, M100WriteCMD);
 
-	if (iNESCart.trainer && MISC_ROM_SIZE) {
+	if (iNESCart.HasTrainer && MISC_ROM_SIZE) {
 		if (MISC_ROM_PTR[0] == 0x4C) {
 			X6502_SetNewPC(0x7000);
 		}

@@ -17,15 +17,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-extern uint8  *WRAM;
-extern uint32 WRAMSIZE;
-
-extern uint8  *CHRRAM;
-extern uint32 CHRRAMSIZE;
-
-extern uint8  *miscROM;
-extern uint32 miscROMSIZE;
-
 #define CPU_OPENBUS X.DB
 
 #define PRG_PAGE_SIZE     (16 * 1024)

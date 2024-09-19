@@ -36,7 +36,8 @@ typedef struct {
 					 * other code in the future.
 					 */
 
-	int trainer; /* TODO */
+	int HasTrainer; /* indicated the presence of trainer rom data */
+	int HasMisc;    /* indicated the presence of misc rom data */
 } CartInfo;
 
 extern CartInfo iNESCart;
