@@ -99,6 +99,11 @@ static void Cleanup(void)
       free(ExtraNTARAM);
       ExtraNTARAM = NULL;
    }
+   if (WRAM)
+   {
+      free(WRAM);
+      WRAM = NULL;
+   }
 }
 
 static void iNESGI(int h) {
