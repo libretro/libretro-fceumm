@@ -80,16 +80,16 @@ void Mapper269_Init(CartInfo *info) {
 	AddExState(reg, 4, 0, "EXPR");
 	AddExState(&cmd, 1, 0, "CMD0");
 
-	if (CHR_ROM_SIZE_8K == 0) {
+	if (CHR_ROM_SIZE == 0) {
 		size_t i;
-		if (CHR_ROM_DATA) {
-			FCEU_free(CHR_ROM_DATA);
+		if (CHR_ROM_PTR) {
+			FCEU_free(CHR_ROM_PTR);
 		}
-		CHR_ROM_DATA = (uint8*)FCEU_malloc(PRGsize[0]);
+		CHR_ROM_PTR = (uint8*)FCEU_malloc(PRGsize[0]);
 		/* unscramble CHR data from PRG */
 		for (i = 0; i < PRGsize[0]; i++) {
-			CHR_ROM_DATA[i] = unscrambleCHR(PRG_ROM_DATA[i]);
+			CHR_ROM_PTR[i] = unscrambleCHR(PRG_ROM_PTR[i]);
 		}
-		SetupCartCHRMapping(0, CHR_ROM_DATA, PRGsize[0], 0);
+		SetupCartCHRMapping(0, CHR_ROM_PTR, PRGsize[0], 0);
 	}
 }

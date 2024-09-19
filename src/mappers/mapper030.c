@@ -116,7 +116,7 @@ void Mapper030_Init(CartInfo *info) {
 			SetupCartMirroring(MI_0, 0, NULL);
 			break;
 		case 3: /* hard four screen, last 8k of 32k RAM (flags: 4-screen + vertical) */
-			SetupCartMirroring(4, 1, CHR_ROM_DATA + (info->CHRRamSize - 8192));
+			SetupCartMirroring(4, 1, CHR_ROM_PTR + (info->CHRRamSize - 8192));
 			break;
 		}
 	}

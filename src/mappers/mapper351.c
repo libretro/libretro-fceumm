@@ -256,14 +256,14 @@ void Mapper351_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 	AddExState(stateRegs, ~0, 0, 0);
 
-	if (CHR_ROM_SIZE_8K) {
-		uint32 old_prg_size = PRG_ROM_SIZE_16K;
+	if (CHR_ROM_SIZE) {
+		uint32 new_prg_size = PRG_ROM_SIZE;
 		/* This crazy thing can map CHR-ROM into CPU address space. Allocate a
 		 * combined PRG+CHR address space and treat it a second "chip". */
-		PRG_ROM_SIZE_16K = old_prg_size + CHR_ROM_SIZE_8K;
-		PRG_ROM_DATA = (uint8 *)realloc(PRG_ROM_DATA, PRG_ROM_SIZE_16K);
-		memcpy(PRG_ROM_DATA + old_prg_size, CHR_ROM_DATA, CHR_ROM_SIZE_8K);
-		SetupCartPRGMapping(0, PRG_ROM_DATA, PRG_ROM_SIZE_16K, 0);
+		new_prg_size += CHR_ROM_SIZE;
+		PRG_ROM_PTR = (uint8 *)realloc(PRG_ROM_PTR, new_prg_size);
+		memcpy(PRG_ROM_PTR + new_prg_size, CHR_ROM_PTR, CHR_ROM_SIZE);
+		SetupCartPRGMapping(0, PRG_ROM_PTR, new_prg_size, 0);
 	}
 
 	if (CHRRAMSIZE) {

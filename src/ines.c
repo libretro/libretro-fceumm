@@ -1412,10 +1412,8 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 {
    const char *tv_region[] = { "NTSC", "PAL", "Multi-region", "Dendy" };
    struct md5_context md5;
-#ifdef DEBUG
    char* mappername        = NULL;
    uint32 mappertest       = 0;
-#endif
    uint64 filesize         = FCEU_fgetsize(fp); /* size of file including header */
    uint64 romSize          = 0;                 /* size of PRG + CHR rom */
    /* used for malloc and cart mapping */
@@ -1509,7 +1507,6 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
    memcpy(&GameInfo->MD5, &iNESCart.MD5, sizeof(iNESCart.MD5));
 
-#ifdef DEBUG
    mappername = "Not Listed";
 
    for (mappertest = 0; mappertest < (sizeof bmap / sizeof bmap[0]) - 1; mappertest++)
@@ -1520,7 +1517,6 @@ int iNESLoad(const char *name, FCEUFILE *fp)
          break;
       }
    }
-#endif
 
    if (iNESCart.iNES2 == 0) {
       if (strstr(name, "(E)") || strstr(name, "(e)") ||
@@ -1538,7 +1534,6 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       }
    }
 
-#ifdef DEBUG
    FCEU_printf(" PRG-ROM CRC32:  0x%08X\n", iNESCart.PRGCRC32);
    FCEU_printf(" PRG+CHR CRC32:  0x%08X\n", iNESCart.CRC32);
    FCEU_printf(" PRG+CHR MD5:    0x%s\n", md5_asciistr(iNESCart.MD5));
@@ -1572,7 +1567,6 @@ int iNESLoad(const char *name, FCEUFILE *fp)
          }
       }		
    }
-#endif
 
    ResetCartMapping();
    ResetExState(0, 0);

@@ -64,7 +64,7 @@ static DECLFR(M235Read) {
 }
 
 static void M235Reset(void) {
-	if (PRG_ROM_SIZE_16K & 0x20000) {
+	if (PRG_ROM_SIZE & 0x20000) {
 		mode = (mode + 1) & 1;
 	}
 	Latch_RegReset();

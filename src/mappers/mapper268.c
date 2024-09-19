@@ -178,7 +178,7 @@ static void Common_Init(CartInfo *info) {
 
 	AddExState(reg, 8, 0, "EXPR");
 
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		CHRRAMSIZE = info->CHRRamSize + info->CHRRamSaveSize;
 		if (CHRRAMSIZE) {
 			CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);

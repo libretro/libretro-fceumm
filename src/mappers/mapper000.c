@@ -25,7 +25,7 @@ static void NROMClose(void) {
 }
 
 static void NROMPower(void) {
-	if (PRG_ROM_SIZE_16K == (48 * 1024)) { /* NROM-368 */
+	if (PRG_ROM_SIZE == (48 * 1024)) { /* NROM-368 */
 		setprg16(0x4000, 0);
 		setprg16(0x8000, 1);
 		setprg16(0xC000, 2);
@@ -66,7 +66,7 @@ void Mapper000_Init(CartInfo *info) {
 		}
 	}
 
-	if ((info->CRC32 == 0x4233B70E) || ((info->PRGCRC32 == 0x17E013A2) && CHR_ROM_SIZE_8K)) {
+	if ((info->CRC32 == 0x4233B70E) || ((info->PRGCRC32 == 0x17E013A2) && CHR_ROM_SIZE)) {
 		/* BADDUMP: A variant of Wild Ball with chrrom when its suppose to use chrram */
 		SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], 1);
 	}

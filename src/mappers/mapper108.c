@@ -47,7 +47,7 @@ static void Sync(void) {
 		setprg8(0x6000, reg);
 	}
 	setprg32(0x8000, ~0);
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		setchr8(reg);
 	} else {
 		setchr8(0);
@@ -81,14 +81,14 @@ void Mapper108_Init(CartInfo *info) {
 	AddExState(StateRegs, ~0, 0, NULL);
 
 	if (!info->iNES2 || !info->submapper) {
-		if (!CHR_ROM_SIZE_8K) {
+		if (!CHR_ROM_SIZE) {
 			if (info->mirror == MI_H) {
 				info->submapper = 1;
 			} else {
 				info->submapper = 3;
 			}
 		} else {
-			if (CHR_ROM_SIZE_8K <= (32 * 1024)) {
+			if (CHR_ROM_SIZE <= (32 * 1024)) {
 				info->submapper = 4;
 			} else {
 				info->submapper = 2;

@@ -309,7 +309,7 @@ static void SyncCHR(void) {
 	int chr_shift = ((mapper == 24) && (flags & 2)) ? 1 : 0;
 
 	/* enable or disable writes to CHR RAM, setup CHR mask */
-	SetupCartCHRMapping(0, CHR_ROM_DATA, ((((~chr_mask & 0x3F) + 1) * 0x2000 - 1) & (CHR_SIZE - 1)) + 1, can_write_chr);
+	SetupCartCHRMapping(0, CHR_ROM_PTR, ((((~chr_mask & 0x3F) + 1) * 0x2000 - 1) & (CHR_SIZE - 1)) + 1, can_write_chr);
 
 	switch (chr_mode & 0x07) {
 	default:

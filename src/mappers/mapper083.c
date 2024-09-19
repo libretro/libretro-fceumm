@@ -235,9 +235,9 @@ void Mapper083_Init(CartInfo *info) {
 	AddExState(StateRegs, ~0, 0, NULL);
 
 	if (!info->iNES2) {
-		if (CHR_ROM_SIZE_8K >= (1024 * 1024)) {
+		if (CHR_ROM_SIZE >= (1024 * 1024)) {
 			info->submapper = 2;
-		} else if (CHR_ROM_SIZE_8K >= (512 * 1024)) {
+		} else if (CHR_ROM_SIZE >= (512 * 1024)) {
 			info->submapper = 1;
 		}
 	}

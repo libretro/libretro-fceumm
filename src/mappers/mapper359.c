@@ -69,7 +69,7 @@ static void Sync(void) {
 	setprg8(0xC000, prgBase | (prg[2] & prgMask));
 	setprg8(0xE000, prgBase | (    ~0 & prgMask));
 
-	if (!CHR_ROM_SIZE_8K) {
+	if (!CHR_ROM_SIZE) {
 		setchr8(0);
 	} else {
 		if (iNESCart.mapper == 540) {

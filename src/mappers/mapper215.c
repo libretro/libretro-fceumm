@@ -178,7 +178,7 @@ void Mapper215_Init(CartInfo *info) {
 
 	AddExState(reg, 4, 0, "EXPR");
 
-	if ((!info->iNES2) && (PRG_ROM_SIZE_16K >= (2048 * 1024))) { /* UNL-8237A */
+	if ((!info->iNES2) && (PRG_ROM_SIZE >= (2048 * 1024))) { /* UNL-8237A */
 		info->submapper = 1;
 	}
 }

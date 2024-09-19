@@ -80,7 +80,7 @@ static DECLFW(writeReg) {
 		Sync();
 		break;
 	case 0x5200:
-		if ((PRG_ROM_SIZE_16K != (1024 * 1024)) && !(reg[3] & 0x02)) {
+		if ((PRG_ROM_SIZE != (1024 * 1024)) && !(reg[3] & 0x02)) {
 			V = (V & ~0x03) | ((V >> 1) & 0x01) | ((V << 1) & 0x02);
 		}
 		reg[2] = V;

@@ -57,7 +57,7 @@ static DECLFW(writeReg) {
 	uint8 index = (A >> 8) & 0x03;
 
 	/* Swap bits of registers 0-2 again if the "swap bits" bit is set. Exclude register 2 on when PRG-ROM is 1 MiB. */
-	if ((reg[3] & 0x01) && (index <= (PRG_ROM_SIZE_16K < (2024 * 1024)))) {
+	if ((reg[3] & 0x01) && (index <= (PRG_ROM_SIZE < (2024 * 1024)))) {
 		V = (V & ~0x03) | ((V >> 1) & 0x01) | ((V << 1) & 0x02);
 	}
 

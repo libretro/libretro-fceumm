@@ -33,7 +33,7 @@ static SFORMAT StateRegs[] = {
 };
 
 static void M045CW(uint16 A, uint16 V) {
-	if (CHR_ROM_SIZE_8K || (iNESCart.CHRRamSize > 8192)) {
+	if (CHR_ROM_SIZE || (iNESCart.CHRRamSize > 8192)) {
 		uint32 mask = 0xFF >> (~reg[2] & 0x0F);
 		uint32 base = ((reg[2] << 4) & 0xF00) | reg[0];
 

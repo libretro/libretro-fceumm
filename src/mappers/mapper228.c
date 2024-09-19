@@ -46,27 +46,26 @@ static void Sync(void) {
 void Mapper228_Init(CartInfo *info) {
 	Latch_Init(info, Sync, NULL, FALSE, FALSE);
 
-	if (PRG_ROM_SIZE_16K == 0x180000) {
+	if (PRG_ROM_SIZE == 0x180000) {
 		int i;
 		size_t ssize = 0x200000;
 		uint8 *tmp = (uint8 *)FCEU_malloc(ssize);
 
-		for (i = 0; i < (int)PRG_ROM_SIZE_16K; i++) {
-			tmp[i] = PRG_ROM_DATA[i];
+		for (i = 0; i < (int)PRG_ROM_SIZE; i++) {
+			tmp[i] = PRG_ROM_PTR[i];
 		}
 		for (i = 0x000000; i < 0x080000; i++) {
 			tmp[0x180000 + i] = tmp[0x100000 + i];
 			tmp[0x100000 + i] = (i >> 8) & 0xFF;
 		}
 
-		PRG_ROM_SIZE_16K = ssize;
-		if (PRG_ROM_DATA) FCEU_free(PRG_ROM_DATA);
-		PRG_ROM_DATA = (uint8 *)FCEU_malloc(ssize);
-		for (i = 0; i < (int)PRG_ROM_SIZE_16K; i++) {
-			PRG_ROM_DATA[i] = tmp[i];
+		if (PRG_ROM_PTR) FCEU_free(PRG_ROM_PTR);
+		PRG_ROM_PTR = (uint8 *)FCEU_malloc(ssize);
+		for (i = 0; i < (int)ssize; i++) {
+			PRG_ROM_PTR[i] = tmp[i];
 		}
 		FCEU_free(tmp);
 
-		SetupCartPRGMapping(0, PRG_ROM_DATA, PRG_ROM_SIZE_16K, 0);
+		SetupCartPRGMapping(0, PRG_ROM_PTR, ssize, 0);
 	}
 }

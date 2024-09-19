@@ -59,9 +59,9 @@ static DECLFR(M413ReadPCM) {
 		return ret;
 	}
 	if (serialControl & 0x02) {
-		ret = MISC_ROM_DATA[serialAddress++ & (MISC_ROM_SIZE - 1)];
+		ret = MISC_ROM_PTR[serialAddress++ & (MISC_ROM_SIZE - 1)];
 	} else {
-		ret = MISC_ROM_DATA[serialAddress & (MISC_ROM_SIZE - 1)];
+		ret = MISC_ROM_PTR[serialAddress & (MISC_ROM_SIZE - 1)];
 	}
 	laddr = A;
 	lreset = timestampbase + timestamp;

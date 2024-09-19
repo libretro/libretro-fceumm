@@ -498,14 +498,14 @@ static void M562Power(void) {
 		uint16 trainerLoadAddr = 0x7000;
 		uint16 trainerInitAddr = 0x7003;
 		uint32 trainerSize = 512;
-		uint8 *trainerData = MISC_ROM_DATA;
+		uint8 *trainerData = MISC_ROM_PTR;
 		int i;
 
 		if (MISC_ROM_SIZE != 512) {
-			trainerLoadAddr = (MISC_ROM_DATA[1] << 8) | MISC_ROM_DATA[0];
-			trainerInitAddr = (MISC_ROM_DATA[3] << 8) | MISC_ROM_DATA[2];
+			trainerLoadAddr = (MISC_ROM_PTR[1] << 8) | MISC_ROM_PTR[0];
+			trainerInitAddr = (MISC_ROM_PTR[3] << 8) | MISC_ROM_PTR[2];
 			trainerSize = MISC_ROM_SIZE - 4;
-			trainerData = MISC_ROM_DATA + 4;
+			trainerData = MISC_ROM_PTR + 4;
 
 			FCEU_printf(" load addr : %04x\n", trainerLoadAddr);
 			FCEU_printf(" init addr : %04x\n", trainerInitAddr);
@@ -578,13 +578,13 @@ void Mapper562_Init(CartInfo *info) {
 		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	}
 
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		/* Game Doctor only used CHR RAM, but some .nes files has CHR ROM instead. */
 		/* Remap CHR as writable. */
-		SetupCartCHRMapping(0, CHR_ROM_DATA, CHR_ROM_SIZE_8K, TRUE);
-		AddExState(CHR_ROM_DATA, CHR_ROM_SIZE_8K, 0, "CHRM");
+		SetupCartCHRMapping(0, CHR_ROM_PTR, CHR_ROM_SIZE, TRUE);
+		AddExState(CHR_ROM_PTR, CHR_ROM_SIZE, 0, "CHRM");
 	}
 
 	/* PRG memory can be writable, so add to states */
-	AddExState(PRG_ROM_DATA, PRG_ROM_SIZE_16K, 0, "PRGM");
+	AddExState(PRG_ROM_PTR, PRG_ROM_SIZE, 0, "PRGM");
 }

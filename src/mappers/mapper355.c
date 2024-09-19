@@ -112,7 +112,7 @@ static void M555Close(void) {
 
 void Mapper355_Init(CartInfo *info) {
 	if (MISC_ROM_SIZE && (MISC_ROM_SIZE == 1024)) {
-		eprom = MISC_ROM_DATA;
+		eprom = MISC_ROM_PTR;
 	} else {
 		if (info->CRC32 == 0x86DBA660) { /* 3D Block (Hwang Shinwei) [!].nes */
 			eprom = &eprom_3d_block[0];

@@ -145,7 +145,7 @@ static void StateRestore(int version) {
 
 void Mapper111_Init(CartInfo *info) {
 	m111_mmc1 = FALSE;
-	if (CHR_ROM_SIZE_8K) {
+	if (CHR_ROM_SIZE) {
 		/* Prior to the introduction of GTROM, Mapper 111 was assigned to a Chinese Fan Translation
 		 * of Ninja Ryukenden (Japanese Ninja Gaiden). This translation uses a non-serialized
 		 * version of MMC1 and supports 256KiB of CHR-ROM, whereas the official MMC1 is limited to

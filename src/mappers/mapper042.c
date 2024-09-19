@@ -166,11 +166,11 @@ static void StateRestore(int version) {
 
 void Mapper042_Init(CartInfo *info) {
 	if (info->submapper == 0 || info-> submapper > 3) {
-		if (CHR_ROM_SIZE_8K) {
+		if (CHR_ROM_SIZE) {
 			/* Ai Senshi Nicol, only cart with CHR-ROM, all others use CHR-RAM */
 			info->submapper = 1;
 		} else {
-			if (PRG_ROM_SIZE_16K > (128 * 1024)) {
+			if (PRG_ROM_SIZE > (128 * 1024)) {
 				/* Green Beret LH09 FDS Conversion can be 160K or 256K */
 				info->submapper = 2;
 			} else {
