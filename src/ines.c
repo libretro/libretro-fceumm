@@ -43,7 +43,6 @@
 
 extern SFORMAT FCEUVSUNI_STATEINFO[];
 
-uint8 *trainerpoo       = NULL;
 uint8 *ROM              = NULL;
 uint8 *VROM             = NULL;
 uint8 *ExtraNTARAM      = NULL;
@@ -59,23 +58,47 @@ static int CHRRAMSize   = -1;
 static int iNES_Init(int num);
 
 static DECLFR(TrainerRead) {
-	return(trainerpoo[A & 0x1FF]);
+	return(miscROM[A & 0x1FF]);
 }
 
 static void iNES_ExecPower() {
 	if (iNESCart.Power)
 		iNESCart.Power();
 
-	if (trainerpoo) {
+	if (iNESCart.HasTrainer) {
 		int x;
 		for (x = 0; x < 512; x++) {
-			X6502_DMW(0x7000 + x, trainerpoo[x]);
-			if (X6502_DMR(0x7000 + x) != trainerpoo[x]) {
+			X6502_DMW(0x7000 + x, miscROM[x]);
+			if (X6502_DMR(0x7000 + x) != miscROM[x]) {
 				SetReadHandler(0x7000, 0x71FF, TrainerRead);
 				break;
 			}
 		}
 	}
+}
+
+static void Cleanup(void)
+{
+   if (ROM)
+   {
+      free(ROM);
+      ROM = NULL;
+   }
+   if (VROM)
+   {
+      free(VROM);
+      VROM = NULL;
+   }
+   if (miscROM)
+   {
+      free(miscROM);
+      miscROM = NULL;
+   }
+   if (ExtraNTARAM)
+   {
+      free(ExtraNTARAM);
+      ExtraNTARAM = NULL;
+   }
 }
 
 static void iNESGI(int h) {
@@ -91,22 +114,7 @@ static void iNESGI(int h) {
 	case GI_CLOSE:
 		if (iNESCart.Close)
 			iNESCart.Close();
-		if (ROM) {
-			free(ROM);
-			ROM = NULL;
-		}
-		if (VROM) {
-			free(VROM);
-			VROM = NULL;
-		}
-		if (trainerpoo) {
-			free(trainerpoo);
-			trainerpoo = NULL;
-		}
-		if (ExtraNTARAM) {
-			free(ExtraNTARAM);
-			ExtraNTARAM = NULL;
-		}
+      Cleanup();
 		break;
 	}
 }
@@ -1394,6 +1402,7 @@ static void iNES_read_header_info(void) {
    iNESCart.battery   = (head.ROM_type & 2) ? 1 : 0;
    iNESCart.mapper    = iNES_get_mapper_id();
    iNESCart.iNES2     = (head.ROM_type2 & 0x0C) == 0x08;
+   iNESCart.HasTrainer   = (head.ROM_type & 0x04) != 0;
 
    if (iNESCart.iNES2)
    {
@@ -1405,6 +1414,8 @@ static void iNES_read_header_info(void) {
       if (head.PRGRAM_size & 0xF0) iNESCart.PRGRamSaveSize = 64 << ((head.PRGRAM_size >> 4) & 0x0F);
       if (head.CHRRAM_size & 0x0F) iNESCart.CHRRamSize     = 64 << ((head.CHRRAM_size >> 0) & 0x0F);
       if (head.CHRRAM_size & 0xF0) iNESCart.CHRRamSaveSize = 64 << ((head.CHRRAM_size >> 4) & 0x0F);
+
+      iNESCart.HasMisc = head.MiscRoms & 0x03;
    }
 }
 
@@ -1453,11 +1464,12 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    filesize -= 16; /* remove header size from total size */
 
    /* Trainer */
-   if (head.ROM_type & 4)
+   if (iNESCart.HasTrainer)
    {
-      trainerpoo = (uint8*)FCEU_gmalloc(512);
-      FCEU_fread(trainerpoo, 512, 1, fp);
-      filesize -= 512;
+      miscROMSIZE = 512;
+      miscROM = (uint8*)FCEU_gmalloc(512);
+      FCEU_fread(miscROM, 512, 1, fp);
+      filesize -= miscROMSIZE;
    }
 
    iNESCart.PRGRomSize = ROM_size >=0xF00? (pow(2, head.ROM_size >>2)*((head.ROM_size &3)*2+1)): (ROM_size*0x4000);
@@ -1493,6 +1505,18 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
       memset(VROM, 0xFF, vrom_size_pow2);
       FCEU_fread(VROM, 1, iNESCart.CHRRomSize, fp);
+   }
+
+   if (iNESCart.HasMisc)
+   {
+      miscROMSIZE = filesize - romSize;
+      if (!(miscROM = (uint8 *)FCEU_malloc(miscROMSIZE)))
+      {
+         Cleanup();
+         return 0;
+      }
+      memset(miscROM, 0xFF, miscROMSIZE);
+      FCEU_fread(miscROM, 1, miscROMSIZE, fp);
    }
 
    iNESCart.PRGCRC32   = CalcCRC32(0, ROM, iNESCart.PRGRomSize);
@@ -1565,7 +1589,14 @@ int iNESLoad(const char *name, FCEUFILE *fp)
             FCEU_printf(" PRG RAM: %d KB\n", PRGRAM / 1024);
             FCEU_printf(" CHR RAM: %d KB\n", CHRRAM / 1024);
          }
-      }		
+      }
+      if (!iNESCart.HasTrainer && miscROMSIZE) {
+			if (miscROMSIZE / 1024) {
+				FCEU_printf(" Misc ROM:      %-6d KiB\n", miscROMSIZE / 1024);
+			} else {
+				FCEU_printf(" Misc ROM:      %-6d bytes\n", miscROMSIZE);
+			}
+		}
    }
 
    ResetCartMapping();

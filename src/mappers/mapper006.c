@@ -301,7 +301,7 @@ static void SetTrainer(void) {
 		PRGPAGE_DMW(0xFFFA, 0x32);
 		PRGPAGE_DMW(0xFFFB, 0x50);
 	}
-	if (iNESCart.trainer && WRAM) {
+	if (iNESCart.HasTrainer && WRAM) {
 		int i;
 		uint8 *trainerData = 0;
 		uint16 trainerAddr =

@@ -44,6 +44,15 @@ extern uint32 ROM_size;		/* prg size in 16K chunks */
 extern uint32 VROM_size;	/* chr size in 8K chunks */
 extern iNES_HEADER head;
 
+extern uint8  *WRAM;
+extern uint32 WRAMSIZE;
+
+extern uint8  *CHRRAM;
+extern uint32 CHRRAMSIZE;
+
+extern uint8  *miscROM;
+extern uint32 miscROMSIZE;
+
 void NSFVRC6_Init(void);
 void NSFMMC5_Init(void);
 void NSFAY_Init(void);
