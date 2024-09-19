@@ -1671,7 +1671,7 @@ void retro_set_environment(retro_environment_t cb)
 void retro_get_system_info(struct retro_system_info *info)
 {
    info->need_fullpath    = true;
-   info->valid_extensions = "fds|nes|unf|unif";
+   info->valid_extensions = "fds|nes|unf|unif|nsf|nsfe";
 #ifdef GIT_VERSION
    info->library_version  = "(SVN)" GIT_VERSION;
 #else

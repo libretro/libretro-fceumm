@@ -99,7 +99,7 @@ void TQROM_Init(CartInfo *info);
 void TQROM_Init(CartInfo *info);
 void TSROM_Init(CartInfo *info);
 void Transformer_Init(CartInfo *info);
-void UNL22211_Init(CartInfo *info);
+/* void UNL22211_Init(CartInfo *info); m132 */
 void UNL3DBlock_Init(CartInfo *info);
 void UNL43272_Init(CartInfo *info);
 void UNL6035052_Init(CartInfo *info);

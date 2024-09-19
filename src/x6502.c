@@ -393,6 +393,10 @@ void FCEUI_GetIVectors(uint16 *reset, uint16 *irq, uint16 *nmi) {
 static int debugmode;
 #endif
 
+void X6502_SetNewPC(uint16 newPC) {
+	X.newPC = newPC;
+}
+
 void X6502_Reset(void) {
 	_IRQlow = FCEU_IQRESET;
 }
@@ -418,6 +422,9 @@ void X6502_Power(void) {
 	_S = 0xFD;
 	timestamp = sound_timestamp = 0;
 	X6502_Reset();
+	if (X.newPC) {
+		X.PC = X.newPC;
+	}
 }
 
 #ifdef FCEUDEF_DEBUGGER

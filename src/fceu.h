@@ -74,9 +74,20 @@ extern uint8 PAL;
 
 #include "driver.h"
 
+enum EXPSOUNDTYPE {
+	SND_VRC6     = 0,
+	SND_VRC7     = 1,
+	SND_FDS      = 2,
+	SND_N163     = 3,
+	SND_S5B      = 4,
+	SND_MMC5     = 5,
+	SND_LAST,
+};
+
 typedef struct {
 	int PAL;
 	int SoundVolume;
+	int ExpSoundVolume[6];
 	int TriangleVolume;
 	int SquareVolume[2];
 	int NoiseVolume;

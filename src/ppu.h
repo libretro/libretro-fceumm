@@ -23,4 +23,19 @@ void FCEUPPU_LoadState(int version);
 extern int scanline;
 extern uint8 PPU[4];
 
+/* MMC5 specifics */
+#define Sprite16          (PPU[0] & 0x20) /* Sprites 8x16/8x8 */
+#define PPUON             (PPU[1] & 0x18) /* PPU should operate */
+
+#define ABANKS            MMC5SPRVPage
+#define BBANKS            MMC5BGVPage
+#define MMC5SPRVRAMADR(V) &MMC5SPRVPage[(V) >> 10][(V)]
+#define VRAMADR(V)        &VPage[(V) >> 10][(V)]
+uint8 *MMC5BGVRAMADR(uint32 A);
+
+/* m547 */
+extern uint8 QTAIHack;
+extern uint8 qtaintramreg;
+extern uint8 QTAINTRAM[0x800];
+
 #endif

@@ -314,6 +314,12 @@ int FCEUI_Initialize(void) {
 	FSettings.UsrLastSLine[0] = 231;
 	FSettings.UsrLastSLine[1] = 239;
 	FSettings.SoundVolume = 100;
+	FSettings.ExpSoundVolume[0] = 256;
+	FSettings.ExpSoundVolume[1] = 256;
+	FSettings.ExpSoundVolume[2] = 256;
+	FSettings.ExpSoundVolume[3] = 256;
+	FSettings.ExpSoundVolume[4] = 256;
+	FSettings.ExpSoundVolume[5] = 256;
 	FCEUPPU_Init();
 	X6502_Init();
 	return 1;

@@ -35,7 +35,11 @@ typedef struct {
 					 * code, used by mapper/board code, maybe
 					 * other code in the future.
 					 */
+
+	int trainer; /* TODO */
 } CartInfo;
+
+extern CartInfo iNESCart;
 
 extern uint8 *Page[32], *VPage[8], *MMC5SPRVPage[8], *MMC5BGVPage[8];
 

@@ -64,4 +64,11 @@ void FCEUSND_LoadState(int version);
 
 void FASTAPASS(1) FCEU_SoundCPUHook(int);
 
+/* Modify channel wave volume based on volume modifiers
+ * Note: the formulat x = x * y /256 does not yield exact results,
+ * but is "close enough" and avoids the need for using double values
+ * or implicit cohersion which are slower (we need speed here) */
+/* TODO: Optimize this. */
+int32 GetOutput(int ch, int32 in);
+
 #endif
