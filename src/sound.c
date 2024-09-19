@@ -1167,12 +1167,18 @@ void FCEUI_SetSoundVolume(uint32 volume) {
 	FSettings.SoundVolume = volume;
 }
 
+void FCEUI_SetExpSoundVolume(int ch, uint32 volume) {
+	FSettings.ExpSoundVolume[ch] = volume;
+}
+
 int FCEUI_GetExpSoundVolume(int ch) {
-	return FSettings.ExpSoundVolume[ch];
+	if ((ch >= SND_VRC6) && (ch < SND_LAST))
+		return FSettings.ExpSoundVolume[ch];
+	return 0;
 }
 
 int32 GetOutput(int ch, int32 in) {
-	if ((ch >= SND_VRC6) && (ch <= SND_LAST))
+	if ((ch >= SND_VRC6) && (ch < SND_LAST))
 	{
 		int mod = FCEUI_GetExpSoundVolume(ch);
 

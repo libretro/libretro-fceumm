@@ -39,16 +39,17 @@ typedef struct {
 } EXPSOUND;
 
 enum EXPSOUNDTYPE {
-	SND_VRC6     = 0,
-	SND_VRC7     = 1,
-	SND_FDS      = 2,
-	SND_N163     = 3,
-	SND_S5B      = 4,
-	SND_MMC5     = 5,
+	SND_NORM = 0,
+	SND_VRC6,
+	SND_VRC7,
+	SND_FDS,
+	SND_N163,
+	SND_S5B,
+	SND_MMC5,
 	SND_LAST,
 };
 
-#define GAMEEXPSOUND_COUNT 6
+#define GAMEEXPSOUND_COUNT SND_LAST
 extern EXPSOUND GameExpSound[GAMEEXPSOUND_COUNT];
 
 extern int32 nesincsize;
@@ -74,6 +75,10 @@ void FCEUSND_SaveState(void);
 void FCEUSND_LoadState(int version);
 
 void FASTAPASS(1) FCEU_SoundCPUHook(int);
+
+/*  volume levels for mapper-based expansion audio */
+void FCEUI_SetExpSoundVolume(int ch, uint32 volume);
+int FCEUI_GetExpSoundVolume(int ch);
 
 /* Modify channel wave volume based on volume modifiers
  * Note: the formulat x = x * y /256 does not yield exact results,
