@@ -1327,6 +1327,9 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "ET-120",                 	465, Mapper465_Init         )
 	INES_BOARD( "Keybyte Computer",        	466, Mapper466_Init         )
 	INES_BOARD( "47-2",                 	467, Mapper467_Init         )
+	/* m468 - untested since i dont have rom to test it, so im adding it here as-is */
+	INES_BOARD( "BlazePro CPLD",           	468, Mapper468_Init         )
+
 	INES_BOARD( "Impact Soft IM1",         	471, Mapper471_Init         )
 	INES_BOARD( "Yhc-000",                  500, Mapper500_Init         )
 	INES_BOARD( "Yhc-001",                  501, Mapper501_Init         )
