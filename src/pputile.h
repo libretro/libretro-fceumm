@@ -3,6 +3,8 @@ uint8 cc;
 uint32 vadr;
 #ifdef PPU_VRC5FETCH
 uint8 tmpd;
+extern uint8 *VROM;
+extern uint32 VROM_size;
 #endif
 
 #ifndef PPUT_MMC5SP
@@ -86,12 +88,9 @@ pshift[1] <<= 8;
 		C = MMC5BGVRAMADR(vadr);
 	#else
 	#ifdef PPU_VRC5FETCH
-	extern uint8 *VROM;
-	extern uint32 VROM_size;
 	if (tmpd & 0x40) {
-		if ((VROM_size * 8) == 128) {
+		if ((VROM_size * 8) == 128)
 		    vadr = ((vadr & 0x07) << 1) | ((vadr & 0x10) >> 4) | ((vadr & 0x3FFE0) >> 1);
-	    }
 		C = VROM + vadr;
 	} else {
 		C = VRAMADR(vadr);
