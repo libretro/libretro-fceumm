@@ -37,16 +37,7 @@ int32 Wave[2048 + 512];
 int32 WaveHi[40000];
 int32 WaveFinal[2048 + 512];
 
-/* FIXME: Very ugly hack and only relevant in multichip NSF playback */
-/* Indexing is based on sound channel enum */
-EXPSOUND GameExpSound[GAMEEXPSOUND_COUNT] = { 
-	{ 0, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 0 },
-	{ 0, 0, 0, 0, 0, 0 },
-};
+EXPSOUND GameExpSound = { 0, 0, 0, 0, 0, 0 };
 
 static uint8 TriCount = 0;
 static uint8 TriMode = 0;
@@ -952,7 +943,7 @@ void SetNESSoundMap(void) {
 
 static int32 inbuf = 0;
 int FlushEmulateSound(void) {
-	int i, x;
+	int x;
 	int32 end, left;
 
 	if (!sound_timestamp) return(0);
@@ -972,11 +963,7 @@ int FlushEmulateSound(void) {
 	if (FSettings.soundq >= 1) {
 		int32 *tmpo = &WaveHi[soundtsoffs];
 
-		for (i = 0; i < GAMEEXPSOUND_COUNT; i++) {
-			if (GameExpSound[i].HiFill) {
-				GameExpSound[i].HiFill();
-			}
-		}
+		if (GameExpSound.HiFill) GameExpSound.HiFill();
 
 		for (x = sound_timestamp; x; x--) {
 			uint32 b = *tmpo;
@@ -989,21 +976,13 @@ int FlushEmulateSound(void) {
 		memmove(WaveHi, WaveHi + SOUNDTS - left, left * sizeof(uint32));
 		memset(WaveHi + left, 0, sizeof(WaveHi) - left * sizeof(uint32));
 
-		for (i = 0; i < GAMEEXPSOUND_COUNT; i++) {
-			if (GameExpSound[i].HiSync) {
-				GameExpSound[i].HiSync(left);
-			}
-		}
-
+		if (GameExpSound.HiSync) GameExpSound.HiSync(left);
 		for (x = 0; x < 5; x++)
 			ChannelBC[x] = left;
 	} else {
 		end = (SOUNDTS << 16) / soundtsinc;
-		for (i = 0; i < GAMEEXPSOUND_COUNT; i++) {
-			if (GameExpSound[i].Fill) {
-				GameExpSound[i].Fill(end & 0xF);
-			}
-		}
+		if (GameExpSound.Fill)
+			GameExpSound.Fill(end & 0xF);
 
 		SexyFilter(Wave, WaveFinal, end >> 4);
 
@@ -1097,7 +1076,7 @@ void FCEUSND_Power(void) {
 
 
 void SetSoundVariables(void) {
-	int i, x;
+	int x;
 
 	fhinc = PAL ? 16626 : 14915;	/* *2 CPU clock rate */
 	fhinc *= 24;
@@ -1134,11 +1113,8 @@ void SetSoundVariables(void) {
 
 	MakeFilters(FSettings.SndRate);
 
-	for (i = 0; i < GAMEEXPSOUND_COUNT; i++) {
-		if (GameExpSound[i].RChange) {
-			GameExpSound[i].RChange();
-		}
-	}
+	if (GameExpSound.RChange)
+		GameExpSound.RChange();
 
 	nesincsize = (int64)(((int64)1 << 17) * (double)(PAL ? PAL_CPU : NTSC_CPU) / (FSettings.SndRate * 16));
 	memset(sqacc, 0, sizeof(sqacc));
@@ -1167,33 +1143,6 @@ void FCEUI_SetSoundVolume(uint32 volume) {
 	FSettings.SoundVolume = volume;
 }
 
-void FCEUI_SetExpSoundVolume(int ch, uint32 volume) {
-	if ((ch >= SND_VRC6) && (ch < SND_LAST))
-		FSettings.ExpSoundVolume[ch] = volume;
-}
-
-int FCEUI_GetExpSoundVolume(int ch) {
-	if ((ch >= SND_VRC6) && (ch < SND_LAST))
-		return FSettings.ExpSoundVolume[ch];
-	return 0;
-}
-
-int32 GetOutput(int ch, int32 in) {
-	if ((ch >= SND_VRC6) && (ch < SND_LAST))
-	{
-		int mod = FCEUI_GetExpSoundVolume(ch);
-
-		if (in == 0 || mod == 0)
-		{
-			return 0; /* silence */
-		}
-		if (mod != 256)
-		{
-			return (int32)((in * mod) / 256);
-		}
-	}
-	return in;
-}
 
 SFORMAT FCEUSND_STATEINFO[] = {
 	{ &fhcnt, 4 | FCEUSTATE_RLSB, "FHCN" },

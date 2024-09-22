@@ -35,12 +35,7 @@ typedef struct {
 					 * code, used by mapper/board code, maybe
 					 * other code in the future.
 					 */
-
-	int HasTrainer; /* indicated the presence of trainer rom data */
-	int HasMisc;    /* indicated the presence of misc rom data */
 } CartInfo;
-
-extern CartInfo iNESCart;
 
 extern uint8 *Page[32], *VPage[8], *MMC5SPRVPage[8], *MMC5BGVPage[8];
 

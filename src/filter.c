@@ -87,7 +87,6 @@ int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 	int32 *outsave = out;
 	int32 count = 0;
 	uint32 max = (inlen - 1) << 16;
-	int i;
 
 	if (FSettings.soundq == 2) {
 		for (x = mrindex; x < max; x += mrratio) {
@@ -133,11 +132,8 @@ int32 NeoFilterSound(int32 *in, int32 *out, uint32 inlen, int32 *leftover) {
 		*leftover = NCOEFFS + 1;
 	}
 
-	for (i = 0; i < GAMEEXPSOUND_COUNT; i++) {
-		if (GameExpSound[i].NeoFill) {
-			GameExpSound[i].NeoFill(outsave, count);
-		}
-	}
+	if (GameExpSound.NeoFill)
+		GameExpSound.NeoFill(outsave, count);
 
 	SexyFilter(outsave, outsave, count);
 	if (FSettings.lowpass)

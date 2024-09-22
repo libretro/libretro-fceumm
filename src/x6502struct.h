@@ -6,7 +6,6 @@ typedef struct __X6502 {
 	uint16 PC;			/* I'll change this to uint32 later... */
 						/* I'll need to AND PC after increments to 0xFFFF */
 						/* when I do, though.  Perhaps an IPC() macro? */
-	uint16 newPC;       /* used to override PC after at power on */
 	uint8 A, X, Y, S, P, mooPI;
 	uint8 jammed;
 

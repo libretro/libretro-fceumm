@@ -75,14 +75,6 @@ typedef long long int64;
 	#define FASTAPASS(x)
 #endif
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
 typedef void (FP_FASTAPASS(2) *writefunc)(uint32 A, uint8 V);
 typedef uint8 (FP_FASTAPASS(1) *readfunc)(uint32 A);
 

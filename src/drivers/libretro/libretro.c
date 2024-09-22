@@ -1464,17 +1464,11 @@ static bool update_option_visibility(void)
             "fceumm_sndlowpass",
             "fceumm_sndstereodelay",
             "fceumm_swapduty",
-            "fceumm_apu_square_1",
-            "fceumm_apu_square_2",
-            "fceumm_apu_triangle",
-            "fceumm_apu_noise",
-            "fceumm_apu_dpcm",
-            "fceumm_apu_fds",
-            "fceumm_apu_s5b",
-            "fceumm_apu_n163",
-            "fceumm_apu_vrc6",
-            "fceumm_apu_vrc7",
-            "fceumm_apu_mmc5"
+            "fceumm_apu_1",
+            "fceumm_apu_2",
+            "fceumm_apu_3",
+            "fceumm_apu_4",
+            "fceumm_apu_5"
          };
 
          option_display.visible  = opt_showAdvSoundOptions;
@@ -1677,7 +1671,7 @@ void retro_set_environment(retro_environment_t cb)
 void retro_get_system_info(struct retro_system_info *info)
 {
    info->need_fullpath    = true;
-   info->valid_extensions = "fds|nes|unf|unif|nsf|nsfe";
+   info->valid_extensions = "fds|nes|unf|unif";
 #ifdef GIT_VERSION
    info->library_version  = "(SVN)" GIT_VERSION;
 #else
@@ -1857,93 +1851,20 @@ void retro_reset(void)
    ResetNES();
 }
 
-#define VOLUME_MAX 256
-
-static void check_variables_volume_levels(void) {
-	struct retro_variable var = { 0 };
-	int i = 0;
-	int ssize;
-
-   var.key = "fceumm_apu_square_1";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      FSettings.SquareVolume[1] = VOLUME_MAX * atoi(var.value) / 100;
-   }
-
-   var.key = "fceumm_apu_square_2";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      FSettings.SquareVolume[0] = VOLUME_MAX * atoi(var.value) / 100;
-   }
-
-   var.key = "fceumm_apu_triangle";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      FSettings.TriangleVolume = VOLUME_MAX * atoi(var.value) / 100;
-   }
-
-   var.key = "fceumm_apu_noise";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      FSettings.NoiseVolume = VOLUME_MAX * atoi(var.value) / 100;
-   }
-
-   var.key = "fceumm_apu_dpcm";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      FSettings.PCMVolume = VOLUME_MAX * atoi(var.value) / 100;
-   }
-
-   /* EXPANSION AUDIO VOLUME SETTINGS */
-
-   var.key = "fceumm_apu_fds";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      int val = VOLUME_MAX * atoi(var.value) / 100;
-      FCEUI_SetExpSoundVolume(SND_FDS, val);
-   }
-
-   var.key = "fceumm_apu_s5b";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      int val = VOLUME_MAX * atoi(var.value) / 100;
-      FCEUI_SetExpSoundVolume(SND_S5B, val);
-   }
-
-   var.key = "fceumm_apu_n163";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      int val = VOLUME_MAX * atoi(var.value) / 100;
-      FCEUI_SetExpSoundVolume(SND_N163, val);
-   }
-
-   var.key = "fceumm_apu_vrc6";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      int val = VOLUME_MAX * atoi(var.value) / 100;
-      FCEUI_SetExpSoundVolume(SND_VRC6, val);
-   }
-
-   var.key = "fceumm_apu_vrc7";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      int val = VOLUME_MAX * atoi(var.value) / 100;
-      FCEUI_SetExpSoundVolume(SND_VRC7, val);
-   }
-
-   var.key = "fceumm_apu_mmc5";
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      int val = VOLUME_MAX * atoi(var.value) / 100;
-      FCEUI_SetExpSoundVolume(SND_MMC5, val);
-   }
+static void set_apu_channels(int chan)
+{
+   FSettings.SquareVolume[1] = (chan & 1) ? 256 : 0;
+   FSettings.SquareVolume[0] = (chan & 2) ? 256 : 0;
+   FSettings.TriangleVolume  = (chan & 3) ? 256 : 0;
+   FSettings.NoiseVolume     = (chan & 4) ? 256 : 0;
+   FSettings.PCMVolume       = (chan & 5) ? 256 : 0;
 }
 
 static void check_variables(bool startup)
 {
    struct retro_variable var = {0};
    char key[256];
-   int i;
+   int i, enable_apu;
    bool stereo_filter_updated = false;
 
    /* 1 = Performs only geometry update: e.g. overscans */
@@ -2377,7 +2298,8 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      sndvolume = (unsigned)((float)VOLUME_MAX * atof(var.value) / 200.0f);
+      int val = (int)(atof(var.value) * 25.6);
+      sndvolume = val;
       FCEUD_SoundToggle();
    }
 
@@ -2400,7 +2322,19 @@ static void check_variables(bool startup)
          swapDuty = newval;
    }
 
-   check_variables_volume_levels();
+   var.key = key;
+
+   enable_apu = 0xff;
+
+   strcpy(key, "fceumm_apu_x");
+   for (i = 0; i < 5; i++)
+   {
+      key[strlen("fceumm_apu_")] = '1' + i;
+      var.value = NULL;
+      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && !strcmp(var.value, "disabled"))
+         enable_apu &= ~(1 << i);
+   }
+   set_apu_channels(enable_apu);
 
    update_dipswitch();
 

@@ -92,10 +92,6 @@ static uint8 ppudead = 1;
 static uint8 kook = 0;
 int fceuindbg = 0;
 
-uint8 QTAIHack = 0; /* bool */
-uint8 qtaintramreg = 0;
-uint8 QTAINTRAM[0x800];
-
 int MMC5Hack = 0, PEC586Hack = 0;
 uint32 MMC5HackVROMMask = 0;
 uint8 *MMC5HackExNTARAMPtr = 0;
@@ -139,8 +135,6 @@ uint8 UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
 #define VRAMADR(V)          &VPage[(V) >> 10][(V)]
 
-#if 0
-/* moved to MMC5 */
 uint8 * MMC5BGVRAMADR(uint32 V) {
 	if (!Sprite16) {
 		extern uint8 mmc5ABMode;				/* A=0, B=1 */
@@ -150,7 +144,6 @@ uint8 * MMC5BGVRAMADR(uint32 V) {
 			return &MMC5BGVPage[(V) >> 10][(V)];
 	} else return &MMC5BGVPage[(V) >> 10][(V)];
 }
-#endif
 
 static DECLFR(A2002) {
 	uint8 ret;
@@ -330,12 +323,8 @@ static DECLFW(B2007) {
 		if (PPUCHRRAM & (1 << (tmp >> 10)))
 			VPage[tmp >> 10][tmp] = V;
 	} else if (tmp < 0x3F00) {
-		if (QTAIHack && (qtaintramreg & 1)) {
-			QTAINTRAM[((((tmp & 0xF00) >> 10) >> ((qtaintramreg >> 1)) & 1) << 10) | (tmp & 0x3FF)] = V;
-		} else {
-			if (PPUNTARAM & (1 << ((tmp & 0xF00) >> 10)))
-				vnapage[((tmp & 0xF00) >> 10)][tmp & 0x3FF] = V;
-		}
+		if (PPUNTARAM & (1 << ((tmp & 0xF00) >> 10)))
+			vnapage[((tmp & 0xF00) >> 10)][tmp & 0x3FF] = V;
 	} else {
 		if (!(tmp & 3)) {
 			if (!(tmp & 0xC))
@@ -575,12 +564,6 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 				#include "pputile.h"
 			}
 			#undef PPU_BGFETCH
-		} else if (QTAIHack) {
-			#define PPU_VRC5FETCH
-			for (X1 = firsttile; X1 < lasttile; X1++) {
-				#include "pputile.h"
-			}
-			#undef PPU_VRC5FETCH
 		} else {
 			for (X1 = firsttile; X1 < lasttile; X1++) {
 				#include "pputile.h"

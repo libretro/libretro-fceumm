@@ -81,8 +81,6 @@ typedef struct {
 	int SquareVolume[2];
 	int NoiseVolume;
 	int PCMVolume;
-	int ExpSoundVolume[6];
-
 	int GameGenie;
 
 	/* Current first and last rendered scanlines. */

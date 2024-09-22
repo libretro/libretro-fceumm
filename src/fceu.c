@@ -209,8 +209,6 @@ void FCEUI_CloseGame(void)
 
 void ResetGameLoaded(void)
 {
-	int i;
-
 	if (GameInfo)
       FCEUI_CloseGame();
 
@@ -218,12 +216,8 @@ void ResetGameLoaded(void)
 	PPU_hook = NULL;
 	GameHBIRQHook = NULL;
 
-	for (i = 0; i < GAMEEXPSOUND_COUNT; i++) {
-		if (GameExpSound[i].Kill) {
-			GameExpSound[i].Kill();
-		}
-	}
-
+	if (GameExpSound.Kill)
+		GameExpSound.Kill();
 	memset(&GameExpSound, 0, sizeof(GameExpSound));
 
 	MapIRQHook = NULL;
@@ -242,7 +236,6 @@ FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufs
       frontend_post_load_init_cb_t frontend_post_load_init_cb)
 {
    FCEUFILE *fp;
-   int i;
 
    ResetGameLoaded();
 
@@ -321,12 +314,6 @@ int FCEUI_Initialize(void) {
 	FSettings.UsrLastSLine[0] = 231;
 	FSettings.UsrLastSLine[1] = 239;
 	FSettings.SoundVolume = 100;
-	FSettings.ExpSoundVolume[0] = 256;
-	FSettings.ExpSoundVolume[1] = 256;
-	FSettings.ExpSoundVolume[2] = 256;
-	FSettings.ExpSoundVolume[3] = 256;
-	FSettings.ExpSoundVolume[4] = 256;
-	FSettings.ExpSoundVolume[5] = 256;
 	FCEUPPU_Init();
 	X6502_Init();
 	return 1;

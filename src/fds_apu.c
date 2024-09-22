@@ -276,10 +276,10 @@ static void FDS_ESI(void) {
 void FDSSoundReset(void) {
 	memset(&fdso, 0, sizeof(fdso));
 	FDS_ESI();
-	GameExpSound[SND_FDS].HiSync = HQSync;
-	GameExpSound[SND_FDS].HiFill = RenderSoundHQ;
-	GameExpSound[SND_FDS].Fill = FDSSound;
-	GameExpSound[SND_FDS].RChange = FDS_ESI;
+	GameExpSound.HiSync = HQSync;
+	GameExpSound.HiFill = RenderSoundHQ;
+	GameExpSound.Fill = FDSSound;
+	GameExpSound.RChange = FDS_ESI;
 }
 
 uint8 FDSSoundRead(uint32 A) {

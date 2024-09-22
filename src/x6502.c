@@ -393,25 +393,8 @@ void FCEUI_GetIVectors(uint16 *reset, uint16 *irq, uint16 *nmi) {
 static int debugmode;
 #endif
 
-void X6502_SetNewPC(uint16 newPC) {
-	X.newPC = newPC;
-}
-
 void X6502_Reset(void) {
-#ifdef FCEUDEF_DEBUGGER
-#define RdMem RdMemHook
-#else
-#define RdMem RdMemNorm
-#endif
-	_S--;
-	_S--;
-	_S--;
-	_jammed = 0;
-	_P |= I_FLAG;
-	_PI = X.P;
-	_PC = RdMem(0xFFFC);
-	_PC |= RdMem(0xFFFD) << 8;
-#undef RdMem
+	_IRQlow = FCEU_IQRESET;
 }
 
 void X6502_Init(void) {
@@ -432,13 +415,9 @@ void X6502_Init(void) {
 
 void X6502_Power(void) {
 	_count = _tcount = _IRQlow = _PC = _A = _X = _Y = _P = _PI = _DB = _jammed = 0;
-	/*_S = 0xFD;*/
-	_P = 0x34;
+	_S = 0xFD;
 	timestamp = sound_timestamp = 0;
 	X6502_Reset();
-	if (X.newPC) {
-		_PC = X.newPC;
-	}
 }
 
 #ifdef FCEUDEF_DEBUGGER

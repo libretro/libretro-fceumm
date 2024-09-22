@@ -38,8 +38,6 @@
 #include "cart.h"
 #include "md5.h"
 
-#include "mappers/sound/fdssound.h"
-
 /*	TODO:  Add code to put a delay in between the time a disk is inserted
  *	and the when it can be successfully read/written to.  This should
  *	prevent writes to wrong places OR add code to prevent disk ejects
@@ -156,27 +154,7 @@ static void FDSInit(void) {
 
 	IRQCount = IRQLatch = IRQa = 0;
 
-	/* FDSSoundReset(); */
-
-	FDSSoundRegReset();
-	FDSSound_SC();
-
-	SetReadHandler(0x4040, 0x407F, FDSWaveRead);
-	SetReadHandler(0x4090, 0x4090, FDSEnvVolumeRead);
-	SetReadHandler(0x4092, 0x4092, FDSEnvModRead);
-
-	SetWriteHandler(0x4040, 0x407F, FDSWaveWrite);
-	SetWriteHandler(0x4080, 0x4080, FDSSReg0Write);
-	SetWriteHandler(0x4082, 0x4082, FDSSReg1Write);
-	SetWriteHandler(0x4083, 0x4083, FDSSReg2Write);
-	SetWriteHandler(0x4084, 0x4084, FDSSReg3Write);
-	SetWriteHandler(0x4085, 0x4085, FDSSReg4Write);
-	SetWriteHandler(0x4086, 0x4086, FDSSReg5Write);
-	SetWriteHandler(0x4087, 0x4087, FDSSReg6Write);
-	SetWriteHandler(0x4088, 0x4088, FDSSReg7Write);
-	SetWriteHandler(0x4089, 0x4089, FDSSReg8Write);
-	SetWriteHandler(0x408A, 0x408A, FDSSReg9Write);
-
+	FDSSoundReset();
 	InDisk = 0;
 	SelectDisk = 0;
 
@@ -713,7 +691,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	InDisk = 255;
 
 	ResetExState(PreSave, PostSave);
-	/* FDSSoundStateAdd(); */
+	FDSSoundStateAdd();
 
 	for (x = 0; x < TotalSides; x++) {
 		char temp[5];
@@ -744,8 +722,6 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	AddExState(&mapperFDS_blocklen, 2 | FCEUSTATE_RLSB, 1, "BLKL");
 	AddExState(&mapperFDS_diskaddr, 2 | FCEUSTATE_RLSB, 1, "DADR");
 	AddExState(&mapperFDS_diskaccess, 1, 0, "DACC");
-
-	FDSSound_AddStateInfo();
 
 	CHRRAMSize = 8192;
 	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSize);
