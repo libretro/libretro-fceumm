@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     container: ps2dev/ps2dev:latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v2
 
     - name: Install dependencies
       run: |
@@ -27,7 +27,7 @@ jobs:
 
     - name: Upload artifacts
       if: ${{ success() }}
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: fceumm_libretro_ps2-${{ steps.slug.outputs.sha8 }}
         path: fceumm_libretro_ps2.a
