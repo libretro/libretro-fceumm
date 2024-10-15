@@ -32,7 +32,7 @@ void FCEU_printf(char *format, ...);
 #define FCEUI_printf FCEU_printf
 
 /* Video interface */
-void FCEUD_SetPalette(uint8 index, uint8 r, uint8 g, uint8 b);
+void FCEUD_SetPalette(uint16 index, uint8 r, uint8 g, uint8 b);
 
 /* Displays an error.  Can block or not. */
 void FCEUD_PrintError(char *s);
