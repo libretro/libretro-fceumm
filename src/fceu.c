@@ -224,7 +224,7 @@ void ResetGameLoaded(void)
 	MMC5Hack = 0;
 	PEC586Hack = 0;
 	PAL &= 1;
-	pale = 0;
+	default_palette_selected = 0;
 }
 
 int UNIFLoad(const char *name, FCEUFILE *fp);

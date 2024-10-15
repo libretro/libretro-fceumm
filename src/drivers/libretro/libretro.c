@@ -284,6 +284,12 @@ void FCEUD_SetPalette(uint16 index, uint8_t r, uint8_t g, uint8_t b)
    }
 #endif
 
+#if defined(PSP) || defined(PS2)
+   /* PS2 / PSP will only have 256 colors */
+   if (index >= 256)
+      return;
+#endif
+
 #ifdef FRONTEND_SUPPORTS_RGB565
    retro_palette[index_to_write] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
 #else
@@ -368,8 +374,7 @@ void FCEUD_SoundToggle (void)
 #define PAL_CUSTOM   (PAL_INTERNAL + 3)
 #define PAL_TOTAL    PAL_CUSTOM
 
-static int external_palette_exist = 0;
-extern int ipalette;
+static uint8 external_palette_exist = false;
 
 /* table for currently loaded palette */
 static uint8_t base_palette[192];
@@ -1163,13 +1168,13 @@ static void NTSCFilter_Setup(void)
    }
 
    ntsc_setup.merge_fields = 0;
-   if ((GameInfo->type != GIT_VSUNI) && (current_palette == PAL_DEFAULT || current_palette == PAL_RAW))
+   if (GameInfo && (GameInfo->type != GIT_VSUNI) && (current_palette == PAL_DEFAULT || current_palette == PAL_RAW))
       /* use ntsc default palette instead of internal default palette for that "identity" effect */
-      ntsc_setup.base_palette = NULL;
+      ntsc_setup.palette = NULL;
    else
       /* use internal palette, this includes palette presets, external palette and custom palettes
           * for VS. System games */
-      ntsc_setup.base_palette = (unsigned char const *)palo;
+      ntsc_setup.palette = (unsigned char const *)palo;
 
    nes_ntsc_init(&nes_ntsc, &ntsc_setup);
 }
@@ -1740,7 +1745,7 @@ static void retro_set_custom_palette(void)
 {
    unsigned i;
 
-   ipalette = 0;
+   palette_game_available = 0;
    use_raw_palette = false;
 
    /* VS UNISystem uses internal palette presets regardless of options */
@@ -1750,13 +1755,13 @@ static void retro_set_custom_palette(void)
    /* Reset and choose between default internal or external custom palette */
    else if (current_palette == PAL_DEFAULT || current_palette == PAL_CUSTOM)
    {
-      ipalette = external_palette_exist && (current_palette == PAL_CUSTOM);
+      palette_game_available = external_palette_exist && (current_palette == PAL_CUSTOM);
 
-      /* if ipalette is set to 1, external palette
+      /* if palette_game_available is set to 1, external palette
        * is loaded, else it will load default NES palette.
        * FCEUI_SetPaletteArray() both resets the palette array to
        * internal default palette and then chooses which one to use. */
-      FCEUI_SetPaletteArray( NULL );
+      FCEUI_SetPaletteArray( NULL, 0 );
    }
 
    /* setup raw palette */
@@ -1793,7 +1798,7 @@ static void retro_set_custom_palette(void)
          base_palette[ i * 3 + 1 ] = ( data >>  8 ) & 0xff; /* green */
          base_palette[ i * 3 + 2 ] = ( data >>  0 ) & 0xff; /* blue */
       }
-      FCEUI_SetPaletteArray( base_palette );
+      FCEUI_SetPaletteArray( base_palette, 64 );
    }
 }
 
@@ -1895,7 +1900,7 @@ static void check_variables(bool startup)
 #ifdef HAVE_NTSC_FILTER
    var.key = "fceumm_ntsc_filter";
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value && GameInfo && GameInfo->type != GIT_NSF)
    {
       unsigned orig_value = use_ntsc;
       if (strcmp(var.value, "disabled") == 0)
@@ -2896,24 +2901,25 @@ static void retro_run_blit(uint8_t *gfx)
       pitch  -= (crop_overscan_h_left + crop_overscan_h_right) * sizeof(uint16_t);
       gfx    += (crop_overscan_v_top * 256) + crop_overscan_h_left;
 
-      if (use_raw_palette)
       {
          uint8_t *deemp = XDBuf + (gfx - XBuf);
          for (y = 0; y < height; y++, gfx += incr, deemp += incr)
-            for (x = 0; x < width; x++, gfx++, deemp++) {
-               if (*deemp != 0) {
+         {
+            for (x = 0; x < width; x++, gfx++, deemp++)
+            {
+               if (*deemp != 0 && GameInfo->type != GIT_NSF)
+               {
                   fceu_video_out[y * width + x] = retro_palette[256 + (*gfx & 0x3F) + ((*deemp & 0x07) << 6)];
-               } else {
-                  fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F];
+               }
+               else
+               {
+                  uint8 pixel_mask = use_raw_palette ? 0x3F : 0xFF;
+                  fceu_video_out[y * width + x] = retro_palette[*gfx & pixel_mask];
                }
             }
+         }
       }
-      else
-      {
-         for (y = 0; y < height; y++, gfx += incr)
-            for (x = 0; x < width; x++, gfx++)
-               fceu_video_out[y * width + x] = retro_palette[*gfx];
-      }
+
       video_cb(fceu_video_out, width, height, pitch);
    }
 #endif
@@ -3583,7 +3589,7 @@ bool retro_load_game(const struct retro_game_info *info)
       nes_input.type[i] = RETRO_DEVICE_JOYPAD;
    }
 
-   external_palette_exist = ipalette;
+   external_palette_exist = palette_game_available;
    if (external_palette_exist)
       FCEU_printf(" Loading custom palette: %s%cnes.pal\n",
             system_dir, PATH_DEFAULT_SLASH_C());
