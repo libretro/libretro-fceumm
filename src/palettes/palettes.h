@@ -1,20 +1,31 @@
-pal rp2c04_0001[64] = {
+#define EMPTY_PALETTE_1          { 0, 0, 0},
+#define EMPTY_PALETTE_4          EMPTY_PALETTE_1 EMPTY_PALETTE_1 EMPTY_PALETTE_1 EMPTY_PALETTE_1
+#define EMPTY_PALETTE_16         EMPTY_PALETTE_4 EMPTY_PALETTE_4 EMPTY_PALETTE_4 EMPTY_PALETTE_4
+#define EMPTY_PALETTE_64         EMPTY_PALETTE_16 EMPTY_PALETTE_16 EMPTY_PALETTE_16 EMPTY_PALETTE_16
+#define EMPTY_PALETTE_DEEMPH_X_7 EMPTY_PALETTE_64 EMPTY_PALETTE_64 EMPTY_PALETTE_64 EMPTY_PALETTE_64 EMPTY_PALETTE_64 EMPTY_PALETTE_64 EMPTY_PALETTE_64
+
+pal rp2c04_0001[512] = {
  #include "rp2c04-0001.h"
+ EMPTY_PALETTE_DEEMPH_X_7
 };
 
-pal rp2c04_0002[64] = {
+pal rp2c04_0002[512] = {
  #include "rp2c04-0002.h"
+ EMPTY_PALETTE_DEEMPH_X_7
 };
 
-pal rp2c04_0003[64] = {
+pal rp2c04_0003[512] = {
  #include "rp2c04-0003.h"
+ EMPTY_PALETTE_DEEMPH_X_7
 };
-pal rp2c04_0004[64] = {
+pal rp2c04_0004[512] = {
  #include "rp2c04-0004.h"
+ EMPTY_PALETTE_DEEMPH_X_7
 };
 
-pal rp2c03[64] = {
+pal rp2c03[512] = {
  #include "rp2c03.h"
+ EMPTY_PALETTE_DEEMPH_X_7
 };
 
 
@@ -30,7 +41,7 @@ pal unvpalette[7] = {
 
 
 /* Default palette */
-pal palette[64] = {
+pal palette[512] = {
 	{ 117, 117, 117 }, /* Value 0 */
 	{ 36, 24, 142 }, /* Value 1 */
 	{ 0, 0, 170 }, /* Value 2 */
@@ -95,4 +106,6 @@ pal palette[64] = {
 	{ 199, 199, 199 }, /* Value 61 */
 	{ 0, 0, 0 }, /* Value 62 */
 	{ 0, 0, 0 }, /* Value 63 */
+
+	EMPTY_PALETTE_DEEMPH_X_7
 };

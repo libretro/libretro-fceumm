@@ -292,8 +292,8 @@ void FCEU_VSUniCheck(uint64 md5partial, int *MapperNo, int *Mirroring) {
 
 	while (vs->name) {
 		if (md5partial == vs->md5partial) {
-			if (vs->ppu < RCP2C03B) pale = vs->ppu;
-			else pale = 5;
+			if (vs->ppu < RCP2C03B) default_palette_selected = vs->ppu;
+			else default_palette_selected = 5;
 			*MapperNo = vs->mapper;
 			*Mirroring = vs->mirroring;
 			GameInfo->type = GIT_VSUNI;
