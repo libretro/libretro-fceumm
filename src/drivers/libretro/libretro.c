@@ -197,7 +197,7 @@ static bool opt_showAdvSystemOptions = true;
 #if defined(PSP) || defined(PS2)
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
-static uint16_t retro_palette[256];
+static uint16_t retro_palette[1024];
 #endif
 #if defined(RENDER_GSKIT_PS2)
 static uint8_t* fceu_video_out;
@@ -271,9 +271,9 @@ const char * GetKeyboard(void)
 #define BLUE_EXPAND 3
 #endif
 
-void FCEUD_SetPalette(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
+void FCEUD_SetPalette(uint16 index, uint8_t r, uint8_t g, uint8_t b)
 {
-   unsigned char index_to_write = index;
+   uint16 index_to_write = index;
 #if defined(RENDER_GSKIT_PS2)
    /* Index correction for PS2 GS */
    int modi = index & 63;
@@ -1771,6 +1771,15 @@ static void retro_set_custom_palette(void)
          color.b = 0;
          FCEUD_SetPalette( i, color.r, color.g, color.b);
       }
+      #if !defined(PSP) || !defined(PS2)
+      for (i = 0; i < 512; i++)
+      {
+         color.r = (((i >> 0) & 0xF) * 255) / 15;
+         color.g = (((i >> 4) & 0x3) * 255) / 3;
+         color.b = (((i >> 6) & 0x7) * 255 / 7);
+         FCEUD_SetPalette( 256 + i, color.r, color.g, color.b);
+      }
+      #endif
    }
 
    /* setup palette presets */
@@ -2891,8 +2900,13 @@ static void retro_run_blit(uint8_t *gfx)
       {
          uint8_t *deemp = XDBuf + (gfx - XBuf);
          for (y = 0; y < height; y++, gfx += incr, deemp += incr)
-            for (x = 0; x < width; x++, gfx++, deemp++)
-               fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F] | (*deemp << 2);
+            for (x = 0; x < width; x++, gfx++, deemp++) {
+               if (*deemp != 0) {
+                  fceu_video_out[y * width + x] = retro_palette[256 + (*gfx & 0x3F) + ((*deemp & 0x07) << 6)];
+               } else {
+                  fceu_video_out[y * width + x] = retro_palette[*gfx & 0x3F];
+               }
+            }
       }
       else
       {
