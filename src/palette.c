@@ -186,9 +186,9 @@ void FCEU_LoadGamePalette(void) {
 		int x;
 		int ssize = filestream_get_size(fp);
 		int nEntries = ssize / 3;
-		filestream_read(fp, ptmp, nEntries);
+		filestream_read(fp, ptmp, ssize);
 		filestream_close(fp);
-		for (x = 0; x < 64; x++) {
+		for (x = 0; x < nEntries; x++) {
 			palette_game[x].r = ptmp[x + x + x];
 			palette_game[x].g = ptmp[x + x + x + 1];
 			palette_game[x].b = ptmp[x + x + x + 2];
