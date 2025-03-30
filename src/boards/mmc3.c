@@ -39,6 +39,7 @@ uint8 mmc3opts = 0;
 
 static uint8 IRQCount, IRQLatch, IRQa;
 static uint8 IRQReload;
+static uint8 submapper;
 
 static SFORMAT MMC3_StateRegs[] =
 {
@@ -567,9 +568,12 @@ static void M47CW(uint32 A, uint8 V) {
 }
 
 static DECLFW(M47Write) {
-	EXPREGS[0] = V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+	if (submapper == 0 | ~EXPREGS[0] &0x80) {
+		EXPREGS[0] = V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	}
+	CartBW(A, V);
 }
 
 static void M47Reset(void) {
@@ -589,6 +593,7 @@ void Mapper47_Init(CartInfo *info) {
 	GenMMC3_Init(info, 512, 256, 8, 0);
 	pwrap = M47PW;
 	cwrap = M47CW;
+	submapper = info->submapper;
 	info->Reset = M47Reset;
 	info->Power = M47Power;
 	AddExState(EXPREGS, 1, 0, "EXPR");
