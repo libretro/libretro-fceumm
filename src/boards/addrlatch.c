@@ -176,16 +176,22 @@ void Mapper59_Init(CartInfo *info) {
 
 /*------------------ Map 061 ---------------------------*/
 static void M61Sync(void) {
-	if (((latche & 0x10) << 1) ^ (latche & 0x20)) {
-		setprg16(0x8000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
-		setprg16(0xC000, ((latche & 0xF) << 1) | (((latche & 0x20) >> 4)));
+	if (latche &0x10) {
+		setprg16(0x8000, latche <<1 &0x1E | latche >>5 &0x01);
+		setprg16(0xC000, latche <<1 &0x1E | latche >>5 &0x01);
 	} else
 		setprg32(0x8000, latche & 0xF);
 	setchr8(latche >> 8);
 	setmirror(((latche >> 7) & 1) ^ 1);
 }
 
+void Mapper61_Reset() {
+	latche =0;
+	M61Sync();
+}
+
 void Mapper61_Init(CartInfo *info) {
+	info->Reset = Mapper61_Reset;
 	Latch_Init(info, M61Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
