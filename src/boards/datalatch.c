@@ -546,12 +546,22 @@ static void BMCA65ASSync(void) {
 	setchr8(0);
 	if (latche & 0x80)
 		setmirror(MI_0 + (((latche >> 5) & 1)));
-	else
-		setmirror(((latche >> 3) & 1) ^ 1);
+	else {
+		if (A65ASsubmapper == 1)
+			setmirror(latche &0x08? MI_H: MI_V);
+		else
+			setmirror(latche &0x20? MI_H: MI_V);
+	}
+}
+
+void BMCA65AS_Reset() {
+	latche =0;
+	BMCA65ASSync();
 }
 
 void BMCA65AS_Init(CartInfo *info) {
 	A65ASsubmapper = info->submapper;
+	info->Reset = BMCA65AS_Reset;
 	Latch_Init(info, BMCA65ASSync, 0, 0x8000, 0xFFFF, 0, 0);
 }
 
