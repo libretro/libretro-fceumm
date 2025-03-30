@@ -24,12 +24,13 @@
 
 #include "mapinc.h"
 
-static uint8 latch, reg[2];
+static uint8 latch, reg[2], solderPad;
 
 static SFORMAT StateRegs[] =
 {
 	{ &latch, 1, "LATC" },
 	{ reg, 2, "REGS" },
+	{ &solderPad, 1, "DIPS" },
 	{ 0 }
 };
 
@@ -49,6 +50,10 @@ static void Sync(void) {
 	setmirror(!(reg[0] &8));
 }
 
+static DECLFR(ReadPad) {
+	return solderPad;
+}
+
 static DECLFW(WriteReg) {
 	reg[A &1] =V;
 	Sync();
@@ -61,14 +66,17 @@ static DECLFW(WriteLatch) {
 
 static void BMC60311CPower(void) {
 	latch =reg[0] =reg[1] =0;
+	solderPad =0;
 	Sync();
+	SetReadHandler(0x6000, 0x7FFF, ReadPad);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x6000, 0x6001, WriteReg);
+	SetWriteHandler(0x6000, 0x7FFF, WriteReg);
 	SetWriteHandler(0x8000, 0xFFFF, WriteLatch);
 }
 
 static void BMC60311CReset(void) {
 	latch =reg[0] =reg[1] =0;
+	solderPad++;
 	Sync();
 }
 
