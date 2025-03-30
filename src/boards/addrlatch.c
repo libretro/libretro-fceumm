@@ -548,18 +548,19 @@ void Mapper242_Init(CartInfo *info) {
 static void M288Sync(void) {
 	setchr8(latche);
 	setprg32(0x8000, latche >> 3);
+	setmirror(latche &0x20? MI_H: MI_V);
 }
 
 static DECLFR(M288Read) {
-	uint8 ret = CartBR(A);
-	if (latche & 0x20)
-		ret |= (dipswitch << 2);
-	return ret;
+	if (latche & 0x120 && ~latche & 0x10)
+		A |= dipswitch;
+	return CartBR(A);
 }
 
 static void M288Reset(void) {
 	dipswitch++;
-	dipswitch &= 3;
+	dipswitch &= 15;
+	latche =0;
 	M288Sync();
 }
 
