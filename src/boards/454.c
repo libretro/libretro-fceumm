@@ -19,8 +19,6 @@
  *
  */
 
-/* NOTE: Only loading Contra after a reset? RAM init also affects powerup */
-
 #include "mapinc.h"
 #include "latch.h"
 
@@ -28,18 +26,13 @@ static void Sync(void) {
 	uint8 prg = ((latch.addr >> 3) & 0x20) | ((latch.addr >> 2) & 0x1F);
 	uint8 cpuA14 = latch.addr & 0x01;
 	uint8 nrom = (latch.addr >> 7) & 0x01;
-	uint8 unrom = (latch.addr >> 9) & 0x01;
+	uint8 unrom = (latch.addr >> 8) & 0x01;
 
 	setprg16(0x8000, ((prg & ~cpuA14) & ~(0x07 * unrom)) | (latch.data * unrom));
-	setprg16(0xC000, ((prg | cpuA14) & ~(0x07 * !nrom * !unrom)) | (0x07 * !nrom * unrom));
+	setprg16(0xC000, ((prg | cpuA14) & ~(0x1F * !nrom * !unrom)) | (0x07 * unrom));
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, latch.addr &0x80? 0: 1);
 	setchr8(0);
 	setmirror(((latch.addr >> 1) & 0x01) ^ 0x01);
-	if (nrom) {
-		/* CHR-RAM write protect hack, needed for some multicarts */
-		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
-	} else {
-		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
-	}
 }
 
 static DECLFW(M454Write) {
@@ -57,7 +50,14 @@ static void M454Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, M454Write);
 }
 
+static void M454Reset(void) {
+	latch.addr = 0;
+	latch.data = 0;
+	Sync();
+}
+
 void Mapper454_Init(CartInfo *info) {
 	Latch_Init(info, Sync, NULL, 0, 0);
 	info->Power = M454Power;
+	info->Reset = M454Reset;
 }
