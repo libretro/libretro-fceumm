@@ -603,6 +603,7 @@ static void M543Reset(void) {
 	shift = 0;
 	outerBank = 0;
 	MMC1CMReset();
+	RAM[0] =0; /* BUG in cartridge's menu code: expects RAM location $000 to be <FA */
 }
 
 static void M543Power(void) {
@@ -611,6 +612,7 @@ static void M543Power(void) {
 	outerBank = 0;
 	GenMMC1Power();
 	SetWriteHandler(0x5000, 0x5FFF, M543Write);
+	RAM[0] =0; /* BUG in cartridge's menu code: expects RAM location $000 to be <FA */
 }
 
 void Mapper543_Init(CartInfo *info) {
