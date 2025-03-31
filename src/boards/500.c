@@ -51,8 +51,14 @@ static void M500Power() {
     SetWriteHandler(0x6000, 0x6FFF, M500WriteReg);
 }
 
+static void M500Reset() {
+    reg[0] = reg[1] = 0;
+    Sync();
+}
+
 void Mapper500_Init(CartInfo *info) {
 	Latch_Init(info, Sync, NULL, 0, 0);
 	info->Power = M500Power;
+	info->Reset = M500Reset;
     AddExState(StateRegs, ~0, 0, NULL);
 }
