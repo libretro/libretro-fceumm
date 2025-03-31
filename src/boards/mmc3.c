@@ -686,7 +686,7 @@ static void M52S14CW(uint32 A, uint8 V) {
 	if (CHRRAM && EXPREGS[0] &0x20)
 		setchr1r(0x10, A, bank | (V & mask));
 	else
-		setchr1(A, bank | (V & mask));
+		setchr1(A, bank &~mask | (V & mask));
 }
 
 static DECLFW(M52Write) {
