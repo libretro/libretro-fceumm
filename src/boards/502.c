@@ -39,11 +39,10 @@ static void Sync(void) {
 		setprg16(0xC000, (reg[0] << 3) + mask);
 	}
 	setchr8(0);
-    if (reg[1] & 2) {
-        setmirror(MI_0 + (latch.data >> 4) & 1);
-    } else {
-	    setmirror(reg[1] & 1);
-    }
+	if (reg[1] &2)
+		setmirror(latch.data &0x10? MI_1: MI_0);
+	else
+		setmirror(reg[1] &0x01? MI_V: MI_H);
 }
 
 static DECLFW(M502WriteReg) {
@@ -60,8 +59,14 @@ static void M502Power() {
     SetWriteHandler(0x6000, 0x6FFF, M502WriteReg);
 }
 
+static void M502Reset() {
+    reg[0] = reg[1] = 0;
+    Sync();
+}
+
 void Mapper502_Init(CartInfo *info) {
 	Latch_Init(info, Sync, NULL, 0, 0);
 	info->Power = M502Power;
+	info->Reset = M502Reset;
     AddExState(StateRegs, ~0, 0, NULL);
 }
