@@ -628,3 +628,13 @@ void Mapper415_Init(CartInfo *info) {
 	Latch_Init(info, Mapper415_Sync, 0, 0x8000, 0xFFFF, 0, 0);
 	info->Power = M415Power;
 }
+
+static void Mapper481_Sync(void) {
+	setprg16(0x8000, latche >>4 &~7 | latche &7);
+	setprg16(0xc000, latche >>4     |         7);
+	setchr8(0);
+}
+
+void Mapper481_Init(CartInfo *info) {
+	Latch_Init(info, Mapper481_Sync, 0, 0x8000, 0xFFFF, 1, 0);
+}
