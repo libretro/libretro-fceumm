@@ -28,9 +28,13 @@
 #include "mapinc.h"
 
 static uint8 submapper;
+static void (*Sync)(void);
+static uint8 *CHRRAM;
+static uint32 CHRRAMSIZE;
 
 /* General Purpose Registers */
-static uint8 cpu410x[16], ppu201x[16], apu40xx[64];
+static uint8 cpu410x[64], ppu201x[16], apu40xx[64], reg4242, dipswitch;
+static const uint8 *cpuMangle, *ppuMangle, *mmc3Mangle;
 
 /* IRQ Registers */
 static uint8 IRQCount, IRQa, IRQReload;
@@ -49,7 +53,7 @@ static readfunc defapuread[64];
 
 static SFORMAT StateRegs[] =
 {
-	{ cpu410x, 16, "REGC" },
+	{ cpu410x, 64, "REGC" },
 	{ ppu201x, 16, "REGS" },
 	{ apu40xx, 64, "REGA" },
 	{ &IRQReload, 1, "IRQR" },
@@ -61,39 +65,31 @@ static SFORMAT StateRegs[] =
 	{ &pcm_size, 2, "PCMS" },
 	{ &pcm_latch, 2, "PCML" },
 	{ &pcm_clock, 2, "PCMC" },
+	{ &reg4242, 1, "4242" },
+	{ &dipswitch, 1, "DIPS" },
 	{ 0 }
 };
 
 static uint8 *WRAM;
 
-static void PSync(void) {
+static void PSync(int AND, int OR) {
 	uint8 bankmode = cpu410x[0xb] & 7;
 	uint8 mask = (bankmode == 0x7) ? (0xff) : (0x3f >> bankmode);
 	uint32 block = ((cpu410x[0x0] & 0xf0) << 4) + (cpu410x[0xa] & (~mask));
 	uint32 pswap = (mmc3cmd & 0x40) << 8;
 
-#if 0
-	uint8 bank0  = (cpu410x[0xb] & 0x40)?(~1):(cpu410x[0x7]);
-	uint8 bank1  = cpu410x[0x8];
-	uint8 bank2  = (cpu410x[0xb] & 0x40)?(cpu410x[0x9]):(~1);
-	uint8 bank3  = ~0;
-#endif
 	uint8 bank0 = cpu410x[0x7];
 	uint8 bank1 = cpu410x[0x8];
 	uint8 bank2 = (cpu410x[0xb] & 0x40) ? (cpu410x[0x9]) : (~1);
 	uint8 bank3 = ~0;
-
-/*	FCEU_printf(" PRG: %04x [%02x]",0x8000^pswap,block | (bank0 & mask)); */
-	setprg8(0x8000 ^ pswap, block | (bank0 & mask));
-/*	FCEU_printf(" %04x [%02x]",0xa000^pswap,block | (bank1 & mask)); */
-	setprg8(0xa000, block | (bank1 & mask));
-/*	FCEU_printf(" %04x [%02x]",0xc000^pswap,block | (bank2 & mask)); */
-	setprg8(0xc000 ^ pswap, block | (bank2 & mask));
-/*	FCEU_printf(" %04x [%02x]\n",0xe000^pswap,block | (bank3 & mask)); */
-	setprg8(0xe000, block | (bank3 & mask));
+	
+	setprg8(0x8000 ^ pswap,(block | (bank0 & mask)) &AND | OR);
+	setprg8(0xa000,        (block | (bank1 & mask)) &AND | OR);
+	setprg8(0xc000 ^ pswap,(block | (bank2 & mask)) &AND | OR);
+	setprg8(0xe000,        (block | (bank3 & mask)) &AND | OR);
 }
 
-static void CSync(void) {
+static void CSync(int AND, int OR) {
 	static const uint8 midx[8] = { 0, 1, 2, 0, 3, 4, 5, 0 };
 	uint8 mask = 0xff >> midx[ppu201x[0xa] & 7];
 	uint32 block = ((cpu410x[0x0] & 0x0f) << 11) + ((ppu201x[0x8] & 0x70) << 4) + (ppu201x[0xa] & (~mask));
@@ -108,24 +104,25 @@ static void CSync(void) {
 	uint8 bank6 = ppu201x[0x4];
 	uint8 bank7 = ppu201x[0x5];
 
-	setchr1(0x0000 ^ cswap, block | (bank0 & mask));
-	setchr1(0x0400 ^ cswap, block | (bank1 & mask));
-	setchr1(0x0800 ^ cswap, block | (bank2 & mask));
-	setchr1(0x0c00 ^ cswap, block | (bank3 & mask));
-	setchr1(0x1000 ^ cswap, block | (bank4 & mask));
-	setchr1(0x1400 ^ cswap, block | (bank5 & mask));
-	setchr1(0x1800 ^ cswap, block | (bank6 & mask));
-	setchr1(0x1c00 ^ cswap, block | (bank7 & mask));
+	setchr1(0x0000 ^ cswap,(block | (bank0 & mask)) &AND | OR);
+	setchr1(0x0400 ^ cswap,(block | (bank1 & mask)) &AND | OR);
+	setchr1(0x0800 ^ cswap,(block | (bank2 & mask)) &AND | OR);
+	setchr1(0x0c00 ^ cswap,(block | (bank3 & mask)) &AND | OR);
+	setchr1(0x1000 ^ cswap,(block | (bank4 & mask)) &AND | OR);
+	setchr1(0x1400 ^ cswap,(block | (bank5 & mask)) &AND | OR);
+	setchr1(0x1800 ^ cswap,(block | (bank6 & mask)) &AND | OR);
+	setchr1(0x1c00 ^ cswap,(block | (bank7 & mask)) &AND | OR);
 
 	setmirror((mirror ^ 1) & 1);
 }
 
-static void Sync(void) {
-	PSync();
-	CSync();
+static void Sync256(void) {
+	PSync(0x0FFF, 0x000);
+	CSync(0x7FFF, 0x000);
+	encryptOpcodes =submapper ==14 && cpu410x[0x1C] &0x40? 67: 0;
 }
 
-static const uint8 cpuMangle[16][4] = {
+static const uint8 cpuMangles[16][4] = {
 	{ 0, 1, 2, 3 }, 	/* Submapper 0: Normal                                  */
 	{ 0, 1, 2, 3 }, 	/* Submapper 1: Waixing VT03                            */
 	{ 1, 0, 2, 3 }, 	/* Submapper 2: Trump Grand                             */
@@ -145,20 +142,25 @@ static const uint8 cpuMangle[16][4] = {
 };
 static DECLFW(UNLOneBusWriteCPU410X) {
 /*	FCEU_printf("CPU %04x:%04x\n",A,V); */
-	A &=0xF;
+	A &=0x3F;
 	switch (A) {
 	case 0x1: IRQLatch = V & 0xfe; break;	/* не по даташиту */
 	case 0x2: IRQReload = 1; break;
 	case 0x3: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; break;
 	case 0x4: IRQa = 1; break;
 	default:
-		if (A >=0x7 && A <=0xA) A =0x7 +cpuMangle[submapper][A -0x7];
+		if (A >=0x7 && A <=0xA) A =0x7 +cpuMangle[A -0x7];
 		cpu410x[A] = V;
 		Sync();
 	}
 }
 
-static const uint8 ppuMangle[16][6] = {
+static DECLFW(UNLOneBusWriteCPU4242) {
+	reg4242 =V;
+	Sync();
+}
+
+static const uint8 ppuMangles[16][6] = {
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 0: Normal                                  */
 	{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 1: Waixing VT03                            */
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 2: Trump Grand                             */
@@ -179,12 +181,12 @@ static const uint8 ppuMangle[16][6] = {
 static DECLFW(UNLOneBusWritePPU201X) {
 /*	FCEU_printf("PPU %04x:%04x\n",A,V); */
 	A &=0x0F;
-	if (A >=2 && A <=7) A =2 +ppuMangle[submapper][A -2];
+	if (A >=2 && A <=7) A =2 +ppuMangle[A -2];
 	ppu201x[A] = V;
 	Sync();
 }
 
-static const uint8 mmc3Mangle[16][8] = {
+static const uint8 mmc3Mangles[16][8] = {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 0: Normal                                 */
 	{ 5, 4, 3, 2, 1, 0, 6, 7 }, 	/* Submapper 1: Waixing VT03                           */
 	{ 0, 1, 2, 3, 4, 5, 7, 6 }, 	/* Submapper 2: Trump Grand                            */
@@ -204,27 +206,28 @@ static const uint8 mmc3Mangle[16][8] = {
 };
 static DECLFW(UNLOneBusWriteMMC3) {
 /*	FCEU_printf("MMC %04x:%04x\n",A,V); */
+	if (~cpu410x[0x0B] &0x08) /* FWEN bit must be 0 */
 	switch (A & 0xe001) {
 	case 0x8000: 
-		V =V &0xF8 | mmc3Mangle[submapper][V &0x07];
+		V =V &0xF8 | mmc3Mangle[V &0x07];
 		mmc3cmd = (mmc3cmd & 0x38) | (V & 0xc7);
 		Sync();
 		break;
 	case 0x8001:
 	{
 		switch (mmc3cmd & 7) {
-		case 0: ppu201x[0x6] = V; CSync(); break;
-		case 1: ppu201x[0x7] = V; CSync(); break;
-		case 2: ppu201x[0x2] = V; CSync(); break;
-		case 3: ppu201x[0x3] = V; CSync(); break;
-		case 4: ppu201x[0x4] = V; CSync(); break;
-		case 5: ppu201x[0x5] = V; CSync(); break;
-		case 6: cpu410x[0x7] = V; PSync(); break;
-		case 7: cpu410x[0x8] = V; PSync(); break;
+		case 0: ppu201x[0x6] = V; Sync(); break;
+		case 1: ppu201x[0x7] = V; Sync(); break;
+		case 2: ppu201x[0x2] = V; Sync(); break;
+		case 3: ppu201x[0x3] = V; Sync(); break;
+		case 4: ppu201x[0x4] = V; Sync(); break;
+		case 5: ppu201x[0x5] = V; Sync(); break;
+		case 6: cpu410x[0x7] = V; Sync(); break;
+		case 7: cpu410x[0x8] = V; Sync(); break;
 		}
 		break;
 	}
-	case 0xa000: mirror = V; CSync(); break;
+	case 0xa000: mirror = V; Sync(); break;
 	case 0xc000: IRQLatch = V & 0xfe; break;
 	case 0xc001: IRQReload = 1; break;
 	case 0xe000: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; break;
@@ -288,6 +291,10 @@ static DECLFR(UNLOneBusReadAPU40XX) {
 	return result;
 }
 
+static DECLFR(readDIP) {
+	return dipswitch;
+}
+
 static void UNLOneBusCpuHook(int a) {
 	if (pcm_enable) {
 		pcm_latch -= a;
@@ -316,6 +323,7 @@ static void UNLOneBusPower(void) {
 	memset(cpu410x, 0x00, sizeof(cpu410x));
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
+	cpu410x[0x1C] =submapper ==14? 0x40: 0x00;
 
 	SetupCartCHRMapping(0, PRGptr[0], PRGsize[0], 0);
 
@@ -326,14 +334,17 @@ static void UNLOneBusPower(void) {
 	SetReadHandler(0x4000, 0x403f, UNLOneBusReadAPU40XX);
 	SetWriteHandler(0x4000, 0x403f, UNLOneBusWriteAPU40XX);
 
+	SetReadHandler(0x412C, 0x412C, readDIP);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x2010, 0x201f, UNLOneBusWritePPU201X);
-	SetWriteHandler(0x4100, 0x410f, UNLOneBusWriteCPU410X);
+	SetWriteHandler(0x4100, 0x413f, UNLOneBusWriteCPU410X);
+	SetWriteHandler(0x4242, 0x4242, UNLOneBusWriteCPU4242);
 	SetWriteHandler(0x8000, 0xffff, UNLOneBusWriteMMC3);
 
 	FCEU_CheatAddRAM(8, 0x6000, WRAM);
 	setprg8r(0x10, 0x6000, 0);
+	dipswitch =0;
 	Sync();
 }
 
@@ -343,6 +354,9 @@ static void UNLOneBusReset(void) {
 	memset(cpu410x, 0x00, sizeof(cpu410x));
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
+	cpu410x[0x1C] =submapper ==14? 0x40: 0x00;
+	reg4242 =0;
+	dipswitch ^=8;
 
 	Sync();
 }
@@ -361,11 +375,16 @@ void UNLOneBus_Init(CartInfo *info) {
 	info->Power = UNLOneBusPower;
 	info->Reset = UNLOneBusReset;
 	info->Close = UNLOneBus_Close;
+	Sync =Sync256;
 
 	if (info->iNES2)
 		submapper =info->submapper;
 	else
 		submapper =(((*(uint32*)&(info->MD5)) == 0x305fcdc3) ||	((*(uint32*)&(info->MD5)) == 0x6abfce8e))? 2: 0; /* PowerJoy Supermax Carts */
+
+	cpuMangle =cpuMangles[submapper];
+	ppuMangle =ppuMangles[submapper];
+	mmc3Mangle =mmc3Mangles[submapper];
 
 	GameHBIRQHook = UNLOneBusIRQHook;
 	MapIRQHook = UNLOneBusCpuHook;
@@ -376,3 +395,38 @@ void UNLOneBus_Init(CartInfo *info) {
 	SetupCartPRGMapping(0x10, WRAM, 8192, 1);
 }
 
+static void Sync270(void) {
+	int OR =0;
+	switch(submapper) {
+		case 1:  OR = cpu410x[0x2C] &0x02? 0x0800: 0x0000;
+		         break;
+		case 2:  OR =(cpu410x[0x2C] &0x02? 0x0800: 0x0000) |
+		             (cpu410x[0x2C] &0x01? 0x1000: 0x0000);
+			 break;
+		case 3:  OR = cpu410x[0x2C] &0x04? 0x0800: 0x0000;
+		         break;
+		default: OR =(cpu410x[0x2C] &0x06? 0x0800: 0x0000) |
+		             (cpu410x[0x2C] &0x01? 0x1000: 0x0000);
+			 break;
+	}
+	PSync(0x07FF, OR);
+	if (reg4242 &1) {
+		setchr8r(0x10, 0);
+		setmirror((mirror ^ 1) & 1);
+	} else
+		CSync(0x3FFF, OR <<3);
+}
+
+void Mapper270_Init(CartInfo *info) {
+	UNLOneBus_Init(info);
+	cpuMangle =cpuMangles[0];
+	ppuMangle =ppuMangles[0];
+	mmc3Mangle =mmc3Mangles[0];
+	
+	CHRRAMSIZE = 8192;
+	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
+	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
+	
+	Sync =Sync270;
+}
