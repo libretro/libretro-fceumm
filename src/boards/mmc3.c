@@ -466,6 +466,14 @@ static void M44Power(void) {
 	EXPREGS[0] = 0;
 	GenMMC3Power();
 	SetWriteHandler(0xA000, 0xBFFF, M44Write);
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
+}
+
+static void M44Reset(void) {
+	EXPREGS[0] =0;
+	FixMMC3PRG(0);
+	FixMMC3CHR(0);
 }
 
 void Mapper44_Init(CartInfo *info) {
@@ -473,6 +481,7 @@ void Mapper44_Init(CartInfo *info) {
 	cwrap = M44CW;
 	pwrap = M44PW;
 	info->Power = M44Power;
+	info->Reset = M44Reset;
 	AddExState(EXPREGS, 1, 0, "EXPR");
 }
 
