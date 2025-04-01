@@ -26,6 +26,7 @@ static uint16 addrreg0, addrreg1;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
 static void (*WSync)(void);
+static uint8 submapper;
 
 static DECLFW(LatchWrite) {
 /*	FCEU_printf("bs %04x %02x\n",A,V); */
@@ -587,10 +588,29 @@ static void BMCK3046Sync(void) {
 	setprg16(0x8000, latche);
 	setprg16(0xC000, latche | 0x07);
 	setchr8(0);
+	setmirror(latche &(submapper ==2? 0x08: 0x20)? MI_H: MI_V);
+}
+
+static DECLFW(BMCK3046_Write1) { /* Special bus conflict: 300 Ohm resistor placed so that for D3, ROM always wins. */
+	latche = CartBR(A) &0x08 | V &CartBR(A) &~0x08;
+	WSync();
+}
+
+static void BMCK3046_Power(void) {
+	LatchPower();
+	if (submapper ==1) SetWriteHandler(0x8000, 0xFFFF, BMCK3046_Write1);
+}
+
+static void BMCK3046_Reset(void) {
+	latche = 0;
+	WSync();
 }
 
 void BMCK3046_Init(CartInfo *info) {
+	submapper =info->submapper;
 	Latch_Init(info, BMCK3046Sync, 0, 0x8000, 0xFFFF, 0, 0);
+	info->Reset = BMCK3046_Reset;
+	info->Power = BMCK3046_Power;
 }
 
 /* Mapper 429: LIKO BBG-235-8-1B/Milowork FCFC1 */
