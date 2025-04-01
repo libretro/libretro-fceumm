@@ -26,6 +26,8 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
+static uint8 submapper;
+
 static void BMCK3006CW(uint32 A, uint8 V) {
 	setchr1(A, (V & 0x7F) | (EXPREGS[0] & 0x18) << 4);
 }
@@ -34,7 +36,7 @@ static void BMCK3006PW(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 0x20) {				/* MMC3 mode */
 		setprg8(A, (V & 0x0F) | (EXPREGS[0] & 0x18) << 1);
 	} else {
-		if ((EXPREGS[0] & 0x07) == 0x06) {	/* NROM-256 */
+		if ((EXPREGS[0] & 0x07) == 0x06 && submapper ==0 || EXPREGS[0] &4 && submapper ==1) {	/* NROM-256 */
 			setprg32(0x8000, (EXPREGS[0] >> 1) & 0x0F);
 		} else {							/* NROM-128 */
 			setprg16(0x8000, EXPREGS[0] & 0x1F);
@@ -61,6 +63,7 @@ static void BMCK3006Power(void) {
 }
 
 void BMCK3006_Init(CartInfo *info) {
+	submapper =info->submapper;
 	GenMMC3_Init(info, 512, 512, 8, 0);
 	pwrap = BMCK3006PW;
 	cwrap = BMCK3006CW;
