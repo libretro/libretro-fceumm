@@ -392,6 +392,8 @@ void PowerNES(void)
 	if (!GameInfo)
       return;
 
+	encryptOpcodes =0;
+
 	FCEU_CheatResetRAM();
 	FCEU_CheatAddRAM(2, 0, RAM);
 

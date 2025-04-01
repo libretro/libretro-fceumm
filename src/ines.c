@@ -693,6 +693,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "8-in-1 JY-119",            267, Mapper267_Init         )
 	INES_BOARD( "COOLBOY/MINDKIDS",         268, Mapper268_Init         ) /* Submapper distinguishes between COOLBOY and MINDKIDS */
 	INES_BOARD( "Games Xplosion 121-in-1",  269, Mapper269_Init         )
+	INES_BOARD( "OneBus+412C Bankswitch",   270, Mapper270_Init         )
 	INES_BOARD( "MGC-026",                  271, Mapper271_Init         )
 	INES_BOARD( "Akumajō Special: Boku Dracula-kun", 272, Mapper272_Init         )
 	INES_BOARD( "80013-B",                  274, BMC80013B_Init         )
