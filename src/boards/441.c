@@ -42,9 +42,12 @@ static void Mapper441_CHRWrap(uint32 A, uint8 V) {
 }
 
 static DECLFW(Mapper441_Write) {
-	if (~EXPREGS[0] &0x80) EXPREGS[0] =V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+	if (~EXPREGS[0] &0x80) {
+		EXPREGS[0] =V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	}
+	CartBW(A, V);
 }
 
 static void Mapper441_Reset(void) {
@@ -59,7 +62,7 @@ static void Mapper441_Power(void) {
 }
 
 void Mapper441_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
+	GenMMC3_Init(info, 256, 256, 8, 0);
 	cwrap = Mapper441_CHRWrap;
 	pwrap = Mapper441_PRGWrap;
 	info->Power = Mapper441_Power;
