@@ -45,6 +45,7 @@ static uint8	mul[2];
 static uint8	adder;
 static uint8	test;
 static uint8    dipSwitch;
+static uint8	submapper;
 
 static uint8 cpuWriteHandlersSet;
 static writefunc cpuWriteHandlers[0x10000]; /* Actual write handlers for CPU write trapping as a method fo IRQ clocking */
@@ -689,8 +690,8 @@ void Mapper421_Init(CartInfo *info)
 static uint8 HSK007Reg[4];
 void sync394 (void) /* Called when J.Y. ASIC is active */
 {
-	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x020;
-	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100;
+	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x060;
+	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<6 &0x100 | HSK007Reg[1] <<8 &0x200;
 	syncPRG(0x1F, prgOR);
 	syncCHR(0xFF, chrOR);
 	syncNT (0xFF, chrOR);	
@@ -698,7 +699,7 @@ void sync394 (void) /* Called when J.Y. ASIC is active */
 static void Mapper394_PWrap(uint32 A, uint8 V)
 {
 	int prgAND =HSK007Reg[3] &0x10? 0x1F: 0x0F;
-	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x020;
+	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x060;
 	if (HSK007Reg[1] &0x08)
 		setprg8(A, V &prgAND | prgOR &~prgAND);
 	else
@@ -709,7 +710,7 @@ static void Mapper394_PWrap(uint32 A, uint8 V)
 static void Mapper394_CWrap(uint32 A, uint8 V)
 {
 	int chrAND =HSK007Reg[3] &0x80? 0xFF: 0x7F;
-	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100;
+	int chrOR  =submapper ==1? (HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x200 | HSK007Reg[1] <<6 &0x100): (HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100);	
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 static DECLFW(Mapper394_Write)
@@ -775,13 +776,15 @@ static void Mapper394_power(void)
 	HSK007Reg[0] =0x00;
 	HSK007Reg[1] =0x0F;
 	HSK007Reg[2] =0x00;
-	HSK007Reg[3] =0x10;
+	HSK007Reg[3] =0x90;
+	irqEnabled =0;
 	GenMMC3Power();
 	SetWriteHandler(0x5000, 0x5FFF, Mapper394_Write);
 }
 
 void Mapper394_Init(CartInfo *info)
 {
+	submapper =info->submapper;
 	allowExtendedMirroring =1;
 	sync =sync394;
 	JYASIC_init(info);
