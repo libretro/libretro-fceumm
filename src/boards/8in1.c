@@ -58,10 +58,17 @@ static void BMC8IN1Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, BMC8IN1Write);
 }
 
+static void BMC8IN1Reset(void) {
+	EXPREGS[0] = 0;
+	FixMMC3PRG(0);
+	FixMMC3CHR(0);
+}
+
 void BMC8IN1_Init(CartInfo *info) {
 	GenMMC3_Init(info, 128, 128, 0, 0);
 	cwrap = BMC8IN1CW;
 	pwrap = BMC8IN1PW;
 	info->Power = BMC8IN1Power;
+	info->Reset = BMC8IN1Reset;
 	AddExState(EXPREGS, 1, 0, "EXPR");
 }

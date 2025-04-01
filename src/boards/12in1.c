@@ -61,12 +61,18 @@ static void BMC12IN1Power(void) {
 	SetWriteHandler(0x8000, 0xFFFF, BMC12IN1Write);
 }
 
+static void BMC12IN1Reset(void) {
+	prgchr[0] = prgchr[1] = ctrl = 0;
+	Sync();
+}
+
 static void StateRestore(int version) {
 	Sync();
 }
 
 void BMC12IN1_Init(CartInfo *info) {
 	info->Power = BMC12IN1Power;
+	info->Reset = BMC12IN1Reset;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

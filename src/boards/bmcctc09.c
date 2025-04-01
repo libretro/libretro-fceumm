@@ -57,10 +57,16 @@ static DECLFW(WriteCHR) {
 }
 
 static void BMCCTC09Power(void) {
+	regs[0] =regs[1] =0;
 	Sync();
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x8000, 0xBFFF, WriteCHR);
 	SetWriteHandler(0xC000, 0xFFFF, WritePRG);
+}
+
+static void BMCCTC09Reset(void) {
+	regs[0] =regs[1] =0;
+	Sync();
 }
 
 static void StateRestore(int version) {
@@ -69,6 +75,7 @@ static void StateRestore(int version) {
 
 void BMCCTC09_Init(CartInfo *info) {
 	info->Power = BMCCTC09Power;
+	info->Reset = BMCCTC09Reset;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }

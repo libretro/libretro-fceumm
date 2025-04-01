@@ -32,6 +32,12 @@ static void Sync(void) {
     setmirror((latch.addr & 1) ^ 1);
 }
 
+static void M174Reset(void) {
+	latch.addr =0;
+	Sync();
+}
+
 void Mapper174_Init(CartInfo *info) {
 	Latch_Init(info, Sync, NULL, 0, 0);
+	info->Reset = M174Reset;
 }
