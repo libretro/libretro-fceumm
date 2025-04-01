@@ -61,7 +61,7 @@ static DECLFW(M237Write) {
 
 static DECLFR(M237Read) {
 	if (!(reg[0] & 0x02) && (reg[0] & 0x01))
-		return dipswitch;
+		return dipswitch &3;
 	return CartBR(A);
 }
 
@@ -73,6 +73,7 @@ static void M237Power(void) {
 
 static void M237Reset(void) {
 	reg[0] = reg[1] = 0;
+	dipswitch++;
 	Sync();
 }
 
@@ -88,8 +89,6 @@ void Mapper237_Init(CartInfo *info) {
 	 * 3: 10,000,000-in-1 (lol)
 	 */
 	dipswitch = 0;
-	if ((info->CRC32) == 0x272709b9) /* Teletubbies Y2K (420-in-1) */
-		dipswitch = 2;
 	info->Power = M237Power;
 	info->Reset = M237Reset;
 	GameStateRestore = StateRestore;
