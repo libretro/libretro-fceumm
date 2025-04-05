@@ -649,6 +649,46 @@ void Mapper415_Init(CartInfo *info) {
 	info->Power = M415Power;
 }
 
+/*------------------ Mapper 462 ---------------------------*/
+static uint8 M462OuterBank;
+
+static void Mapper462_Sync(void) {
+	if (M462OuterBank &0x40) {
+		setprg32(0x8000, latche &7 | M462OuterBank >>3 &~7);
+		setmirror(latche &0x10? MI_1: MI_0);
+	} else {
+		setprg16(0x8000, latche &7 |  M462OuterBank >>2 &~7);
+		setprg16(0xC000,         7 |  M462OuterBank >>2 &~7);
+		setmirror(M462OuterBank &0x10? MI_V: MI_H);
+	}	
+	setchr8(0);
+}
+
+static DECLFW(M462_WriteExtra) {
+	M462OuterBank =V;
+	Mapper462_Sync();
+}
+
+static void M462Power(void) {
+	M462OuterBank =0;
+	LatchPower();
+	SetWriteHandler(0xA000, 0xBFFF, M462_WriteExtra);
+}
+
+static void M462Reset(void) {
+	M462OuterBank =0;
+	Mapper462_Sync();
+}
+
+void Mapper462_Init(CartInfo *info) {
+	Latch_Init(info, Mapper462_Sync, 0, 0x8000, 0xFFFF, 0, 0);
+	info->Power = M462Power;
+	info->Reset = M462Reset;
+	AddExState(&M462OuterBank, 1, 0, "EXP0");
+}
+
+/*------------------ Mapper 481 ---------------------------*/
+
 static void Mapper481_Sync(void) {
 	setprg16(0x8000, latche >>4 &~7 | latche &7);
 	setprg16(0xc000, latche >>4     |         7);
