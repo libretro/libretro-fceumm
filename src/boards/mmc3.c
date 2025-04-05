@@ -21,7 +21,7 @@
  */
 
 /*  Code for emulating iNES mappers 4,12,44,45,47,49,52,74,114,115,116,118,
- 119,165,205,245,249,250,254,361,366,367,555
+ 119,165,205,245,249,250,254,361,366,367,373,555
 */
 
 #include "mapinc.h"
@@ -517,6 +517,18 @@ static void M45PW(uint32 A, uint8 V) {
 		SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
+static void M373PW(uint32 A, uint8 V) {
+	int prgAND =~EXPREGS[3] &0x3F;
+	int prgOR  =EXPREGS[1] | EXPREGS[2] <<2 &0x300;
+	if (EXPREGS[2] &0x20) {
+		if (A <0xC000) {
+			setprg8(A, V &prgAND | prgOR &~prgAND);
+			setprg8(A | 0x4000, V &prgAND | prgOR &~prgAND | 0x02);
+		}
+	} else
+		setprg8(A, V &prgAND | prgOR &~prgAND);
+}
+
 static DECLFW(M45Write) {
 	if (EXPREGS[3] & 0x40) {
 		WRAM[A - 0x6000] = V;
@@ -556,6 +568,15 @@ void Mapper45_Init(CartInfo *info) {
 	GenMMC3_Init(info, 512, 256, 8, info->battery);
 	cwrap = M45CW;
 	pwrap = M45PW;
+	info->Reset = M45Reset;
+	info->Power = M45Power;
+	AddExState(EXPREGS, 5, 0, "EXPR");
+}
+
+void Mapper373_Init(CartInfo *info) {
+	GenMMC3_Init(info, 512, 256, 8, info->battery);
+	cwrap = M45CW;
+	pwrap = M373PW;
 	info->Reset = M45Reset;
 	info->Power = M45Power;
 	AddExState(EXPREGS, 5, 0, "EXPR");
