@@ -21,7 +21,7 @@
  */
 
 /*  Code for emulating iNES mappers 4,12,44,45,47,49,52,74,114,115,116,118,
- 119,165,205,245,249,250,254,555
+ 119,165,205,245,249,250,254,361,366,367,555
 */
 
 #include "mapinc.h"
@@ -1220,57 +1220,64 @@ void Mapper198_Init(CartInfo *info) {
 	info->Power = M198Power;
 }
 
-/* ---------------------------- Mapper 205 ------------------------------ */
+/* ---------------------------- Mapper 205,367 ------------------------------ */
 /* UNIF boardname BMC-JC-016-2
 https://wiki.nesdev.com/w/index.php/INES_Mapper_205 */
 
-static void M205PW(uint32 A, uint8 V) {
+static void M205_367PW(uint32 A, uint8 V) {
 	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x0F : 0x1F);
 	setprg8(A, EXPREGS[0] << 4 | bank);
 }
 
-static void M205CW(uint32 A, uint8 V) {
+static void M205_367CW(uint32 A, uint8 V) {
 	uint8 bank = V & ((EXPREGS[0] & 0x02) ? 0x7F : 0xFF);
 	setchr1(A, (EXPREGS[0] << 7) | bank);
 }
 
-static DECLFW(M205Write0) {
-	if (EXPREGS[1] == 0) {
-		EXPREGS[0] = V & 0x03;
-		EXPREGS[1] = A & 0x80;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	} else
-		CartBW(A, V);
+static DECLFW(M205Write) {
+	EXPREGS[0] = V;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
 }
 
-static DECLFW(M205Write1) {
-	if (EXPREGS[1] == 0) {
-		EXPREGS[0] = V & 0xF0;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	} else
-		CartBW(A, V);
+static DECLFW(M367Write) {
+	EXPREGS[0] = A &0xFF;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
 }
 
-static void M205Reset(void) {
-	EXPREGS[0] = EXPREGS[1] = 0;
+static void M205_367Reset(void) {
+	EXPREGS[0] = 0;
 	MMC3RegReset();
 }
 
 static void M205Power(void) {
-	EXPREGS[0] = EXPREGS[1] = 0;
+	EXPREGS[0] = 0;
 	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x6fff, M205Write0);
-	SetWriteHandler(0x7000, 0x7fff, M205Write1);	/* OK-411 boards, the same logic, but data latched, 2-in-1 frankenstein */
+	SetWriteHandler(0x6000, 0x7fff, M205Write);
+}
+
+static void M367Power(void) {
+	EXPREGS[0] = 0;
+	GenMMC3Power();
+	SetWriteHandler(0x6000, 0x7fff, M367Write);
 }
 
 void Mapper205_Init(CartInfo *info) {
 	GenMMC3_Init(info, 256, 128, 8, 0);
-	pwrap = M205PW;
-	cwrap = M205CW;
+	pwrap = M205_367PW;
+	cwrap = M205_367CW;
 	info->Power = M205Power;
-	info->Reset = M205Reset;
+	info->Reset = M205_367Reset;
+	AddExState(EXPREGS, 1, 0, "EXPR");
+}
+
+void Mapper367_Init(CartInfo *info) {
+	GenMMC3_Init(info, 256, 128, 8, 0);
+	pwrap = M205_367PW;
+	cwrap = M205_367CW;
+	info->Power = M367Power;
+	info->Reset = M205_367Reset;
 	AddExState(EXPREGS, 1, 0, "EXPR");
 }
 
