@@ -21,7 +21,7 @@
  */
 
 /*  Code for emulating iNES mappers 4,12,44,45,47,49,52,74,114,115,116,118,
- 119,165,205,245,249,250,254,361,366,367,373,555
+ 119,165,205,245,249,250,254,361,366,367,373,392,555
 */
 
 #include "mapinc.h"
@@ -1354,6 +1354,7 @@ void GN45_Init(CartInfo *info) {
 	AddExState(EXPREGS, 1, 0, "EXPR");
 }
 
+
 /* ---------------------------- Mapper 245 ------------------------------ */
 
 static void M245CW(uint32 A, uint8 V) {
@@ -1577,6 +1578,55 @@ void Mapper555_Init(CartInfo *info) {
 	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
+}
+
+/* ---------------------------- Mapper 392 ------------------------------ */
+static void M392PW(uint32 A, uint8 V) {
+	if (EXPREGS[0] &0x10)
+		setprg8(A, V &0x0F | EXPREGS[0] <<4);
+	else
+		setprg32(0x8000, 0x20);
+}
+
+static void M392CW(uint32 A, uint8 V) {
+	if (EXPREGS[0] &0x10)
+		setchr1(A, V &0x7F | EXPREGS[0] <<7);
+	else
+		setchr8r(0x10, 0);
+}
+
+static DECLFW(M392Write) {
+	if (~EXPREGS[0] &0x10) {
+		EXPREGS[0] = V;
+		FixMMC3PRG(MMC3_cmd);
+		FixMMC3CHR(MMC3_cmd);
+	}
+	CartBW(A, V);
+}
+
+static void M392Power(void) {
+	EXPREGS[0] = 0;
+	GenMMC3Power();
+	SetWriteHandler(0x6000, 0x7fff, M392Write);
+}
+
+static void M392Reset(void) {
+	EXPREGS[0] = 0;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
+}
+
+void Mapper392_Init(CartInfo *info) {
+	GenMMC3_Init(info, 128, 128, 8, info->battery);
+	cwrap = M392CW;
+	pwrap = M392PW;
+	info->Power = M392Power;
+	info->Reset = M392Reset;
+	AddExState(EXPREGS, 1, 0, "EXPR");
+
+	CHRRAMSIZE = 8 * 1024;
+	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
+	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 }
 
 /* ---------------------------- UNIF Boards ----------------------------- */
