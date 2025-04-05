@@ -323,6 +323,7 @@ static void UNLOneBusPower(void) {
 	memset(cpu410x, 0x00, sizeof(cpu410x));
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
+	cpu410x[0x0F] =0xFF;
 	cpu410x[0x1C] =submapper ==14? 0x40: 0x00;
 
 	SetupCartCHRMapping(0, PRGptr[0], PRGsize[0], 0);
@@ -354,6 +355,7 @@ static void UNLOneBusReset(void) {
 	memset(cpu410x, 0x00, sizeof(cpu410x));
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
+	cpu410x[0x0F] =0xFF;
 	cpu410x[0x1C] =submapper ==14? 0x40: 0x00;
 	reg4242 =0;
 	dipswitch ^=8;
@@ -429,4 +431,31 @@ void Mapper270_Init(CartInfo *info) {
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	
 	Sync =Sync270;
+}
+
+static void Sync436(void) {
+	int AND =0xFFFF, OR =0;
+	switch(submapper) {
+		case 1:  OR = cpu410x[0x1C] &0x01 && ~cpu410x[0x1C] &0x04? 0x0800: 0x0000;
+	                 PSync(0xF7FF, OR);
+                         CSync(0xBFFF, OR <<3);
+		         break;
+		default: PSync(0xF3FF, (cpu410x[0x0F] &0x20? 0x0400: 0x0000) | (cpu410x[0x00] &0x40? 0x0800: 0x0000));
+                         CSync(0x9FFF, (cpu410x[0x0F] &0x20? 0x2000: 0x0000) | (cpu410x[0x00] &0x04? 0x4000: 0x0000));
+			 break;
+	}
+}
+
+void Mapper436_Init(CartInfo *info) {
+	UNLOneBus_Init(info);
+	cpuMangle =cpuMangles[0];
+	ppuMangle =ppuMangles[0];
+	mmc3Mangle =mmc3Mangles[0];
+	
+	CHRRAMSIZE = 8192;
+	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
+	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
+	
+	Sync =Sync436;
 }
