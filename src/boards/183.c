@@ -22,7 +22,6 @@
 #include "vrc2and4.h"
 
 static uint8  prg;
-static uint16 irqCounter;
 
 static SFORMAT Mapper183_stateRegs[] ={
 	{ &prg, 1, "PRG6" },
