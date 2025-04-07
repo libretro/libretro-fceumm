@@ -72,7 +72,6 @@ static SFORMAT VRC4_stateRegs[] ={
 };
 
 void VRC24_syncPRG(int AND, int OR) {
-	setprg8r(0x10, 0x6000, 0);
 	setprg8(0x8000, VRC24_GetPRGBank(0) &AND | OR);
 	setprg8(0xA000, VRC24_GetPRGBank(1) &AND | OR);
 	setprg8(0xC000, VRC24_GetPRGBank(2) &AND | OR);
@@ -88,6 +87,10 @@ void VRC24_syncCHR(int AND, int OR) {
 	setchr1(0x1400, VRC24_GetCHRBank(5) &AND | OR);
 	setchr1(0x1800, VRC24_GetCHRBank(6) &AND | OR);
 	setchr1(0x1C00, VRC24_GetCHRBank(7) &AND | OR);
+}
+
+void VRC24_syncWRAM(int OR) {
+	setprg8r(0x10, 0x6000, OR);
 }
 
 int VRC24_getPRGBank(int bank) {

@@ -22,6 +22,7 @@
 #include "vrc2and4.h"
 
 static void sync () {
+	VRC24_syncWRAM(0);
 	VRC24_syncPRG(0x01F, 0x000);
 	VRC24_syncCHR(0x1FF, 0x000);
 	VRC24_syncMirror();

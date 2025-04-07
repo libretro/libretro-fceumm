@@ -23,6 +23,7 @@ DECLFW((*VRC24_WRAMWrite));
 
 void VRC24_syncPRG    (int AND, int OR);
 void VRC24_syncCHR    (int AND, int OR);
+void VRC24_syncWRAM   (int OR);
 int  VRC24_getPRGBank (int bank);
 int  VRC24_getCHRBank (int bank);
 void VRC24_syncMirror ();
