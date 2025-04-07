@@ -23,7 +23,7 @@
 /* Yancheng YC-03-09/Waixing FS??? PCB */
 
 #include "mapinc.h"
-#include "eeprom_93C66.h"
+#include "eeprom_93Cx6.h"
 
 static uint8 *WRAM;
 static uint32 WRAMSIZE;
@@ -44,7 +44,7 @@ static void sync()
       setchr8(0);
 
    if (haveEEPROM)
-      eeprom_93C66_write(reg[2] &0x04, reg[2] &0x02, reg[2] &0x01);
+      eeprom_93Cx6_write(reg[2] &0x04, reg[2] &0x02, reg[2] &0x01);
 }
 
 static void hblank(void) {
@@ -60,7 +60,7 @@ static void hblank(void) {
 static DECLFR(readReg)
 {
    if (haveEEPROM)
-      return eeprom_93C66_read()? 0x04: 0x00;
+      return eeprom_93Cx6_read()? 0x04: 0x00;
    else
       return reg[2] &0x04;
 }
@@ -84,7 +84,7 @@ static void power(void)
 {
    memset(reg, 0, sizeof(reg));
    if (haveEEPROM)
-      eeprom_93C66_init();
+      eeprom_93Cx6_init(512, 8);
    sync();
    SetReadHandler (0x5000, 0x57FF, readReg);
    SetWriteHandler(0x5000, 0x57FF, writeReg);
@@ -128,7 +128,7 @@ void Mapper558_Init (CartInfo *info)
    haveEEPROM =!!(info->PRGRamSaveSize &0x200);
    if (haveEEPROM)
    {
-      eeprom_93C66_storage = eeprom_data;
+      eeprom_93Cx6_storage = eeprom_data;
       info->battery = 1;
       info->SaveGame[0] = eeprom_data;
       info->SaveGameLen[0] = 512;
