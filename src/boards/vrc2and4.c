@@ -188,6 +188,9 @@ void FP_FASTAPASS(1) VRC4_cpuCycle(int a) {
 }
 
 void VRC24_power(void) {
+	VRC24_prg[0] =0; VRC24_prg[1] =0;
+	VRC24_chr[0] =0; VRC24_chr[1] =1; VRC24_chr[2] =2; VRC24_chr[3] =3; VRC24_chr[4] =4; VRC24_chr[5] =5; VRC24_chr[6] =6; VRC24_chr[7] =7;
+	VRC24_mirroring =VRC24_misc =VRC2_pins =VRC4_latch =VRC4_mode =VRC4_count =VRC4_cycles =0;
 	SetReadHandler(0x6000, 0x7FFF,  VRC24_wramRead);
 	SetWriteHandler(0x6000, 0x7FFF, VRC24_wramWrite);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
