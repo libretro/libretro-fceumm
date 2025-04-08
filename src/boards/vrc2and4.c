@@ -218,6 +218,7 @@ void VRC24_init(CartInfo *info, void (*_sync)(), uint8 _A0, uint8 _A1, uint8 _is
 	VRC24_ExternalSelect =NULL;
 	info->Power =VRC24_power;
 	info->Close =VRC24_close;
+	GameStateRestore =_sync;
 	AddExState(VRC24_stateRegs, ~0, 0, 0);
 	if (VRC24_isVRC4) {
 		MapIRQHook =VRC4_cpuCycle;
