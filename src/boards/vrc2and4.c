@@ -120,8 +120,10 @@ DECLFW(VRC24_wramWrite) {
 	if (WRAMSize)
 		CartBW(((A -0x6000) &(WRAMSize -1)) +0x6000, V);
 	else
-	if (!VRC24_isVRC4)
+	if (!VRC24_isVRC4) {
 		VRC2_pins =V;
+		VRC24_Sync();
+	}
 	
 	if (VRC24_WRAMWrite)
 		VRC24_WRAMWrite(A, V);
