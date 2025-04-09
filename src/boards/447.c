@@ -26,7 +26,7 @@ static uint8 dip;
 
 static SFORMAT Mapper447_stateRegs[] ={
 	{ &reg, 1, "EXP0" },
-	{ &reg, 1, "DIPS" },
+	{ &dip, 1, "DIPS" },
 	{ 0 }
 };
 

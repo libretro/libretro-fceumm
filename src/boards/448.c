@@ -1,7 +1,7 @@
 /* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2023
+ *  Copyright (C) 2025 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,144 +18,60 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* NES 2.0 Mapper 448
- * VRC4-based 830768C multicart circuit board used by a Super 6-in-1 multicart.
- */
-
 #include "mapinc.h"
-#include "latch.h"
+#include "vrc2and4.h"
 
 static uint8 reg;
-static uint8 vrc4Prg;
-static uint8 vrc4Mirr;
-static uint8 vrc4Misc;
-static uint8 vrc4IRQLatch;
-static uint8 vrc4IRQa;
-static uint8 vrc4IRQCount;
-static int16 vrc4IRQCycles;
 
-static SFORMAT StateRegs[] = {
-	{ &reg,           1, "REGS" },
-	{ &vrc4Prg,       1, "PREG" },
-	{ &vrc4Mirr,      1, "V4MI" },
-	{ &vrc4Misc,      1, "V4MS" },
-	{ &vrc4IRQLatch,  1, "VILA" },
-	{ &vrc4IRQa,      1, "VIMO" },
-	{ &vrc4IRQCount,  1, "VICO" },
-	{ &vrc4IRQCycles, 2, "VICY" },
-	{ 0 },
+static SFORMAT Mapper448_stateRegs[] ={
+	{ &reg, 1, "EXP0" },
+	{ 0 }
 };
 
-static void Sync(void) {
-	setchr8(0);
-	if (reg & 0x08) { /* AOROM */
-		setprg32(0x8000, ((reg << 2) & ~0x07) | (latch.data & 0x07));
-		setmirror(MI_0 + ((latch.data >> 4) & 0x01));
+static void sync () {
+	if (reg &8) { /* AOROM */
+		setprg32(0x8000, VRC24_prg[0] &0x07 | reg <<2 &~0x07);
+		setmirror(VRC24_prg[0] &0x10? MI_1: MI_0);
 	} else {
-		if (reg & 0x04) { /* UOROM */
-			setprg16(0x8000, ((reg << 3) & ~0x0F) | (vrc4Prg & 0x0F));
-			setprg16(0xC000, ((reg << 3) & ~0x0F) | 0x0F);
+		if (reg &4) { /* UOROM */
+			setprg16(0x8000, VRC24_prg[0] &0xF | reg <<3 &~0xF);
+			setprg16(0xC000,               0xF | reg <<3 &~0xF);
 		} else { /* UNROM */
-			setprg16(0x8000, (reg << 3) | (vrc4Prg & 0x07));
-			setprg16(0xC000, (reg << 3) | 0x07);
+			setprg16(0x8000, VRC24_prg[0] &0x7 | reg <<3 &~0x7);
+			setprg16(0xC000,               0x7 | reg <<3 &~0x7);
 		}
-		switch (vrc4Mirr & 0x03) {
-		case 0: setmirror(MI_V); break;
-		case 1: setmirror(MI_H); break;
-		case 2: setmirror(MI_0); break;
-		case 3: setmirror(MI_1); break;
-		}
+		VRC24_syncMirror();
 	}
+	setchr8(0);
 }
 
-static DECLFW(writeVRC4) {
-	if (A < 0x9000) {
-		vrc4Prg = V;
-		Sync();
-	} else {
-		switch (A & 0xF000 | ((A >> 2) & 3)) {		
-		case 0x9000:
-			vrc4Mirr = V;
-			Sync();
-			break;
-		case 0x9002:
-			vrc4Misc = V;
-			break;
-		case 0xF000:
-			vrc4IRQLatch = (vrc4IRQLatch & 0xF0) | (V & 0x0F);
-			break;
-		case 0xF001:
-			vrc4IRQLatch = (vrc4IRQLatch & 0x0F) | (V << 4);
-			break;
-		case 0xF002:
-			vrc4IRQa = V;
-			if (vrc4IRQa & 0x02) {
-				vrc4IRQCount = vrc4IRQLatch;
-				vrc4IRQCycles = 341;
-			}
-			X6502_IRQEnd(FCEU_IQEXT);
-			break;
-		case 0xF003:
-			vrc4IRQa = (vrc4IRQa & ~0x02) | ((vrc4IRQa << 1) & 0x02);
-			X6502_IRQEnd(FCEU_IQEXT);
-			break;
-		}
+DECLFW(Mapper448_writeReg) {
+	if (VRC24_misc &1) {
+		reg =A &0xFF;
+		VRC24_Sync();
 	}
+	CartBW(A, V);
 }
 
-static DECLFW(M448WriteReg) {
-	if (vrc4Misc & 1) {
-		reg = A & 0xFF;
-		Sync();
-	}
+DECLFW(Mapper448_writePRG) {
+	VRC24_writeReg(reg &8? 0x8000: A, V);
 }
 
-static DECLFW(M448Write) {
-	LatchWrite(A, V);
-    writeVRC4(A, V);
+void Mapper448_power(void) {
+	reg =0;
+	VRC24_power();
+	SetWriteHandler(0x8000, 0xFFFF, Mapper448_writePRG);
 }
 
-static void FP_FASTAPASS(1) M448CPUHook(int a) {
-	int count = a;
-	while (count--) {
-		if ((vrc4IRQa & 0x02) && ((vrc4IRQa & 0x04) || ((vrc4IRQCycles -= 3) <= 0))) {
-			if (~vrc4IRQa & 0x04) {
-				vrc4IRQCycles += 341;
-			}
-			if (!++vrc4IRQCount) {
-				vrc4IRQCount = vrc4IRQLatch;
-				X6502_IRQBegin(FCEU_IQEXT);
-			}
-		}
-	}
-}
+void Mapper448_reset(void) {
+	reg =0;
+	VRC24_Sync();
+}	
 
-static void M448Reset(void) {
-	reg = 0;
-	Sync();
-}
-
-static void M448Power(void) {
-	reg = 0;
-	vrc4Prg = 0;
-	vrc4Mirr = vrc4Misc = 0;
-	vrc4IRQLatch = vrc4IRQa = vrc4IRQCount = vrc4IRQCycles = 0;
-	LatchPower();
-
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x6000, 0x7FFF, M448WriteReg);
-	SetWriteHandler(0x8000, 0xFFFF, M448Write);
-}
-
-static void StateRestore(int version) {
-	Sync();
-}
-
-void Mapper448_Init(CartInfo *info) {
-	Latch_Init(info, Sync, NULL, 0, 0);
-	info->Reset = M448Reset;
-	info->Power = M448Power;
-	MapIRQHook = M448CPUHook;
-	GameStateRestore = StateRestore;
-	AddExState(StateRegs, ~0, 0, 0);
+void Mapper448_Init (CartInfo *info) {
+	VRC24_init(info, sync, 0x04, 0x08, 1, 0, 2);
+	VRC24_WRAMWrite =Mapper448_writeReg;
+	info->Power =Mapper448_power;
+	info->Reset =Mapper448_reset;
+	AddExState(Mapper448_stateRegs, ~0, 0, 0);
 }
