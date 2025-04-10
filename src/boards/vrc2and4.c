@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "vrc2and4.h"
 
-uint8  VRC24_A0, VRC24_A1; /* What cartridge connector address pins are connected to the chip's A0 and A1 input pins? */
+int    VRC24_A0, VRC24_A1; /* What cartridge connector address pins are connected to the chip's A0 and A1 input pins? */
 uint8  VRC24_isVRC4;       /* VRC2 or VRC4? VRC2 has no single-screen mirroring, no PRG A14 swap and no IRQ counter */
 uint8  VRC24_useRepeatBit; /* VRC4 clones ignore the "repeat" bit in the IRQ Mode register */
 uint8  VRC24_prg[2];
@@ -207,7 +207,7 @@ void VRC24_close(void) {
 	}
 }
 
-void VRC24_init(CartInfo *info, void (*_sync)(), uint8 _A0, uint8 _A1, uint8 _isVRC4, uint8 _useRepeatBit, uint8 defaultWRAMSizeKiB) {
+void VRC24_init(CartInfo *info, void (*_sync)(), int _A0, int _A1, uint8 _isVRC4, uint8 _useRepeatBit, uint8 defaultWRAMSizeKiB) {
 	VRC24_Sync =_sync;
 	VRC24_A0 =_A0;
 	VRC24_A1 =_A1;
