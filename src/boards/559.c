@@ -21,34 +21,51 @@
 #include "mapinc.h"
 #include "vrc2and4.h"
 
+static uint8 nt[4];
+static uint8 prg;
+
+static SFORMAT stateRegs[] ={
+        { nt, 4, "EXPN" },
+	{ &prg, 1, "PRGC" },
+        { 0 }
+};
+
 static void sync () {
+	int bank;
+	VRC24_syncWRAM(0);
 	VRC24_syncPRG(0x01F, 0x000);
 	VRC24_syncCHR(0x1FF, 0x000);
-	VRC24_syncMirror();
+	setmirrorw(nt[0] &1, nt[1] &1, nt[2] &1, nt[3] &1);
 }
 
-int UNLAX5705_getPRGBank(int bank) {
-	int result =VRC24_getPRGBank(bank);
-	return result <<2 &0x8 | result >>2 &0x2 | result &~0xA;
+int Mapper559_getPRGBank(int bank) {
+	return bank ==2? prg: VRC24_getPRGBank(bank);
 }
 
-int UNLAX5705_getCHRBank(int bank) {
-	int result =VRC24_getCHRBank(bank);
-	return result <<1 &0x40 | result >>1 &0x20 | result &~0x60;
+DECLFW(Mapper559_externalSelect) {
+	if (A &4)
+		nt[A &3] =V;
+	else
+		prg =V;
+	VRC24_Sync();
 }
 
-DECLFW(UNLAX5705_unscrambleAddress) {
-	VRC24_writeReg(A &~0x1000 | A <<9 &0x1000, V);
+DECLFW(Mapper559_nibblizeData) {
+	VRC24_writeReg(A, V >>(A &0x400? 4: 0));
 }
 
-void UNLAX5705_power (void) {
+void Mapper559_power (void) {
+	nt[0] =nt[1] =0xE0;
+	nt[2] =nt[3] =0xE1;
+	prg =0xFE;
 	VRC24_power();
-	SetWriteHandler(0x8000, 0xFFFF, UNLAX5705_unscrambleAddress);
+	SetWriteHandler(0xB000, 0xFFFF, Mapper559_nibblizeData);
 }
 
-void UNLAX5705_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 1, 1, 0);
-	info->Power =UNLAX5705_power;
-	VRC24_GetPRGBank =UNLAX5705_getPRGBank;
-	VRC24_GetCHRBank =UNLAX5705_getCHRBank;
+void Mapper559_Init (CartInfo *info) {
+	VRC24_init(info, sync, 0x400, 0x800, 1, 1, 0);
+	info->Power =Mapper559_power;
+	VRC24_GetPRGBank =Mapper559_getPRGBank;
+	VRC24_ExternalSelect =Mapper559_externalSelect;
+	AddExState(stateRegs, ~0, 0, 0);
 }
