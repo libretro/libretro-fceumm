@@ -20,45 +20,41 @@
 
 #include "mapinc.h"
 #include "vrc2and4.h"
-#include "eeprom_93Cx6.h"
 
-static uint8 eeprom_data[256];
+static uint8 reg;
 
 static SFORMAT stateRegs[] ={
-        { eeprom_data, 256, "EEPR" },
+        { &reg, 1, "EXP0" },
         { 0 }
 };
 
 static void sync () {
-	setprg16(0x8000, VRC24_prg[1]);
-	setprg16(0xC000, 0xFF);
+	setprg8(0x6000, 0x0F);
+	VRC24_syncPRG(0x01F, 0x000);
 	VRC24_syncCHR(0x1FF, 0x000);
 	VRC24_syncMirror();
+	if (reg &1) setchr1r(0x10, 0x0C00, 1);
 }
 
-DECLFR(UNLT230_readEEPROM) {
-	return eeprom_93Cx6_read()? 0x01: 0x00;
-}
-	
-DECLFW(UNLT230_writeEEPROM) {
-	eeprom_93Cx6_write(A &0x04, A &0x02, A &0x01);
+DECLFW(Mapper542_writeExtra) {
+	if (A &0x800) {
+		reg =A >>12;
+		VRC24_Sync();
+	} else
+		VRC24_writeReg(A, V);
 }
 
-void UNLT230_power (void) {
+
+void Mapper542_power (void) {
+	reg =0;
 	VRC24_power();
-	eeprom_93Cx6_init(256, 16);
-	SetReadHandler(0x5000, 0x5FFF, UNLT230_readEEPROM);
-	SetWriteHandler(0xF800, 0xFFFF, UNLT230_writeEEPROM);
+	SetReadHandler(0x6000, 0x7FFF, CartBR);
+	SetWriteHandler(0xD000, 0xEFFF, Mapper542_writeExtra);
 }
 
-void UNLT230_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 1, 0);
-	if (info->PRGRamSaveSize) {
-		info->Power =UNLT230_power;
-		AddExState(stateRegs, ~0, 0, 0);
-		eeprom_93Cx6_storage = eeprom_data;
-		info->battery = 1;
-		info->SaveGame[0] = eeprom_data;
-		info->SaveGameLen[0] = 256;
-	}
+void Mapper542_Init (CartInfo *info) {
+	VRC24_init(info, sync, 0x01, 0x02, 1, 1, 0);
+	info->Power =Mapper542_power;
+	AddExState(stateRegs, ~0, 0, 0);
+	SetupCartCHRMapping(0x10, NTARAM, 0x200, 1);
 }
