@@ -107,5 +107,6 @@ void Mapper544_Init (CartInfo *info) {
 
 	CHRRAMSize =info->CHRRamSize +info->CHRRamSaveSize;
 	CHRRAM =(uint8*)FCEU_gmalloc(CHRRAMSize);
+	AddExState(CHRRAM, CHRRAMSize, 0, "CRAM");
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);	
 }
