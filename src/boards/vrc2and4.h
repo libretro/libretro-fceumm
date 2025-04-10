@@ -1,7 +1,7 @@
 #ifndef _VRC2AND4_H
 #define _VRC2AND4_H
 
-extern uint8  VRC24_A0, VRC24_A1;
+extern int    VRC24_A0, VRC24_A1;
 extern uint8  VRC24_isVRC4;
 extern uint8  VRC24_useRepeatBit;
 extern uint8  VRC24_prg[2];
@@ -31,6 +31,6 @@ DECLFW(VRC24_writeReg);
 
 void VRC24_power(void);
 void VRC24_close(void);
-void VRC24_init(CartInfo *info, void (*_sync)(), uint8 _A0, uint8 _A1, uint8 _isVRC4, uint8 _useRepeatBit, uint8 defaultWRAMSizeKiB);
+void VRC24_init(CartInfo *info, void (*_sync)(), int _A0, int _A1, uint8 _isVRC4, uint8 _useRepeatBit, uint8 defaultWRAMSizeKiB);
 
 #endif
