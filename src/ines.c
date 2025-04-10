@@ -896,6 +896,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "",                         550, Mapper550_Init         )
 	INES_BOARD( "YC-03-09",                 558, Mapper558_Init         )
 	INES_BOARD( "Subor Sango II",           559, Mapper559_Init         )
+	INES_BOARD( "J-2020",                   563, Mapper563_Init         )
 INES_BOARD_END()
 
 static uint32 iNES_get_mapper_id(void)
