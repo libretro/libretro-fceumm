@@ -17,9 +17,9 @@ extern signed short int VRC4_cycles;
 extern int    (*VRC24_GetPRGBank)(int);
 extern int    (*VRC24_GetCHRBank)(int);
 extern void   (*VRC24_Sync)();
-DECLFW((*VRC24_ExternalSelect));
-DECLFR((*VRC24_WRAMRead));
-DECLFW((*VRC24_WRAMWrite));
+extern DECLFW((*VRC24_ExternalSelect));
+extern DECLFR((*VRC24_WRAMRead));
+extern DECLFW((*VRC24_WRAMWrite));
 
 void VRC24_syncPRG    (int AND, int OR);
 void VRC24_syncCHR    (int AND, int OR);

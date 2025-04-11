@@ -47,12 +47,14 @@ uint8 *trainerpoo       = NULL;
 uint8 *ROM              = NULL;
 uint8 *VROM             = NULL;
 uint8 *ExtraNTARAM      = NULL;
+uint8 *MiscROM          = NULL;
 iNES_HEADER head        = {0};
 
 CartInfo iNESCart       = {0};
 
 uint32 ROM_size         = 0;
 uint32 VROM_size        = 0;
+uint32 MiscROM_size;
 
 static int CHRRAMSize   = -1;
 
