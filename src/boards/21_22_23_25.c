@@ -23,9 +23,10 @@
 
 static void sync () {
 	VRC24_syncWRAM(0);
-	VRC24_syncPRG(0x01F, 0x000);
+	VRC24_syncPRG(0x03F, 0x000);  /* A real VRC4 has a PRG-ROM maximum of 256 KiB, but some hacks use more than that. */
 	VRC24_syncCHR(0x1FF, 0x000);
 	VRC24_syncMirror();
+	if (ROM_size &1) setprg16(0xC000, ROM_size -1); /* A number of Contra hacks have a PRG-ROM size of 400 KiB, expecting the last 16 KiB to be determined via subtraction. They would not work on real hardware. */
 }
 
 void Mapper21_Init (CartInfo *info) {
