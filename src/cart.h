@@ -26,6 +26,9 @@ typedef struct {
 	int CHRRamSize;		/* chr ram size in bytes (volatile) */
 	int PRGRamSaveSize;	/* prg ram size in bytes (non-volatile or battery backed) */
 	int CHRRamSaveSize;	/* chr ram size in bytes (non-volatile or battery backed) */
+	int miscROMSize;
+	int miscROMNumber;
+	uint64 totalFileSize;
 	int region;			/* video system timing (ntsc, pal, dendy */
 
 	uint8 MD5[16];

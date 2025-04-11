@@ -54,7 +54,6 @@ CartInfo iNESCart       = {0};
 
 uint32 ROM_size         = 0;
 uint32 VROM_size        = 0;
-uint32 MiscROM_size;
 
 static int CHRRAMSize   = -1;
 
@@ -108,6 +107,10 @@ static void iNESGI(int h) {
 		if (ExtraNTARAM) {
 			free(ExtraNTARAM);
 			ExtraNTARAM = NULL;
+		}
+		if (MiscROM) {
+			free(MiscROM);
+			MiscROM = NULL;
 		}
 		break;
 	}
@@ -939,6 +942,11 @@ static void iNES_read_header_info(void) {
       if (head.PRGRAM_size & 0xF0) iNESCart.PRGRamSaveSize = 64 << ((head.PRGRAM_size >> 4) & 0x0F);
       if (head.CHRRAM_size & 0x0F) iNESCart.CHRRamSize     = 64 << ((head.CHRRAM_size >> 0) & 0x0F);
       if (head.CHRRAM_size & 0xF0) iNESCart.CHRRamSaveSize = 64 << ((head.CHRRAM_size >> 4) & 0x0F);
+      iNESCart.PRGRomSize = ROM_size >=0xF00? (pow(2, head.ROM_size >>2)*((head.ROM_size &3)*2+1)): (ROM_size*0x4000);
+      iNESCart.CHRRomSize =VROM_size >=0xF00? (pow(2, head.VROM_size>>2)*((head.VROM_size&3)*2+1)): (VROM_size*0x2000);;
+      iNESCart.miscROMNumber =head.MiscRoms;
+      iNESCart.miscROMSize =iNESCart.miscROMNumber? (iNESCart.totalFileSize -16 -(head.ROM_type &4? 512: 0) -iNESCart.PRGRomSize -iNESCart.CHRRomSize): 0;
+      if (iNESCart.miscROMSize &0x8000000) iNESCart.miscROMSize =0;
    }
 }
 
@@ -981,6 +989,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
          memset((char*)(&head) + 0xA, 0, 0x6);
    }
 
+   iNESCart.totalFileSize =filesize;
    iNES_read_header_info();
 
    if (!ROM_size)
@@ -995,9 +1004,6 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       FCEU_fread(trainerpoo, 512, 1, fp);
       filesize -= 512;
    }
-
-   iNESCart.PRGRomSize = ROM_size >=0xF00? (pow(2, head.ROM_size >>2)*((head.ROM_size &3)*2+1)): (ROM_size*0x4000);
-   iNESCart.CHRRomSize =VROM_size >=0xF00? (pow(2, head.VROM_size>>2)*((head.VROM_size&3)*2+1)): (VROM_size*0x2000);;
 
    romSize = iNESCart.PRGRomSize + iNESCart.CHRRomSize;
 
@@ -1029,6 +1035,18 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
       memset(VROM, 0xFF, vrom_size_pow2);
       FCEU_fread(VROM, 1, iNESCart.CHRRomSize, fp);
+   }
+   
+   if (iNESCart.miscROMSize) {
+	   MiscROM =(uint8*) FCEU_malloc(iNESCart.miscROMSize);
+	   if (!MiscROM) {
+		   free(VROM);
+		   free(ROM);
+		   VROM =NULL;
+		   ROM =NULL;
+		   return 0;
+	   }
+	   FCEU_fread(MiscROM, 1, iNESCart.miscROMSize, fp);
    }
 
    iNESCart.PRGCRC32   = CalcCRC32(0, ROM, iNESCart.PRGRomSize);
