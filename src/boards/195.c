@@ -20,7 +20,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-writefunc writePPU;
+static writefunc writePPU;
 static uint8 *CHRRAM;
 static uint32 CHRRAMSIZE;
 static uint8 mask;

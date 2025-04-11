@@ -27,7 +27,7 @@ static uint8 mask;
 static uint8 compare;
 
 extern uint32 RefreshAddr;
-writefunc writePPU;
+static writefunc writePPU;
 
 static SFORMAT stateRegs[] ={
 	{ &mask, 1, "CHRM" },
