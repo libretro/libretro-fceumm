@@ -505,7 +505,7 @@ static void FP_FASTAPASS(1) trapPPUAddressChangeVenus (uint32 A) {
 	if (A &~0x2000) lastCHRBank =A >>10;
 }
 
-void close(void) {
+static void close(void) {
 	if (CHRRAM) {
 		FCEU_gfree(CHRRAM);
 		CHRRAM =NULL;
