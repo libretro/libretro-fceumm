@@ -38,6 +38,7 @@ typedef struct {
 	uint8 ExpDevice;
 } iNES_HEADER;
 
+extern uint8 *trainerpoo;
 extern uint8 *ROM;
 extern uint8 *VROM;
 extern uint8 *MiscROM;
@@ -55,15 +56,12 @@ void NSFVRC7_Init(void);
 void Mapper1_Init(CartInfo *);
 void Mapper4_Init(CartInfo *);
 void Mapper5_Init(CartInfo *);
-void Mapper6_Init(CartInfo *);
-void Mapper8_Init(CartInfo *);
 void Mapper9_Init(CartInfo *);
 void Mapper10_Init(CartInfo *);
 void Mapper11_Init(CartInfo *);
 void Mapper12_Init(CartInfo *);
 void Mapper15_Init(CartInfo *);
 void Mapper16_Init(CartInfo *);
-void Mapper17_Init(CartInfo *);
 void Mapper18_Init(CartInfo *);
 void Mapper19_Init(CartInfo *);
 void Mapper21_Init(CartInfo *);
@@ -396,6 +394,9 @@ void Mapper555_Init(CartInfo *);
 void Mapper556_Init(CartInfo *);
 void Mapper558_Init(CartInfo *);
 void Mapper559_Init(CartInfo *);
+void Mapper561_562_Init(CartInfo *);
 void Mapper563_Init(CartInfo *);
+
+void FFE_Init(CartInfo *);
 
 #endif

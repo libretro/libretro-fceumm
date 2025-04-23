@@ -383,6 +383,10 @@ static void M12Reset(void) {
 }
 
 void Mapper12_Init(CartInfo *info) {
+	if (info->submapper ==1) {
+		FFE_Init(info);
+		return;
+	}
 	GenMMC3_Init(info, 512, 256, 8, info->battery);
 	cwrap = M12CW;
 	isRevB = 0;

@@ -162,18 +162,6 @@ void ANROM_Init(CartInfo *info) {
 	Latch_Init(info, ANROMSync, 0, 0x4020, 0xFFFF, 0, 0);
 }
 
-/*------------------ Map 8 ---------------------------*/
-
-static void M8Sync(void) {
-	setprg16(0x8000, latche >> 3);
-	setprg16(0xc000, 1);
-	setchr8(latche & 3);
-}
-
-void Mapper8_Init(CartInfo *info) {
-	Latch_Init(info, M8Sync, 0, 0x8000, 0xFFFF, 0, 0);
-}
-
 /*------------------ Map 11 ---------------------------*/
 
 static void M11Sync(void) {

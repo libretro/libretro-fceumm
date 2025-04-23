@@ -432,9 +432,9 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "CNROM",                      3, CNROM_Init             )
 	INES_BOARD( "MMC3",                       4, Mapper4_Init           )
 	INES_BOARD( "MMC5",                       5, Mapper5_Init           )
-	INES_BOARD( "FFE Rev. A",                 6, Mapper6_Init           )
+	INES_BOARD( "FFE Rev. A",                 6, FFE_Init               )
 	INES_BOARD( "ANROM",                      7, ANROM_Init             )
-	INES_BOARD( "",                           8, Mapper8_Init           ) /* no games, it's worthless */
+	INES_BOARD( "",                           8, FFE_Init               )
 	INES_BOARD( "MMC2",                       9, Mapper9_Init           )
 	INES_BOARD( "MMC4",                      10, Mapper10_Init          )
 	INES_BOARD( "Color Dreams",              11, Mapper11_Init          )
@@ -443,7 +443,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "REX SL-1632",               14, UNLSL1632_Init         )
 	INES_BOARD( "100-in-1",                  15, Mapper15_Init          )
 	INES_BOARD( "BANDAI 24C02",              16, Mapper16_Init          )
-	INES_BOARD( "FFE Rev. B",                17, Mapper17_Init          )
+	INES_BOARD( "FFE Rev. B",                17, FFE_Init               )
 	INES_BOARD( "JALECO SS880006",           18, Mapper18_Init          ) /* JF-NNX (EB89018-30007) boards */
 	INES_BOARD( "Namcot 106",                19, Mapper19_Init          )
 /*    INES_BOARD( "",                         20, Mapper20_Init ) */
@@ -901,6 +901,8 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "",                         550, Mapper550_Init         )
 	INES_BOARD( "YC-03-09",                 558, Mapper558_Init         )
 	INES_BOARD( "Subor Sango II",           559, Mapper559_Init         )
+	INES_BOARD( "Bung Super Game Doctor",   561, Mapper561_562_Init     )
+	INES_BOARD( "Venus Turbo Game Doctor",  562, Mapper561_562_Init     )
 	INES_BOARD( "J-2020",                   563, Mapper563_Init         )
 INES_BOARD_END()
 
@@ -1015,15 +1017,14 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
 
    rom_size_pow2 = uppow2(iNESCart.PRGRomSize);
-
+   
    if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
       return 0;
 
    memset(ROM, 0xFF, rom_size_pow2);
    FCEU_fread(ROM, 1, iNESCart.PRGRomSize, fp);
 
-   if (iNESCart.CHRRomSize)
-   {
+   if (iNESCart.CHRRomSize) {
       vrom_size_pow2 = uppow2(iNESCart.CHRRomSize);
 
       if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL)
