@@ -934,8 +934,7 @@ static void iNES_read_header_info(void) {
    iNESCart.mapper    = iNES_get_mapper_id();
    iNESCart.iNES2     = (head.ROM_type2 & 0x0C) == 0x08;
 
-   if (iNESCart.iNES2)
-   {
+   if (iNESCart.iNES2) {
       ROM_size           |= ((head.upper_PRG_CHR_size >> 0) & 0xF) << 8;
       VROM_size          |= ((head.upper_PRG_CHR_size >> 4) & 0xF) << 8;	
       iNESCart.submapper = (head.ROM_type3 >> 4) & 0x0F;
@@ -949,6 +948,10 @@ static void iNES_read_header_info(void) {
       iNESCart.miscROMNumber =head.MiscRoms;
       iNESCart.miscROMSize =iNESCart.miscROMNumber? (iNESCart.totalFileSize -16 -(head.ROM_type &4? 512: 0) -iNESCart.PRGRomSize -iNESCart.CHRRomSize): 0;
       if (iNESCart.miscROMSize &0x8000000) iNESCart.miscROMSize =0;
+   } else {
+      iNESCart.submapper = iNESCart.miscROMNumber = iNESCart.miscROMSize = 0;
+      iNESCart.PRGRomSize =ROM_size*0x4000;
+      iNESCart.CHRRomSize =VROM_size*0x2000;
    }
 }
 
