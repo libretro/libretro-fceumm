@@ -244,7 +244,8 @@ struct retro_core_option_v2_definition option_defs[] = {
       {
          { "default",              "Default" },
          { "asqrealc",             "AspiringSquire's Real" },
-         { "nintendo-vc",          "Nintendo Virtual Console" },
+         { "restored-wii-vc",      "Restored Wii VC" },
+         { "wii-vc",               "Wii Virtual Console" },
          { "rgb",                  "Nintendo RGB PPU" },
          { "yuv-v3",               "FBX's YUV-V3" },
          { "unsaturated-final",    "FBX's Unsaturated-Final" },

@@ -404,7 +404,25 @@ struct st_palettes palettes[] = {
          0xffe890, 0xf0f4a4, 0xc0ffc0, 0xacf4f0,
          0xa0e8ff, 0xc2c2c2, 0x202020, 0x101010 }
    },
-   { "nintendo-vc", "Virtual Console palette",
+   { "restored-wii-vc", "Restored Wii VC palette",
+      { 0x666666, 0x000095, 0x10008B, 0x39007D,
+         0x5C0068, 0x660000, 0x5C0000, 0x391800,
+         0x223700, 0x004316, 0x004300, 0x003916,
+         0x022D5E, 0x000000, 0x000000, 0x000000,
+         0xA39EA3, 0x0043B9, 0x4502F1, 0x6902CF,
+         0x8C00AC, 0x960050, 0x962E02, 0x7E4200,
+         0x5C6600, 0x227D02, 0x167D02, 0x027D46,
+         0x02667E, 0x161616, 0x000000, 0x000000,
+         0xF2F2F2, 0x689EFF, 0x8C7BFF, 0xB970FF,
+         0xE671F2, 0xF266B9, 0xFE8968, 0xCF9E46,
+         0xACA03B, 0x7EBC02, 0x4EC745, 0x45C77E,
+         0x50C7C6, 0x4E4E4E, 0x000000, 0x000000,
+         0xFFFFFF, 0xC4DCFE, 0xC6C7F4, 0xDBC7FF,
+         0xE9BDFF, 0xF2C6DC, 0xF4D2C4, 0xDBC8AE,
+         0xDBDDA0, 0xCFE9AE, 0xB9EAAC, 0xAEDCB9,
+         0xA1D2C6, 0xDEDEDE, 0x000000, 0x000000 }
+   },
+   { "wii-vc", "Wii Virtual Console palette",
       { 0x494949, 0x00006a, 0x090063, 0x290059,
          0x42004a, 0x490000, 0x420000, 0x291100,
          0x182700, 0x003010, 0x003000, 0x002910,
@@ -1935,48 +1953,50 @@ static void check_variables(bool startup)
          current_palette = PAL_CUSTOM;
       else if (!strcmp(var.value, "asqrealc"))
          current_palette = 0;
-      else if (!strcmp(var.value, "nintendo-vc"))
+      else if (!strcmp(var.value, "restored-wii-vc"))
          current_palette = 1;
-      else if (!strcmp(var.value, "rgb"))
+      else if (!strcmp(var.value, "wii-vc"))
          current_palette = 2;
-      else if (!strcmp(var.value, "yuv-v3"))
+      else if (!strcmp(var.value, "rgb"))
          current_palette = 3;
-      else if (!strcmp(var.value, "unsaturated-final"))
+      else if (!strcmp(var.value, "yuv-v3"))
          current_palette = 4;
-      else if (!strcmp(var.value, "sony-cxa2025as-us"))
+      else if (!strcmp(var.value, "unsaturated-final"))
          current_palette = 5;
-      else if (!strcmp(var.value, "pal"))
+      else if (!strcmp(var.value, "sony-cxa2025as-us"))
          current_palette = 6;
-      else if (!strcmp(var.value, "bmf-final2"))
+      else if (!strcmp(var.value, "pal"))
          current_palette = 7;
-      else if (!strcmp(var.value, "bmf-final3"))
+      else if (!strcmp(var.value, "bmf-final2"))
          current_palette = 8;
-      else if (!strcmp(var.value, "smooth-fbx"))
+      else if (!strcmp(var.value, "bmf-final3"))
          current_palette = 9;
-      else if (!strcmp(var.value, "composite-direct-fbx"))
+      else if (!strcmp(var.value, "smooth-fbx"))
          current_palette = 10;
-      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
+      else if (!strcmp(var.value, "composite-direct-fbx"))
          current_palette = 11;
-      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
+      else if (!strcmp(var.value, "pvm-style-d93-fbx"))
          current_palette = 12;
-      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
+      else if (!strcmp(var.value, "ntsc-hardware-fbx"))
          current_palette = 13;
-      else if (!strcmp(var.value, "nescap"))
+      else if (!strcmp(var.value, "nes-classic-fbx-fs"))
          current_palette = 14;
-      else if (!strcmp(var.value, "wavebeam"))
+      else if (!strcmp(var.value, "nescap"))
          current_palette = 15;
-      else if (!strcmp(var.value, "digital-prime-fbx"))
+      else if (!strcmp(var.value, "wavebeam"))
          current_palette = 16;
-      else if (!strcmp(var.value, "magnum-fbx"))
+      else if (!strcmp(var.value, "digital-prime-fbx"))
          current_palette = 17;
-      else if (!strcmp(var.value, "smooth-v2-fbx"))
+      else if (!strcmp(var.value, "magnum-fbx"))
          current_palette = 18;
-      else if (!strcmp(var.value, "nes-classic-fbx"))
+      else if (!strcmp(var.value, "smooth-v2-fbx"))
          current_palette = 19;
-      else if (!strcmp(var.value, "royaltea"))
+      else if (!strcmp(var.value, "nes-classic-fbx"))
          current_palette = 20;
-      else if (!strcmp(var.value, "mugicha"))
+      else if (!strcmp(var.value, "royaltea"))
          current_palette = 21;
+      else if (!strcmp(var.value, "mugicha"))
+         current_palette = 22;
 
       if (current_palette != orig_value)
       {
