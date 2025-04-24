@@ -85,6 +85,12 @@ static void M416Power(void) {
 	SetWriteHandler(0x8000, 0x8000, M416Write8);
 }
 
+static void M416Reset(void) {
+	reg = smb2j_reg = IRQa = IRQCount = 0;
+	RAM[0x163] =0;
+	Sync();
+}
+
 static void FP_FASTAPASS(1) M416IRQHook(int a) {
 	if (IRQa) {
 		if (IRQCount < 4096)
@@ -102,6 +108,7 @@ static void StateRestore(int version) {
 
 void Mapper416_Init(CartInfo *info) {
 	info->Power = M416Power;
+	info->Reset = M416Reset;
 	MapIRQHook  = M416IRQHook;
 	GameStateRestore = StateRestore;
 	AddExState(&reg, 1, 0, "REGS");
