@@ -34,6 +34,7 @@ static void Sync(void) {
 
 static void M174Reset(void) {
 	latch.addr =0;
+	RAM[0x133] =0;
 	Sync();
 }
 
