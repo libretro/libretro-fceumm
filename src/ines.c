@@ -204,14 +204,41 @@ static void SetInput(void) {
 	};
 	int x = 0;
 
-	while (moo[x].input1 >= 0 || moo[x].input2 >= 0 || moo[x].inputfc >= 0) {
-		if (moo[x].crc32 == iNESCart.CRC32) {
-			GameInfo->input[0] = moo[x].input1;
-			GameInfo->input[1] = moo[x].input2;
-			GameInfo->inputfc = moo[x].inputfc;
-			break;
-		}
-		x++;
+	switch(head.ExpDevice) {
+		case 0x03: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_4PLAYER;   break;
+		case 0x08: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_ZAPPER;    GameInfo->inputfc =SIFC_NONE;      break;
+		case 0x0A: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_SHADOW;    break;
+		case 0x0B: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_POWERPADB; GameInfo->inputfc =SIFC_NONE;      break;
+		case 0x0C: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_POWERPADB; GameInfo->inputfc =SIFC_NONE;      break;
+		case 0x0D: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_FTRAINERA; break;
+		case 0x0E: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_FTRAINERB; break;
+		case 0x0F: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_ARKANOID;  GameInfo->inputfc =SIFC_NONE;      break;
+		case 0x10: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_ARKANOID;  break;
+		case 0x12: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_HYPERSHOT; break;
+		case 0x15: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_MAHJONG;   break;
+		case 0x16: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_QUIZKING;  break;
+		case 0x17: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_OEKAKIDS;  break;
+		case 0x18: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_BWORLD;    break;
+		case 0x1A: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_FTRAINERA; break;
+		case 0x1B: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_TOPRIDER;  break;
+		case 0x23: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_FKB;       break;
+		case 0x24: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_PEC586KB;  break;
+		case 0x26: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_SUBORKB;   break;
+		case 0x27: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_MOUSE;     GameInfo->inputfc =SIFC_SUBORKB;   break;
+		case 0x28: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_SUBORKB;   break;
+		case 0x2A: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_ZAPPER;    GameInfo->inputfc =SIFC_NONE;      break; /* Emulate "multicart" simply as "Zapper" */
+		case 0x36: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_SUBORKB;   break;
+		case 0x40: GameInfo->input[0] =SI_GAMEPAD; GameInfo->input[1] =SI_GAMEPAD;   GameInfo->inputfc =SIFC_SUBORKB;   break;
+		default:
+			while (moo[x].input1 >= 0 || moo[x].input2 >= 0 || moo[x].inputfc >= 0) {
+				if (moo[x].crc32 == iNESCart.CRC32) {
+					GameInfo->input[0] = moo[x].input1;
+					GameInfo->input[1] = moo[x].input2;
+					GameInfo->inputfc = moo[x].inputfc;
+					break;
+				}
+				x++;
+			}
 	}
 }
 
