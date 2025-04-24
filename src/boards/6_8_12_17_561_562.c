@@ -624,6 +624,7 @@ void Mapper561_562_Init(CartInfo *info) {
 	} else
 		trainerSize =0;
 	
+	GameStateRestore =sync;
 	info->Power =power;
 	info->Close =close;
 	if (maker ==VENUS) {
