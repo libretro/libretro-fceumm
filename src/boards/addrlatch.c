@@ -187,12 +187,14 @@ static void M61Sync(void) {
 
 void Mapper61_Reset() {
 	latche =0;
+	RAM[0x1A] =0;
+	RAM[0x1B] =0;
 	M61Sync();
 }
 
 void Mapper61_Init(CartInfo *info) {
-	info->Reset = Mapper61_Reset;
 	Latch_Init(info, M61Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+	info->Reset = Mapper61_Reset;
 }
 
 /*------------------ Map 063 ---------------------------*/
