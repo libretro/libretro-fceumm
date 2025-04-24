@@ -119,7 +119,9 @@ static void CSync(int AND, int OR) {
 static void Sync256(void) {
 	PSync(0x0FFF, 0x000);
 	CSync(0x7FFF, 0x000);
-	encryptOpcodes =submapper ==14 && cpu410x[0x1C] &0x40? 67: 0;
+	encryptOpcodes =0;
+	if (submapper ==12 && cpu410x[0x1C] &0x40) encryptOpcodes =12;
+	if (submapper ==14 && cpu410x[0x1C] &0x40) encryptOpcodes =14;
 }
 
 static const uint8 cpuMangles[16][4] = {
@@ -135,7 +137,7 @@ static const uint8 cpuMangles[16][4] = {
 	{ 0, 1, 2, 3 }, 	/* Submapper 9: unused so far                           */
 	{ 0, 1, 2, 3 }, 	/* Submapper A: unused so far                           */
 	{ 0, 1, 2, 3 }, 	/* Submapper B: unused so far                           */
-	{ 0, 1, 2, 3 }, 	/* Submapper C: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper C: Cheertone (CPU opcode encryption only)  */
 	{ 0, 1, 2, 3 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only)  */
 	{ 0, 1, 2, 3 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
 	{ 0, 1, 2, 3 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
@@ -324,7 +326,7 @@ static void UNLOneBusPower(void) {
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
 	cpu410x[0x0F] =0xFF;
-	cpu410x[0x1C] =submapper ==14? 0x40: 0x00;
+	cpu410x[0x1C] =submapper ==12 || submapper ==14? 0x40: 0x00;
 
 	SetupCartCHRMapping(0, PRGptr[0], PRGsize[0], 0);
 
@@ -356,7 +358,7 @@ static void UNLOneBusReset(void) {
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
 	cpu410x[0x0F] =0xFF;
-	cpu410x[0x1C] =submapper ==14? 0x40: 0x00;
+	cpu410x[0x1C] =submapper ==12 || submapper ==14? 0x40: 0x00;
 	reg4242 =0;
 	dipswitch ^=8;
 
