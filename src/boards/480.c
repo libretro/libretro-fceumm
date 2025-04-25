@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-uint8 submapper;
+static uint8 submapper;
 static uint8 *CHRRAM =NULL;
 static uint32 CHRRAMSIZE;
 
