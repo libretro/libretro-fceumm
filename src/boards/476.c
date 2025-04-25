@@ -49,18 +49,18 @@ static DECLFR(remapButtons) {
 			result <<=1;
 			result |=read4016(0x4016) &1;
 		}
-		result =(result &0x90? 0x01: 0x00) |   // START/A
-		        (result &0x60? 0x02: 0x00)   ; // SELECT/B
+		result =(result &0x90? 0x01: 0x00) |   /* START/A */
+		        (result &0x60? 0x02: 0x00)   ; /* SELECT/B */
 	} else
 	if (A ==0x4017) {
 		for (int i =0; i <8; i++) {
 			result <<=1;
 			result |=read4016(0x4016) &1;
 		}
-		result =(result &0x04? 0x08: 0x00) | // DOWN
-		        (result &0x08? 0x02: 0x00) | // UP
-			(result &0x02? 0x04: 0x00) | // LEFT
-			(result &0x01? 0x10: 0x00)   // RIGHT
+		result =(result &0x04? 0x08: 0x00) | /* DOWN  */
+		        (result &0x08? 0x02: 0x00) | /* UP    */
+			(result &0x02? 0x04: 0x00) | /* LEFT  */
+			(result &0x01? 0x10: 0x00)   /* RIGHT */
 		;
 	}
 	return result;

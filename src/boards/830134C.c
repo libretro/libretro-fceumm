@@ -32,7 +32,7 @@ static void BMC830134CCW(uint32 A, uint8 V) {
 }
 
 static void BMC830134CPW(uint32 A, uint8 V) {
-	if ((EXPREGS[0] & 0x06) == 0x06) {
+	if (EXPREGS[0] & 0x08) {
 		if (A == 0x8000) {
 			setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));
 			setprg8(0xC000, (V & 0x0F) | 0x32);
@@ -45,7 +45,7 @@ static void BMC830134CPW(uint32 A, uint8 V) {
 }
 
 static DECLFW(BMC830134CWrite) {
-	EXPREGS[0] = V;
+	EXPREGS[0] = A &0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
