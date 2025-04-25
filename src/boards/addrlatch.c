@@ -846,3 +846,34 @@ static void M464Sync(void) {
 void Mapper464_Init(CartInfo *info) {
 	Latch_Init(info, M464Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
+
+/*------------------ Map 488 ---------------------------*/
+static void M488Sync(void) {
+	setchr8(latche);
+	if (latche &4)
+		setprg32(0x8000, latche);
+	else {
+		setprg16(0x8000, latche <<1 | latche >>4 &1);
+		setprg16(0xC000, latche <<1 | latche >>4 &1);
+	}
+}
+
+static DECLFR(M488Read) {
+	if (latche & 0x100)
+		A =A &~0x0F | dipswitch &0xF;
+	return CartBR(A);
+}
+
+static void M488Reset(void) {
+	dipswitch++;
+	latche =0;
+	M488Sync();
+}
+
+void Mapper488_Init(CartInfo *info) {
+	dipswitch = 0;
+	Latch_Init(info, M488Sync, M488Read, 0x0000, 0x8000, 0xFFFF, 0);
+	info->Reset = M488Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
+}
+
