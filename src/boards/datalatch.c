@@ -675,6 +675,39 @@ void Mapper462_Init(CartInfo *info) {
 	AddExState(&M462OuterBank, 1, 0, "EXP0");
 }
 
+/*------------------ Mapper 477 ---------------------------*/
+static void Mapper477_Sync(void) {
+	if (latche &0xE) {
+		setprg16(0x8000, 0xFF);
+		setprg16(0xC000, latche);
+	} else
+		setprg32(0x8000, latche >>1);
+	setchr8(latche);
+}
+
+static DECLFW(Mapper477_Write) { /* Resistors placed on the first 128 KiB PRG ROM chip (banks 8-15) cause ROM to always win D0..D3. Otherwise, normal AND-type bus conflicts. */
+	latche = latche &8? (CartBR(A) &0x0F | V &CartBR(A) &~0x0F): (CartBR(A) &V);
+	WSync();
+}
+
+static void Mapper477_Power(void) {
+	LatchPower();
+	SetWriteHandler(0x8000, 0xFFFF, Mapper477_Write);
+}
+
+static void Mapper477_Reset(void) {
+	latche = 0;
+	WSync();
+}
+
+void Mapper477_Init(CartInfo *info) {
+	submapper =info->submapper;
+	Latch_Init(info, Mapper477_Sync, 0, 0x8000, 0xFFFF, 0, 0);
+	info->Reset = Mapper477_Reset;
+	info->Power = Mapper477_Power;
+}
+
+
 /*------------------ Mapper 481 ---------------------------*/
 
 static void Mapper481_Sync(void) {
