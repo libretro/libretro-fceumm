@@ -76,3 +76,23 @@ void Mapper206_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
+
+static DECLFW(M486Write) {
+	DRegs[A &7] =(A &7) <2? (V >>1): V;
+	Sync();
+}
+
+static void M486Power(void) {
+	cmd = 0;
+	DRegs[6] = 0;
+	DRegs[7] = 1;
+	Sync();
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x8000, 0x9FFF, M486Write);
+}
+
+void Mapper486_Init(CartInfo *info) {
+	info->Power = M486Power;
+	GameStateRestore = StateRestore;
+	AddExState(&StateRegs, ~0, 0, 0);
+}
