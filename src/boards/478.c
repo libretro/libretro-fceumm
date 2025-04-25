@@ -30,7 +30,7 @@ static void PRGWrap(uint32 A, uint8 V) {
 
 static void CHRWrap(uint32 A, uint8 V) {
 	int chrAND =EXPREGS[0] &8 && EXPREGS[0] &4? 0x1F: 0x7F;
-	setchr1(A, V &chrAND | EXPREGS[0] << 5&~chrAND);
+	setchr1(A, V &chrAND | EXPREGS[0] <<5 &~chrAND);
 }
 
 static DECLFW(WriteReg) {
