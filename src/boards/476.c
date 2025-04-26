@@ -53,7 +53,8 @@ static DECLFR(remapButtons) {
 		        (result &0x60? 0x02: 0x00)   ; /* SELECT/B */
 	} else
 	if (A ==0x4017) {
-		for (int i =0; i <8; i++) {
+		int i;
+		for (i =0; i <8; i++) {
 			result <<=1;
 			result |=read4016(0x4016) &1;
 		}
