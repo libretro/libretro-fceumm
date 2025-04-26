@@ -1,4 +1,14 @@
 #include "flashrom.h"
+
+uint8		flashrom_manufacturerID;
+uint8		flashrom_modelID;
+int		flashrom_state;
+uint32		flashrom_sectorSize;
+int             flashrom_timeOut;
+uint32		flashrom_magicAddr1;
+uint32		flashrom_magicAddr2;
+uint32		flashrom_magicMask;
+
 void flashrom_init (uint8 manufacturerID, uint8 modelID, uint32 sectorSize, uint32 magicAddr1, uint32 magicAddr2, uint32 magicMask) {
 	flashrom_manufacturerID =manufacturerID;
 	flashrom_modelID =modelID;
