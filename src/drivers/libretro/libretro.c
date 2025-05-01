@@ -2548,8 +2548,6 @@ static void FCEUD_UpdateInput(void)
    unsigned player, port;
    bool palette_prev = false;
    bool palette_next = false;
-   /* keeps track of button state for a number of frames */
-   static int turbo_button_state[4][2];
 
    poll_cb();
 
@@ -2659,15 +2657,8 @@ static void FCEUD_UpdateInput(void)
             {
                if (input_cb(player, RETRO_DEVICE_JOYPAD, 0, turbomap[i].retro) || input_cb(player, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3))
                {
-                  if (!turbo_button_toggle[player][i]) {
-                     /* keep button state for 2 frames */
-                     turbo_button_state[player][i] = 2;
-                  }
-
-                  if (turbo_button_state[player][i]) {
-                     turbo_button_state[player][i]--;
+                  if (!turbo_button_toggle[player][i])
                      input_buf |= turbomap[i].nes;
-                  }
                   turbo_button_toggle[player][i]++;
                   turbo_button_toggle[player][i] %= nes_input.turbo_delay + 1;
                }
