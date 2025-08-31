@@ -18,15 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "mapinc.h"
-#include "asic_vrc2and4.h"
+#ifndef _ASIC_LATCH_H
+#define _ASIC_LATCH_H
 
-static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
-	VRC24_syncCHR(0x07, 0x00);
-	VRC24_syncMirror();
-}
+extern uint16 Latch_address;
+extern uint8 Latch_data;
 
-void Mapper520_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
-}
+DECLFW (Latch_write);
+void Latch_addExState ();
+void Latch_restore (int);
+void Latch_power ();
+void Latch_activate (uint8, void (*)(), uint16, uint16, void (*)(uint16*, uint8*, uint8));
+void Latch6_activate (uint8, void (*)(), uint16, uint16, void (*)(uint16*, uint8*, uint8));
+void Latch_init (CartInfo *, void (*)(), uint16, uint16, void (*)(uint16*, uint8*, uint8));
+
+#endif

@@ -18,15 +18,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "mapinc.h"
-#include "asic_vrc2and4.h"
+#ifndef _ASIC_MMC1_H
+#define _ASIC_MMC1_H
 
-static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
-	VRC24_syncCHR(0x07, 0x00);
-	VRC24_syncMirror();
-}
+#define MMC1_TYPE_MMC1A 0
+#define MMC1_TYPE_MMC1B 1
 
-void Mapper520_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
-}
+void MMC1_syncWRAM (int);
+int MMC1_getPRGBank (uint8);
+int MMC1_getCHRBank (uint8);
+void MMC1_syncPRG (int, int);
+void MMC1_syncCHR (int, int);
+void MMC1_syncMirror ();
+void FP_FASTAPASS(1) MMC1_cpuCycle(int);
+DECLFW (MMC1_write);
+void MMC1_addExState ();
+void MMC1_restore (int);
+void MMC1_power ();
+void MMC1_activate (uint8, void (*)(), uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
+void MMC1_init (CartInfo *, void (*)(), uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
+
+#endif

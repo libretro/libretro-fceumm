@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static void sync () {
 	VRC24_syncPRG(0x0F, VRC2_pins <<4);
@@ -29,10 +29,10 @@ static void sync () {
 
 void Mapper450_reset(void) {
 	VRC2_pins =0;
-	VRC24_Sync();
+	sync();
 }	
 
 void Mapper450_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 0, 0, 0);
+	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 	info->Reset =Mapper450_reset;
 }

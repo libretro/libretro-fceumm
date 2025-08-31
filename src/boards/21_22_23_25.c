@@ -19,7 +19,8 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
+#include "wram.h"
 
 static void sync () {
 	VRC24_syncWRAM(0);
@@ -31,41 +32,38 @@ static void sync () {
 
 void Mapper21_Init (CartInfo *info) {
 	switch(info->submapper) {
-		case 1:  VRC24_init(info, sync, 0x02, 0x04, 1, 1, 8); break;
-		case 2:  VRC24_init(info, sync, 0x40, 0x80, 1, 1, 8); break;
-		default: VRC24_init(info, sync, 0x42, 0x84, 1, 1, 8); break;
+		case 1:  VRC4_init(info, sync, 0x02, 0x04, 1, NULL, NULL, NULL, NULL, NULL); break;
+		case 2:  VRC4_init(info, sync, 0x40, 0x80, 1, NULL, NULL, NULL, NULL, NULL); break;
+		default: VRC4_init(info, sync, 0x42, 0x84, 1, NULL, NULL, NULL, NULL, NULL); break;
 	}
+	WRAM_init(info, 8);
 }
 
-int Mapper22_getCHRBank(int bank) {
-	return VRC24_chr[bank &7] >>1;
+static int Mapper22_getCHRBank(uint8 bank) {
+	return VRC24_getCHRBank(bank &7) >>1;
 }
 
 void Mapper22_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x02, 0x01, 0, 0, 8);
-	VRC24_GetCHRBank =Mapper22_getCHRBank;
-}
-
-DECLFR(Mapper23_readProtection) {
-	return VRC2_pins;
+	VRC2_init(info, sync, 0x02, 0x01, NULL, Mapper22_getCHRBank, NULL, NULL);
+	WRAM_init(info, 8);
 }
 
 void Mapper23_Init (CartInfo *info) {
 	switch(info->submapper) {
-		case 1:  VRC24_init(info, sync, 0x01, 0x02, 1, 1, 8); break;
-		case 2:  VRC24_init(info, sync, 0x04, 0x08, 1, 1, 8); break;
-		case 3:  VRC24_init(info, sync, 0x01, 0x02, 0, 0, 8);
-		         VRC24_WRAMRead =Mapper23_readProtection;
-		         break;
-		default: VRC24_init(info, sync, 0x05, 0x0A, 1, 1, 8); break;
+		case 1:  VRC4_init(info, sync, 0x01, 0x02, 1, NULL, NULL, NULL, NULL, NULL); break;
+		case 2:  VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL); break;
+		case 3:  VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL); break;
+		default: VRC4_init(info, sync, 0x05, 0x0A, 1, NULL, NULL, NULL, NULL, NULL); break;
 	}
+	WRAM_init(info, 8);
 }
 
 void Mapper25_Init (CartInfo *info) {
 	switch(info->submapper) {
-		case 1:  VRC24_init(info, sync, 0x02, 0x01, 1, 1, 8); break;
-		case 2:  VRC24_init(info, sync, 0x08, 0x04, 1, 1, 8); break;
-		case 3:  VRC24_init(info, sync, 0x02, 0x01, 0, 0, 8); break;
-		default: VRC24_init(info, sync, 0x0A, 0x05, 1, 1, 8); break;
+		case 1:  VRC4_init(info, sync, 0x02, 0x01, 1, NULL, NULL, NULL, NULL, NULL); break;
+		case 2:  VRC4_init(info, sync, 0x08, 0x04, 1, NULL, NULL, NULL, NULL, NULL); break;
+		case 3:  VRC2_init(info, sync, 0x02, 0x01, NULL, NULL, NULL, NULL); break;
+		default: VRC4_init(info, sync, 0x0A, 0x05, 1, NULL, NULL, NULL, NULL, NULL); break;
 	}
+	WRAM_init(info, 8);
 }

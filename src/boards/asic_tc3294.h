@@ -18,15 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "mapinc.h"
-#include "asic_vrc2and4.h"
+#ifndef _ASIC_TC3294_H
+#define _ASIC_TC3294_H
 
-static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
-	VRC24_syncCHR(0x07, 0x00);
-	VRC24_syncMirror();
-}
+void TC3294_syncWRAM (int);
+void TC3294_syncPRG (int, int);
+void TC3294_syncCHR (int, int);
+void TC3294_syncMirror ();
+DECLFW (TC3294_write);
+void TC3294_activate (uint8, void (*)());
+void TC3294_addExState ();
+void TC3294_restore (int);
+void TC3294_power ();
+void TC3294_init (CartInfo *, void (*)());
 
-void Mapper520_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
-}
+#endif

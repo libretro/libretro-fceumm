@@ -19,14 +19,14 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static void sync () {
 	VRC24_syncPRG(0x01F, 0x000);
 	VRC24_syncCHR(0x1FF, 0x000);
-	setmirrorw(VRC24_chr[0] >>7, VRC24_chr[0] >>7, VRC24_chr[1] >>7, VRC24_chr[1] >>7);
+	setmirrorw(VRC24_getCHRBank(0) >>7, VRC24_getCHRBank(0) >>7, VRC24_getCHRBank(1) >>7, VRC24_getCHRBank(1) >>7);
 }
 
 void UNLAX40G_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 0, 0, 0);
+	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 }

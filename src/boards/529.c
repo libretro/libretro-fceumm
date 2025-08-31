@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 #include "eeprom_93Cx6.h"
 
 static uint8 eeprom_data[256];
@@ -30,7 +30,7 @@ static SFORMAT stateRegs[] ={
 };
 
 static void sync () {
-	setprg16(0x8000, VRC24_prg[1]);
+	setprg16(0x8000, VRC24_getPRGBank(1));
 	setprg16(0xC000, 0xFF);
 	VRC24_syncCHR(0x1FF, 0x000);
 	VRC24_syncMirror();
@@ -52,7 +52,7 @@ void UNLT230_power (void) {
 }
 
 void UNLT230_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 1, 0);
+	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
 	if (info->PRGRamSaveSize) {
 		info->Power =UNLT230_power;
 		AddExState(stateRegs, ~0, 0, 0);

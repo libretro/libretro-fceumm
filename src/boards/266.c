@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8  prg;
 
@@ -39,7 +39,7 @@ DECLFW(UNLCITYFIGHT_externalSelect) {
 		(GetWriteHandler(0x4011))(0x4011, V <<3 &0x78);
 	else {
 		prg =V >>2;
-		VRC24_Sync();
+		sync();
 	}
 }
 
@@ -54,8 +54,7 @@ void UNLCITYFIGHT_power(void) {
 }
 
 void UNLCITYFIGHT_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 1, 0);
-	VRC24_ExternalSelect =UNLCITYFIGHT_externalSelect;
+	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, UNLCITYFIGHT_externalSelect);
 	AddExState(UNLCITYFIGHT_stateRegs, ~0, 0, 0);
 	info->Power =UNLCITYFIGHT_power;
 }

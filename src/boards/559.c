@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8 nt[4];
 static uint8 prg;
@@ -38,7 +38,7 @@ static void sync () {
 	setmirrorw(nt[0] &1, nt[1] &1, nt[2] &1, nt[3] &1);
 }
 
-int Mapper559_getPRGBank(int bank) {
+int Mapper559_getPRGBank(uint8 bank) {
 	return bank ==2? prg: VRC24_getPRGBank(bank);
 }
 
@@ -47,7 +47,7 @@ DECLFW(Mapper559_externalSelect) {
 		nt[A &3] =V;
 	else
 		prg =V;
-	VRC24_Sync();
+	sync();
 }
 
 DECLFW(Mapper559_nibblizeData) {
@@ -63,9 +63,7 @@ void Mapper559_power (void) {
 }
 
 void Mapper559_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x400, 0x800, 1, 1, 0);
+	VRC4_init(info, sync, 0x400, 0x800, 1, Mapper559_getPRGBank, NULL, NULL, NULL, Mapper559_externalSelect);
 	info->Power =Mapper559_power;
-	VRC24_GetPRGBank =Mapper559_getPRGBank;
-	VRC24_ExternalSelect =Mapper559_externalSelect;
 	AddExState(stateRegs, ~0, 0, 0);
 }

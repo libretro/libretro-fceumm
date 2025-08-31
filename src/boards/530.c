@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static void sync () {
 	VRC24_syncPRG(0x01F, 0x000);
@@ -27,12 +27,12 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-int UNLAX5705_getPRGBank(int bank) {
+int UNLAX5705_getPRGBank(uint8 bank) {
 	int result =VRC24_getPRGBank(bank);
 	return result <<2 &0x8 | result >>2 &0x2 | result &~0xA;
 }
 
-int UNLAX5705_getCHRBank(int bank) {
+int UNLAX5705_getCHRBank(uint8 bank) {
 	int result =VRC24_getCHRBank(bank);
 	return result <<1 &0x40 | result >>1 &0x20 | result &~0x60;
 }
@@ -47,8 +47,6 @@ void UNLAX5705_power (void) {
 }
 
 void UNLAX5705_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 1, 1, 0);
+	VRC4_init(info, sync, 0x01, 0x02, 1, UNLAX5705_getPRGBank, UNLAX5705_getCHRBank, NULL, NULL, NULL);
 	info->Power =UNLAX5705_power;
-	VRC24_GetPRGBank =UNLAX5705_getPRGBank;
-	VRC24_GetCHRBank =UNLAX5705_getCHRBank;
 }

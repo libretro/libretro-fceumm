@@ -19,7 +19,8 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
+#include "wram.h"
 
 static uint8 reg;
 
@@ -38,7 +39,7 @@ static void sync () {
 DECLFW(Mapper384_writeReg) {
 	if (A &0x800 && ~reg &0x08) {
 		reg =V;
-		VRC24_Sync();
+		sync();
 	}
 	CartBW(A, V);
 }
@@ -50,12 +51,12 @@ void Mapper384_power(void) {
 
 void Mapper384_reset(void) {
 	reg =0;
-	VRC24_Sync();
+	sync();
 }	
 
 void Mapper384_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 0, 2);
-	VRC24_WRAMWrite =Mapper384_writeReg;
+	VRC4_init(info, sync, 0x04, 0x08, 0, NULL, NULL, NULL, Mapper384_writeReg, NULL);
+	WRAM_init(info, 2);
 	info->Power =Mapper384_power;
 	info->Reset =Mapper384_reset;
 	AddExState(Mapper384_stateRegs, ~0, 0, 0);

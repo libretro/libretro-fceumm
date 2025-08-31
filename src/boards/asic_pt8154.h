@@ -18,15 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "mapinc.h"
-#include "asic_vrc2and4.h"
+#ifndef _ASIC_PT8154_H
+#define _ASIC_PT8154_H
 
-static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
-	VRC24_syncCHR(0x07, 0x00);
-	VRC24_syncMirror();
-}
+void PT8154_syncPRG (int, int);
+void PT8154_syncCHR (int, int);
+void PT8154_syncMirror ();
+DECLFW (PT8154_writeExtra);
+DECLFW (PT8154_writeWRAM);
+void PT8154_activate (uint8, void (*)());
+void PT8154_addExState ();
+void PT8154_restore (int);
+void PT8154_power ();
+void PT8154_init (CartInfo *, void (*)());
 
-void Mapper520_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
-}
+#endif

@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8 irqEnabled;
 static uint8 irqCounter;
@@ -56,7 +56,7 @@ void Mapper563_power(void) {
 }
 
 void Mapper563_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 0, 0, 0);
+	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 	AddExState(Mapper563_stateRegs, ~0, 0, 0);
 	info->Power =Mapper563_power;
 	GameHBIRQHook = Mapper563_scanline;

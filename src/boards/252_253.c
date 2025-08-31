@@ -19,7 +19,8 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
+#include "wram.h"
 
 static uint8 *CHRRAM;
 static uint32 CHRRAMSize;
@@ -39,17 +40,17 @@ static void sync () {
 	int bank;
 	VRC24_syncWRAM(0);
 	VRC24_syncPRG(0x01F, 0x000);
-	for (bank =0; bank <8; bank++) setchr1r((VRC24_chr[bank] &mask) ==compare? 0x10: 0x00, bank <<10, VRC24_chr[bank]);
+	for (bank =0; bank <8; bank++) setchr1r((VRC24_getCHRBank(bank) &mask) ==compare? 0x10: 0x00, bank <<10, VRC24_getCHRBank(bank));
 	VRC24_syncMirror();
 }
 
 static DECLFW(Mapper252_253_interceptPPUWrite) {
 	if (~RefreshAddr &0x2000) {
-		int bank =VRC24_chr[RefreshAddr >>10 &7];
+		int bank =VRC24_getCHRBank(RefreshAddr >>10 &7);
 		switch(bank) {
-			case 0x88: mask =0xFC; compare =0x4C; VRC24_Sync(); break;
-			case 0xC2: mask =0xFE; compare =0x7C; VRC24_Sync(); break;
-			case 0xC8: mask =0xFE; compare =0x04; VRC24_Sync(); break;
+			case 0x88: mask =0xFC; compare =0x4C; sync(); break;
+			case 0xC2: mask =0xFE; compare =0x7C; sync(); break;
+			case 0xC8: mask =0xFE; compare =0x04; sync(); break;
 		}
 	}
 	writePPU(A, V);
@@ -76,10 +77,12 @@ void Mapper252_253_close(void) {
 		FCEU_gfree(CHRRAM);
 		CHRRAM =NULL;
 	}
+	WRAM_close();
 }
 
 void Mapper252_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x4, 0x8, 1, 1, 0);
+	VRC4_init(info, sync, 0x4, 0x8, 1, NULL, NULL, NULL, NULL, NULL);
+	WRAM_init(info, 8);
 	info->Power =Mapper252_power;
 	info->Close =Mapper252_253_close;
 	AddExState(stateRegs, ~0, 0, 0);
@@ -91,7 +94,8 @@ void Mapper252_Init (CartInfo *info) {
 }
 
 void Mapper253_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x4, 0x8, 1, 1, 0);
+	VRC4_init(info, sync, 0x4, 0x8, 1, NULL, NULL, NULL, NULL, NULL);
+	WRAM_init(info, 8);
 	info->Power =Mapper253_power;
 	info->Close =Mapper252_253_close;
 	AddExState(stateRegs, ~0, 0, 0);

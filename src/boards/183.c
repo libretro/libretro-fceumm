@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8  prg;
 
@@ -37,7 +37,7 @@ static void sync () {
 
 DECLFW(Mapper183_writePRG) {
 	prg =A &0xFF;
-	VRC24_Sync();
+	sync();
 }
 
 void Mapper183_power(void) {
@@ -46,9 +46,7 @@ void Mapper183_power(void) {
 }
 
 void Mapper183_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 1, 0);
-	VRC24_WRAMRead =CartBR;
-	VRC24_WRAMWrite =Mapper183_writePRG;
+	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, CartBR, Mapper183_writePRG, NULL);
 	AddExState(Mapper183_stateRegs, ~0, 0, 0);
 	info->Power =Mapper183_power;
 }

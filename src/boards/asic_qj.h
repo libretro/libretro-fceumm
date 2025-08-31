@@ -18,15 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "mapinc.h"
-#include "asic_vrc2and4.h"
+#ifndef _ASIC_QJ_H
+#define _ASIC_QJ_H
 
-static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
-	VRC24_syncCHR(0x07, 0x00);
-	VRC24_syncMirror();
-}
+void QJ_syncWRAM (int);
+void QJ_syncPRG (int, int);
+void QJ_syncCHR (int, int);
+void QJ_syncMirror ();
+DECLFW (QJ_write);
+void QJ_activate (uint8, void (*)());
+void QJ_addExState ();
+void QJ_restore (int);
+void QJ_power ();
+void QJ_init (CartInfo *, void (*)());
 
-void Mapper520_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
-}
+#endif

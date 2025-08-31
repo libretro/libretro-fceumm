@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8  irqEnabled;
 static uint16 irqCounter;
@@ -58,7 +58,7 @@ void BTL900218_power(void) {
 }
 
 void BTL900218_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 0, 0, 0);
+	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 	AddExState(BTL900218_stateRegs, ~0, 0, 0);
 	info->Power =BTL900218_power;
 	MapIRQHook =BTL900218_cpuCycle;

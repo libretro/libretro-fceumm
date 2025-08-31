@@ -19,15 +19,14 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static void sync () {
-	VRC24_syncWRAM(0);
 	VRC24_syncPRG(0x01F, 0x000);
 	VRC24_syncCHR(0x1FF, 0x000);
 	VRC24_syncMirror();
 }
 
 void UNLTF1201_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x02, 0x01, 1, 0, 8);
+	VRC4_init(info, sync, 0x02, 0x01, 0, NULL, NULL, NULL, NULL, NULL);
 }

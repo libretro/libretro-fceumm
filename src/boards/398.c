@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8 reg;
 
@@ -30,8 +30,8 @@ static SFORMAT Mapper398_stateRegs[] ={
 
 static void sync () {
 	if (reg &0x80) {
-		setprg32(0x8000, reg >>5 &6 | VRC24_chr[0] >>2 &1);
-		setchr8(0x40 | reg >>3 &8 | VRC24_chr[0] &7);
+		setprg32(0x8000, reg >>5 &6 | VRC24_getCHRBank(0) >>2 &1);
+		setchr8(0x40 | reg >>3 &8 | VRC24_getCHRBank(0) &7);
 	} else {
 		VRC24_syncPRG(0x0F, 0x00);
 		VRC24_syncCHR(0x1FF, 0x000);
@@ -41,7 +41,6 @@ static void sync () {
 
 DECLFW(Mapper398_writeReg) {
 	reg =A &0xFF;	
-	VRC24_Sync();
 	VRC24_writeReg(A, V);
 }
 
@@ -53,11 +52,11 @@ void Mapper398_power(void) {
 
 void Mapper398_reset(void) {
 	reg =0xC0;
-	VRC24_Sync();
+	sync();
 }	
 
 void Mapper398_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 1, 1, 0);
+	VRC4_init(info, sync, 0x01, 0x02, 1, NULL, NULL, NULL, NULL, NULL);
 	info->Power =Mapper398_power;
 	info->Reset =Mapper398_reset;
 	AddExState(Mapper398_stateRegs, ~0, 0, 0);

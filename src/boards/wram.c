@@ -19,14 +19,28 @@
  */
 
 #include "mapinc.h"
-#include "asic_vrc2and4.h"
+#include "wram.h"
 
-static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
-	VRC24_syncCHR(0x07, 0x00);
-	VRC24_syncMirror();
+static uint8 *WRAMData = NULL;
+uint32 WRAMSize = 0;
+
+void WRAM_close (void) {
+	if (WRAMData) {
+		FCEU_gfree(WRAMData);
+		WRAMData =NULL;
+	}
 }
 
-void Mapper520_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
+void WRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB) {
+	WRAMSize =info->iNES2? (info->PRGRamSize +info->PRGRamSaveSize): (defaultWRAMSizeKiB *1024);
+	if (WRAMSize) {
+		info->Close =WRAM_close;
+		WRAMData =(uint8*)FCEU_gmalloc(WRAMSize);
+		SetupCartPRGMapping(0x10, WRAMData, WRAMSize, 1);
+		AddExState(WRAMData, WRAMSize, 0, "WRAM");
+		if (info->battery) {
+			info->SaveGame[0] =WRAMData;
+			info->SaveGameLen[0] =WRAMSize;
+		}
+	}
 }

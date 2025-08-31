@@ -18,15 +18,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "mapinc.h"
-#include "asic_vrc2and4.h"
+#ifndef _ASIC_H3001_H
+#define _ASIC_H3001_H
 
-static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
-	VRC24_syncCHR(0x07, 0x00);
-	VRC24_syncMirror();
-}
+void H3001_syncPRG (int, int);
+void H3001_syncCHR (int, int);
+void H3001_syncMirror ();
+DECLFW (H3001_write);
+void H3001_activate (uint8, void (*)());
+void H3001_addExState ();
+void H3001_restore (int);
+void H3001_power ();
+void H3001_init (CartInfo *, void (*)());
 
-void Mapper520_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
-}
+#endif

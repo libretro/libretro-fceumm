@@ -19,7 +19,8 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
+#include "wram.h"
 
 static uint8 reg;
 static uint8 dip;
@@ -37,7 +38,7 @@ static void sync () {
 	VRC24_syncWRAM(0);
 }
 
-static int Mapper447_getPRGBank(int bank) {
+static int Mapper447_getPRGBank(uint8 bank) {
 	if (reg &4) {
 		if (~reg &2)
 			return VRC24_getPRGBank(bank &1) &~2 | bank &2;
@@ -52,9 +53,9 @@ DECLFR(Mapper447_readPRG) {
 }
 
 DECLFW(Mapper447_writeReg) {
-	if (VRC24_misc &1 && ~reg &1) {
+	if (~reg &1) {
 		reg =A &0xFF;
-		VRC24_Sync();
+		sync();
 	}
 	CartBW(A, V);
 }
@@ -69,13 +70,12 @@ void Mapper447_power(void) {
 void Mapper447_reset(void) {
 	reg =0;
 	dip++;
-	VRC24_Sync();
+	sync();
 }	
 
 void Mapper447_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 0, 2);
-	VRC24_WRAMWrite =Mapper447_writeReg;
-	VRC24_GetPRGBank =Mapper447_getPRGBank;
+	VRC4_init(info, sync, 0x04, 0x08, 0, Mapper447_getPRGBank, NULL, NULL, Mapper447_writeReg, NULL );
+	WRAM_init(info, 2);
 	info->Power =Mapper447_power;
 	info->Reset =Mapper447_reset;
 	AddExState(Mapper447_stateRegs, ~0, 0, 0);

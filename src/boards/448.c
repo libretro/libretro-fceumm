@@ -19,7 +19,8 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
+#include "wram.h"
 
 static uint8 reg;
 
@@ -30,15 +31,15 @@ static SFORMAT Mapper448_stateRegs[] ={
 
 static void sync () {
 	if (reg &8) { /* AOROM */
-		setprg32(0x8000, VRC24_prg[0] &0x07 | reg <<2 &~0x07);
-		setmirror(VRC24_prg[0] &0x10? MI_1: MI_0);
+		setprg32(0x8000, VRC24_getPRGBank(0) &0x07 | reg <<2 &~0x07);
+		setmirror(VRC24_getPRGBank(0) &0x10? MI_1: MI_0);
 	} else {
 		if (reg &4) { /* UOROM */
-			setprg16(0x8000, VRC24_prg[0] &0xF | reg <<3 &~0xF);
-			setprg16(0xC000,               0xF | reg <<3 &~0xF);
+			setprg16(0x8000, VRC24_getPRGBank(0) &0xF | reg <<3 &~0xF);
+			setprg16(0xC000,                      0xF | reg <<3 &~0xF);
 		} else { /* UNROM */
-			setprg16(0x8000, VRC24_prg[0] &0x7 | reg <<3 &~0x7);
-			setprg16(0xC000,               0x7 | reg <<3 &~0x7);
+			setprg16(0x8000, VRC24_getPRGBank(0) &0x7 | reg <<3 &~0x7);
+			setprg16(0xC000,                      0x7 | reg <<3 &~0x7);
 		}
 		VRC24_syncMirror();
 	}
@@ -46,10 +47,8 @@ static void sync () {
 }
 
 DECLFW(Mapper448_writeReg) {
-	if (VRC24_misc &1) {
-		reg =A &0xFF;
-		VRC24_Sync();
-	}
+	reg =A &0xFF;
+	sync();
 	CartBW(A, V);
 }
 
@@ -65,12 +64,12 @@ void Mapper448_power(void) {
 
 void Mapper448_reset(void) {
 	reg =0;
-	VRC24_Sync();
+	sync();
 }	
 
 void Mapper448_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 0, 2);
-	VRC24_WRAMWrite =Mapper448_writeReg;
+	VRC4_init(info, sync, 0x04, 0x08, 0, NULL, NULL, NULL, Mapper448_writeReg, NULL);
+	WRAM_init(info, 2);
 	info->Power =Mapper448_power;
 	info->Reset =Mapper448_reset;
 	AddExState(Mapper448_stateRegs, ~0, 0, 0);

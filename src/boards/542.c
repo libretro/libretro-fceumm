@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8 reg;
 
@@ -39,7 +39,7 @@ static void sync () {
 DECLFW(Mapper542_writeExtra) {
 	if (A &0x800) {
 		reg =A >>12;
-		VRC24_Sync();
+		sync();
 	} else
 		VRC24_writeReg(A, V);
 }
@@ -53,7 +53,7 @@ void Mapper542_power (void) {
 }
 
 void Mapper542_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 1, 1, 0);
+	VRC4_init(info, sync, 0x01, 0x02, 1, NULL, NULL, NULL, NULL, NULL);
 	info->Power =Mapper542_power;
 	AddExState(stateRegs, ~0, 0, 0);
 	SetupCartCHRMapping(0x10, NTARAM, 0x200, 1);

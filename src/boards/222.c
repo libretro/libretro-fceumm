@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8 clockMode;
 static uint8 pending;
@@ -91,7 +91,7 @@ void Mapper222_power(void) {
 }
 
 void Mapper222_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 0, 0, 0);
+	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 	AddExState(Mapper222_stateRegs, ~0, 0, 0);
 	info->Power =Mapper222_power;
 	MapIRQHook =Mapper222_cpuCycle;
