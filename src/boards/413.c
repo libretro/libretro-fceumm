@@ -95,9 +95,13 @@ static void power (void) {
 	SetReadHandler(0xC000, 0xCFFF, readPCM);	
 }
 
+static void StateRestore(int version) {
+	sync();
+}
+
 void Mapper413_Init(CartInfo *info) {
 	pcmAddressMask =info->miscROMSize -1;
-	GameStateRestore =sync;
+	GameStateRestore =StateRestore;
 	GameHBIRQHook =horizontalBlanking;
 	info->Power = power;
 	AddExState(stateRegs, ~0, 0, 0);
