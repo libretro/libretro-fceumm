@@ -43,6 +43,57 @@
 #include "libretro-common/include/libretro_gskit_ps2.h"
 #endif
 
+#if defined (PSP)
+#define RED_SHIFT 0
+#define GREEN_SHIFT 5
+#define BLUE_SHIFT 11
+#define RED_EXPAND 3
+#define GREEN_EXPAND 2
+#define BLUE_EXPAND 3
+typedef uint16 bpp_t;
+#elif defined (FRONTEND_SUPPORTS_ABGR1555)
+#define RED_SHIFT 0
+#define GREEN_SHIFT 5
+#define BLUE_SHIFT 10
+#define RED_EXPAND 3
+#define GREEN_EXPAND 3
+#define BLUE_EXPAND 3
+#define RED_MASK 0x1F
+#define GREEN_MASK 0x3E0
+#define BLUE_MASK 0x7C00
+typedef uint16 bpp_t;
+#elif defined (FRONTEND_SUPPORTS_RGB888)
+#define RED_SHIFT 16
+#define GREEN_SHIFT 8
+#define BLUE_SHIFT 0
+#define RED_EXPAND 0
+#define GREEN_EXPAND 0
+#define BLUE_EXPAND 0
+#define RED_MASK 0xFF0000
+#define GREEN_MASK 0x00FF00
+#define BLUE_MASK 0x0000FF
+typedef uint32 bpp_t;
+#elif defined (FRONTEND_SUPPORTS_RGB565)
+#define RED_SHIFT 11
+#define GREEN_SHIFT 5
+#define BLUE_SHIFT 0
+#define RED_EXPAND 3
+#define GREEN_EXPAND 2
+#define BLUE_EXPAND 3
+#define RED_MASK 0xF800
+#define GREEN_MASK 0x7e0
+#define BLUE_MASK 0x1f
+typedef uint16 bpp_t;
+#else
+#define RED_SHIFT 10
+#define GREEN_SHIFT 5
+#define BLUE_SHIFT 0
+#define RED_EXPAND 3
+#define GREEN_EXPAND 3
+#define BLUE_EXPAND 3
+typedef uint16 bpp_t;
+#endif
+
 #define MAX_PLAYERS 4 /* max supported players */
 #define MAX_PORTS 2   /* max controller ports,
                        * port 0 for player 1/3, port 1 for player 2/4 */
@@ -197,12 +248,12 @@ static bool opt_showAdvSystemOptions = true;
 #if defined(PSP) || defined(PS2)
 static __attribute__((aligned(16))) uint16_t retro_palette[256];
 #else
-static uint16_t retro_palette[1024];
+static uint32_t retro_palette[1024];
 #endif
 #if defined(RENDER_GSKIT_PS2)
 static uint8_t* fceu_video_out;
 #else
-static uint16_t* fceu_video_out;
+static bpp_t* fceu_video_out;
 #endif
 
 /* Some timing-related variables. */
@@ -234,42 +285,6 @@ const char * GetKeyboard(void)
 }
 
 #define BUILD_PIXEL_RGB565(R,G,B) (((int) ((R)&0x1f) << RED_SHIFT) | ((int) ((G)&0x3f) << GREEN_SHIFT) | ((int) ((B)&0x1f) << BLUE_SHIFT))
-
-#if defined (PSP)
-#define RED_SHIFT 0
-#define GREEN_SHIFT 5
-#define BLUE_SHIFT 11
-#define RED_EXPAND 3
-#define GREEN_EXPAND 2
-#define BLUE_EXPAND 3
-#elif defined (FRONTEND_SUPPORTS_ABGR1555)
-#define RED_SHIFT 0
-#define GREEN_SHIFT 5
-#define BLUE_SHIFT 10
-#define RED_EXPAND 3
-#define GREEN_EXPAND 3
-#define BLUE_EXPAND 3
-#define RED_MASK 0x1F
-#define GREEN_MASK 0x3E0
-#define BLUE_MASK 0x7C00
-#elif defined (FRONTEND_SUPPORTS_RGB565)
-#define RED_SHIFT 11
-#define GREEN_SHIFT 5
-#define BLUE_SHIFT 0
-#define RED_EXPAND 3
-#define GREEN_EXPAND 2
-#define BLUE_EXPAND 3
-#define RED_MASK 0xF800
-#define GREEN_MASK 0x7e0
-#define BLUE_MASK 0x1f
-#else
-#define RED_SHIFT 10
-#define GREEN_SHIFT 5
-#define BLUE_SHIFT 0
-#define RED_EXPAND 3
-#define GREEN_EXPAND 3
-#define BLUE_EXPAND 3
-#endif
 
 void FCEUD_SetPalette(uint16 index, uint8_t r, uint8_t g, uint8_t b)
 {
@@ -1144,7 +1159,7 @@ static unsigned use_ntsc = 0;
 static unsigned burst_phase = 0;
 static nes_ntsc_t nes_ntsc;
 static nes_ntsc_setup_t ntsc_setup;
-static uint16_t *ntsc_video_out = NULL; /* for ntsc blit buffer */
+static bpp_t *ntsc_video_out = NULL; /* for ntsc blit buffer */
 
 static void NTSCFilter_Cleanup(void)
 {
@@ -1160,7 +1175,7 @@ static void NTSCFilter_Init(void)
 {
    memset(&nes_ntsc, 0, sizeof(nes_ntsc));
    memset(&ntsc_setup, 0, sizeof(ntsc_setup));
-   ntsc_video_out = (uint16_t *)malloc(NES_NTSC_WIDTH * NES_HEIGHT * sizeof(uint16_t));
+   ntsc_video_out = (bpp_t *)malloc(NES_NTSC_WIDTH * NES_HEIGHT * sizeof(bpp_t));
 }
 
 static void NTSCFilter_Setup(void)
@@ -2815,7 +2830,7 @@ static void retro_run_blit(uint8_t *gfx)
    unsigned incr   = 0;
    unsigned width  = 256;
    unsigned height = 240;
-   unsigned pitch  = 512;
+   unsigned pitch  = width * sizeof(bpp_t);
 
 #ifdef PSP
    if (crop_overscan)
@@ -2890,18 +2905,18 @@ static void retro_run_blit(uint8_t *gfx)
 
       nes_ntsc_blit(&nes_ntsc, (NES_NTSC_IN_T const*)gfx, (NES_NTSC_IN_T *)XDBuf,
           NES_WIDTH, burst_phase, NES_WIDTH, NES_HEIGHT,
-          ntsc_video_out, NES_NTSC_WIDTH * sizeof(uint16));
+          ntsc_video_out, NES_NTSC_WIDTH * sizeof(bpp_t));
 
       width    = NES_WIDTH - crop_overscan_h_left - crop_overscan_h_right;
       width    = NES_NTSC_OUT_WIDTH(width);
       height   = NES_HEIGHT - crop_overscan_v_top - crop_overscan_v_bottom;
-      pitch    = width * sizeof(uint16_t);
+      pitch    = width * sizeof(bpp_t);
 
       {
          int32_t h_offset   = (crop_overscan_h_left ? NES_NTSC_OUT_WIDTH(crop_overscan_h_left) : 0);
          int32_t v_offset   = crop_overscan_v_top;
-         const uint16_t *in = ntsc_video_out + h_offset + NES_NTSC_WIDTH * v_offset;
-         uint16_t *out      = fceu_video_out;
+         const bpp_t *in = ntsc_video_out + h_offset + NES_NTSC_WIDTH * v_offset;
+         bpp_t *out      = fceu_video_out;
 
          for (y = 0; y < height; y++)
          {
@@ -2918,7 +2933,7 @@ static void retro_run_blit(uint8_t *gfx)
       incr   += (crop_overscan_h_left + crop_overscan_h_right);
       width  -= (crop_overscan_h_left + crop_overscan_h_right);
       height -= (crop_overscan_v_top + crop_overscan_v_bottom);
-      pitch  -= (crop_overscan_h_left + crop_overscan_h_right) * sizeof(uint16_t);
+      pitch  -= (crop_overscan_h_left + crop_overscan_h_right) * sizeof(bpp_t);
       gfx    += (crop_overscan_v_top * 256) + crop_overscan_h_left;
 
       {
@@ -3370,7 +3385,7 @@ bool retro_load_game(const struct retro_game_info *info)
    const char *system_dir = NULL;
    size_t fourscore_len = sizeof(fourscore_db_list)   / sizeof(fourscore_db_list[0]);
    size_t famicom_4p_len = sizeof(famicom_4p_db_list) / sizeof(famicom_4p_db_list[0]);
-   enum retro_pixel_format rgb565;
+   enum retro_pixel_format pixformat;
 
    struct retro_input_descriptor desc[] = {
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "D-Pad Left" },
@@ -3533,10 +3548,16 @@ bool retro_load_game(const struct retro_game_info *info)
             sizeof(content_path));
    }
 
-#ifdef FRONTEND_SUPPORTS_RGB565
-   rgb565 = RETRO_PIXEL_FORMAT_RGB565;
-   if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
-      log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
+#ifdef FRONTEND_SUPPORTS_RGB888
+   pixformat = RETRO_PIXEL_FORMAT_XRGB8888;
+   if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixformat))
+      log_cb.log(RETRO_LOG_INFO, "Frontend supports RGBX888 - will use that instead of XRGB1555.\n");
+#else
+   #if FRONTEND_SUPPORTS_RGB565
+      pixformat = RETRO_PIXEL_FORMAT_RGB565;
+      if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixformat))
+         log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
+   #endif
 #endif
 
    /* initialize some of the default variables */
@@ -3572,7 +3593,7 @@ bool retro_load_game(const struct retro_game_info *info)
 #if defined(PS2)
    fceu_video_out = (uint8_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(uint8_t));
 #else
-   fceu_video_out = (uint16_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(uint16_t));
+   fceu_video_out = (bpp_t*)malloc(FB_WIDTH * FB_HEIGHT * sizeof(bpp_t));
 #endif
 #endif
 
