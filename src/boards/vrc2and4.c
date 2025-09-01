@@ -207,6 +207,10 @@ void VRC24_close(void) {
 	}
 }
 
+static void StateRestore(int version) {
+	VRC24_Sync();
+}
+
 void VRC24_init(CartInfo *info, void (*_sync)(), int _A0, int _A1, uint8 _isVRC4, uint8 _useRepeatBit, uint8 defaultWRAMSizeKiB) {
 	VRC24_Sync =_sync;
 	VRC24_A0 =_A0;
@@ -220,7 +224,7 @@ void VRC24_init(CartInfo *info, void (*_sync)(), int _A0, int _A1, uint8 _isVRC4
 	VRC24_ExternalSelect =NULL;
 	info->Power =VRC24_power;
 	info->Close =VRC24_close;
-	GameStateRestore =_sync;
+	GameStateRestore =StateRestore;
 	AddExState(VRC24_stateRegs, ~0, 0, 0);
 	if (VRC24_isVRC4) {
 		MapIRQHook =VRC4_cpuCycle;
