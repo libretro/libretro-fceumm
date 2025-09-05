@@ -37,14 +37,14 @@ void TC3294_syncWRAM (int OR) {
 }
 
 void TC3294_syncPRG (int AND, int OR) {
-	int prgAND =~TC3294_reg[3] &0x3F;
+	int prgAND = ~TC3294_reg[3] &0x3F;
 	int prgOR  = TC3294_reg[1] | TC3294_reg[2] <<2 &0x300;
 	MMC3_syncPRG(prgAND &AND, prgOR &~prgAND &AND | OR &~AND);
 }
 
 void TC3294_syncCHR (int AND, int OR) {
-	int chrAND =0xFF >>(~TC3294_reg[2] &0xF);
-	int chrOR  =TC3294_reg[0] | TC3294_reg[2] <<4 &0xF00;
+	int chrAND = 0xFF >>(~TC3294_reg[2] &0xF);
+	int chrOR  = TC3294_reg[0] | TC3294_reg[2] <<4 &0xF00;
 	MMC3_syncCHR(chrAND &AND, chrOR &~chrAND &AND | OR &~AND);
 }
 
@@ -54,7 +54,7 @@ void TC3294_syncMirror () {
 
 DECLFW(TC3294_write) {
 	if (~TC3294_reg[3] &0x40) {
-		TC3294_reg[TC3294_index++ &3] =V;
+		TC3294_reg[TC3294_index++ &3] = V;
 		TC3294_cbSync();
 	}
 }
