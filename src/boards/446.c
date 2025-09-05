@@ -284,7 +284,7 @@ static void applyMode (uint8 clear) {
 			case 0x004: case 0x101: case 0x201: case 0x209: /* MMC3 or Namco 118 */
 				mapperSync = sync_TxROM;
 				MMC3_activate(clear, sync, MMC3_TYPE_SHARP, NULL, NULL, NULL, NULL);
-				if (clear) MMC3_write(0xA000, reg[4] &0x04? 0: 1);
+				if (clear) MMC3_writeReg(0xA000, reg[4] &0x04? 0: 1);
 				break;
 			case 0x10E: case 0x20E: /* MMC3 with single-screen mirroring. 239-in-1's Goal! Two has a screen where MMC3 scanline counter emulation fails. */
 				mapperSync = sync_TxSROM;
@@ -383,7 +383,7 @@ static void applyMode (uint8 clear) {
 		SetWriteHandler(0x8000, 0xFFFF, writeFlash);
 		mapperSync = sync_supervisor;
 		PPU_hook = NULL;
-		MapIRQHook =flashrom_cpuCycle;
+		MapIRQHook = flashrom_cpuCycle;
 		GameHBIRQHook = NULL;
 		sync();
 	}

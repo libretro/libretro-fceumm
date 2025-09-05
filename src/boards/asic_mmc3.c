@@ -97,7 +97,7 @@ void MMC3_clockCounter () {
 	MMC3_reloadRequest = 0;
 }
 
-DECLFW(MMC3_write) {
+DECLFW(MMC3_writeReg) {
 	switch(A &0xE001) {
 		case 0x8000: MMC3_index = V; break;
 		case 0x8001: MMC3_reg[MMC3_index &7] = V; break;
@@ -121,7 +121,7 @@ static void MMC3_setHandlers () {
 	SetReadHandler (0x6000, 0x7FFF, MMC3_readWRAM);
 	SetWriteHandler(0x6000, 0x7FFF, MMC3_writeWRAM);
 	SetReadHandler (0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, MMC3_write);
+	SetWriteHandler(0x8000, 0xFFFF, MMC3_writeReg);
 	GameHBIRQHook = MMC3_clockCounter;
 }
 

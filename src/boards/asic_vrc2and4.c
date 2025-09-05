@@ -286,7 +286,7 @@ void VRC2_init (CartInfo *info, void (*sync)(), int A0, int A1, int (*prg)(uint8
 	VRC2_addExState();
 	VRC2_configure(sync, A0, A1, prg, chr, read, write);
 	info->Power = VRC24_power;
-	GameStateRestore = VRC24_cbSync;
+	GameStateRestore = VRC24_restore;
 }
 
 void VRC4_init (CartInfo *info, void (*sync)(), int A0, int A1, uint8 useRepeatBit, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write)), DECLFW((*externalSelect))) {
