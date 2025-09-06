@@ -31,7 +31,7 @@ void MMC1_syncPRG (int, int);
 void MMC1_syncCHR (int, int);
 void MMC1_syncMirror ();
 void FP_FASTAPASS(1) MMC1_cpuCycle(int);
-DECLFW (MMC1_write);
+DECLFW (MMC1_writeReg);
 void MMC1_addExState ();
 void MMC1_restore (int);
 void MMC1_power ();

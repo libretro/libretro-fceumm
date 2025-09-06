@@ -96,7 +96,7 @@ void FP_FASTAPASS(1) MMC1_cpuCycle(int a) {
 	while (a--) if (MMC1_filter) MMC1_filter--;
 }
 
-DECLFW(MMC1_write) {
+DECLFW(MMC1_writeReg) {
 	if (V &0x80) {
 		MMC1_reg[0] |= 0x0C;
 		MMC1_shift = 0;
@@ -125,7 +125,7 @@ static void MMC1_setHandlers () {
 	SetReadHandler (0x6000, 0x7FFF, MMC1_readWRAM);
 	SetWriteHandler(0x6000, 0x7FFF, MMC1_writeWRAM);
 	SetReadHandler (0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, MMC1_write);
+	SetWriteHandler(0x8000, 0xFFFF, MMC1_writeReg);
 	MapIRQHook = MMC1_cpuCycle;
 }
 
