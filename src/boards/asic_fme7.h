@@ -18,17 +18,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _ASIC_MMC2_H
-#define _ASIC_MMC2_H
+#ifndef _ASIC_FME7_H
+#define _ASIC_FME7_H
 
-void MMC2_syncPRG (int, int);
-void MMC2_syncCHR (int, int);
-void MMC2_syncMirror ();
-DECLFW (MMC2_write);
-void MMC2_power ();
-void MMC2_restore (int);
-void MMC2_addExState ();
-void MMC2_activate (uint8, void (*)());
-void MMC2_init (CartInfo *, void (*)());
+void FME7_syncWRAM (int);
+void FME7_syncPRG (int, int);
+void FME7_syncCHR (int, int);
+void FME7_syncMirror ();
+DECLFR(FME7_readWRAM);
+DECLFW(MMC3_writeWRAM);
+DECLFW(FME7_writeReg);
+void FP_FASTAPASS(1) FME7_cpuCycle (int);
+void FME7_activate (uint8, void (*)());
+void FME7_addExState ();
+void FME7_restore (int);
+void FME7_power ();
+void FME7_init (CartInfo *, void (*)());
 
 #endif

@@ -23,7 +23,7 @@
 #include "asic_vrc2and4.h"
 
 static uint8 reg;
-static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield  */
+static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield to track it */
 static void applyMode (uint8);
 
 static SFORMAT StateRegs[] = {

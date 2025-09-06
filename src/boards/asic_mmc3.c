@@ -62,6 +62,10 @@ int MMC3_getCHRBank (uint8 bank) {
 	return bank &4? MMC3_reg[bank -2]: MMC3_reg[bank >>1] &~1 | bank &1;
 }
 
+int MMC3_getMirroring (void) {
+	return MMC3_mirroring;
+}
+
 DECLFR(MMC3_readWRAM) {
 	if (MMC3_wramControl &0x80 || MMC3_type == MMC3_TYPE_AX5202P || MMC3_type == MMC3_TYPE_MMC6)
 		return MMC3_cbReadWRAM? MMC3_cbReadWRAM(A): CartBR(A);

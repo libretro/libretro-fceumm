@@ -22,7 +22,7 @@
 #include "asic_h3001.h"
 #include "asic_latch.h"
 #include "asic_mmc1.h"
-#include "asic_mmc2.h"
+#include "asic_mmc2and4.h"
 #include "asic_mmc3.h"
 #include "asic_pt8154.h"
 #include "asic_qj.h"
@@ -37,7 +37,6 @@
 
 static uint8 submapper;
 static uint8 reg[8];
-
 static void (*mapperSync)(int, int, int, int) = NULL;
 static void applyMode (uint8);
 
@@ -118,8 +117,8 @@ static void sync_H3001 (int prgAND, int prgOR, int chrAND, int chrOR) {
 
 static void sync_PNROM (int prgAND, int prgOR, int chrAND, int chrOR) {
 	MMC2_syncPRG(prgAND, prgOR &~prgAND);
-	MMC2_syncCHR(chrAND, chrOR &~chrAND);
-	MMC2_syncMirror();
+	MMC24_syncCHR(chrAND, chrOR &~chrAND);
+	MMC24_syncMirror();
 }
 
 static void sync_SKROM (int prgAND, int prgOR, int chrAND, int chrOR) {
@@ -344,7 +343,7 @@ static void applyMode (uint8 clear) {
 				break;
 			case 0x109:
 				mapperSync = sync_PNROM;
-				MMC2_activate(clear, sync);
+				MMC24_activate(clear, sync);
 				break;
 			case 0x10A: case 0x20A:
 				mapperSync = sync_TxROM;
@@ -404,7 +403,7 @@ void Mapper446_Init(CartInfo *info) {
 	H3001_addExState();
 	Latch_addExState();
 	MMC1_addExState();
-	MMC2_addExState();
+	MMC24_addExState();
 	MMC3_addExState();
 	VRC1_addExState();
 	VRC24_addExState();

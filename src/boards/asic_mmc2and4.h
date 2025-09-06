@@ -18,21 +18,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _ASIC_VRC7_H
-#define _ASIC_VRC7_H
+#ifndef _ASIC_MMC2AND4_H
+#define _ASIC_MMC2AND4_H
 
-void VRC7_syncWRAM (int);
-void VRC7_syncPRG (int, int);
-void VRC7_syncCHR (int, int);
-void VRC7_syncMirror ();
-DECLFR(VRC7_readWRAM);
-DECLFW(MMC3_writeWRAM);
-DECLFW(VRC7_writeReg);
-void FP_FASTAPASS(1) VRC7_cpuCycle (int);
-void VRC7_activate (uint8, void (*)(), int);
-void VRC7_addExState ();
-void VRC7_restore (int);
-void VRC7_power ();
-void VRC7_init (CartInfo *, void (*)(), int);
+void MMC24_syncWRAM (int);
+void MMC2_syncPRG (int, int);
+void MMC4_syncPRG (int, int);
+void MMC24_syncCHR (int, int);
+void MMC24_syncMirror ();
+DECLFW (MMC24_write);
+void MMC24_power ();
+void MMC24_restore (int);
+void MMC24_addExState ();
+void MMC24_activate (uint8, void (*)());
+void MMC24_init (CartInfo *, void (*)());
 
 #endif

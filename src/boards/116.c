@@ -25,7 +25,7 @@
 
 static uint8 submapper;
 static uint8 reg;
-static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield  */
+static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield to track it */
 static uint8 game;
 
 static SFORMAT stateRegs[] = {
