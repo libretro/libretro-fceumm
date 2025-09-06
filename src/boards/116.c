@@ -18,10 +18,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* NES 2.0 Mapper 556
- * Used for the for the 餓狼傳說 激鬥篇 HiK 7-in-1 (JY-215) multicart.
- */
-
 #include "mapinc.h"
 #include "asic_mmc1.h"
 #include "asic_mmc3.h"
@@ -29,19 +25,33 @@
 
 static uint8 submapper;
 static uint8 reg;
-static uint8 init;
+static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield  */
+static uint8 game;
 
-static SFORMAT StateRegs[] = {
+static SFORMAT stateRegs[] = {
 	{ &reg, 1, "MODE" },
 	{ &init, 1, "INIT" },
 	{ 0 },
 };
 
+static SFORMAT stateRegsMulti[] = {
+	{ &game, 1, "GAME" },
+	{ 0 },
+};
+
 static void sync (void) {
-	int prgAND = 0x3F;
-	int chrAND = 0xFF;
-	int prgOR  = 0x00 &~prgAND;
-	int chrOR  = reg <<6 &0x100 &~chrAND;
+	int prgAND, chrAND, prgOR, chrOR;
+	if (submapper == 3) { /* First game is 256K+256K, the others 128K+128K */
+		prgAND = game? 0x0F: 0x1F;
+		chrAND = game? 0x7F: 0xFF;
+		prgOR  = game <<4 &~prgAND;
+		chrOR  = game <<7 &~chrAND;
+	} else {
+		prgAND = 0x3F;
+		chrAND = 0xFF;
+		prgOR  = 0x00 &~prgAND;
+		chrOR  = reg <<6 &0x100 &~chrAND;
+	}
 	if (reg &0x02) {
 		prgAND >>= 1;
 		prgOR >>= 1;
@@ -67,9 +77,12 @@ int Huang2_getPRGBank (uint8 bank) {
 }
 
 static void applyMode (uint8 clear) {
+	PPU_hook = NULL;
+	MapIRQHook = NULL;
+	GameHBIRQHook = NULL;
 	if (reg &0x02) {
 		MMC1_activate(clear && init &1, sync, MMC1_TYPE_MMC1B, submapper == 2? Huang2_getPRGBank: NULL, NULL, NULL, NULL);
-		MMC1_writeReg(0x8000, 0x80);
+		if (submapper != 1) MMC1_writeReg(0x8000, 0x80);
 		init &= ~1;
 	} else
 	if (reg &0x01) {
@@ -77,7 +90,7 @@ static void applyMode (uint8 clear) {
 		init &= ~2;
 	} else {
 		VRC2_activate(clear && init &4, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
-		if (init &4) {
+		if (init &4) { /* The earlier version of Somari needs specific VRC2 CHR register initialization */
 			VRC24_writeReg(0xB000, 0xFF); VRC24_writeReg(0xB001, 0xFF); VRC24_writeReg(0xB002, 0xFF); VRC24_writeReg(0xB003, 0xFF);
 			VRC24_writeReg(0xC000, 0xFF); VRC24_writeReg(0xC001, 0xFF); VRC24_writeReg(0xC002, 0xFF); VRC24_writeReg(0xC003, 0xFF);
 			VRC24_writeReg(0xD000, 0xFF); VRC24_writeReg(0xD001, 0xFF); VRC24_writeReg(0xD002, 0xFF); VRC24_writeReg(0xD003, 0xFF);
@@ -99,14 +112,17 @@ static DECLFW(writeReg) {
 }
 
 static void reset (void) {
-	reg = 0;
+	reg = 1;
 	init = 7;
+	if (++game == 1) ++game; /* First game is twice as large */
+	if (game >= ROM_size /8) game = 0;
 	applyMode(1);
 }
 
 static void power (void) {
-	reg = 0;
+	reg = 1;
 	init = 7;
+	game = 0;
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(0x4020, 0x5FFF, writeReg);
 	applyMode(1);
@@ -124,5 +140,6 @@ void UNLSL12_Init (CartInfo *info) {
 	info->Reset = reset;
 	info->Power = power;
 	GameStateRestore = restore;
-	AddExState(StateRegs, ~0, 0, 0);
+	AddExState(stateRegs, ~0, 0, 0);
+	if (submapper == 3) AddExState(stateRegsMulti, ~0, 0, 0);
 }
