@@ -31,17 +31,17 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
+	int prg = regs[0] <<7 &0x80 | regs[1] <<1 &0x7E | regs[1] >>6 &0x01;
 	if (regs[0] & 0x80) { /* NROM mode */
 		if (regs[1] & 0x80)
-			setprg32(0x8000, regs[1] & 0x3F);
+			setprg32(0x8000, prg >>1);
 		else {
-			int bank = ((regs[1] & 0x3F) << 1) | ((regs[1] >> 6) & 1);
-			setprg16(0x8000, bank);
-			setprg16(0xC000, bank);
+			setprg16(0x8000, prg);
+			setprg16(0xC000, prg);
 		}
 	} else { /* UNROM mode */
-		setprg16(0x8000, regs[1] <<1 | regs[3] &7);
-		setprg16(0xC000, regs[1] <<1 |          7);
+		setprg16(0x8000, prg &~7 | regs[3] &7);
+		setprg16(0xC000, prg     |          7);
 	}
 	if (regs[0] & 0x20)
 		setmirror(MI_H);
@@ -51,9 +51,7 @@ static void Sync(void) {
 }
 
 static DECLFW(BMC64in1nrWriteLo) {
-	A &=3;
-	if (A ==3) A =1; /* K-42001's "Aladdin III" */
-	regs[A & 3] = V;
+	regs[A &(VROM_size? 3: 1)] = V;
 	Sync();
 }
 
