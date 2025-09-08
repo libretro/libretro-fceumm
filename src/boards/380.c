@@ -57,7 +57,7 @@ static void Sync(void)
 static DECLFR(M380Read)
 {
    if (latche & 0x100 && !isKN35A)
-      return CartBR(A | dipswitch);
+      return CartBR(A &~0x0F | dipswitch);
    return CartBR(A);
 }
 
