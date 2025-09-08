@@ -950,6 +950,8 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "J-2020",                   563, Mapper563_Init         )
 	INES_BOARD( "T-215",                    579, Mapper579_Init         )
 	INES_BOARD( "HN-02",                    586, Mapper586_Init         )
+	INES_BOARD( "ET-81",                    588, Mapper588_Init         )
+	INES_BOARD( "8-in-1 1991",              592, Mapper592_Init         )
 INES_BOARD_END()
 
 static uint32 iNES_get_mapper_id(void)
