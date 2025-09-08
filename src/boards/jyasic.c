@@ -710,7 +710,7 @@ static void Mapper394_PWrap(uint32 A, uint8 V)
 static void Mapper394_CWrap(uint32 A, uint8 V)
 {
 	int chrAND =HSK007Reg[3] &0x80? 0xFF: 0x7F;
-	int chrOR  =submapper ==1? (HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x200 | HSK007Reg[1] <<6 &0x100): (HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x100);	
+	int chrOR  =submapper ==1? (HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x200 | HSK007Reg[1] <<6 &0x100): (HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<8 &0x300);	
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 static DECLFW(Mapper394_Write)
