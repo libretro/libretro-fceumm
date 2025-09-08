@@ -38,11 +38,8 @@ static void sync () {
 	setmirror(Latch_address &0x80? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* The upper bits are only writable on a falling edge of A5. */
-	if (Latch_address &0x20 && !(*newAddress &0x20))
-		;
-	else
-		*newAddress = *newAddress &~0xC0 | Latch_address &0xC0;
+static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* The upper two address bits are only updated on a falling edge of A5. */
+	if (!(Latch_address &0x20 && ~*newAddress &0x20)) *newAddress = *newAddress &~0xC0 | Latch_address &0xC0;
 }
 
 void Mapper581_Init (CartInfo *info) {

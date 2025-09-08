@@ -19,35 +19,25 @@
  */
 
 #include "mapinc.h"
-
-static uint8 reg[2];
+#include "asic_latch.h"
 
 static void sync () {
-	setprg8(0x6000, reg[1] &0x07 |0x08);
-	setprg32(0x8000, reg[0] >>4 &0x07);
-	setchr8(reg[0] &0x0F);
-	setmirror(reg[0] &0x80? MI_H: MI_V);
+	if (Latch_address &0x20) { /* First chip: 256 KiB */
+		setprg16(0x8000, Latch_address >>1 &0x08 | Latch_data &0x07);
+		setprg16(0xC000, Latch_address >>1 &0x08 | 0x07);
+	} else { /* Second chip: 128 KiB (boot) */
+		setprg16(0x8000, 0x10 | Latch_address >>1 &0x07);
+		setprg16(0xC000, 0x10 | Latch_address >>1 &0x07);
+	}
+	setchr8(0);
+	setmirror(Latch_address &1? MI_H: MI_V);
 }
 
-static DECLFW(writeReg) {
-	reg[A >>12 &1] = V;
-	sync();
+static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* The address bits are only updated on a falling edge of D3. */
+	if (!(Latch_data &0x08 && ~*newValue &0x08)) *newAddress = Latch_address;
 }
 
-static void power() {
-	SetReadHandler(0x6000, 0xFFFF, CartBR);
-	SetWriteHandler(0xE000, 0xFFFF, writeReg);
-	reg[0] = reg[1] = 0;
-	sync();
-}
-
-static void stateRestore(int version) {
-	sync();
-}
-
-void Mapper588_Init (CartInfo *info) {
-	info->Reset = power;
-	info->Power = power;
-	GameStateRestore = stateRestore;
-	AddExState(reg, 2, 0, "REGS");
+void Mapper589_Init (CartInfo *info) {
+	Latch_init(info, sync, 0x8000, 0xFFFF, trapLatchWrite);
+	info->Reset = Latch_power;
 }
