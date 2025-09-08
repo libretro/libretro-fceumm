@@ -22,28 +22,30 @@
 #include "asic_latch.h"
 
 static void sync () {
-	int prg = Latch_address >>2 &0x1F;
-	if (Latch_address &0x200) {
-		setprg16(0x8000, prg);
-		setprg16(0xC000, prg |7);
-	} else {
-		if (Latch_address &0x001)
-			setprg32(0x8000, prg >>1);
-		else {
+	int prg = Latch_address >>1 &0x20 | Latch_address &0x1F;
+	if (Latch_address &0x20) {
+		if (Latch_address &0x01) {
 			setprg16(0x8000, prg);
 			setprg16(0xC000, prg);
-		}
+		} else
+			setprg32(0x8000, prg >>1);
+	} else {
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg |7);
 	}
-	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], Latch_address &0x80? 0: 1);
+	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], Latch_address &0x20? 0: 1);
 	setchr8(0);
-	setmirror(Latch_address &0x02? MI_H: MI_V);
+	setmirror(Latch_address &0x80? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* Once bit 9 is set, only the inner bank bits can be modified. */
-	if (Latch_address &0x200) *newAddress = *newAddress &0x01C | Latch_address &~0x01C;
+static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* The upper bits are only writable on a falling edge of A5. */
+	if (Latch_address &0x20 && !(*newAddress &0x20))
+		;
+	else
+		*newAddress = *newAddress &~0xC0 | Latch_address &0xC0;
 }
 
-void Mapper579_Init (CartInfo *info) {
+void Mapper581_Init (CartInfo *info) {
 	Latch_init(info, sync, 0x8000, 0xFFFF, trapLatchWrite);
 	info->Reset = Latch_power;
 }
