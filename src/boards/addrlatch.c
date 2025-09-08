@@ -766,6 +766,10 @@ void Mapper409_Init(CartInfo *info) {
 }
 
 /*------------------ Map 435 ---------------------------*/
+static DECLFR(ReadOB) {
+	return X.DB;
+}
+
 static void M435Sync(void) {
 	int p =latche >>2 &0x1F | latche >>3 &0x20 | latche >>4 &0x40;
 	if (latche &0x200) {
@@ -787,10 +791,27 @@ static void M435Sync(void) {
 
 	setmirror(latche &0x002? MI_H: MI_V);
 	setchr8(0);
+	SetReadHandler(0x8000, 0xFFFF, ~latche &0x200 && latche &(submapper == 1? 0x001: 0x400) && dipswitch &1? ReadOB: CartBR);
+}
+
+void Mapper435_Power() {
+	LatchPower();
+	dipswitch = 0;
+	M435Sync();
+}
+
+void Mapper435_Reset() {
+	latche = 0;
+	dipswitch++;
+	M435Sync();
 }
 
 void Mapper435_Init(CartInfo *info) {
+	submapper = info->submapper;
 	Latch_Init(info, M435Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+	info->Power = Mapper435_Power;
+	info->Reset = Mapper435_Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
 /*------------------ Map 459 ---------------------------*/
