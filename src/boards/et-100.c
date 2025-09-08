@@ -41,6 +41,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
+static uint8 submapper;
 static uint8 *CHRRAM = NULL;
 static uint32 CHRRAMSize;
 
@@ -58,6 +59,16 @@ static void BMC1024CA1CW(uint32 A, uint8 V) {
 		setchr1(A, V | ((EXPREGS[0] & 7) << 7));
 	else
 	 	setchr1(A, (V&0x7F) | ((EXPREGS[0] & 7) << 7));
+	
+	if (submapper == 1 && EXPREGS[0] &0x08) setmirror(DRegBuf[MMC3_cmd &0x80? 2: 0] &0x80? MI_1: MI_0);
+}
+
+static void BMC1024CA1MW(uint8 V) {
+	A000B = V;
+	if (EXPREGS[0] &0x08)
+		setmirror(DRegBuf[MMC3_cmd &0x80? 2: 0] &0x80? MI_1: MI_0);
+	else
+		setmirror(V &1? MI_H: MI_V);
 }
 
 static DECLFW(BMC1024CA1Write) {
@@ -90,6 +101,7 @@ static void BMC1024CA1Close(void) {
 }
 
 void BMC1024CA1_Init(CartInfo *info) {
+	submapper = info->submapper;
 	GenMMC3_Init(info, 256, 256, 8, 0);
 	CHRRAMSize = 8192;
 	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSize);
@@ -97,6 +109,7 @@ void BMC1024CA1_Init(CartInfo *info) {
 	AddExState(CHRRAM, CHRRAMSize, 0, "CHRR");
 	pwrap = BMC1024CA1PW;
 	cwrap = BMC1024CA1CW;
+	if (submapper == 1) mwrap = BMC1024CA1MW;
 	info->Power = BMC1024CA1Power;
 	info->Reset = BMC1024CA1Reset;
 	info->Close = BMC1024CA1Close;
