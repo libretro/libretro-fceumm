@@ -23,6 +23,7 @@
 static uint16 latchAddr;
 static uint8  latchData;
 static uint8  mode;
+static uint8  submapper;
 
 static SFORMAT StateRegs[] = {
    { &latchAddr, 2 | FCEUSTATE_RLSB, "LATC" },
@@ -33,8 +34,13 @@ static SFORMAT StateRegs[] = {
 
 static void Sync(void) {
    if (mode &1) {
-      setprg16(0x8000, 0x20 | latchData &0x07);
-      setprg16(0xC000, 0x27);
+      if (submapper == 1) {
+         setprg16(0x8000, latchAddr >>2 &7 |0x20);
+         setprg16(0xC000, 0x27);
+      } else {
+         setprg16(0x8000, 0x20 | latchData &0x07);
+         setprg16(0xC000, 0x27);
+      }
    } else {
       if (latchAddr &0x01)
 	      setprg32(0x8000, latchAddr >>3 &0x0F);
@@ -76,6 +82,7 @@ static void StateRestore(int version) {
 }
 
 void Mapper280_Init(CartInfo *info) {
+   submapper = info->submapper;
    info->Power = M280Power;
    info->Reset = M280Reset;
    GameStateRestore = StateRestore;
