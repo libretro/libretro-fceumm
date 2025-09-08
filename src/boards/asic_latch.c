@@ -36,7 +36,7 @@ static SFORMAT Latch_state[] = {
 DECLFW(Latch_write) {
 	uint16 newAddress = A &0xFFFF;
 	if (Latch_cbWrite) Latch_cbWrite(&newAddress, &V, CartBR(A));
-	Latch_address = A;
+	Latch_address = newAddress;
 	Latch_data = V;
 	Latch_cbSync();
 }
@@ -48,6 +48,7 @@ static void Latch_clear () {
 }
 
 static void Latch_setHandlers() {
+	SetReadHandler(0x8000, 0xFFFF, CartBR);
 	SetWriteHandler(Latch_from, Latch_to, Latch_write);
 }
 

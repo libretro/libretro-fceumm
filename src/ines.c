@@ -948,6 +948,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Bung Super Game Doctor",   561, Mapper561_562_Init     )
 	INES_BOARD( "Venus Turbo Game Doctor",  562, Mapper561_562_Init     )
 	INES_BOARD( "J-2020",                   563, Mapper563_Init         )
+	INES_BOARD( "HN-02",                    586, Mapper586_Init         )
 INES_BOARD_END()
 
 static uint32 iNES_get_mapper_id(void)
