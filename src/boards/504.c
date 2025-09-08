@@ -23,65 +23,43 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 submapper;
-static uint8 reg[2];
-static uint8 pad;
-
-static DECLFR(readPad) {
-	return pad;
-}
+static uint8 reg;
 
 static void sync() {
-	int prgAND =reg[1] &0x02? 0x0F: 0x1F;
-	int chrAND =reg[1] &0x20 && submapper == 3? 0x1FF: reg[1] &0x04? 0x7F: 0xFF;
-	int prgOR  =reg[1] <<4 &0x10 | reg[1] <<1 &0x60;
-	int chrOR  =reg[1] <<7 &0x80 | reg[1] <<5 &0x100 | reg[1] <<4 &0x200;
+	int prgAND = reg &0x02? 0x0F: 0x1F;
+	int chrAND = reg &0x02? 0x7F: 0xFF;
+	int prgOR = reg <<4;
+	int chrOR = reg <<7;
 	MMC3_syncPRG(prgAND, prgOR &~prgAND);
 	MMC3_syncCHR(chrAND, chrOR &~chrAND);
 	MMC3_syncMirror();
-	SetReadHandler(0x8000, 0xFFFF, submapper == 1 && reg[1] &0x20 || submapper != 1 && reg[0] &0x01? readPad: CartBR);
 }
 
 static int getPRGBank(uint8 bank) {
-	if (reg[1] &0x40) {
-		int mask = reg[1] &(submapper == 2? 0x20: 0x80)? 3: 1;
-		return MMC3_getPRGBank(bank &1) &~mask | bank &mask;
-	} else
+	if ((reg &0x03) == 0x03 && ~reg &0x08)
+		return MMC3_getPRGBank(bank &1) &~1 | bank &1;
+	else
 		return MMC3_getPRGBank(bank);
 }
 
-static int getCHRBank(uint8 bank) {
-	if (reg[1] &0x20 && submapper == 3)
-		return MMC3_getCHRBank(bank &6 | bank >>1 &1) <<1 | bank &1;
-	else
-		return MMC3_getCHRBank(bank);
-}
-
 static DECLFW(writeReg) {
-	if (submapper == 3 && reg[1] &0x80)
-		;
-	else {
-		reg[A &1] = V;
-		sync();
-	}
+	reg = A &0xFF;
+	sync();
 }
 
 static void reset() {
-	reg[0] = reg[1] = 0;
-	++pad;
+	reg = 0;
 	sync();
 }
 
 static void power() {
-	reg[0] = reg[1] = 0;
-	pad = 0;
+	reg = 0;
 	MMC3_power();
 }
 
-void Mapper432_Init(CartInfo *info) {
-	submapper =info->submapper;
-	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, getCHRBank, NULL, writeReg);
+void Mapper504_Init(CartInfo *info) {
+	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;
-	AddExState(reg, 2, 0, "EXPR");
+	AddExState(&reg, 1, 0, "EXPR");
 }
