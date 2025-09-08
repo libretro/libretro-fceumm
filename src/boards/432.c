@@ -32,10 +32,10 @@ static DECLFR(readPad) {
 }
 
 static void sync() {
-	int prgAND =reg[1] &0x02? 0x0F: 0x1F;
-	int chrAND =reg[1] &0x20 && submapper == 3? 0x1FF: reg[1] &0x04? 0x7F: 0xFF;
-	int prgOR  =reg[1] <<4 &0x10 | reg[1] <<1 &0x60;
-	int chrOR  =reg[1] <<7 &0x80 | reg[1] <<5 &0x100 | reg[1] <<4 &0x200;
+	int prgAND = reg[1] &0x02? 0x0F: 0x1F;
+	int chrAND = reg[1] &0x20 && submapper == 3? 0x1FF: reg[1] &0x04? 0x7F: 0xFF;
+	int prgOR  = reg[1] <<4 &0x10 | reg[1] <<1 &0x60;
+	int chrOR  = reg[1] <<7 &0x80 | reg[1] <<5 &0x100 | reg[1] <<4 &0x200;
 	MMC3_syncPRG(prgAND, prgOR &~prgAND);
 	MMC3_syncCHR(chrAND, chrOR &~chrAND);
 	MMC3_syncMirror();
