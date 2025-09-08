@@ -38,12 +38,12 @@ static signed short int VRC6_cycles;
 
 static SFORMAT VRC6_stateRegs[] = {
 	{ VRC6_prg, 2, "VC6P" },
-	{ VRC6_chr, 6, "VC6C" },
+	{ VRC6_chr, 8, "VC6C" },
 	{ &VRC6_misc, 1, "VC6M" },
-	{ &VRC6_latch, 1, "LATC" },
-	{ &VRC6_mode, 1, "MODE" },
-	{ &VRC6_count, 1, "COUN" },
-	{ &VRC6_cycles, 2 | FCEUSTATE_RLSB, "CYCL" },
+	{ &VRC6_latch, 1, "V6LT" },
+	{ &VRC6_mode, 1, "V6MO" },
+	{ &VRC6_count, 1, "V6CT" },
+	{ &VRC6_cycles, 2 | FCEUSTATE_RLSB, "V6CY" },
 	{ 0 }
 };
 

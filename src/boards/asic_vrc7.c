@@ -33,13 +33,13 @@ static uint8 VRC7_count;
 static signed short int VRC7_cycles;
 
 static SFORMAT VRC7_stateRegs[] = {
-	{ VRC7_prg, 3, "VC6P" },
-	{ VRC7_chr, 6, "VC6C" },
-	{ &VRC7_misc, 1, "VC6M" },
-	{ &VRC7_latch, 1, "LATC" },
-	{ &VRC7_mode, 1, "MODE" },
-	{ &VRC7_count, 1, "COUN" },
-	{ &VRC7_cycles, 2 | FCEUSTATE_RLSB, "CYCL" },
+	{ VRC7_prg, 3, "VC7P" },
+	{ VRC7_chr, 8, "VC7C" },
+	{ &VRC7_misc, 1, "VC7M" },
+	{ &VRC7_latch, 1, "V7LT" },
+	{ &VRC7_mode, 1, "V7MO" },
+	{ &VRC7_count, 1, "V7CT" },
+	{ &VRC7_cycles, 2 | FCEUSTATE_RLSB, "V7CY" },
 	{ 0 }
 };
 

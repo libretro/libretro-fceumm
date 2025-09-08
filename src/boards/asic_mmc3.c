@@ -62,7 +62,7 @@ int MMC3_getCHRBank (uint8 bank) {
 	return bank &4? MMC3_reg[bank -2]: MMC3_reg[bank >>1] &~1 | bank &1;
 }
 
-int MMC3_getMirroring (void) {
+uint8 MMC3_getMirroring (void) {
 	return MMC3_mirroring;
 }
 

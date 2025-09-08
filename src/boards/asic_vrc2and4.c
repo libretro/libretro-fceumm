@@ -42,29 +42,29 @@ static uint8 VRC4_count;
 static signed short int VRC4_cycles;
 
 static SFORMAT VRC24_stateRegs[] = {
-	{ VRC24_prg, 2, "PREG" },
-	{ &VRC24_chr[0], 2 | FCEUSTATE_RLSB, "CRH0" },
-	{ &VRC24_chr[1], 2 | FCEUSTATE_RLSB, "CRH1" },
-	{ &VRC24_chr[2], 2 | FCEUSTATE_RLSB, "CRH2" },
-	{ &VRC24_chr[3], 2 | FCEUSTATE_RLSB, "CRH3" },
-	{ &VRC24_chr[4], 2 | FCEUSTATE_RLSB, "CRH4" },
-	{ &VRC24_chr[5], 2 | FCEUSTATE_RLSB, "CRH5" },
-	{ &VRC24_chr[6], 2 | FCEUSTATE_RLSB, "CRH6" },
-	{ &VRC24_chr[7], 2 | FCEUSTATE_RLSB, "CRH7" },
-	{ &VRC24_mirroring, 1, "MIRR" },
-	{ &VRC24_misc, 1, "MISC" },
+	{ VRC24_prg, 2, "VC2P" },
+	{ &VRC24_chr[0], 2 | FCEUSTATE_RLSB, "V2C0" },
+	{ &VRC24_chr[1], 2 | FCEUSTATE_RLSB, "V2C1" },
+	{ &VRC24_chr[2], 2 | FCEUSTATE_RLSB, "V2C2" },
+	{ &VRC24_chr[3], 2 | FCEUSTATE_RLSB, "V2C3" },
+	{ &VRC24_chr[4], 2 | FCEUSTATE_RLSB, "V2C4" },
+	{ &VRC24_chr[5], 2 | FCEUSTATE_RLSB, "V2C5" },
+	{ &VRC24_chr[6], 2 | FCEUSTATE_RLSB, "V2C6" },
+	{ &VRC24_chr[7], 2 | FCEUSTATE_RLSB, "V2C7" },
+	{ &VRC24_mirroring, 1, "VC2N" },
+	{ &VRC24_misc, 1, "VC4M" },
 	{ 0 }
 };
 
 static SFORMAT VRC2_stateRegs[] = {
-	{ &VRC2_pins, 1, "PINS" },
+	{ &VRC2_pins, 1, "VC2E" },
 };
 
 static SFORMAT VRC4_stateRegs[] = {
-	{ &VRC4_latch, 1, "LATC" },
-	{ &VRC4_mode, 1, "MODE" },
-	{ &VRC4_count, 1, "COUN" },
-	{ &VRC4_cycles, 2 | FCEUSTATE_RLSB, "CYCL" },
+	{ &VRC4_latch, 1, "V4LT" },
+	{ &VRC4_mode, 1, "V4MO" },
+	{ &VRC4_count, 1, "V4CT" },
+	{ &VRC4_cycles, 2 | FCEUSTATE_RLSB, "V4CY" },
 	{ 0 }
 };
 

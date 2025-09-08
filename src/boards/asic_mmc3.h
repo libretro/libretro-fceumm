@@ -30,7 +30,7 @@
 void MMC3_syncWRAM (int);
 int MMC3_getPRGBank (uint8);
 int MMC3_getCHRBank (uint8);
-int MMC3_getMirroring (void);
+uint8 MMC3_getMirroring (void);
 void MMC3_syncPRG (int, int);
 void MMC3_syncCHR (int, int);
 void MMC3_syncMirror ();

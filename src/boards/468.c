@@ -129,9 +129,10 @@ static void sync_FxROM (int prgOR) {
 
 static void sync_GNROM (int prgOR) {
 	int prgAND = reg[0] &0x08? 0x01: 0x03;
-	int value = prgOR &0x2000 && submapper != 1? (Latch_data >>4 &0x0F | Latch_data <<4 &0xF0): Latch_data;
+	int value = Latch_data;
+	if (submapper == 1 && ~reg[0] &0x08 || submapper != 1 && prgOR &0x2000) value = Latch_data >>4 &0x0F | Latch_data <<4 &0xF0;
 	prgOR = prgOR >>2 | reg[0] >>1 &0x02;
-	setprg32(0x8000, value >>0 &prgAND | prgOR &~prgAND);
+	setprg32(0x8000, value &prgAND | prgOR &~prgAND);
 	setchr8(value >>4);
 	setmirror(reg[0] &0x10? MI_H: MI_V);
 }
@@ -144,6 +145,11 @@ static void sync_IF12 (int prgOR) {
 	setmirror(Custom_reg[0] &0x01? MI_H: MI_V);
 }
 
+static DECLFW(IF12_writeReg) {
+	Custom_reg[A >>14 &1] = V;
+	sync();
+}
+
 static void sync_LF36 (int prgOR) {
 	prgOR |= reg[0] &0x08;
 	setprg8(0x8000,                0x04 | prgOR);
@@ -152,6 +158,32 @@ static void sync_LF36 (int prgOR) {
 	setprg8(0xE000,                0x07 | prgOR);
 	setchr8(0);
 	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+void FP_FASTAPASS(1) LF36_cpuCycle (int a) {
+	while (a--) {
+		if (Custom_reg[1] &1) {
+			if (!++Custom_reg[2]) ++Custom_reg[3];
+			if (Custom_reg[3] &0x10)
+				X6502_IRQBegin(FCEU_IQEXT);
+			else
+				X6502_IRQEnd(FCEU_IQEXT);
+		} else {
+			Custom_reg[2] = Custom_reg[3] = 0;
+			X6502_IRQEnd(FCEU_IQEXT);
+		}
+	}
+}
+
+static DECLFW(LF36_writeReg) {
+	switch(A >>13 &3) {
+		case 0: case 1:
+			Custom_reg[1] = A >>13 &1;
+			break;
+		case 3:
+			Custom_reg[0] = V;
+			sync();
+	}
 }
 
 static void sync_Misc (int prgOR) {
@@ -169,10 +201,40 @@ static void sync_Misc (int prgOR) {
 		setmirror(Custom_reg[1] &0x10? MI_1: MI_0);
 }
 
+static DECLFW(Misc_writeReg) {
+	switch(A >>12 &7) {
+		case 0: case 2: case 3:
+			Custom_reg[0] = V;
+			sync();
+			break;
+		case 1:
+			Custom_reg[reg[0] &0x08? 0: 1] = V;
+			sync();
+			break;
+		case 6: case 7:
+			Custom_reg[2] = V;
+			sync();
+			break;
+	}
+}
+
 static void sync_Nanjing (int prgOR) {
 	setprg32(0x8000, Custom_reg[2] <<4 &0x30 | Custom_reg[0] &0x0F | (Custom_reg[3] &0x04? 0x00: 0x03) | prgOR >>2);
 	setchr8(0);
 	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+static void Nanjing_scanline (void) {
+	if (Custom_reg[0] &0x80 && scanline <239) {
+		setchr4(0x0000, scanline >= 127? 1: 0);
+		setchr4(0x1000, scanline >= 127? 1: 0);
+	} else
+		setchr8(0);
+}
+
+static DECLFW(Nanjing_writeReg) {
+	Custom_reg[A >>8 &3] = V;
+	sync();
 }
 
 static void sync_PNROM (int prgOR) {
@@ -195,6 +257,10 @@ static void sync_SUROM (int prgOR) {
 	MMC1_syncPRG(0x1F, prgOR >>1 &~0x1F);
 	MMC1_syncCHR(0x0F, 0x00);
 	MMC1_syncMirror();
+}
+
+static int SUROM_getPRGBank(uint8 bank) {
+	return MMC1_getPRGBank(bank) | MMC1_getCHRBank(0) &0x10;
 }
 
 static void sync_TxROM (int prgOR) {
@@ -229,7 +295,7 @@ static void sync_TxSROM (int prgOR) {
 }
 
 static void sync_UxROM (int prgOR) {
-	int prgAND = reg[0] &0x02? 0x07: 0x0F;
+	int prgAND = reg[0] &0x02? 0x07: submapper == 1 && ~reg[0] &0x04? 0x1F: 0x0F;
 	setprg16(0x8000, Latch_data &prgAND | prgOR >>1 &~prgAND);
 	setprg16(0xC000,                      prgOR >>1 | prgAND);
 	setchr8(0);
@@ -277,74 +343,8 @@ static void sync_VRC7 (int prgOR) {
 	int prgAND = reg[0] &0x08? (reg[0] &0x04? (reg[0] &0x02? 0x0F: 0x1F): 0x3F): 0x7F;
 	VRC7_syncWRAM(0);
 	VRC7_syncPRG(prgAND, prgOR &~prgAND);
-	VRC7_syncCHR(0xFF, 0x00);
+	VRC7_syncCHR(reg[0] &0x10? 0xFF: 0x7F, 0x00);
 	VRC7_syncMirror();
-}
-
-/* Mapper callbacks and handlers */
-static int SUROM_getPRGBank(uint8 bank) {
-	return MMC1_getPRGBank(bank) | MMC1_getCHRBank(0) &0x10;
-}
-
-static DECLFW(IF12_writeReg) {
-	Custom_reg[A >>14 &1] = V;
-	sync();
-}
-
-void FP_FASTAPASS(1) LF36_cpuCycle (int a) {
-	while (a--) {
-		if (Custom_reg[1] &1) {
-			if (!++Custom_reg[2]) ++Custom_reg[3];
-			if (Custom_reg[3] &0x10)
-				X6502_IRQBegin(FCEU_IQEXT);
-			else
-				X6502_IRQEnd(FCEU_IQEXT);
-		} else {
-			Custom_reg[2] = Custom_reg[3] = 0;
-			X6502_IRQEnd(FCEU_IQEXT);
-		}
-	}
-}
-
-static DECLFW(LF36_writeReg) {
-	switch(A >>13 &3) {
-		case 0: case 1:
-			Custom_reg[1] = A >>13 &1;
-			break;
-		case 3:
-			Custom_reg[0] = V;
-			sync();
-	}
-}
-
-static DECLFW(Misc_writeReg) {
-	switch(A >>12 &7) {
-		case 0: case 2: case 3:
-			Custom_reg[0] = V;
-			sync();
-			break;
-		case 1:
-			Custom_reg[1] = V;
-			sync();
-			break;
-		case 6: case 7:
-			Custom_reg[2] = V;
-			sync();
-			break;
-	}
-}
-
-static void Nanjing_scanline (void) {
-	if (Custom_reg[0] &0x80 && scanline <239) {
-		setchr4(0x0000, scanline >= 127? 1: 0);
-		setchr4(0x1000, scanline >= 127? 1: 0);
-	} else
-		setchr8(0);
-}
-
-static DECLFW(Nanjing_writeReg) {
-	Custom_reg[A >>8 &3] = V;
-	sync();
 }
 
 /* Supervisor */
@@ -381,6 +381,7 @@ static DECLFW(writeReg) {
 }
 
 static void applyMode (uint8 clear) {
+	uint8 previousMirroring;
 	MapIRQHook = NULL;
 	PPU_hook = NULL;
 	GameHBIRQHook = NULL;
@@ -404,11 +405,15 @@ static void applyMode (uint8 clear) {
 		case 0x005: case 0x105:
 			mapperSync = sync_Misc; /* NROM, CNROM, Fire Hawk */
 			SetWriteHandler(0x8000, 0xFFFF, Misc_writeReg);
+			if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
+			sync();
 			break;
 		case 0x007:
 			mapperSync = sync_LF36; /* SMB2J */
 			MapIRQHook = LF36_cpuCycle;
 			SetWriteHandler(0x8000, 0xFFFF, LF36_writeReg);
+			if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
+			sync();
 			break;
 		case 0x008:
 			mapperSync = sync_FxROM;
@@ -421,6 +426,8 @@ static void applyMode (uint8 clear) {
 			} else {
 				mapperSync = sync_IF12; /* Not Irem's actual IF-12 mapper, but something custom by BlazePro */
 				SetWriteHandler(0x8000, 0xFFFF, IF12_writeReg);
+				if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
+				sync();
 			}
 			break;
 		case 0x00A:
@@ -436,13 +443,17 @@ static void applyMode (uint8 clear) {
 			Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
 			break;
 		case 0x00E: case 0x10E:
-			mapperSync = sync_Nanjing; /* Partial emulation only */
+			mapperSync = sync_Nanjing;
 			GameHBIRQHook = Nanjing_scanline;
 			SetWriteHandler(0x5000, 0x53FF, Nanjing_writeReg);
+			if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
+			sync();
 			break;
 		case 0x100: case 0x101:
 			mapperSync = sync_TxROM;
+			previousMirroring = MMC3_getMirroring();
 			MMC3_activate(clear, sync, MMC3_TYPE_SHARP, NULL, NULL, NULL, NULL);
+			MMC3_writeReg(0xA000, previousMirroring);
 			break;
 		case 0x102:
 			mapperSync = sync_TxSROM;
@@ -464,7 +475,7 @@ static void applyMode (uint8 clear) {
 			mapperSync = sync_VRC24;
 			VRC4_activate(clear, sync, 0x0A, 0x05, 1, NULL, NULL, NULL, NULL, NULL);
 			break;
-		case 0x300:
+		case 0x300: case 0x301:
 			mapperSync = sync_VRC6;
 			VRC6_activate(clear, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 			break;
@@ -494,7 +505,6 @@ static void power() {
 	reg[1] = 0xFF;
 	reg[2] = submapper == 1? 0x10: 0x00;
 	reg[3] = 0x00;
-	Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
 	eep_clock = command = output = 1;
 	command = state = 0;
 	applyMode(1);
