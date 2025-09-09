@@ -692,7 +692,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Realtec 8031/8155/8099/8106", 236, Mapper236_Init         )
 	INES_BOARD( "Teletubbies / Y2K",        237, Mapper237_Init         )
 	INES_BOARD( "UNL6035052",               238, UNL6035052_Init        )
-/*    INES_BOARD( "",                            239, Mapper239_Init ) */
+	INES_BOARD( "OK-043",                   239, Mapper239_Init         )
 	INES_BOARD( "",                         240, Mapper240_Init         )
 	INES_BOARD( "",                         241, Mapper241_Init         )
 	INES_BOARD( "43272",                    242, Mapper242_Init         )
