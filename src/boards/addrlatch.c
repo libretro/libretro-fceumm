@@ -181,7 +181,10 @@ static void M61Sync(void) {
 		setprg16(0xC000, latche <<1 &0x1E | latche >>5 &0x01);
 	} else
 		setprg32(0x8000, latche & 0xF);
-	setchr8(latche >> 8);
+	if (submapper == 1)
+		setchr8(latche >> 7 &~1 | latche >> 6 &1);
+	else
+		setchr8(latche >> 8);
 	setmirror(((latche >> 7) & 1) ^ 1);
 }
 
@@ -193,6 +196,7 @@ void Mapper61_Reset() {
 }
 
 void Mapper61_Init(CartInfo *info) {
+	submapper = info->submapper;
 	Latch_Init(info, M61Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 	info->Reset = Mapper61_Reset;
 }
