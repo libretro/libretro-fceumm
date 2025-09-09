@@ -44,5 +44,5 @@ static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue)
 
 void Mapper573_Init (CartInfo *info) {
 	Latch_init(info, sync, 0x8000, 0xFFFF, trapLatchWrite);
-	info->Reset = Latch_power;
+	info->Reset = Latch_clear;
 }

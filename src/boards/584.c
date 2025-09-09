@@ -19,39 +19,41 @@
  */
 
 #include "mapinc.h"
-#include "asic_latch.h"
 
-static uint8 pad;
-
-static DECLFR(readOB) {
-	return X.DB;
-}
+static uint8 reg[2];
 
 static void sync () {
-	if (Latch_address &0x01)
-		setprg32(0x8000, Latch_address >>2);
+	if (reg[0] &0x20)
+		setprg32(0x8000, reg[0] >>1);
 	else {
-		setprg16(0x8000, Latch_address >>1);
-		setprg16(0xC000, Latch_address >>1);
+		setprg16(0x8000, reg[0]);
+		setprg16(0xC000, reg[0]);
 	}
-	SetReadHandler(0x8000, 0xFFFF, Latch_address &pad &0x60? readOB: CartBR);
-	setchr8(Latch_address >>1);
-	setmirror(Latch_address &0x10? MI_V: MI_H);
+	setchr8(reg[1]);
+	setmirror(reg[1] &0x20? MI_V: MI_H);
+}
+
+static DECLFW(writeReg) {
+	if (A &0x100) {
+		reg[A >>13 &1] = V;
+		sync();
+	}
 }
 
 static void power() {
-	pad = 0;
-	Latch_power();
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x4020, 0x7FFF, writeReg);
+	reg[0] = reg[1] = 0;
+	sync();
 }
 
-static void reset() {
-	pad += 0x20;
-	Latch_clear();
+static void stateRestore(int version) {
+	sync();
 }
 
-void Mapper585_Init (CartInfo *info) {
-	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
+void Mapper584_Init (CartInfo *info) {
+	info->Reset = power;
 	info->Power = power;
-	info->Reset = reset;
-	AddExState(&pad, 1, 0, "DIPS");
+	GameStateRestore = stateRestore;
+	AddExState(reg, 2, 0, "REGS");
 }

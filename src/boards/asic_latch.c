@@ -41,7 +41,7 @@ DECLFW(Latch_write) {
 	Latch_cbSync();
 }
 
-static void Latch_clear () {
+void Latch_clear () {
 	Latch_address = 0;
 	Latch_data = 0;
 	Latch_cbSync();

@@ -30,5 +30,5 @@ static void sync () {
 
 void Mapper592_Init (CartInfo *info) {
 	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
-	info->Reset = Latch_power;
+	info->Reset = Latch_clear;
 }

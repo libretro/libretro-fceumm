@@ -437,7 +437,7 @@ static BMAPPING bmap[] = {
 	{ "8237",                       215, UNL8237_Init,          0 },
 	{ "8237A",                      215, UNL8237A_Init,         0 },
 	{ "830118C",                    348, BMC830118C_Init,       0 },
-	{ "A65AS",                      285, BMCA65AS_Init,         0 },
+	{ "A65AS",                      285, Mapper285_Init,        0 },
 	{ "AB-G1L",                     428, Mapper428_Init,        0 },
 	{ "WELL-NO-DG450",              428, Mapper428_Init,        0 },
 	{ "TF2740",                     428, Mapper428_Init,        0 },
