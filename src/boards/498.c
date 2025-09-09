@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2025 NewRisingSun
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,27 +16,47 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ *
  */
 
-#ifndef _ASIC_MMC1_H
-#define _ASIC_MMC1_H
+#include "mapinc.h"
+#include "asic_mmc1.h"
 
-#define MMC1_TYPE_MMC1A 0
-#define MMC1_TYPE_MMC1B 1
+static uint8 reg;
 
-void MMC1_syncWRAM (int);
-int MMC1_getPRGBank (uint8);
-int MMC1_getCHRBank (uint8);
-void MMC1_syncPRG (int, int);
-void MMC1_syncCHR (int, int);
-void MMC1_syncMirror ();
-void FP_FASTAPASS(1) MMC1_cpuCycle(int);
-DECLFW (MMC1_writeReg);
-void MMC1_clear ();
-void MMC1_addExState ();
-void MMC1_restore (int);
-void MMC1_power ();
-void MMC1_activate (uint8, void (*)(), uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
-void MMC1_init (CartInfo *, void (*)(), uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
+static void sync () {
+	if (reg &0x20)
+		MMC1_syncPRG(0x07, reg &~0x07);
+	else
+	if (reg &0x04)
+		setprg32(0x8000, reg >>1);
+	else {
+		setprg16(0x8000, reg);
+		setprg16(0xC000, reg);
+	}
+	MMC1_syncCHR(0x1F, reg <<2 &~0x1F);
+	MMC1_syncMirror();
+}
 
-#endif
+static DECLFW (writeReg) {
+	reg = A &0xFF;
+	sync();
+}
+
+static void reset () {
+	reg = 0;
+	MMC1_clear();
+}
+
+static void power () {
+	reg = 0;
+	MMC1_power();
+}
+
+void Mapper498_Init (CartInfo *info) {
+	MMC1_init(info, sync, MMC1_TYPE_MMC1A, NULL, NULL, NULL, writeReg);
+	info->Power = power;
+	info->Reset = reset;
+	AddExState(&reg, 1, 0, "EXPR");
+}

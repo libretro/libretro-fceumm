@@ -115,7 +115,7 @@ DECLFW(MMC1_writeReg) {
 	MMC1_filter = 2;
 }
 
-static void MMC1_clear() {
+void MMC1_clear() {
 	MMC1_reg[0] = 0x0C; MMC1_reg[1] = 0; MMC1_reg[2] = 0; MMC1_reg[3] = 0; /* "Bad News Baseball" is sensitive to the initial CHR bank register content. 0/0 seems to work. */
 	MMC1_bits = 0; MMC1_shift = 0; MMC1_filter = 0;
 	MMC1_cbSync();
