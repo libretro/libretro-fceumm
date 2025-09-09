@@ -395,10 +395,10 @@ static void M227Sync(void) {
 		} else {
 			if (L) {
 				setprg16(0x8000, p);
-				setprg16(0xC000, p | 7);
+				setprg16(0xC000, submapper ==3? 0: (p | 7));
 			} else {
 				setprg16(0x8000, p);
-				setprg16(0xC000, submapper ==2? 0: p & 0x38);
+				setprg16(0xC000, submapper ==2? 0: (p & 0x38));
 			}
 		}
 	}
