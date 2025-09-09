@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022 
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,79 +16,81 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ *
  */
+
 #include "mapinc.h"
-#include "mmc3.h"
+#include "asic_mmc3.h"
 
-static uint8 *CHRRAM =NULL;
+static uint8 submapper;
+static uint8 reg;
+static uint8 pad;
+static uint8 *CHRRAM = NULL;
 
-static DECLFR(Mapper460_ReadOB)
-{
-   return X.DB;
+static DECLFR (readPad) {
+	return CartBR(A &~3 | pad &3);
 }
 
-static void Mapper460_PRGWrap(uint32 A, uint8 V) {
-	int prgAND =0x0F;
-	int prgOR  =EXPREGS[0] <<4;
-	if (EXPREGS[0] &0x38) { /* Menu selection by selectively connecting CPU D7 to reg or not */
-		if (~A &0x4000) {
-			setprg8(A,         (EXPREGS[0] &0x10? ~2: ~0) &V &prgAND | prgOR &~prgAND);
-			setprg8(A |0x4000, (EXPREGS[0] &0x10?  2:  0) |V &prgAND | prgOR &~prgAND);
-		}
-	} else
-		setprg8(A, V &prgAND | prgOR &~prgAND);
-	
-	/* Menu selection by selectively connecting reg's D7 to PRG /CE or not */
-	if (EXPREGS[0] &0x80 && EXPREGS[1] &1)
-		SetReadHandler(0x8000, 0xFFFF, Mapper460_ReadOB);
+static void sync () {
+	MMC3_syncPRG(0x0F, reg <<4 &~0x0F);
+	if (reg &0x04)
+		MMC3_syncCHR(0x1FF, 0x000);
 	else
-		SetReadHandler(0x8000, 0xFFFF, CartBR);
-}
-
-static void Mapper460_CHRWrap(uint32 A, uint8 V) {
-	if (EXPREGS[0] &0x04) {
-		setchr2(0x0000, DRegBuf[0] &0xFE);
-		setchr2(0x0800, DRegBuf[0] |0x01);
-		setchr2(0x1000, DRegBuf[2]);
-		setchr2(0x1800, DRegBuf[5]);
-	} else
 		setchr8r(0x10, 0);
+	MMC3_syncMirror();
+	SetReadHandler(0x8000, 0xFFFF, submapper == 0 && reg &0x80 || submapper == 1 && reg &0x20? readPad: CartBR);
 }
 
-static DECLFW(Mapper460_WriteExtra) {
-	if (A001B &0x80 && ~A001B &0x40) EXPREGS[0] =A &0xFF;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static int getPRGBank (uint8 bank) {
+	if (reg &0x08) {
+		int mask = reg &0x10? 3: 1;
+		return MMC3_getPRGBank(bank &1) &~mask | bank &mask;
+	} else
+		return MMC3_getPRGBank(bank);
 }
 
-static void Mapper460_Reset(void) {
-	EXPREGS[0] =0;
-	EXPREGS[1]++;
-	MMC3RegReset();
+static int getCHRBank (uint8 bank) {
+	if (reg &0x04)
+		return MMC3_getCHRBank(bank &6 | bank >>1 &1) <<1 | bank &1;
+	else
+		return MMC3_getCHRBank(bank);
 }
 
-static void Mapper460_Power(void) {
-	EXPREGS[0] =0;
-	EXPREGS[1] =0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7FFF, Mapper460_WriteExtra);
+static DECLFW (writeReg) {
+	reg = A &0xFF;
+	sync();
 }
 
-static void Mapper460_close(void) {
-	if (CHRRAM) FCEU_gfree(CHRRAM);
-	CHRRAM =NULL;
+static void reset () {
+	reg = 0;
+	pad++;
+	MMC3_clear();
 }
 
-void Mapper460_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 512, 0, 0);
-	cwrap = Mapper460_CHRWrap;
-	pwrap = Mapper460_PRGWrap;
-	info->Power = Mapper460_Power;
-	info->Reset = Mapper460_Reset;
-	info->Close = Mapper460_close;
-	AddExState(EXPREGS, 2, 0, "EXPR");
-	
-	CHRRAM =(uint8 *)FCEU_gmalloc(8192);
+static void power () {
+	reg = 0;
+	pad = 0;
+	MMC3_power();
+}
+
+static void close () {
+	if (CHRRAM) {
+		FCEU_gfree(CHRRAM);
+		CHRRAM = NULL;
+	}
+}
+
+void Mapper460_Init (CartInfo *info) {
+	submapper = info->submapper;
+	MMC3_init(info, sync, MMC3_TYPE_SHARP, getPRGBank, getCHRBank, NULL, writeReg);
+	info->Power = power;
+	info->Reset = reset;
+	info->Close = close;
+	AddExState(&reg, 1, 0, "EXPR");
+	AddExState(&reg, 1, 0, "DIPS");
+
+	CHRRAM = (uint8 *)FCEU_gmalloc(8192);
 	SetupCartCHRMapping(0x10, CHRRAM, 8192, 1);
 	AddExState(CHRRAM, 8192, 0, "CRAM");
 }
