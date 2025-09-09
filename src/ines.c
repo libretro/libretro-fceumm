@@ -666,7 +666,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "",                         210, Mapper210_Init         )
 	INES_BOARD( "HUMMER/JY BOARD",          211, Mapper211_Init         )
 	INES_BOARD( "",                         212, Mapper212_Init         )
-	INES_BOARD( "",                         213, Mapper58_Init          ) /* in mapper 58 */
+	INES_BOARD( "EJ-3003/820428-C",         213, Mapper213_Init         )
 	INES_BOARD( "",                         214, Mapper214_Init         )
 	INES_BOARD( "UNL-8237",                 215, UNL8237_Init           )
 	INES_BOARD( "",                         216, Mapper216_Init         )

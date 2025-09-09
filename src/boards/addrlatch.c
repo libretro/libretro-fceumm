@@ -346,10 +346,6 @@ void Mapper212_Init(CartInfo *info) {
 	Latch_Init(info, M212Sync, M212Read, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-/*------------------ Map 213 ---------------------------*/
-
-/*                SEE MAPPER 58                         */
-
 /*------------------ Map 214 ---------------------------*/
 
 static void M214Sync(void) {
