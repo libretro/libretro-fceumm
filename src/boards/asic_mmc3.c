@@ -115,7 +115,7 @@ DECLFW(MMC3_writeReg) {
 	if (A <0xC000) MMC3_cbSync();
 }
 
-static void MMC3_clear () {
+void MMC3_clear () {
 	MMC3_reg[0] = 0; MMC3_reg[1] = 2; MMC3_reg[2] = 4; MMC3_reg[3] = 5; MMC3_reg[4] = 6; MMC3_reg[5] = 7; MMC3_reg[6] = 0; MMC3_reg[7] = 1;
 	MMC3_index = MMC3_mirroring = MMC3_wramControl = MMC3_reloadValue = MMC3_reloadRequest = MMC3_irqEnable = MMC3_counter = 0;
 	MMC3_cbSync();

@@ -36,6 +36,7 @@ void MMC3_syncCHR (int, int);
 void MMC3_syncMirror ();
 void MMC3_clockCounter ();
 DECLFW (MMC3_writeReg);
+void MMC3_clear ();
 void MMC3_activate (uint8, void (*)(), uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
 void MMC3_addExState();
 void MMC3_restore (int);
