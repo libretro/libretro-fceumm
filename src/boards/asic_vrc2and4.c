@@ -239,6 +239,11 @@ static void VRC4_configure (void (*sync)(), int A0, int A1, uint8 useRepeatBit, 
 	VRC24_cbExternalSelect = externalSelect;
 }
 
+void VRC24_reconfigure(int A0, int A1) {
+	VRC24_A0 = A0;
+	VRC24_A1 = A1;
+}
+
 void VRC2_activate (uint8 clear, void (*sync)(), int A0, int A1, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write))) {
 	VRC2_configure(sync, A0, A1, prg, chr, read, write);
 	VRC24_setHandlers();
