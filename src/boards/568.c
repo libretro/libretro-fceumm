@@ -24,37 +24,52 @@
 #include "asic_mmc3.h"
 
 static uint8 reg;
+static uint8 pad;
 
-static void sync() {
-	int prgAND = reg &0x02 && reg &0x04? 0x1F: 0x0F;
-	int chrAND = reg &0x02 && reg &0x04? 0xFF: 0x7F;
-	int prgOR  = reg <<4;
-	int chrOR  = reg <<7;
+static DECLFR (readPad) {
+	return CartBR(A &~0xF | pad &0xF);
+}
+
+static void sync () {
+	int prgAND = reg &0x20? 0x1F: 0x0F;
+	int chrAND = reg &0x20? 0xFF: 0x7F;
+	int prgOR = reg <<1;
+	int chrOR = reg <<4;
 	MMC3_syncPRG(prgAND, prgOR &~prgAND);
 	MMC3_syncCHR(chrAND, chrOR &~chrAND);
 	MMC3_syncMirror();
+	SetReadHandler(0x8000, 0xFFFF, reg &0x40? readPad: CartBR);
 }
 
-static DECLFW(writeReg) {
-	reg = V;
+static int getPRGBank (uint8 bank) {
+	if (reg &0x02) {
+		int mask = reg &0x01? 3: 1;
+		return MMC3_getPRGBank(0) &~mask | bank &mask;
+	} else
+		return MMC3_getPRGBank(bank);
+}
+
+static DECLFW (writeReg) {
+	reg = A &0xFF;
 	sync();
 }
 
-static void reset() {
+static void reset () {
 	reg = 0;
+	pad++;
 	MMC3_clear();
 }
 
-static void power() {
-	int i;
+static void power () {
 	reg = 0;
+	pad = 0;
 	MMC3_power();
-	for (int i = 0x8000; i < 0xFFFF; i +=4) SetWriteHandler(i |2, i |3, writeReg);
 }
 
-void Mapper578_Init(CartInfo *info) {
-	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, writeReg);
+void Mapper568_Init (CartInfo *info) {
+	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;
 	AddExState(&reg, 1, 0, "EXPR");
+	AddExState(&pad, 1, 0, "DIPS");
 }
