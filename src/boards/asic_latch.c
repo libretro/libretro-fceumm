@@ -48,7 +48,8 @@ void Latch_clear () {
 }
 
 static void Latch_setHandlers() {
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	SetReadHandler(0x6000, 0xFFFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(Latch_from, Latch_to, Latch_write);
 }
 
