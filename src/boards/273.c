@@ -24,11 +24,13 @@
 static uint8 irqEnabled;
 static uint8 irqCounter;
 static uint8 irqPrescaler;
+static uint8 irqMask;
 
 static SFORMAT stateRegs[] ={
 	{ &irqEnabled, 1, "IRQE" },
 	{ &irqCounter, 1, "CNTR" },
 	{ &irqPrescaler, 1, "IRQP" },
+	{ &irqMask, 1, "IRQM" },
 	{ 0 }
 };
 
@@ -39,39 +41,42 @@ static void sync () {
 }
 
 static DECLFW(writeIRQ) {
-	switch(A &0x0C) {
+	switch(A &8) {
 		case 0:
 			irqCounter = V;
-			irqPrescaler = 0;
 			X6502_IRQEnd(FCEU_IQEXT);
 			break;
-		case 4:
+		case 8:
 			irqEnabled = V;
+			if (~irqEnabled &1) {
+				irqPrescaler = 0;
+				irqMask = 0x7F;
+				X6502_IRQEnd(FCEU_IQEXT);
+			}
 			break;
 	}
 }
 
 static void FP_FASTAPASS(1) cpuCycle (int a) {
 	while (a--) {
-		if (irqEnabled &1) {
-			irqPrescaler++;
-			if (irqPrescaler == 64 && !++irqCounter) X6502_IRQBegin(FCEU_IQEXT);
-			if (irqPrescaler == 112) irqPrescaler = 0;
-		} else {
-			irqPrescaler = 0;
-			X6502_IRQEnd(FCEU_IQEXT);
+		if (irqEnabled &1 && !(++irqPrescaler &irqMask)) {
+			irqMask = 0xFF;
+			if (!++irqCounter)
+				X6502_IRQBegin(FCEU_IQEXT);
+			else
+				X6502_IRQEnd(FCEU_IQEXT);
 		}
 	}
 }
 
 static void power(void) {
-	irqEnabled = irqCounter = irqPrescaler = 0;
+	irqEnabled = irqCounter = irqPrescaler = irqMask = 0;
 	VRC24_power();
 	SetWriteHandler(0xF000, 0xFFFF, writeIRQ);
 }
 
-void Mapper565_Init (CartInfo *info) {
-	VRC2_init(info, sync, 0x08, 0x04, NULL, NULL, NULL, NULL);
+void Mapper273_Init (CartInfo *info) {
+	VRC2_init(info, sync, 0x04, 0x08, NULL, NULL, NULL, NULL);
 	AddExState(stateRegs, ~0, 0, 0);
 	info->Power = power;
 	MapIRQHook = cpuCycle;
