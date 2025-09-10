@@ -23,10 +23,14 @@
 
 static uint8 irqEnabled;
 static uint8 irqCounter;
+static uint8 irqPrescaler;
+static uint8 irqMask;
 
-static SFORMAT Mapper563_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &irqEnabled, 1, "IRQE" },
 	{ &irqCounter, 1, "CNTL" },
+	{ &irqPrescaler, 1, "IRQP" },
+	{ &irqMask, 1, "IRQC" },
 	{ 0 }
 };
 
@@ -36,28 +40,41 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-static DECLFW(Mapper563_writeIRQ) {
-	X6502_IRQEnd(FCEU_IQEXT);
-	switch(A &0x1C) {
-		case 0x0C: irqEnabled =0; break;
-		case 0x08: irqEnabled =1; break;
-		case 0x1C: irqCounter =0; break;
+static DECLFW(writeIRQ) {
+	switch(A &0x0C) {
+		case 0:
+			irqCounter = V;
+			irqPrescaler = 0;
+			X6502_IRQEnd(FCEU_IQEXT);
+			break;
+		case 4:
+			irqEnabled = V;
+			break;
 	}
 }
 
-static void Mapper563_scanline (void) { /* Actually, a sixteen-stage counter triggering on falling PA12. FCEU's PPU emulation isn't accurate enough for that, however, so just raise IRQ every two scanlines. */
-	if (!(++irqCounter &1) && irqEnabled) X6502_IRQBegin(FCEU_IQEXT);
+void FP_FASTAPASS(1) cpuCycle (int a) {
+	while (a--) {
+		if (irqEnabled &1) {
+			irqPrescaler++;
+			if (irqPrescaler == 64 && !++irqCounter) X6502_IRQBegin(FCEU_IQEXT);
+			if (irqPrescaler == 112) irqPrescaler = 0;
+		} else {
+			irqPrescaler = 0;
+			X6502_IRQEnd(FCEU_IQEXT);
+		}
+	}
 }
 
-static void Mapper563_power(void) {
-	irqEnabled =irqCounter =0;
+static void power(void) {
+	irqEnabled = irqCounter = irqPrescaler = irqMask = 0;
 	VRC24_power();
-	SetWriteHandler(0xF000, 0xFFFF, Mapper563_writeIRQ);
+	SetWriteHandler(0xF000, 0xFFFF, writeIRQ);
 }
 
-void Mapper563_Init (CartInfo *info) {
-	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
-	AddExState(Mapper563_stateRegs, ~0, 0, 0);
-	info->Power =Mapper563_power;
-	GameHBIRQHook = Mapper563_scanline;
+void Mapper565_Init (CartInfo *info) {
+	VRC2_init(info, sync, 0x08, 0x04, NULL, NULL, NULL, NULL);
+	AddExState(stateRegs, ~0, 0, 0);
+	info->Power = power;
+	MapIRQHook = cpuCycle;
 }
