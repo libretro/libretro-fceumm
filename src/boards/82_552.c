@@ -26,6 +26,7 @@
 static uint8 regs[9], ctrl;
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
+static uint8 is552;
 
 static SFORMAT StateRegs[] =
 {
@@ -33,6 +34,13 @@ static SFORMAT StateRegs[] =
 	{ &ctrl, 1, "CTRL" },
 	{ 0 }
 };
+
+uint8 prgBits (uint8 val) {
+	if (is552)
+		return val >>5 &0x01 | val >>3 &0x02 | val >>1 &0x04 | val <<1 &0x08 | val <<3 &0x10 | val <<5 &0x20;
+	else
+		return val >>2;
+}
 
 static void Sync(void) {
 	uint32 swap = ((ctrl & 2) << 11);
@@ -43,9 +51,9 @@ static void Sync(void) {
 	setchr1(0x1800 ^ swap, regs[4]);
 	setchr1(0x1c00 ^ swap, regs[5]);
 	setprg8r(0x10, 0x6000, 0);
-	setprg8(0x8000, regs[6]);
-	setprg8(0xA000, regs[7]);
-	setprg8(0xC000, regs[8]);
+	setprg8(0x8000, prgBits(regs[6]));
+	setprg8(0xA000, prgBits(regs[7]));
+	setprg8(0xC000, prgBits(regs[8]));
 	setprg8(0xE000, ~0);
 	setmirror(ctrl & 1);
 }
@@ -56,9 +64,9 @@ static DECLFW(M82Write) {
 	else
 		switch (A) {
 		case 0x7ef6: ctrl = V & 3; break;
-		case 0x7efa: regs[6] = V >> 2; break;
-		case 0x7efb: regs[7] = V >> 2; break;
-		case 0x7efc: regs[8] = V >> 2; break;
+		case 0x7efa: regs[6] = V; break;
+		case 0x7efb: regs[7] = V; break;
+		case 0x7efc: regs[8] = V; break;
 		}
 	Sync();
 }
@@ -82,6 +90,7 @@ static void StateRestore(int version) {
 }
 
 void Mapper82_Init(CartInfo *info) {
+	is552 = 0;
 	info->Power = M82Power;
 	info->Close = M82Close;
 
@@ -95,4 +104,9 @@ void Mapper82_Init(CartInfo *info) {
 	}
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
+}
+
+void Mapper552_Init(CartInfo *info) {
+	Mapper82_Init(info);
+	is552 = 1;
 }
