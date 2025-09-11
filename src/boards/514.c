@@ -22,7 +22,7 @@
 #include "asic_latch.h"
 #include "wram.h"
 
-uint8 chr;
+static uint8 chr;
 
 static void sync () {
 	setprg8r(0x10, 0x6000, 0);
