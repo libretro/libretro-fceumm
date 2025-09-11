@@ -24,45 +24,34 @@
 #include "asic_mmc3.h"
 
 static uint8 reg;
-static uint8 pad;
 
-static DECLFR(readPad) {
-	return CartBR(A &~0xF | pad &0xF);
-}
-
-static void sync() {
-	if (reg &0x20)
-		setprg32(0x8000, reg >>1);
-	else {
-		setprg16(0x8000, reg);
-		setprg16(0xC000, reg);
-	}
-	MMC3_syncCHR(0xFF, reg <<4 &~0xFF);
+static void sync () {
+	if (reg &0x08)
+		setprg32(0x8000, reg &0x04 | reg >>4 &0x03);
+	else
+		MMC3_syncPRG(0x0F, reg <<2 &~0x0F);
+	MMC3_syncCHR(0x7F, reg <<5 &~0x7F);
 	MMC3_syncMirror();
-	SetReadHandler(0x8000, 0xFFFF, reg &0x80? readPad: CartBR);
 }
 
-static DECLFW(writeReg) {
-	reg = A &0xFF;
+static DECLFW (writeReg) {
+	reg = V;
 	sync();
 }
 
-static void reset() {
+static void power () {
 	reg = 0;
-	++pad;
-	sync();
-}
-
-static void power() {
-	reg = 0;
-	pad = 0;
 	MMC3_power();
 }
 
-void Mapper490_Init(CartInfo *info) {
+static void reset () {
+	reg = 0;
+	MMC3_clear();
+}
+
+void Mapper321_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;
 	AddExState(&reg, 1, 0, "EXPR");
-	AddExState(&pad, 1, 0, "DIPS");
 }
