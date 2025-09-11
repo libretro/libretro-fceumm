@@ -20,8 +20,6 @@
  *
  */
 
-/* The UNIF dump of "(JY-103) 3-in-1" (JY4M4 MAPR) has a strange bank order and will not run with this emulation. */
-
 #include "mapinc.h"
 #include "wram.h"
 #include "../fds_apu.h"

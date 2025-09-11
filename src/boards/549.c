@@ -20,6 +20,7 @@
 
 #include "mapinc.h"
 #include "asic_latch.h"
+#include "../fds_apu.h"
 
 static void sync () {
 	setprg8(0x6000, Latch_address >>2 | Latch_address >>3 &0x04);
@@ -27,7 +28,18 @@ static void sync () {
 	setchr8(0);
 }
 
+static void power() {
+	Latch_power();
+	FDSSoundPower();
+}
+
+static void reset() {
+	FDSSoundReset();
+	Latch_clear();
+}
+
 void Mapper549_Init (CartInfo *info) {
 	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
-	info->Reset = Latch_clear;
+	info->Power = power;
+	info->Reset = reset;
 }
