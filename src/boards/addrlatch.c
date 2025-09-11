@@ -832,24 +832,6 @@ void Mapper459_Init(CartInfo *info) {
 	Latch_Init(info, M459Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
 }
 
-/*------------------ Map 461 ---------------------------*/
-static void M461Sync(void) {
-	int p =latche <<1 | latche >>5 &1;
-	int c =latche >>8;
-	if (latche &0x10) {
-		setprg16(0x8000, p);
-		setprg16(0xC000, p);
-	} else {
-		setprg32(0x8000, p >>1);
-	}
-	setchr8(c);
-	setmirror(latche &0x80? MI_H: MI_V);
-}
-
-void Mapper461_Init(CartInfo *info) {
-	Latch_Init(info, M461Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
-}
-
 /*------------------ Map 464 ---------------------------*/
 static void M464Sync(void) {
 	int p =latche >>7;
