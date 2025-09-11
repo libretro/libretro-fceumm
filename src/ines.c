@@ -807,6 +807,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Bitcorp 31-in-1",          360, Mapper360_Init         )
 	INES_BOARD( "OK-411",                   361, GN45_Init              ) /* OK-411 is emulated together with GN-45 */
 	INES_BOARD( "830506C",                  362, Mapper362_Init         )
+	INES_BOARD( "5069",                     363, Mapper363_Init         )
 	INES_BOARD( "JY830832C",                364, Mapper364_Init         )
 	INES_BOARD( "GN-45",                    366, GN45_Init              )
 	INES_BOARD( "JC-016-2 variant",         367, Mapper367_Init         )
