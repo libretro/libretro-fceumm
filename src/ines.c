@@ -941,6 +941,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "1n4148",                   511, Mapper511_Init         )
 	INES_BOARD( "Zhonggguo Daheng",         512, Mapper512_Init         )
 	INES_BOARD( "SA-9602B",                 513, SA9602B_Init           )
+	INES_BOARD( "Subor Karaoke",            514, Mapper514_Init         )
 	INES_BOARD( "Brilliant Com Cocoma Pack",516, Mapper516_Init         )
 	INES_BOARD( "Kkachi-wa Nolae Chingu",   517, UNROM_Init             ) /* Microphone input currently not emulated */
 	INES_BOARD( "DANCE2000",                518, UNLD2000_Init          )
