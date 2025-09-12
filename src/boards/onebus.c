@@ -230,7 +230,7 @@ static DECLFW(UNLOneBusWriteMMC3) {
 		break;
 	}
 	case 0xa000: mirror = V; Sync(); break;
-	case 0xc000: IRQLatch = V & 0xfe; break;
+	case 0xc000: IRQLatch = V; break;
 	case 0xc001: IRQReload = 1; break;
 	case 0xe000: X6502_IRQEnd(FCEU_IQEXT); IRQa = 0; break;
 	case 0xe001: IRQa = 1; break;
