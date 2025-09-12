@@ -846,8 +846,15 @@ static void M464Sync(void) {
 	setmirror(latche &0x20? MI_H: MI_V);
 }
 
+void Mapper464_reset () {
+	RAM[0x133] = 0;
+	latche = 0;
+	M464Sync();
+}
+
 void Mapper464_Init(CartInfo *info) {
 	Latch_Init(info, M464Sync, NULL, 0x0000, 0x8000, 0xFFFF, 1);
+	info->Reset = Mapper464_reset;
 }
 
 /*------------------ Map 488 ---------------------------*/
