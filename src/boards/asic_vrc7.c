@@ -19,8 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "asic_VRC7.h"
-#include "wram.h"
+#include "asic_vrc7.h"
 
 static void (*VRC7_cbSync)();
 static int VRC7_A0;

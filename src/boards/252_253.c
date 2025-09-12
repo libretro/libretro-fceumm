@@ -20,10 +20,8 @@
 
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
-#include "wram.h"
+#include "cartram.h"
 
-static uint8 *CHRRAM;
-static uint32 CHRRAMSize;
 static uint8 mask;
 static uint8 compare;
 
@@ -72,36 +70,16 @@ void Mapper253_power (void) {
 	SetWriteHandler(0x2007, 0x2007, Mapper252_253_interceptPPUWrite);
 }
 
-void Mapper252_253_close(void) {
-	if (CHRRAM) {
-		FCEU_gfree(CHRRAM);
-		CHRRAM =NULL;
-	}
-	WRAM_close();
-}
-
 void Mapper252_Init (CartInfo *info) {
 	VRC4_init(info, sync, 0x4, 0x8, 1, NULL, NULL, NULL, NULL, NULL);
-	WRAM_init(info, 8);
+	CartRAM_init(info, 8, 2);
 	info->Power =Mapper252_power;
-	info->Close =Mapper252_253_close;
 	AddExState(stateRegs, ~0, 0, 0);
-
-	CHRRAMSize =info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): 2048;
-	CHRRAM =(uint8*)FCEU_gmalloc(CHRRAMSize);
-	AddExState(CHRRAM, CHRRAMSize, 0, "CRAM");
-	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);	
 }
 
 void Mapper253_Init (CartInfo *info) {
 	VRC4_init(info, sync, 0x4, 0x8, 1, NULL, NULL, NULL, NULL, NULL);
-	WRAM_init(info, 8);
+	CartRAM_init(info, 8, 2);
 	info->Power =Mapper253_power;
-	info->Close =Mapper252_253_close;
 	AddExState(stateRegs, ~0, 0, 0);
-
-	CHRRAMSize =info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): 2048;
-	CHRRAM =(uint8*)FCEU_gmalloc(CHRRAMSize);
-	AddExState(CHRRAM, CHRRAMSize, 0, "CRAM");
-	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);	
 }

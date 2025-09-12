@@ -18,11 +18,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef _WRAM_H
-#define _WRAM_H
+#ifndef _CARTRAM_H
+#define _CARTRAM_H
 
+extern uint32 CHRRAMSize;
 extern uint32 WRAMSize;
+void CartRAM_init (CartInfo *, uint8, uint8);
+void CHRRAM_init (CartInfo *, uint8);
 void WRAM_init (CartInfo *, uint8);
-void WRAM_close ();
+void CartRAM_close ();
 
 #endif

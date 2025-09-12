@@ -20,7 +20,6 @@
 
 #include "mapinc.h"
 #include "asic_vrc6.h"
-#include "wram.h"
 
 static void (*VRC6_cbSync)();
 static int VRC6_A0, VRC6_A1;

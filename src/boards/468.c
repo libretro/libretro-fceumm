@@ -29,7 +29,7 @@
 #include "asic_vrc3.h"
 #include "asic_vrc6.h"
 #include "asic_vrc7.h"
-#include "wram.h"
+#include "cartram.h"
 
 static uint8 submapper;
 static uint8 reg[4]; /* Supervisor registers */

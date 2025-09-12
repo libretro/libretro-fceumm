@@ -22,7 +22,7 @@
 
 #include "mapinc.h"
 #include "asic_n118.h"
-#include "wram.h"
+#include "cartram.h"
 
 static void sync() {
 	setprg8r(0x10, 0x6000, 0);

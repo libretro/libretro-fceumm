@@ -21,7 +21,7 @@
  */
 
 #include "mapinc.h"
-#include "wram.h"
+#include "cartram.h"
 #include "../fds_apu.h"
 
 static uint8 reg;

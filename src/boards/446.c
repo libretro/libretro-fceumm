@@ -33,7 +33,7 @@
 #include "asic_vrc6.h"
 #include "asic_vrc7.h"
 #include "flashrom.h"
-#include "wram.h"
+#include "cartram.h"
 
 static uint8 submapper;
 static uint8 reg[8];

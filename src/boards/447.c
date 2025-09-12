@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
-#include "wram.h"
+#include "cartram.h"
 
 static uint8 reg;
 static uint8 dip;

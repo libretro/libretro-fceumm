@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 #include "asic_latch.h"
-#include "wram.h"
+#include "cartram.h"
 
 static uint8 chr;
 

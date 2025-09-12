@@ -25,7 +25,7 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 #include "asic_vrc2and4.h"
-#include "wram.h"
+#include "cartram.h"
 
 static uint8 reg[4];
 static uint8 index;

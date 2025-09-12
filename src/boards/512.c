@@ -22,10 +22,9 @@
 
 #include "mapinc.h"
 #include "asic_mmc3.h"
-#include "wram.h"
+#include "cartram.h"
 
 static uint8 reg;
-static uint8 *CHRRAM = NULL;
 
 static void sync () {
 	MMC3_syncPRG(0x3F, 0x00);
@@ -64,22 +63,10 @@ static void power () {
 	SetWriteHandler(0x4020, 0x5FFF, writeReg);
 }
 
-static void close () {
-	if (CHRRAM) {
-		FCEU_gfree(CHRRAM);
-		CHRRAM = NULL;
-	}
-}
-
 void Mapper512_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, NULL);
-	WRAM_init(info, 8);
+	CartRAM_init(info, 8, 8);
 	info->Power = power;
 	info->Reset = reset;
-	info->Close = close;
 	AddExState(&reg, 1, 0, "EXPR");
-
-	CHRRAM = (uint8 *)FCEU_gmalloc(8192);
-	SetupCartCHRMapping(0x10, CHRRAM, 8192, 1);
-	AddExState(CHRRAM, 8192, 0, "CRAM");
 }

@@ -19,22 +19,27 @@
  */
 
 #include "mapinc.h"
-#include "wram.h"
+#include "cartram.h"
 
+static uint8 *CHRRAMData = NULL;
 static uint8 *WRAMData = NULL;
+uint32 CHRRAMSize = 0;
 uint32 WRAMSize = 0;
 
-void WRAM_close (void) {
+void CartRAM_close (void) { /* Need to combine this in one function to avoid the problem of having to properly cascade two separate Close() functions for WRAM and CHR-RAM each */
 	if (WRAMData) {
 		FCEU_gfree(WRAMData);
 		WRAMData =NULL;
 	}
+	if (CHRRAMData) {
+		FCEU_gfree(CHRRAMData);
+		CHRRAMData =NULL;
+	}
 }
 
-void WRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB) {
+void CartRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB, uint8 defaultCHRRAMSizeKiB) {
 	WRAMSize =info->iNES2? (info->PRGRamSize +info->PRGRamSaveSize): (defaultWRAMSizeKiB *1024);
 	if (WRAMSize) {
-		info->Close =WRAM_close;
 		WRAMData =(uint8*)FCEU_gmalloc(WRAMSize);
 		SetupCartPRGMapping(0x10, WRAMData, WRAMSize, 1);
 		AddExState(WRAMData, WRAMSize, 0, "WRAM");
@@ -43,4 +48,24 @@ void WRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB) {
 			info->SaveGameLen[0] =WRAMSize;
 		}
 	}
+	CHRRAMSize =info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): (defaultCHRRAMSizeKiB *1024);
+	if (ROM_size == 0) CHRRAMSize = 0; /* If there is no CHR-ROM, then any CHR-RAM will not be "extra" and therefore will be handled by ines.c, not here. */
+	if (CHRRAMSize) {
+		CHRRAMData =(uint8*)FCEU_gmalloc(CHRRAMSize);
+		SetupCartCHRMapping(0x10, CHRRAMData, CHRRAMSize, 1);
+		AddExState(CHRRAMData, CHRRAMSize, 0, "CRAM");
+		if (info->battery) {
+			info->SaveGame[info->SaveGameLen[0]? 1: 0] =CHRRAMData;
+			info->SaveGameLen[info->SaveGameLen[0]? 1: 0] =CHRRAMSize;
+		}
+	}
+	if (WRAMSize || CHRRAMSize) info->Close =CartRAM_close;
+}
+
+void CHRRAM_init (CartInfo *info, uint8 defaultCHRRAMSizeKiB) {
+	CartRAM_init(info, 0, defaultCHRRAMSizeKiB);
+}
+
+void WRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB) {
+	CartRAM_init(info, defaultWRAMSizeKiB, 0);
 }

@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
-#include "wram.h"
+#include "cartram.h"
 
 static void (*VRC24_cbSync)();
 static int VRC24_A0, VRC24_A1;

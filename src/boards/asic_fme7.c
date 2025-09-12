@@ -20,7 +20,6 @@
 
 #include "mapinc.h"
 #include "asic_FME7.h"
-#include "wram.h"
 
 static void (*FME7_cbSync)();
 static uint8 FME7_index;

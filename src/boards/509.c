@@ -22,7 +22,7 @@
 
 #include "mapinc.h"
 #include "asic_mmc3.h"
-#include "wram.h"
+#include "cartram.h"
 
 static uint8 reg;
 
