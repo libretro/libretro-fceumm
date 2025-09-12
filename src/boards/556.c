@@ -28,11 +28,11 @@
 #include "cartram.h"
 
 static uint8 reg[4];
-static uint8 index;
+static uint8 rIdx;
 
 static SFORMAT StateRegs[] = {
 	{ reg, 4, "REGS" },
-	{ &index, 1, "INDX" },
+	{ &rIdx, 1, "INDX" },
 	{ 0 },
 };
 
@@ -63,8 +63,8 @@ static void applyMode (uint8 clear) {
 
 static DECLFW(writeReg) {
 	if (~reg[3] &0x80) {
-		reg[index++ &3] = V;
-		if (index == 3)
+		reg[rIdx++ &3] = V;
+		if (rIdx == 3)
 			applyMode(1);
 		else
 			sync();
@@ -74,14 +74,14 @@ static DECLFW(writeReg) {
 static void reset (void) {
 	reg[0] = reg[1] = reg[3] = 0;
 	reg[2] = 0x0F;
-	index = 0;
+	rIdx = 0;
 	applyMode(1);
 }
 
 static void power (void) {
 	reg[0] = reg[1] = reg[3] = 0;
 	reg[2] = 0x0F;
-	index = 0;
+	rIdx = 0;
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x5000, 0x5FFF, writeReg);
 	applyMode(1);
