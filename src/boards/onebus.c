@@ -289,12 +289,14 @@ static DECLFR(UNLOneBusReadAPU40XX) {
 			result = (result & 0x7f) | pcm_irq;
 		}
 		break;
+	case 0x17:
+		if (cpu410x[0x0B] == 0x14) result = result &~0x04 | (dipswitch &1? 0x04: 0x00); /* Super Joy III pad */
 	}
 	return result;
 }
 
-static DECLFR(readDIP) {
-	return dipswitch;
+static DECLFR(readDIP_FamilyPocket) {
+	return dipswitch &1? 8: 0;
 }
 
 static void UNLOneBusCpuHook(int a) {
@@ -337,7 +339,7 @@ static void UNLOneBusPower(void) {
 	SetReadHandler(0x4000, 0x403f, UNLOneBusReadAPU40XX);
 	SetWriteHandler(0x4000, 0x403f, UNLOneBusWriteAPU40XX);
 
-	SetReadHandler(0x412C, 0x412C, readDIP);
+	SetReadHandler(0x412C, 0x412C, readDIP_FamilyPocket);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	SetWriteHandler(0x2010, 0x201f, UNLOneBusWritePPU201X);
@@ -360,7 +362,7 @@ static void UNLOneBusReset(void) {
 	cpu410x[0x0F] =0xFF;
 	cpu410x[0x1C] =submapper ==12 || submapper ==14? 0x40: 0x00;
 	reg4242 =0;
-	dipswitch ^=8;
+	dipswitch++;
 
 	Sync();
 }
