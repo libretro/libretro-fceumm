@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "asic_QJ.h"
+#include "asic_qj.h"
 #include "asic_mmc3.h"
 
 static void (*QJ_cbSync)();

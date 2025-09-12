@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "asic_PT8154.h"
+#include "asic_pt8154.h"
 #include "asic_mmc3.h"
 
 static void (*PT8154_cbSync)();

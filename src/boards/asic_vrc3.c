@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "asic_VRC3.h"
+#include "asic_vrc3.h"
 
 static void (*VRC3_cbSync)();
 static uint8 VRC3_prg;
