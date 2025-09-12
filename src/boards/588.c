@@ -29,19 +29,19 @@ static void sync () {
 	setmirror(reg[0] &0x80? MI_H: MI_V);
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	reg[A >>12 &1] = V;
 	sync();
 }
 
-static void power() {
+static void power () {
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0xE000, 0xFFFF, writeReg);
 	reg[0] = reg[1] = 0;
 	sync();
 }
 
-static void stateRestore(int version) {
+static void stateRestore (int version) {
 	sync();
 }
 
