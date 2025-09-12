@@ -161,5 +161,5 @@ void H3001_init (CartInfo *info, void (*sync)()) {
 	H3001_configure(sync);
 	info->Power = H3001_power;
 	info->Reset = H3001_cbSync;
-	GameStateRestore = H3001_cbSync;
+	GameStateRestore = H3001_restore;
 }
