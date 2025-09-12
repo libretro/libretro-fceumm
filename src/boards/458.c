@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2023
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,58 +16,55 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ *
  */
 
 #include "mapinc.h"
-#include "mmc3.h"
+#include "asic_mmc3.h"
 
-static void M458CW(uint32 A, uint8 V) {
-	setchr1(A, ((EXPREGS[0] << 4) & ~0x7F) | (V & 0x7F));
+static uint8 submapper;
+static uint8 reg;
+static uint8 pad;
+
+static DECLFR (readPad) {
+	return CartBR(A &~0xF | pad &0xF);
 }
 
-static void M458PW(uint32 A, uint8 V) {
-	if (EXPREGS[0] & 0x10) {
-		setprg32(0x8000, EXPREGS[0] >> 1);
-	} else {
-		setprg16(0x8000, EXPREGS[0]);
-		setprg16(0xC000, EXPREGS[0]);
+static void sync () {
+	if (reg &(submapper == 1? 0x08: 0x10))
+		setprg32(0x8000, reg >>1);
+	else {
+		setprg16(0x8000, reg);
+		setprg16(0xC000, reg);
 	}
+	MMC3_syncCHR(0x7F, reg <<4 &~0x7F);
+	MMC3_syncMirror();
+	SetReadHandler(0x8000, 0xFFFF, reg &(submapper == 1? 0x80: 0x20)? readPad: CartBR);
 }
 
-static DECLFR(M458Read) {
-	if ((EXPREGS[0] & 0x20) && (EXPREGS[1] & 3)) {
-		return CartBR((A & ~3) | (EXPREGS[1] & 3));
-	}
-	return CartBR(A);
+static DECLFW (writeReg) {
+	reg = A &0xFF;
+	sync();
 }
 
-static DECLFW(M458Write) {
-	if (MMC3CanWriteToWRAM()) {
-		EXPREGS[0] = A & 0xFF;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	}
+static void reset () {
+	reg = 0;
+	pad++;
+	MMC3_clear();
 }
 
-static void M458Reset(void) {
-	EXPREGS[0] = 0;
-	EXPREGS[1]++;
-	MMC3RegReset();
+static void power () {
+	reg = 0;
+	pad = 0;
+	MMC3_power();
 }
 
-static void M458Power(void) {
-	EXPREGS[0] = 0;
-	EXPREGS[1] = 0;
-	GenMMC3Power();
-	SetReadHandler(0x8000, 0xFFFF, M458Read);
-	SetWriteHandler(0x6000, 0x7FFF, M458Write);
-}
-
-void Mapper458_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = M458CW;
-	pwrap = M458PW;
-	info->Reset = M458Reset;
-	info->Power = M458Power;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+void Mapper458_Init (CartInfo *info) {
+	submapper = info->submapper;
+	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, writeReg);
+	info->Power = power;
+	info->Reset = reset;
+	AddExState(&reg, 1, 0, "EXPR");
+	AddExState(&pad, 1, 0, "DIPS");
 }
