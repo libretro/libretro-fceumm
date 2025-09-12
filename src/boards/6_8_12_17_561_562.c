@@ -571,6 +571,10 @@ void FFE_Init(CartInfo *info) {
 	PPU_hook =trapPPUAddressChangeFFE;
 }
 
+static void StateRestore(int version) {
+	sync();
+}
+
 void Mapper561_562_Init(CartInfo *info) {
 	int CHRRAMSize;
 	maker =info->mapper ==562? VENUS: BUNG;
@@ -624,7 +628,7 @@ void Mapper561_562_Init(CartInfo *info) {
 	} else
 		trainerSize =0;
 	
-	GameStateRestore =sync;
+	GameStateRestore =StateRestore;
 	info->Power =power;
 	info->Close =close;
 	if (maker ==VENUS) {
