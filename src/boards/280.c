@@ -41,6 +41,7 @@ static void Sync(void) {
          setprg16(0x8000, 0x20 | latchData &0x07);
          setprg16(0xC000, 0x27);
       }
+      setmirror(MI_V);
    } else {
       if (latchAddr &0x01)
 	      setprg32(0x8000, latchAddr >>3 &0x0F);
@@ -49,10 +50,10 @@ static void Sync(void) {
 	      setprg16(0xC000, latchAddr >>2 &0x1F);
       }
       if (~latchAddr &0x80) setprg16(0xC000, 0);
+      setmirror(latchAddr &0x02? MI_H: MI_V);
    }
    SetupCartCHRMapping(0, CHRptr[0], 0x2000, ~mode &0x01 && latchAddr &0x80? 0: 1);
    setchr8(0);
-   setmirror(latchAddr &0x02? MI_H: MI_V);
 }
 
 static DECLFW(M280Write) {
