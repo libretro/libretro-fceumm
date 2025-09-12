@@ -24,10 +24,10 @@
 
 static void (*TC3294_cbSync)();
 static uint8 TC3294_index;
-static uint8 TC3294_reg[4];
+uint8 TC3294_reg[4];
 
 static SFORMAT TC3294_state[] = {
-	{ TC3294_reg,   8, "329S" },
+	{ TC3294_reg,   4, "329S" },
 	{&TC3294_index, 1, "329I" },
 	{ 0 }
 };
@@ -99,8 +99,8 @@ void TC3294_power () {
 void TC3294_init (CartInfo *info, void (*sync)()) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, TC3294_write);
 	TC3294_addExState();
-	TC3294_configure(TC3294_cbSync);
+	TC3294_configure(sync);
 	info->Power = TC3294_power;
-	info->Reset = TC3294_cbSync;
+	info->Reset = TC3294_clear;
 	GameStateRestore = TC3294_restore;
 }

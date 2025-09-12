@@ -21,6 +21,7 @@
 #ifndef _ASIC_TC3294_H
 #define _ASIC_TC3294_H
 
+extern uint8 TC3294_reg[4];
 void TC3294_syncWRAM (int);
 void TC3294_syncPRG (int, int);
 void TC3294_syncCHR (int, int);
