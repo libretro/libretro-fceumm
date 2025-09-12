@@ -25,7 +25,7 @@
 
 static uint8 reg[4];
 
-static void sync() {
+static void sync () {
 	int prgAND = reg[1] &0x20? 0x1F: 0x0F;
 	int chrAND = reg[1] &0x40? 0xFF: 0x7F;
 	int prgOR = (reg[1] &0x02? 0x10: 0x00) | (reg[1] &0x10? 0x020: 0x00);
@@ -43,31 +43,31 @@ static void sync() {
 	MMC3_syncMirror();
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	if (~reg[1] &0x01) {
 		reg[A &3] = V;
 		sync();
 	}
 }
 
-static DECLFW(unscramble) {
+static DECLFW (unscramble) {
 	static const uint16 lutAddress[8] = { 0xA001, 0xA000, 0x8000, 0xC000, 0x8001, 0xC001, 0xE000, 0xE001 }; /* i <5? 4-i: i */
 	static const uint8 lutIndex[8] = { 0, 3, 1, 5, 6, 7, 2, 4 }; /* i <6? (i^3)-1: i */
 	MMC3_writeReg(lutAddress[A >>12 &6 | A &1], (A &0xE001) == 0xA000? lutIndex[V &7]: V);
 }
 
-static void reset() {
+static void reset () {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	MMC3_clear();
 }
 
-static void power() {
+static void power () {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	MMC3_power();
 	SetWriteHandler(0x8000, 0xFFFF, unscramble);
 }
 
-void Mapper182_Init(CartInfo *info) {
+void Mapper182_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;

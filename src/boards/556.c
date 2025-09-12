@@ -31,8 +31,8 @@ static uint8 reg[4];
 static uint8 index;
 
 static SFORMAT StateRegs[] = {
-	{ reg,            5, "REGS" },
-	{ &index,         1, "INDX" },
+	{ reg, 4, "REGS" },
+	{ &index, 1, "INDX" },
 	{ 0 },
 };
 

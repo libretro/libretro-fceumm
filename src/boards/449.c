@@ -25,15 +25,15 @@ uint8 submapper;
 uint8 pad;
 uint8 padSelect;
 
-static DECLFR(readPad_submapper0) {
+static DECLFR (readPad_submapper0) {
 	return CartBR(A &~0xF | pad &0xF);
 }
 
-static DECLFR(readPad_submapper1) {
+static DECLFR (readPad_submapper1) {
 	return pad;
 }
 
-static DECLFR(readPad_submapper2) {
+static DECLFR (readPad_submapper2) {
 	return CartBR(A &~0x3 | pad &0x3);
 }
 
@@ -57,7 +57,7 @@ static void sync () {
 	SetReadHandler(0x8000, 0xFFFF, submapper == 0 && Latch_address &0x200? readPad_submapper0: submapper == 2 && padSelect &1? readPad_submapper2: CartBR);
 }
 
-static DECLFW(writePad_submapper2) {
+static DECLFW (writePad_submapper2) {
 	padSelect = V;
 	sync();
 }
@@ -75,8 +75,7 @@ static void power () {
 static void reset () {
 	pad++;
 	padSelect = 0;
-	Latch_address = 0;
-	sync();
+	Latch_clear();
 }
 
 void Mapper449_Init (CartInfo *info) {

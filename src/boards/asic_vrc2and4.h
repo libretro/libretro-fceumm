@@ -38,6 +38,7 @@ DECLFW(VRC24_writeReg);
 
 void FP_FASTAPASS(1) VRC4_cpuCycle(int);
 void VRC24_reconfigure (int, int);
+void VRC24_clear ();
 void VRC2_activate (uint8, void (*)(), int, int, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
 void VRC4_activate (uint8, void (*)(), int, int, uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)), DECLFW((*)));
 void VRC2_addExState ();

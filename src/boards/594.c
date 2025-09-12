@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020
+ *  Copyright (C) 2025 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 #include "asic_mmc3.h"
 #include "fifo.h"
 #include "msm6585.h"
-#include <stdio.h>
 
 static uint8 reg[4];
 static FIFO fifo;
@@ -104,7 +103,7 @@ static void mapperSound_fillBufferHigh () {
 	soundOffset = SOUNDTS;
 }
 
-static void mapperSound_setSoundOffset(int32 newSoundOffset) {
+static void mapperSound_setSoundOffset (int32 newSoundOffset) {
 	soundOffset = newSoundOffset;
 }
 
@@ -118,7 +117,7 @@ static void mapperSound_init (void) {
 	MSM6585_init(&adpcm, FSettings.soundq >=1? 1789773: FSettings.SndRate*16, serveADPCM);
 }
 
-static void close() {
+static void close () {
 	FIFO_close(&fifo);
 }
 

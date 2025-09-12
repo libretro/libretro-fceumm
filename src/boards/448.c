@@ -24,7 +24,7 @@
 
 static uint8 reg;
 
-static SFORMAT Mapper448_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &reg, 1, "EXP0" },
 	{ 0 }
 };
@@ -46,31 +46,31 @@ static void sync () {
 	setchr8(0);
 }
 
-DECLFW(Mapper448_writeReg) {
+static DECLFW (writeReg) {
 	reg =A &0xFF;
 	sync();
 	CartBW(A, V);
 }
 
-DECLFW(Mapper448_writePRG) {
+static DECLFW (writePRG) {
 	VRC24_writeReg(reg &8? 0x8000: A, V);
 }
 
-void Mapper448_power(void) {
+static void power (void) {
 	reg =0;
 	VRC24_power();
-	SetWriteHandler(0x8000, 0xFFFF, Mapper448_writePRG);
+	SetWriteHandler(0x8000, 0xFFFF, writePRG);
 }
 
-void Mapper448_reset(void) {
+static void reset (void) {
 	reg =0;
-	sync();
-}	
+	VRC24_clear();
+}
 
 void Mapper448_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 0, NULL, NULL, NULL, Mapper448_writeReg, NULL);
+	VRC4_init(info, sync, 0x04, 0x08, 0, NULL, NULL, NULL, writeReg, NULL);
 	WRAM_init(info, 2);
-	info->Power =Mapper448_power;
-	info->Reset =Mapper448_reset;
-	AddExState(Mapper448_stateRegs, ~0, 0, 0);
+	info->Power =power;
+	info->Reset =reset;
+	AddExState(stateRegs, ~0, 0, 0);
 }

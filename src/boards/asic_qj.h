@@ -26,6 +26,7 @@ void QJ_syncPRG (int, int);
 void QJ_syncCHR (int, int);
 void QJ_syncMirror ();
 DECLFW (QJ_write);
+void QJ_clear ();
 void QJ_activate (uint8, void (*)());
 void QJ_addExState ();
 void QJ_restore (int);

@@ -25,6 +25,7 @@ void VRC3_syncWRAM (int);
 void VRC3_syncPRG (int, int);
 void VRC3_syncCHR (int, int);
 DECLFW (VRC3_write);
+void VRC3_clear ();
 void VRC3_activate (uint8, void (*)());
 void VRC3_addExState ();
 void VRC3_restore (int);

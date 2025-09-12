@@ -31,7 +31,7 @@ static SFORMAT stateRegs[] = {
 	{ 0 }
 };
 
-static void sync() {
+static void sync () {
 	setprg8(0x8000, prg[0]);
 	setprg8(0xA000, prg[1]);
 	setprg8(0xC000, prg[2]);
@@ -53,7 +53,7 @@ static void FP_FASTAPASS(1) trapPPUAddressChange (uint32 A) {
 	}
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	if (A <0xE000)
 		prg[A >>13 &3] = V;
 	else

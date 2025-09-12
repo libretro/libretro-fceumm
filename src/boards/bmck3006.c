@@ -26,7 +26,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper; // 0: K-3006, 1: unmarked, 2: TL 8058, 3: K-3091/GN-16
+static uint8 submapper; /* 0: K-3006, 1: unmarked, 2: TL 8058, 3: K-3091/GN-16 */
 
 static DECLFR (readPad) {
 	return CartBR(A &~3 | EXPREGS[2] &3);

@@ -25,6 +25,7 @@ void H3001_syncPRG (int, int);
 void H3001_syncCHR (int, int);
 void H3001_syncMirror ();
 DECLFW (H3001_write);
+void H3001_clear ();
 void H3001_activate (uint8, void (*)());
 void H3001_addExState ();
 void H3001_restore (int);

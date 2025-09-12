@@ -66,7 +66,7 @@ static void sync () {
 	SetReadHandler(0x8000, 0xFFFF, reg[0] &0xC0 && (reg[0] &0xC0) == dip? NULL: CartBR);
 }
 
-static void applyMode(uint8 clear) {
+static void applyMode (uint8 clear) {
 	if ((reg[2] >>3 &7) >= 5)
 		Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
 	else
@@ -84,7 +84,7 @@ static void Mapper445_restore (int version) {
 	sync();
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	if (~reg[3] &0x20) {
 		reg[A &3] = V;
 		if ((A &3) == 3) applyMode(1);

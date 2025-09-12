@@ -38,7 +38,7 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-static DECLFW(writeIRQ) {
+static DECLFW (writeIRQ) {
 	switch(A &0x0C) {
 		case 0:
 			irqCounter = V;
@@ -64,7 +64,7 @@ static void FP_FASTAPASS(1) cpuCycle (int a) {
 	}
 }
 
-static void power(void) {
+static void power (void) {
 	irqEnabled = irqCounter = irqPrescaler = 0;
 	VRC24_power();
 	SetWriteHandler(0xF000, 0xFFFF, writeIRQ);

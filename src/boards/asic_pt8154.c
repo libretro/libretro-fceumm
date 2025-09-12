@@ -44,19 +44,19 @@ void PT8154_syncMirror () {
 	MMC3_syncMirror();
 }
 
-DECLFW(PT8154_writeExtra) {
+DECLFW (PT8154_writeExtra) {
 	if (A &0x100) {
 		PT8154_reg = V >>4;
 		PT8154_cbSync();
 	}
 }
 
-DECLFW(PT8154_writeWRAM) {
+DECLFW (PT8154_writeWRAM) {
 	PT8154_reg = A;
 	PT8154_cbSync();
 }
 
-static void PT8154_clear () {
+void PT8154_clear () {
 	PT8154_reg = 0;
 	PT8154_cbSync();
 }

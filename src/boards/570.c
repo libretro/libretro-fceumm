@@ -25,27 +25,27 @@
 
 static uint8 reg;
 
-static void sync() {
+static void sync () {
 	int prgAND = 0x0F;
 	int chrAND = reg &0x03? 0x0FF: 0x1FF;
-	int prgOR  = reg <<4;
-	int chrOR  = !!(reg &0x03)*0x200 | !!(reg &0x02)*0x100;
+	int prgOR = reg <<4;
+	int chrOR = !!(reg &0x03)*0x200 | !!(reg &0x02)*0x100;
 	VRC24_syncPRG(prgAND, prgOR &~prgAND);
 	VRC24_syncCHR(chrAND, chrOR &~chrAND);
 	VRC24_syncMirror();
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	reg = A &0xFF;
 	sync();
 }
 
-static void reset() {
+static void reset () {
 	reg = 0;
-	sync();
+	VRC24_clear();
 }
 
-static void power() {
+static void power () {
 	reg = 0;
 	VRC24_power();
 	SetWriteHandler(0x5000, 0x5FFF, writeReg);

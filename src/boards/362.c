@@ -23,7 +23,7 @@
 
 static uint8 game;
 
-static SFORMAT Mapper362_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &game, 1, "GAME" },
 	{ 0 }
 };
@@ -40,21 +40,21 @@ static void sync () {
 	}
 }
 
-void Mapper362_power(void) {
+static void power (void) {
 	game =0;
 	VRC24_power();
 }
 
-void Mapper362_reset(void) {
+static void reset (void) {
 	game ^=1;
-	sync();
+	VRC24_clear();
 }	
 
 void Mapper362_Init (CartInfo *info) {
 	VRC4_init(info, sync, 0x01, 0x02, 0, NULL, NULL, NULL, NULL, NULL);
-	info->Power =Mapper362_power;
+	info->Power = power;
 	if (PRGsize[0] >512*1024) {
-		info->Reset =Mapper362_reset;
-		AddExState(Mapper362_stateRegs, ~0, 0, 0);
+		info->Reset = reset;
+		AddExState(stateRegs, ~0, 0, 0);
 	}
 }

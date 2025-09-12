@@ -40,7 +40,7 @@ static void sync () {
 	int chrAND = reg[2] &0x40? 0x00: reg[2] &0x20? 0x7F: reg[2] &0x10? 0x1F: 0xFF; /* No inner bank in (C)NROM mode, 128K or 256K for others */
 	int prgOR  = reg[1] >>1 &(reg[2] &0x01 && CHRRAM? prgMask_CHRRAM: prgMask_CHRROM) &~prgAND;
 	int chrOR  = reg[0] <<1 &~chrAND;
-	
+
 	if (reg[2] &0x10) { /* NROM mode */
 		if (reg[2] &0x08) { /* NROM-64 */
 			setprg8(0x8000, prgOR);
@@ -61,7 +61,7 @@ static void sync () {
 		VRC24_syncPRG(prgAND, prgOR);
 	else
 		MMC1_syncPRG(prgAND >>1, prgOR >>1);
-		
+
 	if (reg[2] &0x01 && CHRRAM)
 		setchr8r(0x10, 0);
 	else
@@ -75,7 +75,7 @@ static void sync () {
 		VRC24_syncCHR(chrAND, chrOR);
 	else
 		MMC1_syncCHR(chrAND >>2, chrOR >>2);
-	
+
 	if (~reg[0] &0x02)
 		MMC3_syncMirror();
 	else
@@ -85,7 +85,7 @@ static void sync () {
 		MMC1_syncMirror();
 }
 
-DECLFW(VRC24_trapWriteReg) { /* When A11 is set, VRC4's A0 and A1 are swapped */
+DECLFW (VRC24_trapWriteReg) { /* When A11 is set, VRC4's A0 and A1 are swapped */
 	if (A &0x800) A = A &~0xF | A >>1 &0x5 | A <<1 &0xA;
 	VRC24_writeReg(A, V);
 }
@@ -107,25 +107,25 @@ static void applyMode (uint8 clear) {
 		MMC1_activate(clear, sync, MMC1_TYPE_MMC1B, NULL, NULL, NULL, NULL);
 }
 
-static void Mapper351_restore (int version) {
+static void restore (int version) {
 	applyMode(0);
 	sync();
 }
 
-static DECLFR(readDIP) {
+static DECLFR (readDIP) {
 	return dip;
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	reg[A &3] = V;
 	applyMode(A == 2);
 }
 
-static DECLFW(writeFDSMirroring) {
+static DECLFW (writeFDSMirroring) {
 	MMC3_writeReg(0xA000, V >>3 &1);
 }
 
-static void Mapper351_power(void) {
+static void power (void) {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	dip = 0;
 	SetReadHandler(0x5000, 0x5FFF, readDIP);
@@ -135,13 +135,13 @@ static void Mapper351_power(void) {
 	applyMode(1);
 }
 
-static void Mapper351_reset (void) {
+static void reset (void) {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	dip++;
 	applyMode(1);
 }
 
-static void Mapper351_close(void) {
+static void close (void) {
 	if (CHRRAM) FCEU_gfree(CHRRAM);
 	if (PRGCHR) FCEU_gfree(PRGCHR);
 	CHRRAM = NULL;
@@ -153,20 +153,21 @@ void Mapper351_Init (CartInfo *info) {
 	MMC1_addExState();
 	MMC3_addExState();
 	VRC24_addExState();
-	info->Reset = Mapper351_reset;
-	info->Power = Mapper351_power;
-	info->Close = Mapper351_close;
-	GameStateRestore = Mapper351_restore;
-	AddExState(stateRegs, ~0, 0, 0);	
+	info->Reset = reset;
+	info->Power = power;
+	info->Close = close;
+	GameStateRestore = restore;
+	AddExState(stateRegs, ~0, 0, 0);
 
  	/* When CHR-RAM is enabled, CHR-ROM becomes part of PRG-ROM address space. */
 	prgMask_CHRROM = prgMask_CHRRAM = PRGsize[0] /8192 -1;
 	if (CHRRAMSIZE) {
+		uint8* newROM;
 		CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
 		SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
-		AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");		
-		prgMask_CHRRAM = (PRGsize[0] +CHRsize[0]) /8192 -1;		
-		uint8* newROM = (uint8*)FCEU_gmalloc(PRGsize[0] +CHRsize[0]);
+		AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
+		prgMask_CHRRAM = (PRGsize[0] +CHRsize[0]) /8192 -1;
+		newROM = (uint8*)FCEU_gmalloc(PRGsize[0] +CHRsize[0]);
 		memcpy(newROM,              ROM, info->PRGRomSize);
 		memcpy(newROM +PRGsize[0], VROM, info->CHRRomSize);
 		FCEU_gfree(ROM);

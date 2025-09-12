@@ -27,12 +27,12 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-void Mapper450_reset(void) {
-	VRC2_pins =0;
-	sync();
-}	
+static void reset(void) {
+	VRC2_pins = 0;
+	VRC24_clear();
+}
 
 void Mapper450_Init (CartInfo *info) {
 	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
-	info->Reset =Mapper450_reset;
+	info->Reset = reset;
 }

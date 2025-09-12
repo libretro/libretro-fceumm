@@ -24,14 +24,14 @@
 #include "asic_n118.h"
 #include "cartram.h"
 
-static void sync() {
+static void sync () {
 	setprg8r(0x10, 0x6000, 0);
 	N118_syncPRG(0x0F, 0x00);
 	setchr8(0);
 	setmirror(N118_getCHRBank(7) &0x20? MI_H: MI_V);
 }
 
-void Mapper557_Init(CartInfo *info) {
+void Mapper557_Init (CartInfo *info) {
 	N118_init(info, sync, NULL, NULL);
 	WRAM_init(info, 8);
 }

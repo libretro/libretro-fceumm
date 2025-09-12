@@ -68,15 +68,15 @@ void VRC7_syncMirror () {
 	setmirror(VRC7_misc &2? (VRC7_misc &1? MI_1: MI_0): VRC7_misc &1? MI_H: MI_V);
 }
 
-DECLFR(VRC7_readWRAM) {
+DECLFR (VRC7_readWRAM) {
 	return VRC7_misc &0x80? CartBR(A): A >>8;
 }
 
-DECLFW(VRC7_writeWRAM) {
+DECLFW (VRC7_writeWRAM) {
 	if (VRC7_misc &0x80) CartBW(A, V);
 }
 
-DECLFW(VRC7_writeReg) {
+DECLFW (VRC7_writeReg) {
 	unsigned int index;
 	index = A &VRC7_A0? 1: 0;
 	switch (A >>12 &7) {
@@ -128,7 +128,7 @@ void FP_FASTAPASS(1) VRC7_cpuCycle (int a) {
 	}
 }
 
-static void VRC7_clear () {
+void VRC7_clear () {
 	VRC7_prg[0] = 0; VRC7_prg[1] = 1; VRC7_prg[2] = 0xFE;
 	VRC7_chr[0] = 0; VRC7_chr[1] = 1; VRC7_chr[2] = 2; VRC7_chr[3] = 3; VRC7_chr[4] = 4; VRC7_chr[5] = 5; VRC7_chr[6] = 6; VRC7_chr[7] = 7;
 	VRC7_misc = VRC7_latch = VRC7_mode = VRC7_count = VRC7_cycles = 0;

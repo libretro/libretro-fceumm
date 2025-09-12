@@ -23,7 +23,7 @@
 
 static uint8 pad;
 
-static DECLFR(readOB) {
+static DECLFR (readOB) {
 	return X.DB;
 }
 
@@ -39,12 +39,12 @@ static void sync () {
 	setmirror(Latch_address &0x10? MI_V: MI_H);
 }
 
-static void power() {
+static void power () {
 	pad = 0;
 	Latch_power();
 }
 
-static void reset() {
+static void reset () {
 	pad += 0x20;
 	Latch_clear();
 }

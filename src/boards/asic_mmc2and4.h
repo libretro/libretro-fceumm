@@ -27,6 +27,7 @@ void MMC4_syncPRG (int, int);
 void MMC24_syncCHR (int, int);
 void MMC24_syncMirror ();
 DECLFW (MMC24_write);
+void MMC24_clear ();
 void MMC24_power ();
 void MMC24_restore (int);
 void MMC24_addExState ();

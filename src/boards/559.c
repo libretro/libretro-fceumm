@@ -38,11 +38,11 @@ static void sync () {
 	setmirrorw(nt[0] &1, nt[1] &1, nt[2] &1, nt[3] &1);
 }
 
-int Mapper559_getPRGBank(uint8 bank) {
+static int getPRGBank (uint8 bank) {
 	return bank ==2? prg: VRC24_getPRGBank(bank);
 }
 
-DECLFW(Mapper559_externalSelect) {
+static DECLFW (externalSelect) {
 	if (A &4)
 		nt[A &3] =V;
 	else
@@ -50,20 +50,20 @@ DECLFW(Mapper559_externalSelect) {
 	sync();
 }
 
-DECLFW(Mapper559_nibblizeData) {
+static DECLFW (nibblizeData) {
 	VRC24_writeReg(A, V >>(A &0x400? 4: 0));
 }
 
-void Mapper559_power (void) {
+static void power (void) {
 	nt[0] =nt[1] =0xE0;
 	nt[2] =nt[3] =0xE1;
 	prg =0xFE;
 	VRC24_power();
-	SetWriteHandler(0xB000, 0xFFFF, Mapper559_nibblizeData);
+	SetWriteHandler(0xB000, 0xFFFF, nibblizeData);
 }
 
 void Mapper559_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x400, 0x800, 1, Mapper559_getPRGBank, NULL, NULL, NULL, Mapper559_externalSelect);
-	info->Power =Mapper559_power;
+	VRC4_init(info, sync, 0x400, 0x800, 1, getPRGBank, NULL, NULL, NULL, externalSelect);
+	info->Power =power;
 	AddExState(stateRegs, ~0, 0, 0);
 }

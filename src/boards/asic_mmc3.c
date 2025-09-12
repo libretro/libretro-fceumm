@@ -66,14 +66,14 @@ uint8 MMC3_getMirroring (void) {
 	return MMC3_mirroring;
 }
 
-DECLFR(MMC3_readWRAM) {
+DECLFR (MMC3_readWRAM) {
 	if (MMC3_wramControl &0x80 || MMC3_type == MMC3_TYPE_AX5202P || MMC3_type == MMC3_TYPE_MMC6)
 		return MMC3_cbReadWRAM? MMC3_cbReadWRAM(A): CartBR(A);
 	else
 		return A >>8;
 }
 
-DECLFW(MMC3_writeWRAM) {
+DECLFW (MMC3_writeWRAM) {
 	if ((MMC3_wramControl &0x80 || MMC3_type == MMC3_TYPE_AX5202P) && ~MMC3_wramControl &0x40 || MMC3_type == MMC3_TYPE_MMC6) {
 		CartBW(A, V);
 		if (MMC3_cbWriteWRAM) MMC3_cbWriteWRAM(A, V);

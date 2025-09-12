@@ -23,7 +23,7 @@
 
 static uint8 pad;
 
-static DECLFR(readOB) {
+static DECLFR (readOB) {
 	return X.DB;
 }
 
@@ -34,12 +34,12 @@ static void sync () {
 	setchr8(Latch_address >>1);
 }
 
-static void power() {
+static void power () {
 	pad = 0;
 	Latch_power();
 }
 
-static void reset() {
+static void reset () {
 	pad += 0x10;
 	Latch_clear();
 }

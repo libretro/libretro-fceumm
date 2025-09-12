@@ -42,12 +42,12 @@ void QJ_syncMirror () {
 	MMC3_syncMirror();
 }
 
-DECLFW(QJ_writeWRAM) {
+DECLFW (QJ_writeWRAM) {
 	QJ_reg = V;
 	QJ_cbSync();
 }
 
-static void QJ_clear () {
+void QJ_clear () {
 	QJ_reg = 0;
 	QJ_cbSync();
 }

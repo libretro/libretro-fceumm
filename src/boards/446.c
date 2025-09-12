@@ -165,7 +165,7 @@ static void sync_QJ (int prgAND, int prgOR, int chrAND, int chrOR) {
 	QJ_syncCHR(chrAND, chrOR &~chrAND);
 	QJ_syncMirror();
 }
-static void sync_TC3294(int prgAND, int prgOR, int chrAND, int chrOR) {
+static void sync_TC3294 (int prgAND, int prgOR, int chrAND, int chrOR) {
 	TC3294_syncWRAM(reg[5]);
 	TC3294_syncPRG(prgAND, prgOR &~prgAND);
 	setchr8(0);
@@ -240,19 +240,19 @@ static void sync_supervisor (int prgAND, int prgOR, int chrAND, int chrOR) {
 	setmirror(reg[4] &0x01? MI_V: MI_H);
 }
 
-static DECLFW(writeFlash) {
+static DECLFW (writeFlash) {
 	flashrom_write(A &0x1FFF | (Page[A >>11] +A -PRGptr[0]) &~0x1FFF, V);
 }
 
-static int SUROM_getPRGBank(uint8 bank) {
+static int SUROM_getPRGBank (uint8 bank) {
 	return MMC1_getPRGBank(bank) | MMC1_getCHRBank(0) &0x10;
 }
 
-static int Mapper22_getCHRBank(uint8 bank) {
+static int Mapper22_getCHRBank (uint8 bank) {
 	return VRC24_getCHRBank(bank &7) >>1;
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	reg[A &7] = V;
 	if ((A &7) == 0)
 		applyMode(1);
@@ -388,17 +388,17 @@ static void applyMode (uint8 clear) {
 	}
 }
 
-static void power() {
+static void power () {
 	reg[0] = reg[1] = reg[2] = reg[3] = reg[4] = reg[5] = reg[6] = reg[7] = 0;
 	applyMode(1);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void stateRestore(int version) {
+static void stateRestore (int version) {
 	applyMode(0);
 }
 
-void Mapper446_Init(CartInfo *info) {
+void Mapper446_Init (CartInfo *info) {
 	submapper =info->submapper;
 	H3001_addExState();
 	Latch_addExState();

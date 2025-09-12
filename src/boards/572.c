@@ -25,34 +25,34 @@
 
 static uint8 reg;
 
-static void sync() {
+static void sync () {
 	int prgAND = 0x1F;
 	int chrAND = 0x7F;
-	int prgOR  = reg <<5;
-	int chrOR  = reg <<7;
+	int prgOR = reg <<5;
+	int chrOR = reg <<7;
 	MMC3_syncPRG(prgAND, prgOR &~prgAND);
 	MMC3_syncCHR(chrAND, chrOR &~chrAND);
 	MMC3_syncMirror();
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	if (~reg &0x08) {
 		reg = A &0xFF;
 		sync();
 	}
 }
 
-static void reset() {
+static void reset () {
 	reg = 0;
-	sync();
+	MMC3_clear();
 }
 
-static void power() {
+static void power () {
 	reg = 0;
 	MMC3_power();
 }
 
-void Mapper572_Init(CartInfo *info) {
+void Mapper572_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;

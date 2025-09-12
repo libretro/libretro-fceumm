@@ -24,7 +24,8 @@
 void VRC1_syncPRG (int, int);
 void VRC1_syncCHR (int, int);
 void VRC1_syncMirror ();
-DECLFW (VRC1_write);
+DECLFW (VRC1_writeReg);
+void VRC1_clear ();
 void VRC1_activate (uint8, void (*)());
 void VRC1_addExState ();
 void VRC1_restore (int);

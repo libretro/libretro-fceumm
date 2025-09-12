@@ -23,7 +23,7 @@
 
 static uint8 pad;
 
-static DECLFR(readOB) {
+static DECLFR (readOB) {
 	return X.DB;
 }
 
@@ -43,12 +43,12 @@ static void sync () {
 	SetReadHandler(0x8000, 0xFFFF, ~Latch_address &0x100 && Latch_address &0x001 &pad? readOB: CartBR);
 }
 
-static void power() {
+static void power () {
 	pad = 0;
 	Latch_power();
 }
 
-static void reset() {
+static void reset () {
 	pad++;
 	Latch_clear();
 }

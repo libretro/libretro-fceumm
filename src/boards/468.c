@@ -67,7 +67,7 @@ static const uint16 lut509[512] = { /* Look-up table, used only by Legendary Gam
  483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504, 505, 506, 507, 508, 512, 513, 514, 515, 516, 517
 };
 
-void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
+static void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
 	if (select)
 		state = 0;
 	else
@@ -145,7 +145,7 @@ static void sync_IF12 (int prgOR) {
 	setmirror(Custom_reg[0] &0x01? MI_H: MI_V);
 }
 
-static DECLFW(IF12_writeReg) {
+static DECLFW (IF12_writeReg) {
 	Custom_reg[A >>14 &1] = V;
 	sync();
 }
@@ -160,7 +160,7 @@ static void sync_LF36 (int prgOR) {
 	setmirror(reg[0] &0x04? MI_H: MI_V);
 }
 
-void FP_FASTAPASS(1) LF36_cpuCycle (int a) {
+static void FP_FASTAPASS(1) LF36_cpuCycle (int a) {
 	while (a--) {
 		if (Custom_reg[1] &1) {
 			if (!++Custom_reg[2]) ++Custom_reg[3];
@@ -201,7 +201,7 @@ static void sync_Misc (int prgOR) {
 		setmirror(Custom_reg[1] &0x10? MI_1: MI_0);
 }
 
-static DECLFW(Misc_writeReg) {
+static DECLFW (Misc_writeReg) {
 	switch(A >>12 &7) {
 		case 0: case 2: case 3:
 			Custom_reg[0] = V;
@@ -232,7 +232,7 @@ static void Nanjing_scanline (void) {
 		setchr8(0);
 }
 
-static DECLFW(Nanjing_writeReg) {
+static DECLFW (Nanjing_writeReg) {
 	Custom_reg[A >>8 &3] = V;
 	sync();
 }
@@ -259,7 +259,7 @@ static void sync_SUROM (int prgOR) {
 	MMC1_syncMirror();
 }
 
-static int SUROM_getPRGBank(uint8 bank) {
+static int SUROM_getPRGBank (uint8 bank) {
 	return MMC1_getPRGBank(bank) | MMC1_getCHRBank(0) &0x10;
 }
 
@@ -348,7 +348,7 @@ static void sync_VRC7 (int prgOR) {
 }
 
 /* Supervisor */
-static DECLFR(readReg) {
+static DECLFR (readReg) {
 	switch(A) {
 		case 0x5301: case 0x5601:
 			return output? 0x80: 0x00;
@@ -357,7 +357,7 @@ static DECLFR(readReg) {
 	}
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	switch(A) {
 		case 0x5301:
 			if (submapper == 0) setPins(!!(V &0x04), !!(V &0x02), !!(V &0x01));
@@ -500,7 +500,7 @@ static void applyMode (uint8 clear) {
 	}
 }
 
-static void power() {
+static void power () {
 	reg[0] = 0x0F;
 	reg[1] = 0xFF;
 	reg[2] = submapper == 1? 0x10: 0x00;
@@ -511,11 +511,11 @@ static void power() {
 }
 
 
-static void stateRestore(int version) {
+static void stateRestore (int version) {
 	applyMode(0);
 }
 
-void Mapper468_Init(CartInfo *info) {
+void Mapper468_Init (CartInfo *info) {
 	submapper = info->submapper;
 	FME7_addExState();
 	Latch_addExState();

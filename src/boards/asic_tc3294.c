@@ -52,14 +52,14 @@ void TC3294_syncMirror () {
 	MMC3_syncMirror();
 }
 
-DECLFW(TC3294_write) {
+DECLFW(TC3294_writeReg) {
 	if (~TC3294_reg[3] &0x40) {
 		TC3294_reg[TC3294_index++ &3] = V;
 		TC3294_cbSync();
 	}
 }
 
-static void TC3294_clear () {
+void TC3294_clear () {
 	TC3294_reg[0] = 0x00; TC3294_reg[1] = 0x00; TC3294_reg[2] = 0x0F; TC3294_reg[3] = 0x00;
 	TC3294_index = 0;
 	TC3294_cbSync();
@@ -73,7 +73,7 @@ static void TC3294_configure (void (*sync)()) {
 }
 
 void TC3294_activate (uint8 clear, void (*sync)()) {
-	MMC3_activate(clear, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, TC3294_write);
+	MMC3_activate(clear, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, TC3294_writeReg);
 	TC3294_configure(sync);
 	TC3294_setHandlers();
 	if (clear)
@@ -97,7 +97,7 @@ void TC3294_power () {
 }
 
 void TC3294_init (CartInfo *info, void (*sync)()) {
-	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, TC3294_write);
+	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, TC3294_writeReg);
 	TC3294_addExState();
 	TC3294_configure(sync);
 	info->Power = TC3294_power;

@@ -65,12 +65,12 @@ static void FP_FASTAPASS(1) MMC24_trapPPUAddressChange (uint32 A) {
 	}
 }
 
-DECLFW(MMC24_write) {
+DECLFW (MMC24_write) {
 	MMC24_reg[(A >>12) -0xA] = V;
 	MMC24_cbSync();
 }
 
-static void MMC24_clear () {
+void MMC24_clear () {
 	MMC24_reg[0] = 0; MMC24_reg[1] = 0; MMC24_reg[2] = 2; MMC24_reg[3] = 0; MMC24_reg[4] = 0; MMC24_reg[5] = 0;
 	MMC24_latch[0] = 0; MMC24_latch[1] = 0;
 	MMC24_cbSync();

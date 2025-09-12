@@ -60,6 +60,6 @@ void Mapper505_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, readPad, writeReg);
 	info->Power = power;
 	info->Reset = reset;
-	AddExState(&reg, 2, 0, "EXPR");
+	AddExState(&reg, 2 | FCEUSTATE_RLSB, 0, "EXPR");
 	AddExState(&pad, 1, 0, "DIPS");
 }

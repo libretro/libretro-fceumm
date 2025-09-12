@@ -23,7 +23,7 @@
 
 static uint8  prg;
 
-static SFORMAT Mapper183_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &prg, 1, "PRG6" },
 	{ 0 }
 };
@@ -35,18 +35,18 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(Mapper183_writePRG) {
+static DECLFW (writePRG) {
 	prg =A &0xFF;
 	sync();
 }
 
-void Mapper183_power(void) {
+static void power(void) {
 	prg =0;
 	VRC24_power();
 }
 
 void Mapper183_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, CartBR, Mapper183_writePRG, NULL);
-	AddExState(Mapper183_stateRegs, ~0, 0, 0);
-	info->Power =Mapper183_power;
+	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, CartBR, writePRG, NULL);
+	AddExState(stateRegs, ~0, 0, 0);
+	info->Power =power;
 }

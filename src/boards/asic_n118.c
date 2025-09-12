@@ -51,7 +51,7 @@ void N118_syncCHR (int AND, int OR) {
 	for (bank = 0; bank < 8; bank++) setchr1(bank <<10, N118_cbGetCHRBank(bank) &AND |OR);
 }
 
-DECLFW(N118_writeReg) {
+DECLFW (N118_writeReg) {
 	if (A &1) {
 		N118_reg[N118_index &7] = V;
 		N118_cbSync();

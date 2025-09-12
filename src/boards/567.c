@@ -25,7 +25,7 @@
 
 static uint8 reg;
 
-static void sync() {
+static void sync () {
 	MMC3_syncPRG(0x0F, reg <<4);
 	if (reg == 0x0F)
 		MMC3_syncCHR(0x1FF, 0x400);
@@ -34,36 +34,36 @@ static void sync() {
 	MMC3_syncMirror();
 }
 
-static int getPRGBank(uint8 bank) {
+static int getPRGBank (uint8 bank) {
 	if (reg == 0x08) {
 		return MMC3_getPRGBank(bank &1) &~3 | bank &3;
 	} else
 		return MMC3_getPRGBank(bank);
 }
 
-static int getCHRBank(uint8 bank) {
+static int getCHRBank (uint8 bank) {
 	if (reg == 0x0F)
 		return MMC3_getCHRBank(bank &6 | bank >>1 &1) <<1 | bank &1;
 	else
 		return MMC3_getCHRBank(bank);
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	reg = A &0xFF;
 	sync();
 }
 
-static void reset() {
+static void reset () {
 	reg = 0;
-	sync();
+	MMC3_clear();
 }
 
-static void power() {
+static void power () {
 	reg = 0;
 	MMC3_power();
 }
 
-void Mapper567_Init(CartInfo *info) {
+void Mapper567_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_SHARP, getPRGBank, getCHRBank, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;

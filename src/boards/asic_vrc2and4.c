@@ -29,13 +29,13 @@ static int (*VRC24_cbGetCHRBank)(uint8);
 static DECLFR((*VRC24_cbReadWRAM));
 static DECLFW((*VRC24_cbWriteWRAM));
 static DECLFW((*VRC24_cbExternalSelect));
-static uint8 VRC24_isVRC4;       /* VRC2 or VRC4? VRC2 has no single-screen mirroring, no PRG A14 swap and no IRQ counter */
+static uint8 VRC24_isVRC4; /* VRC2 or VRC4? VRC2 has no single-screen mirroring, no PRG A14 swap and no IRQ counter */
 static uint8 VRC24_useRepeatBit; /* Some VRC4 clones ignore the "repeat" bit in the IRQ Mode register */
 static uint8 VRC24_prg[2];
 static uint16 VRC24_chr[8];
 static uint8 VRC24_mirroring;
 static uint8 VRC24_misc;
-uint8 VRC2_pins;                  /* EEPROM interface */
+uint8 VRC2_pins; /* EEPROM interface */
 static uint8 VRC4_latch;
 static uint8 VRC4_mode;
 static uint8 VRC4_count;
@@ -103,11 +103,11 @@ void VRC24_syncMirror () {
 	setmirror(VRC24_isVRC4 && VRC24_mirroring &2? (VRC24_mirroring &1? MI_1: MI_0): (VRC24_mirroring &1? MI_H: MI_V));
 }
 
-DECLFR(VRC2_readMicrowire) {
+DECLFR (VRC2_readMicrowire) {
 	return VRC2_pins;
 }
 
-DECLFR(VRC24_readWRAM) {
+DECLFR (VRC24_readWRAM) {
 	if (VRC24_misc &1 || !VRC24_isVRC4) {
 		if (VRC24_cbReadWRAM)
 			return VRC24_cbReadWRAM(A);
@@ -120,12 +120,12 @@ DECLFR(VRC24_readWRAM) {
 		return A >>8;
 }
 
-DECLFW(VRC2_writeMicrowire) {
+DECLFW (VRC2_writeMicrowire) {
 	VRC2_pins = V;
 	VRC24_cbSync();
 }
 
-DECLFW(VRC24_writeWRAM) {
+DECLFW (VRC24_writeWRAM) {
 	if (VRC24_misc &1 || !VRC24_isVRC4) {
 		if (WRAMSize)
 			CartBW(((A -0x6000) &(WRAMSize -1)) +0x6000, V);
@@ -134,7 +134,7 @@ DECLFW(VRC24_writeWRAM) {
 	}
 }
 
-DECLFW(VRC24_writeReg) {
+DECLFW (VRC24_writeReg) {
 	unsigned int index, addr;
 	addr = A &0xF000 | (A &VRC24_A0? 1: 0) | (A &VRC24_A1? 2: 0); /* address as the chip sees it */
 	switch (addr &0xF000) {
@@ -194,7 +194,7 @@ void FP_FASTAPASS(1) VRC4_cpuCycle (int a) {
 	}
 }
 
-static void VRC24_clear() {
+void VRC24_clear () {
 	VRC24_prg[0] = 0; VRC24_prg[1] = 0;
 	VRC24_chr[0] = 0; VRC24_chr[1] = 1; VRC24_chr[2] = 2; VRC24_chr[3] = 3; VRC24_chr[4] = 4; VRC24_chr[5] = 5; VRC24_chr[6] = 6; VRC24_chr[7] = 7;
 	VRC24_mirroring = VRC2_pins = VRC4_latch = VRC4_mode = VRC4_count = VRC4_cycles = 0;

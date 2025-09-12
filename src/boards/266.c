@@ -23,7 +23,7 @@
 
 static uint8  prg;
 
-static SFORMAT UNLCITYFIGHT_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &prg, 1, "PRG8" },
 	{ 0 }
 };
@@ -34,7 +34,7 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(UNLCITYFIGHT_externalSelect) {
+static DECLFW (externalSelect) {
 	if (A &0x800)
 		(GetWriteHandler(0x4011))(0x4011, V <<3 &0x78);
 	else {
@@ -43,18 +43,18 @@ DECLFW(UNLCITYFIGHT_externalSelect) {
 	}
 }
 
-DECLFW(UNLCITYFIGHT_unscrambleAddress) {
+static DECLFW (unscrambleAddress) {
 	VRC24_writeReg(A &~0x6000 | A <<1 &0x4000 | A >>1 &0x2000, V);
 }
 
-void UNLCITYFIGHT_power(void) {
+static void power (void) {
 	prg =0;
 	VRC24_power();
-	SetWriteHandler(0x8000, 0xFFFF, UNLCITYFIGHT_unscrambleAddress);
+	SetWriteHandler(0x8000, 0xFFFF, unscrambleAddress);
 }
 
 void UNLCITYFIGHT_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, UNLCITYFIGHT_externalSelect);
-	AddExState(UNLCITYFIGHT_stateRegs, ~0, 0, 0);
-	info->Power =UNLCITYFIGHT_power;
+	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, externalSelect);
+	AddExState(stateRegs, ~0, 0, 0);
+	info->Power =power;
 }

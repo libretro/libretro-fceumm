@@ -45,19 +45,19 @@ void VRC1_syncMirror () {
 	setmirror(VRC1_reg[1] &0x01? MI_H: MI_V);
 }
 
-DECLFW(VRC1_write) {
+DECLFW (VRC1_writeReg) {
 	VRC1_reg[A >>12 &7] = V;
 	VRC1_cbSync();
 }
 
-static void VRC1_clear () {
+void VRC1_clear () {
 	VRC1_reg[0] = 0x00; VRC1_reg[1] = 0; VRC1_reg[2] = 2; VRC1_reg[3] = 0;VRC1_reg[4] = 0x00; VRC1_reg[5] = 0; VRC1_reg[6] = 2; VRC1_reg[7] = 0;
 	VRC1_cbSync();
 }
 
 static void VRC1_setHandlers () {
 	SetReadHandler (0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, VRC1_write);
+	SetWriteHandler(0x8000, 0xFFFF, VRC1_writeReg);
 }
 
 static void VRC1_configure (void (*sync)()) {

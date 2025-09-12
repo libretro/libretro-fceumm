@@ -33,7 +33,7 @@ static SFORMAT stateRegs[] ={
 	{ &reg, 1, "REGM" },
 	{ &latch, 1, "LATC" },
 	{ &counting, 1, "IRQA" },
-	{ &counter, 2, "IRQC" },
+	{ &counter, 2 | FCEUSTATE_RLSB, "IRQC" },
         { 0 }
 };
 
@@ -72,7 +72,7 @@ static void FP_FASTAPASS(1) cpuCycle (int a) {
 	}
 }
 
-static void reset() {
+static void reset () {
 	FDSSoundReset();
 	X6502_IRQEnd(FCEU_IQEXT);
 	latch = 0x07;
@@ -82,7 +82,7 @@ static void reset() {
 	sync();
 }
 
-static void power() {
+static void power () {
 	FDSSoundPower();
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x4800, 0x4FFF, writeLatch);
@@ -91,7 +91,7 @@ static void power() {
 	reset();
 }
 
-static void stateRestore(int version) {
+static void stateRestore (int version) {
 	sync();
 }
 

@@ -27,7 +27,7 @@ static uint8 counter1;
 static uint8 counter2;
 static uint8 prescaler;
 
-static SFORMAT Mapper222_stateRegs[] ={
+static SFORMAT stateRegs[] = {
 	{ &clockMode, 1, "CLKM" },
 	{ &pending, 1, "PEND" },
 	{ &counter1, 1, "CNT1" },
@@ -42,39 +42,39 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(Mapper222_nibblizeCHR) {
+static DECLFW (nibblizeCHR) {
 	if (~A &1) {
 		VRC24_writeReg(A,    V);
 		VRC24_writeReg(A |1, V >>4);
 	}
 }
 
-DECLFW(Mapper222_writeIRQ) {
+static DECLFW (writeIRQ) {
 	switch(A &3) {
-		case 0: clockMode =0;
+		case 0: clockMode = 0;
 			break;
-		case 1: pending =false;
+		case 1: pending = 0;
 		        if (!clockMode) {
-				counter1 =V &0xF;
-				counter2 =V >>4;
+				counter1 = V &0xF;
+				counter2 = V >>4;
 			}
 			break;
-		case 2:	clockMode =1;
+		case 2:	clockMode = 1;
 			break;
 	}
 }
 
-void FP_FASTAPASS(1) Mapper222_cpuCycle(int a) {
+static void FP_FASTAPASS(1) cpuCycle (int a) {
 	while (a--) {
-		uint8 previousPrescaler =prescaler;
+		uint8 previousPrescaler = prescaler;
 		if (pending)
-			prescaler =0;
+			prescaler = 0;
 		else
 			prescaler++;
 		if (clockMode && ~previousPrescaler &0x40 && prescaler &0x40) {
-			if (++counter1 ==0xF && ++counter2 ==0xF) pending =1;
-			counter1 &=0xF;
-			counter2 &=0xF;
+			if (++counter1 == 0xF && ++counter2 == 0xF) pending = 1;
+			counter1 &= 0xF;
+			counter2 &= 0xF;
 		}
 		if (pending)
 			X6502_IRQBegin(FCEU_IQEXT);
@@ -83,16 +83,16 @@ void FP_FASTAPASS(1) Mapper222_cpuCycle(int a) {
 	}
 }
 
-void Mapper222_power(void) {
-	clockMode =pending =counter1 =counter2 =prescaler =0;
+static void power (void) {
+	clockMode = pending = counter1 = counter2 = prescaler = 0;
 	VRC24_power();
-	SetWriteHandler(0xB000, 0xEFFF, Mapper222_nibblizeCHR);
-	SetWriteHandler(0xF000, 0xFFFF, Mapper222_writeIRQ);
+	SetWriteHandler(0xB000, 0xEFFF, nibblizeCHR);
+	SetWriteHandler(0xF000, 0xFFFF, writeIRQ);
 }
 
 void Mapper222_Init (CartInfo *info) {
 	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
-	AddExState(Mapper222_stateRegs, ~0, 0, 0);
-	info->Power =Mapper222_power;
-	MapIRQHook =Mapper222_cpuCycle;
+	AddExState(stateRegs, ~0, 0, 0);
+	info->Power =power;
+	MapIRQHook = cpuCycle;
 }

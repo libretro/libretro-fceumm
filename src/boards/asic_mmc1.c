@@ -64,14 +64,14 @@ int MMC1_getCHRBank (uint8 bank) {
 		return MMC1_reg[1] &~1 |bank;
 }
 
-DECLFR(MMC1_readWRAM) {
+DECLFR (MMC1_readWRAM) {
 	if (MMC1_type == MMC1_TYPE_MMC1A || ~MMC1_reg[3] &0x10)
 		return MMC1_cbReadWRAM? MMC1_cbReadWRAM(A): CartBR(A);
 	else
 		return A >>8;
 }
 
-DECLFW(MMC1_writeWRAM) {
+DECLFW (MMC1_writeWRAM) {
 	if (MMC1_type == MMC1_TYPE_MMC1A || ~MMC1_reg[3] &0x10) {
 		CartBW(A, V);
 		if (MMC1_cbWriteWRAM) MMC1_cbWriteWRAM(A, V);
@@ -92,11 +92,11 @@ void MMC1_syncMirror () {
 	setmirror(MMC1_reg[0] &2? (MMC1_reg[0] &1? MI_H: MI_V): (MMC1_reg[0] &1? MI_1: MI_0));
 }
 
-void FP_FASTAPASS(1) MMC1_cpuCycle(int a) {
+void FP_FASTAPASS(1) MMC1_cpuCycle (int a) {
 	while (a--) if (MMC1_filter) MMC1_filter--;
 }
 
-DECLFW(MMC1_writeReg) {
+DECLFW (MMC1_writeReg) {
 	if (V &0x80) {
 		MMC1_reg[0] |= 0x0C;
 		MMC1_shift = 0;
@@ -115,7 +115,7 @@ DECLFW(MMC1_writeReg) {
 	MMC1_filter = 2;
 }
 
-void MMC1_clear() {
+void MMC1_clear () {
 	MMC1_reg[0] = 0x0C; MMC1_reg[1] = 0; MMC1_reg[2] = 0; MMC1_reg[3] = 0; /* "Bad News Baseball" is sensitive to the initial CHR bank register content. 0/0 seems to work. */
 	MMC1_bits = 0; MMC1_shift = 0; MMC1_filter = 0;
 	MMC1_cbSync();

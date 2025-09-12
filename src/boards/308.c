@@ -25,7 +25,7 @@ static uint8  irqEnabled;
 static uint16 irqCounterLow;
 static uint8  irqCounterHigh;
 
-static SFORMAT UNLTH21311_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &irqEnabled, 1, "IRQE" },
 	{ &irqCounterLow, 2 | FCEUSTATE_RLSB, "CNTL" },
 	{ &irqCounterHigh, 1, "CNTH" },
@@ -38,7 +38,7 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(UNLTH21311_writeIRQ) {
+static DECLFW (writeIRQ) {
 	switch(A &3) {
 	case 0:	X6502_IRQEnd(FCEU_IQEXT);
 		irqEnabled =0;
@@ -51,22 +51,22 @@ DECLFW(UNLTH21311_writeIRQ) {
 	}
 }
 
-void FP_FASTAPASS(1) UNLTH21311_cpuCycle(int a) {
+static void FP_FASTAPASS(1) cpuCycle (int a) {
 	while (a--) if (irqEnabled) {
 		if ((++irqCounterLow &4095) ==2048) irqCounterHigh--;
 		if (!irqCounterHigh && (irqCounterLow &4095) <2048) X6502_IRQBegin(FCEU_IQEXT);
 	}
 }
 
-void UNLTH21311_power(void) {
+static void power (void) {
 	irqEnabled =irqCounterLow =irqCounterHigh =0;
 	VRC24_power();
-	SetWriteHandler(0xF000, 0xFFFF, UNLTH21311_writeIRQ);
+	SetWriteHandler(0xF000, 0xFFFF, writeIRQ);
 }
 
 void UNLTH21311_Init (CartInfo *info) {
 	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
-	AddExState(UNLTH21311_stateRegs, ~0, 0, 0);
-	info->Power =UNLTH21311_power;
-	MapIRQHook =UNLTH21311_cpuCycle;
+	AddExState(stateRegs, ~0, 0, 0);
+	info->Power =power;
+	MapIRQHook =cpuCycle;
 }

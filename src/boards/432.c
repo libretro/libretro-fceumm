@@ -27,11 +27,11 @@ static uint8 submapper;
 static uint8 reg[2];
 static uint8 pad;
 
-static DECLFR(readPad) {
+static DECLFR (readPad) {
 	return pad;
 }
 
-static void sync() {
+static void sync () {
 	int prgAND = reg[1] &0x02? 0x0F: 0x1F;
 	int chrAND = reg[1] &0x20 && submapper == 3? 0x1FF: reg[1] &0x04? 0x7F: 0xFF;
 	int prgOR  = reg[1] <<4 &0x10 | reg[1] <<1 &0x60;
@@ -42,7 +42,7 @@ static void sync() {
 	SetReadHandler(0x8000, 0xFFFF, submapper == 1 && reg[1] &0x20 || submapper != 1 && reg[0] &0x01? readPad: CartBR);
 }
 
-static int getPRGBank(uint8 bank) {
+static int getPRGBank (uint8 bank) {
 	if (reg[1] &0x40) {
 		int mask = reg[1] &(submapper == 2? 0x20: 0x80)? 3: 1;
 		return MMC3_getPRGBank(bank &1) &~mask | bank &mask;
@@ -50,14 +50,14 @@ static int getPRGBank(uint8 bank) {
 		return MMC3_getPRGBank(bank);
 }
 
-static int getCHRBank(uint8 bank) {
+static int getCHRBank (uint8 bank) {
 	if (reg[1] &0x20 && submapper == 3)
 		return MMC3_getCHRBank(bank &6 | bank >>1 &1) <<1 | bank &1;
 	else
 		return MMC3_getCHRBank(bank);
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	if (submapper == 3 && reg[1] &0x80)
 		;
 	else {
@@ -66,19 +66,19 @@ static DECLFW(writeReg) {
 	}
 }
 
-static void reset() {
+static void reset () {
 	reg[0] = reg[1] = 0;
 	++pad;
-	sync();
+	MMC3_clear();
 }
 
-static void power() {
+static void power () {
 	reg[0] = reg[1] = 0;
 	pad = 0;
 	MMC3_power();
 }
 
-void Mapper432_Init(CartInfo *info) {
+void Mapper432_Init (CartInfo *info) {
 	submapper =info->submapper;
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, getCHRBank, NULL, writeReg);
 	info->Power = power;

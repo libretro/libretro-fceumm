@@ -33,7 +33,7 @@ static SFORMAT Latch_state[] = {
 	{ 0 }
 };
 
-DECLFW(Latch_write) {
+DECLFW (Latch_write) {
 	uint16 newAddress = A &0xFFFF;
 	if (Latch_cbWrite) Latch_cbWrite(&newAddress, &V, CartBR(A));
 	Latch_address = newAddress;

@@ -48,7 +48,7 @@ void VRC3_syncCHR (int AND, int OR) {
 	setchr8(OR);
 }
 
-DECLFW(VRC3_write) {
+DECLFW (VRC3_write) {
 	int shift;
 	switch (A >>12 &7) {
 		case 0: case 1: case 2: case 3:
@@ -81,7 +81,7 @@ void FP_FASTAPASS(1) VRC3_cpuCycle (int a) {
 	}
 }
 
-static void VRC3_clear () {
+void VRC3_clear () {
 	VRC3_prg = VRC3_irq = VRC3_count = VRC3_reload = 0;
 	X6502_IRQEnd(FCEU_IQEXT);
 	VRC3_cbSync();

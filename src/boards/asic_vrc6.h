@@ -31,6 +31,7 @@ DECLFR(VRC6_readWRAM);
 DECLFW(MMC3_writeWRAM);
 DECLFW(VRC6_writeReg);
 void FP_FASTAPASS(1) VRC6_cpuCycle (int);
+void VRC6_clear ();
 void VRC6_activate (uint8, void (*)(), int, int, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
 void VRC6_addExState ();
 void VRC6_restore (int);

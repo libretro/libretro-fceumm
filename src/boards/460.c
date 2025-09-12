@@ -22,11 +22,11 @@
 
 #include "mapinc.h"
 #include "asic_mmc3.h"
+#include "cartram.h"
 
 static uint8 submapper;
 static uint8 reg;
 static uint8 pad;
-static uint8 *CHRRAM = NULL;
 
 static DECLFR (readPad) {
 	return CartBR(A &~3 | pad &3);
@@ -74,23 +74,12 @@ static void power () {
 	MMC3_power();
 }
 
-static void close () {
-	if (CHRRAM) {
-		FCEU_gfree(CHRRAM);
-		CHRRAM = NULL;
-	}
-}
-
 void Mapper460_Init (CartInfo *info) {
 	submapper = info->submapper;
 	MMC3_init(info, sync, MMC3_TYPE_SHARP, getPRGBank, getCHRBank, NULL, writeReg);
+	CHRRAM_init(info, 8);
 	info->Power = power;
 	info->Reset = reset;
-	info->Close = close;
 	AddExState(&reg, 1, 0, "EXPR");
 	AddExState(&reg, 1, 0, "DIPS");
-
-	CHRRAM = (uint8 *)FCEU_gmalloc(8192);
-	SetupCartCHRMapping(0x10, CHRRAM, 8192, 1);
-	AddExState(CHRRAM, 8192, 0, "CRAM");
 }

@@ -58,15 +58,15 @@ void FME7_syncMirror () {
 	setmirror(FME7_reg[12] &2? (FME7_reg[12] &1? MI_1: MI_0): FME7_reg[12] &1? MI_H: MI_V);
 }
 
-DECLFR(FME7_readWRAM) {
+DECLFR (FME7_readWRAM) {
 	return ~FME7_reg[8] &0x40 || FME7_reg[8] &0x80? CartBR(A): A >>8;
 }
 
-DECLFW(FME7_writeWRAM) {
+DECLFW (FME7_writeWRAM) {
 	if (FME7_reg[8] &0x80) CartBW(A, V);
 }
 
-DECLFW(FME7_writeReg) {
+DECLFW (FME7_writeReg) {
 	if (A &0x2000) {
 		FME7_reg[FME7_index &0xF] = V;
 		if ((FME7_index &0xF) == 13) X6502_IRQEnd(FCEU_IQEXT);
@@ -84,7 +84,7 @@ void FP_FASTAPASS(1) FME7_cpuCycle (int a) {
 	}
 }
 
-static void FME7_clear () {
+void FME7_clear () {
 	int i;
 	for (i = 0; i < 16; i++) FME7_reg[i] = 0;
 	FME7_cbSync();

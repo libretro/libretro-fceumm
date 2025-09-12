@@ -78,7 +78,7 @@ static DECLFW (externalSelect) {
 }
 
 
-void power (void) {
+static void power (void) {
 	mask =0xFC;
 	compare =0x28;
 	nt[0] =nt[1] =0xE0;

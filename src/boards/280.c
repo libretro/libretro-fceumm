@@ -21,9 +21,9 @@
 #include "mapinc.h"
 
 static uint16 latchAddr;
-static uint8  latchData;
-static uint8  mode;
-static uint8  submapper;
+static uint8 latchData;
+static uint8 mode;
+static uint8 submapper;
 
 static SFORMAT StateRegs[] = {
    { &latchAddr, 2 | FCEUSTATE_RLSB, "LATC" },

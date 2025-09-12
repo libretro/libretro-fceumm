@@ -36,7 +36,7 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-static DECLFW(Mapper563_writeIRQ) {
+static DECLFW (Mapper563_writeIRQ) {
 	X6502_IRQEnd(FCEU_IQEXT);
 	switch(A &0x1C) {
 		case 0x0C: irqEnabled =0; break;
@@ -49,8 +49,8 @@ static void Mapper563_scanline (void) { /* Actually, a sixteen-stage counter tri
 	if (!(++irqCounter &1) && irqEnabled) X6502_IRQBegin(FCEU_IQEXT);
 }
 
-static void Mapper563_power(void) {
-	irqEnabled =irqCounter =0;
+static void Mapper563_power (void) {
+	irqEnabled = irqCounter =0;
 	VRC24_power();
 	SetWriteHandler(0xF000, 0xFFFF, Mapper563_writeIRQ);
 }
@@ -58,6 +58,6 @@ static void Mapper563_power(void) {
 void Mapper563_Init (CartInfo *info) {
 	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 	AddExState(Mapper563_stateRegs, ~0, 0, 0);
-	info->Power =Mapper563_power;
+	info->Power = Mapper563_power;
 	GameHBIRQHook = Mapper563_scanline;
 }

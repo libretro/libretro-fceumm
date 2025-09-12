@@ -29,37 +29,37 @@ uint32 WRAMSize = 0;
 void CartRAM_close (void) { /* Need to combine this in one function to avoid the problem of having to properly cascade two separate Close() functions for WRAM and CHR-RAM each */
 	if (WRAMData) {
 		FCEU_gfree(WRAMData);
-		WRAMData =NULL;
+		WRAMData = NULL;
 	}
 	if (CHRRAMData) {
 		FCEU_gfree(CHRRAMData);
-		CHRRAMData =NULL;
+		CHRRAMData = NULL;
 	}
 }
 
 void CartRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB, uint8 defaultCHRRAMSizeKiB) {
-	WRAMSize =info->iNES2? (info->PRGRamSize +info->PRGRamSaveSize): (defaultWRAMSizeKiB *1024);
+	WRAMSize = info->iNES2? (info->PRGRamSize +info->PRGRamSaveSize): (defaultWRAMSizeKiB *1024);
 	if (WRAMSize) {
-		WRAMData =(uint8*)FCEU_gmalloc(WRAMSize);
+		WRAMData = (uint8*)FCEU_gmalloc(WRAMSize);
 		SetupCartPRGMapping(0x10, WRAMData, WRAMSize, 1);
 		AddExState(WRAMData, WRAMSize, 0, "WRAM");
-		if (info->battery) {
-			info->SaveGame[0] =WRAMData;
-			info->SaveGameLen[0] =WRAMSize;
+		if (info->battery && (info->PRGRamSaveSize || !info->iNES2)) {
+			info->SaveGame[0] = WRAMData;
+			info->SaveGameLen[0] = info->iNES2? info->PRGRamSaveSize: WRAMSize;
 		}
 	}
-	CHRRAMSize =info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): (defaultCHRRAMSizeKiB *1024);
+	CHRRAMSize = info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): (defaultCHRRAMSizeKiB *1024);
 	if (ROM_size == 0) CHRRAMSize = 0; /* If there is no CHR-ROM, then any CHR-RAM will not be "extra" and therefore will be handled by ines.c, not here. */
 	if (CHRRAMSize) {
-		CHRRAMData =(uint8*)FCEU_gmalloc(CHRRAMSize);
+		CHRRAMData = (uint8*)FCEU_gmalloc(CHRRAMSize);
 		SetupCartCHRMapping(0x10, CHRRAMData, CHRRAMSize, 1);
 		AddExState(CHRRAMData, CHRRAMSize, 0, "CRAM");
-		if (info->battery) {
-			info->SaveGame[info->SaveGameLen[0]? 1: 0] =CHRRAMData;
-			info->SaveGameLen[info->SaveGameLen[0]? 1: 0] =CHRRAMSize;
+		if (info->battery && (info->CHRRamSaveSize || !info->iNES2)) {
+			info->SaveGame[info->SaveGameLen[0]? 1: 0] = CHRRAMData;
+			info->SaveGameLen[info->SaveGameLen[0]? 1: 0] = info->iNES2? info->CHRRamSaveSize: CHRRAMSize;
 		}
 	}
-	if (WRAMSize || CHRRAMSize) info->Close =CartRAM_close;
+	if (WRAMSize || CHRRAMSize) info->Close = CartRAM_close;
 }
 
 void CHRRAM_init (CartInfo *info, uint8 defaultCHRRAMSizeKiB) {

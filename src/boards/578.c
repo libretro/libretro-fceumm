@@ -25,7 +25,7 @@
 
 static uint8 reg;
 
-static void sync() {
+static void sync () {
 	int prgAND = reg &0x02 && reg &0x04? 0x1F: 0x0F;
 	int chrAND = reg &0x02 && reg &0x04? 0xFF: 0x7F;
 	int prgOR  = reg <<4;
@@ -35,24 +35,24 @@ static void sync() {
 	MMC3_syncMirror();
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	reg = V;
 	sync();
 }
 
-static void reset() {
+static void reset () {
 	reg = 0;
 	MMC3_clear();
 }
 
-static void power() {
+static void power () {
 	int i;
 	reg = 0;
 	MMC3_power();
-	for (int i = 0x8000; i < 0xFFFF; i +=4) SetWriteHandler(i |2, i |3, writeReg);
+	for (i = 0x8000; i < 0xFFFF; i +=4) SetWriteHandler(i |2, i |3, writeReg);
 }
 
-void Mapper578_Init(CartInfo *info) {
+void Mapper578_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;

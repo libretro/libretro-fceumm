@@ -59,13 +59,13 @@ static DECLFR (readPad) {
 	return pad >= 8? 0: pad &7;
 }
 
-static void power() {
+static void power () {
 	pad = 0;
 	Latch_power();
 	SetReadHandler(0x5000, 0x5FFF, readPad);
 }
 
-static void reset() {
+static void reset () {
 	pad = ++pad %24;
 	Latch_clear();
 }

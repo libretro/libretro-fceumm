@@ -100,7 +100,7 @@ static void applyMode (uint8 clear) {
 	}
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	if (A &0x100) {
 		uint8 previousReg = reg;
 		reg = V;

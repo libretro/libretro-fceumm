@@ -29,13 +29,13 @@ static uint8 reg;
 static void sync () {
 	MMC3_syncPRG(0x3F, 0x00);
 	MMC3_syncWRAM(0);
-	
+
 	if (reg &0x02) {
 		setchr4r(0x10, 0x0000, 0);
 		setchr4r(0x10, 0x1000, 0);
 	} else
 		MMC3_syncCHR(0xFF, 0x000);
-	
+
 	if (reg == 1) { /* The game uses six nametables - the two console-internal ones, plus four occupying the second half of 8 KiB CHR-RAM.*/
 		setntamem(CHRptr[0x10] +0x1000, 1, 0);
 		setntamem(CHRptr[0x10] +0x1400, 1, 1);

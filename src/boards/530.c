@@ -27,26 +27,26 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-int UNLAX5705_getPRGBank(uint8 bank) {
+static int getPRGBank (uint8 bank) {
 	int result =VRC24_getPRGBank(bank);
 	return result <<2 &0x8 | result >>2 &0x2 | result &~0xA;
 }
 
-int UNLAX5705_getCHRBank(uint8 bank) {
+static int getCHRBank (uint8 bank) {
 	int result =VRC24_getCHRBank(bank);
 	return result <<1 &0x40 | result >>1 &0x20 | result &~0x60;
 }
 
-DECLFW(UNLAX5705_unscrambleAddress) {
+static DECLFW (unscrambleAddress) {
 	VRC24_writeReg(A &~0x1000 | A <<9 &0x1000, V);
 }
 
-void UNLAX5705_power (void) {
+static void power (void) {
 	VRC24_power();
-	SetWriteHandler(0x8000, 0xFFFF, UNLAX5705_unscrambleAddress);
+	SetWriteHandler(0x8000, 0xFFFF, unscrambleAddress);
 }
 
 void UNLAX5705_Init (CartInfo *info) {
-	VRC4_init(info, sync, 0x01, 0x02, 1, UNLAX5705_getPRGBank, UNLAX5705_getCHRBank, NULL, NULL, NULL);
-	info->Power =UNLAX5705_power;
+	VRC4_init(info, sync, 0x01, 0x02, 1, getPRGBank, getCHRBank, NULL, NULL, NULL);
+	info->Power =power;
 }

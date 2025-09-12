@@ -23,7 +23,7 @@
 
 static uint8 reg;
 
-static SFORMAT Mapper398_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &reg, 1, "EXP0" },
 	{ 0 }
 };
@@ -39,25 +39,25 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(Mapper398_writeReg) {
+static DECLFW (writeReg) {
 	reg =A &0xFF;	
 	VRC24_writeReg(A, V);
 }
 
-void Mapper398_power(void) {
-	reg =0xC0;
+static void power (void) {
+	reg = 0xC0;
 	VRC24_power();
-	SetWriteHandler(0x8000, 0xFFFF, Mapper398_writeReg);
+	SetWriteHandler(0x8000, 0xFFFF, writeReg);
 }
 
-void Mapper398_reset(void) {
-	reg =0xC0;
-	sync();
+static void reset (void) {
+	reg = 0xC0;
+	VRC24_clear();
 }	
 
 void Mapper398_Init (CartInfo *info) {
 	VRC4_init(info, sync, 0x01, 0x02, 1, NULL, NULL, NULL, NULL, NULL);
-	info->Power =Mapper398_power;
-	info->Reset =Mapper398_reset;
-	AddExState(Mapper398_stateRegs, ~0, 0, 0);
+	info->Power = power;
+	info->Reset = reset;
+	AddExState(stateRegs, ~0, 0, 0);
 }

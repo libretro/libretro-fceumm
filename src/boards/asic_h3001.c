@@ -33,11 +33,11 @@ static uint16 H3001_count;
 static SFORMAT H3001_state[] = {
 	{ H3001_prg,    2, "H31P" },
 	{ H3001_chr,    8, "H31C" },
-	{&H3001_layout, 4, "H31L" },
-	{&H3001_nt,     4, "H31M" },
-	{&H3001_irq,    4, "H31N" },
-	{&H3001_reload, 2, "H31R" },
-	{&H3001_count,  2, "H31T" },
+	{&H3001_layout, 1, "H31L" },
+	{&H3001_nt,     1, "H31M" },
+	{&H3001_irq,    1, "H31N" },
+	{&H3001_reload, 2 | FCEUSTATE_RLSB, "H31R" },
+	{&H3001_count,  2 | FCEUSTATE_RLSB, "H31T" },
 	{ 0 }
 };
 
@@ -68,7 +68,7 @@ void H3001_syncMirror () {
 	setmirror(H3001_nt &0x40? (H3001_nt &0x80? MI_1: MI_0): H3001_nt &0x80? MI_H: MI_V);
 }
 
-DECLFW(H3001_write) {
+DECLFW (H3001_write) {
 	switch(A >>12 &7) {
 		case 0: case 2:
 			H3001_prg[A >>13 &1] = V;
@@ -114,7 +114,7 @@ void FP_FASTAPASS(1) H3001_cpuCycle (int a) {
 	}
 }
 
-static void H3001_clear () {
+void H3001_clear () {
 	int i;
 	for (i = 0; i < 2; i++) H3001_prg[i] = i;
 	for (i = 0; i < 8; i++) H3001_chr[i] = i;

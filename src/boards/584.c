@@ -33,21 +33,21 @@ static void sync () {
 	setmirror(reg[1] &0x20? MI_V: MI_H);
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	if (A &0x100) {
 		reg[A >>13 &1] = V;
 		sync();
 	}
 }
 
-static void power() {
+static void power () {
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x4020, 0x7FFF, writeReg);
 	reg[0] = reg[1] = 0;
 	sync();
 }
 
-static void stateRestore(int version) {
+static void stateRestore (int version) {
 	sync();
 }
 

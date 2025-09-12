@@ -66,9 +66,10 @@ static void power () {
 	applyMode(1);
 }
 
-static void stateRestore(int version) {
+static void stateRestore (int version) {
 	applyMode(0);
 }
+
 void Mapper483_Init (CartInfo *info) {
 	AddExState(&game, 1, 0, "GAME");
 	Latch_addExState();

@@ -29,6 +29,7 @@ DECLFR(VRC7_readWRAM);
 DECLFW(MMC3_writeWRAM);
 DECLFW(VRC7_writeReg);
 void FP_FASTAPASS(1) VRC7_cpuCycle (int);
+void VRC7_clear ();
 void VRC7_activate (uint8, void (*)(), int);
 void VRC7_addExState ();
 void VRC7_restore (int);

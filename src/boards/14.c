@@ -52,7 +52,7 @@ int getCHRBank_VRC2 (uint8 bank) {
 	return VRC24_getCHRBank(bank) | reg <<(~bank &4? 5: ~bank &2? 3: 1) &0x100;
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	uint8 previousReg = reg;
 	reg = V;
 	if ((previousReg ^V) &2)

@@ -26,11 +26,11 @@
 static uint8 reg;
 static uint8 pad;
 
-static DECLFR(readPad) {
+static DECLFR (readPad) {
 	return CartBR(A &~3 | pad &3);
 }
 
-static void sync() {
+static void sync () {
 	if (reg &0x10)
 		setprg32(0x8000, reg >>1);
 	else {
@@ -42,24 +42,24 @@ static void sync() {
 	SetReadHandler(0x8000, 0xFFFF, reg &0x20? readPad: CartBR);
 }
 
-static DECLFW(writeReg) {
+static DECLFW (writeReg) {
 	reg = A &0xFF;
 	sync();
 }
 
-static void reset() {
+static void reset () {
 	reg = 0;
 	++pad;
-	sync();
+	MMC3_clear();
 }
 
-static void power() {
+static void power () {
 	reg = 0;
 	pad = 0;
 	MMC3_power();
 }
 
-void Mapper503_Init(CartInfo *info) {
+void Mapper503_Init (CartInfo *info) {
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;

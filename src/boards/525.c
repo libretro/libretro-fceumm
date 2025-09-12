@@ -27,7 +27,7 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(UNLKS7021A_writeCHR) {
+DECLFW (UNLKS7021A_writeCHR) {
 	VRC24_writeReg(0xB000 +(A <<11 &0x3000 | A <<1 &0x0002), V &0x0F);
 	VRC24_writeReg(0xB001 +(A <<11 &0x3000 | A <<1 &0x0002), V >>4);
 }
@@ -39,5 +39,5 @@ void UNLKS7021A_power (void) {
 
 void UNLKS7021A_Init (CartInfo *info) {
 	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
-	info->Power =UNLKS7021A_power;
+	info->Power = UNLKS7021A_power;
 }

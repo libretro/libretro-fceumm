@@ -83,21 +83,21 @@ int VRC6_getCHRBank (uint8 bank) { /* Only emulates features used by known games
 	return VRC6_chr[bank &7];
 }
 
-DECLFR(VRC6_readWRAM) {
+DECLFR (VRC6_readWRAM) {
 	if (VRC6_misc &0x80)
 		return VRC6_cbReadWRAM? VRC6_cbReadWRAM(A): CartBR(A);
 	else
 		return A >>8;
 }
 
-DECLFW(VRC6_writeWRAM) {
+DECLFW (VRC6_writeWRAM) {
 	if (VRC6_misc &0x80) {
 		CartBW(A, V);
 		if (VRC6_cbWriteWRAM) VRC6_cbWriteWRAM(A, V);
 	}
 }
 
-DECLFW(VRC6_writeReg) {
+DECLFW (VRC6_writeReg) {
 	unsigned int index;
 	index = (A &VRC6_A0? 1: 0) | (A &VRC6_A1? 2: 0);
 	switch (A >>12 &7) {
@@ -151,7 +151,7 @@ void FP_FASTAPASS(1) VRC6_cpuCycle (int a) {
 	}
 }
 
-static void VRC6_clear () {
+void VRC6_clear () {
 	VRC6_prg[0] = 0; VRC6_prg[1] = 0xFE;
 	VRC6_chr[0] = 0; VRC6_chr[1] = 1; VRC6_chr[2] = 2; VRC6_chr[3] = 3; VRC6_chr[4] = 4; VRC6_chr[5] = 5; VRC6_chr[6] = 6; VRC6_chr[7] = 7;
 	VRC6_misc = VRC6_latch = VRC6_mode = VRC6_count = VRC6_cycles = 0;
