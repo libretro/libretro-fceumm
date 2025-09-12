@@ -1311,12 +1311,12 @@ void Mapper367_Init(CartInfo *info) {
 /* Mapper 361 and 366, previously assigned as Mapper 205 */
 static void GN45PW(uint32 A, uint8 V) {
 /* GN-30A - \ED\E0\F7\E0\EB\FC\ED\E0\FF \EC\E0\F1\EA\E0 \E4\EE\EB\E6\ED\E0 \E1\FB\F2\FC 1F + \E0\EF\EF\E0\F0\E0\F2\ED\FB\E9 \EF\E5\F0\E5\EA\EB\FE\F7\E0\F2\E5\EB\FC \ED\E0 \F8\E8\ED\E5 \E0\E4\F0\E5\F1\E0 */
-	setprg8(A, (V & 0x0f) | EXPREGS[0]);
+	setprg8(A, (V & 0x0f) | EXPREGS[0] &~0x0F);
 }
 
 static void GN45CW(uint32 A, uint8 V) {
 /* GN-30A - \ED\E0\F7\E0\EB\FC\ED\E0\FF \EC\E0\F1\EA\E0 \E4\EE\EB\E6\ED\E0 \E1\FB\F2\FC FF */
-	setchr1(A, (V & 0x7F) | (EXPREGS[0] << 3));
+	setchr1(A, (V & 0x7F) | (EXPREGS[0] << 3 &~0x7F));
 }
 
 static DECLFW(GN45Write0) {
