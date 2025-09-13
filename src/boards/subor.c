@@ -55,6 +55,7 @@ static void Sync(void) {
 		}
 	}
 	setchr8(0);
+	setmirror(regs[0] & 0x01? MI_H: MI_V);
 }
 
 static DECLFW(M166Write) {

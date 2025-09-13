@@ -944,7 +944,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Subor Karaoke",            514, Mapper514_Init         )
 	INES_BOARD( "Brilliant Com Cocoma Pack",516, Mapper516_Init         )
 	INES_BOARD( "Kkachi-wa Nolae Chingu",   517, UNROM_Init             ) /* Microphone input currently not emulated */
-	INES_BOARD( "DANCE2000",                518, UNLD2000_Init          )
+	INES_BOARD( "Subor SB96",               518, Mapper518_Init         )
 	INES_BOARD( "EH8813A",                  519, UNLEH8813A_Init        )
 	INES_BOARD( "YuYuHakusho+DBZ",          520, Mapper520_Init        )
 	INES_BOARD( "DREAMTECH01",              521, DreamTech01_Init       )

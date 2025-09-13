@@ -456,7 +456,7 @@ static BMAPPING bmap[] = {
 	{ "D1038",                       59, BMCD1038_Init,         0 },
 	{ "T3H53",                       59, BMCD1038_Init,         0 },
 	{ "DANCE",                      256, UNLOneBus_Init,        0 },
-	{ "DANCE2000",                  518, UNLD2000_Init,         0 },
+	{ "DANCE2000",                  518, Mapper518_Init,        0 },
 	{ "DREAMTECH01",                521, DreamTech01_Init,      0 },
 	{ "EDU2000",                    329, UNLEDU2000_Init,       0 },
 	{ "EKROM",                        5, EKROM_Init,            0 },
