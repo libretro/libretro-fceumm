@@ -437,7 +437,7 @@ static BMAPPING bmap[] = {
 	{ "8237",                       215, UNL8237_Init,          0 },
 	{ "8237A",                      215, UNL8237A_Init,         0 },
 	{ "830118C",                    348, BMC830118C_Init,       0 },
-	{ "A65AS",                      285, BMCA65AS_Init,         0 },
+	{ "A65AS",                      285, Mapper285_Init,        0 },
 	{ "AB-G1L",                     428, Mapper428_Init,        0 },
 	{ "WELL-NO-DG450",              428, Mapper428_Init,        0 },
 	{ "TF2740",                     428, Mapper428_Init,        0 },
@@ -626,7 +626,15 @@ static BMAPPING bmap[] = {
 	{ "K86B",                       439, Mapper439_Init,        0 },
 	{ "COOLGIRL",                   342, COOLGIRL_Init,         BMCFLAG_256KCHRR },
 	{ "S-2009",                     434, Mapper434_Init,        0 },
-
+	{ "Yhc-Unrom-Cart",             500, Mapper500_Init,        0 },
+	{ "Yhc-Axrom-Cart",             501, Mapper501_Init,        0 },
+	{ "Yhc-A/B/Uxrom-Cart",         502, Mapper502_Init,        0 },
+	{ "JY4M4",                      537, Mapper537_Init,        0 },
+	{ "82112C",                     540, Mapper540_Init,        0 },
+	{ "KN-20",                      577, Mapper577_Init,        0 },
+	{ "820436-C",                   579, Mapper579_Init,        0 },
+	{ "8203",                       585, Mapper585_Init,        0 },
+	{ "K-3057",                     587, Mapper587_Init,        0 },
 	{ NULL, NO_INES, NULL, 0 }
 };
 

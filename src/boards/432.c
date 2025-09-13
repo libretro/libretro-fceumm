@@ -21,56 +21,67 @@
  */
 
 #include "mapinc.h"
-#include "mmc3.h"
+#include "asic_mmc3.h"
 
 static uint8 submapper;
+static uint8 reg[2];
+static uint8 pad;
 
-static void M432CW(uint32 A, uint8 V) {
-	int chrAND = (EXPREGS[1] & 0x04) ? 0x7F : 0xFF;
-	int chrOR  = (EXPREGS[1] << 7) & 0x080 | (EXPREGS[1] << 5) & 0x100 | (EXPREGS[1] << 4) & 0x200;
-	setchr1(A, (V & chrAND) | (chrOR & ~chrAND));
+static DECLFR (readPad) {
+	return pad;
 }
 
-static void M432PW(uint32 A, uint8 V) {
-	int prgAND = (EXPREGS[1] & 0x02) ? 0x0F : 0x1F;
-	int prgOR  = ((EXPREGS[1] << 4) & 0x10) | (EXPREGS[1] << 1) & 0x60;
-	if ((A < 0xC000) || (~EXPREGS[1] & 0x40)) setprg8(A,          (V & prgAND) | (prgOR & ~prgAND) & (EXPREGS[1] &(submapper ==2? 0x20: 0x80)?~2:~0));
-	if ((A < 0xC000) &&  (EXPREGS[1] & 0x40)) setprg8(A | 0x4000, (V & prgAND) | (prgOR & ~prgAND) | (EXPREGS[1] &(submapper ==2? 0x20: 0x80)? 2: 0));
+static void sync () {
+	int prgAND = reg[1] &0x02? 0x0F: 0x1F;
+	int chrAND = reg[1] &0x20 && submapper == 3? 0x1FF: reg[1] &0x04? 0x7F: 0xFF;
+	int prgOR  = reg[1] <<4 &0x10 | reg[1] <<1 &0x60;
+	int chrOR  = reg[1] <<7 &0x80 | reg[1] <<5 &0x100 | reg[1] <<4 &0x200;
+	MMC3_syncPRG(prgAND, prgOR &~prgAND);
+	MMC3_syncCHR(chrAND, chrOR &~chrAND);
+	MMC3_syncMirror();
+	SetReadHandler(0x8000, 0xFFFF, submapper == 1 && reg[1] &0x20 || submapper != 1 && reg[0] &0x01? readPad: CartBR);
 }
 
-static DECLFR(M432Read) {
-   if (submapper ==1? !!(EXPREGS[1] &0x20): !!(EXPREGS[0] &0x01)) return EXPREGS[2];
-   return CartBR(A);
+static int getPRGBank (uint8 bank) {
+	if (reg[1] &0x40) {
+		int mask = reg[1] &(submapper == 2? 0x20: 0x80)? 3: 1;
+		return MMC3_getPRGBank(bank &1) &~mask | bank &mask;
+	} else
+		return MMC3_getPRGBank(bank);
 }
 
-static DECLFW(M432Write) {
-	EXPREGS[A & 1] = V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
+static int getCHRBank (uint8 bank) {
+	if (reg[1] &0x20 && submapper == 3)
+		return MMC3_getCHRBank(bank &6 | bank >>1 &1) <<1 | bank &1;
+	else
+		return MMC3_getCHRBank(bank);
 }
 
-static void M432Reset(void) {
-	EXPREGS[0] = 0;
-	EXPREGS[1] = 0;
-	EXPREGS[2]++;
-	MMC3RegReset();
+static DECLFW (writeReg) {
+	if (submapper == 3 && reg[1] &0x80)
+		;
+	else {
+		reg[A &1] = V;
+		sync();
+	}
 }
 
-static void M432Power(void) {
-	EXPREGS[0] = 0;
-	EXPREGS[1] = 0;
-	EXPREGS[2] = 0;
-	GenMMC3Power();
-	SetReadHandler(0x8000, 0xFFFF, M432Read);
-	SetWriteHandler(0x6000, 0x7FFF, M432Write);
+static void reset () {
+	reg[0] = reg[1] = 0;
+	++pad;
+	MMC3_clear();
 }
 
-void Mapper432_Init(CartInfo *info) {
+static void power () {
+	reg[0] = reg[1] = 0;
+	pad = 0;
+	MMC3_power();
+}
+
+void Mapper432_Init (CartInfo *info) {
 	submapper =info->submapper;
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = M432CW;
-	pwrap = M432PW;
-	info->Power = M432Power;
-	info->Reset = M432Reset;
-	AddExState(EXPREGS, 3, 0, "EXPR");
+	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, getCHRBank, NULL, writeReg);
+	info->Power = power;
+	info->Reset = reset;
+	AddExState(reg, 2, 0, "EXPR");
 }

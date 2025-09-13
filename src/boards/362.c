@@ -19,11 +19,11 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8 game;
 
-static SFORMAT Mapper362_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &game, 1, "GAME" },
 	{ 0 }
 };
@@ -34,27 +34,27 @@ static void sync () {
 		VRC24_syncCHR(0x1FF, 0x200);
 		VRC24_syncMirror();
 	} else {
-		VRC24_syncPRG(0x00F, VRC24_chr[0] >>3 &0x30);
-		VRC24_syncCHR(0x07F, VRC24_chr[0] &0x180);
+		VRC24_syncPRG(0x00F, VRC24_getCHRBank(0) >>3 &0x30);
+		VRC24_syncCHR(0x07F, VRC24_getCHRBank(0) &0x180);
 		VRC24_syncMirror();
 	}
 }
 
-void Mapper362_power(void) {
+static void power (void) {
 	game =0;
 	VRC24_power();
 }
 
-void Mapper362_reset(void) {
+static void reset (void) {
 	game ^=1;
-	VRC24_Sync();
+	VRC24_clear();
 }	
 
 void Mapper362_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 1, 0, 0);
-	info->Power =Mapper362_power;
+	VRC4_init(info, sync, 0x01, 0x02, 0, NULL, NULL, NULL, NULL, NULL);
+	info->Power = power;
 	if (PRGsize[0] >512*1024) {
-		info->Reset =Mapper362_reset;
-		AddExState(Mapper362_stateRegs, ~0, 0, 0);
+		info->Reset = reset;
+		AddExState(stateRegs, ~0, 0, 0);
 	}
 }

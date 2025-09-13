@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2022
+ *  Copyright (C) 2020
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,62 +16,57 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ *
  */
 
-/* N625836 PCB */
-
 #include "mapinc.h"
-#include "mmc3.h"
+#include "asic_mmc3.h"
 
-static void Mapper455_PRGWrap(uint32 A, uint8 V) {
-	int prgAND =EXPREGS[1] &0x01? 0x1F: 0x0F;
-	int prgOR  =EXPREGS[0] >>2 &0x07 | EXPREGS[1] <<1 &0x08 | EXPREGS[0] >>2 &0x10;
-	if (EXPREGS[0] &0x01) {
-		if (EXPREGS[0] &0x02) {
-			setprg32(0x8000, prgOR >>1);
-		} else {
-			setprg16(0x8000, prgOR);
-			setprg16(0xC000, prgOR);
+static uint8 reg[2];
+
+static void sync () {
+	if (reg[0] &0x01) {
+		if (reg[0] &0x02)
+			setprg32(0x8000, reg[0] >>3);
+		else {
+			setprg16(0x8000, reg[0] >>2);
+			setprg16(0xC000, reg[0] >>2);
 		}
+		MMC3_syncCHR(0xFF, 0x00);
 	} else {
-		prgOR <<=1;
-		setprg8(A, V &prgAND | prgOR &~prgAND);
+		int prgAND = 0x1F;
+		int chrAND = reg[1] &0x02? 0x7F: 0xFF;
+		int prgOR  = reg[0] >>1;
+		int chrOR  = reg[1] <<6;
+		MMC3_syncPRG(prgAND, prgOR &~prgAND);
+		MMC3_syncCHR(chrAND, chrOR &~chrAND);
 	}
+	MMC3_syncMirror();
 }
 
-static void Mapper455_CHRWrap(uint32 A, uint8 V) {
-	int chrAND =EXPREGS[1] &0x02? 0xFF: 0x7F;
-	int chrOR  =(EXPREGS[0] >>2 &0x07 | EXPREGS[1] <<1 &0x08 | EXPREGS[0] >>2 &0x10) <<4;
-	setchr1(A, V &chrAND | chrOR &~chrAND);
-}
-
-static DECLFW(Mapper455_Write) {
+static DECLFW (writeReg) {
 	if (A &0x100) {
-		EXPREGS[0] =V;
-		EXPREGS[1] =A &0xFF;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
+		reg[0] = V;
+		reg[1] = A &0xFF;
+		sync();
 	}
 }
 
-static void Mapper455_Reset(void) {
-	EXPREGS[0] =1;
-	EXPREGS[1] =0;
-	MMC3RegReset();
+static void reset () {
+	reg[0] = reg[1] = 0;
+	MMC3_clear();
 }
 
-static void Mapper455_Power(void) {
-	EXPREGS[0] =1;
-	EXPREGS[1] =0;
-	GenMMC3Power();
-	SetWriteHandler(0x4100, 0x5FFF, Mapper455_Write);
+static void power () {
+	reg[0] = reg[1] = 0;
+	MMC3_power();
+	SetWriteHandler(0x4020, 0x5FFF, writeReg);
 }
 
-void Mapper455_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 0, 0);
-	cwrap = Mapper455_CHRWrap;
-	pwrap = Mapper455_PRGWrap;
-	info->Power = Mapper455_Power;
-	info->Reset = Mapper455_Reset;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+void Mapper455_Init (CartInfo *info) {
+	MMC3_init(info, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, NULL);
+	info->Power = power;
+	info->Reset = reset;
+	AddExState(reg, 2, 0, "EXPR");
 }

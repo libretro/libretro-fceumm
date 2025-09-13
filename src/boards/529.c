@@ -19,7 +19,7 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 #include "eeprom_93Cx6.h"
 
 static uint8 eeprom_data[256];
@@ -30,31 +30,31 @@ static SFORMAT stateRegs[] ={
 };
 
 static void sync () {
-	setprg16(0x8000, VRC24_prg[1]);
+	setprg16(0x8000, VRC24_getPRGBank(1));
 	setprg16(0xC000, 0xFF);
 	VRC24_syncCHR(0x1FF, 0x000);
 	VRC24_syncMirror();
 }
 
-DECLFR(UNLT230_readEEPROM) {
+static DECLFR (readEEPROM) {
 	return eeprom_93Cx6_read()? 0x01: 0x00;
 }
 	
-DECLFW(UNLT230_writeEEPROM) {
+static DECLFW (writeEEPROM) {
 	eeprom_93Cx6_write(A &0x04, A &0x02, A &0x01);
 }
 
-void UNLT230_power (void) {
+static void power (void) {
 	VRC24_power();
 	eeprom_93Cx6_init(256, 16);
-	SetReadHandler(0x5000, 0x5FFF, UNLT230_readEEPROM);
-	SetWriteHandler(0xF800, 0xFFFF, UNLT230_writeEEPROM);
+	SetReadHandler(0x5000, 0x5FFF, readEEPROM);
+	SetWriteHandler(0xF800, 0xFFFF, writeEEPROM);
 }
 
 void UNLT230_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 1, 0);
+	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
 	if (info->PRGRamSaveSize) {
-		info->Power =UNLT230_power;
+		info->Power =power;
 		AddExState(stateRegs, ~0, 0, 0);
 		eeprom_93Cx6_storage = eeprom_data;
 		info->battery = 1;

@@ -21,8 +21,9 @@
 #include "mapinc.h"
 
 static uint16 latchAddr;
-static uint8  latchData;
-static uint8  mode;
+static uint8 latchData;
+static uint8 mode;
+static uint8 submapper;
 
 static SFORMAT StateRegs[] = {
    { &latchAddr, 2 | FCEUSTATE_RLSB, "LATC" },
@@ -33,8 +34,14 @@ static SFORMAT StateRegs[] = {
 
 static void Sync(void) {
    if (mode &1) {
-      setprg16(0x8000, 0x20 | latchData &0x07);
-      setprg16(0xC000, 0x27);
+      if (submapper == 1) {
+         setprg16(0x8000, latchAddr >>2 &7 |0x20);
+         setprg16(0xC000, 0x27);
+      } else {
+         setprg16(0x8000, 0x20 | latchData &0x07);
+         setprg16(0xC000, 0x27);
+      }
+      setmirror(MI_V);
    } else {
       if (latchAddr &0x01)
 	      setprg32(0x8000, latchAddr >>3 &0x0F);
@@ -43,10 +50,10 @@ static void Sync(void) {
 	      setprg16(0xC000, latchAddr >>2 &0x1F);
       }
       if (~latchAddr &0x80) setprg16(0xC000, 0);
+      setmirror(latchAddr &0x02? MI_H: MI_V);
    }
    SetupCartCHRMapping(0, CHRptr[0], 0x2000, ~mode &0x01 && latchAddr &0x80? 0: 1);
    setchr8(0);
-   setmirror(latchAddr &0x02? MI_H: MI_V);
 }
 
 static DECLFW(M280Write) {
@@ -76,6 +83,7 @@ static void StateRestore(int version) {
 }
 
 void Mapper280_Init(CartInfo *info) {
+   submapper = info->submapper;
    info->Power = M280Power;
    info->Reset = M280Reset;
    GameStateRestore = StateRestore;

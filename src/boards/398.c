@@ -19,19 +19,19 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8 reg;
 
-static SFORMAT Mapper398_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &reg, 1, "EXP0" },
 	{ 0 }
 };
 
 static void sync () {
 	if (reg &0x80) {
-		setprg32(0x8000, reg >>5 &6 | VRC24_chr[0] >>2 &1);
-		setchr8(0x40 | reg >>3 &8 | VRC24_chr[0] &7);
+		setprg32(0x8000, reg >>5 &6 | VRC24_getCHRBank(0) >>2 &1);
+		setchr8(0x40 | reg >>3 &8 | VRC24_getCHRBank(0) &7);
 	} else {
 		VRC24_syncPRG(0x0F, 0x00);
 		VRC24_syncCHR(0x1FF, 0x000);
@@ -39,26 +39,25 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(Mapper398_writeReg) {
+static DECLFW (writeReg) {
 	reg =A &0xFF;	
-	VRC24_Sync();
 	VRC24_writeReg(A, V);
 }
 
-void Mapper398_power(void) {
-	reg =0xC0;
+static void power (void) {
+	reg = 0xC0;
 	VRC24_power();
-	SetWriteHandler(0x8000, 0xFFFF, Mapper398_writeReg);
+	SetWriteHandler(0x8000, 0xFFFF, writeReg);
 }
 
-void Mapper398_reset(void) {
-	reg =0xC0;
-	VRC24_Sync();
+static void reset (void) {
+	reg = 0xC0;
+	VRC24_clear();
 }	
 
 void Mapper398_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 1, 1, 0);
-	info->Power =Mapper398_power;
-	info->Reset =Mapper398_reset;
-	AddExState(Mapper398_stateRegs, ~0, 0, 0);
+	VRC4_init(info, sync, 0x01, 0x02, 1, NULL, NULL, NULL, NULL, NULL);
+	info->Power = power;
+	info->Reset = reset;
+	AddExState(stateRegs, ~0, 0, 0);
 }

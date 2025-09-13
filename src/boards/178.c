@@ -27,7 +27,9 @@
 
 #include "mapinc.h"
 
+static uint8 submapper;
 static uint8 reg[4];
+static uint8 pad[2];
 
 static uint8 *WRAM = NULL;
 static uint32 WRAMSIZE;
@@ -79,6 +81,10 @@ static uint8 decode(uint8 code) {
 	return (acc >> 8) & 0xff;
 }
 
+static DECLFR(readPad) {
+	return CartBR(A &~3 | pad[1] &3);
+}
+
 static void M178Sync(void) {
 	uint32 sbank = reg[1] & 0x7;
 	uint32 bbank = reg[2];
@@ -100,6 +106,7 @@ static void M178Sync(void) {
 	}
 
 	setmirror((reg[0] & 1) ^ 1);
+	if (submapper == 3) SetReadHandler(0x8000, 0xffff, pad[0] &1? readPad: CartBR);
 }
 
 static void M551Sync(void) {
@@ -152,6 +159,11 @@ static DECLFR(M178ReadSnd) {
 	return X.DB;
 }
 
+static DECLFW(writePad) {
+	pad[0] = V;
+	M178Sync();
+}
+
 static void M551Power(void) {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	M551Sync();
@@ -159,9 +171,9 @@ static void M551Power(void) {
 	SetWriteHandler(0x4800, 0x4fff, M551Write);
 	SetWriteHandler(0x5800, 0x5fff, M178WriteSnd);
 	SetReadHandler(0x5800, 0x5fff, M178ReadSnd);
+	SetReadHandler(0x8000, 0xffff, CartBR);
 	SetReadHandler(0x6000, 0x7fff, CartBR);
 	SetWriteHandler(0x6000, 0x7fff, CartBW);
-	SetReadHandler(0x8000, 0xffff, CartBR);
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
 }
 
@@ -172,10 +184,15 @@ static void M178Power(void) {
 	SetWriteHandler(0x4800, 0x4fff, M178Write);
 	SetWriteHandler(0x5800, 0x5fff, M178WriteSnd);
 	SetReadHandler(0x5800, 0x5fff, M178ReadSnd);
-	SetReadHandler(0x6000, 0x7fff, CartBR);
-	SetWriteHandler(0x6000, 0x7fff, CartBW);
 	SetReadHandler(0x8000, 0xffff, CartBR);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	if (submapper == 3)
+		SetWriteHandler(0x6000, 0x7fff, writePad);
+	else {
+		SetReadHandler(0x6000, 0x7fff, CartBR);
+		SetWriteHandler(0x6000, 0x7fff, CartBW);
+		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	}
+	pad[0] = pad[1] = 0;
 }
 
 static void M551Reset(void) {
@@ -189,6 +206,8 @@ static void M178Reset(void)
 	/* Always reset to menu */
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	M178Sync();
+	pad[0] = 0;
+	pad[1]++;
 }
 
 static void M178SndClk(int a)
@@ -217,6 +236,7 @@ static void M178StateRestore(int version) {
 }
 
 void Mapper178_Init(CartInfo *info) {
+	submapper = info->submapper;
 	info->Power = M178Power;
 	info->Reset = M178Reset;
 	info->Close = M178Close;
@@ -225,14 +245,18 @@ void Mapper178_Init(CartInfo *info) {
 
 	jedi_table_init();
 
-	WRAMSIZE = 32768;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	if (info->battery) {
-		info->SaveGame[0] = WRAM;
-		info->SaveGameLen[0] = WRAMSIZE;
+	if (submapper == 3)
+		AddExState(pad, 2, 0, "DIPS");
+	else {
+		WRAMSIZE = 32768;
+		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
+		if (info->battery) {
+			info->SaveGame[0] = WRAM;
+			info->SaveGameLen[0] = WRAMSIZE;
+		}
+		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	}
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
 	AddExState(&StateRegs, ~0, 0, 0);
 

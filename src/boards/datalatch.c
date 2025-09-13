@@ -507,53 +507,6 @@ void Mapper538_Init(CartInfo *info) {
 	info->Power = M538Power;
 }
 
-/* ------------------ A65AS --------------------------- */
-
-/* actually, there is two cart in one... First have extra mirroring
- * mode (one screen) and 32K bankswitching, second one have only
- * 16 bankswitching mode and normal mirroring... But there is no any
- * correlations between modes and they can be used in one mapper code.
- *
- * Submapper 0 - 3-in-1 (N068)
- * Submapper 0 - 3-in-1 (N080)
- * Submapper 1 - 4-in-1 (JY-066)
- */
-
-static int A65ASsubmapper;
-static void BMCA65ASSync(void) {
-	if (latche & 0x40)
-		setprg32(0x8000, (latche >> 1) & 0x0F);
-	else {
-		if (A65ASsubmapper == 1) {
-			setprg16(0x8000, ((latche & 0x30) >> 1) | (latche & 7));
-			setprg16(0xC000, ((latche & 0x30) >> 1) | 7);
-		} else {
-			setprg16(0x8000, latche & 0x0F);
-			setprg16(0xC000, latche & 0x0F | 7);
-		}
-	}
-	setchr8(0);
-	if (latche & 0x80)
-		setmirror(MI_0 + (((latche >> 5) & 1)));
-	else {
-		if (A65ASsubmapper == 1)
-			setmirror(latche &0x08? MI_H: MI_V);
-		else
-			setmirror(latche &0x20? MI_H: MI_V);
-	}
-}
-
-void BMCA65AS_Reset() {
-	latche =0;
-	BMCA65ASSync();
-}
-
-void BMCA65AS_Init(CartInfo *info) {
-	A65ASsubmapper = info->submapper;
-	info->Reset = BMCA65AS_Reset;
-	Latch_Init(info, BMCA65ASSync, 0, 0x8000, 0xFFFF, 0, 0);
-}
-
 /*------------------ BMC-11160 ---------------------------*/
 /* Simple BMC discrete mapper by TXC */
 

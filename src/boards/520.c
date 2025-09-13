@@ -19,14 +19,14 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static void sync () {
-	VRC24_syncPRG(0x1F, VRC24_chr[0] <<2 &0x20);
+	VRC24_syncPRG(0x1F, VRC24_getCHRBank(0) <<2 &0x20);
 	VRC24_syncCHR(0x07, 0x00);
 	VRC24_syncMirror();
 }
 
 void Mapper520_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x04, 0x08, 1, 1, 0);
+	VRC4_init(info, sync, 0x04, 0x08, 1, NULL, NULL, NULL, NULL, NULL);
 }

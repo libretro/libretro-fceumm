@@ -1,7 +1,7 @@
 /* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2011 CaH4e3
+ *  Copyright (C) 2023
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,353 +16,130 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- * SL12 Protected 3-in-1 mapper hardware (VRC2, MMC3, MMC1)
- * the same as 603-5052 board (TODO: add reading registers, merge)
- * SL1632 2-in-1 protected board, similar to SL12 (TODO: find difference)
- *
- * Known PCB:
- *
- * Garou Densetsu Special (G0904.PCB, Huang-1, GAL dip: W conf.)
- * Kart Fighter (008, Huang-1, GAL dip: W conf.)
- * Somari (008, C5052-13, GAL dip: P conf., GK2-P/GK2-V maskroms)
- * Somari (008, Huang-1, GAL dip: W conf., GK1-P/GK1-V maskroms)
- * AV Mei Shao Nv Zhan Shi (aka AV Pretty Girl Fighting) (SL-12 PCB, Hunag-1, GAL dip: unk conf. SL-11A/SL-11B maskroms)
- * Samurai Spirits (Full version) (Huang-1, GAL dip: unk conf. GS-2A/GS-4A maskroms)
- * Contra Fighter (603-5052 PCB, C5052-3, GAL dip: unk conf. SC603-A/SCB603-B maskroms)
- *
  */
 
 #include "mapinc.h"
+#include "asic_mmc1.h"
+#include "asic_mmc3.h"
+#include "asic_vrc2and4.h"
 
-static uint8 vrc2_chr[8]   = { 0 };
-static uint8 vrc2_prg[2]   = { 0 };
-static uint8 vrc2_mirr     = 0;
+static uint8 submapper;
+static uint8 reg;
+static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield to track it */
+static uint8 game;
 
-static uint8 mmc3_regs[10] = { 0 };
-static uint8 mmc3_ctrl     = 0;
-static uint8 mmc3_mirr     = 0;
-
-static uint8 mmc1_regs[4]  = { 0 };
-static uint8 mmc1_buffer   = 0;
-static uint8 mmc1_shift    = 0;
-
-static uint8 IRQCount      = 0;
-static uint8 IRQLatch      = 0;
-static uint8 IRQa          = 0;
-static uint8 IRQReload     = 0;
-static uint8 mode          = 0;
-
-static uint8 submapper     = 0;
-static uint8 game          = 0;
-
-extern uint32 ROM_size;
-extern uint32 VROM_size;
-
-static SFORMAT StateRegs[] =
-{
-	{ &mode,        1, "MODE" },
-	{ vrc2_chr,     8, "VRCC" },
-	{ vrc2_prg,     2, "VRCP" },
-	{ &vrc2_mirr,   1, "VRCM" },
-	{ mmc3_regs,   10, "M3RG" },
-	{ &mmc3_ctrl,   1, "M3CT" },
-	{ &mmc3_mirr,   1, "M3MR" },
-	{ &IRQReload,   1, "IRQR" },
-	{ &IRQCount,    1, "IRQC" },
-	{ &IRQLatch,    1, "IRQL" },
-	{ &IRQa,        1, "IRQA" },
-	{ mmc1_regs,    4, "M1RG" },
-	{ &mmc1_buffer, 1, "M1BF" },
-	{ &mmc1_shift,  1, "M1MR" },
-	{ &submapper,   1, "SUBM" },
-	{ &game,        1, "GAME" },
-	{ 0 }
+static SFORMAT stateRegs[] = {
+	{ &reg, 1, "MODE" },
+	{ &init, 1, "INIT" },
+	{ 0 },
 };
 
-static void SyncPRG(void) {
-	uint8 mask  = (submapper != 3) ? 0x3F : (game ? 0x0F : 0x1F);
-	uint8 outer = game ? (game + 1) * 0x10 : 0;
-	switch (mode & 3) {
-	case 0:
-		setprg8(0x8000, (outer & ~mask) | (vrc2_prg[0] & mask));
-		setprg8(0xA000, (outer & ~mask) | (vrc2_prg[1] & mask));
-		setprg8(0xC000, (outer & ~mask) | (~1 & mask));
-		setprg8(0xE000, (outer & ~mask) | (~0 & mask));
-		break;
-	case 1:
-	{
-		uint32 swap = (mmc3_ctrl >> 5) & 2;
-		setprg8(0x8000, (outer & ~mask) | (mmc3_regs[6 + swap] & mask));
-		setprg8(0xA000, (outer & ~mask) | (mmc3_regs[7] & mask));
-		setprg8(0xC000, (outer & ~mask) | (mmc3_regs[6 + (swap ^ 2)] & mask));
-		setprg8(0xE000, (outer & ~mask) | (mmc3_regs[9] & mask));
-		break;
+static SFORMAT stateRegsMulti[] = {
+	{ &game, 1, "GAME" },
+	{ 0 },
+};
+
+static void sync (void) {
+	int prgAND, chrAND, prgOR, chrOR;
+	if (submapper == 3) { /* First game is 256K+256K, the others 128K+128K */
+		prgAND = game? 0x0F: 0x1F;
+		chrAND = game? 0x7F: 0xFF;
+		prgOR  = game <<4 &~prgAND;
+		chrOR  = game <<7 &~chrAND;
+	} else {
+		prgAND = 0x3F;
+		chrAND = 0xFF;
+		prgOR  = 0x00 &~prgAND;
+		chrOR  = reg <<6 &0x100 &~chrAND;
 	}
-	case 2:
-	case 3:
-	{
-		uint8 bank = mmc1_regs[3] & mask;
-		if (mmc1_regs[0] & 8) {
-			if (submapper == 2)
-				bank >>= 1;
-			if (mmc1_regs[0] & 4) {
-				setprg16(0x8000, bank);
-				setprg16(0xC000, 0x0F);
-			} else {
-				setprg16(0x8000, 0);
-				setprg16(0xC000, bank);
-			}
-		} else
-			setprg32(0x8000, ((outer & ~mask) >> 1) | (bank >> 1));
-		}
-		break;
+	if (reg &0x02) {
+		prgAND >>= 1;
+		prgOR >>= 1;
+		chrAND >>= 2;
+		chrOR >>= 2;
+		MMC1_syncPRG(prgAND, prgOR);
+		MMC1_syncCHR(chrAND, chrOR);
+		MMC1_syncMirror();
+	} else
+	if (reg &0x01) {
+		MMC3_syncPRG(prgAND, prgOR);
+		MMC3_syncCHR(chrAND, chrOR);
+		MMC3_syncMirror();
+	} else {
+		VRC24_syncPRG(prgAND, prgOR);
+		VRC24_syncCHR(chrAND, chrOR);
+		VRC24_syncMirror();
 	}
 }
 
-static void SyncCHR(void) {
-	uint32 mask  = game ? 0x7F : 0xFF;
-	uint32 outer = game ? (game + 1) * 0x80 : 0;
-	uint32 base  = (mode & 4) << 6;
-	switch (mode & 3) {
-	case 0:
-		setchr1(0x0000, ((outer | base) & ~mask) | (vrc2_chr[0] & mask));
-		setchr1(0x0400, ((outer | base) & ~mask) | (vrc2_chr[1] & mask));
-		setchr1(0x0800, ((outer | base) & ~mask) | (vrc2_chr[2] & mask));
-		setchr1(0x0c00, ((outer | base) & ~mask) | (vrc2_chr[3] & mask));
-		setchr1(0x1000, ((outer | base) & ~mask) | (vrc2_chr[4] & mask));
-		setchr1(0x1400, ((outer | base) & ~mask) | (vrc2_chr[5] & mask));
-		setchr1(0x1800, ((outer | base) & ~mask) | (vrc2_chr[6] & mask));
-		setchr1(0x1c00, ((outer | base) & ~mask) | (vrc2_chr[7] & mask));
-		break;
-	case 1: {
-		uint32 swap = (mmc3_ctrl & 0x80) << 5;
-		setchr1(0x0000 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[0] & 0xFE) & mask));
-		setchr1(0x0400 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[0] | 1) & mask));
-		setchr1(0x0800 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[1] & 0xFE) & mask));
-		setchr1(0x0c00 ^ swap, ((outer | base) & ~mask) | ((mmc3_regs[1] | 1) & mask));
-		setchr1(0x1000 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[2] & mask));
-		setchr1(0x1400 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[3] & mask));
-		setchr1(0x1800 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[4] & mask));
-		setchr1(0x1c00 ^ swap, ((outer | base) & ~mask) | (mmc3_regs[5] & mask));
-		break;
-	}
-	case 2:
-	case 3:
-		if (mmc1_regs[0] & 0x10) {
-			setchr4(0x0000, (outer & ~mask) | (mmc1_regs[1] & mask));
-			setchr4(0x1000, (outer & ~mask) | (mmc1_regs[2] & mask));
-		} else
-			setchr8(((outer & ~mask) >> 1) | (mmc1_regs[1] & mask) >> 1);
-		break;
-	}
+int Huang2_getPRGBank (uint8 bank) {
+	return MMC1_getPRGBank(bank) >>1;
 }
 
-static void SyncMIR(void) {
-	switch (mode & 3) {
-	case 0: {
-		setmirror((vrc2_mirr & 1) ^ 1);
-		break;
-	}
-	case 1: {
-		setmirror((mmc3_mirr & 1) ^ 1);
-		break;
-	}
-	case 2:
-	case 3: {
-		switch (mmc1_regs[0] & 3) {
-		case 0: setmirror(MI_0); break;
-		case 1: setmirror(MI_1); break;
-		case 2: setmirror(MI_V); break;
-		case 3: setmirror(MI_H); break;
-		}
-		break;
-	}
-	}
-}
-
-static void Sync(void) {
-	SyncPRG();
-	SyncCHR();
-	SyncMIR();
-}
-
-static DECLFW(UNLSL12ModeWrite) {
-	if (A & 0x100) {
-		mode = V;
-		if (A & 1) {	/* hacky hacky, there are two configuration modes on SOMARI HUANG-1 PCBs
-						 * Solder pads with P1/P2 shorted called SOMARI P,
-						 * Solder pads with W1/W2 shorted called SOMARI W
-						 * Both identical 3-in-1 but W wanted MMC1 registers
-						 * to be reset when switch to MMC1 mode P one - doesn't
-						 * There is issue with W version of Somari at starting copyrights
-						 */
-			mmc1_regs[0] = 0xc;
-			mmc1_regs[3] = 0;
-			mmc1_buffer = 0;
-			mmc1_shift = 0;
-		}
-		Sync();
-	}
-}
-
-static DECLFW(UNLSL12Write) {
-/*  FCEU_printf("%04X:%02X\n",A,V); */
-	switch (mode & 3) {
-	case 0: {
-		if ((A >= 0xB000) && (A <= 0xE003)) {
-			int32 ind = ((((A & 2) | (A >> 10)) >> 1) + 2) & 7;
-			int32 sar = ((A & 1) << 2);
-			vrc2_chr[ind] = (vrc2_chr[ind] & (0xF0 >> sar)) | ((V & 0x0F) << sar);
-			SyncCHR();
-		} else
-			switch (A & 0xF000) {
-			case 0x8000: vrc2_prg[0] = V; SyncPRG(); break;
-			case 0xA000: vrc2_prg[1] = V; SyncPRG(); break;
-			case 0x9000: vrc2_mirr = V; SyncMIR(); break;
-			}
-		break;
-	}
-	case 1: {
-		switch (A & 0xE001) {
-		case 0x8000: {
-			uint8 old_ctrl = mmc3_ctrl;
-			mmc3_ctrl = V;
-			if ((old_ctrl & 0x40) != (mmc3_ctrl & 0x40))
-				SyncPRG();
-			if ((old_ctrl & 0x80) != (mmc3_ctrl & 0x80))
-				SyncCHR();
-			break;
-		}
-		case 0x8001:
-			mmc3_regs[mmc3_ctrl & 7] = V;
-			if ((mmc3_ctrl & 7) < 6)
-				SyncCHR();
-			else
-				SyncPRG();
-			break;
-		case 0xA000:
-			mmc3_mirr = V;
-			SyncMIR();
-			break;
-		case 0xC000:
-			IRQLatch = V;
-			break;
-		case 0xC001:
-			IRQReload = 1;
-			break;
-		case 0xE000:
-			X6502_IRQEnd(FCEU_IQEXT);
-			IRQa = 0;
-			break;
-		case 0xE001:
-			IRQa = 1;
-			break;
-		}
-		break;
-	}
-	case 2:
-	case 3: {
-		if (V & 0x80) {
-			mmc1_regs[0] |= 0xc;
-			mmc1_buffer = mmc1_shift = 0;
-			SyncPRG();
-		} else {
-			uint8 n = (A >> 13) - 4;
-			mmc1_buffer |= (V & 1) << (mmc1_shift++);
-			if (mmc1_shift == 5) {
-				mmc1_regs[n] = mmc1_buffer;
-				mmc1_buffer = mmc1_shift = 0;
-				switch (n) {
-				case 0: SyncMIR(); break;
-				case 2: SyncCHR(); break;
-				case 3:
-				case 1: SyncPRG(); break;
-				}
-			}
-		}
-		break;
-	}
-	}
-}
-
-static void UNLSL12HBIRQ(void) {
-	if ((mode & 3) == 1) {
-		int32 count = IRQCount;
-		if (!count || IRQReload) {
-			IRQCount = IRQLatch;
-			IRQReload = 0;
-		} else
-			IRQCount--;
-		if (!IRQCount) {
-			if (IRQa)
-				X6502_IRQBegin(FCEU_IQEXT);
+static void applyMode (uint8 clear) {
+	PPU_hook = NULL;
+	MapIRQHook = NULL;
+	GameHBIRQHook = NULL;
+	if (reg &0x02) {
+		MMC1_activate(clear && init &1, sync, MMC1_TYPE_MMC1B, submapper == 2? Huang2_getPRGBank: NULL, NULL, NULL, NULL);
+		if (submapper != 1) MMC1_writeReg(0x8000, 0x80);
+		init &= ~1;
+	} else
+	if (reg &0x01) {
+		MMC3_activate(clear && init &2, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, NULL);
+		init &= ~2;
+	} else {
+		VRC2_activate(clear && init &4, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
+		if (init &4) { /* The earlier version of Somari needs specific VRC2 CHR register initialization */
+			VRC24_writeReg(0xB000, 0xFF); VRC24_writeReg(0xB001, 0xFF); VRC24_writeReg(0xB002, 0xFF); VRC24_writeReg(0xB003, 0xFF);
+			VRC24_writeReg(0xC000, 0xFF); VRC24_writeReg(0xC001, 0xFF); VRC24_writeReg(0xC002, 0xFF); VRC24_writeReg(0xC003, 0xFF);
+			VRC24_writeReg(0xD000, 0xFF); VRC24_writeReg(0xD001, 0xFF); VRC24_writeReg(0xD002, 0xFF); VRC24_writeReg(0xD003, 0xFF);
+			VRC24_writeReg(0xE000, 0xFF); VRC24_writeReg(0xE001, 0xFF); VRC24_writeReg(0xE002, 0xFF); VRC24_writeReg(0xE003, 0xFF);
+			init &= ~4;
 		}
 	}
 }
 
-static void StateRestore(int version) {
-	Sync();
-}
-
-static void UNLSL12Reset(void) {
-	/* this is suppose to increment during power cycle */
-	/* but we dont have a way to do that, so increment on reset instead. */
-	if (submapper == 3) {
-		game = game + 1;
-		if (game > 4)
-			game = 0;
+static DECLFW (writeReg) {
+	if (A &0x100) {
+		uint8 previousReg = reg;
+		reg = V;
+		if ((previousReg ^V) &3)
+			applyMode(1);
+		else
+			sync();
 	}
-	Sync();
 }
 
-static void UNLSL12Power(void) {
-	game = (submapper == 3) ? 4 : 0;
-	mode = 1;
-	vrc2_chr[0] = ~0;
-	vrc2_chr[1] = ~0;
-	vrc2_chr[2] = ~0;
-	vrc2_chr[3] = ~0;	/* W conf. of Somari wanted CHR3 has to be set to BB bank (or similar), but doesn't do that directly */
-	vrc2_chr[4] = 4;
-	vrc2_chr[5] = 5;
-	vrc2_chr[6] = 6;
-	vrc2_chr[7] = 7;
-	vrc2_prg[0] = 0;
-	vrc2_prg[1] = 1;
-	vrc2_mirr = 0;
-	mmc3_regs[0] = 0;
-	mmc3_regs[1] = 2;
-	mmc3_regs[2] = 4;
-	mmc3_regs[3] = 5;
-	mmc3_regs[4] = 6;
-	mmc3_regs[5] = 7;
-	mmc3_regs[6] = ~3;
-	mmc3_regs[7] = ~2;
-	mmc3_regs[8] = ~1;
-	mmc3_regs[9] = ~0;
-	mmc3_ctrl = mmc3_mirr = IRQCount = IRQLatch = IRQa = 0;
-	mmc1_regs[0] = 0xc;
-	mmc1_regs[1] = 0;
-	mmc1_regs[2] = 0;
-	mmc1_regs[3] = 0;
-	mmc1_buffer = 0;
-	mmc1_shift = 0;
-	Sync();
+static void reset (void) {
+	reg = 1;
+	init = 7;
+	if (++game == 1) ++game; /* First game is twice as large */
+	if (game >= ROM_size /8) game = 0;
+	applyMode(1);
+}
+
+static void power (void) {
+	reg = 1;
+	init = 7;
+	game = 0;
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x4100, 0x5FFF, UNLSL12ModeWrite);
-	SetWriteHandler(0x8000, 0xFFFF, UNLSL12Write);
+	SetWriteHandler(0x4020, 0x5FFF, writeReg);
+	applyMode(1);
 }
 
-void UNLSL12_Init(CartInfo *info) {
-	info->Power      = UNLSL12Power;
-	info->Reset      = UNLSL12Reset;
-	GameHBIRQHook    = UNLSL12HBIRQ;
-	GameStateRestore = StateRestore;
-	AddExState(&StateRegs, ~0, 0, 0);
-	submapper        = info->submapper;
-	if (submapper == 0) {
-		/* PRG 128K and CHR 128K is Huang-2 (submapper 2) */
-		if (ROM_size == 8 && VROM_size == 16)
-			submapper = 2;
-	}
+static void restore (int version) {
+	applyMode(0);
+}
+
+void UNLSL12_Init (CartInfo *info) {
+	submapper = info->submapper;
+	MMC1_addExState();
+	MMC3_addExState();
+	VRC24_addExState();
+	info->Reset = reset;
+	info->Power = power;
+	GameStateRestore = restore;
+	AddExState(stateRegs, ~0, 0, 0);
+	if (submapper == 3) AddExState(stateRegsMulti, ~0, 0, 0);
 }

@@ -19,12 +19,12 @@
  */
 
 #include "mapinc.h"
-#include "vrc2and4.h"
+#include "asic_vrc2and4.h"
 
 static uint8  irqEnabled;
 static uint16 irqCounter;
 
-static SFORMAT BTL900218_stateRegs[] ={
+static SFORMAT stateRegs[] ={
 	{ &irqEnabled, 1, "IRQE" },
 	{ &irqCounter, 2 | FCEUSTATE_RLSB, "CNTL" },
 	{ 0 }
@@ -36,7 +36,7 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW(BTL900218_writeIRQ) {
+static DECLFW (writeIRQ) {
 	if (A &8) {
 		if (A &4) {
 			irqEnabled =0;
@@ -47,19 +47,19 @@ DECLFW(BTL900218_writeIRQ) {
 	}
 }
 
-void FP_FASTAPASS(1) BTL900218_cpuCycle(int a) {
+static void FP_FASTAPASS(1) cpuCycle (int a) {
 	while (a--) if (irqEnabled && ++irqCounter &1024) X6502_IRQBegin(FCEU_IQEXT);
 }
 
-void BTL900218_power(void) {
+static void power (void) {
 	irqEnabled =irqCounter =0;
 	VRC24_power();
-	SetWriteHandler(0xF000, 0xFFFF, BTL900218_writeIRQ);
+	SetWriteHandler(0xF000, 0xFFFF, writeIRQ);
 }
 
 void BTL900218_Init (CartInfo *info) {
-	VRC24_init(info, sync, 0x01, 0x02, 0, 0, 0);
-	AddExState(BTL900218_stateRegs, ~0, 0, 0);
-	info->Power =BTL900218_power;
-	MapIRQHook =BTL900218_cpuCycle;
+	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
+	AddExState(stateRegs, ~0, 0, 0);
+	info->Power =power;
+	MapIRQHook =cpuCycle;
 }

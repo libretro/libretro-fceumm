@@ -30,7 +30,7 @@ void BMC411120C_Init(CartInfo *info);
 void BMC64in1nr_Init(CartInfo *info);
 void BMC810544CA1_Init(CartInfo *info);
 void BMC830118C_Init(CartInfo *info);
-void BMCA65AS_Init(CartInfo *info);
+void Mapper285_Init(CartInfo *info);
 void BMCBS5_Init(CartInfo *info);
 void BMCD1038_Init(CartInfo *info);
 void BMCFK23CA_Init(CartInfo *info);

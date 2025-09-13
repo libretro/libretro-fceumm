@@ -107,7 +107,7 @@ static void cwrap(uint32 A, uint32 V)
       /* some workaround for chr rom / ram access */
       if (!VROM_size)
          bank = 0;
-      else if (CHRRAMSIZE && fk23_regs[0] & 0x20)
+      else if (fk23_regs[0] &0x20 && ~fk23_regs[0] &0x40 && CHRRAMSIZE || VROM_size == 0)
          bank = 0x10;
       
       if (CHR_MIXED && V < 8) bank = 0x10; /* first 8K of chr bank is RAM */
@@ -175,7 +175,7 @@ static void SyncPRG(void)
    switch (subType)
    {
       case 1: /* FK-xxx */
-         if (PRG_MODE == 0) mask = 0xFF;  /* Mode 0 allows the MMC3 to address 2 MiB rather than the usual 512 KiB. */
+         if (PRG_MODE == 0 && MMC3_EXTENDED) mask = 0xFF;  /* Mode 0 allows the MMC3 to address 2 MiB rather than the usual 512 KiB. */
 	 break;
       case 2: /* FS005 */
          prg_base |= fk23_regs[0] << 4 & 0x080 | fk23_regs[0] << 1 & 0x100 | fk23_regs[2] << 3 & 0x600 | fk23_regs[2] << 6 & 0x800;   
@@ -394,6 +394,7 @@ static void Reset(void)
    }
 
    fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = fk23_regs[4] = fk23_regs[5] = fk23_regs[6] = fk23_regs[7] = 0;
+   if (subType == 1) fk23_regs[1] = 0xFF;
    mmc3_regs[0]   = 0;
    mmc3_regs[1]   = 2;
    mmc3_regs[2]   = 4;
@@ -415,6 +416,7 @@ static void Reset(void)
 static void Power(void)
 {
    fk23_regs[0]   = fk23_regs[1] = fk23_regs[2] = fk23_regs[3] = fk23_regs[4] = fk23_regs[5] = fk23_regs[6] = fk23_regs[7] = 0;
+   if (subType == 1) fk23_regs[1] = 0xFF;
    mmc3_regs[0]   = 0;
    mmc3_regs[1]   = 2;
    mmc3_regs[2]   = 4;

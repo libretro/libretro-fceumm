@@ -7,7 +7,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -18,93 +18,40 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-/* BlazePro CPLD-based multicarts
-
-   Unsolved issue: how is CHR RAM write-protection triggered?
-    
-   Known problems:
-   
-   Forever Duo of NES 852-in-1 (rev1):
-   #A370 Time Lord: Hangs with glitchy status bar on NTSC and PAL but not Dendy
-   #A133 Galactic Crusader: Wrong mirroring
-   #A249 Mission Cobra: Wrong mirroring
-   
-   Legendary Games of NES 509-in-1:
-   #189 Huang Di Battle of Zhuolu: Wrong mirroring during intro
-   #227 Kid Niki Niki 2: Title screen animation flickers and looks strange
-   #234 Klax: Screen in wrong position during options screen
-   #365 Rocman X: Graphical garbage in waterfall (middle) level
-   #403 Star Wars: Blank tiles due to lack of CHR RAM write-protection
-   #404 The Empire Strikes Back: Blank tiles due to lack of CHR RAM write-protection
-   #460 Twin Dragons: Wrong mirroring
-   
-   Unlicensed Collection 142-in-1:
-   #59 Huang Di: Wrong mirroring during intro
-   #84 Ms. Pac-Man: Wrong mirroring
-   #102 Rocman X: Graphical garbage in waterfall (middle) level
-   #132 Trolls on Treasure Island: Wrong mirroring during map
-   
-   Unreleased Collection 73-in-1 (v1.01):
-   #38 Holy Diver: Wrong mirroring during first scene
-*/
-
 #include "mapinc.h"
-#include "state.h"
+#include "asic_fme7.h"
+#include "asic_latch.h"
+#include "asic_mmc1.h"
+#include "asic_mmc2and4.h"
+#include "asic_mmc3.h"
+#include "asic_vrc1.h"
+#include "asic_vrc2and4.h"
+#include "asic_vrc3.h"
+#include "asic_vrc6.h"
+#include "asic_vrc7.h"
+#include "cartram.h"
 
 static uint8 submapper;
-static uint8 eeprom[16], eep_clock, state, command, output; /* Some strange serial EEPROM */
-static uint8 *WRAM;
-static uint32 WRAMSIZE;
+static uint8 reg[4]; /* Supervisor registers */
+static uint8 Custom_reg[4]; /* Registers for custom mappers */
+static uint8 eeprom[16], eep_clock, state, command, output; /* Serial EEPROM */
 
-static int prevSFEXINDEX;
-extern int SFEXINDEX;
-extern SFORMAT SFMDATA[64];
-
-static uint8 mapper;      /* 5700 MSB >>4 OR'd with submapper <<4 */
-static uint8 mapperFlags; /* 5700 LSB */
-static uint8 misc;        /* 5601 */
-static uint8 misc2;       /* 5702 */
-static void (*sync)();
-
-static uint16 prgOR;
-static uint8  prgAND;
-
-static uint8  regByte[16];
-static int16  regWord[9];
-
-#include "468_mmc1.h"
-#include "468_mmc24.h"
-#include "468_mmc3.h"
-#include "468_vrc1.h"
-#include "468_vrc24.h"
-#include "468_vrc3.h"
-#include "468_vrc6.h"
-#include "468_vrc7.h"
-#include "468_fme7.h"
-#include "468_discrete.h"
-#include "468_cnrom.h"
-#include "468_if12.h"
-#include "468_lf36.h"
-#include "468_nanjing.h"
+static void (*mapperSync)(int) = NULL;
+static void applyMode (uint8);
 
 static SFORMAT stateRegs[] = {
-	{ &mapper,          1, "SUP0" },
-	{ &mapperFlags,     1, "SUP1" },
-	{ &misc,            1, "SUP2" },
-	{ &misc2,           1, "SUP3" },
-	{ &prgOR,           2, "SUP4" },
-	{ &prgAND,          1, "SUP5" },
-	{  eeprom,          16,"EEPR" },
-	{ &eep_clock,       1, "EEP0" },
-	{ &state,           1, "EEP1" },
-	{ &command,         1, "EEP2" },
-	{ &output,          1, "EEP3" },	
-	{ regByte,          16,"REGB" },
-	{ regWord,          16,"REGW" },
+	{ &reg,         4, "REGS" },
+	{ &Custom_reg,  4, "CURG" },
+	{ eeprom,      16, "EEPR" },
+	{ &eep_clock,   1, "EEP0" },
+	{ &state,       1, "EEP1" },
+	{ &command,     1, "EEP2" },
+	{ &output,      1, "EEP3" },
 	{ 0 }
 };
 
-static const uint16 lut509[512] ={ /* Strange look-up table, used only by Legendary Games of NES 509-in-1 */
+/* Serial EEPROM */
+static const uint16 lut509[512] = { /* Look-up table, used only by Legendary Games of NES 509-in-1 */
    7,   8,   9,  10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,
   47,  48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,   0,   1,  73,  74,  75,  76,  77,  78,  79,  80,  81,  82,  83,  84,
   85,  86,  87,  88,  89,  90,   4,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123,
@@ -120,153 +67,469 @@ static const uint16 lut509[512] ={ /* Strange look-up table, used only by Legend
  483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504, 505, 506, 507, 508, 512, 513, 514, 515, 516, 517
 };
 
-void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
+static void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
 	if (select)
-		state =0;
+		state = 0;
 	else
 	if (!eep_clock && !!newClock) {
 		if (state <8) {
-			command =command <<1 | !!(newData)*1;
-			if (++state ==8 && (command &0xF0) !=0x50 && (command &0xF0) !=0xA0) state =0;
+			command = command <<1 | !!(newData)*1;
+			if (++state == 8 && (command &0xF0) != 0x50 && (command &0xF0) != 0xA0) state = 0;
 		} else {
-			int mask =1 <<(15 -state);
-			int address =command &0x0F;
-			if ((command &0xF0) ==0xA0) {
-				eeprom[address] =eeprom[address] &~mask | !!(newData)*mask;
-				/* The "write" command also silently returns the content of a strange lookup table */
-				output =!!(lut509[eeprom[0] | eeprom[1] | eeprom[2] <<8 &0x1FF] >>(address &1? 0: 8) &mask);
+			int mask = 1 <<(15 -state);
+			int address = command &0x0F;
+			if ((command &0xF0) == 0xA0) {
+				eeprom[address] = eeprom[address] &~mask | !!(newData)*mask;
+				/* The "write" command also silently returns the content of a lookup table */
+				output = !!(lut509[eeprom[0] | eeprom[1] | eeprom[2] <<8 &0x1FF] >>(address &1? 0: 8) &mask);
 			} else
-			if ((command &0xF0) ==0x50)
-				output =!!(eeprom[address] &mask);
-			
-			if (++state ==16) state =0;
+			if ((command &0xF0) == 0x50)
+				output = !!(eeprom[address] &mask);
+
+			if (++state == 16) state = 0;
 		}
 	}
-	eep_clock =newClock;
+	eep_clock = newClock;
 }
 
-static DECLFR(readReg);
-static DECLFW(writeReg);
-static void setMapper(uint8 clearRegs) {
-	int i;
-	if (clearRegs) {
-		for (i =0; i <16; i++) regByte[i] =0;
-		for (i =0; i < 8; i++) regWord[i] =0;
-		X6502_IRQEnd(FCEU_IQEXT);
+/* Mapper syncs */
+static void sync () {
+	if (mapperSync) mapperSync(reg[submapper == 1? 2: 3] <<9 &0x2000 | reg[1] <<5 &0x1FE0 | reg[0] <<4 &0x0010);
+}
+
+static void sync_AxROM (int prgOR) {
+	int prgAND = reg[0] &0x20? 0x0F: reg[0] &0x02? 0x03: 0x07;
+	setprg32(0x8000, Latch_data &prgAND | prgOR >>2 &~prgAND);
+	setchr8(0);
+	setmirror(Latch_data &0x10? MI_1: MI_0);
+}
+
+static void sync_BxROM (int prgOR) {
+	int prgAND = reg[0] &0x20? 0x0F: reg[0] &0x02? 0x03: 0x07;
+	setprg32(0x8000, Latch_data &prgAND | prgOR >>2 &~prgAND);
+	setchr8(0);
+	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+static void sync_FME7 (int prgOR) {
+	int prgAND = reg[0] &0x02? 0x0F: 0x1F;
+	FME7_syncWRAM(0);
+	FME7_syncPRG(prgAND, prgOR &~prgAND);
+	FME7_syncCHR(0xFF, 0x00);
+	FME7_syncMirror();
+}
+
+static void sync_FxROM (int prgOR) {
+	int prgAND = reg[0] &0x02? 0x07: 0x0F;
+	MMC24_syncWRAM(0);
+	MMC4_syncPRG(prgAND, prgOR >>1 &~prgAND);
+	MMC24_syncCHR(0xFF, 0x00);
+	MMC24_syncMirror();
+}
+
+static void sync_GNROM (int prgOR) {
+	int prgAND = reg[0] &0x08? 0x01: 0x03;
+	int value = Latch_data;
+	if (submapper == 1 && ~reg[0] &0x08 || submapper != 1 && prgOR &0x2000) value = Latch_data >>4 &0x0F | Latch_data <<4 &0xF0;
+	prgOR = prgOR >>2 | reg[0] >>1 &0x02;
+	setprg32(0x8000, value &prgAND | prgOR &~prgAND);
+	setchr8(value >>4);
+	setmirror(reg[0] &0x10? MI_H: MI_V);
+}
+
+static void sync_IF12 (int prgOR) {
+	int prgAND = reg[0] &0x02? 0x07: 0x0F;
+	setprg16(0x8000, Custom_reg[1] &prgAND | prgOR >>1 &~prgAND);
+	setprg16(0xC000,                         prgOR >>1 | prgAND);
+	setchr8(Custom_reg[0] >>1 &0x0F);
+	setmirror(Custom_reg[0] &0x01? MI_H: MI_V);
+}
+
+static DECLFW (IF12_writeReg) {
+	Custom_reg[A >>14 &1] = V;
+	sync();
+}
+
+static void sync_LF36 (int prgOR) {
+	prgOR |= reg[0] &0x08;
+	setprg8(0x8000,                0x04 | prgOR);
+	setprg8(0xA000,                0x05 | prgOR);
+	setprg8(0xC000, Custom_reg[0] &0x07 | prgOR);
+	setprg8(0xE000,                0x07 | prgOR);
+	setchr8(0);
+	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+static void FP_FASTAPASS(1) LF36_cpuCycle (int a) {
+	while (a--) {
+		if (Custom_reg[1] &1) {
+			if (!++Custom_reg[2]) ++Custom_reg[3];
+			if (Custom_reg[3] &0x10)
+				X6502_IRQBegin(FCEU_IQEXT);
+			else
+				X6502_IRQEnd(FCEU_IQEXT);
+		} else {
+			Custom_reg[2] = Custom_reg[3] = 0;
+			X6502_IRQEnd(FCEU_IQEXT);
+		}
 	}
+}
+
+static DECLFW(LF36_writeReg) {
+	switch(A >>13 &3) {
+		case 0: case 1:
+			Custom_reg[1] = A >>13 &1;
+			break;
+		case 3:
+			Custom_reg[0] = V;
+			sync();
+	}
+}
+
+static void sync_Misc (int prgOR) {
+	if (reg[0] &0x02) {
+		setprg16(0x8000, Custom_reg[2] <<1 &0x0E | reg[0] &0x01 | prgOR >>1 &~0x0F);
+		setprg16(0xC000, Custom_reg[2] <<1 &0x0E | reg[0] &0x01 | prgOR >>1 &~0x0F);
+		setchr8(Custom_reg[0] &0x03);
+	} else {
+		setprg32(0x8000, Custom_reg[2] &0x07 | prgOR >>2 &~0x07);
+		setchr8(Custom_reg[0] &0x0F);
+	}
+	if (reg[0] &0x08)
+		setmirror(reg[0] &0x04? MI_H: MI_V);
+	else
+		setmirror(Custom_reg[1] &0x10? MI_1: MI_0);
+}
+
+static DECLFW (Misc_writeReg) {
+	switch(A >>12 &7) {
+		case 0: case 2: case 3:
+			Custom_reg[0] = V;
+			sync();
+			break;
+		case 1:
+			Custom_reg[reg[0] &0x08? 0: 1] = V;
+			sync();
+			break;
+		case 6: case 7:
+			Custom_reg[2] = V;
+			sync();
+			break;
+	}
+}
+
+static void sync_Nanjing (int prgOR) {
+	setprg32(0x8000, Custom_reg[2] <<4 &0x30 | Custom_reg[0] &0x0F | (Custom_reg[3] &0x04? 0x00: 0x03) | prgOR >>2);
+	setchr8(0);
+	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+static void Nanjing_scanline (void) {
+	if (Custom_reg[0] &0x80 && scanline <239) {
+		setchr4(0x0000, scanline >= 127? 1: 0);
+		setchr4(0x1000, scanline >= 127? 1: 0);
+	} else
+		setchr8(0);
+}
+
+static DECLFW (Nanjing_writeReg) {
+	Custom_reg[A >>8 &3] = V;
+	sync();
+}
+
+static void sync_PNROM (int prgOR) {
+	MMC24_syncWRAM(0);
+	MMC2_syncPRG(0x0F, prgOR &~0x0F);
+	MMC24_syncCHR(0xFF, 0x00);
+	MMC24_syncMirror();
+}
+
+static void sync_SxROM (int prgOR) {
+	int prgAND = reg[0] &0x02? (reg[0] &0x08? 0x03: 0x07): 0x0F;
+	MMC1_syncWRAM(0);
+	MMC1_syncPRG(prgAND, (prgOR >>1 | reg[0] &0x06) &~prgAND);
+	MMC1_syncCHR(0x1F, 0x00);
+	MMC1_syncMirror();
+}
+
+static void sync_SUROM (int prgOR) {
+	MMC1_syncWRAM(0);
+	MMC1_syncPRG(0x1F, prgOR >>1 &~0x1F);
+	MMC1_syncCHR(0x0F, 0x00);
+	MMC1_syncMirror();
+}
+
+static int SUROM_getPRGBank (uint8 bank) {
+	return MMC1_getPRGBank(bank) | MMC1_getCHRBank(0) &0x10;
+}
+
+static void sync_TxROM (int prgOR) {
+	int prgAND = reg[0] &0x08? (reg[0] &0x04? (reg[0] &0x02? (reg[2] &0x02? 0x07: 0x0F): 0x1F): 0x3F): 0x7F;
+	prgOR |= reg[2] &0x01? 0x0C: 0x00;
+	MMC3_syncWRAM(0);
+	MMC3_syncPRG(prgAND, prgOR &~prgAND);
+	MMC3_syncCHR(reg[0] &0x10? 0xFF: 0x7F, 0x00);
+	MMC3_syncMirror();
+}
+
+static void sync_TxSROM (int prgOR) {
+	int prgAND = reg[0] &0x08? (reg[0] &0x04? (reg[0] &0x02? (reg[2] &0x02? 0x07: 0x0F): 0x1F): 0x3F): 0x7F;
+	prgOR |= reg[2] &0x01? 0x0C: 0x00;
+	MMC3_syncWRAM(0);
+	MMC3_syncPRG(prgAND, prgOR &~prgAND);
+	MMC3_syncCHR(0x7F, 0x00);
+	switch(MMC3_getMirroring() &3) { /* Only A000=02 is TxSROM. H/V mirroring is necessary for Ys 1, modified for MMC3. */
+		case 0:
+			setmirror(MI_V);
+			break;
+		case 1:
+			setmirror(MI_H);
+			break;
+		case 2:
+			setmirror(MMC3_getCHRBank(0) &0x80? MI_1: MI_0);
+			break;
+		case 3:
+			setmirror(MI_1);
+			break;
+	}
+}
+
+static void sync_UxROM (int prgOR) {
+	int prgAND = reg[0] &0x02? 0x07: submapper == 1 && ~reg[0] &0x04? 0x1F: 0x0F;
+	setprg16(0x8000, Latch_data &prgAND | prgOR >>1 &~prgAND);
+	setprg16(0xC000,                      prgOR >>1 | prgAND);
+	setchr8(0);
+	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+static void sync_UNROM512 (int prgOR) {
+	setprg16(0x8000, Latch_data &0x1F | prgOR >>1 &~0x1F);
+	setprg16(0xC000,                    prgOR >>1 | 0x1F);
+	setchr8(Latch_data >>5);
+	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+static void sync_VRC1 (int prgOR) {
+	int prgAND = reg[0] &0x08? (reg[0] &0x04? (reg[0] &0x02? 0x0F: 0x1F): 0x3F): 0x7F;
+	VRC1_syncPRG(prgAND, prgOR &~prgAND);
+	VRC1_syncCHR(0x1F, 0x00);
+	VRC1_syncMirror();
+}
+
+static void sync_VRC24 (int prgOR) {
+	int prgAND = reg[0] &0x02? 0x0F: 0x1F;
+	VRC24_syncWRAM(0);
+	VRC24_syncPRG(prgAND, prgOR &~prgAND);
+	VRC24_syncCHR(0xFF, 0x00);
+	VRC24_syncMirror();
+}
+
+static void sync_VRC3 (int prgOR) {
+	VRC3_syncWRAM(0);
+	VRC3_syncPRG(0x07, prgOR >>1 &~0x07);
+	VRC3_syncCHR(0x01, 0x00);
+	setmirror(reg[0] &0x04? MI_H: MI_V);
+}
+
+static void sync_VRC6 (int prgOR) {
+	int prgAND = reg[0] &0x02? 0x0F: 0x1F;
+	VRC6_syncWRAM(0);
+	VRC6_syncPRG(prgAND, prgOR &~prgAND);
+	VRC6_syncCHR(0xFF, 0x00);
+	VRC6_syncMirror();
+}
+
+static void sync_VRC7 (int prgOR) {
+	int prgAND = reg[0] &0x08? (reg[0] &0x04? (reg[0] &0x02? 0x0F: 0x1F): 0x3F): 0x7F;
+	VRC7_syncWRAM(0);
+	VRC7_syncPRG(prgAND, prgOR &~prgAND);
+	VRC7_syncCHR(reg[0] &0x10? 0xFF: 0x7F, 0x00);
+	VRC7_syncMirror();
+}
+
+/* Supervisor */
+static DECLFR (readReg) {
+	switch(A) {
+		case 0x5301: case 0x5601:
+			return output? 0x80: 0x00;
+		default:
+			return 0xFF;
+	}
+}
+
+static DECLFW (writeReg) {
+	switch(A) {
+		case 0x5301:
+			if (submapper == 0) setPins(!!(V &0x04), !!(V &0x02), !!(V &0x01));
+			break;
+		case 0x5601:
+			if (submapper == 1) setPins(!!(V &0x10), !!(V &0x02), !!(V &0x01));
+			if (~reg[3] &0x80) {
+				reg[3] = V;
+				sync();
+			}
+			break;
+		case 0x5700:
+			reg[A &3] = V;
+			applyMode(1);
+			break;
+		case 0x5701: case 0x5702:
+			reg[A &3] = V;
+			sync();
+			break;
+	}
+}
+
+static void applyMode (uint8 clear) {
+	uint8 previousMirroring;
+	MapIRQHook = NULL;
+	PPU_hook = NULL;
+	GameHBIRQHook = NULL;
 	SetReadHandler(0x5000, 0x5FFF, readReg);
 	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x5000, 0x5FFF, writeReg);
 	SetWriteHandler(0x6000, 0xFFFF, CartBW);
-	MapIRQHook = NULL;
-	PPU_hook = NULL;
-	GameHBIRQHook = NULL;
-	setprg8r(0x10, 0x6000, 0);
-
-	switch(mapper) { /* 5700 MSB >>4 OR'd with submapper <<4 */
-	case 0x00: case 0x01: case 0x32:            MMC1_reset(clearRegs); break;
-	case 0x0A:                                  MMC2_reset(clearRegs); break;
-	case 0x10: case 0x11: case 0x12:            MMC3_reset(clearRegs); break;
-	case 0x08:                                  MMC4_reset(clearRegs); break;
-	case 0x40:                                  VRC1_reset(clearRegs); break;
-	case 0x20: case 0x21: case 0x22: case 0x23: VRC24_reset(clearRegs); break;
-	case 0x44:                                  VRC3_reset(clearRegs); break;
-	case 0x30: case 0x31:                       VRC6_reset(clearRegs); break;
-	case 0x41:                                  VRC7_reset(clearRegs); break;
-	case 0x07:                                  LF36_reset(clearRegs); break;
-	case 0x50:                                  FME7_reset(clearRegs); break;
-	case 0x0E: case 0x1E:                       NANJING_reset(clearRegs); break;
-	case 0x09: case 0x0B: case 0x17: case 0x37: UNROM_IF12_reset(clearRegs); break;
-	case 0x04: case 0x06: case 0x14: case 0x16: ANROM_BNROM_reset(clearRegs); break;
-	case 0x05: case 0x15:                       CNROM_BF9097_reset(clearRegs); break;
-	case 0x0C: case 0x0D: case 0x1C: case 0x1D: GNROM_reset(clearRegs); break;
-	default:                                    break;
-	}
-	sync();
-}
-
-static DECLFR(readReg) {
-	switch(A) {
-	case 0x5301: case 0x5601:
-		return output? 0x80: 0x00;
-	default:
-		return 0xFF;
-	}
-}
-
-static DECLFW(writeReg) {
-	switch(A) {
-	case 0x5301:
-		if (submapper ==0) setPins(!!(V &0x04), !!(V &0x02), !!(V &0x01));
-		break;
-	case 0x5601:
-		if (~misc &0x80) {
-			misc =V;
-			if (submapper !=1) {
-				prgOR =prgOR &~0x2000 | V <<9 &0x2000;
+	switch(submapper <<8 | reg[0] >>4) {
+		case 0x000: case 0x302:
+			mapperSync = sync_SxROM;
+			MMC1_activate(clear, sync, MMC1_TYPE_MMC1B, NULL, NULL, NULL, NULL);
+			break;
+		case 0x001:
+			mapperSync = sync_SUROM;
+			MMC1_activate(clear, sync, MMC1_TYPE_MMC1B, SUROM_getPRGBank, NULL, NULL, NULL);
+			break;
+		case 0x004: case 0x006: case 0x104: case 0x106:
+			mapperSync = reg[0] &0x08? sync_BxROM: sync_AxROM;
+			Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
+			break;
+		case 0x005: case 0x105:
+			mapperSync = sync_Misc; /* NROM, CNROM, Fire Hawk */
+			SetWriteHandler(0x8000, 0xFFFF, Misc_writeReg);
+			if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
+			sync();
+			break;
+		case 0x007:
+			mapperSync = sync_LF36; /* SMB2J */
+			MapIRQHook = LF36_cpuCycle;
+			SetWriteHandler(0x8000, 0xFFFF, LF36_writeReg);
+			if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
+			sync();
+			break;
+		case 0x008:
+			mapperSync = sync_FxROM;
+			MMC24_activate(clear, sync);
+			break;
+		case 0x009: case 0x107: case 0x307:
+			if (reg[0] &0x08) {
+				mapperSync = sync_UxROM;
+				Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
+			} else {
+				mapperSync = sync_IF12; /* Not Irem's actual IF-12 mapper, but something custom by BlazePro */
+				SetWriteHandler(0x8000, 0xFFFF, IF12_writeReg);
+				if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
 				sync();
 			}
-		}
-		if (submapper ==1) setPins(!!(V &0x10), !!(V &0x02), !!(V &0x01));
-		break;
-	case 0x5700:
-		mapper =V >>4 | submapper <<4;
-		mapperFlags =V &0xF;
-		prgOR =prgOR &~0x0010 | V <<4 &0x0010;
-		setMapper(1);
-		break;
-	case 0x5701:
-		prgOR =prgOR &~0x1FE0 | V <<5 &0x1FE0;
-		sync();
-		break;
-	case 0x5702:
-		if (submapper ==1) {
-			misc2 =V;
-			prgOR =prgOR &~0x2000 | V <<9 &0x2000;
-			setMapper(0); /* The misc2 value is required for prgAND by MMC3 and UNROM */
-		}
-		break;
+			break;
+		case 0x00A:
+			mapperSync = sync_PNROM;
+			MMC24_activate(clear, sync);
+			break;
+		case 0x00B:
+			mapperSync = sync_UNROM512;
+			Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
+			break;
+		case 0x00C: case 0x00D: case 0x10C: case 0x10D:
+			mapperSync = sync_GNROM;
+			Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
+			break;
+		case 0x00E: case 0x10E:
+			mapperSync = sync_Nanjing;
+			GameHBIRQHook = Nanjing_scanline;
+			SetWriteHandler(0x5000, 0x53FF, Nanjing_writeReg);
+			if (clear) Custom_reg[0] = Custom_reg[1] = Custom_reg[2] = Custom_reg[3] = 0;
+			sync();
+			break;
+		case 0x100: case 0x101:
+			mapperSync = sync_TxROM;
+			previousMirroring = MMC3_getMirroring();
+			MMC3_activate(clear, sync, MMC3_TYPE_SHARP, NULL, NULL, NULL, NULL);
+			MMC3_writeReg(0xA000, previousMirroring);
+			break;
+		case 0x102:
+			mapperSync = sync_TxSROM;
+			MMC3_activate(clear, sync, MMC3_TYPE_SHARP, NULL, NULL, NULL, NULL);
+			break;
+		case 0x200:
+			mapperSync = sync_VRC24;
+			VRC2_activate(clear, sync, 0x05, 0x0A, NULL, NULL, NULL, NULL);
+			break;
+		case 0x201:
+			mapperSync = sync_VRC24;
+			VRC4_activate(clear, sync, 0x05, 0x0A, 1, NULL, NULL, NULL, NULL, NULL);
+			break;
+		case 0x202:
+			mapperSync = sync_VRC24;
+			VRC2_activate(clear, sync, 0x0A, 0x05, NULL, NULL, NULL, NULL);
+			break;
+		case 0x203:
+			mapperSync = sync_VRC24;
+			VRC4_activate(clear, sync, 0x0A, 0x05, 1, NULL, NULL, NULL, NULL, NULL);
+			break;
+		case 0x300: case 0x301:
+			mapperSync = sync_VRC6;
+			VRC6_activate(clear, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
+			break;
+		case 0x400:
+			mapperSync = sync_VRC1;
+			VRC1_activate(clear, sync);
+			break;
+		case 0x401:
+			mapperSync = sync_VRC7;
+			VRC7_activate(clear, sync, 0x18);
+			break;
+		case 0x404:
+			mapperSync = sync_VRC3;
+			VRC3_activate(clear, sync);
+			break;
+		case 0x500:
+			mapperSync = sync_FME7;
+			FME7_activate(clear, sync);
+			break;
+		default:
+			break;
 	}
 }
 
-static void reset(void) {
-	mapper =submapper <<4;
-	mapperFlags =0x0F;
-	misc =0;
-	misc2 =0;
-	prgOR =0x7FF0;
-	eep_clock =command =output =1;
-	command =state =0;
-	setMapper(1);
+static void power () {
+	reg[0] = 0x0F;
+	reg[1] = 0xFF;
+	reg[2] = submapper == 1? 0x10: 0x00;
+	reg[3] = 0x00;
+	eep_clock = command = output = 1;
+	command = state = 0;
+	applyMode(1);
 }
 
-static void power(void) {
-	int i;
-	for (i =0; i <16; i++) eeprom[i] =0;
-	reset();
+
+static void stateRestore (int version) {
+	applyMode(0);
 }
 
-static void close(void) {
-	if (WRAM)
-		FCEU_gfree(WRAM);
-	WRAM = NULL;
-}
-
-static void stateRestore(int version) {
-	setMapper(0);
-}
-
-void Mapper468_Init(CartInfo *info) {
-	submapper =info->submapper;
-	info->Reset =reset;
-	info->Power =power;
-	info->Close =close;
-	GameStateRestore =stateRestore;
-
-	WRAMSIZE =8192;
-	WRAM =(uint8*) FCEU_gmalloc(WRAMSIZE);
-	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
+void Mapper468_Init (CartInfo *info) {
+	submapper = info->submapper;
+	FME7_addExState();
+	Latch_addExState();
+	MMC1_addExState();
+	MMC24_addExState();
+	MMC3_addExState();
+	VRC1_addExState();
+	VRC24_addExState();
+	VRC3_addExState();
+	VRC6_addExState();
+	VRC7_addExState();
+	WRAM_init(info, 8);
+	info->Reset = power;
+	info->Power = power;
+	GameStateRestore = stateRestore;
 	AddExState(stateRegs, ~0, 0, 0);
-	prevSFEXINDEX =SFEXINDEX;
 }

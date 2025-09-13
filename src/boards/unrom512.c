@@ -43,6 +43,7 @@
 static uint8 fceumm_flash_buf[flashdata_size + flash_write_count_size];
 static uint32 fceumm_flash_buf_size = sizeof(fceumm_flash_buf);
 
+static uint8 submapper;
 static uint8 latche, latcheinit, bus_conflict, chrram_mask, software_id=0;
 static uint16 latcha;
 static uint8 *flashdata = fceumm_flash_buf + flash_write_count_size;
@@ -135,11 +136,11 @@ static void UNROM512LatchPower(void) {
 	latche = latcheinit;
 	WHSync();
 	SetReadHandler(0x8000, 0xFFFF, UNROM512LatchRead);
-	if (!flash_save)
+	if (submapper == 0 && !flash_save || submapper == 2)
 		SetWriteHandler(0x8000, 0xFFFF, UNROM512HLatchWrite);
 	else
 	{
-		SetWriteHandler(0x8000, 0xBFFF, UNROM512LLatchWrite);
+		if (submapper != 4) SetWriteHandler(0x8000, 0xBFFF, UNROM512LLatchWrite);
 		SetWriteHandler(0xC000, 0xFFFF, UNROM512HLatchWrite);
 	}
 }
@@ -205,12 +206,15 @@ static void UNROM512HSync(void) {
 	setfprg16(0x8000, flash_bank);
 	setfprg16(0xC000, ~0);
 	setchr8r(0, (latche & chrram_mask) >> 5);
-	setmirror(MI_0 + (latche >> 7));
+	if (submapper == 3)
+		setmirror(latche &0x80? MI_V: MI_H);
+	else
+		setmirror(MI_0 + (latche >> 7));
 }
 
 void UNROM512_Init(CartInfo *info) {
 	int mirror;
-
+	submapper = info->submapper;
 	memset(fceumm_flash_buf, 0x00, fceumm_flash_buf_size);
 	flash_state = 0;
 	flash_bank = 0;
@@ -224,6 +228,9 @@ void UNROM512_Init(CartInfo *info) {
 		chrram_mask = 0x60;
 
 	mirror = (head.ROM_type & 1) | ((head.ROM_type & 8) >> 2);
+	if (submapper == 3) /* Mega Man II (30th Anniversary Edition): switchable H/V */
+		SetupCartMirroring(MI_V, 0, NULL);
+	else
 	switch (mirror) {
 	case 0: /* hard horizontal, internal */
 		SetupCartMirroring(MI_H, 1, NULL);
@@ -238,7 +245,7 @@ void UNROM512_Init(CartInfo *info) {
 		SetupCartMirroring(4, 1, VROM + (info->CHRRamSize - 8192));
 		break;
 	}
-	bus_conflict = !info->battery;
+	bus_conflict = submapper == 0 && !info->battery || submapper == 2;
 	latcheinit = 0;
 	WLSync = UNROM512LSync;
 	WHSync = UNROM512HSync;
