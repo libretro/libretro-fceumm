@@ -91,5 +91,6 @@ void Mapper518_Init (CartInfo *info) {
 	info->Reset = reset;
 	GameStateRestore = restore;
 	PPU_hook = trapPPUAddressChange;
+	AddExState(reg, 2, 0, "REGS");
 	AddExState(&chr, 1, 0, "CHRB");
 }
