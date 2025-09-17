@@ -51,6 +51,10 @@ static void wrapPRG(uint32 A, uint8 V) {
 	int prgOR  =(EXPREGS[0] <<4 &0x70 | (EXPREGS[0] ^0x20) <<3 &0x180) &~prgAND; /* Outer PRG bank */
 	if (submapper ==1) prgOR =prgOR &0x7F | prgOR >>1 &0x80;    /* Submapper 1 uses PRG A21 as a chip select between two 1 MiB chips */
 	if (submapper ==2) prgOR =prgOR &0x7F | EXPREGS[1] <<5 &0x80;   /* Submapper 2 uses 6001.2 (not documented in datasheet) as a chip select between two 1 MiB chips */
+	if (submapper ==3 && EXPREGS[0] &0x04) { /* Submapper 3 replace PRG A14 with PRG A21 */
+		prgAND &=~0x02;
+		prgOR |= EXPREGS[0] &0x20? 0x00: 0x02;
+	}
 	for (A =0; A <4; A++) {
 		/* In UNROM-like mode (CT3=1, CT2=1, CT0=1), MMC3 sees A13=0 and A14=CPU A14 during reads, making register 6 apply from $8000-$BFFF, and the fixed bank from $C000-$FFFF.
 		   In NROM-128, NROM-256, ANROM and UNROM modes (CT0=1), MMC3 sees A13=0 and A14=0, making register 6 apply from $8000-$FFFF. */
@@ -80,6 +84,10 @@ static void wrapCHR(uint32 A, uint8 V) {
 	else
 		chrOR =((EXPREGS[0] ^0x20) <<4 &0x380 | EXPREGS[0] <<8 &0x400) &~chrAND;
 	
+	if (submapper ==3 && EXPREGS[0] &0x04) { /* Submapper 3 replace CHR A14 with PRG A21 */
+		chrAND &=~0x10;
+		chrOR |= EXPREGS[0] &0x20? 0x00: 0x10;
+	}
 	if (EXPREGS[3] &0x10) /* CNROM mode: 8 KiB inner CHR bank comes from outer bank register #2 */
 		setchr8(EXPREGS[2] &(chrAND >>3) | (chrOR &~chrAND) >>3);
 	else /* MMC3 CHR mode */
