@@ -595,7 +595,7 @@ static BMAPPING bmap[] = {
 	{ "K-3046",                     336, BMCK3046_Init,         0 },
 	{ "SA005-A",                    338, BMCSA005A_Init,        0 },
 	{ "K-3006",                     339, BMCK3006_Init,         0 },
-	{ "K-3036",                     340, BMCK3036_Init,         0 },
+	{ "K-3036",                     340, Mapper340_Init,        0 },
 	{ "KS7021A",                    525, UNLKS7021A_Init,       0 },
 	{ "KS106C",                 NO_INES, BMCKS106C_Init,        0 }, /* split roms */
 	{ "900218",                     524, BTL900218_Init,        0 },

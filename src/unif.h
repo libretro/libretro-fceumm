@@ -164,7 +164,7 @@ void BMCCTC09_Init(CartInfo *info);			/* m335 */
 void BMCK3046_Init(CartInfo *info);			/* m336 */
 void BMCSA005A_Init(CartInfo *info);		/* m338 */
 void BMCK3006_Init(CartInfo *info);			/* m339 */
-void BMCK3036_Init(CartInfo *info);			/* m340 */
+void Mapper340_Init(CartInfo *info);			/* m340 */
 void MINDKIDS_Init(CartInfo *info);			/* m268 */
 void UNLKS7021A_Init(CartInfo *info);		/* m525 */
 void BTL900218_Init(CartInfo *info);		/* m524 */
