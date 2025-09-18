@@ -1070,7 +1070,7 @@ void FCEUSND_Power(void) {
 	for (x = 0; x < 5; x++)
 		ChannelBC[x] = 0;
 	soundtsoffs = 0;
-	IRQFrameMode = 0x0; /* Only initialized by power-on reset, not by soft reset */
+	IRQFrameMode = 0x1; /* Only initialized by power-on reset, not by soft reset. NRS: don't start with Frame IRQ enabled for greater compatibility. Any game that actually uses frame IRQ will explicitly enable it, anyway. */
 	LoadDMCPeriod(DMCFormat & 0xF);
 }
 
