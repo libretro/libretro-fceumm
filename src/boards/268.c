@@ -66,6 +66,14 @@ static void Mapper268_PRGWrap(uint32 A, uint8 V) {
 		prgOffset &=ROM_size -1;
 		if (EXPREGS[0] &0x80? !!(EXPREGS[0] &0x08): !!(DRegBuf[0] &0x80)) prgOffset |=ROM_size;
 		break;
+	case 8: /* 2 MiB regular plus extra latch, CHR-RAM protection */
+		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x02? 0x03: 0x01): 0x00;
+		prgOffset    =EXPREGS[3]     &0x00E 
+			     |EXPREGS[0] <<4 &0x070
+			     |EXPREGS[1] <<3 &0x080
+			     |EXPREGS[6] <<8 &0x300
+			     |EXPREGS[6] <<6 &0xC00;
+		break;
 	}
 	prgOffset &=~(prgMaskMMC3 | prgMaskGNROM);
 	setprg8(A, V &prgMaskMMC3 | prgOffset | A >>13 &prgMaskGNROM);
@@ -79,7 +87,7 @@ static void Mapper268_CHRWrap(uint32 A, uint8 V) {
 	
 	chrMaskMMC3  =EXPREGS[3] &0x10? 0x00: EXPREGS[0] &0x80? 0x7F: 0xFF;
 	chrMaskGNROM =EXPREGS[3] &0x10? 0x07: 0x00;
-	chrOffset    =EXPREGS[0] <<4 &0x380 | EXPREGS[2] <<3 &0x078;
+	chrOffset    =EXPREGS[0] <<9 &0xC00 | EXPREGS[0] <<4 &0x380 | EXPREGS[2] <<3 &0x078;
 	chrOffset   &=~(chrMaskMMC3 | chrMaskGNROM);
 	
 	setchr1r(CHRRAM && EXPREGS[4] &0x01 && (V &0xFE) ==(EXPREGS[4] &0xFE)? 0x10: 0x00, A, V &chrMaskMMC3 | chrOffset | A >>10 &chrMaskGNROM);
@@ -108,21 +116,31 @@ static DECLFW(Mapper268_WriteReg) {
 		if (index ==2) {
 			if (EXPREGS[2] &0x80) V =V &0x0F | EXPREGS[2] &~0x0F;
 			V &=~EXPREGS[2] >>3 &0xE |0xF1;
-		}		
-		EXPREGS[index] =V;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-		Mapper268_MirrorWrap(A000B);
+		}
+		
+		if ((submapper &~1) == 8 && index == 1 && V &0x04 && V &0x08) { /* Latch clocking another latch */
+			EXPREGS[6] = V;
+			FixMMC3PRG(MMC3_cmd);
+			FixMMC3CHR(MMC3_cmd);
+			Mapper268_MirrorWrap(A000B);
+		}
+		
+		if (index <= 5) {
+			EXPREGS[index] =V;
+			FixMMC3PRG(MMC3_cmd);
+			FixMMC3CHR(MMC3_cmd);
+			Mapper268_MirrorWrap(A000B);
+		}
 	}
 }
 
 static void Mapper268_Reset(void) {
-	EXPREGS[0] =EXPREGS[1] =EXPREGS[2] =EXPREGS[3] =EXPREGS[4] =EXPREGS[5] =0;
+	EXPREGS[0] =EXPREGS[1] =EXPREGS[2] =EXPREGS[3] =EXPREGS[4] =EXPREGS[5] =EXPREGS[6] =0;
 	MMC3RegReset();
 }
 
 static void Mapper268_Power(void) {	
-	EXPREGS[0] =EXPREGS[1] =EXPREGS[2] =EXPREGS[3] =EXPREGS[4] =EXPREGS[5] =0;
+	EXPREGS[0] =EXPREGS[1] =EXPREGS[2] =EXPREGS[3] =EXPREGS[4] =EXPREGS[5] =EXPREGS[6] =0;
 	GenMMC3Power();
 	SetReadHandler(0x6000, 0x7FFF, Mapper268_ReadWRAM);
 	if (submapper &1) {
