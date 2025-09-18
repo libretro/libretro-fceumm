@@ -43,7 +43,8 @@ static void BMCK3006PW(uint32 A, uint8 V) {
 		if (submapper ==0 && (EXPREGS[0] & 0x06) == 0x06 ||
 		    submapper ==1 && EXPREGS[0] &4 ||
 		    submapper ==2 && (EXPREGS[0] &1 || EXPREGS[1] &1) ||
-		    submapper ==3 && EXPREGS[0] &0x18) { /* NROM-256 */
+		    submapper ==3 && EXPREGS[0] &0x18 ||
+		    submapper ==4 && EXPREGS[0] &0x14) { /* NROM-256 */
 			setprg32(0x8000, (EXPREGS[0] >> 1) & 0x0F);
 		} else { /* NROM-128 */
 			setprg16(0x8000, EXPREGS[0] & 0x1F);
