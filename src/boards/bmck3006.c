@@ -29,7 +29,7 @@
 static uint8 submapper; /* 0: K-3006, 1: unmarked, 2: TL 8058, 3: K-3091/GN-16 */
 
 static DECLFR (readPad) {
-	return CartBR(A &~3 | EXPREGS[2] &3);
+	return CartBR(A &~3 | EXPREGS[1] &3);
 }
 
 static void BMCK3006CW(uint32 A, uint8 V) {
@@ -41,8 +41,8 @@ static void BMCK3006PW(uint32 A, uint8 V) {
 		setprg8(A, (V & 0x0F) | (EXPREGS[0] & 0x18) << 1);
 	} else {
 		if (submapper ==0 && (EXPREGS[0] & 0x06) == 0x06 ||
-		    submapper ==1 && EXPREGS[0] &4 ||
-		    submapper ==2 && (EXPREGS[0] &1 || EXPREGS[1] &1) ||
+		    submapper ==1 && EXPREGS[0] &0x04 ||
+		    submapper ==2 && EXPREGS[0] &0x11 ||
 		    submapper ==3 && EXPREGS[0] &0x18 ||
 		    submapper ==4 && EXPREGS[0] &0x14) { /* NROM-256 */
 			setprg32(0x8000, (EXPREGS[0] >> 1) & 0x0F);
@@ -55,20 +55,19 @@ static void BMCK3006PW(uint32 A, uint8 V) {
 
 static DECLFW(BMCK3006Write) {
 	EXPREGS[0] = A &0xFF;
-	EXPREGS[1] = A >>8 &0xFF;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 	if (submapper == 2 || submapper == 3) SetReadHandler(0x8000, 0xFFFF, EXPREGS[0] &0x80? readPad: CartBR);
 }
 
 static void BMCK3006Reset(void) {
-	EXPREGS[0] = EXPREGS[1] = 0;
-	EXPREGS[2]++;
+	EXPREGS[0] = 0;
+	EXPREGS[1]++;
 	MMC3RegReset();
 }
 
 static void BMCK3006Power(void) {
-	EXPREGS[0] = EXPREGS[1] = EXPREGS[2] = 0;
+	EXPREGS[0] = EXPREGS[1] = 0;
 	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x7FFF, BMCK3006Write);
 }
@@ -80,5 +79,5 @@ void BMCK3006_Init(CartInfo *info) {
 	cwrap = BMCK3006CW;
 	info->Power = BMCK3006Power;
 	info->Reset = BMCK3006Reset;
-	AddExState(EXPREGS, 3, 0, "EXPR");
+	AddExState(EXPREGS, 2, 0, "EXPR");
 }
