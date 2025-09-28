@@ -42,6 +42,7 @@ static void Sync(void) {
 	setprg16(0x8000, (outer_bank << 3) | (inner_bank & bank_size));
 	setprg16(0xC000, (outer_bank << 3) | bank_size);
 	setchr8(0);
+	setmirror(outer_bank &0x08? MI_H: MI_V);
 }
 
 static DECLFW(M320Write) {
