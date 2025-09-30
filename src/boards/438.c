@@ -1,8 +1,7 @@
 /* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2012 CaH4e3
- *  Copyright (C) 2002 Xodnizel
+ *  Copyright (C) 2025 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,50 +17,63 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
- 
-/* K-3071 */
- 
+
 #include "mapinc.h"
+#include "asic_latch.h"
+#include "cartram.h"
 
-static uint8 latch[2];
+static uint8 unrom;
 
-static void Mapper438_Sync(void) {
-	if (latch[0] &1)
-		setprg32(0x8000, latch[0] >>2);
+static void sync0 () {
+	if (Latch_address &0x01)
+		setprg32(0x8000, Latch_address >>2);
 	else {
-		setprg16(0x8000, latch[0] >>1);
-		setprg16(0xC000, latch[0] >>1);
+		setprg16(0x8000, Latch_address >>1);
+		setprg16(0xC000, Latch_address >>1);
 	}
-	setchr8(latch[1] >>1);
-	setmirror(latch[1] &1 ^1);
-	
+	setchr8(Latch_data >>1);
+	setmirror(Latch_data &0x01? MI_H: MI_V);
 }
 
-static DECLFW(Mapper438_WriteLatch) {
-	latch[0] =A &0xFF;
-	latch[1] =V;
-	Mapper438_Sync();
+static void sync1 () {
+	int mask = ROM_size -9;
+	if (unrom) {
+		mask++;
+		setprg16(0x8000, Latch_data &7 | mask);
+		setprg16(0xC000,             7 | mask);
+		setchr8r(0x10, 0);
+		setmirror(MI_V);
+	} else {
+		if (Latch_address &0x01)
+			setprg32(0x8000, Latch_address >>2 &(mask >>1));
+		else {
+			setprg16(0x8000, Latch_address >>1 &mask);
+			setprg16(0xC000, Latch_address >>1 &mask);
+		}
+		setchr8(Latch_data >>1);
+		setmirror(Latch_data &0x01? MI_H: MI_V);
+	}
 }
 
-static void Mapper438_Reset(void) {
-	latch[0] =latch[1] =0;
-	Mapper438_Sync();
+static void power () {
+	unrom = 0;
+	Latch_power();
 }
 
-static void Mapper438_Power(void) {
-	latch[0] =latch[1] =0;
-	Mapper438_Sync();
-	SetReadHandler(0x8000, 0xFFFF, CartBR);
-	SetWriteHandler(0x8000, 0xFFFF, Mapper438_WriteLatch);
+static void reset () {
+	unrom = !unrom;
+	Latch_clear();
 }
 
-static void StateRestore(int version) {
-	Mapper438_Sync();
-}
-
-void Mapper438_Init(CartInfo *info) {
-	info->Reset = Mapper438_Reset;
-	info->Power = Mapper438_Power;
-	GameStateRestore = StateRestore;
-	AddExState(&latch, 2, 0, "LATC");
+void Mapper438_Init (CartInfo *info) {
+	if (info->submapper == 1) {
+		Latch_init(info, sync1, 0x8000, 0xFFFF, NULL);
+		CHRRAM_init(info, 8);
+		info->Power = power;
+		info->Reset = reset;
+		AddExState(&unrom, 1, 0, "UNRO");
+	} else {
+		Latch_init(info, sync0, 0x8000, 0xFFFF, NULL);
+		info->Reset = Latch_clear;
+	}
 }
