@@ -177,7 +177,6 @@ void Mapper166_Init(CartInfo *);
 void Mapper167_Init(CartInfo *);
 void Mapper168_Init(CartInfo *);
 void Mapper170_Init(CartInfo *);
-void Mapper171_Init(CartInfo *);
 void Mapper172_Init(CartInfo *);
 void Mapper173_Init(CartInfo *);
 void Mapper174_Init(CartInfo *);
