@@ -29,6 +29,8 @@
    Submapper 0: Normal connection
    Submapper 1: PRG A21 (2 MiB bank) selects between two 1 MiB chips
    Submapper 2: Register bit 6001.2 (undocumented in data sheet) selects between two 1 MiB chips
+   Submapper 3: 6000.2 substitutes PRG A14 and CHR A14 with 6000.5
+   Submapper 4: LD822 PCB - CHR A20..A18 = PRG A20..A18
    
    Both ASICs invert the register bit that selects PRG A21 (6000.5), hence "EXPREGS[0] ^0x20".
 */
@@ -81,6 +83,9 @@ static void wrapCHR(uint32 A, uint8 V) {
 	int chrOR; /* outer CHR bank */
 	if (reverseCHR_A18_A19) /* Mapper 126 swaps CHR A18 and A19 */
 		chrOR =(EXPREGS[0] <<4 &0x080 | (EXPREGS[0] ^0x20) <<3 &0x100 | EXPREGS[0] <<5 &0x200) &~chrAND;
+	else
+	if (submapper == 4) /* LD822 PCB - CHR A20..A18 = PRG A20..A18 */
+		chrOR =(EXPREGS[0] <<4 &0x080 | EXPREGS[0] <<7 &0x100 | ~EXPREGS[0] <<4 &0x200 | EXPREGS[0] <<6 &0x400) &~chrAND;
 	else
 		chrOR =((EXPREGS[0] ^0x20) <<4 &0x380 | EXPREGS[0] <<8 &0x400) &~chrAND;
 	
