@@ -34,12 +34,13 @@ static void Mapper268_PRGWrap(uint32 A, uint8 V) {
 	;
 	switch(submapper &~1) {
 	default:	/* Original implementation */
-		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x02? 0x03: 0x01): 0x00;
-		prgOffset    =EXPREGS[3]     &0x00E
-		             |EXPREGS[0] <<4 &0x070
-			     |EXPREGS[1] <<3 &0x080
-			     |EXPREGS[1] <<6 &0x300
-			     |EXPREGS[0] <<6 &0xC00;
+		prgMaskGNROM = EXPREGS[3] &0x10? (EXPREGS[1] &0x02? 0x03: 0x01): 0x00;
+		prgOffset    = EXPREGS[3]      &0x000E
+		             | EXPREGS[0] <<4  &0x0070
+			     | EXPREGS[1] <<3  &0x0080
+			     | EXPREGS[1] <<6  &0x0300
+			     | EXPREGS[0] <<6  &0x0C00
+			     |~EXPREGS[1] <<12 &0x1000;
 		break;
 	case 2:		/* Later revision with different arrangement of register 1 */
 		prgMaskGNROM =EXPREGS[3] &0x10? (EXPREGS[1] &0x10? 0x01: 0x03): 0x00;
