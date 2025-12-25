@@ -113,7 +113,7 @@ DECLFR (VRC24_readWRAM) {
 			return VRC24_cbReadWRAM(A);
 		else
 		if (WRAMSize)
-			CartBR(((A -0x6000) &(WRAMSize -1)) +0x6000);
+			return CartBR(((A -0x6000) &(WRAMSize -1)) +0x6000);
 		else
 			return A >>8;
 	} else
