@@ -31,6 +31,10 @@ static DECLFR (readPad) {
 	return pad;
 }
 
+static DECLFR (readOB) {
+	return X.DB;
+}
+
 static void sync () {
 	int prgAND = reg[1] &0x02? 0x0F: 0x1F;
 	int chrAND = reg[1] &0x20 && submapper == 3? 0x1FF: reg[1] &0x04? 0x7F: 0xFF;
@@ -39,7 +43,10 @@ static void sync () {
 	MMC3_syncPRG(prgAND, prgOR &~prgAND);
 	MMC3_syncCHR(chrAND, chrOR &~chrAND);
 	MMC3_syncMirror();
-	SetReadHandler(0x8000, 0xFFFF, submapper == 1 && reg[1] &0x20 || submapper != 1 && reg[0] &0x01? readPad: CartBR);
+	if (submapper == 4) {
+		SetReadHandler(0x8000, 0xFFFF, reg[0] &0x01 && pad &1? readOB: CartBR);
+	} else
+		SetReadHandler(0x8000, 0xFFFF, submapper == 1 && reg[1] &0x20 || submapper != 1 && reg[0] &0x01? readPad: CartBR);
 }
 
 static int getPRGBank (uint8 bank) {
