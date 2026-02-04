@@ -21,23 +21,31 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
+/* Submapper 0 - K-3008, K-3032, K-3036 PCBs: H mirroring via A2 in NROM mode, and via A6 in UNROM mdoe.
+   Submapper 1 - K-3055 PCB:                  H mirroring via A2 in NROM mode, and via A3=0,A4=1 in UNROM mode (used by Thundercade).
+*/
+
+static uint8 submapper;
 static void sync () {
 	int prg = Latch_address >>2 &0x20 | Latch_address &0x1F;
-	if (Latch_address &0x20) {
+	if (Latch_address &0x20) { /* NROM mode */
 		if (Latch_address &0x01) {
 			setprg16(0x8000, prg);
 			setprg16(0xC000, prg);		
 		} else
 			setprg32(0x8000, prg >>1);
-	} else {
+		setmirror(Latch_address &0x04? MI_H: MI_V);
+	} else { /* UNROM mode */
 		setprg16(0x8000, prg);
 		setprg16(0xC000, prg | 7);
+		setmirror(Latch_address &0x40 && submapper != 1 || ~Latch_address &0x08 && Latch_address &0x10 && submapper == 1? MI_H: MI_V);
 	}
+	SetupCartCHRMapping(0, CHRptr[0], 0x2000, Latch_address &0x20? 0: 1);
 	setchr8(0);
-	setmirror(Latch_address &0x040 || (Latch_address &0x025) == 0x025 || (Latch_address &0x118) == 0x010? MI_H: MI_V);
 }
 
 void Mapper340_Init (CartInfo *info) {
+	submapper = info->submapper;
 	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
 	info->Reset = Latch_clear;
 }
