@@ -410,7 +410,7 @@ static void M227Sync(void) {
 
 	setmirror(((latche >> 1) & 1) ^ 1);
 	setchr8(0);
-	setprg8r(0x10, 0x6000, 0);
+	if (PRGsize[0x10]) setprg8r(0x10, 0x6000, 0);
 }
 
 static DECLFR(M227Read) {
@@ -514,16 +514,15 @@ static void M242Sync(void) {
 			}
 		}
 	}
-
-	if (!hasBattery && (latche & 0x80) == 0x80 && (ROM_size * 16) > 256)
-		/* CHR-RAM write protect hack, needed for some multicarts */
+	
+	if (latche &0x80 && submapper >0) /* CHR-RAM write protection not used on single-game cartridges (submapper 0) */
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	else
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
 
 	setmirror(((latche >> 1) & 1) ^ 1);
 	setchr8(0);
-	setprg8r(0x10, 0x6000, 0);
+	if (PRGsize[0x10]) setprg8r(0x10, 0x6000, 0);
 }
 
 static DECLFR(M242Read) {
@@ -542,6 +541,7 @@ static void Mapper242_Reset(void) {
 
 void Mapper242_Init(CartInfo *info) {
 	dipswitch = 0;
+	submapper = info->submapper;
 	M242TwoChips = info->PRGRomSize &0x20000 && info->PRGRomSize >0x20000;
 	Latch_Init(info, M242Sync, M242Read, 0x0000, 0x8000, 0xFFFF,  info->iNES2 && (info->PRGRamSize || info->PRGRamSaveSize) || info->battery);
 	info->Reset = Mapper242_Reset;
