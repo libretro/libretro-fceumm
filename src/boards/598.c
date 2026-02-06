@@ -20,28 +20,27 @@
 
 #include "mapinc.h"
 
-static uint8 reg[4];
+static uint8 reg[2];
 
 static void sync () {
-	int prg = reg[3] <<3 | reg[1] &0x07;
-	if (reg[3] &0x08)
-		setprg32(0x8000, prg >>1);
-	else {
-		setprg16(0x8000, prg);
-		setprg16(0xC000, prg |7);
+	setprg16(0x8000, reg[0] &0x18 | reg[1] &0x07);
+	setprg16(0xC000, reg[0] &0x18 |         0x07);
+	setchr8(0);
+	switch(reg[0] &0x03) {
+		case 0x00: setmirror(MI_0); break;
+		case 0x01: setmirror(MI_V); break;
+		case 0x02: setmirror(MI_H); break;
+		case 0x03: setmirror(MI_1); break;
 	}
-	setchr4(0x0000, reg[3] <<5 | reg[1] >>3 &0x1F);
-	setchr4(0x1000, reg[3] <<5 | reg[2] >>3 &0x1F);
-	setmirror(reg[3] &0x04? MI_H: MI_V);
 }
 
 static DECLFW (writeReg) {
-	reg[A >>13 &3] = V;
+	reg[A >>14 &1] = V;
 	sync();
 }
 
 static void reset () {
-	reg[0] = reg[1] = reg[2] = reg[3] = 0;
+	reg[0] = reg[1] = 0;
 	sync();
 }
 
@@ -59,5 +58,5 @@ void Mapper598_Init (CartInfo *info) {
 	info->Power = power;
 	info->Reset = reset;
 	GameStateRestore = stateRestore;
-	AddExState(reg, 4, 0, "REGS");
+	AddExState(reg, 2, 0, "REGS");
 }
