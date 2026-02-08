@@ -1026,6 +1026,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "New Star T4IN1",           606, Mapper606_Init         )
 	INES_BOARD( "4705",                     607, Mapper607_Init         )
 	INES_BOARD( "A-23",                     608, Mapper608_Init         )
+	INES_BOARD( "63-100",                   609, Mapper609_Init         )
 INES_BOARD_END()
 
 static uint32 iNES_get_mapper_id(void)
