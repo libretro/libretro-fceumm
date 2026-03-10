@@ -83,6 +83,15 @@ DECLFW (MMC3_writeWRAM) {
 void MMC3_syncPRG (int AND, int OR) {
 	int bank;
 	for (bank = 0; bank < 4; bank++) setprg8(0x8000 | bank <<13, MMC3_cbGetPRGBank(bank) &AND |OR);
+	/* Enable or disable the Kick Master hack on multicarts */
+	if (CartBR(0xF885) == 0xA2 && CartBR(0xF886) == 0x08 && CartBR(0xF887) == 0xCA && CartBR(0xF888) == 0xD0 &&
+	    CartBR(0xF894) == 0x20 && CartBR(0xF895) == 0xA7 && CartBR(0xF896) == 0xFA && CartBR(0xF897) == 0xAD) { 
+		/* Kick Master is active. If the previous Horizontal Blanking handler was the standard MMC3 handler, switch it to the Kick-Master-specific one. */
+		if (GameHBIRQHook == MMC3_clockCounter) GameHBIRQHook = MMC3_clockCounter_KickMaster;
+	} else {
+		/* Kick Master is not or no longer active. If the previous handler was the Kick-Master-specific one, switch it to the standard MMC3 one. */
+		if (GameHBIRQHook == MMC3_clockCounter_KickMaster) GameHBIRQHook = MMC3_clockCounter;
+	}
 }
 
 void MMC3_syncCHR (int AND, int OR) {
@@ -99,6 +108,11 @@ void MMC3_clockCounter () {
 	MMC3_counter = MMC3_reloadRequest || !MMC3_counter? MMC3_reloadValue: --MMC3_counter;
 	if ((prevCounter || MMC3_type != MMC3_TYPE_NEC || MMC3_reloadRequest) && !MMC3_counter && MMC3_irqEnable) X6502_IRQBegin(FCEU_IQEXT);
 	MMC3_reloadRequest = 0;
+}
+
+void MMC3_clockCounter_KickMaster () {
+	if (scanline == 238) MMC3_clockCounter();
+	MMC3_clockCounter();
 }
 
 DECLFW(MMC3_writeReg) {

@@ -75,6 +75,8 @@ int MMC3CanWriteToWRAM(void) {
 	return ((A001B & 0x80) && !(A001B & 0x40));
 }
 
+static void MMC3_hb (void);
+static void MMC3_hb_KickMasterHack (void);
 void FixMMC3PRG(int V) {
 	if (V & 0x40) {
 		pwrap(0xC000, DRegBuf[6]);
@@ -85,6 +87,15 @@ void FixMMC3PRG(int V) {
 	}
 	pwrap(0xA000, DRegBuf[7]);
 	pwrap(0xE000, ~0);
+	/* Enable or disable the Kick Master hack on multicarts */
+	if (CartBR(0xF885) == 0xA2 && CartBR(0xF886) == 0x08 && CartBR(0xF887) == 0xCA && CartBR(0xF888) == 0xD0 &&
+	    CartBR(0xF894) == 0x20 && CartBR(0xF895) == 0xA7 && CartBR(0xF896) == 0xFA && CartBR(0xF897) == 0xAD) { 
+		/* Kick Master is active. If the previous Horizontal Blanking handler was the standard MMC3 handler, switch it to the Kick-Master-specific one. */
+		if (GameHBIRQHook == MMC3_hb) GameHBIRQHook = MMC3_hb_KickMasterHack;
+	} else {
+		/* Kick Master is not or no longer active. If the previous handler was the Kick-Master-specific one, switch it to the standard MMC3 one. */
+		if (GameHBIRQHook == MMC3_hb_KickMasterHack) GameHBIRQHook = MMC3_hb;
+	}
 }
 
 void FixMMC3CHR(int V) {
