@@ -1032,6 +1032,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "K-3004",                   612, Mapper612_Init         )
 	INES_BOARD( "S5668 3366",               613, Mapper613_Init         )
 	INES_BOARD( "New Star 9135",            614, Mapper614_Init         )
+	INES_BOARD( "LB12in1",                  615, Mapper615_Init         )
 	INES_BOARD( "K-3044",                   616, Mapper616_Init         )
 INES_BOARD_END()
 
