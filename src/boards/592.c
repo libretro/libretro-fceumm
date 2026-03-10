@@ -21,14 +21,21 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
+static uint8 submapper;
+
 static void sync () {
-	setprg16(0x8000, Latch_data);
-	setprg16(0xC000, Latch_data);
+	if (submapper == 1)
+		setprg32(0x8000, Latch_data);
+	else {
+		setprg16(0x8000, Latch_data);
+		setprg16(0xC000, Latch_data);
+	}
 	setchr8(Latch_data);
 	setmirror(Latch_data &0x08? MI_H: MI_V);
 }
 
 void Mapper592_Init (CartInfo *info) {
+	submapper = info->submapper;
 	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
 	info->Reset = Latch_clear;
 }

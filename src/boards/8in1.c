@@ -27,7 +27,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-uint8 submapper;
+static uint8 submapper;
 
 static void BMC8IN1CW(uint32 A, uint8 V) {
 	setchr1(A, ((EXPREGS[0] & 0xC) << 5) | (V & 0x7F));
