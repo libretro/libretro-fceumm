@@ -53,11 +53,13 @@ void MMC3_syncWRAM (int OR) {
 }
 
 int MMC3_getPRGBank (uint8 bank) {
+	bank &= 3;
 	if (MMC3_index &0x40 && ~bank &1) bank ^= 2;
 	return bank &2? 0xFE | bank &1: MMC3_reg[6 | bank &1];
 }
 
 int MMC3_getCHRBank (uint8 bank) {
+	bank &= 7;
 	if (MMC3_index &0x80) bank ^= 4;
 	return bank &4? MMC3_reg[bank -2]: MMC3_reg[bank >>1] &~1 | bank &1;
 }
