@@ -26,6 +26,7 @@
 #include "latch.h"
 
 static uint8 reg[2];
+static uint8 pad;
 
 static void Sync(void)
 {
@@ -33,6 +34,11 @@ static void Sync(void)
 	setprg16(0xC000, ((reg[0] >> 1) & ~7) | 7);
 	setchr8(0);
 	setmirror(((latch.data >> 7) & 1) ^ 1);
+}
+
+static DECLFR(M439ReadPad)
+{
+    return pad;
 }
 
 static DECLFW(M439WriteReg)
@@ -52,14 +58,17 @@ static DECLFW(M439WriteLatch)
 
 static void M439Reset(void)
 {
+    pad++;
     reg[0] = reg[1] = ~0;
     LatchHardReset();
 }
 
 static void M439Power(void)
 {
+    pad = 0;
     reg[0] = reg[1] = ~0;
     LatchPower();
+    SetReadHandler(0x6000, 0x7FFF, M439ReadPad);
     SetWriteHandler(0x6000, 0x7FFF, M439WriteReg);
     SetWriteHandler(0x8000, 0xFFFF, M439WriteLatch);
 }
@@ -70,4 +79,5 @@ void Mapper439_Init(CartInfo *info)
    info->Power = M439Power;
    info->Reset = M439Reset;
    AddExState(reg, 2, 0, "REGS");
+   AddExState(&pad, 1, 0, "DIPS");
 }
