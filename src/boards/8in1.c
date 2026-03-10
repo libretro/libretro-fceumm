@@ -27,12 +27,14 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
+uint8 submapper;
+
 static void BMC8IN1CW(uint32 A, uint8 V) {
 	setchr1(A, ((EXPREGS[0] & 0xC) << 5) | (V & 0x7F));
 }
 
 static void BMC8IN1PW(uint32 A, uint8 V) {
-	if(EXPREGS[0] & 0x10) {		/* MMC3 mode */
+	if(EXPREGS[0] & 0x10 || submapper == 1) {		/* MMC3 mode */
 		setprg8(A, ((EXPREGS[0] & 0xC) << 2) | (V & 0xF));
 	} else {
 		setprg32(0x8000, EXPREGS[0] & 0xF);
@@ -65,6 +67,7 @@ static void BMC8IN1Reset(void) {
 }
 
 void BMC8IN1_Init(CartInfo *info) {
+	submapper = info->submapper;
 	GenMMC3_Init(info, 128, 128, 0, 0);
 	cwrap = BMC8IN1CW;
 	pwrap = BMC8IN1PW;
