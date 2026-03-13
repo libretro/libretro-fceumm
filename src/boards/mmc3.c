@@ -650,8 +650,6 @@ void Mapper47_Init(CartInfo *info) {
  * BMC-STREETFIGTER-GAME4IN1 - Sic. $6000 set to $41 rather than $00 on power-up.
  */
 
-static uint8 isUNIF = 0;
-
 static void M49PW(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 1) {
 		V &= 0xF;
@@ -669,20 +667,19 @@ static void M49CW(uint32 A, uint8 V) {
 }
 
 static DECLFW(M49Write) {
-	if (A001B & 0x80) {
-		EXPREGS[0] = V;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	}
+	if (submapper == 1 && A &0x800) V = EXPREGS[0] &0xC1 | V &~0xC1;
+	EXPREGS[0] = V;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
 }
 
 static void M49Reset(void) {
-	EXPREGS[0] = isUNIF ? 0x41 : 0;
+	EXPREGS[0] = submapper == 1? 0x41 : 0;
 	MMC3RegReset();
 }
 
 static void M49Power(void) {
-	EXPREGS[0] = isUNIF ? 0x41 : 0;
+	EXPREGS[0] = submapper == 1? 0x41 : 0;
 	M49Reset();
 	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x7FFF, M49Write);
@@ -690,7 +687,7 @@ static void M49Power(void) {
 }
 
 void Mapper49_Init(CartInfo *info) {
-	isUNIF = 0;
+	submapper = info->submapper;
 	GenMMC3_Init(info, 512, 256, 0, 0);
 	cwrap = M49CW;
 	pwrap = M49PW;
@@ -700,7 +697,7 @@ void Mapper49_Init(CartInfo *info) {
 }
 
 void BMCSFGAME4IN1_Init(CartInfo *info) {
-	isUNIF = 1;
+	submapper = 1;
 	GenMMC3_Init(info, 512, 512, 0, 0);
 	cwrap = M49CW;
 	pwrap = M49PW;
