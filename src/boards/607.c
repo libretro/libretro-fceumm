@@ -29,8 +29,8 @@ static DECLFR (readOB) {
 
 static void sync () {
 	if (reg &0x10) { /* UNROM mode */
-		setprg16(0x8000, reg <<3 &0x08 | Latch_data &0x07);
-		setprg16(0xC000, reg <<3 &0x08 |             0x07);
+		setprg16(0x8000, reg <<3 &~0x07 | Latch_data &0x07);
+		setprg16(0xC000, reg <<3 &~0x07 |             0x07);
 	} else /* NROM-256 mode */
 		setprg32(0x8000, reg <<3 &0x04 | Latch_data >>1 &0x03);
 	SetReadHandler(0x8000, 0xFFFF, reg &0x0C? readOB: CartBR); /* 6000.2 and 6000.3 seem to select additional UNROM games. Without a cartridge that has them, the exact workings remain unknown for now. */
