@@ -191,7 +191,7 @@ void scanlineCounter() {
 
 static void reset () {
 	int i;
-	for (int i = 0; i < 16; i++) reg[i] = 0;
+	for (i = 0; i < 16; i++) reg[i] = 0;
 	pad++;
 	X6502_IRQEnd(FCEU_IQEXT);
 	sync();
@@ -205,8 +205,8 @@ static void power () {
 	SetWriteHandler(0x8000, 0xFFFF, writeReg);
 	MapIRQHook = cycleCounter;
 	GameHBIRQHook = scanlineCounter;
-	for (int i = 0; i < 16; i++) reg[i] = 0;
-	for (int i = 4; i < 4; i++) scratch[i] = 0;
+	for (i = 0; i < 16; i++) reg[i] = 0;
+	for (i = 4; i < 4; i++) scratch[i] = 0;
 	pad = 0;
 	sync();
 }
