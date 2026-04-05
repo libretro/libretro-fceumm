@@ -33,7 +33,11 @@ static SFORMAT StateRegs[] =
 
 static void Mapper354_Sync(void)
 {
-   int prg =latchData &0x3F | latchAddr <<2 &0x40 | latchAddr >>5 &0x80;
+   int prg;
+   if (submapper == 1)
+	prg = latchData &0x3F | latchAddr <<2 &0x40 | latchAddr >>5 &0x80;
+   else
+	prg = latchData &0x3F | latchAddr <<4 &0x40;
    switch(latchAddr &7)
    {
       case 0: case 4:

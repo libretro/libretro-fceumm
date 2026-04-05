@@ -22,6 +22,7 @@
 #include "mapinc.h"
 
 static uint8 reg[2];
+static uint8 submapper;
 
 static SFORMAT StateRegs[] ={
 	{ reg, 2, "REGS" },
@@ -41,7 +42,16 @@ static void Sync(void) {
 	setmirror(reg[1] &0x80? MI_H: MI_V);
 }
 
-static DECLFW(WriteNINA) {
+static DECLFW(WriteNINA_Prototype) {
+	if (A &0x200)
+		reg[1] =V; 
+	else
+	if (A &0x100)
+		reg[0] =V;
+	Sync();
+}
+
+static DECLFW(WriteNINA08) {
 	if (A &0x100) {
 		if (A &0x080) /* Second register is always writable */
 			reg[1] =V; 
@@ -65,7 +75,7 @@ static void Power(void) {
 	reg[1] = 0;
 	Sync();
 	SetWriteHandler(0x8000, 0xFFFF, WriteColorDreams);
-	SetWriteHandler(0x4100, 0x7FFF, WriteNINA);
+	SetWriteHandler(0x4100, 0x7FFF, submapper == 1? WriteNINA_Prototype: WriteNINA08);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
@@ -74,12 +84,14 @@ static void StateRestore(int version) {
 }
 
 static void Reset(void) {
+	RAM[0x000] =0; /* Bug in Maxivision 30-in-1 1991-12-14 version */
 	reg[0] = 0;
 	reg[1] = 0;
 	Sync();
 }
 
 void Mapper487_Init(CartInfo *info) {
+	submapper = info->submapper;
 	info->Power = Power;
 	info->Reset = Reset;
 	AddExState(&StateRegs, ~0, 0, 0);

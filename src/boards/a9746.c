@@ -22,18 +22,19 @@
 #include "mmc3.h"
 
 static void UNLA9746PWrap(uint32 A, uint8 V) {
-	setprg8(A, EXPREGS[1] <<4 | V &0x0F);
+	int prgAND = EXPREGS[0] &0x40? 0x0F: 0x1F;
+	int prgOR = EXPREGS[0] <<4 &0x10 | EXPREGS[1] &0x20;
+	setprg8(A, V &prgAND | prgOR &~prgAND);
 }
 
 static void UNLA9746CWrap(uint32 A, uint8 V) {
-	setchr1(A, EXPREGS[1] <<7 | V &0x7F);
+	int chrAND = EXPREGS[0] &0x80? 0x7F: 0xFF;
+	int chrOR = EXPREGS[0] <<4 &0x80 | EXPREGS[1] <<3 &0x100;
+	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
 static DECLFW(UNLA9746WriteOuter) {
-	switch(A &1) {
-		case 0: EXPREGS[1] =EXPREGS[1] &~1 | V >>3 &1; break;
-		case 1: EXPREGS[1] =EXPREGS[1] &~2 | V >>4 &2; break;
-	}
+	EXPREGS[A &1] = V;
 	FixMMC3PRG(MMC3_cmd);
 	FixMMC3CHR(MMC3_cmd);
 }
@@ -43,7 +44,7 @@ static DECLFW(UNLA9746WriteASIC) {
 	
 	if (A &1)
 	{ 	/* Register data */
-		if (~EXPREGS[0] &0x20)
+		if (~EXPREGS[2] &0x20)
 		{	/* Scrambled mode inactive */
 			MMC3_CMDWrite(A, V);
 		}
@@ -75,7 +76,7 @@ static DECLFW(UNLA9746WriteASIC) {
 	else
 	{	/* Register index */
 		MMC3_CMDWrite(A, V);
-		if (A &2) EXPREGS[0] =V;
+		if (A &2) EXPREGS[2] =V;
 	}
 }
 
@@ -83,23 +84,25 @@ static void UNLA9746Power(void) {
 	GenMMC3Power();
 	SetWriteHandler(0x5000, 0x5FFF, UNLA9746WriteOuter);
 	SetWriteHandler(0x8000, 0xBFFF, UNLA9746WriteASIC);
-	EXPREGS[0] = 0;
-	EXPREGS[1] = 3;
+	EXPREGS[0] = 0x00;
+	EXPREGS[1] = 0x20;
+	EXPREGS[2] = 0x00;
 	MMC3RegReset();
 }
 
 static void UNLA9746Reset(void) {
-	EXPREGS[0] = 0;
-	EXPREGS[1] = 3;
+	EXPREGS[0] = 0x00;
+	EXPREGS[1] = 0x20;
+	EXPREGS[2] = 0x00;
 	MMC3RegReset();
 }
 
 void UNLA9746_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 0, 0);
+	GenMMC3_Init(info, 256, 256, 0, 0);
 	pwrap = UNLA9746PWrap;
 	cwrap = UNLA9746CWrap;
 	info->Power = UNLA9746Power;
 	info->Reset = UNLA9746Reset;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+	AddExState(EXPREGS, 3, 0, "EXPR");
 }
 

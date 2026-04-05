@@ -395,10 +395,10 @@ static void M227Sync(void) {
 		} else {
 			if (L) {
 				setprg16(0x8000, p);
-				setprg16(0xC000, submapper ==3? 0: (p | 7));
+				setprg16(0xC000, p | 7);
 			} else {
 				setprg16(0x8000, p);
-				setprg16(0xC000, submapper ==2? 0: (p & 0x38));
+				setprg16(0xC000, submapper ==2? (p & 0x20): (p & 0x38));
 			}
 		}
 	}
@@ -410,7 +410,7 @@ static void M227Sync(void) {
 
 	setmirror(((latche >> 1) & 1) ^ 1);
 	setchr8(0);
-	setprg8r(0x10, 0x6000, 0);
+	if (PRGsize[0x10]) setprg8r(0x10, 0x6000, 0);
 }
 
 static DECLFR(M227Read) {
@@ -514,16 +514,15 @@ static void M242Sync(void) {
 			}
 		}
 	}
-
-	if (!hasBattery && (latche & 0x80) == 0x80 && (ROM_size * 16) > 256)
-		/* CHR-RAM write protect hack, needed for some multicarts */
+	
+	if (latche &0x80 && submapper >0) /* CHR-RAM write protection not used on single-game cartridges (submapper 0) */
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
 	else
 		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
 
 	setmirror(((latche >> 1) & 1) ^ 1);
 	setchr8(0);
-	setprg8r(0x10, 0x6000, 0);
+	if (PRGsize[0x10]) setprg8r(0x10, 0x6000, 0);
 }
 
 static DECLFR(M242Read) {
@@ -542,6 +541,7 @@ static void Mapper242_Reset(void) {
 
 void Mapper242_Init(CartInfo *info) {
 	dipswitch = 0;
+	submapper = info->submapper;
 	M242TwoChips = info->PRGRomSize &0x20000 && info->PRGRomSize >0x20000;
 	Latch_Init(info, M242Sync, M242Read, 0x0000, 0x8000, 0xFFFF,  info->iNES2 && (info->PRGRamSize || info->PRGRamSaveSize) || info->battery);
 	info->Reset = Mapper242_Reset;
@@ -640,8 +640,15 @@ static void BMC810544CA1Sync(void) {
 	setmirror(((latche >> 4) & 1) ^ 1);
 }
 
+void BMC810544CA1Reset() {
+	latche =0;
+	RAM[0x133] =0;
+	BMC810544CA1Sync();
+}
+
 void BMC810544CA1_Init(CartInfo *info) {
 	Latch_Init(info, BMC810544CA1Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+	info->Reset = BMC810544CA1Reset;
 }
 
 /*-------------- BMCNTD-03 ------------------------*/
@@ -687,23 +694,6 @@ static void BMCG146Sync(void) {
 
 void BMCG146_Init(CartInfo *info) {
 	Latch_Init(info, BMCG146Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
-
-/*-------------- BMC-TJ-03 ------------------------*/
-/* NES 2.0 mapper 341 is used for a simple 4-in-1 multicart */
-
-static void BMCTJ03Sync(void) {
-	uint8 mirr = latche &(PRGsize[0] &0x40000? 0x800: 0x200)? MI_H: MI_V;
-	uint8 bank = latche >> 8;
-
-	setprg32(0x8000, bank);
-	setchr8(bank);
-
-	setmirror(mirr);
-}
-
-void BMCTJ03_Init(CartInfo *info) {
-	Latch_Init(info, BMCTJ03Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
 /*-------------- BMC-SA005-A ------------------------*/

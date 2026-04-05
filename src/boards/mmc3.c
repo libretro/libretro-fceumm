@@ -75,6 +75,8 @@ int MMC3CanWriteToWRAM(void) {
 	return ((A001B & 0x80) && !(A001B & 0x40));
 }
 
+static void MMC3_hb (void);
+static void MMC3_hb_KickMasterHack (void);
 void FixMMC3PRG(int V) {
 	if (V & 0x40) {
 		pwrap(0xC000, DRegBuf[6]);
@@ -85,6 +87,15 @@ void FixMMC3PRG(int V) {
 	}
 	pwrap(0xA000, DRegBuf[7]);
 	pwrap(0xE000, ~0);
+	/* Enable or disable the Kick Master hack on multicarts */
+	if (CartBR(0xF885) == 0xA2 && CartBR(0xF886) == 0x08 && CartBR(0xF887) == 0xCA && CartBR(0xF888) == 0xD0 &&
+	    CartBR(0xF894) == 0x20 && CartBR(0xF895) == 0xA7 && CartBR(0xF896) == 0xFA && CartBR(0xF897) == 0xAD) { 
+		/* Kick Master is active. If the previous Horizontal Blanking handler was the standard MMC3 handler, switch it to the Kick-Master-specific one. */
+		if (GameHBIRQHook == MMC3_hb) GameHBIRQHook = MMC3_hb_KickMasterHack;
+	} else {
+		/* Kick Master is not or no longer active. If the previous handler was the Kick-Master-specific one, switch it to the standard MMC3 one. */
+		if (GameHBIRQHook == MMC3_hb_KickMasterHack) GameHBIRQHook = MMC3_hb;
+	}
 }
 
 void FixMMC3CHR(int V) {
@@ -639,8 +650,6 @@ void Mapper47_Init(CartInfo *info) {
  * BMC-STREETFIGTER-GAME4IN1 - Sic. $6000 set to $41 rather than $00 on power-up.
  */
 
-static uint8 isUNIF = 0;
-
 static void M49PW(uint32 A, uint8 V) {
 	if (EXPREGS[0] & 1) {
 		V &= 0xF;
@@ -658,20 +667,19 @@ static void M49CW(uint32 A, uint8 V) {
 }
 
 static DECLFW(M49Write) {
-	if (A001B & 0x80) {
-		EXPREGS[0] = V;
-		FixMMC3PRG(MMC3_cmd);
-		FixMMC3CHR(MMC3_cmd);
-	}
+	if (submapper == 1 && A &0x800) V = EXPREGS[0] &0xC1 | V &~0xC1;
+	EXPREGS[0] = V;
+	FixMMC3PRG(MMC3_cmd);
+	FixMMC3CHR(MMC3_cmd);
 }
 
 static void M49Reset(void) {
-	EXPREGS[0] = isUNIF ? 0x41 : 0;
+	EXPREGS[0] = submapper == 1? 0x41 : 0;
 	MMC3RegReset();
 }
 
 static void M49Power(void) {
-	EXPREGS[0] = isUNIF ? 0x41 : 0;
+	EXPREGS[0] = submapper == 1? 0x41 : 0;
 	M49Reset();
 	GenMMC3Power();
 	SetWriteHandler(0x6000, 0x7FFF, M49Write);
@@ -679,7 +687,7 @@ static void M49Power(void) {
 }
 
 void Mapper49_Init(CartInfo *info) {
-	isUNIF = 0;
+	submapper = info->submapper;
 	GenMMC3_Init(info, 512, 256, 0, 0);
 	cwrap = M49CW;
 	pwrap = M49PW;
@@ -689,7 +697,7 @@ void Mapper49_Init(CartInfo *info) {
 }
 
 void BMCSFGAME4IN1_Init(CartInfo *info) {
-	isUNIF = 1;
+	submapper = 1;
 	GenMMC3_Init(info, 512, 512, 0, 0);
 	cwrap = M49CW;
 	pwrap = M49PW;
@@ -1013,21 +1021,6 @@ void Mapper165_Init(CartInfo *info) {
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	AddExState(EXPREGS, 4, 0, "EXPR");
-}
-
-/* ---------------------------- Mapper 191 ------------------------------ */
-
-static void M191CW(uint32 A, uint8 V) {
-	setchr1r((V & 0x80) >> 3, A, V);
-}
-
-void Mapper191_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 256, 8, info->battery);
-	cwrap = M191CW;
-	CHRRAMSIZE = 2048;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
-	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
-	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }
 
 /* ---------------------------- Mapper 192 ------------------------------- */

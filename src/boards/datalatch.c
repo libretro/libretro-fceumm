@@ -558,7 +558,10 @@ void BMCK3046_Init(CartInfo *info) {
 
 static void Mapper429_Sync(void) {
 	setprg32(0x8000, latche >>2);
-	setchr8(latche);
+	if (submapper == 2)
+		setchr8(latche &3 | (latche &4 && latche &8? 4: 0));
+	else
+		setchr8(latche);
 }
 
 static void Mapper429_Reset(void) {
@@ -567,6 +570,7 @@ static void Mapper429_Reset(void) {
 }
 
 void Mapper429_Init(CartInfo *info) {
+	submapper = info->submapper;
 	info->Reset = Mapper429_Reset;
 	Latch_Init(info, Mapper429_Sync, 0, 0x8000, 0xFFFF, 0, 0);
 }

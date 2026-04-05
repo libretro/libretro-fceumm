@@ -22,6 +22,8 @@
 #include "mapinc.h"
 #include "latch.h"
 
+static uint8 inesMirroring;
+
 static void Sync(void) {
     if (!(latch.data & 1) && (latch.data & 8)) {
         setprg16(0x8000, latch.data & ~1);
@@ -36,7 +38,10 @@ static void Sync(void) {
         }
     }
 	setchr8(0);
-	setmirror(((latch.data >> 4) & 1) ^ 1);
+	if (latch.data &8)
+		setmirror(latch.data &0x10? MI_H: MI_V);
+	else
+		setmirror(inesMirroring); /* The UNROM game's mirroring is set via solder pad and not via hardware register, so use the mirroring setting from the iNES header. */
 }
 
 static DECLFW(M277Write) {
@@ -58,6 +63,7 @@ static void M277Reset() {
 }
 
 void Mapper277_Init(CartInfo *info) {
+	inesMirroring = info->mirror;
 	Latch_Init(info, Sync, NULL, 0, 0);
 	info->Power = M277Power;
 	info->Reset = M277Reset;

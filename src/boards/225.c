@@ -31,6 +31,7 @@
 #include "mapinc.h"
 
 static uint8 extraRAM[4], prg, mode, chr, mirr;
+static uint8 is255;
 
 static SFORMAT StateRegs[] =
 {
@@ -56,7 +57,10 @@ static DECLFW(M225Write) {
 	uint8 bank = (A >> 14) & 1;
 	mirr = (A >> 13) & 1;
 	mode = (A >> 12) & 1;
-	chr = (A & 0x3f) | (bank << 6);
+	if (is255)
+		chr = (V & 0x03) | (A & 0x3C) | (bank << 6);
+	else
+		chr = (A & 0x3f) | (bank << 6);
 	prg = ((A >> 6) & 0x3f) | (bank << 6);
 	Sync();
 }
@@ -92,12 +96,14 @@ static void StateRestore(int version) {
 }
 
 void Mapper225_Init(CartInfo *info) {
+	is255 = 0;
 	info->Reset = M225Reset;
 	info->Power = M225Power;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
-void Mapper255_Init(CartInfo *info) {
+void Mapper255_Init(CartInfo *info) {	
 	Mapper225_Init(info);
+	is255 = 1;
 }

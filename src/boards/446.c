@@ -264,7 +264,7 @@ static void applyMode (uint8 clear) {
 	if (reg[0] &0x80) {
 		SetWriteHandler(0x5000, 0x5FFF, CartBW);
 		switch(submapper <<8 | reg[0] &0x1F) {
-			case 0x000: case 0x100: case 0x200:
+			case 0x000: case 0x100: case 0x200: case 0x400:
 				mapperSync = sync_UxROM;
 				Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
 				break;
@@ -297,7 +297,7 @@ static void applyMode (uint8 clear) {
 				mapperSync = sync_VRC4;
 				VRC2_activate(clear, sync, 0x02, 0x01, NULL, Mapper22_getCHRBank, NULL, NULL);
 				break;
-			case 0x008: case 0x118: case 0x218:
+			case 0x008: case 0x118: case 0x218: case 0x403:
 				mapperSync = sync_VRC4;
 				VRC4_activate(clear, sync, 0x05, 0x0A, 1, NULL, NULL, NULL, NULL, NULL);
 				break;
@@ -313,7 +313,7 @@ static void applyMode (uint8 clear) {
 				mapperSync = sync_VRC6;
 				VRC6_activate(clear, sync, 0x02, 0x01, NULL, NULL, NULL, NULL);
 				break;
-			case 0x00C:
+			case 0x00C: case 0x406:
 				mapperSync = sync_VRC3;
 				VRC3_activate(clear, sync);
 				break;

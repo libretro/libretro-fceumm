@@ -63,7 +63,7 @@ static DECLFW(M280Write) {
 }
 
 static void M280Reset(void) {
-   mode ^=1;
+   if (ROM_size >32) mode ^=1;
    latchAddr = 0;
    latchData = 0;
    Sync();

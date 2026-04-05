@@ -24,6 +24,7 @@
 static void GenMMC1Power(void);
 static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram);
 
+static uint8 submapper;
 static uint8 DRegs[4];
 static uint8 Buffer, BufferShift;
 
@@ -42,7 +43,7 @@ static void (*MMC1WRAMHook8)(void);
 
 static uint8 *WRAM = NULL;
 static uint8 *CHRRAM = NULL;
-static int is155, is171;
+static int is155;
 
 static uint32 MMC1GetCHRBank (uint32 bank) {
 	if (DRegs[0] & 0x10)	/* 4 KiB mode */
@@ -64,6 +65,10 @@ static DECLFR(MAWRAM) {
 	if (!MMC1WRAMEnabled() && !is155)
 		return X.DB;			/* WRAM is disabled */
 	return(Page[A >> 11][A]);
+}
+
+static DECLFR(SFEXPROM_readBank) {
+	return DRegs[3] <<3 &0x70;
 }
 
 static void MMC1CHR(void) {
@@ -132,7 +137,7 @@ static void MMC1PRG(void) {
 }
 
 static void MMC1MIRROR(void) {
-	if (!is171)
+	if (submapper != 7)
 		switch (DRegs[0] & 3) {
 		case 2: setmirror(MI_V); break;
 		case 3: setmirror(MI_H); break;
@@ -297,7 +302,9 @@ static void GenMMC1Power(void) {
 		SetReadHandler(0x6000, 0x7FFF, MAWRAM);
 		SetWriteHandler(0x6000, 0x7FFF, MBWRAM);
 		setprg8r(0x10, 0x6000, 0);
-	}
+	} else
+	if (submapper == 8)
+		SetReadHandler(0x6000, 0x6FFF, SFEXPROM_readBank);
 
 	MMC1CMReset();
 }
@@ -311,6 +318,7 @@ static void GenMMC1Close(void) {
 }
 
 static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram) {
+	submapper = info->submapper;
 	is155 = 0;
 
 	info->Close = GenMMC1Close;
@@ -355,13 +363,6 @@ void Mapper1_Init(CartInfo *info) {
 void Mapper155_Init(CartInfo *info) {
 	GenMMC1Init(info, 512, 256, 8, info->battery ? 8 : 0);
 	is155 = 1;
-}
-
-/* Same as mapper 1, with different (or without) mirroring control. */
-/* Kaiser KS7058 board, KS203 custom chip */
-void Mapper171_Init(CartInfo *info) {
-	GenMMC1Init(info, 32, 32, 0, 0);
-	is171 = 1;
 }
 
 void SAROM_Init(CartInfo *info) {

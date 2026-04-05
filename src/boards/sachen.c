@@ -27,15 +27,6 @@ static uint8 cmd, dip;
 static uint8 latch[8];
 static uint8 mapperNum;
 
-static void S74LS374MSync(uint8 mirr) {
-	switch (mirr & 3) {
-	case 0: setmirror(MI_V); break;
-	case 1: setmirror(MI_H); break;
-	case 2: setmirrorw(0, 1, 1, 1); break;
-	case 3: setmirror(MI_0); break;
-	}
-}
-
 static int type;
 static void S8259Synco(void) {
 	int x;
@@ -65,10 +56,15 @@ static void S8259Synco(void) {
 			}
 		}
 	}
-	if (!(latch[7] & 1))
-		S74LS374MSync(latch[7] >> 1);
-	else
+	if (latch[7] &1)
 		setmirror(MI_V);
+	else
+	switch(latch[7] >>1 &3) {
+		case 0: setmirror(mapperNum == 137? MI_H: MI_V); break;
+		case 1: setmirror(mapperNum == 137? MI_V: MI_H); break;
+		case 2: setmirrorw(0, 1, 1, 1); break;
+		case 3: setmirror(MI_0); break;
+	}
 }
 
 static DECLFW(S8259Write) {
@@ -98,6 +94,7 @@ static void S8259Restore(int version) {
 }
 
 void S8259A_Init(CartInfo *info) {	/* Kevin's Horton 141 mapper */
+	mapperNum = info->mapper;
 	info->Power = S8259Reset;
 	GameStateRestore = S8259Restore;
 	AddExState(latch, 8, 0, "LATC");
@@ -106,6 +103,7 @@ void S8259A_Init(CartInfo *info) {	/* Kevin's Horton 141 mapper */
 }
 
 void S8259B_Init(CartInfo *info) {	/* Kevin's Horton 138 mapper */
+	mapperNum = info->mapper;
 	info->Power = S8259Reset;
 	GameStateRestore = S8259Restore;
 	AddExState(latch, 8, 0, "LATC");
@@ -114,6 +112,7 @@ void S8259B_Init(CartInfo *info) {	/* Kevin's Horton 138 mapper */
 }
 
 void S8259C_Init(CartInfo *info) {	/* Kevin's Horton 139 mapper */
+	mapperNum = info->mapper;
 	info->Power = S8259Reset;
 	GameStateRestore = S8259Restore;
 	AddExState(latch, 8, 0, "LATC");
@@ -122,6 +121,7 @@ void S8259C_Init(CartInfo *info) {	/* Kevin's Horton 139 mapper */
 }
 
 void S8259D_Init(CartInfo *info) {	/* Kevin's Horton 137 mapper */
+	mapperNum = info->mapper;
 	info->Power = S8259Reset;
 	GameStateRestore = S8259Restore;
 	AddExState(latch, 8, 0, "LATC");

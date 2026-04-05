@@ -112,6 +112,9 @@ typedef uint16 bpp_t;
 #define RETRO_DEVICE_FC_HYPERSHOT RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 3)
 #define RETRO_DEVICE_FC_FTRAINERA RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 2)
 #define RETRO_DEVICE_FC_FTRAINERB RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 3)
+#define RETRO_DEVICE_FC_FKB       RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 4)
+#define RETRO_DEVICE_FC_SUBORKB   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 5)
+#define RETRO_DEVICE_FC_PEC586KB  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_KEYBOARD, 6)
 #define RETRO_DEVICE_FC_AUTO      RETRO_DEVICE_JOYPAD
 
 #define NES_WIDTH   256
@@ -192,6 +195,30 @@ static const uint32_t powerpadmap[] = {
    RETROK_z, RETROK_x, RETROK_c, RETROK_v,
 };
 
+static const uint32_t fkbmap[0x48] = {
+	RETROK_F1,RETROK_F2,RETROK_F3,RETROK_F4,RETROK_F5,RETROK_F6,RETROK_F7,RETROK_F8,
+	RETROK_1,RETROK_2,RETROK_3,RETROK_4,RETROK_5,RETROK_6,RETROK_7,RETROK_8,RETROK_9,RETROK_0,RETROK_MINUS,RETROK_EQUALS,RETROK_BACKSLASH,RETROK_BACKSPACE,
+	RETROK_ESCAPE,RETROK_q,RETROK_w,RETROK_e,RETROK_r,RETROK_t,RETROK_y,RETROK_u,RETROK_i,RETROK_o,RETROK_p,RETROK_TILDE,RETROK_LEFTBRACKET,RETROK_RETURN,
+	RETROK_LCTRL,RETROK_a,RETROK_s,RETROK_d,RETROK_f,RETROK_g,RETROK_h,RETROK_j,RETROK_k,RETROK_l,RETROK_SEMICOLON,RETROK_QUOTE,RETROK_RIGHTBRACKET,RETROK_INSERT,
+	RETROK_LSHIFT,RETROK_z,RETROK_x,RETROK_c,RETROK_v,RETROK_b,RETROK_n,RETROK_m,RETROK_COMMA,RETROK_PERIOD,RETROK_SLASH,RETROK_RALT,RETROK_RSHIFT,RETROK_LALT,RETROK_SPACE,
+	RETROK_DELETE,RETROK_END,RETROK_PAGEDOWN,
+	RETROK_UP,RETROK_LEFT,RETROK_RIGHT,RETROK_DOWN
+};
+
+static const uint32_t suborkbmap[0x65] = {
+	RETROK_ESCAPE,RETROK_F1,RETROK_F2,RETROK_F3,RETROK_F4,RETROK_F5,RETROK_F6,RETROK_F7,RETROK_F8,RETROK_F9,
+	RETROK_F10,RETROK_F11,RETROK_F12,RETROK_NUMLOCK,RETROK_CARET,RETROK_1,RETROK_2,RETROK_3,RETROK_4,RETROK_5,
+	RETROK_6,RETROK_7,RETROK_8,RETROK_9,RETROK_0,RETROK_MINUS,RETROK_EQUALS,RETROK_BACKSPACE,RETROK_INSERT,RETROK_HOME,
+	RETROK_PAGEUP,RETROK_PAUSE,RETROK_KP_DIVIDE,RETROK_KP_MULTIPLY,RETROK_KP_MINUS,RETROK_TAB,RETROK_q,RETROK_w,RETROK_e,RETROK_r,
+	RETROK_t,RETROK_y,RETROK_u,RETROK_i,RETROK_o,RETROK_p,RETROK_LEFTBRACKET,RETROK_RIGHTBRACKET,RETROK_RETURN,RETROK_DELETE,
+	RETROK_END,RETROK_PAGEDOWN,RETROK_KP7,RETROK_KP8,RETROK_KP9,RETROK_KP_PLUS,RETROK_CAPSLOCK,RETROK_a,RETROK_s,RETROK_d,
+	RETROK_f,RETROK_g,RETROK_h,RETROK_j,RETROK_k,RETROK_l,RETROK_SEMICOLON,RETROK_QUOTE,RETROK_KP4,RETROK_KP5,
+	RETROK_KP6,RETROK_LSHIFT,RETROK_z,RETROK_x,RETROK_c,RETROK_v,RETROK_b,RETROK_n,RETROK_m,RETROK_COMMA,
+	RETROK_PERIOD,RETROK_SLASH,RETROK_BACKSLASH,RETROK_UP,RETROK_KP1,RETROK_KP2,RETROK_KP3,RETROK_LCTRL,RETROK_LALT,RETROK_SPACE,
+	RETROK_LEFT,RETROK_DOWN,RETROK_RIGHT,RETROK_KP0,RETROK_KP_PERIOD,RETROK_UNKNOWN,RETROK_UNKNOWN,RETROK_UNKNOWN,RETROK_UNKNOWN,RETROK_UNKNOWN,
+	RETROK_UNKNOWN
+};
+
 
 typedef struct {
    bool enable_4player;                /* four-score / 4-player adapter used */
@@ -208,6 +235,8 @@ typedef struct {
    uint32_t MouseData[MAX_PORTS][4];      /* nes mouse data */
    uint32_t FamicomData[3];               /* Famicom expansion port data */
    uint32_t PowerPadData;
+   uint8_t  FamilyKeyboardData[0x48];
+   uint8_t  SuborKeyboardData[0x65];
 } NES_INPUT_T;
 
 static NES_INPUT_T nes_input = { 0 };
@@ -1323,6 +1352,18 @@ static void update_nes_controllers(unsigned port, unsigned device)
          FCEUI_SetInputFC(SIFC_FTRAINERB, &nes_input.PowerPadData, 0);
          FCEU_printf(" Famicom Expansion: Family Trainer B\n");
          break;
+      case RETRO_DEVICE_FC_FKB:
+         FCEUI_SetInputFC(SIFC_FKB, &nes_input.FamilyKeyboardData, 0);
+         FCEU_printf(" Famicom Expansion: Family BASIC Keyboard\n");
+         break;
+      case RETRO_DEVICE_FC_SUBORKB:
+         FCEUI_SetInputFC(SIFC_SUBORKB, &nes_input.SuborKeyboardData, 0);
+         FCEU_printf(" Famicom Expansion: Subor Keyboard\n");
+         break;
+      case RETRO_DEVICE_FC_PEC586KB:
+         FCEUI_SetInputFC(SIFC_PEC586KB, &nes_input.SuborKeyboardData, 0);
+         FCEU_printf(" Famicom Expansion: Dongda Keyboard\n");
+         break;
       case RETRO_DEVICE_NONE:
       default:
          FCEUI_SetInputFC(SIFC_NONE, &Dummy, 0);
@@ -1373,6 +1414,12 @@ static unsigned fc_to_libretro(int d)
       return RETRO_DEVICE_FC_FTRAINERA;
    case SIFC_FTRAINERB:
       return RETRO_DEVICE_FC_FTRAINERB;
+   case SIFC_FKB:
+      return RETRO_DEVICE_FC_FKB;
+   case SIFC_SUBORKB:
+      return RETRO_DEVICE_FC_SUBORKB;
+   case SIFC_PEC586KB:
+      return RETRO_DEVICE_FC_PEC586KB;
    }
 
    return (RETRO_DEVICE_NONE);
@@ -2390,13 +2437,32 @@ static void check_variables(bool startup)
    update_option_visibility();
 }
 
-void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) 
-{
+void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) {
    unsigned k;
    const uint32_t* map = powerpadmap;
    for (k = 0 ; k < 12 ; k++)
    	if (input_cb(0, RETRO_DEVICE_KEYBOARD, 0, map[k]))
             *ppdata |= (1 << k);
+}
+
+void add_fkb_input(unsigned port, uint32 variant, uint8_t *fkbkeys) {
+   unsigned k;
+   const uint32_t* map = fkbmap;
+   for (k = 0 ; k < 0x48 ; k++)
+   	if (input_cb(0, RETRO_DEVICE_KEYBOARD, 0, map[k]))
+            fkbkeys[k]=1;
+        else
+            fkbkeys[k]=0;
+}
+
+void add_suborkey_input(unsigned port, uint32 variant, uint8_t *suborkeys) {
+   unsigned k;
+   const uint32_t* map = suborkbmap;
+   for (k = 0 ; k < 0x65 ; k++)
+   	if (input_cb(0, RETRO_DEVICE_KEYBOARD, 0, map[k]))
+            suborkeys[k]=1;
+        else
+            suborkeys[k]=0;
 }
 
 static int mzx = 0, mzy = 0;
@@ -2763,6 +2829,13 @@ static void FCEUD_UpdateInput(void)
       case RETRO_DEVICE_FC_FTRAINERA:
          add_powerpad_input(4, nes_input.type[4], &nes_input.PowerPadData);
          break;
+      case RETRO_DEVICE_FC_FKB:
+         add_fkb_input(4, nes_input.type[4], nes_input.FamilyKeyboardData);
+	 break;
+      case RETRO_DEVICE_FC_SUBORKB:
+      case RETRO_DEVICE_FC_PEC586KB:
+         add_suborkey_input(4, nes_input.type[4], nes_input.SuborKeyboardData);
+	 break;
    }
 
    if (input_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
