@@ -696,23 +696,6 @@ void BMCG146_Init(CartInfo *info) {
 	Latch_Init(info, BMCG146Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
 }
 
-/*-------------- BMC-TJ-03 ------------------------*/
-/* NES 2.0 mapper 341 is used for a simple 4-in-1 multicart */
-
-static void BMCTJ03Sync(void) {
-	uint8 mirr = latche &(PRGsize[0] &0x40000? 0x800: 0x200)? MI_H: MI_V;
-	uint8 bank = latche >> 8;
-
-	setprg32(0x8000, bank);
-	setchr8(bank);
-
-	setmirror(mirr);
-}
-
-void BMCTJ03_Init(CartInfo *info) {
-	Latch_Init(info, BMCTJ03Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
-
 /*-------------- BMC-SA005-A ------------------------*/
 /* NES 2.0 mapper 338 is used for a 16-in-1 and a 200/300/600/1000-in-1 multicart.
  * http://wiki.nesdev.com/w/index.php/NES_2.0_Mapper_338 */

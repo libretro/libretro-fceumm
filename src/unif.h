@@ -158,7 +158,6 @@ void LH51_Init(CartInfo *info);				/* m309 */
 void BMCRESETTXROM_Init(CartInfo *info);	/* m313 */
 void FARIDSLROM8IN1_Init(CartInfo *info);	/* m323 */
 void BMC830425C4391T_Init(CartInfo *info);	/* m320 */
-void BMCTJ03_Init(CartInfo *info);			/* m341 */
 void BMCCTC09_Init(CartInfo *info);			/* m335 */
 void BMCK3046_Init(CartInfo *info);			/* m336 */
 void BMCSA005A_Init(CartInfo *info);		/* m338 */

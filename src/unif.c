@@ -590,7 +590,7 @@ static BMAPPING bmap[] = {
 	{ "K-3088",                     287, BMCK3088_Init,         0 },
 	{ "FARID_SLROM_8-IN-1",         323, FARIDSLROM8IN1_Init,   0 },
 	{ "830425C-4391T",              320, BMC830425C4391T_Init,  0 },
-	{ "TJ-03",                      341, BMCTJ03_Init,          0 },
+	{ "TJ-03",                      341, Mapper341_Init,        0 },
 	{ "CTC-09",                     335, BMCCTC09_Init,         0 },
 	{ "K-3046",                     336, BMCK3046_Init,         0 },
 	{ "SA005-A",                    338, BMCSA005A_Init,        0 },
