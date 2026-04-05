@@ -640,8 +640,15 @@ static void BMC810544CA1Sync(void) {
 	setmirror(((latche >> 4) & 1) ^ 1);
 }
 
+void BMC810544CA1Reset() {
+	latche =0;
+	RAM[0x133] =0;
+	BMC810544CA1Sync();
+}
+
 void BMC810544CA1_Init(CartInfo *info) {
 	Latch_Init(info, BMC810544CA1Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+	info->Reset = BMC810544CA1Reset;
 }
 
 /*-------------- BMCNTD-03 ------------------------*/
