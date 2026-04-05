@@ -563,7 +563,7 @@ static BMAPPING bmap[] = {
 	{ "UNROM-512-32",                30, UNROM512_Init,         BMCFLAG_32KCHRR },
 	{ "UOROM",                        2, UNROM_Init,            0 },
 	{ "VRC7",                        85, UNLVRC7_Init,          0 },
-	{ "YOKO",                       264, UNLYOKO_Init,          0 },
+	{ "YOKO",                       264, Mapper264_Init,        0 },
 	{ "COOLBOY",                    268, COOLBOY_Init,          BMCFLAG_256KCHRR },
 	{ "MINDKIDS",                   268, MINDKIDS_Init,         BMCFLAG_256KCHRR },
 	{ "158B",                       258, UNL8237_Init,          0 },

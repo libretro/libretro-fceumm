@@ -224,6 +224,7 @@ static void VRC2_configure (void (*sync)(), int A0, int A1, int (*prg)(uint8), i
 	VRC24_cbGetCHRBank = chr? chr: VRC24_getCHRBank;
 	VRC24_cbReadWRAM = read;
 	VRC24_cbWriteWRAM = write;
+	VRC24_cbExternalSelect = NULL;
 }
 
 static void VRC4_configure (void (*sync)(), int A0, int A1, uint8 useRepeatBit, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write)), DECLFW((*externalSelect))) {
