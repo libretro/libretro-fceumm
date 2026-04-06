@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-uint8 submapper;
+static uint8 submapper;
 uint8 pad;
 uint8 padSelect;
 

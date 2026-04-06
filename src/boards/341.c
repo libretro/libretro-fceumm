@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-uint8 submapper;
+static uint8 submapper;
 
 static void sync () {
 	setprg32(0x8000, Latch_address >>8);
