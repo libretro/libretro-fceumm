@@ -27,6 +27,7 @@ static uint8_t reg[16];
 static uint8_t scratch[4];
 static uint8_t flags;
 static uint8_t pad;
+static uint8_t forcePadValue; /* 0: Solder pad value changes on each soft reset, 1: solder pad value forced to a specific value, 2: solder pad value represents NTSC or PAL */
 static int mapper;
 static uint8_t submapper;
 
@@ -192,7 +193,11 @@ static void scanlineCounter() {
 static void reset () {
 	int i;
 	for (i = 0; i < 16; i++) reg[i] = 0;
-	pad++;
+	if (forcePadValue == 0)
+		pad++;
+	else
+	if (forcePadValue == 2)
+		pad = PAL? 0: 1;
 	X6502_IRQEnd(FCEU_IQEXT);
 	sync();
 }
@@ -206,8 +211,12 @@ static void power () {
 	MapIRQHook = cycleCounter;
 	GameHBIRQHook = scanlineCounter;
 	for (i = 0; i < 16; i++) reg[i] = 0;
-	for (i = 4; i < 4; i++) scratch[i] = 0;
-	pad = 0;
+	for (i = 0; i < 4; i++) scratch[i] = 0;
+	if (forcePadValue == 0)
+		pad = 0;
+	else
+	if (forcePadValue == 2)
+		pad = PAL? 0: 1;
 	sync();
 }
 
@@ -224,6 +233,11 @@ void Mapper83_Init (CartInfo *info) {
 		if (info->PRGRomSize ==1024*1024) submapper = 2; else
 		if (info->PRGRomSize ==512*1024) submapper = 3;
 	}
+	if (info->CRC32 == 0x390373DA || info->CRC32 == 0x797EB9FB) { /* For games that have garbled title screens on all except one solder pad value, force to that pad value. */
+		pad = 1;
+		forcePadValue = 1;
+	} else
+		forcePadValue = 0;
 	if (submapper == 2) WRAM_init(info, 32);
 	info->Power = power;
 	info->Reset = reset;
@@ -234,6 +248,10 @@ void Mapper83_Init (CartInfo *info) {
 void Mapper264_Init (CartInfo *info) {
 	mapper = 264;
 	submapper = info->submapper;
+	if (info->CRC32 == 0xC5FAFE2C) /* Master Fighter VI' uses the solder pad value to select NTSC or PAL timing */
+		forcePadValue = 2;
+	else
+		forcePadValue = 0;
 	info->Power = power;
 	info->Reset = reset;
 	GameStateRestore = restore;
