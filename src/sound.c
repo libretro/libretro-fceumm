@@ -1122,23 +1122,34 @@ void SetSoundVariables(void) {
 			DoSQ1 = RDoSQ1;
 			DoSQ2 = RDoSQ2;
 		} else {
-			/* In LQ mode the squares are mixed by RDoSQLQ in a single
-			 * call, and the triangle/noise/PCM channels are mixed by
-			 * RDoTriangleNoisePCMLQ in a single call - both functions
-			 * advance their respective ChannelBC and process all the
-			 * channels they handle in one pass. The previous code
-			 * pointed DoTriangle/DoNoise/DoPCM all at
-			 * RDoTriangleNoisePCMLQ, which meant the second and third
-			 * call entered the function only to be rejected by the
-			 * "if (end <= start) return;" guard at the top. Same for
-			 * DoSQ1/DoSQ2 -> RDoSQLQ. Map only one entry each to the
-			 * real worker and stub the others so we save the redundant
-			 * call+early-return overhead. */
+			/* All five Do* pointers in LQ mode end up at one of two
+			 * worker functions: RDoSQLQ (handles both squares) and
+			 * RDoTriangleNoisePCMLQ (handles tri/noise/PCM).
+			 *
+			 * Pass 6 had stubbed DoSQ2 / DoNoise / DoPCM to Dummyfunc
+			 * here on the reasoning that the workers guard with
+			 * "if (end <= start) return;" and re-entry within one
+			 * FlushEmulateSound is a no-op. That reasoning is
+			 * incorrect: the Do* hooks are also called from
+			 * Write_PSG (sound.c:189) on every APU register write
+			 * AND from FCEU_SoundCPUHook (line 493) on every DMC
+			 * bit advance. Between those callers, sound_timestamp
+			 * grows with each CPU instruction, so each Do* call IS
+			 * legitimately doing work - it flushes pending samples
+			 * up to the current SOUNDTS using the pre-write register
+			 * state, before the write updates the registers. Stubbing
+			 * those hooks to Dummyfunc skips the mid-frame flushes
+			 * and audibly changes output for any game that writes to
+			 * multiple APU registers in sequence (essentially all
+			 * of them). Verified bit-identical regression vs upstream
+			 * for the test_idle ROM (channels enabled with steady
+			 * settings) - the audio diverged starting at the first
+			 * post-init register write. Restored here. */
 			DoSQ1      = RDoSQLQ;
-			DoSQ2      = Dummyfunc;
+			DoSQ2      = RDoSQLQ;
 			DoTriangle = RDoTriangleNoisePCMLQ;
-			DoNoise    = Dummyfunc;
-			DoPCM      = Dummyfunc;
+			DoNoise    = RDoTriangleNoisePCMLQ;
+			DoPCM      = RDoTriangleNoisePCMLQ;
 		}
 	} else {
 		DoNoise = DoTriangle = DoPCM = DoSQ1 = DoSQ2 = Dummyfunc;
