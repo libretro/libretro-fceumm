@@ -1,4 +1,3 @@
-#include <math.h>
 #include "fceu-types.h"
 
 #include "sound.h"
@@ -11,35 +10,34 @@
 static uint32_t mrindex;
 static uint32_t mrratio;
 
-void SexyFilter2(int32_t *in, int32_t count) {
- #ifdef moo
-	static int64_t acc = 0;
-	double x, p;
-	int64_t c;
+int64_t sexyfilter_acc1 = 0, sexyfilter_acc2 = 0;
 
-	x = 2 * M_PI * 6000 / FSettings.SndRate;
-	p = ((double)2 - cos(x)) - sqrt(pow((double)2 - cos(x), 2) - 1);
+/* SexyFilter2's separate accumulator. Like sexyfilter_acc1/_acc2 it
+ * was a function-local static, which meant FCEUSND_Power couldn't
+ * reset it - cart B in a long-running process would inherit cart A's
+ * lowpass state. Lifted to file scope alongside the others so
+ * SexyFilter_Reset can zero it too. */
+int64_t sexyfilter2_acc = 0;
 
-	c = p * 0x100000;
- #endif
-	static int64_t acc = 0;
-
-	while (count--) {
-		int64_t dropcurrent;
-		dropcurrent = ((*in << 16) - acc) >> 3;
-
-		acc += dropcurrent;
-		*in = acc >> 16;
-		in++;
-#if 0
-		 acc=((int64_t)0x100000-c)* *in + ((c*acc)>>20);
-		*in=acc>>20;
-		in++;
-#endif
-	}
+void SexyFilter_Reset(void)
+{
+   sexyfilter_acc1 = 0;
+   sexyfilter_acc2 = 0;
+   sexyfilter2_acc = 0;
+   /* mrindex is reset in MakeFilters, which FCEUI_Sound calls on
+    * every cart load, so it doesn't need to be reset here. */
 }
 
-int64_t sexyfilter_acc1 = 0, sexyfilter_acc2 = 0;
+void SexyFilter2(int32_t *in, int32_t count) {
+	while (count--) {
+		int64_t dropcurrent;
+		dropcurrent = ((*in << 16) - sexyfilter2_acc) >> 3;
+
+		sexyfilter2_acc += dropcurrent;
+		*in = sexyfilter2_acc >> 16;
+		in++;
+	}
+}
 
 void SexyFilter(int32_t *in, int32_t *out, int32_t count) {
 	int32_t mul1, mul2, vmul;

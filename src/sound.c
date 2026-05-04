@@ -649,8 +649,12 @@ static void RDoSQLQ(void) {
 	totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
 
 	if (!inie[0] && !inie[1]) {
-		for (V = start; V < end; V++)
-			Wave[V >> 4] += totalout;
+		/* Both squares silent: amp[x] was forced to 0 above (line
+		 * "if (!inie[x]) amp[x] = 0"), which propagates through
+		 * ttable[x] to make totalout = wlookup1[0] = 0. The
+		 * previous code looped (end - start) iterations adding 0
+		 * to Wave[V>>4] - genuinely no-op for ~30000 NES cycles
+		 * per frame. Skip the loop entirely. */
 	} else {
 		for (V = start; V < end; V++) {
 			/* int tmpamp=0;
@@ -970,8 +974,23 @@ int FlushEmulateSound(void) {
 
 		end = NeoFilterSound(WaveHi, WaveFinal, SOUNDTS, &left);
 
+		/* Slide the trailing `left` coefficient-history samples back
+		 * to the start of the buffer for next frame's filter, then
+		 * clear the area between left and SOUNDTS so next frame's
+		 * channel accumulators start at zero.
+		 *
+		 * The previous code cleared all the way to sizeof(WaveHi),
+		 * but only indices [left, SOUNDTS) were dirtied this frame -
+		 * everything past SOUNDTS is still zero from the prior
+		 * frame's clear (or from FCEUSND_Power on first frame).
+		 * WaveHi is 40000 entries = 160 KB; SOUNDTS is bounded by
+		 * NES cycles per frame (~30000), so this saves ~40 KB of
+		 * memset per HQ frame. The (SOUNDTS > left) guard handles
+		 * the degenerate case of a very short frame where SOUNDTS
+		 * may not have advanced past the coefficient history. */
 		memmove(WaveHi, WaveHi + SOUNDTS - left, left * sizeof(uint32_t));
-		memset(WaveHi + left, 0, sizeof(WaveHi) - left * sizeof(uint32_t));
+		if ((uint32_t)SOUNDTS > (uint32_t)left)
+			memset(WaveHi + left, 0, (SOUNDTS - left) * sizeof(uint32_t));
 
 		if (GameExpSound.HiSync) GameExpSound.HiSync(left);
 		for (x = 0; x < 5; x++)
@@ -1069,6 +1088,13 @@ void FCEUSND_Power(void) {
 	soundtsoffs = 0;
 	IRQFrameMode = 0x1; /* Only initialized by power-on reset, not by soft reset. NRS: don't start with Frame IRQ enabled for greater compatibility. Any game that actually uses frame IRQ will explicitly enable it, anyway. */
 	LoadDMCPeriod(DMCFormat & 0xF);
+
+	/* Reset post-mix filter accumulators. These are file-scope in
+	 * filter.c and were not previously cleared on cart load, so a
+	 * second cart loaded in the same process inherited the first
+	 * cart's IIR state. Audibly minor on its own but breaks
+	 * frame-determinism for the first samples of a new run. */
+	SexyFilter_Reset();
 }
 
 
@@ -1096,12 +1122,23 @@ void SetSoundVariables(void) {
 			DoSQ1 = RDoSQ1;
 			DoSQ2 = RDoSQ2;
 		} else {
-			DoNoise = DoTriangle = DoPCM = DoSQ1 = DoSQ2 = Dummyfunc;
-			DoSQ1 = RDoSQLQ;
-			DoSQ2 = RDoSQLQ;
+			/* In LQ mode the squares are mixed by RDoSQLQ in a single
+			 * call, and the triangle/noise/PCM channels are mixed by
+			 * RDoTriangleNoisePCMLQ in a single call - both functions
+			 * advance their respective ChannelBC and process all the
+			 * channels they handle in one pass. The previous code
+			 * pointed DoTriangle/DoNoise/DoPCM all at
+			 * RDoTriangleNoisePCMLQ, which meant the second and third
+			 * call entered the function only to be rejected by the
+			 * "if (end <= start) return;" guard at the top. Same for
+			 * DoSQ1/DoSQ2 -> RDoSQLQ. Map only one entry each to the
+			 * real worker and stub the others so we save the redundant
+			 * call+early-return overhead. */
+			DoSQ1      = RDoSQLQ;
+			DoSQ2      = Dummyfunc;
 			DoTriangle = RDoTriangleNoisePCMLQ;
-			DoNoise = RDoTriangleNoisePCMLQ;
-			DoPCM = RDoTriangleNoisePCMLQ;
+			DoNoise    = Dummyfunc;
+			DoPCM      = Dummyfunc;
 		}
 	} else {
 		DoNoise = DoTriangle = DoPCM = DoSQ1 = DoSQ2 = Dummyfunc;
@@ -1221,6 +1258,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &wlcount[3], sizeof(wlcount[3]) | FCEUSTATE_RLSB, "WLC4" },
 	{ &sexyfilter_acc1, sizeof(sexyfilter_acc1) | FCEUSTATE_RLSB, "FAC1" },
 	{ &sexyfilter_acc2, sizeof(sexyfilter_acc2) | FCEUSTATE_RLSB, "FAC2" },
+	{ &sexyfilter2_acc, sizeof(sexyfilter2_acc) | FCEUSTATE_RLSB, "FAC3" },
 	{ &lq_tcout, sizeof(lq_tcout) | FCEUSTATE_RLSB, "TCOU"},
 
 /* 2018-12-14 - Wii and possibly other big-endian platforms are having

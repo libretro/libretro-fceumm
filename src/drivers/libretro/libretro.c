@@ -1067,9 +1067,12 @@ static void stereo_filter_apply_delay(int32_t *sound_buffer, size_t size)
       stereo_filter_delay.samples_size = tmp_buffer_size;
    }
 
-   for (i = 0; i < size; i++)
-      stereo_filter_delay.samples[i +
-            stereo_filter_delay.samples_pos] = sound_buffer[i];
+   /* Copy current samples into the delay buffer's tail. The previous
+    * implementation walked the array element-by-element; memcpy is
+    * trivially equivalent for non-overlapping int32_t blocks and
+    * lets the compiler/libc dispatch SIMD where available. */
+   memcpy(stereo_filter_delay.samples + stereo_filter_delay.samples_pos,
+         sound_buffer, size * sizeof(int32_t));
 
    stereo_filter_delay.samples_pos += size;
 
