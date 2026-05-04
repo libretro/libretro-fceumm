@@ -1212,26 +1212,44 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       trainerpoo = (uint8_t*)FCEU_gmalloc(512);
       if (!trainerpoo)
          return 0;
-      FCEU_fread(trainerpoo, 512, 1, fp);
+      if (FCEU_fread(trainerpoo, 1, 512, fp) != 512)
+         FCEU_PrintError(" Trainer block truncated; remaining bytes left zero.\n");
       filesize -= 512;
    }
 
-   romSize = iNESCart.PRGRomSize + iNESCart.CHRRomSize;
+   /* Reject a header that claims no PRG ROM at all. iNES_read_header_info
+    * applies "ROM_size = 256" on the legacy path when the byte is zero, but
+    * the iNES 2.0 path can yield PRGRomSize == 0 from a malformed exponent
+    * encoding. Without PRG bytes, there is nothing to execute and uppow2(0)
+    * returns 0, which would feed FCEU_malloc(0) (implementation-defined)
+    * and downstream cart-mapping arithmetic. */
+   if (iNESCart.PRGRomSize <= 0)
+   {
+      FCEU_PrintError(" Header reports zero PRG ROM size; refusing to load.\n");
+      return 0;
+   }
+
+   /* Cast to uint64_t before adding to avoid signed int overflow when both
+    * sizes approach the per-side cap of 0x40000000 set by
+    * iNES_read_header_info. The result feeds the file-length sanity prints
+    * as well as later signed/unsigned comparisons. */
+   romSize = (uint64_t)iNESCart.PRGRomSize + (uint64_t)iNESCart.CHRRomSize;
 
    if (romSize > filesize)
    {
-      FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", romSize -  filesize);
+      FCEU_PrintError(" File length is too short to contain all data reported from header by %llu\n", (unsigned long long)(romSize - filesize));
    }
    else if (romSize < filesize)
-      FCEU_PrintError(" File contains %llu bytes of unused data\n", filesize - romSize);
+      FCEU_PrintError(" File contains %llu bytes of unused data\n", (unsigned long long)(filesize - romSize));
 
    rom_size_pow2 = uppow2(iNESCart.PRGRomSize);
-   
+
    if ((ROM = (uint8_t*)FCEU_malloc(rom_size_pow2)) == NULL)
       return 0;
 
    memset(ROM, 0xFF, rom_size_pow2);
-   FCEU_fread(ROM, 1, iNESCart.PRGRomSize, fp);
+   if (FCEU_fread(ROM, 1, iNESCart.PRGRomSize, fp) != (size_t)iNESCart.PRGRomSize)
+      FCEU_PrintError(" PRG ROM block truncated; remaining bytes left as 0xFF (open bus).\n");
 
    if (iNESCart.CHRRomSize) {
       vrom_size_pow2 = uppow2(iNESCart.CHRRomSize);
@@ -1244,9 +1262,10 @@ int iNESLoad(const char *name, FCEUFILE *fp)
       }
 
       memset(VROM, 0xFF, vrom_size_pow2);
-      FCEU_fread(VROM, 1, iNESCart.CHRRomSize, fp);
+      if (FCEU_fread(VROM, 1, iNESCart.CHRRomSize, fp) != (size_t)iNESCart.CHRRomSize)
+         FCEU_PrintError(" CHR ROM block truncated; remaining bytes left as 0xFF.\n");
    }
-   
+
    if (iNESCart.miscROMSize) {
 	   MiscROM =(uint8_t*) FCEU_malloc(iNESCart.miscROMSize);
 	   if (!MiscROM) {
@@ -1256,7 +1275,8 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 		   ROM =NULL;
 		   return 0;
 	   }
-	   FCEU_fread(MiscROM, 1, iNESCart.miscROMSize, fp);
+	   if (FCEU_fread(MiscROM, 1, iNESCart.miscROMSize, fp) != (size_t)iNESCart.miscROMSize)
+		   FCEU_PrintError(" Misc ROM block truncated; remaining bytes left zero.\n");
    }
 
    iNESCart.PRGCRC32   = CalcCRC32(0, ROM, iNESCart.PRGRomSize);

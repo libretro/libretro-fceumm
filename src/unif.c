@@ -90,7 +90,13 @@ static uint32_t chr_chip_count;
 
 static uint64_t UNIF_PRGROMSize, UNIF_CHRROMSize;
 
-static int FixRomSize(uint32_t size, uint32_t minimum) {
+/* Returns the next power of two >= max(size, minimum), capped at 0x80000000.
+ * Returning uint32_t (not int) matters because callers store the result back
+ * into a uint64_t variable: a signed-int cap of 0x80000000 is INT_MIN, and
+ * widening to uint64_t sign-extends to 0xFFFFFFFF80000000, which then drives
+ * a 16-EiB malloc. Defensive even though the cap is unreachable in practice
+ * given LoadPRG/LoadCHR's own per-chunk caps. */
+static uint32_t FixRomSize(uint32_t size, uint32_t minimum) {
 	uint32_t x = 1;
 
 	if (size < minimum)
@@ -175,13 +181,21 @@ static int DoMirroring(FCEUFILE *fp) {
 				FCEU_printf(" Name/Attribute Table Mirroring: %s\n", stuffo[t]);
 		}
 	} else {
-		FCEU_printf(" Incorrect Mirroring Chunk Size (%d). Data is:", uchead.info);
-		for (i = 0; i < uchead.info; i++) {
+		/* Diagnostic dump for malformed chunks: cap to a sensible
+		 * maximum so a chunk that declares info ~= 0xFFFFFFFF doesn't
+		 * make us spin printf'ing the whole file. Skip past any
+		 * remaining bytes so the chunk loop continues correctly. */
+		uint32_t dump_max = uchead.info < 16 ? uchead.info : 16;
+		FCEU_printf(" Incorrect Mirroring Chunk Size (%u). Data is:", (unsigned)uchead.info);
+		for (i = 0; i < dump_max; i++) {
 			if ((t = FCEU_fgetc(fp)) == EOF)
 				return(0);
 			FCEU_printf(" %02x", t);
 		}
-		FCEU_printf("\n Default Name/Attribute Table Mirroring: Horizontal\n", uchead.info);
+		if (uchead.info > dump_max
+		    && FCEU_fseek(fp, uchead.info - dump_max, SEEK_CUR) < 0)
+			return(0);
+		FCEU_printf("\n Default Name/Attribute Table Mirroring: Horizontal\n");
 		mirrortodo = 0;
 	}
 	return(1);
@@ -264,11 +278,21 @@ static int CTRL(FCEUFILE *fp) {
 		if (t & 2)
 			GameInfo->input[1] = SI_ZAPPER;
 	} else {
-		FCEU_printf(" Incorrect Control Chunk Size (%d). Data is:", uchead.info);
-		for (i = 0; i < uchead.info; i++) {
-			t = FCEU_fgetc(fp);
+		/* Same defensive cap as DoMirroring's else-branch: an attacker-
+		 * controlled chunk size shouldn't be able to spin a 4 GiB
+		 * diagnostic dump, and the missing EOF check let FCEU_fgetc
+		 * return -1 forever on a truncated stream. Cap, log, and seek
+		 * past the rest. */
+		uint32_t dump_max = uchead.info < 16 ? uchead.info : 16;
+		FCEU_printf(" Incorrect Control Chunk Size (%u). Data is:", (unsigned)uchead.info);
+		for (i = 0; i < dump_max; i++) {
+			if ((t = FCEU_fgetc(fp)) == EOF)
+				return(0);
 			FCEU_printf(" %02x", t);
 		}
+		if (uchead.info > dump_max
+		    && FCEU_fseek(fp, uchead.info - dump_max, SEEK_CUR) < 0)
+			return(0);
 		FCEU_printf("\n");
 		GameInfo->input[0] = GameInfo->input[1] = SI_GAMEPAD;
 	}
@@ -334,14 +358,29 @@ static int SetBoardName(FCEUFILE *fp) {
 	/* The subsequent 4-byte memcmp()s for "NES-", "UNL-", "HVC-", "BTL-",
 	 * "BMC-" require the boardname buffer to be at least 4 bytes long.
 	 * A malformed UNIF file can declare a MAPR chunk with size < 4, which
-	 * would otherwise produce a heap out-of-bounds read. */
-	if (uchead.info < 4) {
-		FCEU_PrintError(" MAPR chunk too small (%u bytes); ignoring.\n", (unsigned)uchead.info);
+	 * would otherwise produce a heap out-of-bounds read.
+	 *
+	 * Also cap the upper bound. Real UNIF board names are short (~< 32
+	 * chars). A malformed chunk that declares uchead.info near 0xFFFFFFFF
+	 * causes (uchead.info + 1) to overflow uint32_t back to 0, so
+	 * FCEU_malloc(0) would return a tiny buffer (or NULL) and the
+	 * subsequent FCEU_fread would attempt a 4 GiB write into it - heap
+	 * corruption that ASAN catches as a SEGV in unif.c when the trailing
+	 * boardname[uchead.info] = 0 store dereferences past the buffer. */
+	if (uchead.info < 4 || uchead.info > 256) {
+		FCEU_PrintError(" MAPR chunk size %u out of range; ignoring.\n", (unsigned)uchead.info);
 		return 0;
 	}
 	if (!(boardname = (uint8_t*)FCEU_malloc(uchead.info + 1)))
 		return(0);
-	FCEU_fread(boardname, 1, uchead.info, fp);
+	/* Short reads leave the rest as the zero from FCEU_malloc, so the
+	 * trailing NUL keeps the string well-formed; treat the truncation as
+	 * a parse error rather than letting downstream board lookup match
+	 * a garbage prefix. */
+	if (FCEU_fread(boardname, 1, uchead.info, fp) != uchead.info) {
+		FCEU_PrintError(" MAPR chunk truncated.\n");
+		return(0);
+	}
 	boardname[uchead.info] = 0;
 	/* strip whitespaces */
 	boardname = (uint8_t*)string_trim_whitespace((char *const)boardname);

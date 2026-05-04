@@ -604,7 +604,10 @@ static void FreeFDSMemory(void) {
 
 static int SubLoad(FCEUFILE *fp) {
 	struct md5_context md5;
-	uint8_t header[16];
+	/* Zero-initialise so that if FCEU_fread returns short for any reason
+	 * (truncated stream mid-read, IO error etc.) the downstream memcmps and
+	 * header[4] read see deterministic 0s rather than stack garbage. */
+	uint8_t header[16] = {0};
 	uint32_t x;
 	uint64_t fsize = FCEU_fgetsize(fp);
 
@@ -615,7 +618,8 @@ static int SubLoad(FCEUFILE *fp) {
 	if (fsize < 16)
 		return(0);
 
-	FCEU_fread(header, 16, 1, fp);
+	if (FCEU_fread(header, 1, 16, fp) != 16)
+		return(0);
 
 	if (memcmp(header, "FDS\x1a", 4)) {
 		if (!(memcmp(header + 1, "*NINTENDO-HVC*", 14))) {
@@ -645,7 +649,10 @@ static int SubLoad(FCEUFILE *fp) {
 	md5_starts(&md5);
 
 	for (x = 0; x < TotalSides; x++) {
-		FCEU_fread(diskdata[x], 1, 65500, fp);
+		/* Zero from FCEU_malloc covers any short read here; flag it so
+		 * the user knows a side is incomplete. */
+		if (FCEU_fread(diskdata[x], 1, 65500, fp) != 65500)
+			FCEU_PrintError(" FDS side %u truncated.\n", (unsigned)x);
 		md5_update(&md5, diskdata[x], 65500);
 	}
 	md5_finish(&md5, GameInfo->MD5);
