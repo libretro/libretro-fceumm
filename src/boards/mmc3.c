@@ -1520,8 +1520,8 @@ static uint32 m555_count_target = 0x20000000;
 
 static SFORMAT M555StateRegs[] = {
 	{ m555_reg, 2, "REGS" },
-	{ &m555_count, 2, "CNTR" },
-	{ &m555_count_expired, 2, "CNTE" },
+	{ &m555_count, 4 | FCEUSTATE_RLSB, "CNTR" },
+	{ &m555_count_expired, 1, "CNTE" },
 	{ 0 }
 };
 

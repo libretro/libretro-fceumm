@@ -117,5 +117,5 @@ void UNL3DBlock_Init(CartInfo *info) {
 	info->Reset = M355Reset;
 	info->Close = M355Close;
 	MapIRQHook = M355CPUIRQHook;
-	AddExState(&address, sizeof(address), 0, "ADDR");
+	AddExState(&address, sizeof(address), 1, "ADDR");
 }

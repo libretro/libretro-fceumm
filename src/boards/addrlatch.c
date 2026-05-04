@@ -87,7 +87,7 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16
 		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	}
 	GameStateRestore = StateRestore;
-	AddExState(&latche, 2, 0, "LATC");
+	AddExState(&latche, 2, 1, "LATC");
 }
 
 /*------------------ BMCD1038 ---------------------------*/

@@ -36,7 +36,7 @@ static SFORMAT StateRegs[] =
 	{ creg, 8, "CREG" },
 	{ &mirr, 1, "MIRR" },
 	{ &IRQa, 1, "IRQA" },
-	{ &IRQCount, 4, "IRQC" },
+	{ &IRQCount, 4 | FCEUSTATE_RLSB, "IRQC" },
 	{ 0 }
 };
 
@@ -300,6 +300,7 @@ static void M69IRQHook(int a) {
 }
 
 static void StateRestore(int version) {
+	if (sndcmd >= 14) sndcmd = 0;	/* sreg[] has 14 entries */
 	Sync();
 }
 

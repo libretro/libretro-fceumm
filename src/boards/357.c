@@ -113,6 +113,7 @@ static void FP_FASTAPASS(1) M357IRQHook(int a) {
 }
 
 static void StateRestore(int version) {
+	dipswitch &= 3;	/* outer_bank[] has 4 entries */
 	Sync();
 }
 

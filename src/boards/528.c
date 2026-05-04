@@ -114,8 +114,15 @@ static void StateRestore(int version) {
 	Sync();
 }
 
+static void M528Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
+}
+
 void Mapper528_Init(CartInfo *info) {
 	info->Power = M528Power;
+	info->Close = M528Close;
 	GameStateRestore = StateRestore;
     VRCIRQ_Init();
     AddExState(&StateRegs, ~0, 0, 0);

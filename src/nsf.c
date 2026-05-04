@@ -135,9 +135,14 @@ static INLINE void BANKSET(uint32 A, uint32 bank) {
 
 int NSFLoad(FCEUFILE *fp) {
 	int x;
+	uint64 fsize;
 
 	FCEU_fseek(fp, 0, SEEK_SET);
-	FCEU_fread(&NSFHeader, 1, 0x80, fp);
+	/* NSFHeader is file-scope static; if a previous successful load left
+	 * it populated, a shorter file that doesn't fully overwrite it could
+	 * bypass the ID memcmp on stale data. Validate read length. */
+	if (FCEU_fread(&NSFHeader, 1, 0x80, fp) != 0x80)
+		return 0;
 	if (memcmp(NSFHeader.ID, "NESM\x1a", 5))
 		return 0;
 	NSFHeader.SongName[31] = NSFHeader.Artist[31] = NSFHeader.Copyright[31] = 0;
@@ -155,10 +160,32 @@ int NSFLoad(FCEUFILE *fp) {
 	PlayAddr = NSFHeader.PlayAddressLow;
 	PlayAddr |= NSFHeader.PlayAddressHigh << 8;
 
-	NSFSize = FCEU_fgetsize(fp) - 0x80;
+	/* Validate that there is data past the 0x80-byte header before
+	 * subtracting; otherwise NSFSize underflows uint64 and propagates a
+	 * huge size into NSFMaxBank/uppow2/FCEU_malloc, leading to a heap
+	 * overflow on the subsequent fread. Also cap at a sane ceiling. */
+	fsize = FCEU_fgetsize(fp);
+	if (fsize <= 0x80) {
+		FCEUD_PrintError("NSF file truncated (no song data after header).");
+		return(0);
+	}
+	NSFSize = fsize - 0x80;
+	/* Ceiling: 16 MiB of song data is far beyond reality */
+	if (NSFSize > (16u << 20)) {
+		FCEUD_PrintError("NSF song data unreasonably large.");
+		return(0);
+	}
 
 	NSFMaxBank = ((NSFSize + (LoadAddr & 0xfff) + 4095) / 4096);
 	NSFMaxBank = uppow2(NSFMaxBank);
+	/* Cap at 2^19 so NSFMaxBank * 4096 fits in signed int (the type
+	 * of NSFMaxBank). 2^19 * 4096 = 2 GiB which is already absurd for
+	 * an NSF file; the previous cap of 2^20 produced 4 GiB which
+	 * overflows signed int and is undefined behaviour. */
+	if (!NSFMaxBank || NSFMaxBank > (1u << 19)) {
+		FCEUD_PrintError("NSF bank count out of range.");
+		return(0);
+	}
 
 	if (!(NSFDATA = (uint8*)FCEU_malloc(NSFMaxBank * 4096)))
 		return 0;

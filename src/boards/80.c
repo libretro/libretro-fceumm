@@ -42,7 +42,7 @@ static SFORMAT StateRegs95[] =
 	{ preg, 3, "PREG" },
 	{ creg, 6, "CREG" },
 	{ mcache, 8, "MCCH" },
-	{ &lastppu, 4, "LPPU" },
+	{ &lastppu, 4 | FCEUSTATE_RLSB, "LPPU" },
 	{ 0 }
 };
 
@@ -51,7 +51,7 @@ static SFORMAT StateRegs207[] =
 	{ preg, 3, "PREG" },
 	{ creg, 6, "CREG" },
 	{ mcache, 8, "MCCH" },
-	{ &lastppu, 4, "LPPU" },
+	{ &lastppu, 4 | FCEUSTATE_RLSB, "LPPU" },
 	{ 0 }
 };
 

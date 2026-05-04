@@ -1076,11 +1076,51 @@ static void iNES_read_header_info(void) {
       if (head.PRGRAM_size & 0xF0) iNESCart.PRGRamSaveSize = 64 << ((head.PRGRAM_size >> 4) & 0x0F);
       if (head.CHRRAM_size & 0x0F) iNESCart.CHRRamSize     = 64 << ((head.CHRRAM_size >> 0) & 0x0F);
       if (head.CHRRAM_size & 0xF0) iNESCart.CHRRamSaveSize = 64 << ((head.CHRRAM_size >> 4) & 0x0F);
-      iNESCart.PRGRomSize = ROM_size >=0xF00? (pow(2, head.ROM_size >>2)*((head.ROM_size &3)*2+1)): (ROM_size*0x4000);
-      iNESCart.CHRRomSize =VROM_size >=0xF00? (pow(2, head.VROM_size>>2)*((head.VROM_size&3)*2+1)): (VROM_size*0x2000);;
+      /* iNES 2.0 exponent encoding: when the 12-bit count >= 0xF00, the byte
+       * encodes (multiplier * 2^exponent) where exponent = byte>>2 (0..63) and
+       * multiplier = (byte&3)*2+1. Cap exponent so the result stays well
+       * within uint32 (and a sane size); otherwise pow(2, 63) overflows
+       * uint32 implicitly with undefined results, and downstream uppow2()
+       * truncates back to a small allocation, leading to a heap overflow on
+       * the subsequent fread. Cap at 30 so the maximum is 7 << 30 = ~7 GiB
+       * which still fits in uint32 (truncated to ~3 GiB) but is far above
+       * any real cart and gets caught by sane validation. We additionally
+       * clamp the final value to a safe ceiling. */
+      {
+         uint32 exp_prg = head.ROM_size >> 2;
+         uint32 exp_chr = head.VROM_size >> 2;
+         uint32 prg, chr;
+         if (exp_prg > 30) exp_prg = 30;
+         if (exp_chr > 30) exp_chr = 30;
+         prg = ROM_size  >= 0xF00 ? ((uint32)1 << exp_prg) * ((head.ROM_size  & 3) * 2 + 1) : (ROM_size  * 0x4000);
+         chr = VROM_size >= 0xF00 ? ((uint32)1 << exp_chr) * ((head.VROM_size & 3) * 2 + 1) : (VROM_size * 0x2000);
+         /* Cap below 2 GiB so the value fits comfortably in the
+          * downstream int PRGRomSize / CHRRomSize fields without
+          * going negative, and so uppow2 returns a finite power-of-two
+          * within int range. Anything larger is bogus anyway. */
+         if (prg > 0x40000000u) prg = 0x40000000u;
+         if (chr > 0x40000000u) chr = 0x40000000u;
+         iNESCart.PRGRomSize = (int)prg;
+         iNESCart.CHRRomSize = (int)chr;
+      }
       iNESCart.miscROMNumber =head.MiscRoms;
-      iNESCart.miscROMSize =iNESCart.miscROMNumber? (iNESCart.totalFileSize -16 -(head.ROM_type &4? 512: 0) -iNESCart.PRGRomSize -iNESCart.CHRRomSize): 0;
-      if (iNESCart.miscROMSize &0x8000000) iNESCart.miscROMSize =0;
+      if (iNESCart.miscROMNumber) {
+         /* Compute miscROMSize as int64 to avoid silent wraparound when
+          * the (attacker-controlled) PRGRomSize / CHRRomSize fields
+          * exceed the file size. Reject negative or absurdly large
+          * results rather than passing a wrapped value to malloc. */
+         int64 misc = (int64)iNESCart.totalFileSize
+                    - 16
+                    - ((head.ROM_type & 4) ? 512 : 0)
+                    - (int64)iNESCart.PRGRomSize
+                    - (int64)iNESCart.CHRRomSize;
+         if (misc <= 0 || misc > 0x8000000)	/* > 128 MiB is suspect */
+            iNESCart.miscROMSize = 0;
+         else
+            iNESCart.miscROMSize = (int)misc;
+      } else {
+         iNESCart.miscROMSize = 0;
+      }
    } else {
       iNESCart.submapper = iNESCart.miscROMNumber = iNESCart.miscROMSize = 0;
       iNESCart.PRGRomSize =ROM_size*0x4000;

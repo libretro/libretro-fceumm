@@ -26,7 +26,7 @@ static uint16 areg;
 static SFORMAT StateRegs[] =
 {
 	{ mram, 4, "MRAM" },
-	{ &areg, 2, "AREG" },
+	{ &areg, 2 | FCEUSTATE_RLSB, "AREG" },
 	{ &vreg, 1, "VREG" },
 	{ 0 }
 };

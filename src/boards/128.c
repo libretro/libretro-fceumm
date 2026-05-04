@@ -52,5 +52,5 @@ void Mapper128_Init(CartInfo *info) {
 	Latch_Init(info, Sync, NULL, 0, 0);
     info->Power = M128Power;
     info->Reset = M128Reset;
-    AddExState(&outerbank, 2, 0, "BANK");
+    AddExState(&outerbank, 2, 1, "BANK");
 }

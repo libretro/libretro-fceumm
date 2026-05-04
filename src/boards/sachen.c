@@ -90,6 +90,7 @@ static void S8259Reset(void) {
 }
 
 static void S8259Restore(int version) {
+	cmd &= 7;	/* latch[] has 8 entries; clamp savestate value */
 	S8259Synco();
 }
 
@@ -298,6 +299,7 @@ static DECLFW(S74LS374NWrite) {
 }
 
 static void S74LS374NRestore(int version) {
+	cmd &= 7;	/* latch[] has 8 entries; clamp savestate value */
 	S74LS374NSynco();
 }
 

@@ -82,7 +82,15 @@ int AllocGenieRW(void)
    if (!BWriteG)
    {
       if (!(BWriteG = (writefunc*)FCEU_malloc(0x8000 * sizeof(writefunc))))
+      {
+         /* Free AReadG too on partial-failure to avoid leaking a
+          * 256 KB read-handler table. Subsequent calls would otherwise
+          * see AReadG != NULL and skip its alloc, but RWWrap stays 0
+          * because we return 0, so the table is never used or freed. */
+         free(AReadG);
+         AReadG = NULL;
          return 0;
+      }
    }
    else
       memset(BWriteG, 0, 0x8000 * sizeof(writefunc));
@@ -240,6 +248,8 @@ FCEUGI *FCEUI_LoadGame(const char *name, const uint8_t *databuf, size_t databufs
    ResetGameLoaded();
 
    GameInfo = malloc(sizeof(FCEUGI));
+   if (!GameInfo)
+      return NULL;
    memset(GameInfo, 0, sizeof(FCEUGI));
 
    GameInfo->soundchan = 0;
@@ -461,7 +471,10 @@ void FCEU_printf(char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-	vsprintf(temp, format, ap);
+	/* vsnprintf instead of vsprintf so a long expansion (e.g. of a ROM
+	 * filename or an attacker-controlled string field) is truncated
+	 * rather than overflowing the stack buffer. */
+	vsnprintf(temp, sizeof(temp), format, ap);
 	FCEUD_Message(temp);
 
 	va_end(ap);
@@ -474,7 +487,7 @@ void FCEU_PrintError(char *format, ...)
 	va_list ap;
 
 	va_start(ap, format);
-	vsprintf(temp, format, ap);
+	vsnprintf(temp, sizeof(temp), format, ap);
 	FCEUD_PrintError(temp);
 
 	va_end(ap);

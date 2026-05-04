@@ -114,13 +114,21 @@ void RebuildSubCheats(void) {
 		if (c->type == 1 && c->status) {
 			if (GetReadHandler(c->addr) == SubCheatsRead) {
 				/* Prevent a catastrophe by this check. */
-			} else {
+			} else if (numsubcheats < (int)(sizeof(SubCheats) / sizeof(SubCheats[0]))) {
 				SubCheats[numsubcheats].PrevRead = GetReadHandler(c->addr);
 				SubCheats[numsubcheats].addr = c->addr;
 				SubCheats[numsubcheats].val = c->val;
 				SubCheats[numsubcheats].compare = c->compare;
 				SetReadHandler(c->addr, c->addr, SubCheatsRead);
 				numsubcheats++;
+			} else {
+				/* SubCheats[] table is full; further substitution
+				 * cheats are dropped silently rather than overflowing. */
+				static int warned = 0;
+				if (!warned) {
+					FCEU_PrintError(" Too many active substitution cheats; some have been ignored.\n");
+					warned = 1;
+				}
 			}
 		}
 		c = c->next;

@@ -267,7 +267,7 @@ void FCEUSS_Save_Mem(void)
 
    totalsize += WriteStateChunk(mem, 0x10, SFMDATA);
 
-   if (SPreSave)
+   if (SPostSave)
       SPostSave();
 
    memstream_seek(mem, 4, SEEK_SET);
@@ -326,6 +326,22 @@ void AddExState(void *v, uint32 s, int type, char *desc)
 {
    /* prevent adding a terminator to the list if a NULL pointer was provided */
    if (v == NULL) return;
+   /* Need at least one slot for the new entry plus one for the terminator.
+    * If we're already at the second-to-last slot (62), we can write the
+    * entry there and the terminator at slot 63, but no further entries
+    * may be added. Beyond that, drop the entry to avoid silently
+    * overwriting the previous one with the terminator. */
+   if (SFEXINDEX >= (int)(sizeof(SFMDATA) / sizeof(SFMDATA[0])) - 1)
+   {
+      static int warned = 0;
+      if (!warned)
+      {
+         FCEU_PrintError(" SFMDATA[] full; some state entries dropped (\"%s\").\n",
+               desc ? desc : "?");
+         warned = 1;
+      }
+      return;
+   }
    memset(SFMDATA[SFEXINDEX].desc, 0, sizeof(SFMDATA[SFEXINDEX].desc));
    if (desc)
       strncpy(SFMDATA[SFEXINDEX].desc, desc, sizeof(SFMDATA[SFEXINDEX].desc));
@@ -333,8 +349,7 @@ void AddExState(void *v, uint32 s, int type, char *desc)
    SFMDATA[SFEXINDEX].s = s;
    if (type)
       SFMDATA[SFEXINDEX].s |= RLSB;
-   if (SFEXINDEX < 63)
-      SFEXINDEX++;
+   SFEXINDEX++;
    SFMDATA[SFEXINDEX].v = 0;   /* End marker. */
 }
 

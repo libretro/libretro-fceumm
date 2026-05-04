@@ -114,5 +114,5 @@ void Mapper416_Init(CartInfo *info) {
 	AddExState(&reg, 1, 0, "REGS");
 	AddExState(&smb2j_reg, 1, 0, "SMBJ");
 	AddExState(&IRQa, 1, 0, "IRQa");
-	AddExState(&IRQCount, 2, 0, "IRQC");
+	AddExState(&IRQCount, 2, 1, "IRQC");
 }

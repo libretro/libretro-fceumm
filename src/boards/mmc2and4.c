@@ -103,6 +103,11 @@ static void MMC2and4Power(void) {
 }
 
 static void StateRestore(int version) {
+	/* latch0/latch1 are written as boolean (0 or 1) and used as
+	 * indices into creg[4] via creg[latch0] and creg[latch1 + 2].
+	 * Clamp savestate-loaded values to keep the indices in range. */
+	latch0 &= 1;
+	latch1 &= 1;
 	Sync();
 }
 

@@ -33,7 +33,7 @@ static SFORMAT StateRegs[] =
 	{ &mirr, 1, "MIRR" },
 	{ &prg_reg, 1, "PRG" },
 	{ &kogame, 1, "KGME" },
-	{ &count, 4, "CNT" },
+	{ &count, 4 | FCEUSTATE_RLSB, "CNT" },
 	{ chr_reg, 4, "CHR" },
 	{ 0 }
 };

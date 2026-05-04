@@ -37,8 +37,8 @@ static uint32 IRQCount, IRQa;
 
 static SFORMAT StateRegs[] =
 {
-	{ &IRQCount, 4, "IRQC" },
-	{ &IRQa, 4, "IRQA" },
+	{ &IRQCount, 4 | FCEUSTATE_RLSB, "IRQC" },
+	{ &IRQa, 4 | FCEUSTATE_RLSB, "IRQA" },
 	{ &prg, 1, "PRG" },
 	{ 0 }
 };

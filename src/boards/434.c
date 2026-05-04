@@ -63,5 +63,5 @@ void Mapper434_Init(CartInfo *info) {
 	info->Reset = Mapper434_Reset;
 	info->Power = Mapper434_Power;
 	GameStateRestore = StateRestore;
-	AddExState(&latch, 2, 0, "LATC");
+	AddExState(&latch, 2, 1, "LATC");
 }

@@ -151,8 +151,18 @@ DECLFR(CartBROB) {
 }
 
 void FASTAPASS(3) setprg2r(int r, uint32 A, uint32 V) {
+	/* If the registered chip size is < 2KB, PRGmask2[r] underflowed to
+	 * 0xFFFFFFFF in SetupCartPRGMapping. Clear the page rather than
+	 * indexing past PRGptr[r]. (The only currently-shipped caller that
+	 * registers a chip this small is malee.c with size==2048, which
+	 * gives mask==0 and works fine; this guard is defensive for any
+	 * future board.) */
+	if (!PRGptr[r] || PRGsize[r] < 2048) {
+		setpageptr(2, A, NULL, PRGram[r]);
+		return;
+	}
 	V &= PRGmask2[r];
-	setpageptr(2, A, PRGptr[r] ? (&PRGptr[r][V << 11]) : 0, PRGram[r]);
+	setpageptr(2, A, &PRGptr[r][V << 11], PRGram[r]);
 }
 
 void FASTAPASS(2) setprg2(uint32 A, uint32 V) {
@@ -160,8 +170,23 @@ void FASTAPASS(2) setprg2(uint32 A, uint32 V) {
 }
 
 void FASTAPASS(3) setprg4r(int r, uint32 A, uint32 V) {
+	if (!PRGptr[r] || PRGsize[r] < 4096) {
+		/* Fall back to two 2KB pages if size is at least 2KB; else
+		 * clear both 2KB pages. */
+		if (PRGptr[r] && PRGsize[r] >= 2048) {
+			uint32 mask2 = PRGmask2[r];
+			uint32 VA = V << 1;
+			int x;
+			for (x = 0; x < 2; x++)
+				setpageptr(2, A + (x << 11), &PRGptr[r][((VA + x) & mask2) << 11], PRGram[r]);
+		} else {
+			setpageptr(2, A,            NULL, PRGram[r]);
+			setpageptr(2, A + 0x800,    NULL, PRGram[r]);
+		}
+		return;
+	}
 	V &= PRGmask4[r];
-	setpageptr(4, A, PRGptr[r] ? (&PRGptr[r][V << 12]) : 0, PRGram[r]);
+	setpageptr(4, A, &PRGptr[r][V << 12], PRGram[r]);
 }
 
 void FASTAPASS(2) setprg4(uint32 A, uint32 V) {
@@ -220,6 +245,7 @@ void FASTAPASS(2) setprg32(uint32 A, uint32 V) {
 
 void FASTAPASS(3) setchr1r(int r, uint32 A, uint32 V) {
 	if (!CHRptr[r]) return;
+	if (CHRsize[r] < 1024) return;	/* mask underflow guard */
 	FCEUPPU_LineUpdate();
 	V &= CHRmask1[r];
 	if (CHRram[r])
@@ -231,6 +257,7 @@ void FASTAPASS(3) setchr1r(int r, uint32 A, uint32 V) {
 
 void FASTAPASS(3) setchr2r(int r, uint32 A, uint32 V) {
 	if (!CHRptr[r]) return;
+	if (CHRsize[r] < 2048) return;	/* mask underflow guard */
 	FCEUPPU_LineUpdate();
 	V &= CHRmask2[r];
 	VPageR[(A) >> 10] = VPageR[((A) >> 10) + 1] = &CHRptr[r][(V) << 11] - (A);
@@ -242,6 +269,7 @@ void FASTAPASS(3) setchr2r(int r, uint32 A, uint32 V) {
 
 void FASTAPASS(3) setchr4r(int r, uint32 A, uint32 V) {
 	if (!CHRptr[r]) return;
+	if (CHRsize[r] < 4096) return;	/* mask underflow guard */
 	FCEUPPU_LineUpdate();
 	V &= CHRmask4[r];
 	VPageR[(A) >> 10] = VPageR[((A) >> 10) + 1] =
@@ -257,7 +285,15 @@ void FASTAPASS(2) setchr8r(int r, uint32 V) {
 
 	if (!CHRptr[r]) return;
 	FCEUPPU_LineUpdate();
-	V &= CHRmask8[r];
+	if (CHRsize[r] < 8192) {
+		/* Undersized chip: clamp V to 0 to avoid OOB indexing. The 2KB
+		 * NTARAM-as-CHR pattern in mapper 218 currently relies on this
+		 * (always called with V=0); treat anything else as a logic
+		 * error and clamp. */
+		V = 0;
+	} else {
+		V &= CHRmask8[r];
+	}
 	for (x = 7; x >= 0; x--)
 		VPageR[x] = &CHRptr[r][V << 13];
 	if (CHRram[r])

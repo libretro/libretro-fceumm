@@ -66,7 +66,7 @@ static void power () {
 }
 
 static void reset () {
-	pad = ++pad %24;
+	pad = (pad + 1) % 24;
 	Latch_clear();
 }
 

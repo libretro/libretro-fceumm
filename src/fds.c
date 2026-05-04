@@ -120,6 +120,38 @@ void FDSGI(int h) {
 static void FDSStateRestore(int version) {
 	int x;
 
+	/* Sanity-check disk indices and block parameters. A malicious
+	 * savestate could otherwise:
+	 *  - set InDisk to a value 0..254 (255 means ejected) that's >=
+	 *    TotalSides, causing the read path to index past the
+	 *    8-element diskdata[] array and dereference an arbitrary
+	 *    pointer-shaped 8 bytes (heap-read primitive);
+	 *  - set mapperFDS_block to an out-of-enum value (no current
+	 *    case crashes but better to clamp);
+	 *  - set mapperFDS_blockstart + mapperFDS_diskaddr beyond 65500
+	 *    (BYTES_PER_SIDE), causing GET_FDS_DISK() to OOB-read up
+	 *    to 65 KB past the disk buffer. */
+	if (InDisk != 255 && InDisk >= TotalSides)
+		InDisk = 255;	/* eject */
+	if (SelectDisk >= TotalSides)
+		SelectDisk = 0;
+	if (mapperFDS_block > DSK_FILEDATA)	/* enum values 0..4 are valid */
+		mapperFDS_block = DSK_INIT;
+	/* BYTES_PER_SIDE is 65500. The read/write sites compute
+	 * (blockstart + diskaddr) as the offset into a 65500-byte buffer
+	 * after gating on diskaddr < blocklen. Clamp each component such
+	 * that any allowed (blockstart + diskaddr) stays within the buffer:
+	 *  - blockstart < BYTES_PER_SIDE  (so the base is in-range)
+	 *  - diskaddr fits in the remaining space, capped by blocklen anyway
+	 *  - blocklen capped to BYTES_PER_SIDE - blockstart so the gating
+	 *    check 'diskaddr < blocklen' is sufficient. */
+	if (mapperFDS_blockstart >= BYTES_PER_SIDE)
+		mapperFDS_blockstart = 0;
+	if (mapperFDS_blocklen > BYTES_PER_SIDE - mapperFDS_blockstart)
+		mapperFDS_blocklen = BYTES_PER_SIDE - mapperFDS_blockstart;
+	if (mapperFDS_diskaddr > mapperFDS_blocklen)
+		mapperFDS_diskaddr = mapperFDS_blocklen;
+
 	setmirror(((FDSRegs[5] & 8) >> 3) ^ 1);
 
 	if (version >= 9810)
@@ -577,6 +609,14 @@ static int SubLoad(FCEUFILE *fp) {
 	struct md5_context md5;
 	uint8 header[16];
 	int x;
+	uint64 fsize = FCEU_fgetsize(fp);
+
+	/* Reject files too short to contain a 16-byte header. Otherwise the
+	 * subsequent FCEU_fread leaves header[] partially uninitialised, and
+	 * the magic-string memcmps and side-count read at header[4] could
+	 * spuriously succeed on stack garbage. */
+	if (fsize < 16)
+		return(0);
 
 	FCEU_fread(header, 16, 1, fp);
 
@@ -679,6 +719,19 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	for (x = 0; x < TotalSides; x++) {
 		diskdatao[x] = (uint8*)FCEU_malloc(65500);
+		if (!diskdatao[x]) {
+			int y;
+			for (y = 0; y < x; y++) {
+				free(diskdatao[y]);
+				diskdatao[y] = NULL;
+			}
+			if (FDSBIOS)
+				free(FDSBIOS);
+			FDSBIOS = NULL;
+			free(FDSROM);
+			FDSROM = NULL;
+			return(0);
+		}
 		memcpy(diskdatao[x], diskdata[x], 65500);
 	}
 	
@@ -705,22 +758,22 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	AddExState(&FDSRegs[3], 1, 0, "REG4");
 	AddExState(&FDSRegs[4], 1, 0, "REG5");
 	AddExState(&FDSRegs[5], 1, 0, "REG6");
-	AddExState(&IRQCount, 4 | FCEUSTATE_RLSB, 1, "IRQC");
-	AddExState(&IRQLatch, 4 | FCEUSTATE_RLSB, 1, "IQL1");
+	AddExState(&IRQCount, 4, 1, "IRQC");
+	AddExState(&IRQLatch, 4, 1, "IQL1");
 	AddExState(&IRQa, 1, 0, "IRQA");
 	AddExState(&writeskip, 1, 0, "WSKI");
-	AddExState(&DiskPtr, 4 | FCEUSTATE_RLSB, 1, "DPTR");
-	AddExState(&DiskSeekIRQ, 4 | FCEUSTATE_RLSB, 1, "DSIR");
+	AddExState(&DiskPtr, 4, 1, "DPTR");
+	AddExState(&DiskSeekIRQ, 4, 1, "DSIR");
 	AddExState(&SelectDisk, 1, 0, "SELD");
 	AddExState(&InDisk, 1, 0, "INDI");
 	AddExState(&DiskWritten, 1, 0, "DSKW");
 
 	AddExState(&mapperFDS_control, 1, 0, "CTRG");
-	AddExState(&mapperFDS_filesize, 2 | FCEUSTATE_RLSB, 1, "FLSZ");
+	AddExState(&mapperFDS_filesize, 2, 1, "FLSZ");
 	AddExState(&mapperFDS_block, 1, 0, "BLCK");
-	AddExState(&mapperFDS_blockstart, 2 | FCEUSTATE_RLSB, 1, "BLKS");
-	AddExState(&mapperFDS_blocklen, 2 | FCEUSTATE_RLSB, 1, "BLKL");
-	AddExState(&mapperFDS_diskaddr, 2 | FCEUSTATE_RLSB, 1, "DADR");
+	AddExState(&mapperFDS_blockstart, 2, 1, "BLKS");
+	AddExState(&mapperFDS_blocklen, 2, 1, "BLKL");
+	AddExState(&mapperFDS_diskaddr, 2, 1, "DADR");
 	AddExState(&mapperFDS_diskaccess, 1, 0, "DACC");
 
 	CHRRAMSize = 8192;

@@ -35,7 +35,7 @@ static SFORMAT StateRegs[] =
 {
 	{ preg, 4, "PREG" },
 	{ creg, 8, "CREG" },
-	{ &IRQCount, 4, "IRQC" },
+	{ &IRQCount, 4 | FCEUSTATE_RLSB, "IRQC" },
 	{ 0 }
 };
 

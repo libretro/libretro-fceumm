@@ -45,7 +45,7 @@ void *FCEU_malloc(uint32 size)
    if (!ret)
    {
       FCEU_PrintError("Error allocating memory!");
-      ret = 0;
+      return NULL;
    }
    memset(ret, 0, size);
    return ret;

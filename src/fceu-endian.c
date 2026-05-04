@@ -28,12 +28,17 @@
 void FlipByteOrder(uint8 *src, uint32 count)
 {
    uint8 *start = src;
-   uint8 *end = src + count - 1;
+   uint8 *end;
 
    if ((count & 1) || !count)
       return;     /* This shouldn't happen. */
 
-   while (count--)
+   end = src + count - 1;
+   /* Iterate while start < end, not 'count' times: the original loop
+    * over-iterated and effectively performed a no-op on every even count.
+    * That broke savestate portability across LE<->BE for every
+    * FCEUSTATE_RLSB-marked field. */
+   while (start < end)
    {
       uint8 tmp;
 

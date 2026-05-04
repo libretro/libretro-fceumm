@@ -64,6 +64,7 @@ static void M88Power(void) {
 }
 
 static void StateRestore(int version) {
+	cmd &= 7;	/* reg[] has 8 entries; clamp savestate value */
 	Sync();
 	MSync();
 }

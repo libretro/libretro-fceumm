@@ -24,7 +24,7 @@ static uint16 latche;
 
 static SFORMAT StateRegs[] =
 {
-	{ &latche, 2, "LATC" },
+	{ &latche, 2 | FCEUSTATE_RLSB, "LATC" },
 	{ 0 }
 };
 

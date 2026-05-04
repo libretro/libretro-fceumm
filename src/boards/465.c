@@ -25,7 +25,7 @@ static uint8  latchData;
 
 static SFORMAT StateRegs[] =
 {
-   { &latchAddr, 2, "ADDR" },
+   { &latchAddr, 2 | FCEUSTATE_RLSB, "ADDR" },
    { &latchData, 1, "DATA" },
    { 0 }
 };

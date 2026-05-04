@@ -40,23 +40,30 @@
 static MEMWRAP *MakeMemWrap(RFILE *tz)
 {
    MEMWRAP *tmp = NULL;
+   int64_t fsize;
+
+   filestream_seek(tz, 0, RETRO_VFS_SEEK_POSITION_END);
+   fsize = filestream_tell(tz);
+   filestream_seek(tz, 0, RETRO_VFS_SEEK_POSITION_START);
+   /* filestream_tell may return -1 on failure; reject before passing the
+    * value (cast to a huge unsigned size) to malloc. */
+   if (fsize < 0)
+      return NULL;
 
    if (!(tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP))))
       goto doret;
    tmp->location = 0;
+   tmp->size     = (size_t)fsize;
 
-   filestream_seek(tz, 0, RETRO_VFS_SEEK_POSITION_END);
-   tmp->size = filestream_tell(tz);
-   filestream_seek(tz, 0, RETRO_VFS_SEEK_POSITION_START);
-
-   if (!(tmp->data_int = (uint8*)FCEU_malloc(tmp->size)))
+   if (tmp->size && !(tmp->data_int = (uint8*)FCEU_malloc(tmp->size)))
    {
       free(tmp);
       tmp = NULL;
       goto doret;
    }
 
-   filestream_read(tz, tmp->data_int, tmp->size);
+   if (tmp->size)
+      filestream_read(tz, tmp->data_int, tmp->size);
    tmp->data = tmp->data_int;
 
 doret:
@@ -82,8 +89,19 @@ FCEUFILE * FCEU_fopen(const char *path, const uint8 *buffer, size_t bufsize)
 {
    FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
 
+   if (!fceufp)
+      return NULL;
+   fceufp->fp = NULL;
+
    if (buffer)
+   {
       fceufp->fp = MakeMemWrapBuffer(buffer, bufsize);
+      if (!fceufp->fp)
+      {
+         free(fceufp);
+         return NULL;
+      }
+   }
    else
    {
       RFILE *t = NULL;
@@ -101,6 +119,11 @@ FCEUFILE * FCEU_fopen(const char *path, const uint8 *buffer, size_t bufsize)
 
       fceufp->fp = MakeMemWrap(t);
       filestream_close(t);
+      if (!fceufp->fp)
+      {
+         free(fceufp);
+         return NULL;
+      }
    }
    return fceufp;
 }

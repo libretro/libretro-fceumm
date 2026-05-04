@@ -25,7 +25,7 @@ static uint16 mode;
 static SFORMAT StateRegs[] =
 {
 	{ &bank, 1, "BANK" },
-	{ &mode, 2, "MODE" },
+	{ &mode, 2 | FCEUSTATE_RLSB, "MODE" },
 	{ 0 }
 };
 

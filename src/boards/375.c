@@ -107,11 +107,18 @@ static void StateRestore(int version) {
 	Sync();
 }
 
+static void M375Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
+}
+
 void Mapper375_Init(CartInfo *info) {
 	info->Power = M375Power;
 	info->Reset = M375Reset;
+	info->Close = M375Close;
 	GameStateRestore = StateRestore;
-	AddExState(&addrlatch, 2, 0, "ADDR");
+	AddExState(&addrlatch, 2, 1, "ADDR");
 	AddExState(&datalatch, 1, 0, "DATA");
 
 	WRAMSIZE = 8192;

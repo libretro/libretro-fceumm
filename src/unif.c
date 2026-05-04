@@ -93,6 +93,10 @@ static int FixRomSize(uint32 size, uint32 minimum) {
 
 	if (size < minimum)
 		return minimum;
+	/* Cap input to avoid the infinite loop where x doubles past 0x80000000
+	 * and wraps to 0, never reaching size. */
+	if (size > 0x80000000u)
+		return 0x80000000u;
 	while (x < size)
 		x <<= 1;
 	return x;
@@ -198,6 +202,8 @@ static int NAME(FCEUFILE *fp) {
 
 	if (!GameInfo->name) {
 		GameInfo->name = malloc(strlen(namebuf) + 1);
+		if (!GameInfo->name)
+			return(0);
 		strcpy((char*)GameInfo->name, namebuf);
 	}
 	return(1);
@@ -229,7 +235,11 @@ static int DINF(FCEUFILE *fp) {
 			"January", "February", "March", "April", "May", "June", "July",
 			"August", "September", "October", "November", "December"
 		};
-		FCEU_printf(" Dumped on: %s %d, %d\n", months[(m - 1) % 12], d, y);
+		/* m comes from a (possibly malicious) .unf file. If m is 0 or
+		 * out of range, '(m - 1) % 12' would underflow / wrap signed and
+		 * could index off the months[] array. Clamp into [1..12] first. */
+		unsigned mi = (m >= 1 && m <= 12) ? (unsigned)(m - 1) : 0;
+		FCEU_printf(" Dumped on: %s %d, %d\n", months[mi], d, y);
 	}
 	return(1);
 }
@@ -286,10 +296,17 @@ static int EnableBattery(FCEUFILE *fp) {
 }
 
 static int LoadPRG(FCEUFILE *fp) {
-	int z, t;
+	int z;
+	uint32 t;
 	z = uchead.ID[3] - '0';
 
 	if (z < 0 || z > 15)
+		return(0);
+	/* uchead.info is uint32 from the file; reject sizes that would either
+	 * overflow when added below, or that are obviously bogus. The largest
+	 * legitimate single PRG chunk is in the low MiB. Cap at 64 MiB which
+	 * is well above reality but still safe. */
+	if (uchead.info == 0 || uchead.info > (64u << 20))
 		return(0);
 	FCEU_printf(" PRG ROM %d size: %d\n", z, (int)uchead.info);
 	if (malloced[z])
@@ -298,7 +315,6 @@ static int LoadPRG(FCEUFILE *fp) {
 	if (!(malloced[z] = (uint8*)FCEU_malloc(t)))
 		return(0);
 	mallocedsizes[z] = t;
-	memset(malloced[z] + uchead.info, 0xFF, t - uchead.info);
 	if (FCEU_fread(malloced[z], 1, uchead.info, fp) != uchead.info) {
 		FCEU_printf("Read Error!\n");
 		return(0);
@@ -312,6 +328,14 @@ static int LoadPRG(FCEUFILE *fp) {
 }
 
 static int SetBoardName(FCEUFILE *fp) {
+	/* The subsequent 4-byte memcmp()s for "NES-", "UNL-", "HVC-", "BTL-",
+	 * "BMC-" require the boardname buffer to be at least 4 bytes long.
+	 * A malformed UNIF file can declare a MAPR chunk with size < 4, which
+	 * would otherwise produce a heap out-of-bounds read. */
+	if (uchead.info < 4) {
+		FCEU_PrintError(" MAPR chunk too small (%u bytes); ignoring.\n", (unsigned)uchead.info);
+		return 0;
+	}
 	if (!(boardname = (uint8*)FCEU_malloc(uchead.info + 1)))
 		return(0);
 	FCEU_fread(boardname, 1, uchead.info, fp);
@@ -329,9 +353,12 @@ static int SetBoardName(FCEUFILE *fp) {
 }
 
 static int LoadCHR(FCEUFILE *fp) {
-	int z, t;
+	int z;
+	uint32 t;
 	z = uchead.ID[3] - '0';
 	if (z < 0 || z > 15)
+		return(0);
+	if (uchead.info == 0 || uchead.info > (64u << 20))
 		return(0);
 	FCEU_printf(" CHR ROM %d size: %d\n", z, (int)uchead.info);
 	if (malloced[16 + z])
@@ -340,7 +367,6 @@ static int LoadCHR(FCEUFILE *fp) {
 	if (!(malloced[16 + z] = (uint8*)FCEU_malloc(t)))
 		return(0);
 	mallocedsizes[16 + z] = t;
-	memset(malloced[16 + z] + uchead.info, 0xFF, t - uchead.info);
 	if (FCEU_fread(malloced[16 + z], 1, uchead.info, fp) != uchead.info) {
 		FCEU_printf("Read Error!\n");
 		return(0);
@@ -750,7 +776,12 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 	int x = 0;
 
 	FCEU_fseek(fp, 0, SEEK_SET);
-	FCEU_fread(&unhead, 1, 4, fp);
+	/* unhead is a file-scope static; if FCEU_fread reads fewer than 4 bytes
+	 * (e.g. on a malformed empty file), the static would retain whatever
+	 * was left from a previous successful load and the memcmp could
+	 * spuriously succeed. Verify the read first. */
+	if (FCEU_fread(&unhead, 1, 4, fp) != 4)
+		return 0;
 	if (memcmp(&unhead, "UNIF", 4))
 		return 0;
 

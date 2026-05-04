@@ -61,10 +61,10 @@ static SFORMAT StateRegs[] =
 	{ &IRQa, 1, "IRQA" },
 	{ &pcm_enable, 1, "PCME" },
 	{ &pcm_irq, 1, "PCMI" },
-	{ &pcm_addr, 2, "PCMA" },
-	{ &pcm_size, 2, "PCMS" },
-	{ &pcm_latch, 2, "PCML" },
-	{ &pcm_clock, 2, "PCMC" },
+	{ &pcm_addr, 2 | FCEUSTATE_RLSB, "PCMA" },
+	{ &pcm_size, 2 | FCEUSTATE_RLSB, "PCMS" },
+	{ &pcm_latch, 2 | FCEUSTATE_RLSB, "PCML" },
+	{ &pcm_clock, 2 | FCEUSTATE_RLSB, "PCMC" },
 	{ &reg4242, 1, "4242" },
 	{ &dipswitch, 1, "DIPS" },
 	{ 0 }
@@ -375,6 +375,12 @@ void UNLOneBus_Close(void) {
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;
+	/* Mapper270_Init / Mapper436_Init allocate an additional CHRRAM after
+	 * UNLOneBus_Init returns; free that here too to avoid leaking it on
+	 * every load/unload cycle. */
+	if (CHRRAM)
+		FCEU_gfree(CHRRAM);
+	CHRRAM = NULL;
 }
 
 void UNLOneBus_Init(CartInfo *info) {
@@ -385,8 +391,16 @@ void UNLOneBus_Init(CartInfo *info) {
 
 	if (info->iNES2)
 		submapper =info->submapper;
-	else
-		submapper =(((*(uint32*)&(info->MD5)) == 0x305fcdc3) ||	((*(uint32*)&(info->MD5)) == 0x6abfce8e))? 2: 0; /* PowerJoy Supermax Carts */
+	else {
+		/* Compare the first four MD5 bytes literally to avoid the previous
+		 * endian-dependent (uint32) reinterpretation, which silently
+		 * mismatched on big-endian hosts and disabled the PowerJoy Supermax
+		 * variant detection. */
+		const uint8 *md5 = info->MD5;
+		int is_305fcdc3 = (md5[0] == 0xc3 && md5[1] == 0xcd && md5[2] == 0x5f && md5[3] == 0x30);
+		int is_6abfce8e = (md5[0] == 0x8e && md5[1] == 0xce && md5[2] == 0xbf && md5[3] == 0x6a);
+		submapper = (is_305fcdc3 || is_6abfce8e) ? 2 : 0; /* PowerJoy Supermax Carts */
+	}
 
 	cpuMangle =cpuMangles[submapper];
 	ppuMangle =ppuMangles[submapper];

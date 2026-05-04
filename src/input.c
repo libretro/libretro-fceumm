@@ -187,6 +187,10 @@ static uint8 FP_FASTAPASS(1) ReadGP(int w) {
 }
 
 static void FP_FASTAPASS(3) UpdateGP(int w, void *data, int arg) {
+	/* JSReturn is constructed by the libretro frontend as a uint32 with
+	 * player N at bits (N<<3)..(N<<3)+7. Reading via host-endian uint32
+	 * cast and shifting gives the correct player byte regardless of host
+	 * endianness, because the writer used the matching shift. */
 	uint32 *ptr = (uint32*)data;
 	if (!w) {
 		joy[0] = *(uint32*)ptr;

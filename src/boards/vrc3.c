@@ -37,8 +37,8 @@ static SFORMAT StateRegs[] =
 	{ &IRQa, 1, "IRQA" },
 	{ &IRQx, 1, "IRQX" },
 	{ &IRQm, 1, "IRQM" },
-	{ &IRQReload, 2, "IRQR" },
-	{ &IRQCount, 2, "IRQC" },
+	{ &IRQReload, 2 | FCEUSTATE_RLSB, "IRQR" },
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
 	{ 0 }
 };
 

@@ -107,7 +107,10 @@ void MMC3_syncMirror () {
 
 void MMC3_clockCounter () {
 	uint8 prevCounter = MMC3_counter;
-	MMC3_counter = MMC3_reloadRequest || !MMC3_counter? MMC3_reloadValue: --MMC3_counter;
+	if (MMC3_reloadRequest || !MMC3_counter)
+		MMC3_counter = MMC3_reloadValue;
+	else
+		MMC3_counter--;
 	if ((prevCounter || MMC3_type != MMC3_TYPE_NEC || MMC3_reloadRequest) && !MMC3_counter && MMC3_irqEnable) X6502_IRQBegin(FCEU_IQEXT);
 	MMC3_reloadRequest = 0;
 }

@@ -36,7 +36,7 @@ static SFORMAT StateRegs[] =
 	{ CHR, 8, "CHR" },
 	{ NTAPage, 4, "NT" },
 	{ &IRQa, 1, "IRQA" },
-	{ &IRQCount, 2, "IRQC" },
+	{ &IRQCount, 2 | FCEUSTATE_RLSB, "IRQC" },
 	{ 0 }
 };
 
@@ -127,8 +127,15 @@ static void StateRestore(int version) {
 	FixNTAR();
 }
 
+static void M330Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
+}
+
 void Mapper330_Init(CartInfo *info) {
 	info->Power = M330Power;
+	info->Close = M330Close;
 	MapIRQHook = M330IRQHook;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);

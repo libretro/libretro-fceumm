@@ -28,7 +28,7 @@ uint16 Latch_address;
 uint8 Latch_data;
 
 static SFORMAT Latch_state[] = {
-	{&Latch_address, 2, "LATA" },
+	{&Latch_address, 2 | FCEUSTATE_RLSB, "LATA" },
 	{&Latch_data,    1, "LATD" },
 	{ 0 }
 };

@@ -31,7 +31,7 @@ extern uint32 timestamp;
 
 static SFORMAT stateRegs[] ={
 	{ reg, 4, "REGS" },
-	{ &pcmAddress, 4, "PCMA" },
+	{ &pcmAddress, 4 | FCEUSTATE_RLSB, "PCMA" },
 	{ &pcmControl, 1, "PCMC" },
 	{ &scanlineCounter, 1, "SLCN" },
 	{ &scanlineReload,  1, "SLRL" },
@@ -82,7 +82,10 @@ static DECLFW(writeReg) {
 }
 
 static void horizontalBlanking () {
-	scanlineCounter =!scanlineCounter? scanlineReload: --scanlineCounter;
+	if (!scanlineCounter)
+		scanlineCounter = scanlineReload;
+	else
+		scanlineCounter--;
 	if (!scanlineCounter && scanlineIRQ) X6502_IRQBegin(FCEU_IQEXT);
 }
 

@@ -26,7 +26,7 @@ static uint8 dipswitch;
 
 static SFORMAT StateRegs[] =
 {
-	{ &latch_addr, 4, "ADDR" },
+	{ &latch_addr, 4 | FCEUSTATE_RLSB, "ADDR" },
 	{ &latch_data, 1, "DATA" },
 	{ &dipswitch,  1, "DIPS" },
 	{ 0 }

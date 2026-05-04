@@ -28,7 +28,7 @@ static uint32 WRAMSIZE;
 static SFORMAT StateRegs[] =
 {
 	{ reg, 2, "REG" },
-	{ &lastnt, 4, "LNT" },
+	{ &lastnt, 4 | FCEUSTATE_RLSB, "LNT" },
 	{ 0 }
 };
 

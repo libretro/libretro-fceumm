@@ -194,16 +194,20 @@ static void clockIRQ (void)
 	if (irqEnabled)
       switch (irqControl &0xC0)
       {
-         case 0x40:
-            irqPrescaler =(irqPrescaler &~mask) | (++irqPrescaler &mask);
-            if ((irqPrescaler &mask) ==0x00 && (irqControl &0x08? irqCounter: ++irqCounter) ==0x00)
+         case 0x40: {
+            uint8_t newp = (irqPrescaler + 1) & mask;
+            irqPrescaler = (irqPrescaler & ~mask) | newp;
+            if (newp == 0x00 && (irqControl &0x08? irqCounter: ++irqCounter) ==0x00)
                X6502_IRQBegin(FCEU_IQEXT);
             break;
-         case 0x80:
-            irqPrescaler =(irqPrescaler &~mask) | (--irqPrescaler &mask);
-            if ((irqPrescaler &mask) ==mask && (irqControl &0x08? irqCounter: --irqCounter) ==0xFF)
+         }
+         case 0x80: {
+            uint8_t newp = (irqPrescaler - 1) & mask;
+            irqPrescaler = (irqPrescaler & ~mask) | newp;
+            if (newp == mask && (irqControl &0x08? irqCounter: --irqCounter) ==0xFF)
                X6502_IRQBegin(FCEU_IQEXT);
             break;
+         }
       }
 }
 

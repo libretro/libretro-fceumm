@@ -10,7 +10,7 @@ static uint8 IRQm;
 
 static SFORMAT StateRegs[] =
 {
-	{ &IRQPrescaler,  2, "PREC" },
+	{ &IRQPrescaler,  2 | FCEUSTATE_RLSB, "PREC" },
 	{ &IRQCount,      1, "IRQC" },
 	{ &IRQLatch,      1, "IRQL" },
 	{ &IRQd,          1, "IRQD" },

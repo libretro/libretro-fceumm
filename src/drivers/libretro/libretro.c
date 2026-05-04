@@ -1050,6 +1050,13 @@ static void stereo_filter_apply_delay(int32_t *sound_buffer, size_t size)
       tmp_buffer_size = (tmp_buffer_size << 1) - (tmp_buffer_size >> 1);
       tmp_buffer      = (int32_t *)malloc(tmp_buffer_size * sizeof(int32_t));
 
+      if (!tmp_buffer)
+      {
+         /* On allocation failure, drop this batch rather than dereferencing
+          * a NULL buffer in the memcpy below. The next batch will retry. */
+         return;
+      }
+
       memcpy(tmp_buffer, stereo_filter_delay.samples,
             stereo_filter_delay.samples_pos * sizeof(int32_t));
 
@@ -1137,6 +1144,15 @@ static void stereo_filter_init_delay(void)
 
    stereo_filter_delay.samples      = (int32_t *)malloc(
          initial_samples_size * sizeof(int32_t));
+   if (!stereo_filter_delay.samples)
+   {
+      /* Fall back to the null filter on allocation failure rather than
+       * leaving a NULL samples buffer that the apply path would deref. */
+      stereo_filter_delay.samples_size = 0;
+      stereo_filter_delay.samples_pos  = 0;
+      stereo_filter_apply              = stereo_filter_apply_null;
+      return;
+   }
    stereo_filter_delay.samples_size = initial_samples_size;
    stereo_filter_delay.samples_pos  = 0;
 
@@ -1433,7 +1449,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
       {
          if (device != RETRO_DEVICE_AUTO)
             update_nes_controllers(port, device);
-         else
+         else if (GameInfo) /* GameInfo may be NULL pre-load */
             update_nes_controllers(port, nes_to_libretro(GameInfo->input[port]));
       }
       else
@@ -1460,7 +1476,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
          {
             if (device != RETRO_DEVICE_FC_AUTO)
                update_nes_controllers(4, device);
-            else
+            else if (GameInfo) /* GameInfo may be NULL pre-load */
                update_nes_controllers(4, fc_to_libretro(GameInfo->inputfc));
          }
 
@@ -1921,7 +1937,9 @@ void retro_deinit (void)
    FCEUI_Sound(0);
    FCEUI_Kill();
 #if defined(_3DS)
-   linearFree(fceu_video_out);
+   if (fceu_video_out)
+      linearFree(fceu_video_out);
+   fceu_video_out = NULL;
 #else
    if (fceu_video_out)
       free(fceu_video_out);
@@ -3057,6 +3075,8 @@ size_t retro_serialize_size(void)
    {
       /* Something arbitrarily big.*/
       uint8_t *buffer = (uint8_t*)malloc(1000000);
+      if (!buffer)
+         return 0;
       memstream_set_buffer(buffer, 1000000);
 
       FCEUSS_Save_Mem();
@@ -3130,7 +3150,7 @@ void retro_cheat_reset(void)
 void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
    char name[256];
-   char temp[256];
+   char temp[1024];
    char *codepart;
    uint16 a;
    uint8  v;
@@ -3140,8 +3160,12 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    if (code == NULL)
       return;
 
+   /* Cheat strings can be arbitrarily long (multiple codes joined by
+    * separators). The previous strcpy into a 256-byte stack buffer was
+    * trivially overflowable. Use strlcpy and a larger buffer; truncate
+    * if necessary rather than overflow. */
    sprintf(name, "N/A");
-   strcpy(temp, code);
+   strlcpy(temp, code, sizeof(temp));
    codepart = strtok(temp, "+,;._ ");
 
    while (codepart)
@@ -3685,6 +3709,17 @@ bool retro_load_game(const struct retro_game_info *info)
 
    if (!GameInfo)
    {
+      /* On load failure the libretro frontend won't call retro_unload_game,
+       * so free the framebuffer we just allocated to avoid leaking ~256 KB
+       * per failed load. */
+#if defined(_3DS)
+      if (fceu_video_out)
+         linearFree(fceu_video_out);
+#elif !defined(PSP)
+      if (fceu_video_out)
+         free(fceu_video_out);
+#endif
+      fceu_video_out = NULL;
 #if 0
       /* An error message here is superfluous - the frontend
        * will report that content loading has failed */
@@ -3858,7 +3893,7 @@ void *retro_get_memory_data(unsigned type)
             return iNESCart.SaveGame[0];
          else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             return UNIFCart.SaveGame[0];
-         else if (GameInfo->type == GIT_FDS)
+         else if (GameInfo && GameInfo->type == GIT_FDS)
             return FDSROM_ptr();
          else
             data = NULL;
@@ -3885,7 +3920,7 @@ size_t retro_get_memory_size(unsigned type)
             size = iNESCart.SaveGameLen[0];
          else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0])
             size = UNIFCart.SaveGameLen[0];
-         else if (GameInfo->type == GIT_FDS)
+         else if (GameInfo && GameInfo->type == GIT_FDS)
             size = FDSROM_size();
          else
             size = 0;

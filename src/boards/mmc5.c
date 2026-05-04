@@ -670,6 +670,20 @@ void NSFMMC5_Close(void) {
 	ExRAM = NULL;
 }
 
+/* Cart-side close. GenMMC5_Init allocates WRAM (optional), MMC5fill, and
+ * ExRAM. Without this, every MMC5 cart load/unload cycle leaks 2-66 KB. */
+static void GenMMC5_Close(void) {
+	if (WRAM)
+		FCEU_gfree(WRAM);
+	WRAM = NULL;
+	if (MMC5fill)
+		FCEU_gfree(MMC5fill);
+	MMC5fill = NULL;
+	if (ExRAM)
+		FCEU_gfree(ExRAM);
+	ExRAM = NULL;
+}
+
 static void GenMMC5Reset(void) {
 	int x;
 
@@ -798,6 +812,7 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 	BuildWRAMSizeTable();
 	GameStateRestore = MMC5_StateRestore;
 	info->Power = GenMMC5Reset;
+	info->Close = GenMMC5_Close;
 
 	if (battery) {
 		info->SaveGame[0] = WRAM;

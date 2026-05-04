@@ -83,17 +83,51 @@ void setfprg16(uint32 A, uint32 V) {
 	}
 }
 
+/* The flash write count region (the first flash_write_count_size bytes of
+ * fceumm_flash_buf) is exposed verbatim to the frontend as battery save
+ * RAM. To keep .srm files portable between LE and BE builds, we always
+ * store the counters as little-endian on disk; on BE hosts that means
+ * byte-swapping at every counter access. */
+static INLINE uint32 fwc_load(uint32 idx) {
+#ifdef MSB_FIRST
+	uint8 *p = (uint8 *)&flash_write_count[idx];
+	return (uint32)p[0] | ((uint32)p[1] << 8) | ((uint32)p[2] << 16) | ((uint32)p[3] << 24);
+#else
+	return flash_write_count[idx];
+#endif
+}
+
+static INLINE void fwc_store(uint32 idx, uint32 v) {
+#ifdef MSB_FIRST
+	uint8 *p = (uint8 *)&flash_write_count[idx];
+	p[0] = (uint8)v;
+	p[1] = (uint8)(v >> 8);
+	p[2] = (uint8)(v >> 16);
+	p[3] = (uint8)(v >> 24);
+#else
+	flash_write_count[idx] = v;
+#endif
+}
+
 void inc_flash_write_count(uint8 bank, uint32 A) {
-	flash_write_count[(bank * 4) + ((A & 0x3000) >> 12)]++;
-	if (!flash_write_count[(bank * 4) + ((A & 0x3000) >> 12)])
-		flash_write_count[(bank * 4) + ((A & 0x3000) >> 12)]++;
+	uint32 idx = (bank * 4) + ((A & 0x3000) >> 12);
+	uint32 v = fwc_load(idx) + 1;
+	if (v == 0) v = 1;	/* avoid wrap to 0 (which means "never written") */
+	fwc_store(idx, v);
 }
 
 uint32 GetFlashWriteCount(uint8 bank, uint32 A) {
-	return flash_write_count[(bank * 4) + ((A & 0x3000) >> 12)];
+	return fwc_load((bank * 4) + ((A & 0x3000) >> 12));
 }
 
 static void StateRestore(int version) {
+	/* erase_a/d/b[] are 5-element arrays indexed by flash_state.
+	 * Legitimate values are 0..4; clamp savestate values that exceed
+	 * the array to a safe value to avoid OOB reads. */
+	if (flash_state >= 5)
+		flash_state = 0;
+	if (flash_mode > 2)
+		flash_mode = 0;
 	WHSync();
 }
 
@@ -261,7 +295,7 @@ void UNROM512_Init(CartInfo *info) {
 		AddExState(&flash_state, 1, 0, "FLASH_STATE");
 		AddExState(&flash_mode, 1, 0, "FLASH_MODE");
 		AddExState(&flash_bank, 1, 0, "FLASH_BANK");
-		AddExState(&latcha, 2, 0, "LATA");
+		AddExState(&latcha, 2, 1, "LATA");
 	}
 	AddExState(&latche, 1, 0, "LATC");
 	AddExState(&bus_conflict, 1, 0, "BUSC");

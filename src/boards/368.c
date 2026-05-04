@@ -100,6 +100,7 @@ static void FP_FASTAPASS(1) M368IRQHook(int a) {
 }
 
 static void StateRestore(int version) {
+	preg &= 7;	/* banks[] has 8 entries */
 	Sync();
 }
 

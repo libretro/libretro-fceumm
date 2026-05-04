@@ -48,10 +48,19 @@ static void FP_FASTAPASS(1) Write(uint8 V) {
 
 static void FP_FASTAPASS(2) Update(void *data, int arg) {
 	if (*(uint8*)data) {
+		size_t i;
+		const uint8 *src = (uint8*)data + 1;
 		*(uint8*)data = 0;
 		seq = ptr = 0;
 		have = 1;
-		strcpy((char*)bdata, (const char*)((uint8*)data + 1));
+		/* bdata is 20 bytes total; bytes 13..19 are filled by the
+		 * memcpy below. Copy at most 13 bytes from `src`, ensuring
+		 * NUL termination at index 13 or earlier. */
+		for (i = 0; i < 13; i++) {
+			if (!src[i]) break;
+			bdata[i] = src[i];
+		}
+		bdata[i] = 0;
 		memcpy((char*)&bdata[13], "SUNSOFT", 7);
 	}
 }

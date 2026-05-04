@@ -85,11 +85,21 @@ uint32 uppow2(uint32 n)
 {
    int x;
 
+   if (n == 0)
+      return 0;
+
+   /* If n already has bit 31 set and isn't exactly 0x80000000, the next
+    * power of two would be 1u << 32 which is undefined; clamp to 0x80000000
+    * instead so callers don't end up with a wrap-to-0 allocation that's
+    * smaller than the requested size. */
+   if (n > 0x80000000u)
+      return 0x80000000u;
+
    for (x = 31; x >= 0; x--)
-      if (n & (1 << x))
+      if (n & (1u << x))
       {
-         if ((1 << x) != n)
-            return(1 << (x + 1));
+         if ((1u << x) != n)
+            return(1u << (x + 1));
          break;
       }
    return n;

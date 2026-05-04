@@ -2255,6 +2255,11 @@ static void COOLGIRL_Restore(int version) {
 }
 
 #define ExState(var, varname) AddExState(&var, sizeof(var), 0, varname)
+/* Variant for multi-byte single-variable state. Asks the savestate
+ * machinery to byte-swap the value on BE hosts so cross-platform
+ * savestates round-trip correctly. Must NOT be used for arrays
+ * of multi-byte values (the swap is whole-buffer, not per-element). */
+#define ExStateLE(var, varname) AddExState(&var, sizeof(var), 1, varname)
 
 void COOLGIRL_Init(CartInfo *info) {
 	size_t i;
@@ -2296,27 +2301,27 @@ void COOLGIRL_Init(CartInfo *info) {
 	ExState(mirroring, "MIRR");
 	ExState(four_screen, "4SCR");
 	ExState(lockout, "LOCK");
-	ExState(prg_base, "PBAS");
-	ExState(prg_mask, "PMSK");
+	ExStateLE(prg_base, "PBAS");
+	ExStateLE(prg_mask, "PMSK");
 	ExState(prg_mode, "PMOD");
 	ExState(prg_bank_6000, "P6BN");
 	ExState(prg_bank_a, "PABN");
 	ExState(prg_bank_b, "PBBN");
 	ExState(prg_bank_c, "PCBN");
 	ExState(prg_bank_d, "PDBN");
-	ExState(chr_mask, "CMSK");
+	ExStateLE(chr_mask, "CMSK");
 	ExState(chr_mode, "CMOD");
-	ExState(chr_bank_a, "CABN");
-	ExState(chr_bank_b, "CBBN");
-	ExState(chr_bank_c, "CCBN");
-	ExState(chr_bank_d, "CDBN");
-	ExState(chr_bank_e, "CEBN");
-	ExState(chr_bank_f, "CFBN");
-	ExState(chr_bank_g, "CGBN");
-	ExState(chr_bank_h, "CHBN");
+	ExStateLE(chr_bank_a, "CABN");
+	ExStateLE(chr_bank_b, "CBBN");
+	ExStateLE(chr_bank_c, "CCBN");
+	ExStateLE(chr_bank_d, "CDBN");
+	ExStateLE(chr_bank_e, "CEBN");
+	ExStateLE(chr_bank_f, "CFBN");
+	ExStateLE(chr_bank_g, "CGBN");
+	ExStateLE(chr_bank_h, "CHBN");
 	ExState(ppu_latch0, "PPU0");
 	ExState(ppu_latch1, "PPU1");
-	ExState(lreset, "LRST");
+	ExStateLE(lreset, "LRST");
 	ExState(mmc1_load_register, "M01R");
 	ExState(mmc3_internal, "M01I");
 	ExState(mapper69_internal, "M69I");
@@ -2337,32 +2342,32 @@ void COOLGIRL_Init(CartInfo *info) {
 	ExState(mmc5_irq_enabled, "M5IE");
 	ExState(mmc5_irq_line, "M5IL");
 	ExState(mmc5_irq_out, "M5IO");
-	ExState(mapper18_irq_value, "18IV");
+	ExStateLE(mapper18_irq_value, "18IV");
 	ExState(mapper18_irq_control, "18IC");
-	ExState(mapper18_irq_latch, "18IL");
+	ExStateLE(mapper18_irq_latch, "18IL");
 	ExState(mapper65_irq_enabled, "65IE");
-	ExState(mapper65_irq_value, "65IV");
-	ExState(mapper65_irq_latch, "65IL");
+	ExStateLE(mapper65_irq_value, "65IV");
+	ExStateLE(mapper65_irq_latch, "65IL");
 	ExState(mapper69_irq_enabled, "69IE");
 	ExState(mapper69_counter_enabled, "69CE");
-	ExState(mapper69_irq_value, "69IV");
+	ExStateLE(mapper69_irq_value, "69IV");
 	ExState(vrc4_irq_value, "V4IV");
 	ExState(vrc4_irq_control, "V4IC");
 	ExState(vrc4_irq_latch, "V4IL");
 	ExState(vrc4_irq_prescaler, "V4PP");
 	ExState(vrc4_irq_prescaler_counter, "V4PC");
-	ExState(vrc3_irq_value, "V3IV");
+	ExStateLE(vrc3_irq_value, "V3IV");
 	ExState(vrc3_irq_control, "V3IC");
-	ExState(vrc3_irq_latch, "V3IL");
+	ExStateLE(vrc3_irq_latch, "V3IL");
 	ExState(mapper42_irq_enabled, "42IE");
-	ExState(mapper42_irq_value, "42IV");
+	ExStateLE(mapper42_irq_value, "42IV");
 	ExState(mapper83_irq_enabled_latch, "M83L");
 	ExState(mapper83_irq_enabled, "M83I");
-	ExState(mapper83_irq_counter, "M83C");
+	ExStateLE(mapper83_irq_counter, "M83C");
 	ExState(mapper90_xor, "90XR");
 	ExState(mapper67_irq_enabled, "67IE");
 	ExState(mapper67_irq_latch, "67IL");
-	ExState(mapper67_irq_counter, "67IC");
+	ExStateLE(mapper67_irq_counter, "67IC");
 	ExState(flash_state, "FLST");
 	ExState(flash_buffer_a, "FLBA");
 	ExState(flash_buffer_v, "FLBV");
