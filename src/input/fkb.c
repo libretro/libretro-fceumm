@@ -27,7 +27,7 @@ static uint8_t bufit[0x49];
 static uint8_t ksmode;
 static uint8_t ksindex;
 
-static uint16_t matrix[9][2][4] =
+static const uint16_t matrix[9][2][4] =
 {
 	{ { AK(F8), AK(RETURN), AK(BRACKETLEFT), AK(BRACKETRIGHT) },
 	  { AK(KANA), AK(RIGHTSHIFT), AK(BACKSLASH), AK(STOP) } },

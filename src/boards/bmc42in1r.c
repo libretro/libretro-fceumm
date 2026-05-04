@@ -29,7 +29,7 @@
 
 static uint8_t reorder_banks = 0;
 static uint8_t latche[2], reset;
-static uint8_t banks[4] = { 0, 0, 1, 2 };
+static const uint8_t banks[4] = { 0, 0, 1, 2 };
 static SFORMAT StateRegs[] =
 {
 	{ &reset, 1, "RST" },

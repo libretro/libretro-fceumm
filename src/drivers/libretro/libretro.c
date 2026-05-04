@@ -346,12 +346,12 @@ static struct retro_log_callback log_cb;
 
 static void default_logger(enum retro_log_level level, const char *fmt, ...) {}
 
-void FCEUD_PrintError(char *c)
+void FCEUD_PrintError(const char *c)
 {
    log_cb.log(RETRO_LOG_WARN, "%s", c);
 }
 
-void FCEUD_Message(char *s)
+void FCEUD_Message(const char *s)
 {
    log_cb.log(RETRO_LOG_INFO, "%s", s);
 }
@@ -2291,7 +2291,7 @@ static void check_variables(bool startup)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      unsigned oldval = aspect_ratio_par;
+      int oldval = aspect_ratio_par;
       if (!strcmp(var.value, "8:7 PAR")) {
         aspect_ratio_par = 1;
       } else if (!strcmp(var.value, "4:3")) {
@@ -2443,7 +2443,10 @@ static void check_variables(bool startup)
    strlcpy(key, "fceumm_apu_x", sizeof(key));
    for (i = 0; i < 5; i++)
    {
-      key[strlen("fceumm_apu_")] = '1' + i;
+      /* Replace the trailing 'x' with '1'..'5'. The literal length is
+       * known at compile time so use sizeof-1 to avoid the strlen call
+       * inside the loop. */
+      key[sizeof("fceumm_apu_") - 1] = '1' + i;
       var.value = NULL;
       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && !strcmp(var.value, "disabled"))
          enable_apu &= ~(1 << i);
@@ -2890,7 +2893,7 @@ static void FCEUD_UpdateInput(void)
          }
          else /* palette_next */
          {
-            if (new_palette_index < PAL_TOTAL - 1)
+            if ((unsigned long)new_palette_index < PAL_TOTAL - 1)
                new_palette_index++;
             else
                new_palette_index = 0;
@@ -3094,7 +3097,7 @@ bool retro_serialize(void *data, size_t size)
    if (geniestage == 1)
       return false;
 
-   if (size != retro_serialize_size())
+   if (!data || size != retro_serialize_size())
       return false;
 
    memstream_set_buffer((uint8_t*)data, size);
@@ -3109,7 +3112,7 @@ bool retro_unserialize(const void * data, size_t size)
    if (geniestage == 1)
       return false;
 
-   if (size != retro_serialize_size())
+   if (!data || size != retro_serialize_size())
       return false;
 
    memstream_set_buffer((uint8_t*)data, size);

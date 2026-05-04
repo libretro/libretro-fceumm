@@ -173,7 +173,7 @@ int NSFLoad(FCEUFILE *fp) {
 	}
 	NSFSize = fsize - 0x80;
 	/* Ceiling: 16 MiB of song data is far beyond reality */
-	if (NSFSize > (16u << 20)) {
+	if ((unsigned)NSFSize > (16u << 20)) {
 		FCEUD_PrintError("NSF song data unreasonably large.");
 		return(0);
 	}
@@ -184,7 +184,7 @@ int NSFLoad(FCEUFILE *fp) {
 	 * of NSFMaxBank). 2^19 * 4096 = 2 GiB which is already absurd for
 	 * an NSF file; the previous cap of 2^20 produced 4 GiB which
 	 * overflows signed int and is undefined behaviour. */
-	if (!NSFMaxBank || NSFMaxBank > (1u << 19)) {
+	if (!NSFMaxBank || (unsigned)NSFMaxBank > (1u << 19)) {
 		FCEUD_PrintError("NSF bank count out of range.");
 		return(0);
 	}
@@ -245,6 +245,8 @@ int NSFLoad(FCEUFILE *fp) {
 		ExWRAM = FCEU_gmalloc(32768 + 8192);
 	else
 		ExWRAM = FCEU_gmalloc(8192);
+	if (!ExWRAM)
+		return 0;
 	return 1;
 }
 
@@ -481,7 +483,7 @@ void DrawNSF(uint8_t *XBuf) {
 	DrawTextTrans(XBuf + 26 * 256 + 4 + (((31 - strlen((char*)NSFHeader.Artist)) << 2)), 256, NSFHeader.Artist, 6);
 	DrawTextTrans(XBuf + 42 * 256 + 4 + (((31 - strlen((char*)NSFHeader.Copyright)) << 2)), 256, NSFHeader.Copyright, 6);
 
-	DrawTextTrans(XBuf + 70 * 256 + 4 + (((31 - strlen("Song:")) << 2)), 256, (uint8_t*)"Song:", 6);
+	DrawTextTrans(XBuf + 70 * 256 + 4 + (((31 - (sizeof("Song:") - 1)) << 2)), 256, (uint8_t*)"Song:", 6);
 	snprintf(snbuf, sizeof(snbuf), "<%d/%d>", CurrentSong, NSFHeader.TotalSongs);
 	DrawTextTrans(XBuf + 82 * 256 + 4 + (((31 - strlen(snbuf)) << 2)), 256, (uint8_t*)snbuf, 6);
 

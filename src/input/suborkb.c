@@ -27,7 +27,7 @@ static uint8_t bufit[0x66];
 static uint8_t ksmode;
 static uint8_t ksindex;
 
-static uint16_t matrix[13][2][4] =
+static const uint16_t matrix[13][2][4] =
 {
 	{ { AK(4), AK(G), AK(F), AK(C) }, { AK(F2), AK(E), AK(5), AK(V) } },
 	{ { AK(2), AK(D), AK(S), AK(END) }, { AK(F1), AK(W), AK(3), AK(X) } },

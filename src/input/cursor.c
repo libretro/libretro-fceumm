@@ -1,6 +1,6 @@
 #include "share.h"
 
-static uint8_t GunSight[] = {
+static const uint8_t GunSight[] = {
 	0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
@@ -15,7 +15,7 @@ static uint8_t GunSight[] = {
 	0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0,
 };
-static uint8_t FCEUcursor[11 * 19] =
+static const uint8_t FCEUcursor[11 * 19] =
 {
 	1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,

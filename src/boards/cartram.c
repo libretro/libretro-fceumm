@@ -45,7 +45,7 @@ void CartRAM_init (CartInfo *info, uint8_t defaultWRAMSizeKiB, uint8_t defaultCH
 		AddExState(WRAMData, WRAMSize, 0, "WRAM");
 		if (info->battery && (info->PRGRamSaveSize || !info->iNES2)) {
 			info->SaveGame[0] = WRAMData;
-			info->SaveGameLen[0] = info->iNES2? info->PRGRamSaveSize: WRAMSize;
+			info->SaveGameLen[0] = info->iNES2? (uint32_t)info->PRGRamSaveSize: WRAMSize;
 		}
 	}
 	CHRRAMSize = info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): (defaultCHRRAMSizeKiB *1024);
@@ -56,7 +56,7 @@ void CartRAM_init (CartInfo *info, uint8_t defaultWRAMSizeKiB, uint8_t defaultCH
 		AddExState(CHRRAMData, CHRRAMSize, 0, "CRAM");
 		if (info->battery && (info->CHRRamSaveSize || !info->iNES2)) {
 			info->SaveGame[info->SaveGameLen[0]? 1: 0] = CHRRAMData;
-			info->SaveGameLen[info->SaveGameLen[0]? 1: 0] = info->iNES2? info->CHRRamSaveSize: CHRRAMSize;
+			info->SaveGameLen[info->SaveGameLen[0]? 1: 0] = info->iNES2? (uint32_t)info->CHRRamSaveSize: CHRRAMSize;
 		}
 	}
 	if (WRAMSize || CHRRAMSize) info->Close = CartRAM_close;

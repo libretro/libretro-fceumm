@@ -39,7 +39,7 @@
 
 static uint8_t submapper;
 
-static uint8_t regperm[8][8] =
+static const uint8_t regperm[8][8] =
 {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 0, 2, 6, 1, 7, 3, 4, 5 },
@@ -51,7 +51,7 @@ static uint8_t regperm[8][8] =
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
 };
 
-static uint8_t adrperm[8][8] =
+static const uint8_t adrperm[8][8] =
 {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 3, 2, 0, 4, 1, 5, 6, 7 },
@@ -63,7 +63,7 @@ static uint8_t adrperm[8][8] =
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
 };
 
-static uint8_t protarray[8][8] = {
+static const uint8_t protarray[8][8] = {
 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* 0 Super Hang-On               */
 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00 }, /* 1 Monkey King                 */
 	{ 0x00, 0x00, 0x00, 0x00, 0x03, 0x04, 0x00, 0x00 }, /* 2 Super Hang-On/Monkey King   */

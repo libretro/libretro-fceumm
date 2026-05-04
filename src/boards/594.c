@@ -95,7 +95,7 @@ static void mapperSound_fillBufferLow (int count) {
 }
 
 static void mapperSound_fillBufferHigh () {
-	int i;
+	uint32_t i;
 	for (i = soundOffset; i < SOUNDTS; i++) {
 		MSM6585_run(&adpcm);
 		WaveHi[i] += MSM6585_getOutput(&adpcm)*8 +16384;

@@ -31,8 +31,13 @@ void *FCEU_gmalloc(uint32_t size)
    void *ret = malloc(size);
    if (!ret)
    {
-      FCEU_PrintError("Error allocating memory!  Doing a hard exit.");
-      exit(1);
+      /* Returning NULL is a behaviour change from the old exit(1)
+       * semantics, but a libretro core must not exit() because that
+       * tears down the entire frontend. All FCEU_gmalloc call sites
+       * are now NULL-aware - they propagate the failure up to the
+       * loader which logs an error and refuses to load the cart. */
+      FCEU_PrintError("Error allocating memory!");
+      return NULL;
    }
    memset(ret, 0, size);
    return ret;

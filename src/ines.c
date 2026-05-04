@@ -1209,6 +1209,8 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    if (head.ROM_type & 4)
    {
       trainerpoo = (uint8_t*)FCEU_gmalloc(512);
+      if (!trainerpoo)
+         return 0;
       FCEU_fread(trainerpoo, 512, 1, fp);
       filesize -= 512;
    }
@@ -1377,6 +1379,8 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    if (iNESCart.mirror == 2)
    {
       ExtraNTARAM = (uint8_t*)FCEU_gmalloc(2048);
+      if (!ExtraNTARAM)
+         return 0;
       SetupCartMirroring(4, 1, ExtraNTARAM);
    }
    else if (iNESCart.mirror >= 0x10)

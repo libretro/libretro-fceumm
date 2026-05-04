@@ -27,15 +27,15 @@ extern "C" {
 #define FCEUNPCMD_TEXT        0x90
 
 /* This makes me feel dirty for some reason. */
-void FCEU_printf(char *format, ...);
+void FCEU_printf(const char *format, ...);
 #define FCEUI_printf FCEU_printf
 
 /* Video interface */
 void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
 
 /* Displays an error.  Can block or not. */
-void FCEUD_PrintError(char *s);
-void FCEUD_Message(char *s);
+void FCEUD_PrintError(const char *s);
+void FCEUD_Message(const char *s);
 
 void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char *str);
 void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...);
@@ -116,14 +116,6 @@ void FCEUI_SetVidSystem(int a);
 
 /* Convenience function; returns currently emulated video system(0=NTSC, 1=PAL).  */
 int FCEUI_GetCurrentVidSystem(int *slstart, int *slend);
-
-#ifdef FRAMESKIP
-/* Should be called from FCEUD_BlitScreen().  Specifies how many frames
-   to skip until FCEUD_BlitScreen() is called.  FCEUD_BlitScreenDummy()
-   will be called instead of FCEUD_BlitScreen() when when a frame is skipped.
-*/
-void FCEUI_FrameSkip(int x);
-#endif
 
 /* First and last scanlines to render, for ntsc and pal emulation. */
 void FCEUI_SetRenderedLines(int ntscf, int ntscl, int palf, int pall);

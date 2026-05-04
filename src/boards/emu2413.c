@@ -148,7 +148,7 @@ static const unsigned char default_inst[15][8] = {
 #define EXPAND_BITS_X(x, s, d) (((x) << ((d) - (s))) | ((1 << ((d) - (s))) - 1))
 
 /* Adjust envelope speed which depends on sampling rate. */
-#define rate_adjust(x) (rate == 49716 ? x : (uint32_t)((double)(x) * clk / 72 / rate + 0.5))			/* added 0.5 to round the value*/
+#define rate_adjust(x) (rate == 49716 ? (uint32_t)(x) : (uint32_t)((double)(x) * clk / 72 / rate + 0.5))			/* added 0.5 to round the value*/
 
 #define MOD(o, x) (&(o)->slot[(x) << 1])
 #define CAR(o, x) (&(o)->slot[((x) << 1) | 1])
@@ -693,7 +693,7 @@ INLINE static void calc_phase(OPLL_SLOT * slot, int32_t lfo) {
 static void calc_envelope(OPLL_SLOT * slot, int32_t lfo) {
 #define S2E(x) (SL2EG((int32_t)(x / SL_STEP)) << (EG_DP_BITS - EG_BITS))
 
-	static uint32_t SL[16] = {
+	static const uint32_t SL[16] = {
 		S2E(0.0), S2E(3.0), S2E(6.0), S2E(9.0), S2E(12.0), S2E(15.0), S2E(18.0), S2E(21.0),
 		S2E(24.0), S2E(27.0), S2E(30.0), S2E(33.0), S2E(36.0), S2E(39.0), S2E(42.0), S2E(48.0)
 	};

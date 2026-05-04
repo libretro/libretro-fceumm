@@ -38,7 +38,7 @@ static DECLFR(Mapper221_ReadOB)
 
 static void sync(void) {
 	uint8_t prg =reg[0] >>(submapper ==1? 2: 3) &0x40 | reg[0] >>2 &0x38 | reg[1] &0x07;
-	SetReadHandler(0x8000, 0xFFFF, prg <<14 >=PRGsize[0]? Mapper221_ReadOB: CartBR); /* Selecting unpopulated banks results in open bus */
+	SetReadHandler(0x8000, 0xFFFF, (uint32_t)(prg <<14) >=PRGsize[0]? Mapper221_ReadOB: CartBR); /* Selecting unpopulated banks results in open bus */
 	if (reg[0] &(submapper ==1? 0x200: 0x100)) { /* UNROM */
 		setprg16(0x8000, prg);
 		setprg16(0xC000, prg |7);

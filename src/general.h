@@ -3,7 +3,7 @@
 
 extern uint32_t uppow2(uint32_t n);
 
-char *FCEU_MakeFName(int type, int id1, char *cd1);
+char *FCEU_MakeFName(int type, int id1, const char *cd1);
 
 enum FILE_TYPES
 {

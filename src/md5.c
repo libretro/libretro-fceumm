@@ -40,7 +40,7 @@ void md5_starts(struct md5_context *ctx) {
 	ctx->state[3] = 0x10325476;
 }
 
-void md5_process(struct md5_context *ctx, uint8_t data[64]) {
+static void md5_process(struct md5_context *ctx, const uint8_t data[64]) {
 	uint32_t A, B, C, D, X[16];
 
 	GET_UINT32(X[0], data, 0);
@@ -162,7 +162,7 @@ void md5_process(struct md5_context *ctx, uint8_t data[64]) {
 	ctx->state[3] += D;
 }
 
-void md5_update(struct md5_context *ctx, uint8_t *input, uint32_t length) {
+void md5_update(struct md5_context *ctx, const uint8_t *input, uint32_t length) {
 	uint32_t left, fill;
 
 	if (!length) return;
@@ -195,7 +195,7 @@ void md5_update(struct md5_context *ctx, uint8_t *input, uint32_t length) {
 	}
 }
 
-static uint8_t md5_padding[64] =
+static const uint8_t md5_padding[64] =
 {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

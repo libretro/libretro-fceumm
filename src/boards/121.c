@@ -91,7 +91,7 @@ static DECLFW(M121Write) {
 	}
 }
 
-static uint8_t prot_array[16] = { 0x83, 0x83, 0x42, 0x00 };
+static const uint8_t prot_array[16] = { 0x83, 0x83, 0x42, 0x00 };
 static DECLFW(M121LoWrite) {
 	EXPREGS[4] = prot_array[V & 3];	/* 0x100 bit in address seems to be switch arrays 0, 2, 2, 3 (Contra Fighter) */
 	if ((A & 0x5180) == 0x5180) {	/* A9713 multigame extension */

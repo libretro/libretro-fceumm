@@ -637,7 +637,7 @@ static void DoLine(void)
 	uint8_t *target = NULL;
 	uint8_t *dtarget = NULL;
 
-	if (scanline >= 240 && scanline != totalscanlines)
+	if (scanline >= 240 && (unsigned)scanline != totalscanlines)
 	{
 		X6502_Run(256 + 69);
 		scanline++;
@@ -1166,30 +1166,6 @@ int FCEUPPU_Loop(int skip) {
 		}
 		if (GameInfo->type == GIT_NSF)
 			X6502_Run((256 + 85) * normal_scanlines);
-		#ifdef FRAMESKIP
-		else if (skip) {
-			int y;
-
-			y = SPRAM[0];
-			y++;
-
-			PPU_status |= 0x20;	/* Fixes "Bee 52".  Does it break anything? */
-			if (GameHBIRQHook) {
-				X6502_Run(256);
-				for (scanline = 0; scanline < 240; scanline++) {
-					if (ScreenON || SpriteON)
-						GameHBIRQHook();
-					if (scanline == y && SpriteON) PPU_status |= 0x40;
-					X6502_Run((scanline == 239) ? 85 : (256 + 85));
-				}
-			} else if (y < 240) {
-				X6502_Run((256 + 85) * y);
-				if (SpriteON) PPU_status |= 0x40;	/* Quick and very dirty hack. */
-				X6502_Run((256 + 85) * (240 - y));
-			} else
-				X6502_Run((256 + 85) * 240);
-		}
-		#endif
 		else {
 			int x, max, maxref;
 
@@ -1201,10 +1177,10 @@ int FCEUPPU_Loop(int skip) {
 			else
 				totalscanlines = normal_scanlines + (overclock_enabled ? extrascanlines : 0);
 
-			for (scanline = 0; scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
+			for (scanline = 0; (unsigned)scanline < totalscanlines; ) {	/* scanline is incremented in  DoLine.  Evil. :/ */
 				deempcnt[deemp]++;
 				DoLine();
-				if (scanline < normal_scanlines || scanline == totalscanlines)
+				if ((unsigned)scanline < normal_scanlines || (unsigned)scanline == totalscanlines)
 					overclocked = 0;
 				else {
 					if (DMC_7bit && skip_7bit_overclocking) /* 7bit sample started after 240th line */
@@ -1226,12 +1202,6 @@ int FCEUPPU_Loop(int skip) {
 		}
 	}
 
-	#ifdef FRAMESKIP
-	if (skip) {
-		FCEU_PutImageDummy();
-		return(0);
-	} else
-	#endif
 	{
 		FCEU_PutImage();
 		return(1);

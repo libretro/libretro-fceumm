@@ -93,7 +93,7 @@ void eeprom_93Cx6_write (uint8_t CS, uint8_t CLK, uint8_t DAT) {
 							break;
 						case OPCODE_ERASEALL:
 							if (eeprom_93Cx6_writeEnabled) {
-								int i;
+								size_t i;
 								for (i =0; i <eeprom_93Cx6_capacity; i++)
 									eeprom_93Cx6_storage[i] = 0xFF;
 								}

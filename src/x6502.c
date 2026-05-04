@@ -312,7 +312,7 @@ redundant) on the variable "x".
 #define ST_IX(r)        { uint32_t A; GetIX(A); WrMem(A, r); break; }
 #define ST_IY(r)        { uint32_t A; GetIYWR(A); WrMem(A, r); break; }
 
-static uint8_t CycTable[256] =
+static const uint8_t CycTable[256] =
 {
 /*0x00*/ 7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
 /*0x10*/ 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,

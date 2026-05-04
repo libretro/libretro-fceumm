@@ -118,7 +118,7 @@ void FDSGI(int h) {
 }
 
 static void FDSStateRestore(int version) {
-	int x;
+	uint32_t x;
 
 	/* Sanity-check disk indices and block parameters. A malicious
 	 * savestate could otherwise:
@@ -605,7 +605,7 @@ static void FreeFDSMemory(void) {
 static int SubLoad(FCEUFILE *fp) {
 	struct md5_context md5;
 	uint8_t header[16];
-	int x;
+	uint32_t x;
 	uint64_t fsize = FCEU_fgetsize(fp);
 
 	/* Reject files too short to contain a 16-byte header. Otherwise the
@@ -653,7 +653,7 @@ static int SubLoad(FCEUFILE *fp) {
 }
 
 static void PreSave(void) {
-	int x;
+	uint32_t x;
 	for (x = 0; x < TotalSides; x++) {
 		int b;
 		for (b = 0; b < 65500; b++)
@@ -662,7 +662,7 @@ static void PreSave(void) {
 }
 
 static void PostSave(void) {
-	int x;
+	uint32_t x;
 	for (x = 0; x < TotalSides; x++) {
 		int b;
 		for (b = 0; b < 65500; b++)
@@ -672,7 +672,7 @@ static void PostSave(void) {
 
 int FDSLoad(const char *name, FCEUFILE *fp) {
 	FCEUFILE *zp;
-	int x;
+	uint32_t x;
 
 	char *fn = FCEU_MakeFName(FCEUMKF_FDSROM, 0, 0);
 
@@ -691,6 +691,10 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	FDSBIOSsize = 8192;
 	FDSBIOS = (uint8_t*)FCEU_gmalloc(FDSBIOSsize);
+	if (!FDSBIOS) {
+		FCEU_fclose(zp);
+		return 0;
+	}
 	SetupCartPRGMapping(0, FDSBIOS, FDSBIOSsize, 0);
 
 	if (FCEU_fread(FDSBIOS, 1, FDSBIOSsize, zp) != FDSBIOSsize) {
@@ -717,7 +721,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	for (x = 0; x < TotalSides; x++) {
 		diskdatao[x] = (uint8_t*)FCEU_malloc(65500);
 		if (!diskdatao[x]) {
-			int y;
+			uint32_t y;
 			for (y = 0; y < x; y++) {
 				free(diskdatao[y]);
 				diskdatao[y] = NULL;
@@ -775,11 +779,15 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	CHRRAMSize = 8192;
 	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSize);
+	if (!CHRRAM)
+		return 0;
 	SetupCartCHRMapping(0, CHRRAM, CHRRAMSize, 1);
 	AddExState(CHRRAM, CHRRAMSize, 0, "CHRR");
 
 	FDSRAMSize = 32768;
 	FDSRAM = (uint8_t*)FCEU_gmalloc(FDSRAMSize);
+	if (!FDSRAM)
+		return 0;
 	SetupCartPRGMapping(1, FDSRAM, FDSRAMSize, 1);
 	AddExState(FDSRAM, FDSRAMSize, 0, "FDSR");
 
@@ -796,7 +804,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 }
 
 void FDSClose(void) {
-	int x;
+	uint32_t x;
 
 	if (!DiskWritten) return;
 

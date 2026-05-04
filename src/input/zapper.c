@@ -63,7 +63,7 @@ static void FP_FASTAPASS(3) ZapperFrapper(int w, uint8_t * bg, uint8_t * spr, ui
 
 		if (xe > 256) xe = 256;
 
-		if (scanline >= (zy - tolerance) && scanline <= (zy + tolerance)) {
+		if (scanline >= (zy - (int)tolerance) && scanline <= (zy + (int)tolerance)) {
 	#ifdef ROUNDED_TARGET
 			int spread;
 			int dy = scanline - zy;

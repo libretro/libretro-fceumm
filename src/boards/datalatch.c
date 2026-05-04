@@ -85,13 +85,6 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), uint8_t init, uint16_
 
 /*------------------ Map 0 ---------------------------*/
 
-#ifdef DEBUG_MAPPER
-static DECLFW(NROMWrite) {
-	FCEU_printf("bs %04x %02x\n", A, V);
-	CartBW(A, V);
-}
-#endif
-
 static void NROMPower(void) {
 	setprg8r(0x10, 0x6000, 0);	/* Famili BASIC (v3.0) need it (uses only 4KB), FP-BASIC uses 8KB */
 	setprg16(0x8000, 0);
@@ -103,10 +96,6 @@ static void NROMPower(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 
 	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
-
-	#ifdef DEBUG_MAPPER
-	SetWriteHandler(0x4020, 0xFFFF, NROMWrite);
-	#endif
 }
 
 void NROM_Init(CartInfo *info) {
@@ -486,7 +475,7 @@ void Mapper381_Init(CartInfo *info) {
  * bootleg cartridge conversion named Super Soccer Champion
  * of the Konami FDS game Exciting Soccer.
  */
-static uint8_t M538Banks[16] = { 0, 1, 2, 1, 3, 1, 4, 1, 5, 5, 1, 1, 6, 6, 7, 7 };
+static const uint8_t M538Banks[16] = { 0, 1, 2, 1, 3, 1, 4, 1, 5, 5, 1, 1, 6, 6, 7, 7 };
 static void M538Sync(void) {
 	setprg8(0x6000, (latche >> 1) | 8);
 	setprg8(0x8000, M538Banks[latche & 15]);

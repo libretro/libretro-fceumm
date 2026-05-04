@@ -386,7 +386,7 @@ static DECLFR(redirectReset) {
 }
 
 static void power(void) {
-	int i;
+	uint32_t i;
 	writePPU =GetWriteHandler(0x2007);
 	GetWriteHandler(0x4017)(0x4017, 0x40); /* Disable Frame IRQ */
 	mc1Mode =mc1ModeInitial;

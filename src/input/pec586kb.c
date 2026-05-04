@@ -30,7 +30,7 @@ static uint8_t ksindex;
 
 /* TODO: check all keys, some of the are wrong */
 
-static uint16_t matrix[13][8] =
+static const uint16_t matrix[13][8] =
 {
 	{ AK(ESCAPE),AK(SPACE),AK(LMENU),AK(LCONTROL),AK(LSHIFT),AK(GRAVE),AK(TAB),AK(CAPITAL) },
 	{ AK(F6),AK(F7),AK(F5),AK(F4),AK(F8),AK(F2),AK(F1),AK(F3) },

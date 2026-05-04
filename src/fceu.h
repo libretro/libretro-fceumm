@@ -98,15 +98,12 @@ typedef struct {
 
 extern FCEUS FSettings;
 
-void FCEU_PrintError(char *format, ...);
-void FCEU_printf(char *format, ...);
+void FCEU_PrintError(const char *format, ...);
+void FCEU_printf(const char *format, ...);
 
 void SetNESDeemph(uint8_t d, int force);
 void DrawTextTrans(uint8_t *dest, uint32_t width, uint8_t *textmsg, uint8_t fgcolor);
 void FCEU_PutImage(void);
-#ifdef FRAMESKIP
-void FCEU_PutImageDummy(void);
-#endif
 
 extern uint8_t Exit;
 extern uint8_t default_palette_selected;

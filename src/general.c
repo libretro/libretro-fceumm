@@ -50,7 +50,7 @@ void FCEUI_SetBaseDirectory(const char *dir)
 	strlcpy(BaseDirectory, dir, sizeof(BaseDirectory));
 }
 
-char *FCEU_MakeFName(int type, int id1, char *cd1)
+char *FCEU_MakeFName(int type, int id1, const char *cd1)
 {
    char tmp[4096 + 512] = {0}; /* +512 for no reason :D */
    char *ret      = 0;
