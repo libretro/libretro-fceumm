@@ -26,9 +26,9 @@
 
 #include "mapinc.h"
 
-static uint8 chrlo[8], chrhi[8], prg, mirr, mirrisused = 0;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t chrlo[8], chrhi[8], prg, mirr, mirrisused = 0;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -40,7 +40,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint32 i;
+	uint32_t i;
 	for (i = 0; i < 8; i++)
 		setchr1(i << 10, chrlo[i] | (chrhi[i] << 8));
 	setprg8r(0x10, 0x6000, 0);
@@ -76,7 +76,7 @@ static DECLFW(M156Write) {
 }
 
 static void M156Reset(void) {
-	uint32 i;
+	uint32_t i;
 	for (i = 0; i < 8; i++) {
 		chrlo[i] = 0;
 		chrhi[i] = 0;
@@ -111,7 +111,7 @@ void Mapper156_Init(CartInfo *info) {
 	info->Close = M156Close;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 

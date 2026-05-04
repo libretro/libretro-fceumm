@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 reg[4];
+static uint8_t reg[4];
 
 static void sync () {
 	if (reg[3] &0x01) { /* UNROM mode */

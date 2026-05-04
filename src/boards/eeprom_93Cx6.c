@@ -1,18 +1,18 @@
 #include "eeprom_93Cx6.h"
 
-uint8* eeprom_93Cx6_storage;
-uint8  eeprom_93Cx6_opcode;
-uint16 eeprom_93Cx6_data;
-uint16 eeprom_93Cx6_address;
-uint8  eeprom_93Cx6_state;
-uint8  eeprom_93Cx6_lastCLK;
-uint8  eeprom_93Cx6_writeEnabled;
-uint8  eeprom_93Cx6_output;
+uint8_t* eeprom_93Cx6_storage;
+uint8_t  eeprom_93Cx6_opcode;
+uint16_t eeprom_93Cx6_data;
+uint16_t eeprom_93Cx6_address;
+uint8_t  eeprom_93Cx6_state;
+uint8_t  eeprom_93Cx6_lastCLK;
+uint8_t  eeprom_93Cx6_writeEnabled;
+uint8_t  eeprom_93Cx6_output;
 size_t eeprom_93Cx6_capacity;
-uint8  eeprom_93Cx6_wordSize;
+uint8_t  eeprom_93Cx6_wordSize;
 
-static uint8 STATE_ADDRESS;
-static uint8 STATE_DATA;
+static uint8_t STATE_ADDRESS;
+static uint8_t STATE_DATA;
 
 #define OPCODE_MISC         0
 #define OPCODE_WRITE        1
@@ -32,7 +32,7 @@ static uint8 STATE_DATA;
 #define STATE_DATA16    27
 #define STATE_FINISHED  99
 
-void eeprom_93Cx6_init (size_t capacity, uint8 wordSize) {
+void eeprom_93Cx6_init (size_t capacity, uint8_t wordSize) {
 	eeprom_93Cx6_capacity     =capacity;
 	eeprom_93Cx6_wordSize     =wordSize;
 	eeprom_93Cx6_address      =0;
@@ -47,11 +47,11 @@ void eeprom_93Cx6_init (size_t capacity, uint8 wordSize) {
 	}
 }
 
-uint8 eeprom_93Cx6_read () {
+uint8_t eeprom_93Cx6_read () {
    return eeprom_93Cx6_output;
 }
 
-void eeprom_93Cx6_write (uint8 CS, uint8 CLK, uint8 DAT) {
+void eeprom_93Cx6_write (uint8_t CS, uint8_t CLK, uint8_t DAT) {
 	if (!CS && eeprom_93Cx6_state <= STATE_ADDRESS)
 		eeprom_93Cx6_state =STATE_STANDBY;
 	else

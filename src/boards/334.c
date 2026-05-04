@@ -23,9 +23,9 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 dipswitch;
+static uint8_t dipswitch;
 
-static void M334PW(uint32 A, uint8 V) {
+static void M334PW(uint32_t A, uint8_t V) {
     setprg32(0x8000, EXPREGS[0] >> 1);
 }
 

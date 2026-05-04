@@ -1,6 +1,6 @@
 #ifndef _FCEU_CRC32_H
 #define _FCEU_CRC32_H
 
-uint32 CalcCRC32(uint32 crc, uint8 *buf, uint32 len);
+uint32_t CalcCRC32(uint32_t crc, uint8_t *buf, uint32_t len);
 
 #endif

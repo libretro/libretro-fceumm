@@ -20,10 +20,10 @@
 
 #include "mapinc.h"
 
-static uint8 preg[2], creg[8], mirr;
+static uint8_t preg[2], creg[8], mirr;
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -34,8 +34,8 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 i;
-	uint16 swap = ((mirr & 2) << 13);
+	uint8_t i;
+	uint16_t swap = ((mirr & 2) << 13);
 	setmirror((mirr & 1) ^ 1);
 	setprg8r(0x10, 0x6000, 0);
 	setprg8(0x8000 ^ swap, preg[0]);
@@ -94,7 +94,7 @@ void Mapper32_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 

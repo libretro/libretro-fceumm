@@ -20,10 +20,10 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 *CHRRAM =NULL;
-static uint8 submapper;
+static uint8_t *CHRRAM =NULL;
+static uint8_t submapper;
 
-static void Mapper268_PRGWrap(uint32 A, uint8 V) {
+static void Mapper268_PRGWrap(uint32_t A, uint8_t V) {
 	int prgMaskMMC3, prgMaskGNROM, prgOffset;
 	
 	prgMaskMMC3 =(EXPREGS[3] &0x10? 0x00: 0x0F) /* PRG A13-A16 */
@@ -83,7 +83,7 @@ static void Mapper268_PRGWrap(uint32 A, uint8 V) {
 	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], (submapper &~1) ==8 && EXPREGS[0] &0x10? 0: 1);
 }
 
-static void Mapper268_CHRWrap(uint32 A, uint8 V) {
+static void Mapper268_CHRWrap(uint32_t A, uint8_t V) {
 	int chrMaskMMC3, chrMaskGNROM, chrOffset;
 	
 	chrMaskMMC3  =EXPREGS[3] &0x10? 0x00: EXPREGS[0] &0x80? 0x7F: 0xFF;
@@ -94,7 +94,7 @@ static void Mapper268_CHRWrap(uint32 A, uint8 V) {
 	setchr1r(CHRRAM && EXPREGS[4] &0x01 && (V &0xFE) ==(EXPREGS[4] &0xFE)? 0x10: 0x00, A, V &chrMaskMMC3 | chrOffset | A >>10 &chrMaskGNROM);
 }
 
-void Mapper268_MirrorWrap(uint8 V) {
+void Mapper268_MirrorWrap(uint8_t V) {
 	A000B =V;
 	if ((submapper &~1) ==10 && ~EXPREGS[0] &0x20)
 		setmirror(EXPREGS[0] &0x10? MI_1: MI_0);
@@ -169,7 +169,7 @@ void Mapper268_Init(CartInfo *info) {
 	AddExState(EXPREGS, 8, 0, "EXPR");
 	
 	if (info->CHRRomSize && info->CHRRamSize + info->CHRRamSaveSize) {
-		CHRRAM =(uint8 *)FCEU_gmalloc(info->CHRRamSize + info->CHRRamSaveSize);
+		CHRRAM =(uint8_t *)FCEU_gmalloc(info->CHRRamSize + info->CHRRamSaveSize);
 		SetupCartCHRMapping(0x10, CHRRAM, info->CHRRamSize + info->CHRRamSaveSize, 1);
 		AddExState(CHRRAM, info->CHRRamSize + info->CHRRamSaveSize, 0, "CRAM");
 	}

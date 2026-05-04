@@ -23,9 +23,9 @@
 
 #include "mapinc.h"
 
-static uint8 reg;
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSIZE;
+static uint8_t reg;
+static uint8_t *CHRRAM = NULL;
+static uint32_t CHRRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -75,7 +75,7 @@ void Mapper168_Init(CartInfo *info) {
 	AddExState(&StateRegs, ~0, 0, 0);
 
 	CHRRAMSIZE = 8192 * 8;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
 }

@@ -25,8 +25,8 @@
 #include "mapinc.h"
 #include "../fds_apu.h"
 
-static uint8 preg, creg, mirr;
-static uint32 IRQCount, IRQa;
+static uint8_t preg, creg, mirr;
+static uint32_t IRQCount, IRQa;
 
 static SFORMAT StateRegs[] =
 {

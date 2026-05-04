@@ -23,10 +23,10 @@
 
 #include "mapinc.h"
 
-static uint8 regs[9], ctrl;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
-static uint8 is552;
+static uint8_t regs[9], ctrl;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
+static uint8_t is552;
 
 static SFORMAT StateRegs[] =
 {
@@ -35,7 +35,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-uint8 prgBits (uint8 val) {
+uint8_t prgBits (uint8_t val) {
 	if (is552)
 		return val >>5 &0x01 | val >>3 &0x02 | val >>1 &0x04 | val <<1 &0x08 | val <<3 &0x10 | val <<5 &0x20;
 	else
@@ -43,7 +43,7 @@ uint8 prgBits (uint8 val) {
 }
 
 static void Sync(void) {
-	uint32 swap = ((ctrl & 2) << 11);
+	uint32_t swap = ((ctrl & 2) << 11);
 	setchr2(0x0000 ^ swap, regs[0] >> 1);
 	setchr2(0x0800 ^ swap, regs[1] >> 1);
 	setchr1(0x1000 ^ swap, regs[2]);
@@ -95,7 +95,7 @@ void Mapper82_Init(CartInfo *info) {
 	info->Close = M82Close;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	if (info->battery) {

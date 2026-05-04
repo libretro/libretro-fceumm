@@ -26,13 +26,13 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMCGN26CW(uint32 A, uint8 V) {
+static void BMCGN26CW(uint32_t A, uint8_t V) {
 	int chrAND = EXPREGS[0]&0x04? 0xFF: 0x7F;
 	int chrOR  = EXPREGS[0] <<7;
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
-static void BMCGN26PW(uint32 A, uint8 V) {
+static void BMCGN26PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 4) {
 		if (A == 0x8000)
 			setprg32(0x8000, (EXPREGS[0] << 2) | (V >> 2));

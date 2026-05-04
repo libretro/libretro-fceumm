@@ -24,35 +24,35 @@
 static void GenMMC1Power(void);
 static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram);
 
-static uint8 submapper;
-static uint8 DRegs[4];
-static uint8 Buffer, BufferShift;
+static uint8_t submapper;
+static uint8_t DRegs[4];
+static uint8_t Buffer, BufferShift;
 
-static uint32 WRAMSIZE = 0;
+static uint32_t WRAMSIZE = 0;
 
  /* size of non-battery-backed portion of WRAM */
  /* serves as starting offset for actual save ram from total wram size */
  /* returns 0 if entire work ram is battery backed ram */
-static uint32 NONSaveRAMSIZE = 0;
+static uint32_t NONSaveRAMSIZE = 0;
 
-static void (*MMC1CHRHook4)(uint32 A, uint8 V);
-static void (*MMC1PRGHook16)(uint32 A, uint8 V);
+static void (*MMC1CHRHook4)(uint32_t A, uint8_t V);
+static void (*MMC1PRGHook16)(uint32_t A, uint8_t V);
 /* Used to override default wram behavior */
 /* NULL uses default MMC1 wram. Set after GenMMC1Init() is called to override */
 static void (*MMC1WRAMHook8)(void);
 
-static uint8 *WRAM = NULL;
-static uint8 *CHRRAM = NULL;
+static uint8_t *WRAM = NULL;
+static uint8_t *CHRRAM = NULL;
 static int is155;
 
-static uint32 MMC1GetCHRBank (uint32 bank) {
+static uint32_t MMC1GetCHRBank (uint32_t bank) {
 	if (DRegs[0] & 0x10)	/* 4 KiB mode */
 		return (DRegs[1 + bank]);
 	else 					/* 8 KiB mode */
 		return ((DRegs[1] & ~1) | bank);
 }
 
-static uint8 MMC1WRAMEnabled(void) {
+static uint8_t MMC1WRAMEnabled(void) {
 	return !(DRegs[3] & 0x10);
 }
 
@@ -100,7 +100,7 @@ static void MMC1CHR(void) {
 }
 
 static void MMC1PRG(void) {
-	uint8 offs = DRegs[1] & 0x10;
+	uint8_t offs = DRegs[1] & 0x10;
 	if (MMC1PRGHook16) {
 		switch (DRegs[0] & 0xC) {
 		case 0xC:
@@ -146,7 +146,7 @@ static void MMC1MIRROR(void) {
 		}
 }
 
-static uint64 lreset;
+static uint64_t lreset;
 static DECLFW(MMC1_write) {
 	int n = (A >> 13) - 4;
 
@@ -233,9 +233,9 @@ static int DetectMMC1WRAMSize(CartInfo *info, int *saveRAM) {
 	return workRAM;
 }
 
-static uint32 NWCIRQCount;
-static uint8 NWCRec;
-static uint32 nwcdip = 0x4;
+static uint32_t NWCIRQCount;
+static uint8_t NWCRec;
+static uint32_t nwcdip = 0x4;
 
 static void NWCIRQHook(int a) {
 	if (!(NWCRec & 0x10)) {
@@ -247,7 +247,7 @@ static void NWCIRQHook(int a) {
 	}
 }
 
-static void NWCCHRHook(uint32 A, uint8 V) {
+static void NWCCHRHook(uint32_t A, uint8_t V) {
 	if ((V & 0x10)) {	/* && !(NWCRec&0x10)) */
 		NWCIRQCount = 0;
 		X6502_IRQEnd(FCEU_IQEXT);
@@ -260,7 +260,7 @@ static void NWCCHRHook(uint32 A, uint8 V) {
 		setprg32(0x8000, (V >> 1) & 3);
 }
 
-static void NWCPRGHook(uint32 A, uint8 V) {
+static void NWCPRGHook(uint32_t A, uint8_t V) {
 	if (NWCRec & 0x8)
 		setprg16(A, 8 | (V & 0x7));
 	else
@@ -270,11 +270,11 @@ static void NWCPRGHook(uint32 A, uint8 V) {
 static void NWCPower(void) {
 	GenMMC1Power();
 	setchr8r(0, 0);
-	nwcdip = 0x20000000 | ((uint32)GameInfo->cspecial << 25);
+	nwcdip = 0x20000000 | ((uint32_t)GameInfo->cspecial << 25);
 }
 
 static void NWCReset(void) {
-	nwcdip = 0x20000000 | ((uint32)GameInfo->cspecial << 25);
+	nwcdip = 0x20000000 | ((uint32_t)GameInfo->cspecial << 25);
 	MMC1CMReset();
 }
 
@@ -331,7 +331,7 @@ static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram)
 	CHRmask8[0] &= (chr >> 13) - 1;
 
 	if (WRAMSIZE) {
-		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 		AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 		if (saveram) {
@@ -340,7 +340,7 @@ static void GenMMC1Init(CartInfo *info, int prg, int chr, int wram, int saveram)
 		}
 	}
 	if (!chr) {
-		CHRRAM = (uint8*)FCEU_gmalloc(8192);
+		CHRRAM = (uint8_t*)FCEU_gmalloc(8192);
 		SetupCartCHRMapping(0, CHRRAM, 8192, 1);
 		AddExState(CHRRAM, 8192, 0, "CHRR");
 	}
@@ -429,13 +429,13 @@ void SOROM_Init(CartInfo *info) {
 
 /* NES 2.0 Mapper 323 - UNIF FARID_SLROM_8-IN-1 */
 
-static uint8 reg, lock;
+static uint8_t reg, lock;
 
-static void FARIDSLROM8IN1PRGHook(uint32 A, uint8 V) {
+static void FARIDSLROM8IN1PRGHook(uint32_t A, uint8_t V) {
 	setprg16(A, (V & 0x07) | (reg << 3));
 }
 
-static void FARIDSLROM8IN1CHRHook(uint32 A, uint8 V) {
+static void FARIDSLROM8IN1CHRHook(uint32_t A, uint8_t V) {
 	setchr4(A, (V & 0x1F) | (reg << 5));
 }
 
@@ -474,12 +474,12 @@ void FARIDSLROM8IN1_Init(CartInfo *info) {
 /* 1995 Super HiK 4-in-1 - 新系列機器戰警组合卡 (JY-022)
  * 1996 Super HiK 4-in-1 - 新系列超級飛狼組合卡 (JY-051)
  */
-static uint8 game = 0;
-static void M374PRG(uint32 A, uint8 V) {
+static uint8_t game = 0;
+static void M374PRG(uint32_t A, uint8_t V) {
 	setprg16(A, (V & 0x07) | (game << 3));
 }
 
-static void M374CHR(uint32 A, uint8 V) {
+static void M374CHR(uint32_t A, uint8_t V) {
 	setchr4(A, (V & 0x1F) | (game << 5));
 }
 
@@ -499,14 +499,14 @@ void Mapper374_Init(CartInfo *info) {
 /* ---------------------------- Mapper 297 -------------------------------- */
 /* NES 2.0 Mapper 297 - 2-in-1 Uzi Lightgun (MGC-002) */
 
-static uint8 mode;
-static uint8 latch;
+static uint8_t mode;
+static uint8_t latch;
 
-static void M297PRG(uint32 A, uint8 V) {
+static void M297PRG(uint32_t A, uint8_t V) {
 	setprg16(A, (V & 0x07) | ((mode & 1) << 3));
 }
 
-static void M297CHR(uint32 A, uint8 V) {
+static void M297CHR(uint32_t A, uint8_t V) {
 	setchr4(A, (V & 0x1F) | ((mode & 1) << 5));
 }
 
@@ -572,16 +572,16 @@ static uint8_t outerBank;
 static uint8_t bits;
 static uint8_t shift;
 
-static void M543PRG16(uint32 A, uint8 V) {
+static void M543PRG16(uint32_t A, uint8_t V) {
 	setprg16(A, (V & 0x0F) | (outerBank << 4));
 }
 
-static void M543CHR4(uint32 A, uint8 V) {
+static void M543CHR4(uint32_t A, uint8_t V) {
 	setchr4(A, (V & 7));
 }
 
 static void M543WRAM8(void) {
-	uint32 wramBank;
+	uint32_t wramBank;
 	if (outerBank & 2)
 		wramBank = 4 | ((outerBank >> 1) & 2) | (outerBank & 1) ;
 	else
@@ -636,14 +636,14 @@ void Mapper543_Init(CartInfo *info) {
 static uint8_t latch;
 static uint8_t outerBank;
 
-static void M550PRG16(uint32 A, uint8 V) {
+static void M550PRG16(uint32_t A, uint8_t V) {
 	if ((outerBank & 6) == 6)
 		setprg16(A, (V & 7) | (outerBank << 2));
 	else
 		setprg32(0x8000, (latch >> 4) | (outerBank << 1));
 }
 
-static void M550CHR4(uint32 A, uint8 V) {
+static void M550CHR4(uint32_t A, uint8_t V) {
 	if ((outerBank & 6) == 6)
 		setchr4(A, (V & 7) | ((outerBank << 2) & 0x18));
 	else
@@ -697,12 +697,12 @@ void Mapper550_Init(CartInfo *info) {
 
 static uint8_t outerBank;
 
-static void M404PRG16(uint32 A, uint8 V) {
-	uint8 mask = outerBank & 0x40 ? 0x07 : 0x0F;
+static void M404PRG16(uint32_t A, uint8_t V) {
+	uint8_t mask = outerBank & 0x40 ? 0x07 : 0x0F;
 	setprg16(A, (V & mask) | (outerBank << 3) & ~mask);
 }
 
-static void M404CHR4(uint32 A, uint8 V) {
+static void M404CHR4(uint32_t A, uint8_t V) {
 	setchr4(A, (V & 0x1F) | outerBank << 5);
 }
 

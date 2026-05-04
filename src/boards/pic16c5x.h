@@ -16,7 +16,7 @@
 
 #include "../../fceu-types.h"
 
-typedef uint8 (*pic16c5x_readfunc)(int);
+typedef uint8_t (*pic16c5x_readfunc)(int);
 typedef void (*pic16c5x_writefunc)(int, int);
 
 enum {
@@ -41,17 +41,17 @@ enum {
  *  the value if known (available in HEX dumps of the ROM).
  */
 void pic16c5x_set_input(int line, int state);
-void pic16c5x_set_config(uint16 data);
-void pic16c5x_reset(uint8 hard);
+void pic16c5x_set_config(uint16_t data);
+void pic16c5x_reset(uint8_t hard);
 void pic16c5x_run(void);
 void pic16c5x_add_statesinfo(void);
 
-void pic16c54_init(uint8* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
-void pic16c55_init(uint8* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
-void pic16c56_init(uint8* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
-void pic16c57_init(uint8* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
-void pic16c58_init(uint8* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
-void pic1650_init(uint8* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
-void pic1655_init(uint8* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
+void pic16c54_init(uint8_t* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
+void pic16c55_init(uint8_t* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
+void pic16c56_init(uint8_t* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
+void pic16c57_init(uint8_t* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
+void pic16c58_init(uint8_t* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
+void pic1650_init(uint8_t* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
+void pic1655_init(uint8_t* rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr);
 
 #endif /* _PIC16C5x_H */

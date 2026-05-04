@@ -27,12 +27,12 @@
 #include "mmc3.h"
 #include "../fds_apu.h"
 
-static uint8* CHRRAM = NULL;
-static uint32 CHRRAMSIZE;
-static uint8 PPUCHRBus;
-static uint8 MIR[8];
+static uint8_t* CHRRAM = NULL;
+static uint32_t CHRRAMSIZE;
+static uint8_t PPUCHRBus;
+static uint8_t MIR[8];
 
-static void M353PPU(uint32 A) {
+static void M353PPU(uint32_t A) {
 	A &= 0x1FFF;
 	A >>= 10;
 	PPUCHRBus = A;
@@ -40,8 +40,8 @@ static void M353PPU(uint32 A) {
 		setmirror(MI_0 + MIR[A]);
 }
 
-static void M353PW(uint32 A, uint8 V) {
-	uint8 bank = V;
+static void M353PW(uint32_t A, uint8_t V) {
+	uint8_t bank = V;
 
 	if (EXPREGS[0] == 2) {
 		bank &= 0x0F;
@@ -64,7 +64,7 @@ static void M353PW(uint32 A, uint8 V) {
 	setprg8(A, bank);
 }
 
-static void M353CW(uint32 A, uint8 V) {
+static void M353CW(uint32_t A, uint8_t V) {
 	if ((EXPREGS[0] == 2) && (DRegBuf[0] & 0x80))
 		setchr8r(0x10, 0);
 	else
@@ -75,7 +75,7 @@ static void M353CW(uint32 A, uint8 V) {
 		setmirror(MI_0 + (V >> 7));
 }
 
-static void M353MW(uint8 V) {
+static void M353MW(uint8_t V) {
 	if (EXPREGS[0] != 0) {
 		A000B = V;
 		setmirror((V & 1) ^ 1);
@@ -128,7 +128,7 @@ void Mapper353_Init(CartInfo* info) {
 	AddExState(EXPREGS, 1, 0, "EXPR");
 
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }

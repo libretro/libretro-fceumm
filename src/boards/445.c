@@ -23,8 +23,8 @@
 #include "asic_mmc3.h"
 #include "asic_vrc2and4.h"
 
-static uint8 reg[4];
-static uint8 dip;
+static uint8_t reg[4];
+static uint8_t dip;
 
 static SFORMAT stateRegs[] = {
 	{ reg,  4, "REGS" },
@@ -66,7 +66,7 @@ static void sync () {
 	SetReadHandler(0x8000, 0xFFFF, reg[0] &0xC0 && (reg[0] &0xC0) == dip? NULL: CartBR);
 }
 
-static void applyMode (uint8 clear) {
+static void applyMode (uint8_t clear) {
 	if ((reg[2] >>3 &7) >= 5)
 		Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
 	else

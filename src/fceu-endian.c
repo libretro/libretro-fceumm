@@ -21,14 +21,16 @@
 /*  Contains file I/O functions that write/read data    */
 /*  LSB first.              */
 
+#include <string.h>
+
 #include "fceu-memory.h"
 #include "fceu-types.h"
 #include "fceu-endian.h"
 
-void FlipByteOrder(uint8 *src, uint32 count)
+void FlipByteOrder(uint8_t *src, uint32_t count)
 {
-   uint8 *start = src;
-   uint8 *end;
+   uint8_t *start = src;
+   uint8_t *end;
 
    if ((count & 1) || !count)
       return;     /* This shouldn't happen. */
@@ -40,7 +42,7 @@ void FlipByteOrder(uint8 *src, uint32 count)
     * FCEUSTATE_RLSB-marked field. */
    while (start < end)
    {
-      uint8 tmp;
+      uint8_t tmp;
 
       tmp = *end;
       *end = *start;
@@ -50,38 +52,60 @@ void FlipByteOrder(uint8 *src, uint32 count)
    }
 }
 
-int write32le_mem(uint32 b, memstream_t *mem)
+int write32le_mem(uint32_t b, memstream_t *mem)
 {
-   uint8 s[4];
+   uint8_t s[4];
+#ifndef MSB_FIRST
+   /* On LE hosts the in-memory representation already matches the
+    * on-disk LE format. Copy the four bytes directly, letting the
+    * compiler emit a single 32-bit store. */
+   memcpy(s, &b, 4);
+#else
    s[0]=b;
    s[1]=b>>8;
    s[2]=b>>16;
    s[3]=b>>24;
+#endif
    return((memstream_write(mem, s, 4)<4)?0:4);
 }
 
-int read32le_mem(uint32 *Bufo, memstream_t *mem)
+int read32le_mem(uint32_t *Bufo, memstream_t *mem)
 {
-   uint32 buf;
+   uint32_t buf;
    if(memstream_read(mem, &buf, 4)<4)
       return 0;
 #ifdef MSB_FIRST
-   *(uint32*)Bufo=((buf&0xFF)<<24)|((buf&0xFF00)<<8)|((buf&0xFF0000)>>8)|((buf&0xFF000000)>>24);
+   *Bufo = ((buf&0xFF)<<24)|((buf&0xFF00)<<8)|((buf&0xFF0000)>>8)|((buf&0xFF000000)>>24);
 #else
-   *(uint32*)Bufo=buf;
+   /* LE: bytes already in place. Use memcpy rather than the previous
+    * '*(uint32_t*)Bufo = buf;' which aliased through a uint32_t* into
+    * what's nominally a uint32_t already - functionally equivalent
+    * but cleaner. */
+   *Bufo = buf;
 #endif
    return 1;
 }
 
-void FCEU_en32lsb(uint8 *buf, uint32 morp)
+void FCEU_en32lsb(uint8_t *buf, uint32_t morp)
 {
+#ifndef MSB_FIRST
+   /* LE in-memory layout matches the desired LE on-disk layout. */
+   memcpy(buf, &morp, 4);
+#else
    buf[0] = morp;
    buf[1] = morp >> 8;
    buf[2] = morp >> 16;
    buf[3] = morp >> 24;
+#endif
 }
 
-uint32 FCEU_de32lsb(const uint8 *morp)
+uint32_t FCEU_de32lsb(const uint8_t *morp)
 {
+#ifndef MSB_FIRST
+   uint32_t v;
+   memcpy(&v, morp, 4);
+   return v;
+#else
    return(morp[0] | (morp[1] << 8) | (morp[2] << 16) | (morp[3] << 24));
+#endif
 }

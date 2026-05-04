@@ -52,15 +52,15 @@
 #include "mapinc.h"
 
 typedef struct {
-	uint8 mask;
-	uint8 isJV001;
-	uint8 accumulator;
-	uint8 inverter;
-	uint8 staging;
-	uint8 output;
-	uint8 increase;
-	uint8 Y;
-	uint8 invert;
+	uint8_t mask;
+	uint8_t isJV001;
+	uint8_t accumulator;
+	uint8_t inverter;
+	uint8_t staging;
+	uint8_t output;
+	uint8_t increase;
+	uint8_t Y;
+	uint8_t invert;
 } TXC;
 
 static TXC txc;
@@ -80,8 +80,8 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static uint8 TXC_CMDRead(void) {
-	uint8 ret = ((txc.accumulator & txc.mask) | ((txc.inverter ^ txc.invert) & ~txc.mask));
+static uint8_t TXC_CMDRead(void) {
+	uint8_t ret = ((txc.accumulator & txc.mask) | ((txc.inverter ^ txc.invert) & ~txc.mask));
 	txc.Y = !txc.invert || ((ret & 0x10) != 0);
 	WSync();
 	return ret;
@@ -138,7 +138,7 @@ static void StateRestore(int version) {
 	WSync();
 }
 
-static void GenTXC_Init(CartInfo *info, void (*proc)(void), uint32 jv001) {
+static void GenTXC_Init(CartInfo *info, void (*proc)(void), uint32_t jv001) {
 	txc.isJV001 = jv001;
 	WSync   = proc;
 	GameStateRestore = StateRestore;
@@ -147,12 +147,12 @@ static void GenTXC_Init(CartInfo *info, void (*proc)(void), uint32 jv001) {
 
 static int CheckHash(CartInfo *info) {
 	int x = 0;
-	uint64 partialmd5 = 0;
+	uint64_t partialmd5 = 0;
 
 	/* These carts do not work with new mapper implementation.
 	* This is a hack to use previous mapper implementation for such carts. */
 	for (x = 0; x < 8; x++)
-	  partialmd5 |= (uint64)info->MD5[15 - x] << (x * 8);
+	  partialmd5 |= (uint64_t)info->MD5[15 - x] << (x * 8);
 	switch (partialmd5) {
 	case 0x2dd8f958850f21f4LL: /* Jin Gwok Sei Chuen Saang (Ch) [U][!] */
 	  FCEU_printf(" WARNING: Using alternate mapper implementation.\n");
@@ -164,7 +164,7 @@ static int CheckHash(CartInfo *info) {
 
 /* --------------- Mapper 36 --------------- */
 
-static uint8 creg = 0;
+static uint8_t creg = 0;
 
 static void M36Sync(void) {
 	setprg32(0x8000, txc.output & 0x03);
@@ -177,7 +177,7 @@ static DECLFW(M36Write) {
 }
 
 static DECLFR(M36Read) {
-	uint8 ret = X.DB;
+	uint8_t ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = (X.DB & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
 	return ret;
@@ -209,7 +209,7 @@ static DECLFW(M132Write) {
 }
 
 static DECLFR(M132Read) {
-	uint8 ret = X.DB;
+	uint8_t ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = ((X.DB & 0xF0) | (TXC_CMDRead() & 0x0F));
 	return ret;
@@ -257,7 +257,7 @@ static DECLFW(M136Write) {
 }
 
 static DECLFR(M136Read) {
-	uint8 ret = X.DB;
+	uint8_t ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = ((X.DB & 0xC0) | (TXC_CMDRead() & 0x3F));
 	return ret;
@@ -287,9 +287,9 @@ static DECLFW(M147Write) {
 }
 
 static DECLFR(M147Read) {
-	uint8 ret = X.DB;
+	uint8_t ret = X.DB;
 	if ((A & 0x103) == 0x100) {
-	  uint8 value = TXC_CMDRead();
+	  uint8_t value = TXC_CMDRead();
 	  ret = ((value << 2) & 0xFC) | ((value >> 6) & 0x03);
 	}
 	return ret;
@@ -315,7 +315,7 @@ static void M172Sync(void) {
 	setmirror(txc.invert ? 1 : 0);
 }
 
-static uint8 GetValue(uint8 value) {
+static uint8_t GetValue(uint8_t value) {
 	return (((value << 5) & 0x20) | ((value << 3) & 0x10) | ((value << 1) & 0x08) |
 		 ((value >> 1) & 0x04) | ((value >> 3) & 0x02) | ((value >> 5) & 0x01));
 }
@@ -325,7 +325,7 @@ static DECLFW(M172Write) {
 }
 
 static DECLFR(M172Read) {
-	uint8 ret = X.DB;
+	uint8_t ret = X.DB;
 	if ((A & 0x103) == 0x100)
 	  ret = (X.DB & 0xC0) | GetValue(TXC_CMDRead());
 	return ret;
@@ -345,7 +345,7 @@ void Mapper172_Init(CartInfo *info) {
 
 /* === LEGACY MAPPER IMPLEMENTATION === */
 
-static uint8 reg[4], cmd, is172, is173;
+static uint8_t reg[4], cmd, is172, is173;
 
 static SFORMAT UNL22211StateRegs[] =
 {

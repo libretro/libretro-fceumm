@@ -31,8 +31,8 @@
 #include "cart.h"
 #include "fceu-memory.h"
 
-static uint8 *CheatRPtrs[64];
-uint8 *MMapPtrs[64];
+static uint8_t *CheatRPtrs[64];
+uint8_t *MMapPtrs[64];
 
 void FCEU_CheatResetRAM(void) {
 	int x;
@@ -41,8 +41,8 @@ void FCEU_CheatResetRAM(void) {
 		CheatRPtrs[x] = 0;
 }
 
-void FCEU_CheatAddRAM(int s, uint32 A, uint8 *p) {
-	uint32 AB = A >> 10;
+void FCEU_CheatAddRAM(int s, uint32_t A, uint8_t *p) {
+	uint32_t AB = A >> 10;
 	int x;
 
 	for (x = s - 1; x >= 0; x--) {
@@ -55,16 +55,16 @@ void FCEU_CheatAddRAM(int s, uint32 A, uint8 *p) {
 struct CHEATF {
 	struct CHEATF *next;
 	char *name;
-	uint16 addr;
-	uint8 val;
+	uint16_t addr;
+	uint8_t val;
 	int compare;		/* -1 for no compare. */
 	int type;			/* 0 for replace, 1 for substitute(GG). */
 	int status;
 };
 
 typedef struct {
-	uint16 addr;
-	uint8 val;
+	uint16_t addr;
+	uint8_t val;
 	int compare;
 	readfunc PrevRead;
 } CHEATF_SUBFAST;
@@ -79,7 +79,7 @@ struct CHEATF *cheats = 0, *cheatsl = 0;
 #define CHEATC_EXCLUDED 0x4000
 #define CHEATC_NOSHOW   0xC000
 
-static uint16 *CheatComp = 0;
+static uint16_t *CheatComp = 0;
 static int savecheats;
 
 static DECLFR(SubCheatsRead) {
@@ -89,7 +89,7 @@ static DECLFR(SubCheatsRead) {
 	do {
 		if (s->addr == A) {
 			if (s->compare >= 0) {
-				uint8 pv = s->PrevRead(A);
+				uint8_t pv = s->PrevRead(A);
 
 				if (pv == s->compare)
 					return(s->val);
@@ -140,13 +140,13 @@ void FCEU_PowerCheats() {
 	RebuildSubCheats();
 }
 
-static int AddCheatEntry(char *name, uint32 addr, uint8 val, int compare, int status, int type);
+static int AddCheatEntry(char *name, uint32_t addr, uint8_t val, int compare, int status, int type);
 static void CheatMemErr(void) {
 	FCEUD_PrintError("Error allocating memory for cheat data.");
 }
 
 /* This function doesn't allocate any memory for "name" */
-static int AddCheatEntry(char *name, uint32 addr, uint8 val, int compare, int status, int type) {
+static int AddCheatEntry(char *name, uint32_t addr, uint8_t val, int compare, int status, int type) {
 	struct CHEATF *temp;
 	if (!(temp = (struct CHEATF*)malloc(sizeof(struct CHEATF)))) {
 		CheatMemErr();
@@ -208,7 +208,7 @@ void FCEU_ResetCheats(void)
 }
 
 
-int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int type) {
+int FCEUI_AddCheat(const char *name, uint32_t addr, uint8_t val, int compare, int type) {
 	char *t;
 	if (!(t = (char*)malloc(strlen(name) + 1)))
 	{
@@ -225,10 +225,10 @@ int FCEUI_AddCheat(const char *name, uint32 addr, uint8 val, int compare, int ty
 	return(1);
 }
 
-int FCEUI_DelCheat(uint32 which) {
+int FCEUI_DelCheat(uint32_t which) {
 	struct CHEATF *prev;
 	struct CHEATF *cur;
-	uint32 x = 0;
+	uint32_t x = 0;
 
 	for (prev = 0, cur = cheats;; ) {
 		if (x == which) {	/* Remove this cheat. */
@@ -280,7 +280,7 @@ void FCEU_ApplyPeriodicCheats(void) {
 }
 
 
-void FCEUI_ListCheats(int (*callb)(char *name, uint32 a, uint8 v, int compare, int s, int type, void *data), void *data) {
+void FCEUI_ListCheats(int (*callb)(char *name, uint32_t a, uint8_t v, int compare, int s, int type, void *data), void *data) {
 	struct CHEATF *next = cheats;
 
 	while (next) {
@@ -289,9 +289,9 @@ void FCEUI_ListCheats(int (*callb)(char *name, uint32 a, uint8 v, int compare, i
 	}
 }
 
-int FCEUI_GetCheat(uint32 which, char **name, uint32 *a, uint8 *v, int *compare, int *s, int *type) {
+int FCEUI_GetCheat(uint32_t which, char **name, uint32_t *a, uint8_t *v, int *compare, int *s, int *type) {
 	struct CHEATF *next = cheats;
-	uint32 x = 0;
+	uint32_t x = 0;
 
 	while (next) {
 		if (x == which) {
@@ -325,11 +325,11 @@ static int GGtobin(char c) {
 }
 
 /* Returns 1 on success, 0 on failure. Sets *a,*v,*c. */
-int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
-	uint8 t;
-	uint16 A = 0x8000;
-	uint8 V = 0;
-	uint8 C = 0;
+int FCEUI_DecodeGG(const char *str, uint16_t *a, uint8_t *v, int *c) {
+	uint8_t t;
+	uint16_t A = 0x8000;
+	uint8_t V = 0;
+	uint8_t C = 0;
 	int s = strlen(str);
 	if (s != 6 && s != 8) return(0);
 
@@ -382,7 +382,7 @@ int FCEUI_DecodeGG(const char *str, uint16 *a, uint8 *v, int *c) {
 	return(0);
 }
 
-int FCEUI_DecodePAR(const char *str, uint16 *a, uint8 *v, int *c, int *type) {
+int FCEUI_DecodePAR(const char *str, uint16_t *a, uint8_t *v, int *c, int *type) {
 	int boo[4];
 	if (strlen(str) != 8) return(0);
 
@@ -418,9 +418,9 @@ int FCEUI_DecodePAR(const char *str, uint16 *a, uint8 *v, int *c, int *type) {
 /* name can be NULL if the name isn't going to be changed. */
 /* same goes for a, v, and s(except the values of each one must be <0) */
 
-int FCEUI_SetCheat(uint32 which, const char *name, int32 a, int32 v, int compare, int s, int type) {
+int FCEUI_SetCheat(uint32_t which, const char *name, int32_t a, int32_t v, int compare, int s, int type) {
 	struct CHEATF *next = cheats;
-	uint32 x = 0;
+	uint32_t x = 0;
 
 	while (next) {
 		if (x == which) {
@@ -455,9 +455,9 @@ int FCEUI_SetCheat(uint32 which, const char *name, int32 a, int32 v, int compare
 }
 
 /* Convenience function. */
-int FCEUI_ToggleCheat(uint32 which) {
+int FCEUI_ToggleCheat(uint32_t which) {
 	struct CHEATF *next = cheats;
-	uint32 x = 0;
+	uint32_t x = 0;
 
 	while (next) {
 		if (x == which) {
@@ -474,9 +474,9 @@ int FCEUI_ToggleCheat(uint32 which) {
 }
 
 static int InitCheatComp(void) {
-	uint32 x;
+	uint32_t x;
 
-	CheatComp = (uint16*)malloc(65536 * sizeof(uint16));
+	CheatComp = (uint16_t*)malloc(65536 * sizeof(uint16_t));
 	if (!CheatComp) {
 		CheatMemErr();
 		return(0);
@@ -488,7 +488,7 @@ static int InitCheatComp(void) {
 }
 
 void FCEUI_CheatSearchSetCurrentAsOriginal(void) {
-	uint32 x;
+	uint32_t x;
 	for (x = 0x000; x < 0x10000; x++)
 		if (!(CheatComp[x] & CHEATC_NOSHOW)) {
 			if (CheatRPtrs[x >> 10])
@@ -499,15 +499,15 @@ void FCEUI_CheatSearchSetCurrentAsOriginal(void) {
 }
 
 void FCEUI_CheatSearchShowExcluded(void) {
-	uint32 x;
+	uint32_t x;
 
 	for (x = 0x000; x < 0x10000; x++)
 		CheatComp[x] &= ~CHEATC_EXCLUDED;
 }
 
 
-int32 FCEUI_CheatSearchGetCount(void) {
-	uint32 x, c = 0;
+int32_t FCEUI_CheatSearchGetCount(void) {
+	uint32_t x, c = 0;
 
 	if (CheatComp) {
 		for (x = 0x0000; x < 0x10000; x++)
@@ -519,8 +519,8 @@ int32 FCEUI_CheatSearchGetCount(void) {
 }
 /* This function will give the initial value of the search and the current value at a location. */
 
-void FCEUI_CheatSearchGet(int (*callb)(uint32 a, uint8 last, uint8 current, void *data), void *data) {
-	uint32 x;
+void FCEUI_CheatSearchGet(int (*callb)(uint32_t a, uint8_t last, uint8_t current, void *data), void *data) {
+	uint32_t x;
 
 	if (!CheatComp) {
 		if (!InitCheatComp())
@@ -534,9 +534,9 @@ void FCEUI_CheatSearchGet(int (*callb)(uint32 a, uint8 last, uint8 current, void
 				break;
 }
 
-void FCEUI_CheatSearchGetRange(uint32 first, uint32 last, int (*callb)(uint32 a, uint8 last, uint8 current)) {
-	uint32 x;
-	uint32 in = 0;
+void FCEUI_CheatSearchGetRange(uint32_t first, uint32_t last, int (*callb)(uint32_t a, uint8_t last, uint8_t current)) {
+	uint32_t x;
+	uint32_t in = 0;
 
 	if (!CheatComp) {
 		if (!InitCheatComp())
@@ -555,7 +555,7 @@ void FCEUI_CheatSearchGetRange(uint32 first, uint32 last, int (*callb)(uint32 a,
 }
 
 void FCEUI_CheatSearchBegin(void) {
-	uint32 x;
+	uint32_t x;
 
 	if (!CheatComp) {
 		if (!InitCheatComp()) {
@@ -578,8 +578,8 @@ static INLINE int CAbs(int x) {
 	return x;
 }
 
-void FCEUI_CheatSearchEnd(int type, uint8 v1, uint8 v2) {
-	uint32 x;
+void FCEUI_CheatSearchEnd(int type, uint8_t v1, uint8_t v2) {
+	uint32_t x;
 
 	if (!CheatComp) {
 		if (!InitCheatComp()) {

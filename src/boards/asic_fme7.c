@@ -22,8 +22,8 @@
 #include "asic_fme7.h"
 
 static void (*FME7_cbSync)();
-static uint8 FME7_index;
-static uint8 FME7_reg[16];
+static uint8_t FME7_index;
+static uint8_t FME7_reg[16];
 
 static SFORMAT FME7_stateRegs[] = {
 	{ &FME7_index,  1, "FM7I" },
@@ -102,7 +102,7 @@ static void FME7_configure (void (*sync)()) {
 	FME7_cbSync = sync;
 }
 
-void FME7_activate (uint8 clear, void (*sync)()) {
+void FME7_activate (uint8_t clear, void (*sync)()) {
 	FME7_configure(sync);
 	FME7_setHandlers();
 	if (clear)

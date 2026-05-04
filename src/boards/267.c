@@ -25,11 +25,11 @@
 
 #define OUTER_BANK (((EXPREGS[0] & 0x20) >> 2) | (EXPREGS[0] & 0x06))
 
-static void M267CW(uint32 A, uint8 V) {
+static void M267CW(uint32_t A, uint8_t V) {
 	setchr1(A, (V & 0x7F) | (OUTER_BANK << 6));
 }
 
-static void M267PW(uint32 A, uint8 V) {
+static void M267PW(uint32_t A, uint8_t V) {
 	setprg8(A, (V & 0x1F) | (OUTER_BANK << 4));
 }
 

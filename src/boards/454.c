@@ -23,10 +23,10 @@
 #include "latch.h"
 
 static void Sync(void) {
-	uint8 prg = ((latch.addr >> 3) & 0x20) | ((latch.addr >> 2) & 0x1F);
-	uint8 cpuA14 = latch.addr & 0x01;
-	uint8 nrom = (latch.addr >> 7) & 0x01;
-	uint8 unrom = (latch.addr >> 8) & 0x01;
+	uint8_t prg = ((latch.addr >> 3) & 0x20) | ((latch.addr >> 2) & 0x1F);
+	uint8_t cpuA14 = latch.addr & 0x01;
+	uint8_t nrom = (latch.addr >> 7) & 0x01;
+	uint8_t unrom = (latch.addr >> 8) & 0x01;
 
 	setprg16(0x8000, ((prg & ~cpuA14) & ~(0x07 * unrom)) | (latch.data * unrom));
 	setprg16(0xC000, ((prg | cpuA14) & ~(0x1F * !nrom * !unrom)) | (0x07 * unrom));

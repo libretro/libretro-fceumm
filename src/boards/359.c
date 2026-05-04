@@ -25,17 +25,17 @@
 #include "mapinc.h"
 #include "../fds_apu.h"
 
-static uint32 mapperNum;
-static uint8 preg[4];
-static uint8 creg[8];
-static uint8 exRegs[4];
-static uint8 IRQReload;
-static uint8 IRQa;
-static uint8 irqPA12;
-static uint8 IRQAutoEnable;
-static uint8 IRQLatch;
-static uint8 IRQCount;
-static int16 IRQCount16;
+static uint32_t mapperNum;
+static uint8_t preg[4];
+static uint8_t creg[8];
+static uint8_t exRegs[4];
+static uint8_t IRQReload;
+static uint8_t IRQa;
+static uint8_t irqPA12;
+static uint8_t IRQAutoEnable;
+static uint8_t IRQLatch;
+static uint8_t IRQCount;
+static int16_t IRQCount16;
 
 static SFORMAT StateRegs[] = {
 	{ preg, 4, "PREG" },
@@ -52,8 +52,8 @@ static SFORMAT StateRegs[] = {
 };
 
 static void Sync(void) {
-	uint8 prgMask = 0x3F;
-	uint8 prgOuterBank = (exRegs[0] & 0x38) << 1;
+	uint8_t prgMask = 0x3F;
+	uint8_t prgOuterBank = (exRegs[0] & 0x38) << 1;
 
 	switch (exRegs[1] & 3) {
 	case 0: prgMask = 0x3F; break;
@@ -71,9 +71,9 @@ static void Sync(void) {
 	if (!UNIFchrrama) {
 		switch (mapperNum) {
 		case 359: {
-			uint8 i;
-			uint8 chrMask = (exRegs[1] & 0x40) ? 0xFF : 0x7F;
-			uint16 chrOuterBank = (exRegs[3] << 7);
+			uint8_t i;
+			uint8_t chrMask = (exRegs[1] & 0x40) ? 0xFF : 0x7F;
+			uint16_t chrOuterBank = (exRegs[3] << 7);
 			
 			for (i = 0; i < 8; i++)
 				setchr1(i << 10, (creg[i] & chrMask) | chrOuterBank);
@@ -124,19 +124,19 @@ static DECLFW(M359WriteIRQ) {
 }
 
 static DECLFW(M359WritePRG) {
-	uint8 i = A & 3;
+	uint8_t i = A & 3;
 	preg[i] = V;
 	Sync();
 }
 
 static DECLFW(M359WriteCHR) {
-	uint8 i = ((A >> 10) & 4) | (A & 3);
+	uint8_t i = ((A >> 10) & 4) | (A & 3);
 	creg[i] = V;
 	Sync();
 }
 
 static DECLFW(M359WriteEx) {
-	uint8 i = A & 3;
+	uint8_t i = A & 3;
 	exRegs[i] = V;
 	Sync();
 }

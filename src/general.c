@@ -81,7 +81,7 @@ char *FCEU_MakeFName(int type, int id1, char *cd1)
    return(ret);
 }
 
-uint32 uppow2(uint32 n)
+uint32_t uppow2(uint32_t n)
 {
    int x;
 

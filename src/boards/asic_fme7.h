@@ -30,7 +30,7 @@ DECLFW (FME7_writeWRAM);
 DECLFW (FME7_writeReg);
 void FP_FASTAPASS(1) FME7_cpuCycle (int);
 void FME7_clear ();
-void FME7_activate (uint8, void (*)());
+void FME7_activate (uint8_t, void (*)());
 void FME7_addExState ();
 void FME7_restore (int);
 void FME7_power ();

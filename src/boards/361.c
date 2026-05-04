@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	MMC3_syncPRG(0x0F, reg &~0x0F);

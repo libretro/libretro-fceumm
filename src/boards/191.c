@@ -24,8 +24,8 @@
 #include "asic_mmc3.h"
 #include "cartram.h"
 
-static uint8 submapper;
-static uint8 reg;
+static uint8_t submapper;
+static uint8_t reg;
 
 static void sync () {
 	int bank;
@@ -39,7 +39,7 @@ static void sync () {
 	MMC3_syncMirror();
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	if (bank &2)
 		return MMC3_getPRGBank(bank) &~6 | reg <<1 &6;
 	else

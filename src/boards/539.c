@@ -23,9 +23,9 @@
 #include "mapinc.h"
 #include "../fds_apu.h"
 
-static uint8 preg;
-static uint8 mirr;
-static uint8 WRAM[8192];
+static uint8_t preg;
+static uint8_t mirr;
+static uint8_t WRAM[8192];
 
 static SFORMAT StateRegs[] =
 {
@@ -34,7 +34,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static uint32 GetWRAMAddress(uint32 A) {
+static uint32_t GetWRAMAddress(uint32_t A) {
 	return  ((A & 0x1FFF) |
 			((A < 0xC000) ? 0x1000 : 0x0000) |
 			((A < 0x8000) ? 0x0800 : 0x000));

@@ -25,10 +25,10 @@
 
 #include "mapinc.h"
 
-static uint8 preg[2];
-static uint8 mode;
-static uint8 mirr;
-static uint8 lock;
+static uint8_t preg[2];
+static uint8_t mode;
+static uint8_t mirr;
+static uint8_t lock;
 
 static SFORMAT StateRegs[] = {
 	{ &preg[0], 1, "PRG0" },

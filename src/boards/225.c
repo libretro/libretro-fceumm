@@ -30,8 +30,8 @@
 
 #include "mapinc.h"
 
-static uint8 extraRAM[4], prg, mode, chr, mirr;
-static uint8 is255;
+static uint8_t extraRAM[4], prg, mode, chr, mirr;
+static uint8_t is255;
 
 static SFORMAT StateRegs[] =
 {
@@ -54,7 +54,7 @@ static void Sync(void) {
 }
 
 static DECLFW(M225Write) {
-	uint8 bank = (A >> 14) & 1;
+	uint8_t bank = (A >> 14) & 1;
 	mirr = (A >> 13) & 1;
 	mode = (A >> 12) & 1;
 	if (is255)

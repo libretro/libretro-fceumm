@@ -28,13 +28,13 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M395CW(uint32 A, uint8 V) {
-	uint8 mask = EXPREGS[1] & 0x40 ? 0x7F : 0xFF;
+static void M395CW(uint32_t A, uint8_t V) {
+	uint8_t mask = EXPREGS[1] & 0x40 ? 0x7F : 0xFF;
 	setchr1(A, (V & mask) | ((EXPREGS[1] & 0x10) << 3) | ((EXPREGS[0] & 0x30) << 4) | ((EXPREGS[1] & 0x20) << 5));
 }
 
-static void M395PW(uint32 A, uint8 V) {
-	uint8 mask = EXPREGS[1] & 8 ? 0x0F : 0x1F;
+static void M395PW(uint32_t A, uint8_t V) {
+	uint8_t mask = EXPREGS[1] & 8 ? 0x0F : 0x1F;
 	setprg8(A, (V & mask) | ((EXPREGS[0] & 0x30) << 1) | ((EXPREGS[0] & 8) << 4) | ((EXPREGS[1] & 1) << 4));
 }
 

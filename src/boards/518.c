@@ -21,8 +21,8 @@
 #include "mapinc.h"
 #include "cartram.h"
 
-static uint8 reg[2];
-static uint8 chr;
+static uint8_t reg[2];
+static uint8_t chr;
 
 static void sync () {
 	setprg8r(0x10, 0x6000, 0);
@@ -37,7 +37,7 @@ static void sync () {
 	setmirror(reg[1] &0x01? MI_H: MI_V);
 }
 
-static void FP_FASTAPASS(1) trapPPUAddressChange (uint32 A) {
+static void FP_FASTAPASS(1) trapPPUAddressChange (uint32_t A) {
 	if (A &0x2000 && (A &0x23C0) < 0x23C0) {
 		chr = A >>(10 +(reg[1] &0x01? 1: 0)) &1;
 		setchr4(0x0000, reg[1] &0x02? chr: 0);

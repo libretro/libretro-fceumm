@@ -75,31 +75,31 @@
 #include "pic16c5x.h"
 
 /******************** CPU Internal Registers *******************/
-static uint16 m_PC;
-static uint16 m_PREVPC; /* previous program counter */
-static uint8 m_W;
-static uint8 m_OPTION;
-static uint16 m_CONFIG;
-static uint8 m_ALU;
-static uint16 m_WDT;
-static uint8 m_TRISA;
-static uint8 m_TRISB;
-static uint8 m_TRISC;
-static uint16 m_STACK[2];
-static uint16 m_prescaler; /* Note: this is really an 8-bit register */
-static uint16 m_opcode;
-static uint8 m_internalram[128];
-static uint8 *m_rom;
+static uint16_t m_PC;
+static uint16_t m_PREVPC; /* previous program counter */
+static uint8_t m_W;
+static uint8_t m_OPTION;
+static uint16_t m_CONFIG;
+static uint8_t m_ALU;
+static uint16_t m_WDT;
+static uint8_t m_TRISA;
+static uint8_t m_TRISB;
+static uint8_t m_TRISC;
+static uint16_t m_STACK[2];
+static uint16_t m_prescaler; /* Note: this is really an 8-bit register */
+static uint16_t m_opcode;
+static uint8_t m_internalram[128];
+static uint8_t *m_rom;
 
 static int m_icount;
 static int m_picmodel;
 static int m_delay_timer;
-static uint16 m_temp_config;
+static uint16_t m_temp_config;
 static int m_rtcc;
-static uint8 m_count_pending; /* boolean type */
-static int8 m_old_data;
-static uint8 m_picRAMmask;
-static uint16 m_picROMmask;
+static uint8_t m_count_pending; /* boolean type */
+static int8_t m_old_data;
+static uint8_t m_picRAMmask;
+static uint16_t m_picROMmask;
 static int m_inst_cycles;
 static int m_clock2cycle;
 
@@ -111,7 +111,7 @@ address_space *m_data;*/
 static pic16c5x_readfunc m_read;
 static pic16c5x_writefunc m_write;
 
-static void PIC16C5x(int program_width, int data_width, int picmodel, uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr)
+static void PIC16C5x(int program_width, int data_width, int picmodel, uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr)
 {
 	m_rom = rom;
 	m_picmodel = picmodel;
@@ -140,13 +140,13 @@ static void PIC16C5x(int program_width, int data_width, int picmodel, uint8 *rom
 	m_clock2cycle = 0;
 }
 
-void pic16c54_init(uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x16C54, rom, _rd, _wr); }
-void pic16c55_init(uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x16C55, rom, _rd, _wr); }
-void pic16c56_init(uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x(10, 5, 0x16C56, rom, _rd, _wr); }
-void pic16c57_init(uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x(11, 7, 0x16C57, rom, _rd, _wr); }
-void pic16c58_init(uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x(11, 7, 0x16C58, rom, _rd, _wr); }
-void pic1650_init (uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x1650,  rom, _rd, _wr); }
-void pic1655_init (uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x1655,  rom, _rd, _wr); }
+void pic16c54_init(uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x16C54, rom, _rd, _wr); }
+void pic16c55_init(uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x16C55, rom, _rd, _wr); }
+void pic16c56_init(uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x(10, 5, 0x16C56, rom, _rd, _wr); }
+void pic16c57_init(uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x(11, 7, 0x16C57, rom, _rd, _wr); }
+void pic16c58_init(uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x(11, 7, 0x16C58, rom, _rd, _wr); }
+void pic1650_init (uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x1650,  rom, _rd, _wr); }
+void pic1655_init (uint8_t *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { PIC16C5x( 9, 5, 0x1655,  rom, _rd, _wr); }
 
 #define M_OPCODE_B0 (m_opcode & 0xFF)
 #define M_OPCODE_B1 ((m_opcode >> 8) & 0xFF)
@@ -217,7 +217,7 @@ void pic1655_init (uint8 *rom, pic16c5x_readfunc _rd, pic16c5x_writefunc _wr) { 
  *  Shortcuts
  ************************************************************************/
 
-#define CLR(flagreg, flag) ( flagreg &= (uint8)(~flag) )
+#define CLR(flagreg, flag) ( flagreg &= (uint8_t)(~flag) )
 #define SET(flagreg, flag) ( flagreg |=  flag )
 
 
@@ -234,7 +234,7 @@ static INLINE void CALCULATE_Z_FLAG(void)
 
 static INLINE void CALCULATE_ADD_CARRY(void)
 {
-	if ((uint8)(m_old_data) > (uint8)(m_ALU)) {
+	if ((uint8_t)(m_old_data) > (uint8_t)(m_ALU)) {
 		SET(STATUS, C_FLAG);
 	}
 	else {
@@ -244,7 +244,7 @@ static INLINE void CALCULATE_ADD_CARRY(void)
 
 static INLINE void CALCULATE_ADD_DIGITCARRY(void)
 {
-	if (((uint8)(m_old_data) & 0x0f) > ((uint8)(m_ALU) & 0x0f)) {
+	if (((uint8_t)(m_old_data) & 0x0f) > ((uint8_t)(m_ALU) & 0x0f)) {
 		SET(STATUS, DC_FLAG);
 	}
 	else {
@@ -254,7 +254,7 @@ static INLINE void CALCULATE_ADD_DIGITCARRY(void)
 
 static INLINE void CALCULATE_SUB_CARRY(void)
 {
-	if ((uint8)(m_old_data) < (uint8)(m_ALU)) {
+	if ((uint8_t)(m_old_data) < (uint8_t)(m_ALU)) {
 		CLR(STATUS, C_FLAG);
 	}
 	else {
@@ -264,7 +264,7 @@ static INLINE void CALCULATE_SUB_CARRY(void)
 
 static INLINE void CALCULATE_SUB_DIGITCARRY(void)
 {
-	if (((uint8)(m_old_data) & 0x0f) < ((uint8)(m_ALU) & 0x0f)) {
+	if (((uint8_t)(m_old_data) & 0x0f) < ((uint8_t)(m_ALU) & 0x0f)) {
 		CLR(STATUS, DC_FLAG);
 	}
 	else {
@@ -274,13 +274,13 @@ static INLINE void CALCULATE_SUB_DIGITCARRY(void)
 
 
 
-static INLINE uint16 POP_STACK(void)
+static INLINE uint16_t POP_STACK(void)
 {
-	uint16 data = m_STACK[1];
+	uint16_t data = m_STACK[1];
 	m_STACK[1] = m_STACK[0];
 	return (data & ADDR_MASK);
 }
-static INLINE void PUSH_STACK(uint16 data)
+static INLINE void PUSH_STACK(uint16_t data)
 {
 	m_STACK[0] = m_STACK[1];
 	m_STACK[1] = (data & ADDR_MASK);
@@ -288,9 +288,9 @@ static INLINE void PUSH_STACK(uint16 data)
 
 
 
-static INLINE uint8 GET_REGFILE(uint32_t addr) /* Read from internal memory */
+static INLINE uint8_t GET_REGFILE(uint32_t addr) /* Read from internal memory */
 {
-	uint8 data = 0;
+	uint8_t data = 0;
 
 	if (addr == 0) {                        /* Indirect addressing  */
 		addr = (FSR & m_picRAMmask);
@@ -307,7 +307,7 @@ static INLINE uint8 GET_REGFILE(uint32_t addr) /* Read from internal memory */
 		case 0:     /* Not an actual register, so return 0 */
 					data = 0;
 					break;
-		case 4:     data = (FSR | (uint8)(~m_picRAMmask));
+		case 4:     data = (FSR | (uint8_t)(~m_picRAMmask));
 					break;
 		case 5:     /* read port A */
 					if (m_picmodel == 0x1650) {
@@ -319,7 +319,7 @@ static INLINE uint8 GET_REGFILE(uint32_t addr) /* Read from internal memory */
 					else {
 						data = m_read(PIC16C5x_PORTA);
 						data &= m_TRISA;
-						data |= ((uint8)(~m_TRISA) & PORTA);
+						data |= ((uint8_t)(~m_TRISA) & PORTA);
 						data &= 0x0f; /* 4-bit port (only lower 4 bits used) */
 					}
 					break;
@@ -330,7 +330,7 @@ static INLINE uint8 GET_REGFILE(uint32_t addr) /* Read from internal memory */
 					else if (m_picmodel != 0x1655) { /* B is output-only on 1655 */
 						data = m_read(PIC16C5x_PORTB);
 						data &= m_TRISB;
-						data |= ((uint8)(~m_TRISB) & PORTB);
+						data |= ((uint8_t)(~m_TRISB) & PORTB);
 					}
 					break;
 		case 7:     /* read port C */
@@ -340,7 +340,7 @@ static INLINE uint8 GET_REGFILE(uint32_t addr) /* Read from internal memory */
 					else if ((m_picmodel == 0x16C55) || (m_picmodel == 0x16C57)) {
 						data = m_read(PIC16C5x_PORTC);
 						data &= m_TRISC;
-						data |= ((uint8)(~m_TRISC) & PORTC);
+						data |= ((uint8_t)(~m_TRISC) & PORTC);
 					}
 					else { /* PIC16C54, PIC16C56, PIC16C58 */
 						data = M_RDRAM(addr);
@@ -360,7 +360,7 @@ static INLINE uint8 GET_REGFILE(uint32_t addr) /* Read from internal memory */
 	return data;
 }
 
-static INLINE void STORE_REGFILE(uint32_t addr, uint8 data)    /* Write to internal memory */
+static INLINE void STORE_REGFILE(uint32_t addr, uint8_t data)    /* Write to internal memory */
 {
 	if (addr == 0) {                        /* Indirect addressing  */
 		addr = (FSR & m_picRAMmask);
@@ -383,9 +383,9 @@ static INLINE void STORE_REGFILE(uint32_t addr, uint8 data)    /* Write to inter
 		case 2:     PCL = data;
 					m_PC = ((STATUS & PA_REG) << 4) | data;
 					break;
-		case 3:     STATUS = (STATUS & (TO_FLAG | PD_FLAG)) | (data & (uint8)(~(TO_FLAG | PD_FLAG)));
+		case 3:     STATUS = (STATUS & (TO_FLAG | PD_FLAG)) | (data & (uint8_t)(~(TO_FLAG | PD_FLAG)));
 					break;
-		case 4:     FSR = (data | (uint8)(~m_picRAMmask));
+		case 4:     FSR = (data | (uint8_t)(~m_picRAMmask));
 					break;
 		case 5:     /* write port A */
 					if (m_picmodel == 0x1650) {
@@ -393,7 +393,7 @@ static INLINE void STORE_REGFILE(uint32_t addr, uint8 data)    /* Write to inter
 					}
 					else if (m_picmodel != 0x1655) { /* A is input-only on 1655 */
 						data &= 0x0f; /* 4-bit port (only lower 4 bits used) */
-						m_write(PIC16C5x_PORTA, data & (uint8)(~m_TRISA));
+						m_write(PIC16C5x_PORTA, data & (uint8_t)(~m_TRISA));
 					}
 					PORTA = data;
 					break;
@@ -402,7 +402,7 @@ static INLINE void STORE_REGFILE(uint32_t addr, uint8 data)    /* Write to inter
 						m_write(PIC16C5x_PORTB, data);
 					}
 					else {
-						m_write(PIC16C5x_PORTB, data & (uint8)(~m_TRISB));
+						m_write(PIC16C5x_PORTB, data & (uint8_t)(~m_TRISB));
 					}
 					PORTB = data;
 					break;
@@ -411,7 +411,7 @@ static INLINE void STORE_REGFILE(uint32_t addr, uint8 data)    /* Write to inter
 						m_write(PIC16C5x_PORTC, data);
 					}
 					else if ((m_picmodel == 0x16C55) || (m_picmodel == 0x16C57)) {
-						m_write(PIC16C5x_PORTC, data & (uint8)(~m_TRISC));
+						m_write(PIC16C5x_PORTC, data & (uint8_t)(~m_TRISC));
 					}
 					PORTC = data; /* also writes to RAM */
 					break;
@@ -427,7 +427,7 @@ static INLINE void STORE_REGFILE(uint32_t addr, uint8 data)    /* Write to inter
 }
 
 
-static INLINE void STORE_RESULT(uint32_t addr, uint8 data)
+static INLINE void STORE_RESULT(uint32_t addr, uint8_t data)
 {
 	if (M_OPCODE_B0 & 0x20)
 	{
@@ -550,7 +550,7 @@ static INLINE void clrwdt(void)
 
 static INLINE void comf(void)
 {
-	m_ALU = (uint8)(~(GET_REGFILE(ADDR)));
+	m_ALU = (uint8_t)(~(GET_REGFILE(ADDR)));
 	STORE_RESULT(ADDR, m_ALU);
 	CALCULATE_Z_FLAG();
 }
@@ -650,7 +650,7 @@ static INLINE void retlw(void)
 
 static INLINE void rlf(void)
 {
-	uint8 bit7;
+	uint8_t bit7;
 	m_ALU = GET_REGFILE(ADDR);
 	bit7 = m_ALU & 0x80;
 	m_ALU <<= 1;
@@ -662,7 +662,7 @@ static INLINE void rlf(void)
 
 static INLINE void rrf(void)
 {
-	uint8 bit0;
+	uint8_t bit0;
 	m_ALU = GET_REGFILE(ADDR);
 	bit0 = m_ALU & 1;
 	m_ALU >>= 1;
@@ -702,12 +702,12 @@ static INLINE void tris(void)
 	switch(M_OPCODE_B0 & 0x7)
 	{
 		case 5:     if   (m_TRISA == m_W) break;
-					else { m_TRISA = m_W | 0xf0; m_write(PIC16C5x_PORTA, 0x1000 | (PORTA & (uint8)(~m_TRISA) & 0x0f)); break; }
+					else { m_TRISA = m_W | 0xf0; m_write(PIC16C5x_PORTA, 0x1000 | (PORTA & (uint8_t)(~m_TRISA) & 0x0f)); break; }
 		case 6:     if   (m_TRISB == m_W) break;
-					else { m_TRISB = m_W; m_write(PIC16C5x_PORTB, 0x1000 | (PORTB & (uint8)(~m_TRISB))); break; }
+					else { m_TRISB = m_W; m_write(PIC16C5x_PORTB, 0x1000 | (PORTB & (uint8_t)(~m_TRISB))); break; }
 		case 7:     if ((m_picmodel == 0x16C55) || (m_picmodel == 0x16C57)) {
 						if   (m_TRISC == m_W) break;
-						else { m_TRISC = m_W; m_write(PIC16C5x_PORTC, 0x1000 | (PORTC & (uint8)(~m_TRISC))); break; }
+						else { m_TRISC = m_W; m_write(PIC16C5x_PORTC, 0x1000 | (PORTC & (uint8_t)(~m_TRISC))); break; }
 					}
 					else {
 						illegal(); break;
@@ -737,7 +737,7 @@ static INLINE void xorwf(void)
  *  Opcode Table (Cycles, Instruction)
  ***********************************************************************/
 
-static const uint8 s_opcode_main_cycles[256] = {
+static const uint8_t s_opcode_main_cycles[256] = {
 /*00*/  1, 1, 1, 1, 1, 1, 1, 1,
 /*08*/  1, 1, 1, 1, 1, 1, 1, 1,
 /*10*/  1, 1, 1, 1, 1, 1, 1, 1,
@@ -774,7 +774,7 @@ static const uint8 s_opcode_main_cycles[256] = {
 /*F8*/  1, 1, 1, 1, 1, 1, 1, 1
 };
 
-static const uint8 s_opcode_00x_cycles[16] = {
+static const uint8_t s_opcode_00x_cycles[16] = {
 /*00*/  1, 1, 1, 1, 1, 1, 1, 1,
 /*08*/  1, 1, 1, 1, 1, 1, 1, 1
 };
@@ -807,14 +807,14 @@ static INLINE void PIC16C5x_reset_regs(void)
 	m_TRISC  = 0xff;
 	m_OPTION = (T0CS_FLAG | T0SE_FLAG | PSA_FLAG | PS_REG);
 	PCL    = 0xff;
-	FSR   |= (uint8)(~m_picRAMmask);
+	FSR   |= (uint8_t)(~m_picRAMmask);
 	m_prescaler = 0;
 	m_delay_timer = 0;
 	m_inst_cycles = 0;
 	m_count_pending = 0;
 }
 
-void pic16c5x_reset(uint8 hard)
+void pic16c5x_reset(uint8_t hard)
 {
 	if (hard) {
 		memset(m_internalram, 0, sizeof(m_internalram));
@@ -829,7 +829,7 @@ void pic16c5x_reset(uint8 hard)
 	}
 }
 
-void pic16c5x_set_config(uint16 data)
+void pic16c5x_set_config(uint16_t data)
 {
 	m_temp_config = data;
 }
@@ -851,7 +851,7 @@ static INLINE void PIC16C5x_update_watchdog(int counts)
 
 	if ((M_OPCODE_S0 != 3) && (M_OPCODE_S0 != 4))
 	{
-		uint16 old_WDT = m_WDT;
+		uint16_t old_WDT = m_WDT;
 
 		m_WDT -= counts;
 
@@ -943,14 +943,14 @@ void pic16c5x_run(void)
 			PCL++;
 
 			if (m_picmodel == 0x1650 || m_picmodel == 0x1655 || (M_OPCODE_S0 & 0xff0) != 0x000) { /* Do all opcodes except the 00? ones */
-				uint8 b1 = (M_OPCODE_S0 >> 4) & 0xff;
+				uint8_t b1 = (M_OPCODE_S0 >> 4) & 0xff;
 				m_inst_cycles = s_opcode_main_cycles[b1];
 				switch (b1) {
 					#include "pic16c5x_ops_main.inc"
 				}
 			}
 			else {  /* Opcode 0x00? has many opcodes in its minor nibble */
-				uint8 b1 = M_OPCODE_B0 & 0x1f;
+				uint8_t b1 = M_OPCODE_B0 & 0x1f;
 				m_inst_cycles = s_opcode_00x_cycles[b1];
 				switch (b1) {
 					#include "pic16c5x_ops_00x.inc"
@@ -974,7 +974,7 @@ void pic16c5x_run(void)
 	} 
 }
 
-void AddExState(void *v, uint32 s, int type, char *desc);
+void AddExState(void *v, uint32_t s, int type, char *desc);
 
 void pic16c5x_add_statesinfo(void) {
 	AddExState(&m_PC, sizeof(m_PC), 1, "PC00");

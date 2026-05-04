@@ -25,7 +25,7 @@
 
 #include "mapinc.h"
 
-static uint8 regs[2], mode;
+static uint8_t regs[2], mode;
 
 static SFORMAT StateRegs[] =
 {
@@ -45,7 +45,7 @@ static void Sync(void) {
 }
 
 static DECLFW(BMC80013BWrite) {
-	uint8 reg = (A >> 13) & 0x03;
+	uint8_t reg = (A >> 13) & 0x03;
 	if (!reg)
 		regs[0] = V & 0x1F;
 	else {

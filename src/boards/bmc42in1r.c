@@ -27,9 +27,9 @@
 
 #include "mapinc.h"
 
-static uint8 reorder_banks = 0;
-static uint8 latche[2], reset;
-static uint8 banks[4] = { 0, 0, 1, 2 };
+static uint8_t reorder_banks = 0;
+static uint8_t latche[2], reset;
+static uint8_t banks[4] = { 0, 0, 1, 2 };
 static SFORMAT StateRegs[] =
 {
 	{ &reset, 1, "RST" },
@@ -38,8 +38,8 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 bank = 0;
-	uint8 base = ((latche[0] & 0x80) >> 7) | ((latche[1] & 1) << 1);
+	uint8_t bank = 0;
+	uint8_t base = ((latche[0] & 0x80) >> 7) | ((latche[1] & 1) << 1);
 
 	if (reorder_banks) /* for 1536 KB prg roms */
 		base = banks[base];

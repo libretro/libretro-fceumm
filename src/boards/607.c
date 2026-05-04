@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static DECLFR (readOB) {
 	return X.DB;

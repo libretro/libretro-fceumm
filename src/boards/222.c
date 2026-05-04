@@ -21,11 +21,11 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
-static uint8 clockMode;
-static uint8 pending;
-static uint8 counter1;
-static uint8 counter2;
-static uint8 prescaler;
+static uint8_t clockMode;
+static uint8_t pending;
+static uint8_t counter1;
+static uint8_t counter2;
+static uint8_t prescaler;
 
 static SFORMAT stateRegs[] = {
 	{ &clockMode, 1, "CLKM" },
@@ -66,7 +66,7 @@ static DECLFW (writeIRQ) {
 
 static void FP_FASTAPASS(1) cpuCycle (int a) {
 	while (a--) {
-		uint8 previousPrescaler = prescaler;
+		uint8_t previousPrescaler = prescaler;
 		if (pending)
 			prescaler = 0;
 		else

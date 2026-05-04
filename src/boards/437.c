@@ -23,7 +23,7 @@
  
 #include "mapinc.h"
 
-static uint8 latch;
+static uint8_t latch;
 
 static void Mapper437_Sync(void) {	
 	setprg16(0x8000, latch);

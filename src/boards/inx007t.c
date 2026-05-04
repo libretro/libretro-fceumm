@@ -41,7 +41,7 @@
 
 #include "mapinc.h"
 
-static uint8 latch_out, latch_in;
+static uint8_t latch_out, latch_in;
 
 static void INX_007T_Sync() {
 	setprg32(0x8000, (latch_in & 7) | (latch_out << 3));

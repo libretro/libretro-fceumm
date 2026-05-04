@@ -27,18 +27,18 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMCL6IN1CW(uint32 A, uint8 V) {
+static void BMCL6IN1CW(uint32_t A, uint8_t V) {
 	setchr8(V);
 }
 
-static void BMCL6IN1PW(uint32 A, uint8 V) {
+static void BMCL6IN1PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x0C)
 		setprg8(A, (V & 0x0F) | (EXPREGS[0] & 0xC0) >> 2);
 	else
 		setprg32(0x8000, ((EXPREGS[0] & 0xC0) >> 4) | (EXPREGS[0] & 0x03));
 }
 
-static void BMCL6IN1MW(uint8 V) {
+static void BMCL6IN1MW(uint8_t V) {
 	if (EXPREGS[0] & 0x20)
 		setmirror(MI_0 + ((EXPREGS[0] & 0x10) >> 1));
 	else {

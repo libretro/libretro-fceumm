@@ -23,8 +23,8 @@
 #include "asic_mmc3.h"
 
 static void (*TC3294_cbSync)();
-static uint8 TC3294_index;
-uint8 TC3294_reg[4];
+static uint8_t TC3294_index;
+uint8_t TC3294_reg[4];
 
 static SFORMAT TC3294_state[] = {
 	{ TC3294_reg,   4, "329S" },
@@ -72,7 +72,7 @@ static void TC3294_configure (void (*sync)()) {
 	TC3294_cbSync = sync;
 }
 
-void TC3294_activate (uint8 clear, void (*sync)()) {
+void TC3294_activate (uint8_t clear, void (*sync)()) {
 	MMC3_activate(clear, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, TC3294_writeReg);
 	TC3294_configure(sync);
 	TC3294_setHandlers();

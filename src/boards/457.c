@@ -21,13 +21,13 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M457CW(uint32 A, uint8 V) {
-	uint32 mask = (EXPREGS[0] & 8) ? 0xFF : 0x7F;
+static void M457CW(uint32_t A, uint8_t V) {
+	uint32_t mask = (EXPREGS[0] & 8) ? 0xFF : 0x7F;
 	setchr1(A, ((EXPREGS[0] << 7) & ~mask) | (V & mask));
 }
 
-static void M457PW(uint32 A, uint8 V) {
-	uint32 mask = (EXPREGS[0] & 8) ? 0x1F : 0x0F;
+static void M457PW(uint32_t A, uint8_t V) {
+	uint32_t mask = (EXPREGS[0] & 8) ? 0x1F : 0x0F;
 	setprg8(A, (((EXPREGS[0] & 7) << 4) & ~mask) | (V & mask));
 }
 

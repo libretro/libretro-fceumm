@@ -28,7 +28,7 @@ static void sync () {
 	setmirror(Latch_address &0x20? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) {
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) {
 	if (!(~Latch_address &0x10 && *newAddress &0x10)) *newAddress = Latch_address; /* Address bits only latched on a rising edge of A4 */
 	*newValue &= romValue; /* AND-type bus conflicts */
 }

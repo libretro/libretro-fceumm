@@ -25,7 +25,7 @@
 #include "latch.h"
 
 static void Sync(void) {
-	uint8 bank  = ((latch.addr >> 3) & 0x60) | ((latch.addr >> 2) & 0x18) | (latch.data & 0x07);
+	uint8_t bank  = ((latch.addr >> 3) & 0x60) | ((latch.addr >> 2) & 0x18) | (latch.data & 0x07);
 
 	if (latch.addr & 0x80) {
 		if (!bank) {

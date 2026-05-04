@@ -23,8 +23,8 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 reg;
-static uint8 pad;
+static uint8_t reg;
+static uint8_t pad;
 
 static DECLFR (readPad) {
 	return CartBR(A &~3 | pad &3);

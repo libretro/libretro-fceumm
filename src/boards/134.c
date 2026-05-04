@@ -25,9 +25,9 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 dip;
+static uint8_t dip;
 
-static void Mapper134_PRGWrap(uint32 A, uint8 V) {
+static void Mapper134_PRGWrap(uint32_t A, uint8_t V) {
 	int prgAND =EXPREGS[1] &0x04? 0x0F: 0x1F;
 	int prgOR  =EXPREGS[1] <<4 &0x30 | EXPREGS[0] <<2 &0x40;
 	if (EXPREGS[1] &0x80) { /* NROM mode */
@@ -46,7 +46,7 @@ static void Mapper134_PRGWrap(uint32 A, uint8 V) {
 		setprg8(A, V &prgAND | prgOR &~prgAND);
 }
 
-static void Mapper134_CHRWrap(uint32 A, uint8 V) {
+static void Mapper134_CHRWrap(uint32_t A, uint8_t V) {
 	int chrAND =EXPREGS[1] &0x40? 0x7F: 0xFF;
 	int chrOR  =EXPREGS[1] <<3 &0x180 | EXPREGS[0] <<4 &0x200;
 	if (EXPREGS[0] &0x08) V =EXPREGS[2] <<3 | A >>10 &7; /* In CNROM mode, outer bank register 2 replaces the MMC3's CHR registers, and CHR A10-A12 are PPU A10-A12. */

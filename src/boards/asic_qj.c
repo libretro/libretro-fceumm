@@ -23,7 +23,7 @@
 #include "asic_mmc3.h"
 
 static void (*QJ_cbSync)();
-static uint8 QJ_reg;
+static uint8_t QJ_reg;
 
 static SFORMAT QJ_state[] = {
 	{&QJ_reg,   1, "QJRG" },
@@ -59,7 +59,7 @@ static void QJ_configure (void (*sync)()) {
 	QJ_cbSync = sync;
 }
 
-void QJ_activate (uint8 clear, void (*sync)()) {
+void QJ_activate (uint8_t clear, void (*sync)()) {
 	MMC3_activate(clear, sync, MMC3_TYPE_SHARP, NULL, NULL, NULL, QJ_writeWRAM);
 	QJ_configure(sync);
 	QJ_setHandlers();

@@ -40,7 +40,7 @@ static void sync () {
 	setchr8(0);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* The address bits are only updated on a rising edge of A7. */
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* The address bits are only updated on a rising edge of A7. */
 	if (!(~Latch_address &0x80 && *newAddress &0x80)) *newAddress = Latch_address;
 }
 

@@ -24,11 +24,11 @@
 
 #include "mapinc.h"
 
-static uint8 *WRAM;
+static uint8_t *WRAM;
 
-static uint8 PRG[3], CHR[8], NTAPage[4];
-static uint8 IRQa;
-static uint16 IRQCount;
+static uint8_t PRG[3], CHR[8], NTAPage[4];
+static uint8_t IRQa;
+static uint16_t IRQCount;
 
 static SFORMAT StateRegs[] =
 {
@@ -47,7 +47,7 @@ static void SyncPRG(void) {
 	setprg8(0xE000, ~0);
 }
 
-static void DoCHR(int x, uint8 V) {
+static void DoCHR(int x, uint8_t V) {
 	CHR[x] = V;
 	setchr1(x << 10, V);
 }
@@ -58,7 +58,7 @@ static void FixCHR(void) {
 		DoCHR(x, CHR[x]);
 }
 
-static void FASTAPASS(2) DoNTARAM(int w, uint8 V) {
+static void FASTAPASS(2) DoNTARAM(int w, uint8_t V) {
 	NTAPage[w] = V;
 	setntamem(NTARAM + ((V & 1) << 10), 1, w);
 }
@@ -139,7 +139,7 @@ void Mapper330_Init(CartInfo *info) {
 	MapIRQHook = M330IRQHook;
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
-	WRAM = (uint8 *)FCEU_gmalloc(8192);
+	WRAM = (uint8_t *)FCEU_gmalloc(8192);
 	SetupCartPRGMapping(0x10, WRAM, 8192, 1);
 	AddExState(WRAM, 8192, 0, "WRAM");
 }

@@ -22,8 +22,8 @@
 
 #include "mapinc.h"
 
-static uint8 regs[2];
-static uint8 dipswitch;
+static uint8_t regs[2];
+static uint8_t dipswitch;
 
 static SFORMAT StateRegs[] =
 {
@@ -55,7 +55,7 @@ static void Sync(void) {
 }
 
 static DECLFR(M390Read) {
-	uint8 ret = CartBR(A);
+	uint8_t ret = CartBR(A);
 	if ((regs[1] & 0x30) == 0x10)
 		ret |= dipswitch;
 	return ret;

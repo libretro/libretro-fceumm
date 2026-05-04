@@ -21,10 +21,10 @@
 
 #include "mapinc.h"
 
-static uint16 latchea;
-static uint8 latched;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint16_t latchea;
+static uint8_t latched;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 static SFORMAT StateRegs[] =
 {
 	{ &latchea, 2 | FCEUSTATE_RLSB, "AREG" },
@@ -33,8 +33,8 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint32 preg[4];
-	uint32 bank = (latched & 0x3F) << 1;
+	uint32_t preg[4];
+	uint32_t bank = (latched & 0x3F) << 1;
 	switch (latchea & 0x03) {
 	case 0:
 		preg[0] = bank + 0;
@@ -114,7 +114,7 @@ void Mapper15_Init(CartInfo *info) {
 	info->Close = M15Close;
 	GameStateRestore = StateRestore;
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;

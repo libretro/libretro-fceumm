@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 game = 0;
+static uint8_t game = 0;
 
 static void Sync(void)
 {

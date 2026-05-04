@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "latch.h"
 
-static uint16 outerbank = 0;
+static uint16_t outerbank = 0;
 
 static void Sync(void) {
 	setprg16(0x8000, (outerbank >> 2) | (latch.data & 7));

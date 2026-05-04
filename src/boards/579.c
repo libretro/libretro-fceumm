@@ -39,7 +39,7 @@ static void sync () {
 	setmirror(Latch_address &0x02? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* Once bit 9 is set, only the inner bank bits can be modified. */
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* Once bit 9 is set, only the inner bank bits can be modified. */
 	if (Latch_address &0x200) *newAddress = *newAddress &0x01C | Latch_address &~0x01C;
 }
 

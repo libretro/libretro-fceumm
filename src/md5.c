@@ -17,18 +17,18 @@
 
 #define GET_UINT32(n, b, i)	\
 {	\
-	(n) =	((uint32)(b)[(i) + 3] << 24) |	\
-			((uint32)(b)[(i) + 2] << 16) |	\
-			((uint32)(b)[(i) + 1] <<  8) |	\
-			((uint32)(b)[(i)    ]);	\
+	(n) =	((uint32_t)(b)[(i) + 3] << 24) |	\
+			((uint32_t)(b)[(i) + 2] << 16) |	\
+			((uint32_t)(b)[(i) + 1] <<  8) |	\
+			((uint32_t)(b)[(i)    ]);	\
 }
 
 #define PUT_UINT32(n, b, i)	\
 {	\
-	(b)[(i)    ] = (uint8)((n));	\
-	(b)[(i) + 1] = (uint8)((n) >>  8);	\
-	(b)[(i) + 2] = (uint8)((n) >> 16);	\
-	(b)[(i) + 3] = (uint8)((n) >> 24);	\
+	(b)[(i)    ] = (uint8_t)((n));	\
+	(b)[(i) + 1] = (uint8_t)((n) >>  8);	\
+	(b)[(i) + 2] = (uint8_t)((n) >> 16);	\
+	(b)[(i) + 3] = (uint8_t)((n) >> 24);	\
 }
 
 void md5_starts(struct md5_context *ctx) {
@@ -40,8 +40,8 @@ void md5_starts(struct md5_context *ctx) {
 	ctx->state[3] = 0x10325476;
 }
 
-void md5_process(struct md5_context *ctx, uint8 data[64]) {
-	uint32 A, B, C, D, X[16];
+void md5_process(struct md5_context *ctx, uint8_t data[64]) {
+	uint32_t A, B, C, D, X[16];
 
 	GET_UINT32(X[0], data, 0);
 	GET_UINT32(X[1], data, 4);
@@ -162,8 +162,8 @@ void md5_process(struct md5_context *ctx, uint8 data[64]) {
 	ctx->state[3] += D;
 }
 
-void md5_update(struct md5_context *ctx, uint8 *input, uint32 length) {
-	uint32 left, fill;
+void md5_update(struct md5_context *ctx, uint8_t *input, uint32_t length) {
+	uint32_t left, fill;
 
 	if (!length) return;
 
@@ -195,7 +195,7 @@ void md5_update(struct md5_context *ctx, uint8 *input, uint32 length) {
 	}
 }
 
-static uint8 md5_padding[64] =
+static uint8_t md5_padding[64] =
 {
 	0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -203,9 +203,9 @@ static uint8 md5_padding[64] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-void md5_finish(struct md5_context *ctx, uint8 digest[16]) {
-	uint32 last, padn;
-	uint8 msglen[8];
+void md5_finish(struct md5_context *ctx, uint8_t digest[16]) {
+	uint32_t last, padn;
+	uint8_t msglen[8];
 
 	PUT_UINT32(ctx->total[0], msglen, 0);
 	PUT_UINT32(ctx->total[1], msglen, 4);
@@ -224,7 +224,7 @@ void md5_finish(struct md5_context *ctx, uint8 digest[16]) {
 
 
 /* Uses a static buffer, so beware of how it's used. */
-char *md5_asciistr(uint8 digest[16]) {
+char *md5_asciistr(uint8_t digest[16]) {
 	static char str[33];
 	static char trans[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 	int x;

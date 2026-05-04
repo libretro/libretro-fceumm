@@ -24,7 +24,7 @@
 #include "asic_mmc3.h"
 #include "cartram.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	int prgAND = reg &0x10? 0x1F: 0x0F;

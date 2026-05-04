@@ -39,7 +39,7 @@ void Mapper21_Init (CartInfo *info) {
 	WRAM_init(info, 8);
 }
 
-static int Mapper22_getCHRBank(uint8 bank) {
+static int Mapper22_getCHRBank(uint8_t bank) {
 	return VRC24_getCHRBank(bank &7) >>1;
 }
 

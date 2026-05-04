@@ -43,17 +43,17 @@
 
 extern SFORMAT FCEUVSUNI_STATEINFO[];
 
-uint8 *trainerpoo       = NULL;
-uint8 *ROM              = NULL;
-uint8 *VROM             = NULL;
-uint8 *ExtraNTARAM      = NULL;
-uint8 *MiscROM          = NULL;
+uint8_t *trainerpoo       = NULL;
+uint8_t *ROM              = NULL;
+uint8_t *VROM             = NULL;
+uint8_t *ExtraNTARAM      = NULL;
+uint8_t *MiscROM          = NULL;
 iNES_HEADER head        = {0};
 
 CartInfo iNESCart       = {0};
 
-uint32 ROM_size         = 0;
-uint32 VROM_size        = 0;
+uint32_t ROM_size         = 0;
+uint32_t VROM_size        = 0;
 
 static int CHRRAMSize   = -1;
 
@@ -117,12 +117,12 @@ static void iNESGI(int h) {
 }
 
 struct CRCMATCH {
-	uint32 crc;
+	uint32_t crc;
 	char *name;
 };
 
 struct INPSEL {
-	uint32 crc32;
+	uint32_t crc32;
 	int input1;
 	int input2;
 	int inputfc;
@@ -247,9 +247,9 @@ static void SetInput(void) {
 #define INESB_HACKED      4
 
 struct BADINF {
-	uint64 md5partial;
-	uint8 *name;
-	uint32 type;
+	uint64_t md5partial;
+	uint8_t *name;
+	uint32_t type;
 };
 
 static struct BADINF BadROMImages[] =
@@ -257,9 +257,9 @@ static struct BADINF BadROMImages[] =
 	#include "ines-bad.h"
 };
 
-static void CheckBad(uint64 md5partial)
+static void CheckBad(uint64_t md5partial)
 {
-	int32 x = 0;
+	int32_t x = 0;
 	while (BadROMImages[x].name)
    {
 		if (BadROMImages[x].md5partial == md5partial)
@@ -272,15 +272,15 @@ static void CheckBad(uint64 md5partial)
 }
 
 struct CHINF {
-	uint32 crc32;
-	int32 mapper;
-	int32 submapper;
-	int32 mirror;
-	int32 battery;
-	int32 prgram;  /* ines2 prgram format */
-	int32 chrram;  /* ines2 chrram format */
-	int32 region;
-	int32 extra;
+	uint32_t crc32;
+	int32_t mapper;
+	int32_t submapper;
+	int32_t mirror;
+	int32_t battery;
+	int32_t prgram;  /* ines2 prgram format */
+	int32_t chrram;  /* ines2 chrram format */
+	int32_t region;
+	int32_t extra;
 };
 
 static void CheckHInfo(void)
@@ -301,13 +301,13 @@ static void CheckHInfo(void)
    {
 #include "ines-correct.h"
    };
-   int32 tofix = 0, x;
-   uint64 partialmd5 = 0;
-   int32 current_mapper = 0;
-   int32 cur_mirr = 0;
+   int32_t tofix = 0, x;
+   uint64_t partialmd5 = 0;
+   int32_t current_mapper = 0;
+   int32_t cur_mirr = 0;
 
    for (x = 0; x < 8; x++)
-      partialmd5 |= (uint64)iNESCart.MD5[15 - x] << (x * 8);
+      partialmd5 |= (uint64_t)iNESCart.MD5[15 - x] << (x * 8);
    CheckBad(partialmd5);
 
    x = 0;
@@ -401,7 +401,7 @@ static void CheckHInfo(void)
       if (tofix & 1)
          sprintf(gigastr + gigastr_len, "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, iNESCart.mapper);
       if (tofix & 2) {
-         uint8 *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
+         uint8_t *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
          sprintf(gigastr + gigastr_len, "Current mirroring is %s. Mirroring should be set to \"%s\". ", mstr[cur_mirr & 3], mstr[iNESCart.mirror & 3]);
       }
       if (tofix & 4)
@@ -409,7 +409,7 @@ static void CheckHInfo(void)
       if (tofix & 8)
          strcat(gigastr, "This game should not have any CHR ROM.  ");
       if (tofix & 16) {
-         uint8 *rstr[4] = { (uint8*)"NTSC", (uint8*)"PAL", (uint8*)"Multi", (uint8*)"Dendy" };
+         uint8_t *rstr[4] = { (uint8_t*)"NTSC", (uint8_t*)"PAL", (uint8_t*)"Multi", (uint8_t*)"Dendy" };
          sprintf(gigastr + gigastr_len, "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
       }
       if (tofix & 32) {
@@ -438,13 +438,13 @@ static void CheckHInfo(void)
 }
 
 typedef struct {
-	int32 mapper;
+	int32_t mapper;
 	void (*init)(CartInfo *);
 } NewMI;
 
 typedef struct {
-	uint8 *name;
-	int32 number;
+	uint8_t *name;
+	int32_t number;
 	void (*init)(CartInfo *);
 } BMAPPINGLocal;
 
@@ -1039,15 +1039,15 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "FC 4-in-1 (NS32)",         618, Mapper618_Init         )
 INES_BOARD_END()
 
-static uint32 iNES_get_mapper_id(void)
+static uint32_t iNES_get_mapper_id(void)
 {
 	/* If byte 7 AND $0C = $08, and the size taking into account byte 9 does not exceed the actual size of the ROM image, then NES 2.0.
 	 * If byte 7 AND $0C = $00, and bytes 12-15 are all 0, then iNES.
 	 * Otherwise, archaic iNES. - nesdev*/
-	uint32 ret;
+	uint32_t ret;
 	switch (head.ROM_type2 & 0x0C) {
 	case 0x08:	/* header version is NES 2.0 */
-		ret = (((uint32)head.ROM_type3 << 8) & 0xF00) | (head.ROM_type2 & 0xF0) | (head.ROM_type >> 4);
+		ret = (((uint32_t)head.ROM_type3 << 8) & 0xF00) | (head.ROM_type2 & 0xF0) | (head.ROM_type >> 4);
 		break;
 	case 0x00:	/* header version is iNES */
 		ret = (head.ROM_type2 & 0xF0) | (head.ROM_type >> 4);
@@ -1079,21 +1079,21 @@ static void iNES_read_header_info(void) {
       /* iNES 2.0 exponent encoding: when the 12-bit count >= 0xF00, the byte
        * encodes (multiplier * 2^exponent) where exponent = byte>>2 (0..63) and
        * multiplier = (byte&3)*2+1. Cap exponent so the result stays well
-       * within uint32 (and a sane size); otherwise pow(2, 63) overflows
-       * uint32 implicitly with undefined results, and downstream uppow2()
+       * within uint32_t (and a sane size); otherwise pow(2, 63) overflows
+       * uint32_t implicitly with undefined results, and downstream uppow2()
        * truncates back to a small allocation, leading to a heap overflow on
        * the subsequent fread. Cap at 30 so the maximum is 7 << 30 = ~7 GiB
-       * which still fits in uint32 (truncated to ~3 GiB) but is far above
+       * which still fits in uint32_t (truncated to ~3 GiB) but is far above
        * any real cart and gets caught by sane validation. We additionally
        * clamp the final value to a safe ceiling. */
       {
-         uint32 exp_prg = head.ROM_size >> 2;
-         uint32 exp_chr = head.VROM_size >> 2;
-         uint32 prg, chr;
+         uint32_t exp_prg = head.ROM_size >> 2;
+         uint32_t exp_chr = head.VROM_size >> 2;
+         uint32_t prg, chr;
          if (exp_prg > 30) exp_prg = 30;
          if (exp_chr > 30) exp_chr = 30;
-         prg = ROM_size  >= 0xF00 ? ((uint32)1 << exp_prg) * ((head.ROM_size  & 3) * 2 + 1) : (ROM_size  * 0x4000);
-         chr = VROM_size >= 0xF00 ? ((uint32)1 << exp_chr) * ((head.VROM_size & 3) * 2 + 1) : (VROM_size * 0x2000);
+         prg = ROM_size  >= 0xF00 ? ((uint32_t)1 << exp_prg) * ((head.ROM_size  & 3) * 2 + 1) : (ROM_size  * 0x4000);
+         chr = VROM_size >= 0xF00 ? ((uint32_t)1 << exp_chr) * ((head.VROM_size & 3) * 2 + 1) : (VROM_size * 0x2000);
          /* Cap below 2 GiB so the value fits comfortably in the
           * downstream int PRGRomSize / CHRRomSize fields without
           * going negative, and so uppow2 returns a finite power-of-two
@@ -1105,15 +1105,15 @@ static void iNES_read_header_info(void) {
       }
       iNESCart.miscROMNumber =head.MiscRoms;
       if (iNESCart.miscROMNumber) {
-         /* Compute miscROMSize as int64 to avoid silent wraparound when
+         /* Compute miscROMSize as int64_t to avoid silent wraparound when
           * the (attacker-controlled) PRGRomSize / CHRRomSize fields
           * exceed the file size. Reject negative or absurdly large
           * results rather than passing a wrapped value to malloc. */
-         int64 misc = (int64)iNESCart.totalFileSize
+         int64_t misc = (int64_t)iNESCart.totalFileSize
                     - 16
                     - ((head.ROM_type & 4) ? 512 : 0)
-                    - (int64)iNESCart.PRGRomSize
-                    - (int64)iNESCart.CHRRomSize;
+                    - (int64_t)iNESCart.PRGRomSize
+                    - (int64_t)iNESCart.CHRRomSize;
          if (misc <= 0 || misc > 0x8000000)	/* > 128 MiB is suspect */
             iNESCart.miscROMSize = 0;
          else
@@ -1134,13 +1134,13 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    struct md5_context md5;
 #ifdef DEBUG
    char* mappername        = NULL;
-   uint32 mappertest       = 0;
+   uint32_t mappertest       = 0;
 #endif
-   uint64 filesize         = FCEU_fgetsize(fp); /* size of file including header */
-   uint64 romSize          = 0;                 /* size of PRG + CHR rom */
+   uint64_t filesize         = FCEU_fgetsize(fp); /* size of file including header */
+   uint64_t romSize          = 0;                 /* size of PRG + CHR rom */
    /* used for malloc and cart mapping */
-   uint32 rom_size_pow2    = 0;
-   uint32 vrom_size_pow2   = 0;
+   uint32_t rom_size_pow2    = 0;
+   uint32_t vrom_size_pow2   = 0;
 
    if (FCEU_fread(&head, 1, 16, fp) != 16)
       return 0;
@@ -1178,7 +1178,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    /* Trainer */
    if (head.ROM_type & 4)
    {
-      trainerpoo = (uint8*)FCEU_gmalloc(512);
+      trainerpoo = (uint8_t*)FCEU_gmalloc(512);
       FCEU_fread(trainerpoo, 512, 1, fp);
       filesize -= 512;
    }
@@ -1194,7 +1194,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
    rom_size_pow2 = uppow2(iNESCart.PRGRomSize);
    
-   if ((ROM = (uint8*)FCEU_malloc(rom_size_pow2)) == NULL)
+   if ((ROM = (uint8_t*)FCEU_malloc(rom_size_pow2)) == NULL)
       return 0;
 
    memset(ROM, 0xFF, rom_size_pow2);
@@ -1203,7 +1203,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    if (iNESCart.CHRRomSize) {
       vrom_size_pow2 = uppow2(iNESCart.CHRRomSize);
 
-      if ((VROM = (uint8*)FCEU_malloc(vrom_size_pow2)) == NULL)
+      if ((VROM = (uint8_t*)FCEU_malloc(vrom_size_pow2)) == NULL)
       {
          free(ROM);
          ROM = NULL;
@@ -1215,7 +1215,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
    }
    
    if (iNESCart.miscROMSize) {
-	   MiscROM =(uint8*) FCEU_malloc(iNESCart.miscROMSize);
+	   MiscROM =(uint8_t*) FCEU_malloc(iNESCart.miscROMSize);
 	   if (!MiscROM) {
 		   free(VROM);
 		   free(ROM);
@@ -1315,12 +1315,12 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
    {
       int x;
-      uint64 partialmd5 = 0;
+      uint64_t partialmd5 = 0;
       int mapper    = iNESCart.mapper;
       int mirroring = iNESCart.mirror;
 
       for (x = 0; x < 8; x++)
-         partialmd5 |= (uint64)iNESCart.MD5[7 - x] << (x * 8);
+         partialmd5 |= (uint64_t)iNESCart.MD5[7 - x] << (x * 8);
 
       FCEU_VSUniCheck(partialmd5, &mapper, &mirroring);
 
@@ -1346,7 +1346,7 @@ int iNESLoad(const char *name, FCEUFILE *fp)
 
    if (iNESCart.mirror == 2)
    {
-      ExtraNTARAM = (uint8*)FCEU_gmalloc(2048);
+      ExtraNTARAM = (uint8_t*)FCEU_gmalloc(2048);
       SetupCartMirroring(4, 1, ExtraNTARAM);
    }
    else if (iNESCart.mirror >= 0x10)
@@ -1409,7 +1409,12 @@ static int iNES_Init(int num) {
 					iNESCart.CHRRamSize = CHRRAMSize;
 				}
 				if (CHRRAMSize > 0) { /* TODO: CHR-RAM are sometimes handled in mappers e.g. MMC1 using submapper 1/2/4 and CHR-RAM can be zero here */
-					if ((VROM = (uint8*)malloc(CHRRAMSize)) == NULL) return 0;
+					if ((VROM = (uint8_t*)malloc(CHRRAMSize)) == NULL) return 0;
+					/* Seed the deterministic memory PRNG from the cart's
+					 * PRG CRC32 so the same ROM always produces the same
+					 * initial CHR-RAM contents but different ROMs differ.
+					 * iNESCart.PRGCRC32 was set above. */
+					FCEU_MemoryRand_Reseed(iNESCart.PRGCRC32);
 					FCEU_MemoryRand(VROM, CHRRAMSize);
 					UNIFchrrama = VROM;
 					SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);

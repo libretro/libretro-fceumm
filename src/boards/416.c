@@ -22,14 +22,14 @@
 
 #include "mapinc.h"
 
-static uint8 reg;
-static uint8 smb2j_reg;
-static uint8 IRQa;
-static uint16 IRQCount;
+static uint8_t reg;
+static uint8_t smb2j_reg;
+static uint8_t IRQa;
+static uint16_t IRQCount;
 
 static void Sync(void) {
 	if (reg & 8) {
-		uint8 prg = ((reg >> 5) & 1) | ((reg >> 6) & 2) | ((reg >> 1) & 4);
+		uint8_t prg = ((reg >> 5) & 1) | ((reg >> 6) & 2) | ((reg >> 1) & 4);
 		switch ((reg >> 6) & 3) {
 		case 0:
 			setprg8(0x8000, prg << 1);

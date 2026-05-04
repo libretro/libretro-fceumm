@@ -55,12 +55,12 @@
 static void FetchSpriteData(void);
 static void FASTAPASS(1) RefreshLine(int lastpixel);
 static void RefreshSprites(void);
-static void CopySprites(uint8 *target);
+static void CopySprites(uint8_t *target);
 
 static void Fixit1(void);
-static uint32 ppulut1[256];
-static uint32 ppulut2[256];
-static uint32 ppulut3[128];
+static uint32_t ppulut1[256];
+static uint32_t ppulut2[256];
+static uint32_t ppulut3[128];
 
 static void makeppulut(void) {
 	int x;
@@ -88,56 +88,56 @@ static void makeppulut(void) {
 	}
 }
 
-static uint8 ppudead = 1;
-static uint8 kook = 0;
+static uint8_t ppudead = 1;
+static uint8_t kook = 0;
 int fceuindbg = 0;
 
 int MMC5Hack = 0, PEC586Hack = 0;
-uint32 MMC5HackVROMMask = 0;
-uint8 *MMC5HackExNTARAMPtr = 0;
-uint8 *MMC5HackVROMPTR = 0;
-uint8 MMC5HackCHRMode = 0;
-uint8 MMC5HackSPMode = 0;
-uint8 MMC50x5130 = 0;
-uint8 MMC5HackSPScroll = 0;
-uint8 MMC5HackSPPage = 0;
+uint32_t MMC5HackVROMMask = 0;
+uint8_t *MMC5HackExNTARAMPtr = 0;
+uint8_t *MMC5HackVROMPTR = 0;
+uint8_t MMC5HackCHRMode = 0;
+uint8_t MMC5HackSPMode = 0;
+uint8_t MMC50x5130 = 0;
+uint8_t MMC5HackSPScroll = 0;
+uint8_t MMC5HackSPPage = 0;
 
-uint8 VRAMBuffer = 0, PPUGenLatch = 0;
-uint8 *vnapage[4];
-uint8 PPUNTARAM = 0;
-uint8 PPUCHRRAM = 0;
+uint8_t VRAMBuffer = 0, PPUGenLatch = 0;
+uint8_t *vnapage[4];
+uint8_t PPUNTARAM = 0;
+uint8_t PPUCHRRAM = 0;
 
 /* Color deemphasis emulation.  Joy... */
-static uint8 deemp = 0;
+static uint8_t deemp = 0;
 static int deempcnt[8];
 
 void (*GameHBIRQHook)(void), (*GameHBIRQHook2)(void);
-void FP_FASTAPASS(1) (*PPU_hook)(uint32 A);
+void FP_FASTAPASS(1) (*PPU_hook)(uint32_t A);
 
-uint8 vtoggle = 0;
-uint8 XOffset = 0;
+uint8_t vtoggle = 0;
+uint8_t XOffset = 0;
 
-uint32 TempAddr = 0, RefreshAddr = 0;
+uint32_t TempAddr = 0, RefreshAddr = 0;
 
 static int maxsprites = 8;
 
 /* scanline is equal to the current visible scanline we're on. */
 int scanline;
-static uint32 scanlines_per_frame;
+static uint32_t scanlines_per_frame;
 
-uint8 PPU[4];
-uint8 PPUSPL;
-uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], SPRBUF[0x100];
-uint8 UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
+uint8_t PPU[4];
+uint8_t PPUSPL;
+uint8_t NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], SPRBUF[0x100];
+uint8_t UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
 					 * 0x20 are 0 to not break fceu rendering.
 					 */
 
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
 #define VRAMADR(V)          &VPage[(V) >> 10][(V)]
 
-uint8 * MMC5BGVRAMADR(uint32 V) {
+uint8_t * MMC5BGVRAMADR(uint32_t V) {
 	if (!Sprite16) {
-		extern uint8 mmc5ABMode;				/* A=0, B=1 */
+		extern uint8_t mmc5ABMode;				/* A=0, B=1 */
 		if (mmc5ABMode == 0)
 			return MMC5SPRVRAMADR(V);
 		else
@@ -146,7 +146,7 @@ uint8 * MMC5BGVRAMADR(uint32 V) {
 }
 
 static DECLFR(A2002) {
-	uint8 ret;
+	uint8_t ret;
 
 	FCEUPPU_LineUpdate();
 	ret = PPU_status;
@@ -170,8 +170,8 @@ static DECLFR(A200x) {	/* Not correct for $2004 reads. */
 }
 
 static DECLFR(A2007) {
-	uint8 ret;
-	uint32 tmp = RefreshAddr & 0x3FFF;
+	uint8_t ret;
+	uint32_t tmp = RefreshAddr & 0x3FFF;
 
 	FCEUPPU_LineUpdate();
 
@@ -215,7 +215,7 @@ static DECLFR(A2007) {
 	#endif
 	{
 		if ((ScreenON || SpriteON) && (scanline < 240)) {
-			uint32 rad = RefreshAddr;
+			uint32_t rad = RefreshAddr;
 			if ((rad & 0x7000) == 0x7000) {
 				rad ^= 0x7000;
 				if ((rad & 0x3E0) == 0x3A0)
@@ -281,7 +281,7 @@ static DECLFW(B2004) {
 }
 
 static DECLFW(B2005) {
-	uint32 tmp = TempAddr;
+	uint32_t tmp = TempAddr;
 	FCEUPPU_LineUpdate();
 	PPUGenLatch = V;
 	if (!vtoggle) {
@@ -317,7 +317,7 @@ static DECLFW(B2006) {
 }
 
 static DECLFW(B2007) {
-	uint32 tmp = RefreshAddr & 0x3FFF;
+	uint32_t tmp = RefreshAddr & 0x3FFF;
 	PPUGenLatch = V;
 	if (tmp < 0x2000) {
 		if (PPUCHRRAM & (1 << (tmp >> 10)))
@@ -343,7 +343,7 @@ static DECLFW(B2007) {
 }
 
 static DECLFW(B4014) {
-	uint32 t = V << 8;
+	uint32_t t = V << 8;
 	int x;
 
 	for (x = 0; x < 256; x++)
@@ -354,12 +354,12 @@ static DECLFW(B4014) {
 
 #define GETLASTPIXEL    (PAL ? ((timestamp * 48 - linestartts) / 15) : ((timestamp * 48 - linestartts) >> 4))
 
-static uint8 *Pline, *Plinef;
+static uint8_t *Pline, *Plinef;
 static int firsttile;
 static int linestartts;
 static int tofix = 0;
 
-static void ResetRL(uint8 *target) {
+static void ResetRL(uint8_t *target) {
 	memset(target, 0xFF, 256);
 	if (InputScanlineHook)
 		InputScanlineHook(0, 0, 0, 0);
@@ -372,7 +372,7 @@ static void ResetRL(uint8 *target) {
 	tofix = 1;
 }
 
-static uint8 sprlinebuf[256 + 8];
+static uint8_t sprlinebuf[256 + 8];
 
 void FCEUPPU_LineUpdate(void) {
 #ifdef FCEUDEF_DEBUGGER
@@ -407,8 +407,8 @@ static void EndRL(void) {
 	Pline = 0;
 }
 
-static int32 sphitx;
-static uint8 sphitdata;
+static int32_t sphitx;
+static uint8_t sphitdata;
 
 static void CheckSpriteHit(int p) {
 	int l = p - 16;
@@ -432,15 +432,15 @@ static int spork = 0;
 
 /* lasttile is really "second to last tile." */
 static void FASTAPASS(1) RefreshLine(int lastpixel) {
-	static uint32 pshift[2];
-	static uint32 atlatch;
-	uint32 smorkus = RefreshAddr;
+	static uint32_t pshift[2];
+	static uint32_t atlatch;
+	uint32_t smorkus = RefreshAddr;
 
 	#define RefreshAddr smorkus
-	uint32 vofs;
+	uint32_t vofs;
 	int X1;
 
-	register uint8 *P = Pline;
+	register uint8_t *P = Pline;
 	int lasttile = lastpixel >> 3;
 	int numtiles;
 	static int norecurse = 0;	/* Yeah, recursion would be bad.
@@ -471,7 +471,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 		vofs = ((PPU[0] & 0x10) << 8) | ((RefreshAddr >> 12) & 7);
 
 	if (!ScreenON && !SpriteON) {
-		uint32 tem;
+		uint32_t tem;
 		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
 		tem |= 0x40404040;
 		FCEU_dwmemset(Pline, tem, numtiles * 8);
@@ -582,14 +582,14 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 
 	RefreshAddr = smorkus;
 	if (firsttile <= 2 && 2 < lasttile && !(PPU[1] & 2)) {
-		uint32 tem;
+		uint32_t tem;
 		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
 		tem |= 0x40404040;
-		*(uint32*)Plinef = *(uint32*)(Plinef + 4) = tem;
+		*(uint32_t*)Plinef = *(uint32_t*)(Plinef + 4) = tem;
 	}
 
 	if (!ScreenON) {
-		uint32 tem;
+		uint32_t tem;
 		int tstart, tcount;
 		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
 		tem |= 0x40404040;
@@ -621,7 +621,7 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 
 static INLINE void Fixit2(void) {
 	if (ScreenON || SpriteON) {
-		uint32 rad = RefreshAddr;
+		uint32_t rad = RefreshAddr;
 		rad &= 0xFBE0;
 		rad |= TempAddr & 0x041f;
 		RefreshAddr = rad;
@@ -630,7 +630,7 @@ static INLINE void Fixit2(void) {
 
 static void Fixit1(void) {
 	if (ScreenON || SpriteON) {
-		uint32 rad = RefreshAddr;
+		uint32_t rad = RefreshAddr;
 
 		if ((rad & 0x7000) == 0x7000) {
 			rad ^= 0x7000;
@@ -650,8 +650,8 @@ void MMC5_hb(int);		/* Ugh ugh ugh. */
 static void DoLine(void)
 {
 	int x, colour_emphasis;
-	uint8 *target = NULL;
-	uint8 *dtarget = NULL;
+	uint8_t *target = NULL;
+	uint8_t *dtarget = NULL;
 
 	if (scanline >= 240 && scanline != totalscanlines)
 	{
@@ -670,7 +670,7 @@ static void DoLine(void)
 	EndRL();
 
 	if (rendis & 2) {/* User asked to not display background data. */
-		uint32 tem;
+		uint32_t tem;
 		tem = Pal[0] | (Pal[0] << 8) | (Pal[0] << 16) | (Pal[0] << 24);
 		tem |= 0x40404040;
 		FCEU_dwmemset(target, tem, 256);
@@ -682,23 +682,23 @@ static void DoLine(void)
 	if (ScreenON || SpriteON) {	/* Yes, very el-cheapo. */
 		if (PPU[1] & 0x01) {
 			for (x = 63; x >= 0; x--)
-				*(uint32*)&target[x << 2] = (*(uint32*)&target[x << 2]) & 0x30303030;
+				*(uint32_t*)&target[x << 2] = (*(uint32_t*)&target[x << 2]) & 0x30303030;
 		}
 	}
 	if ((PPU[1] >> 5) == 0x7) {
 		for (x = 63; x >= 0; x--)
-			*(uint32*)&target[x << 2] = ((*(uint32*)&target[x << 2]) & 0x3f3f3f3f) | 0xc0c0c0c0;
+			*(uint32_t*)&target[x << 2] = ((*(uint32_t*)&target[x << 2]) & 0x3f3f3f3f) | 0xc0c0c0c0;
 	} else if (PPU[1] & 0xE0)
 		for (x = 63; x >= 0; x--)
-			*(uint32*)&target[x << 2] = (*(uint32*)&target[x << 2]) | 0x40404040;
+			*(uint32_t*)&target[x << 2] = (*(uint32_t*)&target[x << 2]) | 0x40404040;
 	else
 		for (x = 63; x >= 0; x--)
-			*(uint32*)&target[x << 2] = ((*(uint32*)&target[x << 2]) & 0x3f3f3f3f) | 0x80808080;
+			*(uint32_t*)&target[x << 2] = ((*(uint32_t*)&target[x << 2]) & 0x3f3f3f3f) | 0x80808080;
 
 	/* write the actual colour emphasis */
 	colour_emphasis = ((PPU[1] >> 5) << 24) | ((PPU[1] >> 5) << 16) | ((PPU[1] >> 5) << 8) | ((PPU[1] >> 5) << 0);
 	for (x = 63; x >= 0; x--)
-		*(uint32*)&dtarget[x << 2] = colour_emphasis;
+		*(uint32_t*)&dtarget[x << 2] = colour_emphasis;
 
     sphitx = 0x100;
 
@@ -737,45 +737,45 @@ static void DoLine(void)
 #define SP_BACK 0x20
 
 typedef struct {
-	uint8 y, no, atr, x;
+	uint8_t y, no, atr, x;
 } SPR;
 
 typedef struct {
-	uint8 ca[2], atr, x;
+	uint8_t ca[2], atr, x;
 } SPRB;
 
 void FCEUI_DisableSpriteLimitation(int a) {
 	maxsprites = a ? 64 : 8;
 }
 
-static uint8 numsprites, SpriteBlurp;
+static uint8_t numsprites, SpriteBlurp;
 static void FetchSpriteData(void) {
-	uint8 ns, sb;
+	uint8_t ns, sb;
 	SPR *spr;
-	uint8 H;
+	uint8_t H;
 	int n;
 	int vofs;
-	uint8 P0 = PPU[0];
+	uint8_t P0 = PPU[0];
 
 	spr = (SPR*)SPRAM;
 	H = 8;
 
 	ns = sb = 0;
 
-	vofs = (uint32)(P0 & 0x8 & (((P0 & 0x20) ^ 0x20) >> 2)) << 9;
+	vofs = (uint32_t)(P0 & 0x8 & (((P0 & 0x20) ^ 0x20) >> 2)) << 9;
 	H += (P0 & 0x20) >> 2;
 
 	if (!PPU_hook)
 		for (n = 63; n >= 0; n--, spr++) {
-			if ((uint32)(scanline - spr->y) >= H) continue;
+			if ((uint32_t)(scanline - spr->y) >= H) continue;
 			if (ns < maxsprites) {
 				if (n == 63) sb = 1;
 
 				{
 					SPRB dst;
-					uint8 *C;
+					uint8_t *C;
 					int t;
-					uint32 vadr;
+					uint32_t vadr;
 
 					t = (int)scanline - (spr->y);
 
@@ -805,7 +805,7 @@ static void FetchSpriteData(void) {
 					dst.x = spr->x;
 					dst.atr = spr->atr;
 
-					*(uint32*)&SPRBUF[ns << 2] = *(uint32*)&dst;
+					*(uint32_t*)&SPRBUF[ns << 2] = *(uint32_t*)&dst;
 				}
 
 				ns++;
@@ -816,16 +816,16 @@ static void FetchSpriteData(void) {
 		}
 	else
 		for (n = 63; n >= 0; n--, spr++) {
-			if ((uint32)(scanline - spr->y) >= H) continue;
+			if ((uint32_t)(scanline - spr->y) >= H) continue;
 
 			if (ns < maxsprites) {
 				if (n == 63) sb = 1;
 
 				{
 					SPRB dst;
-					uint8 *C;
+					uint8_t *C;
 					int t;
-					uint32 vadr;
+					uint32_t vadr;
 
 					t = (int)scanline - (spr->y);
 
@@ -858,7 +858,7 @@ static void FetchSpriteData(void) {
 					dst.atr = spr->atr;
 
 
-					*(uint32*)&SPRBUF[ns << 2] = *(uint32*)&dst;
+					*(uint32_t*)&SPRBUF[ns << 2] = *(uint32_t*)&dst;
 				}
 
 				ns++;
@@ -892,12 +892,12 @@ static void RefreshSprites(void) {
 	spr = (SPRB*)SPRBUF + numsprites;
 
 	for (n = numsprites; n >= 0; n--, spr--) {
-		register uint32 pixdata;
-		register uint8 J, atr;
+		register uint32_t pixdata;
+		register uint8_t J, atr;
 
 		int x = spr->x;
-		uint8 *C;
-		uint8 *VB;
+		uint8_t *C;
+		uint8_t *VB;
 
 		pixdata = ppulut1[spr->ca[0]] | ppulut2[spr->ca[1]];
 		J = spr->ca[0] | spr->ca[1];
@@ -996,9 +996,9 @@ static void RefreshSprites(void) {
 	spork = 1;
 }
 
-static void CopySprites(uint8 *target) {
-	uint8 n = ((PPU[1] & 4) ^ 4) << 1;
-	uint8 *P = target;
+static void CopySprites(uint8_t *target) {
+	uint8_t n = ((PPU[1] & 4) ^ 4) << 1;
+	uint8_t *P = target;
 
 	if (!spork) return;
 	spork = 0;
@@ -1007,7 +1007,7 @@ static void CopySprites(uint8 *target) {
 
    do
 	{
-		uint32 t = *(uint32*)(sprlinebuf + n);
+		uint32_t t = *(uint32_t*)(sprlinebuf + n);
 
 		if (t != 0x80808080) {
 			#ifdef MSB_FIRST
@@ -1249,7 +1249,7 @@ int FCEUPPU_Loop(int skip) {
 	}
 }
 
-static uint16 TempAddrT, RefreshAddrT;
+static uint16_t TempAddrT, RefreshAddrT;
 
 void FCEUPPU_LoadState(int version) {
 	TempAddr = TempAddrT;

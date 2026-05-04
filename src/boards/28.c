@@ -24,8 +24,8 @@
 
 #include "mapinc.h"
 
-static uint8 prg_mask_16k;
-static uint8 reg, chr, prg, mode, outer;
+static uint8_t prg_mask_16k;
+static uint8_t reg, chr, prg, mode, outer;
 
 static SFORMAT StateRegs[] = {
 	{&reg, 1, "REG"},
@@ -45,7 +45,7 @@ void SyncMirror() {
 	}
 }
 
-void Mirror(uint8 value)
+void Mirror(uint8_t value)
 {
 	if ((mode & 2) == 0) {
 		mode &= 0xfe;
@@ -56,10 +56,10 @@ void Mirror(uint8 value)
 
 
 static void Sync() {
-	uint8 prglo = 0;
-	uint8 prghi = 0;
+	uint8_t prglo = 0;
+	uint8_t prghi = 0;
 
-	uint8 outb = outer << 1;
+	uint8_t outb = outer << 1;
 
 	/* this can probably be rolled up, but i have no motivation to do so
 	 * until it's been tested */

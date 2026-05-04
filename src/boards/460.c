@@ -24,9 +24,9 @@
 #include "asic_mmc3.h"
 #include "cartram.h"
 
-static uint8 submapper;
-static uint8 reg;
-static uint8 pad;
+static uint8_t submapper;
+static uint8_t reg;
+static uint8_t pad;
 
 static DECLFR (readPad) {
 	return CartBR(A &~3 | pad &3);
@@ -42,7 +42,7 @@ static void sync () {
 	SetReadHandler(0x8000, 0xFFFF, submapper == 0 && reg &0x80 || submapper == 1 && reg &0x20? readPad: CartBR);
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	if (reg &0x08) {
 		int mask = reg &0x10? 3: 1;
 		return MMC3_getPRGBank(bank &1) &~mask | bank &mask;
@@ -50,7 +50,7 @@ static int getPRGBank (uint8 bank) {
 		return MMC3_getPRGBank(bank);
 }
 
-static int getCHRBank (uint8 bank) {
+static int getCHRBank (uint8_t bank) {
 	if (reg &0x04)
 		return MMC3_getCHRBank(bank &6 | bank >>1 &1) <<1 | bank &1;
 	else

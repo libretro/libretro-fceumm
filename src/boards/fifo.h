@@ -3,15 +3,15 @@
 
 typedef struct {
 	size_t capacity;
-	uint8 *data;
-	int16 front;
-	int16 back;
+	uint8_t *data;
+	int16_t front;
+	int16_t back;
 } FIFO;
 
 size_t FIFO_size (FIFO *);
-uint8 FIFO_halfFull (FIFO *);
+uint8_t FIFO_halfFull (FIFO *);
 int FIFO_retrieve (FIFO *);
-void FIFO_add (FIFO *, uint8);
+void FIFO_add (FIFO *, uint8_t);
 void FIFO_reset (FIFO *);
 void FIFO_init (FIFO *, size_t);
 void FIFO_close (FIFO *);

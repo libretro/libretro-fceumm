@@ -56,29 +56,29 @@ static void FDSClose(void);
 
 static void FP_FASTAPASS(1) FDSFix(int a);
 
-static uint8 FDSRegs[6];
-static int32 IRQLatch, IRQCount;
-static uint8 IRQa;
+static uint8_t FDSRegs[6];
+static int32_t IRQLatch, IRQCount;
+static uint8_t IRQa;
 
-static uint8 *FDSROM = NULL;
-static uint32 FDSROMSize = 0;
-static uint8 *FDSRAM = NULL;
-static uint32 FDSRAMSize;
-static uint8 *FDSBIOS = NULL;
-static uint32 FDSBIOSsize;
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSize;
+static uint8_t *FDSROM = NULL;
+static uint32_t FDSROMSize = 0;
+static uint8_t *FDSRAM = NULL;
+static uint32_t FDSRAMSize;
+static uint8_t *FDSBIOS = NULL;
+static uint32_t FDSBIOSsize;
+static uint8_t *CHRRAM = NULL;
+static uint32_t CHRRAMSize;
 
 /* Original disk data backup, to help in creating save states. */
-static uint8 *diskdatao[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-static uint8 *diskdata[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+static uint8_t *diskdatao[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+static uint8_t *diskdata[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-static uint32 TotalSides;
-static uint8 DiskWritten = 0;	/* Set to 1 if disk was written to. */
-static uint8 writeskip;
-static int32 DiskPtr;
-static int32 DiskSeekIRQ;
-static uint8 SelectDisk, InDisk;
+static uint32_t TotalSides;
+static uint8_t DiskWritten = 0;	/* Set to 1 if disk was written to. */
+static uint8_t writeskip;
+static int32_t DiskPtr;
+static int32_t DiskSeekIRQ;
+static uint8_t SelectDisk, InDisk;
 
 enum FDS_DiskBlockIDs {
 	DSK_INIT = 0,
@@ -88,13 +88,13 @@ enum FDS_DiskBlockIDs {
 	DSK_FILEDATA
 };
 
-static uint8  mapperFDS_control;    /* 4025(w) control register */
-static uint16 mapperFDS_filesize;   /* size of file being read/written */
-static uint8  mapperFDS_block;      /* block-id of current block */
-static uint16 mapperFDS_blockstart; /* start-address of current block */
-static uint16 mapperFDS_blocklen;   /* length of current block */
-static uint16 mapperFDS_diskaddr;   /* current address relative to blockstart */
-static uint8  mapperFDS_diskaccess; /* disk needs to be accessed at least once before writing */
+static uint8_t  mapperFDS_control;    /* 4025(w) control register */
+static uint16_t mapperFDS_filesize;   /* size of file being read/written */
+static uint8_t  mapperFDS_block;      /* block-id of current block */
+static uint16_t mapperFDS_blockstart; /* start-address of current block */
+static uint16_t mapperFDS_blocklen;   /* length of current block */
+static uint16_t mapperFDS_diskaddr;   /* current address relative to blockstart */
+static uint8_t  mapperFDS_diskaccess; /* disk needs to be accessed at least once before writing */
 
 #define GET_FDS_DISK() (diskdata[InDisk][mapperFDS_blockstart + mapperFDS_diskaddr])
 #define FDS_DISK_INSERTED (InDisk != 255)
@@ -102,11 +102,11 @@ static uint8  mapperFDS_diskaccess; /* disk needs to be accessed at least once b
 #define DC_INC    1
 #define BYTES_PER_SIDE 65500
 
-uint8 *FDSROM_ptr(void) {
+uint8_t *FDSROM_ptr(void) {
 	return (FDSROM);
 }
 
-uint32 FDSROM_size(void) {
+uint32_t FDSROM_size(void) {
 	return (FDSROMSize);
 }
 
@@ -249,7 +249,7 @@ static void FP_FASTAPASS(1) FDSFix(int a) {
 }
 
 static DECLFR(FDSRead4030) {
-	uint8 ret = 0;
+	uint8_t ret = 0;
 
 	/* Cheap hack. */
 	if (X.IRQlow & FCEU_IQEXT) ret |= 1;
@@ -266,7 +266,7 @@ static DECLFR(FDSRead4030) {
 }
 
 static DECLFR(FDSRead4031) {
-	uint8 ret = 0xff;
+	uint8_t ret = 0xff;
 
 	if (FDS_DISK_INSERTED && mapperFDS_control & 0x04) {
 		mapperFDS_diskaccess = 1;
@@ -303,7 +303,7 @@ static DECLFR(FDSRead4031) {
 }
 
 static DECLFR(FDSRead4032) {
-	uint8 ret;
+	uint8_t ret;
 
 	ret = X.DB & ~7;
 	if (InDisk == 255)
@@ -430,7 +430,7 @@ static DECLFW(FDSWrite) {
 }
 
 struct codes_t {
-	uint8 code;
+	uint8_t code;
 	char *name;
 };
 
@@ -574,7 +574,7 @@ static const struct codes_t list[] = {
 	{ 0 }
  };
 
-static const char *getManufacturer(uint8 code)
+static const char *getManufacturer(uint8_t code)
 {
 	int x = 0;
 	char *ret = "unlicensed";
@@ -607,9 +607,9 @@ static void FreeFDSMemory(void) {
 
 static int SubLoad(FCEUFILE *fp) {
 	struct md5_context md5;
-	uint8 header[16];
+	uint8_t header[16];
 	int x;
-	uint64 fsize = FCEU_fgetsize(fp);
+	uint64_t fsize = FCEU_fgetsize(fp);
 
 	/* Reject files too short to contain a 16-byte header. Otherwise the
 	 * subsequent FCEU_fread leaves header[] partially uninitialised, and
@@ -637,7 +637,7 @@ static int SubLoad(FCEUFILE *fp) {
 	if (TotalSides < 1) TotalSides = 1;
 
 	FDSROMSize = TotalSides * BYTES_PER_SIDE;
-	FDSROM = (uint8*)FCEU_malloc(FDSROMSize);
+	FDSROM = (uint8_t*)FCEU_malloc(FDSROMSize);
 
 	if (!FDSROM)
 		return (0);
@@ -693,7 +693,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	ResetCartMapping();
 
 	FDSBIOSsize = 8192;
-	FDSBIOS = (uint8*)FCEU_gmalloc(FDSBIOSsize);
+	FDSBIOS = (uint8_t*)FCEU_gmalloc(FDSBIOSsize);
 	SetupCartPRGMapping(0, FDSBIOS, FDSBIOSsize, 0);
 
 	if (FCEU_fread(FDSBIOS, 1, FDSBIOSsize, zp) != FDSBIOSsize) {
@@ -718,7 +718,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	}
 
 	for (x = 0; x < TotalSides; x++) {
-		diskdatao[x] = (uint8*)FCEU_malloc(65500);
+		diskdatao[x] = (uint8_t*)FCEU_malloc(65500);
 		if (!diskdatao[x]) {
 			int y;
 			for (y = 0; y < x; y++) {
@@ -777,12 +777,12 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 	AddExState(&mapperFDS_diskaccess, 1, 0, "DACC");
 
 	CHRRAMSize = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSize);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSize);
 	SetupCartCHRMapping(0, CHRRAM, CHRRAMSize, 1);
 	AddExState(CHRRAM, CHRRAMSize, 0, "CHRR");
 
 	FDSRAMSize = 32768;
-	FDSRAM = (uint8*)FCEU_gmalloc(FDSRAMSize);
+	FDSRAM = (uint8_t*)FCEU_gmalloc(FDSRAMSize);
 	SetupCartPRGMapping(1, FDSRAM, FDSRAMSize, 1);
 	AddExState(FDSRAM, FDSRAMSize, 0, "FDSR");
 

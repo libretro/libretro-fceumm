@@ -21,26 +21,26 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
-static uint8 *CHRRAM =NULL;
-static uint32 CHRRAMSIZE;
+static uint8_t submapper;
+static uint8_t *CHRRAM =NULL;
+static uint32_t CHRRAMSIZE;
 
-static void PRGWrap0(uint32 A, uint8 V) {
+static void PRGWrap0(uint32_t A, uint8_t V) {
 	int prgAND =EXPREGS[0] &0x20? 0x1F: 0x0F;
 	setprg8(A, V &prgAND | EXPREGS[0] <<4 &~prgAND);
 }
 
-static void CHRWrap0(uint32 A, uint8 V) {
+static void CHRWrap0(uint32_t A, uint8_t V) {
 	int chrAND =EXPREGS[0] &0x20? 0xFF: 0x7F;
 	setchr1(A, V &chrAND | EXPREGS[0] <<7 &~chrAND);
 }
 
-static void PRGWrap1(uint32 A, uint8 V) {
+static void PRGWrap1(uint32_t A, uint8_t V) {
 	int prgAND =(EXPREGS[0] &0x1F) ==0x1F? 0x1F: 0x0F;
 	setprg8(A, V &prgAND | EXPREGS[0] <<4 &~prgAND);
 }
 
-static void CHRWrap1(uint32 A, uint8 V) {
+static void CHRWrap1(uint32_t A, uint8_t V) {
 	int chrAND =(EXPREGS[0] &0x1F) ==0x19? 0xFF: 0x7F;
 	if (EXPREGS[0] &0x20)
 		setchr8r(0x10, 0);
@@ -48,7 +48,7 @@ static void CHRWrap1(uint32 A, uint8 V) {
 		setchr1(A, V &chrAND | EXPREGS[0] <<7 &~chrAND);
 }
 
-static void PRGWrap2(uint32 A, uint8 V) {
+static void PRGWrap2(uint32_t A, uint8_t V) {
 	int prgAND =(EXPREGS[0] &0x0E) ==0x0E? 0x1F: 0x0F;
 	if (EXPREGS[0] &0x20)
 		setprg32(0x8000, EXPREGS[1] &3 | EXPREGS[0] <<2 &~3);
@@ -56,7 +56,7 @@ static void PRGWrap2(uint32 A, uint8 V) {
 		setprg8(A, V &prgAND | EXPREGS[0] <<4 &~prgAND);
 }
 
-static void CHRWrap2(uint32 A, uint8 V) {
+static void CHRWrap2(uint32_t A, uint8_t V) {
 	int chrAND =(EXPREGS[0] &0x0F) ==0x03 || (EXPREGS[0] &0x0F) ==0x0F? 0xFF: 0x7F;
 	if (EXPREGS[0] &0x10) {
 		setchr2(0x0000, DRegBuf[0] &0xFE | 0x400);
@@ -106,7 +106,7 @@ void Mapper480_Init(CartInfo *info) {
 	AddExState(EXPREGS, 2, 0, "EXPR");
 	if (submapper ==1) {
 		CHRRAMSIZE = 8192;
-		CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+		CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 		SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 		AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");		
 	}

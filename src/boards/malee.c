@@ -23,7 +23,7 @@
 
 #include "mapinc.h"
 
-static uint8 WRAM[2048];
+static uint8_t WRAM[2048];
 
 static void MALEEPower(void) {
 	setprg2r(0x10, 0x7000, 0);

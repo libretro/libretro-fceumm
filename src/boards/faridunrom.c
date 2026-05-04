@@ -25,7 +25,7 @@
 
 #include "mapinc.h"
 
-static uint8 latch;
+static uint8_t latch;
 
 static SFORMAT StateRegs[] =
 {

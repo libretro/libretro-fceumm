@@ -23,8 +23,8 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 reg;
-static uint8 pad;
+static uint8_t reg;
+static uint8_t pad;
 
 static DECLFR (readPad) {
 	return CartBR(A &~0x3 | pad &0x3);
@@ -41,7 +41,7 @@ static void sync () {
 	SetReadHandler(0x8000, 0xFFFF, reg &0x08? readPad: CartBR);
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	if (reg &0x04) {
 		int mask = reg &0x02? 1: 3;
 		return MMC3_getPRGBank(bank &1) &~mask | bank &mask;

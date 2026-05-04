@@ -28,9 +28,9 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
-static void M313CW(uint32 A, uint8 V) {
+static void M313CW(uint32_t A, uint8_t V) {
 	/*FCEU_printf("CHR: A:%04x V:%02x 0:%02x\n", A, V, EXPREGS[0]);*/
 	uint32_t bank;
 	switch (submapper) {
@@ -43,7 +43,7 @@ static void M313CW(uint32 A, uint8 V) {
 	setchr1(A, bank);
 }
 
-static void M313PW(uint32 A, uint8 V) {
+static void M313PW(uint32_t A, uint8_t V) {
 	/*FCEU_printf("PRG: A:%04x V:%02x 0:%02x\n", A, V, EXPREGS[0]);*/
 	uint32_t bank;
 	switch (submapper) {

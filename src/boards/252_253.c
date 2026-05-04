@@ -22,10 +22,10 @@
 #include "asic_vrc2and4.h"
 #include "cartram.h"
 
-static uint8 mask;
-static uint8 compare;
+static uint8_t mask;
+static uint8_t compare;
 
-extern uint32 RefreshAddr;
+extern uint32_t RefreshAddr;
 static writefunc writePPU;
 
 static SFORMAT stateRegs[] = {

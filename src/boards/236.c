@@ -20,9 +20,9 @@
 
 #include "mapinc.h"
 
-static uint8 reg[2];
-static uint8 dip;
-static uint8 chrramvariant;
+static uint8_t reg[2];
+static uint8_t dip;
+static uint8_t chrramvariant;
 static SFORMAT StateRegs[] =
 {
 	{ reg,  2, "REG " },

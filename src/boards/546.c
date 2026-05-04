@@ -24,7 +24,7 @@
 #include "asic_mmc1.h"
 #include "cartram.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	MMC1_syncWRAM(0);

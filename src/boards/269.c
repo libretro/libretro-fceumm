@@ -27,19 +27,19 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 *CHRROM;
-static uint32 CHRROMSIZE;
+static uint8_t *CHRROM;
+static uint32_t CHRROMSIZE;
 
-static void M269CW(uint32 A, uint8 V) {
-	uint16 NV = V;
+static void M269CW(uint32_t A, uint8_t V) {
+	uint16_t NV = V;
 	if (EXPREGS[2] & 8)
 		NV &= (1 << ((EXPREGS[2] & 7) + 1)) - 1;
 	NV |= EXPREGS[0] | ((EXPREGS[2] & 0xF0) << 4);
 	setchr1(A, NV);
 }
 
-static void M269PW(uint32 A, uint8 V) {
-	uint16 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
+static void M269PW(uint32_t A, uint8_t V) {
+	uint16_t MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
 	MV |= EXPREGS[1];
 	MV |= ((EXPREGS[3] & 0x40) << 2);
 	setprg8(A, MV);
@@ -74,13 +74,13 @@ static void M269Power(void) {
 	SetWriteHandler(0x5000, 0x5FFF, M269Write5);
 }
 
-static uint8 unscrambleCHR(uint8 data) {
+static uint8_t unscrambleCHR(uint8_t data) {
 	return 	((data & 0x01) << 6) | ((data & 0x02) << 3) | ((data & 0x04) << 0) | ((data & 0x08) >> 3) |
 			((data & 0x10) >> 3) | ((data & 0x20) >> 2) | ((data & 0x40) >> 1) | ((data & 0x80) << 0);
 }
 
 void Mapper269_Init(CartInfo *info) {
-	uint32 i;
+	uint32_t i;
 	GenMMC3_Init(info, 512, 0, 8, 0);
 	cwrap = M269CW;
 	pwrap = M269PW;
@@ -90,7 +90,7 @@ void Mapper269_Init(CartInfo *info) {
 	AddExState(EXPREGS, 5, 0, "EXPR");
 
 	CHRROMSIZE = PRGsize[0];
-	CHRROM = (uint8*)FCEU_gmalloc(CHRROMSIZE);
+	CHRROM = (uint8_t*)FCEU_gmalloc(CHRROMSIZE);
 	/* unscramble CHR data from PRG */
 	for (i = 0; i < CHRROMSIZE; i++)
 		CHRROM[i] = unscrambleCHR(PRGptr[0][i]);

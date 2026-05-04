@@ -20,11 +20,11 @@
 
 #include "mapinc.h"
 
-static uint8 preg[4], creg[8];
-static uint8 IRQa, mirr;
-static int32 IRQCount, IRQLatch;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t preg[4], creg[8];
+static uint8_t IRQa, mirr;
+static int32_t IRQCount, IRQLatch;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -64,14 +64,14 @@ static DECLFW(M18WriteIRQ) {
 }
 
 static DECLFW(M18WritePrg) {
-	uint32 i = ((A >> 1) & 1) | ((A - 0x8000) >> 11);
+	uint32_t i = ((A >> 1) & 1) | ((A - 0x8000) >> 11);
 	preg[i] &= (0xF0) >> ((A & 1) << 2);
 	preg[i] |= (V & 0xF) << ((A & 1) << 2);
 	Sync();
 }
 
 static DECLFW(M18WriteChr) {
-	uint32 i = ((A >> 1) & 1) | ((A - 0xA000) >> 11);
+	uint32_t i = ((A >> 1) & 1) | ((A - 0xA000) >> 11);
 	creg[i] &= (0xF0) >> ((A & 1) << 2);
 	creg[i] |= (V & 0xF) << ((A & 1) << 2);
 	Sync();
@@ -120,7 +120,7 @@ void Mapper18_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	if (info->battery) {

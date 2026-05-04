@@ -23,8 +23,8 @@
 
 #include "mapinc.h"
 
-static uint8 reg[8];
-static uint8 mirror, cmd, bank;
+static uint8_t reg[8];
+static uint8_t mirror, cmd, bank;
 
 static SFORMAT StateRegs[] =
 {

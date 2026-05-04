@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	if (reg &0x02)
@@ -37,7 +37,7 @@ static void sync () {
 	MMC3_syncMirror();
 }
 
-static int getCHRBank (uint8 bank) {
+static int getCHRBank (uint8_t bank) {
 	if (reg &0x80)
 		return MMC3_getCHRBank(bank &4 | bank >>1 &1) <<1 | bank &1;
 	else

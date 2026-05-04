@@ -21,10 +21,10 @@
 
 #include "mapinc.h"
 
-static uint16 cmdreg;
-static uint8 unrom, reg, openbus;
+static uint16_t cmdreg;
+static uint8_t unrom, reg, openbus;
 
-static uint32 PRGROMSize;
+static uint32_t PRGROMSize;
 
 static SFORMAT StateRegs[] =
 {
@@ -37,13 +37,13 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void) {
 	if (unrom) {
-		uint8 PRGPageSize = PRGROMSize / 16384;
+		uint8_t PRGPageSize = PRGROMSize / 16384;
 		setprg16(0x8000, (PRGPageSize & 0xC0) | (reg & 7));
 		setprg16(0xC000, (PRGPageSize & 0xC0) | 7);
 		setchr8(0);
 		setmirror(MI_V);
 	} else {
-		uint8 bank = ((cmdreg & 0x300) >> 3) | (cmdreg & 0x1F);
+		uint8_t bank = ((cmdreg & 0x300) >> 3) | (cmdreg & 0x1F);
 		if (cmdreg & 0x400)
 			setmirror(MI_0);
 		else

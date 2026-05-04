@@ -61,8 +61,8 @@ case 0x28: /* PLP */
 			break;
 case 0x4C:
 		{
-			uint16 ptmp=_PC;
-			uint32 npc;
+			uint16_t ptmp=_PC;
+			uint32_t npc;
 
 			npc=RdMem(ptmp);
 			ptmp++;
@@ -72,7 +72,7 @@ case 0x4C:
 		break; /* JMP ABSOLUTE */
 case 0x6C:
 			{
-			uint32 tmp;
+			uint32_t tmp;
 			GetAB(tmp);
 			_PC=RdMem(tmp);
 			_PC|=RdMem( ((tmp+1)&0x00FF) | (tmp&0xFF00))<<8;
@@ -80,7 +80,7 @@ case 0x6C:
 			break;
 case 0x20: /* JSR */
 			{
-			uint8 npc;
+			uint8_t npc;
 			npc=RdMem(_PC);
 			_PC++;
 			PUSH(_PC>>8);
@@ -334,7 +334,7 @@ case 0x83: ST_IX(_A&_X);
 
 /* ARR - ARGH, MATEY! */
 case 0x6B: {
-				uint8 arrtmp;
+				uint8_t arrtmp;
 				LD_IM(AND;_P&=~V_FLAG;_P|=(_A^(_A>>1))&0x40;arrtmp=_A>>7;_A>>=1;_A|=(_P&C_FLAG)<<7;_P&=~C_FLAG;_P|=arrtmp;X_ZN(_A));
 			}
 /* ASR */

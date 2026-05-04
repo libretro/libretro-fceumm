@@ -23,22 +23,22 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 *CHRRAM;
-static uint32 CHRRAMSIZE;
+static uint8_t *CHRRAM;
+static uint32_t CHRRAMSIZE;
 
 static int getPRGBank(int bank) {
 	if ((~bank & 1) && (MMC3_cmd & 0x40)) bank ^= 2;
 	return (bank & 2) ? 0xFE | (bank & 1) : DRegBuf[6 | (bank & 1)];
 }
 
-static void M393CW(uint32 A, uint8 V) {
+static void M393CW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 8)
 		setchr8r(0x10, 0);
 	else
 		setchr1(A, V & 0xFF | EXPREGS[0] << 8);
 }
 
-static void M393PW(uint32 A, uint8 V) {
+static void M393PW(uint32_t A, uint8_t V) {
 	switch ((EXPREGS[0] >> 4) & 3) {
 	case 0:
 	case 1:
@@ -104,7 +104,7 @@ void Mapper393_Init(CartInfo *info) {
 	info->Reset = M393Reset;
 	info->Close = M393lose;
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t *)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	AddExState(EXPREGS, 2, 0, "EXPR");

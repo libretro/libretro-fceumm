@@ -24,8 +24,23 @@
  * 
  */
 
-#include <stdlib.h>
 #include "mapinc.h"
+
+/* Use a local xorshift32 instead of libc rand() so weak-bit reads are
+ * deterministic across runs and reproducible in replay/netplay. The
+ * sequence still appears "noisy" to the game's protection check (which
+ * just samples bits at runtime), but two emulator runs that read the
+ * same protected addresses in the same order will see the same bits. */
+static uint32_t weakbits_state = 0x13371337;
+
+static INLINE uint8_t weakbits_next(void) {
+	uint32_t x = weakbits_state;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+	weakbits_state = x;
+	return (uint8_t)x;
+}
 
 static DECLFR(UNLRT01Read) {
 #if 0
@@ -36,12 +51,13 @@ static DECLFR(UNLRT01Read) {
 #endif
 	if(((A >= 0xCE80) && (A < 0xCF00)) ||
 	   ((A >= 0xFE80) && (A < 0xFF00))) {
-		return 0xF2 | (rand() & 0x0D);
+		return 0xF2 | (weakbits_next() & 0x0D);
 	} else
 		return CartBR(A);
 }
 
 static void UNLRT01Power(void) {
+	weakbits_state = 0x13371337;	/* deterministic at every power-on */
 	setprg16(0x8000, 0);
 	setprg16(0xC000, 0);
 	setchr2(0x0000,0);
@@ -53,4 +69,7 @@ static void UNLRT01Power(void) {
 
 void UNLRT01_Init(CartInfo *info) {
 	info->Power = UNLRT01Power;
+	/* Save weak-bits PRNG state so savestate/rewind/netplay round-trips
+	 * stay deterministic. */
+	AddExState(&weakbits_state, 4 | FCEUSTATE_RLSB, 0, "WBKS");
 }

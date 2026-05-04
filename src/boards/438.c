@@ -22,7 +22,7 @@
 #include "asic_latch.h"
 #include "cartram.h"
 
-static uint8 unrom;
+static uint8_t unrom;
 
 static void sync0 () {
 	if (Latch_address &0x01)

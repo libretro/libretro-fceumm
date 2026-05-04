@@ -24,7 +24,7 @@
 #include "mmc3.h"
 #include "flashrom.h"
 
-static void PRGWrap(uint32 A, uint8 V) {
+static void PRGWrap(uint32_t A, uint8_t V) {
 	if (A ==0x8000) V =0x00; else
 	if (A ==0xE000) V =0x30;
 	setprg8(A, V);

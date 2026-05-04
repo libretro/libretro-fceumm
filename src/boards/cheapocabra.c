@@ -32,16 +32,16 @@
 
 #include "mapinc.h"
 
-static uint8 reg;
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSIZE;
+static uint8_t reg;
+static uint8_t *CHRRAM = NULL;
+static uint32_t CHRRAMSIZE;
 
-static uint8 flash = 0;
-static uint8 flash_mode;
-static uint8 flash_sequence;
-static uint8 flash_id;
-static uint8 *FLASHROM = NULL;
-static uint32 FLASHROMSIZE;
+static uint8_t flash = 0;
+static uint8_t flash_mode;
+static uint8_t flash_sequence;
+static uint8_t flash_id;
+static uint8_t *FLASHROM = NULL;
+static uint32_t FLASHROMSIZE;
 
 static SFORMAT StateRegs[] = {
 	{ &reg, 1, "REG" },
@@ -58,7 +58,7 @@ static SFORMAT FlashRegs[] = {
 static void Sync(void) {
 	/* bit 7 controls green LED */
 	/* bit 6 controls red LED   */
-	uint32 prg_chip = flash ? 0x10 : 0;
+	uint32_t prg_chip = flash ? 0x10 : 0;
 	int nt = (reg & 0x20) ? 8192 : 0; /* bit 5 controls 8k nametable page */
 	int chr = (reg & 0x10) ? 1 : 0; /* bit 4 selects 8k CHR page        */
 	int prg = (reg & 0x0F); /* bits 0-3 select 32k PRG page     */
@@ -85,7 +85,7 @@ static DECLFR(M111FlashID) {
 	 * http://forums.nesdev.com/viewtopic.php?p=178728#p178728
 	 */
 
-	uint32 aid = A & 0x1FF;
+	uint32_t aid = A & 0x1FF;
 	switch (aid) {
 	case 0:
 		return 0xBF;
@@ -118,8 +118,8 @@ enum {
 };
 
 static DECLFW(M111Flash) {
-	uint32 flash_addr = 0;
-	uint32 command_addr = 0;
+	uint32_t flash_addr = 0;
+	uint32_t command_addr = 0;
 
 	if (A < 0x8000 || A > 0xFFFF)
 		return;
@@ -191,7 +191,7 @@ static DECLFW(M111Flash) {
 				memset(FLASHROM, 0xFF, FLASHROMSIZE);
 			} else if (V == 0x30) /* erase 4k sector */
 			{
-				uint32 sector = flash_addr & 0x7F000;
+				uint32_t sector = flash_addr & 0x7F000;
 				memset(FLASHROM + sector, 0xFF, 1024 * 4);
 			}
 			flash_mode = FLASH_MODE_READY;
@@ -235,7 +235,7 @@ void Mapper111_Init(CartInfo* info) {
 	info->Close = M111Close;
 
 	CHRRAMSIZE = 1024 * 32;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 
 	GameStateRestore = StateRestore;
@@ -244,12 +244,12 @@ void Mapper111_Init(CartInfo* info) {
 
 	flash = (info->battery != 0);
 	if (flash) {
-		uint32 PRGSIZE = 0;
-		uint32 w = 0;
-		uint32 r = 0;
+		uint32_t PRGSIZE = 0;
+		uint32_t w = 0;
+		uint32_t r = 0;
 
 		FLASHROMSIZE = 1024 * 512;
-		FLASHROM = (uint8*)FCEU_gmalloc(FLASHROMSIZE);
+		FLASHROM = (uint8_t*)FCEU_gmalloc(FLASHROMSIZE);
 		info->SaveGame[0] = FLASHROM;
 		info->SaveGameLen[0] = FLASHROMSIZE;
 		AddExState(FLASHROM, FLASHROMSIZE, 0, "FROM");

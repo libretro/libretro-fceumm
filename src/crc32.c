@@ -99,7 +99,7 @@ static unsigned long crc32(unsigned long crc, const unsigned char *buf, unsigned
 	return crc ^ 0xffffffffL;
 }
 
-uint32 CalcCRC32(uint32 crc, uint8 *buf, uint32 len)
+uint32_t CalcCRC32(uint32_t crc, uint8_t *buf, uint32_t len)
 {
 	return(crc32(crc, buf, len));
 }

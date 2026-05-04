@@ -23,27 +23,19 @@
 #define __FCEU_TYPES_H
 
 #include <stdint.h>
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
 
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
+/* The custom int8/int16/int32/int64/uint8/uint16/uint32/uint64 typedefs
+ * that lived here have been replaced throughout the codebase with the
+ * C99 stdint.h equivalents (int8_t/uint8_t/etc). This header is kept
+ * for the GINLINE / INLINE / FASTAPASS / FP_FASTAPASS macros and the
+ * readfunc/writefunc function-pointer typedefs that depend on them. */
 
 #ifdef __GNUC__
-typedef unsigned long long uint64;
-typedef long long int64;
 	#define GINLINE inline
 #elif MSVC | _MSC_VER
-typedef __int64 int64;
-typedef unsigned __int64 uint64;
 	#define GINLINE		/* Can't declare a function INLINE
 						 * and global in MSVC.  Bummer.
 						 */
-#else
-typedef unsigned long long uint64;
-typedef long long int64;
 #endif
 
 #ifndef INLINE
@@ -75,7 +67,7 @@ typedef long long int64;
 	#define FASTAPASS(x)
 #endif
 
-typedef void (FP_FASTAPASS(2) *writefunc)(uint32 A, uint8 V);
-typedef uint8 (FP_FASTAPASS(1) *readfunc)(uint32 A);
+typedef void (FP_FASTAPASS(2) *writefunc)(uint32_t A, uint8_t V);
+typedef uint8_t (FP_FASTAPASS(1) *readfunc)(uint32_t A);
 
 #endif

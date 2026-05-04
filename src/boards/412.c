@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M412PW(uint32 A, uint8 V) {
+static void M412PW(uint32_t A, uint8_t V) {
 	int prgAND  =0x0F | (EXPREGS[1] &0x02? 0x00: 0x20) | (EXPREGS[1] &0x10? 0x00: 0x10);
 	int prgOR   =(EXPREGS[1] &0x40? 0x10: 0x00) | (EXPREGS[1] &0x04? 0x20: 0x00);
 	if (EXPREGS[2] &0x02) { /* NROM mode */
@@ -37,7 +37,7 @@ static void M412PW(uint32 A, uint8 V) {
 		setprg8(A, V &prgAND | prgOR &~prgAND);
 }
 
-static void M412CW(uint32 A, uint8 V) {
+static void M412CW(uint32_t A, uint8_t V) {
 	int chrAND  =EXPREGS[1] &0x20? 0x7F: 0xFF;
 	int chrOR   =(EXPREGS[1] &0x80? 0x80: 0x00) | (EXPREGS[1] &0x08? 0x100: 0x000);
 	if (EXPREGS[2] &0x02) /* (C)NROM mode */

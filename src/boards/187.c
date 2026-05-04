@@ -25,16 +25,16 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M187CW(uint32 A, uint8 V) {
+static void M187CW(uint32_t A, uint8_t V) {
 	if ((A & 0x1000) == ((MMC3_cmd & 0x80) << 5))
 		setchr1(A, V | 0x100);
 	else
 		setchr1(A, V);
 }
 
-static void M187PW(uint32 A, uint8 V) {
+static void M187PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x80) {
-		uint8 bank = EXPREGS[0] & 0x1F;
+		uint8_t bank = EXPREGS[0] & 0x1F;
 		if (EXPREGS[0] & 0x20) {
 			if (EXPREGS[0] & 0x40)
 				setprg32(0x8000, bank >> 2);
@@ -65,7 +65,7 @@ static DECLFW(M187WriteLo) {
 	}
 }
 
-static uint8 prot_data[4] = { 0x83, 0x83, 0x42, 0x00 };
+static uint8_t prot_data[4] = { 0x83, 0x83, 0x42, 0x00 };
 static DECLFR(M187Read) {
 	return prot_data[EXPREGS[1] & 3];
 }

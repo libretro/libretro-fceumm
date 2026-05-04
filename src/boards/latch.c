@@ -21,9 +21,9 @@
 #include "mapinc.h"
 #include "latch.h"
 
-static uint8 bus_conflict;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t bus_conflict;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 static void (*WSync)(void);
 static readfunc defread;
 
@@ -72,7 +72,7 @@ static void StateRestore(int version) {
 }
 
 void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func,
-    uint8 wram, uint8 busc) {
+    uint8_t wram, uint8_t busc) {
 	bus_conflict = busc;
 	WSync        = proc;
 	if (func != NULL)
@@ -85,7 +85,7 @@ void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func,
 	GameStateRestore = StateRestore;
 	if (wram) {
 		WRAMSIZE = 8192;
-		WRAM     = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+		WRAM     = (uint8_t *)FCEU_gmalloc(WRAMSIZE);
 		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 		if (info->battery) {
 			info->SaveGame[0]    = WRAM;

@@ -20,15 +20,15 @@
 
 #include "mapinc.h"
 
-static uint16 latche, latcheinit;
-static uint16 addrreg0, addrreg1;
-static uint8 dipswitch;
+static uint16_t latche, latcheinit;
+static uint16_t addrreg0, addrreg1;
+static uint8_t dipswitch;
 static void (*WSync)(void);
 static readfunc defread;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
-static uint32 hasBattery;
-static uint32 submapper = 0;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
+static uint32_t hasBattery;
+static uint32_t submapper = 0;
 
 static DECLFW(LatchWrite) {
 	latche = A;
@@ -62,7 +62,7 @@ static void StateRestore(int version) {
 	WSync();
 }
 
-static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16 linit, uint16 adr0, uint16 adr1, uint8 wram) {
+static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16_t linit, uint16_t adr0, uint16_t adr1, uint8_t wram) {
 	latcheinit = linit;
 	addrreg0 = adr0;
 	addrreg1 = adr1;
@@ -77,7 +77,7 @@ static void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint16
 	info->Close = LatchClose;
 	if (wram) {
 		WRAMSIZE = 8192;
-		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 		if (info->battery) {
 			hasBattery = 1;
@@ -210,7 +210,7 @@ void Mapper61_Init(CartInfo *info) {
  * Submapper 1:
  * - NTDEC 82-in-1 */
 
-static uint16 openBus;
+static uint16_t openBus;
 
 static DECLFR(M63Read) {
 	if (openBus)
@@ -219,7 +219,7 @@ static DECLFR(M63Read) {
 }
 
 static void M63Sync(void) {
-	uint16 prg =latche >>2 &(submapper ==1? 0x7F: 0xFF);
+	uint16_t prg =latche >>2 &(submapper ==1? 0x7F: 0xFF);
 	if (latche &2)
 		setprg32(0x8000, prg >>1);
 	else {
@@ -245,7 +245,7 @@ void Mapper63_Init(CartInfo *info) {
  */
 
 static void M92Sync(void) {
-	uint8 reg = latche & 0xF0;
+	uint8_t reg = latche & 0xF0;
 	setprg16(0x8000, 0);
 	if (latche >= 0x9000) {
 		switch (reg) {
@@ -294,9 +294,9 @@ void Mapper201_Init(CartInfo *info) {
 
 static void M202Sync(void) {
 	/* According to more carefull hardware tests and PCB study */
-	int32 mirror = latche & 1;
-	int32 bank = (latche >> 1) & 0x7;
-	int32 select = (mirror & (bank >> 2));
+	int32_t mirror = latche & 1;
+	int32_t bank = (latche >> 1) & 0x7;
+	int32_t select = (mirror & (bank >> 2));
 	setprg16(0x8000, select ? (bank & 6) | 0 : bank);
 	setprg16(0xc000, select ? (bank & 6) | 1 : bank);
 	setmirror(mirror ^ 1);
@@ -310,8 +310,8 @@ void Mapper202_Init(CartInfo *info) {
 /*------------------ Map 204 ---------------------------*/
 
 static void M204Sync(void) {
-	int32 tmp2 = latche & 0x6;
-	int32 tmp1 = tmp2 + ((tmp2 == 0x6) ? 0 : (latche & 1));
+	int32_t tmp2 = latche & 0x6;
+	int32_t tmp1 = tmp2 + ((tmp2 == 0x6) ? 0 : (latche & 1));
 	setprg16(0x8000, tmp1);
 	setprg16(0xc000, tmp2 + ((tmp2 == 0x6) ? 1 : (latche & 1)));
 	setchr8(tmp1);
@@ -325,7 +325,7 @@ void Mapper204_Init(CartInfo *info) {
 /*------------------ Map 212 ---------------------------*/
 
 static DECLFR(M212Read) {
-	uint8 ret = CartBROB(A);
+	uint8_t ret = CartBROB(A);
 	if ((A & 0xE010) == 0x6000)
 		ret |= 0x80;
 	return ret;
@@ -372,9 +372,9 @@ void Mapper217_Init(CartInfo *info) {
 /*------------------ Map 227 ---------------------------*/
 
 static void M227Sync(void) {
-	uint32 S = latche & 1;
-	uint32 p = ((latche >> 2) & 0x1F) + ((latche & 0x100) >> 3);
-	uint32 L = (latche >> 9) & 1;
+	uint32_t S = latche & 1;
+	uint32_t p = ((latche >> 2) & 0x1F) + ((latche & 0x100) >> 3);
+	uint32_t L = (latche >> 9) & 1;
 
 	if ((latche >> 7) & 1) {
 		if (S) {
@@ -470,11 +470,11 @@ void Mapper231_Init(CartInfo *info) {
 }
 
 /*------------------ Map 242 ---------------------------*/
-static uint8 M242TwoChips;
+static uint8_t M242TwoChips;
 static void M242Sync(void) {
-	uint32 S = latche & 1;
-	uint32 p = (latche >> 2) & 0x1F;
-	uint32 L = (latche >> 9) & 1;
+	uint32_t S = latche & 1;
+	uint32_t p = (latche >> 2) & 0x1F;
+	uint32_t L = (latche >> 9) & 1;
 	
 	if (M242TwoChips) {
 		if (latche &0x600)
@@ -582,8 +582,8 @@ void Mapper288_Init(CartInfo *info) {
 /*------------------ Map 385 ---------------------------*/
 
 static void M385Sync(void) {
-	int32 mirror = latche & 1;
-	int32 bank = (latche >> 1) & 0x7;
+	int32_t mirror = latche & 1;
+	int32_t bank = (latche >> 1) & 0x7;
 	setprg16(0x8000, bank);
 	setprg16(0xc000, bank);
 	setmirror(mirror ^ 1);
@@ -629,7 +629,7 @@ void BMC190in1_Init(CartInfo *info) {
 /*-------------- BMC810544-C-A1 ------------------------*/
 
 static void BMC810544CA1Sync(void) {
-	uint32 bank = latche >> 7;
+	uint32_t bank = latche >> 7;
 	if (latche & 0x40)
 		setprg32(0x8000, bank);
 	else {
@@ -659,8 +659,8 @@ static void BMCNTD03Sync(void) {
 	 * 1001 1100 0000 0100 h
 	 * 1011 1010 1100 0100
 	 */
-	uint32 prg = ((latche >> 10) & 0x1e);
-	uint32 chr = ((latche & 0x0300) >> 5) | (latche & 7);
+	uint32_t prg = ((latche >> 10) & 0x1e);
+	uint32_t chr = ((latche & 0x0300) >> 5) | (latche & 7);
 	if (latche & 0x80) {
 		setprg16(0x8000, prg | ((latche >> 6) & 1));
 		setprg16(0xC000, prg | ((latche >> 6) & 1));
@@ -718,13 +718,13 @@ static void J2282Sync(void)
     setchr8(0);
 
     if ((latche & 0x40)) {
-        uint8 bank = (latche >> 0) & 0x1F;
+        uint8_t bank = (latche >> 0) & 0x1F;
         setprg16(0x8000, bank);
         setprg16(0xC000, bank);
     }
     else
     {
-        uint8 bank;
+        uint8_t bank;
         if (latche & 0x800)
 	{
             setprg8(0x6000, ((latche << 1) & 0x3F) | 3);

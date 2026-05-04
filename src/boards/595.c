@@ -22,7 +22,7 @@
 #include "cartram.h"
 #include "flashrom.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	setprg8r(0x10, 0x6000, 0);

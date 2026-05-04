@@ -25,8 +25,8 @@
 #include "mapinc.h"
 #include "latch.h"
 
-static uint8 reg[2];
-static uint8 pad;
+static uint8_t reg[2];
+static uint8_t pad;
 
 static void Sync(void)
 {

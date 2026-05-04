@@ -27,14 +27,14 @@
 #include "sound.h"
 
 X6502 X;
-uint8 encryptOpcodes =0;
+uint8_t encryptOpcodes =0;
 
 #ifdef FCEUDEF_DEBUGGER
-void (*X6502_Run)(int32 cycles);
+void (*X6502_Run)(int32_t cycles);
 #endif
 
-uint32 timestamp;
-uint32 sound_timestamp;
+uint32_t timestamp;
+uint32_t sound_timestamp;
 void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 
 #define _PC        X.PC
@@ -58,25 +58,25 @@ void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 	if (!overclocked) sound_timestamp +=  __x; \
 }
 
-static INLINE uint8 RdMemNorm(uint32 A) {
+static INLINE uint8_t RdMemNorm(uint32_t A) {
 	return(_DB = ARead[A](A));
 }
 
-static INLINE void WrMemNorm(uint32 A, uint8 V) {
+static INLINE void WrMemNorm(uint32_t A, uint8_t V) {
 	BWrite[A](A, V);
 }
 
 #ifdef FCEUDEF_DEBUGGER
 X6502 XSave;	/* This is getting ugly. */
 
-static INLINE uint8 RdMemHook(uint32 A) {
+static INLINE uint8_t RdMemHook(uint32_t A) {
 	if (X.ReadHook)
 		return(_DB = X.ReadHook(&X, A));
 	else
 		return(_DB = ARead[A](A));
 }
 
-static INLINE void WrMemHook(uint32 A, uint8 V) {
+static INLINE void WrMemHook(uint32_t A, uint8_t V) {
 	if (X.WriteHook)
 		X.WriteHook(&X, A, V);
 	else
@@ -84,33 +84,33 @@ static INLINE void WrMemHook(uint32 A, uint8 V) {
 }
 #endif
 
-static INLINE uint8 RdRAMFast(uint32 A) {
+static INLINE uint8_t RdRAMFast(uint32_t A) {
 	return(_DB = RAM[A]);
 }
 
-static INLINE void WrRAMFast(uint32 A, uint8 V) {
+static INLINE void WrRAMFast(uint32_t A, uint8_t V) {
 	RAM[A] = V;
 }
 
-uint8 FASTAPASS(1) X6502_DMR(uint32 A) {
+uint8_t FASTAPASS(1) X6502_DMR(uint32_t A) {
 	ADDCYC(1);
 	return(X.DB = ARead[A](A));
 }
 
-void FASTAPASS(2) X6502_DMW(uint32 A, uint8 V) {
+void FASTAPASS(2) X6502_DMW(uint32_t A, uint8_t V) {
 	ADDCYC(1);
 	BWrite[A](A, V);
 }
 
 #define PUSH(V) {									\
-	uint8 VTMP = V;									\
+	uint8_t VTMP = V;									\
 	WrRAM(0x100 + _S, VTMP);						\
 	_S--;											\
 }
 
 #define POP() RdRAM(0x100 + (++_S))
 
-static uint8 ZNTable[256];
+static uint8_t ZNTable[256];
 /* Some of these operations will only make sense if you know what the flag constants are. */
 
 #define X_ZN(zort)  _P &= ~(Z_FLAG | N_FLAG); _P |= ZNTable[zort]
@@ -119,9 +119,9 @@ static uint8 ZNTable[256];
 #define JR(cond) {									\
 	if (cond)										\
 	{												\
-		uint32 tmp;									\
-		int32 disp;									\
-		disp = (int8)RdMem(_PC);					\
+		uint32_t tmp;									\
+		int32_t disp;									\
+		disp = (int8_t)RdMem(_PC);					\
 		_PC++;										\
 		ADDCYC(1);									\
 		tmp = _PC;									\
@@ -142,7 +142,7 @@ static uint8 ZNTable[256];
 #define ORA     _A |= x; X_ZN(_A)
 
 #define ADC {										\
-	uint32 l = _A + x + (_P & 1);					\
+	uint32_t l = _A + x + (_P & 1);					\
 	_P &= ~(Z_FLAG | C_FLAG | N_FLAG | V_FLAG);		\
 	_P |= ((((_A ^ x) & 0x80) ^ 0x80) & ((_A ^ l) & 0x80)) >> 1;  \
 	_P |= (l >> 8) & C_FLAG;						\
@@ -151,7 +151,7 @@ static uint8 ZNTable[256];
 }
 
 #define SBC {										\
-	uint32 l = _A - x - ((_P & 1) ^ 1);				\
+	uint32_t l = _A - x - ((_P & 1) ^ 1);				\
 	_P &= ~(Z_FLAG | C_FLAG | N_FLAG | V_FLAG);		\
 	_P |= ((_A ^ l) & (_A ^ x) & 0x80) >> 1;		\
 	_P |= ((l >> 8) & C_FLAG) ^ C_FLAG;				\
@@ -160,7 +160,7 @@ static uint8 ZNTable[256];
 }
 
 #define CMPL(a1, a2) {								\
-	uint32 t = a1 - a2;								\
+	uint32_t t = a1 - a2;								\
 	X_ZN(t & 0xFF);									\
 	_P &= ~C_FLAG;									\
 	_P |= ((t >> 8) & C_FLAG) ^ C_FLAG;				\
@@ -168,7 +168,7 @@ static uint8 ZNTable[256];
 
 /* Special undocumented operation.  Very similar to CMP. */
 #define AXS {										\
-	uint32 t = (_A & _X) - x;						\
+	uint32_t t = (_A & _X) - x;						\
 	X_ZN(t & 0xFF);									\
 	_P &= ~C_FLAG;									\
 	_P |= ((t >> 8) & C_FLAG) ^ C_FLAG;				\
@@ -190,7 +190,7 @@ static uint8 ZNTable[256];
 #define LSRA    _P &= ~(C_FLAG | N_FLAG | Z_FLAG); _P |= _A & 1; _A >>= 1; X_ZNT(_A)
 
 #define ROL {										\
-	uint8 l = x >> 7;								\
+	uint8_t l = x >> 7;								\
 	x <<= 1;										\
 	x |= _P & C_FLAG;								\
 	_P &= ~(Z_FLAG | N_FLAG | C_FLAG);				\
@@ -199,7 +199,7 @@ static uint8 ZNTable[256];
 }
 
 #define ROR {										\
-	uint8 l = x & 1;								\
+	uint8_t l = x & 1;								\
 	x >>= 1;										\
 	x |= (_P & C_FLAG) << 7;						\
 	_P &= ~(Z_FLAG | N_FLAG | C_FLAG);				\
@@ -221,7 +221,7 @@ static uint8 ZNTable[256];
 
 /* Absolute Indexed(for reads) */
 #define GetABIRD(target, i) {						\
-	uint32 tmp;										\
+	uint32_t tmp;										\
 	GetAB(tmp);										\
 	target = tmp;									\
 	target += i;									\
@@ -234,7 +234,7 @@ static uint8 ZNTable[256];
 
 /* Absolute Indexed(for writes and rmws) */
 #define GetABIWR(target, i) {						\
-	uint32 rt;										\
+	uint32_t rt;										\
 	GetAB(rt);										\
 	target = rt;									\
 	target += i;									\
@@ -256,7 +256,7 @@ static uint8 ZNTable[256];
 
 /* Indexed Indirect */
 #define GetIX(target) {								\
-	uint8 tmp;										\
+	uint8_t tmp;										\
 	tmp = RdMem(_PC);								\
 	_PC++;											\
 	tmp += _X;										\
@@ -267,8 +267,8 @@ static uint8 ZNTable[256];
 
 /* Indirect Indexed(for reads) */
 #define GetIYRD(target) {							\
-	uint32 rt;										\
-	uint8 tmp;										\
+	uint32_t rt;										\
+	uint8_t tmp;										\
 	tmp = RdMem(_PC);								\
 	_PC++;											\
 	rt = RdRAM(tmp);								\
@@ -285,8 +285,8 @@ static uint8 ZNTable[256];
 
 /* Indirect Indexed(for writes and rmws) */
 #define GetIYWR(target) {							\
-	uint32 rt;										\
-	uint8 tmp;										\
+	uint32_t rt;										\
+	uint8_t tmp;										\
 	tmp = RdMem(_PC);								\
 	_PC++;											\
 	rt = RdRAM(tmp);								\
@@ -303,38 +303,38 @@ and operation macros.  Note that operation macros will always operate(redundant
 redundant) on the variable "x".
 */
 
-#define RMW_A(op)       { uint8 x = _A; op; _A = x; break; }	/* Meh... */
-#define RMW_AB(op)      { uint32 A; uint8 x; GetAB(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
-#define RMW_ABI(reg, op) { uint32 A; uint8 x; GetABIWR(A, reg); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
+#define RMW_A(op)       { uint8_t x = _A; op; _A = x; break; }	/* Meh... */
+#define RMW_AB(op)      { uint32_t A; uint8_t x; GetAB(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
+#define RMW_ABI(reg, op) { uint32_t A; uint8_t x; GetABIWR(A, reg); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
 #define RMW_ABX(op)     RMW_ABI(_X, op)
 #define RMW_ABY(op)     RMW_ABI(_Y, op)
-#define RMW_IX(op)      { uint32 A; uint8 x; GetIX(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
-#define RMW_IY(op)      { uint32 A; uint8 x; GetIYWR(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
-#define RMW_ZP(op)      { uint8 A; uint8 x; GetZP(A); x = RdRAM(A); op; WrRAM(A, x); break; }
-#define RMW_ZPX(op)     { uint8 A; uint8 x; GetZPI(A, _X); x = RdRAM(A); op; WrRAM(A, x); break; }
+#define RMW_IX(op)      { uint32_t A; uint8_t x; GetIX(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
+#define RMW_IY(op)      { uint32_t A; uint8_t x; GetIYWR(A); x = RdMem(A); WrMem(A, x); op; WrMem(A, x); break; }
+#define RMW_ZP(op)      { uint8_t A; uint8_t x; GetZP(A); x = RdRAM(A); op; WrRAM(A, x); break; }
+#define RMW_ZPX(op)     { uint8_t A; uint8_t x; GetZPI(A, _X); x = RdRAM(A); op; WrRAM(A, x); break; }
 
-#define LD_IM(op)       { uint8 x; x = RdMem(_PC); _PC++; op; break; }
-#define LD_ZP(op)       { uint8 A; uint8 x; GetZP(A); x = RdRAM(A); op; break; }
-#define LD_ZPX(op)      { uint8 A; uint8 x; GetZPI(A, _X); x = RdRAM(A); op; break; }
-#define LD_ZPY(op)      { uint8 A; uint8 x; GetZPI(A, _Y); x = RdRAM(A); op; break; }
-#define LD_AB(op)       { uint32 A; uint8 x; GetAB(A); x = RdMem(A); op; break; }
-#define LD_ABI(reg, op) { uint32 A; uint8 x; GetABIRD(A, reg); x = RdMem(A); op; break; }
+#define LD_IM(op)       { uint8_t x; x = RdMem(_PC); _PC++; op; break; }
+#define LD_ZP(op)       { uint8_t A; uint8_t x; GetZP(A); x = RdRAM(A); op; break; }
+#define LD_ZPX(op)      { uint8_t A; uint8_t x; GetZPI(A, _X); x = RdRAM(A); op; break; }
+#define LD_ZPY(op)      { uint8_t A; uint8_t x; GetZPI(A, _Y); x = RdRAM(A); op; break; }
+#define LD_AB(op)       { uint32_t A; uint8_t x; GetAB(A); x = RdMem(A); op; break; }
+#define LD_ABI(reg, op) { uint32_t A; uint8_t x; GetABIRD(A, reg); x = RdMem(A); op; break; }
 #define LD_ABX(op)      LD_ABI(_X, op)
 #define LD_ABY(op)      LD_ABI(_Y, op)
-#define LD_IX(op)       { uint32 A; uint8 x; GetIX(A); x = RdMem(A); op; break; }
-#define LD_IY(op)       { uint32 A; uint8 x; GetIYRD(A); x = RdMem(A); op; break; }
+#define LD_IX(op)       { uint32_t A; uint8_t x; GetIX(A); x = RdMem(A); op; break; }
+#define LD_IY(op)       { uint32_t A; uint8_t x; GetIYRD(A); x = RdMem(A); op; break; }
 
-#define ST_ZP(r)        { uint8 A; GetZP(A); WrRAM(A, r); break; }
-#define ST_ZPX(r)       { uint8 A; GetZPI(A, _X); WrRAM(A, r); break; }
-#define ST_ZPY(r)       { uint8 A; GetZPI(A, _Y); WrRAM(A, r); break; }
-#define ST_AB(r)        { uint32 A; GetAB(A); WrMem(A, r); break; }
-#define ST_ABI(reg, r)  { uint32 A; GetABIWR(A, reg); WrMem(A, r); break; }
+#define ST_ZP(r)        { uint8_t A; GetZP(A); WrRAM(A, r); break; }
+#define ST_ZPX(r)       { uint8_t A; GetZPI(A, _X); WrRAM(A, r); break; }
+#define ST_ZPY(r)       { uint8_t A; GetZPI(A, _Y); WrRAM(A, r); break; }
+#define ST_AB(r)        { uint32_t A; GetAB(A); WrMem(A, r); break; }
+#define ST_ABI(reg, r)  { uint32_t A; GetABIWR(A, reg); WrMem(A, r); break; }
 #define ST_ABX(r)       ST_ABI(_X, r)
 #define ST_ABY(r)       ST_ABI(_Y, r)
-#define ST_IX(r)        { uint32 A; GetIX(A); WrMem(A, r); break; }
-#define ST_IY(r)        { uint32 A; GetIYWR(A); WrMem(A, r); break; }
+#define ST_IX(r)        { uint32_t A; GetIX(A); WrMem(A, r); break; }
+#define ST_IY(r)        { uint32_t A; GetIYWR(A); WrMem(A, r); break; }
 
-static uint8 CycTable[256] =
+static uint8_t CycTable[256] =
 {
 /*0x00*/ 7, 6, 2, 8, 3, 3, 5, 5, 3, 2, 2, 2, 4, 4, 6, 6,
 /*0x10*/ 2, 5, 2, 8, 4, 4, 6, 6, 2, 4, 2, 7, 4, 4, 7, 7,
@@ -380,7 +380,7 @@ void FCEUI_IRQ(void) {
 	_IRQlow |= FCEU_IQTEMP;
 }
 
-void FCEUI_GetIVectors(uint16 *reset, uint16 *irq, uint16 *nmi) {
+void FCEUI_GetIVectors(uint16_t *reset, uint16_t *irq, uint16_t *nmi) {
 	fceuindbg = 1;
 
 	*reset = RdMemNorm(0xFFFC);
@@ -422,7 +422,7 @@ void X6502_Power(void) {
 }
 
 #ifdef FCEUDEF_DEBUGGER
-static void X6502_RunDebug(int32 cycles) {
+static void X6502_RunDebug(int32_t cycles) {
 	#define RdRAM RdMemHook
 	#define WrRAM WrMemHook
 	#define RdMem RdMemHook
@@ -436,8 +436,8 @@ static void X6502_RunDebug(int32 cycles) {
 	_count += cycles;
 
 	while (_count > 0) {
-		int32 temp;
-		uint8 b1;
+		int32_t temp;
+		uint8_t b1;
 
 		if (_IRQlow) {
 			if (_IRQlow & FCEU_IQRESET) {
@@ -485,7 +485,7 @@ static void X6502_RunDebug(int32 cycles) {
 		 * Do the pre-exec voodoo.
 		 */
 		if (X.ReadHook || X.WriteHook) {
-			uint32 tsave = timestamp;
+			uint32_t tsave = timestamp;
 			XSave = X;
 
 			fceuindbg = 1;
@@ -535,9 +535,9 @@ static void X6502_RunDebug(int32 cycles) {
 	#undef WrMem
 }
 
-static void X6502_RunNormal(int32 cycles)
+static void X6502_RunNormal(int32_t cycles)
 #else
-void X6502_Run(int32 cycles)
+void X6502_Run(int32_t cycles)
 #endif
 {
 	#define RdRAM RdRAMFast
@@ -547,9 +547,9 @@ void X6502_Run(int32 cycles)
 
 	#if (defined(C80x86) && defined(__GNUC__))
 	/* Gives a nice little speed boost. */
-	register uint16 pbackus asm ("edi");
+	register uint16_t pbackus asm ("edi");
 	#else
-	uint16 pbackus;
+	uint16_t pbackus;
 	#endif
 
 	pbackus = _PC;
@@ -565,8 +565,8 @@ void X6502_Run(int32 cycles)
 	_count += cycles;
 
 	while (_count > 0) {
-		int32 temp;
-		uint8 b1;
+		int32_t temp;
+		uint8_t b1;
 
 		if (_IRQlow) {
 			if (_IRQlow & FCEU_IQRESET) {
@@ -637,7 +637,7 @@ void X6502_Run(int32 cycles)
 }
 
 #ifdef FCEUDEF_DEBUGGER
-void X6502_Debug(void (*CPUHook)(X6502 *), uint8 (*ReadHook)(X6502 *, uint32), void (*WriteHook)(X6502 *, uint32, uint8)) {
+void X6502_Debug(void (*CPUHook)(X6502 *), uint8_t (*ReadHook)(X6502 *, uint32_t), void (*WriteHook)(X6502 *, uint32_t, uint8_t)) {
 	debugmode = (ReadHook || WriteHook || CPUHook) ? 1 : 0;
 	X.ReadHook = ReadHook;
 	X.WriteHook = WriteHook;

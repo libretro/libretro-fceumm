@@ -21,12 +21,12 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M430CW(uint32 A, uint8 V) {
-	uint8 mask = (EXPREGS[0] & 4) ? 0x7F : 0xFF;
+static void M430CW(uint32_t A, uint8_t V) {
+	uint8_t mask = (EXPREGS[0] & 4) ? 0x7F : 0xFF;
 	setchr1(A, ((EXPREGS[0] << 6) & ~mask) | (V & mask));
 }
 
-static void M430PW(uint32 A, uint8 V) {
+static void M430PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 8) {
 		setprg8(0x8000, ((EXPREGS[0] << 4) & 0x30) | ((DRegBuf[6] & ~2) & 0x0F));
 		setprg8(0xA000, ((EXPREGS[0] << 4) & 0x30) | ((DRegBuf[7] & ~2) & 0x0F));

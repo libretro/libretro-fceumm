@@ -23,12 +23,12 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M516CW(uint32 A, uint8 V) {
+static void M516CW(uint32_t A, uint8_t V) {
 /*    FCEU_printf("CHR: A:%04x V:%02x R0:%02x\n", A, V, EXPREGS[0]); */
 	setchr1(A, (V & 0x7F) | ((EXPREGS[0] << 5) & 0x180));
 }
 
-static void M516PW(uint32 A, uint8 V) {
+static void M516PW(uint32_t A, uint8_t V) {
 /*    FCEU_printf("PRG: A:%04x V:%02x R0:%02x\n", A, V, EXPREGS[0]); */
 	setprg8(A, (V & 0x0F) | ((EXPREGS[0] << 4) & 0x30));
 }

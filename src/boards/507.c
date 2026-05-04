@@ -23,8 +23,8 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 reg;
-static uint8 pad;
+static uint8_t reg;
+static uint8_t pad;
 
 static void sync () {
 	int prgAND = reg &0x20? 0x0F: 0x1F;

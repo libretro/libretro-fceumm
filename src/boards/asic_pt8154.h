@@ -27,7 +27,7 @@ void PT8154_syncMirror ();
 DECLFW (PT8154_writeExtra);
 DECLFW (PT8154_writeWRAM);
 void PT8154_clear ();
-void PT8154_activate (uint8, void (*)());
+void PT8154_activate (uint8_t, void (*)());
 void PT8154_addExState ();
 void PT8154_restore (int);
 void PT8154_power ();

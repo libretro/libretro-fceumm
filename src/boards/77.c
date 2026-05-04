@@ -20,10 +20,10 @@
 
 #include "mapinc.h"
 
-static uint8 latche;
+static uint8_t latche;
 
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSIZE;
+static uint8_t *CHRRAM = NULL;
+static uint32_t CHRRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -66,7 +66,7 @@ void Mapper77_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 
 	CHRRAMSIZE = 6 * 1024;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
 

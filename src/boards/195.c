@@ -21,20 +21,20 @@
 #include "mmc3.h"
 
 static writefunc writePPU;
-static uint8 *CHRRAM;
-static uint32 CHRRAMSIZE;
-static uint8 mask;
-static uint8 compare;
-extern uint32 RefreshAddr;
+static uint8_t *CHRRAM;
+static uint32_t CHRRAMSIZE;
+static uint8_t mask;
+static uint8_t compare;
+extern uint32_t RefreshAddr;
 
-static void Mapper195_CHRWrap(uint32 A, uint8 V) {
+static void Mapper195_CHRWrap(uint32_t A, uint8_t V) {
 	if ((V &mask) ==compare)
 		setchr1r(0x10, A, V);
 	else
 		setchr1r(0, A, V);
 }
 
-static const uint8 compares[8] = { 0x28, 0x00, 0x4C, 0x64, 0x46, 0x7C, 0x04, 0xFF };
+static const uint8_t compares[8] = { 0x28, 0x00, 0x4C, 0x64, 0x46, 0x7C, 0x04, 0xFF };
 static DECLFW(Mapper195_InterceptPPUWrite) {
 	if (RefreshAddr <0x2000) {
 		int addr =RefreshAddr;
@@ -89,7 +89,7 @@ void Mapper195_Init(CartInfo *info) {
 	info->Reset = MMC3RegReset;
 	info->Close = Mapper195_Close;
 	CHRRAMSIZE =4096;
-	CHRRAM =(uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM =(uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	AddExState(&mask, 1, 0, "EXP0");

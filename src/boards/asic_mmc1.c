@@ -22,15 +22,15 @@
 #include "asic_mmc1.h"
 
 static void (*MMC1_cbSync)();
-static int (*MMC1_cbGetPRGBank)(uint8);
-static int (*MMC1_cbGetCHRBank)(uint8);
+static int (*MMC1_cbGetPRGBank)(uint8_t);
+static int (*MMC1_cbGetCHRBank)(uint8_t);
 static DECLFR ((*MMC1_cbReadWRAM));
 static DECLFW ((*MMC1_cbWriteWRAM));
-static uint8 MMC1_type;
-static uint8 MMC1_bits;
-static uint8 MMC1_shift;
-static uint8 MMC1_filter;
-static uint8 MMC1_reg[4];
+static uint8_t MMC1_type;
+static uint8_t MMC1_bits;
+static uint8_t MMC1_shift;
+static uint8_t MMC1_filter;
+static uint8_t MMC1_reg[4];
 
 static SFORMAT MMC1_state[] = {
 	{ MMC1_reg,    4, "MC1R" },
@@ -44,7 +44,7 @@ void MMC1_syncWRAM (int OR) {
 	if (PRGsize[0x10]) setprg8r(0x10, 0x6000, OR);
 }
 
-int MMC1_getPRGBank (uint8 bank) {
+int MMC1_getPRGBank (uint8_t bank) {
 	int result;
 	if (MMC1_reg[0] &0x08)
 		result = MMC1_reg[0] &0x04? (MMC1_reg[3] |bank*0xF): (MMC1_reg[3] &bank*0xF);
@@ -57,7 +57,7 @@ int MMC1_getPRGBank (uint8 bank) {
 		return result &0x0F;
 }
 
-int MMC1_getCHRBank (uint8 bank) {
+int MMC1_getCHRBank (uint8_t bank) {
 	if (MMC1_reg[0] &0x10)
 		return MMC1_reg[1 +bank];
 	else
@@ -129,7 +129,7 @@ static void MMC1_setHandlers () {
 	MapIRQHook = MMC1_cpuCycle;
 }
 
-static void MMC1_configure (void (*sync)(), uint8 type, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write))) {
+static void MMC1_configure (void (*sync)(), uint8_t type, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {
 	MMC1_type = type;
 	MMC1_cbSync = sync;
 	MMC1_cbGetPRGBank = prg? prg: MMC1_getPRGBank;
@@ -138,7 +138,7 @@ static void MMC1_configure (void (*sync)(), uint8 type, int (*prg)(uint8), int (
 	MMC1_cbWriteWRAM = write;
 }
 
-void MMC1_activate (uint8 clear, void (*sync)(), uint8 type, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write))) {
+void MMC1_activate (uint8_t clear, void (*sync)(), uint8_t type, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {
 	MMC1_configure(sync, type, prg, chr, read, write);
 	MMC1_setHandlers();
 	if (clear)
@@ -160,7 +160,7 @@ void MMC1_power () {
 	MMC1_clear();
 }
 
-void MMC1_init (CartInfo *info, void (*sync)(), uint8 type, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write))) {
+void MMC1_init (CartInfo *info, void (*sync)(), uint8_t type, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {
 	MMC1_addExState();
 	MMC1_configure(sync, type, prg, chr, read, write);
 	info->Power = MMC1_power;

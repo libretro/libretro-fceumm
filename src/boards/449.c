@@ -21,9 +21,9 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8 submapper;
-uint8 pad;
-uint8 padSelect;
+static uint8_t submapper;
+uint8_t pad;
+uint8_t padSelect;
 
 static DECLFR (readPad_submapper0) {
 	return CartBR(A &~0xF | pad &0xF);

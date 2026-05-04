@@ -20,8 +20,8 @@
 
 #include "mapinc.h"
 
-static uint8 regs[4]          = { 0 };
-static uint8 dipswitch        = 0;
+static uint8_t regs[4]          = { 0 };
+static uint8_t dipswitch        = 0;
 
 static SFORMAT StateRegs[] = {
    { regs,       4, "EXPR" },

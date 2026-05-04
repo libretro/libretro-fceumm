@@ -21,11 +21,11 @@
 #ifndef _CARTRAM_H
 #define _CARTRAM_H
 
-extern uint32 CHRRAMSize;
-extern uint32 WRAMSize;
-void CartRAM_init (CartInfo *, uint8, uint8);
-void CHRRAM_init (CartInfo *, uint8);
-void WRAM_init (CartInfo *, uint8);
+extern uint32_t CHRRAMSize;
+extern uint32_t WRAMSize;
+void CartRAM_init (CartInfo *, uint8_t, uint8_t);
+void CHRRAM_init (CartInfo *, uint8_t);
+void WRAM_init (CartInfo *, uint8_t);
 void CartRAM_close ();
 
 #endif

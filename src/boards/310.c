@@ -21,8 +21,8 @@
 
 #include "mapinc.h"
 
-static uint8 regData[2];
-static uint8 regAddr;
+static uint8_t regData[2];
+static uint8_t regAddr;
 
 static SFORMAT K1053_state[] =
 {

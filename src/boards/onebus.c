@@ -27,17 +27,17 @@
 
 #include "mapinc.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 static void (*Sync)(void);
-static uint8 *CHRRAM;
-static uint32 CHRRAMSIZE;
+static uint8_t *CHRRAM;
+static uint32_t CHRRAMSIZE;
 
 /* General Purpose Registers */
-static uint8 cpu410x[64], ppu201x[16], apu40xx[64], reg4242, dipswitch;
-static const uint8 *cpuMangle, *ppuMangle, *mmc3Mangle;
+static uint8_t cpu410x[64], ppu201x[16], apu40xx[64], reg4242, dipswitch;
+static const uint8_t *cpuMangle, *ppuMangle, *mmc3Mangle;
 
 /* IRQ Registers */
-static uint8 IRQCount, IRQa, IRQReload;
+static uint8_t IRQCount, IRQa, IRQReload;
 #define IRQLatch cpu410x[0x1]	/* accc cccc, a = 0, AD12 switching, a = 1, HSYNC switching */
 
 /* MMC3 Registers */
@@ -45,8 +45,8 @@ static uint8 IRQCount, IRQa, IRQReload;
 #define mirror   cpu410x[0x6]	/* ---- ---m, m = 0 - H, m = 1 - V */
 
 /* APU Registers */
-static uint8 pcm_enable = 0, pcm_irq = 0;
-static int16 pcm_addr, pcm_size, pcm_latch, pcm_clock = 0xE1;
+static uint8_t pcm_enable = 0, pcm_irq = 0;
+static int16_t pcm_addr, pcm_size, pcm_latch, pcm_clock = 0xE1;
 
 static writefunc defapuwrite[64];
 static readfunc defapuread[64];
@@ -70,18 +70,18 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static uint8 *WRAM;
+static uint8_t *WRAM;
 
 static void PSync(int AND, int OR) {
-	uint8 bankmode = cpu410x[0xb] & 7;
-	uint8 mask = (bankmode == 0x7) ? (0xff) : (0x3f >> bankmode);
-	uint32 block = ((cpu410x[0x0] & 0xf0) << 4) + (cpu410x[0xa] & (~mask));
-	uint32 pswap = (mmc3cmd & 0x40) << 8;
+	uint8_t bankmode = cpu410x[0xb] & 7;
+	uint8_t mask = (bankmode == 0x7) ? (0xff) : (0x3f >> bankmode);
+	uint32_t block = ((cpu410x[0x0] & 0xf0) << 4) + (cpu410x[0xa] & (~mask));
+	uint32_t pswap = (mmc3cmd & 0x40) << 8;
 
-	uint8 bank0 = cpu410x[0x7];
-	uint8 bank1 = cpu410x[0x8];
-	uint8 bank2 = (cpu410x[0xb] & 0x40) ? (cpu410x[0x9]) : (~1);
-	uint8 bank3 = ~0;
+	uint8_t bank0 = cpu410x[0x7];
+	uint8_t bank1 = cpu410x[0x8];
+	uint8_t bank2 = (cpu410x[0xb] & 0x40) ? (cpu410x[0x9]) : (~1);
+	uint8_t bank3 = ~0;
 	
 	setprg8(0x8000 ^ pswap,(block | (bank0 & mask)) &AND | OR);
 	setprg8(0xa000,        (block | (bank1 & mask)) &AND | OR);
@@ -90,19 +90,19 @@ static void PSync(int AND, int OR) {
 }
 
 static void CSync(int AND, int OR) {
-	static const uint8 midx[8] = { 0, 1, 2, 0, 3, 4, 5, 0 };
-	uint8 mask = 0xff >> midx[ppu201x[0xa] & 7];
-	uint32 block = ((cpu410x[0x0] & 0x0f) << 11) + ((ppu201x[0x8] & 0x70) << 4) + (ppu201x[0xa] & (~mask));
-	uint32 cswap = (mmc3cmd & 0x80) << 5;
+	static const uint8_t midx[8] = { 0, 1, 2, 0, 3, 4, 5, 0 };
+	uint8_t mask = 0xff >> midx[ppu201x[0xa] & 7];
+	uint32_t block = ((cpu410x[0x0] & 0x0f) << 11) + ((ppu201x[0x8] & 0x70) << 4) + (ppu201x[0xa] & (~mask));
+	uint32_t cswap = (mmc3cmd & 0x80) << 5;
 
-	uint8 bank0 = ppu201x[0x6] & (~1);
-	uint8 bank1 = ppu201x[0x6] | 1;
-	uint8 bank2 = ppu201x[0x7] & (~1);
-	uint8 bank3 = ppu201x[0x7] | 1;
-	uint8 bank4 = ppu201x[0x2];
-	uint8 bank5 = ppu201x[0x3];
-	uint8 bank6 = ppu201x[0x4];
-	uint8 bank7 = ppu201x[0x5];
+	uint8_t bank0 = ppu201x[0x6] & (~1);
+	uint8_t bank1 = ppu201x[0x6] | 1;
+	uint8_t bank2 = ppu201x[0x7] & (~1);
+	uint8_t bank3 = ppu201x[0x7] | 1;
+	uint8_t bank4 = ppu201x[0x2];
+	uint8_t bank5 = ppu201x[0x3];
+	uint8_t bank6 = ppu201x[0x4];
+	uint8_t bank7 = ppu201x[0x5];
 
 	setchr1(0x0000 ^ cswap,(block | (bank0 & mask)) &AND | OR);
 	setchr1(0x0400 ^ cswap,(block | (bank1 & mask)) &AND | OR);
@@ -124,7 +124,7 @@ static void Sync256(void) {
 	if (submapper ==14 && cpu410x[0x1C] &0x40) encryptOpcodes =14;
 }
 
-static const uint8 cpuMangles[16][4] = {
+static const uint8_t cpuMangles[16][4] = {
 	{ 0, 1, 2, 3 }, 	/* Submapper 0: Normal                                  */
 	{ 0, 1, 2, 3 }, 	/* Submapper 1: Waixing VT03                            */
 	{ 1, 0, 2, 3 }, 	/* Submapper 2: Trump Grand                             */
@@ -162,7 +162,7 @@ static DECLFW(UNLOneBusWriteCPU4242) {
 	Sync();
 }
 
-static const uint8 ppuMangles[16][6] = {
+static const uint8_t ppuMangles[16][6] = {
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 0: Normal                                  */
 	{ 1, 0, 5, 4, 3, 2 }, 	/* Submapper 1: Waixing VT03                            */
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 2: Trump Grand                             */
@@ -188,7 +188,7 @@ static DECLFW(UNLOneBusWritePPU201X) {
 	Sync();
 }
 
-static const uint8 mmc3Mangles[16][8] = {
+static const uint8_t mmc3Mangles[16][8] = {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 0: Normal                                 */
 	{ 5, 4, 3, 2, 1, 0, 6, 7 }, 	/* Submapper 1: Waixing VT03                           */
 	{ 0, 1, 2, 3, 4, 5, 7, 6 }, 	/* Submapper 2: Trump Grand                            */
@@ -238,7 +238,7 @@ static DECLFW(UNLOneBusWriteMMC3) {
 }
 
 static void UNLOneBusIRQHook(void) {
-	uint32 count = IRQCount;
+	uint32_t count = IRQCount;
 	if (!count || IRQReload) {
 		IRQCount = IRQLatch;
 		IRQReload = 0;
@@ -281,7 +281,7 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 }
 
 static DECLFR(UNLOneBusReadAPU40XX) {
-	uint8 result = defapuread[A & 0x3f](A);
+	uint8_t result = defapuread[A & 0x3f](A);
 /*	FCEU_printf("read %04x, %02x\n",A,result); */
 	switch (A & 0x3f) {
 	case 0x15:
@@ -310,8 +310,8 @@ static void UNLOneBusCpuHook(int a) {
 				pcm_enable = 0;
 				X6502_IRQBegin(FCEU_IQEXT);
 			} else {
-				uint16 addr = pcm_addr | ((apu40xx[0x30]^3) << 14);
-				uint8 raw_pcm = ARead[addr](addr) >> 1;
+				uint16_t addr = pcm_addr | ((apu40xx[0x30]^3) << 14);
+				uint8_t raw_pcm = ARead[addr](addr) >> 1;
 				defapuwrite[0x11](0x4011, raw_pcm);
 				pcm_addr++;
 				pcm_addr &= 0x7FFF;
@@ -321,7 +321,7 @@ static void UNLOneBusCpuHook(int a) {
 }
 
 static void UNLOneBusPower(void) {
-	uint32 i;
+	uint32_t i;
 	IRQReload = IRQCount = IRQa = 0;
 
 	memset(cpu410x, 0x00, sizeof(cpu410x));
@@ -393,10 +393,10 @@ void UNLOneBus_Init(CartInfo *info) {
 		submapper =info->submapper;
 	else {
 		/* Compare the first four MD5 bytes literally to avoid the previous
-		 * endian-dependent (uint32) reinterpretation, which silently
+		 * endian-dependent (uint32_t) reinterpretation, which silently
 		 * mismatched on big-endian hosts and disabled the PowerJoy Supermax
 		 * variant detection. */
-		const uint8 *md5 = info->MD5;
+		const uint8_t *md5 = info->MD5;
 		int is_305fcdc3 = (md5[0] == 0xc3 && md5[1] == 0xcd && md5[2] == 0x5f && md5[3] == 0x30);
 		int is_6abfce8e = (md5[0] == 0x8e && md5[1] == 0xce && md5[2] == 0xbf && md5[3] == 0x6a);
 		submapper = (is_305fcdc3 || is_6abfce8e) ? 2 : 0; /* PowerJoy Supermax Carts */
@@ -411,7 +411,7 @@ void UNLOneBus_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 	AddExState(&StateRegs, ~0, 0, 0);
 	
-	WRAM = (uint8*)FCEU_gmalloc(8192);
+	WRAM = (uint8_t*)FCEU_gmalloc(8192);
 	SetupCartPRGMapping(0x10, WRAM, 8192, 1);
 }
 
@@ -444,7 +444,7 @@ void Mapper270_Init(CartInfo *info) {
 	mmc3Mangle =mmc3Mangles[0];
 	
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	
@@ -471,7 +471,7 @@ void Mapper436_Init(CartInfo *info) {
 	mmc3Mangle =mmc3Mangles[0];
 	
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	

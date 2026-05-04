@@ -1,15 +1,15 @@
 #include "flashrom.h"
 
-uint8		flashrom_manufacturerID;
-uint8		flashrom_modelID;
+uint8_t		flashrom_manufacturerID;
+uint8_t		flashrom_modelID;
 int		flashrom_state;
-uint32		flashrom_sectorSize;
+uint32_t		flashrom_sectorSize;
 int             flashrom_timeOut;
-uint32		flashrom_magicAddr1;
-uint32		flashrom_magicAddr2;
-uint32		flashrom_magicMask;
+uint32_t		flashrom_magicAddr1;
+uint32_t		flashrom_magicAddr2;
+uint32_t		flashrom_magicMask;
 
-void flashrom_init (uint8 manufacturerID, uint8 modelID, uint32 sectorSize, uint32 magicAddr1, uint32 magicAddr2, uint32 magicMask) {
+void flashrom_init (uint8_t manufacturerID, uint8_t modelID, uint32_t sectorSize, uint32_t magicAddr1, uint32_t magicAddr2, uint32_t magicMask) {
 	flashrom_manufacturerID =manufacturerID;
 	flashrom_modelID =modelID;
 	flashrom_sectorSize =sectorSize;
@@ -18,7 +18,7 @@ void flashrom_init (uint8 manufacturerID, uint8 modelID, uint32 sectorSize, uint
 	flashrom_magicMask =magicMask;
 }
 
-uint8 flashrom_read (uint32 A) {
+uint8_t flashrom_read (uint32_t A) {
 	if (flashrom_state ==0x90) /* software ID */
 		return A &1? flashrom_modelID: flashrom_manufacturerID;
 	else
@@ -28,10 +28,10 @@ uint8 flashrom_read (uint32 A) {
 		return CartBR(A);
 }
 
-void flashrom_write (uint32 fullAddress, uint8 V) {
-	uint32 i;
-	uint8* sector =NULL;
-	uint32 compare =fullAddress &flashrom_magicMask;
+void flashrom_write (uint32_t fullAddress, uint8_t V) {
+	uint32_t i;
+	uint8_t* sector =NULL;
+	uint32_t compare =fullAddress &flashrom_magicMask;
 	fullAddress &=PRGsize[0] -1;
 	switch (flashrom_state) {
 		/* command start */

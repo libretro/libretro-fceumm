@@ -20,7 +20,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void Mapper473_PRGWrap(uint32 A, uint8 V) {
+static void Mapper473_PRGWrap(uint32_t A, uint8_t V) {
 	int prgAND =EXPREGS[0] &0x20? (0xFF >> (7 -(EXPREGS[0] &7))): 0x00;
 	int prgOR  =EXPREGS[0] &0x20? (EXPREGS[1] | EXPREGS[2] <<8): 0x3F;
 	setprg8(A, V &prgAND | prgOR &~prgAND);
@@ -28,7 +28,7 @@ static void Mapper473_PRGWrap(uint32 A, uint8 V) {
 	SetWriteHandler(0xC000, 0xFFFF, EXPREGS[0] &0x40? CartBW: MMC3_IRQWrite);
 }
 
-static void Mapper473_CHRWrap(uint32 A, uint8 V) {
+static void Mapper473_CHRWrap(uint32_t A, uint8_t V) {
 	if (~EXPREGS[0] &0x80)
 		setchr8(EXPREGS[3]);
 	else

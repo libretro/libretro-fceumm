@@ -26,7 +26,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void UNLBMW8544PW(uint32 A, uint8 V) {
+static void UNLBMW8544PW(uint32_t A, uint8_t V) {
 	if(A == 0x8000)
 		setprg8(A,EXPREGS[0] & 0x1F);	/* the real hardware has this bank overrided with it's own register,
 										 * but MMC3 prg swap still works and you can actually change bank C000 at the same time if use 0x46 cmd
@@ -35,7 +35,7 @@ static void UNLBMW8544PW(uint32 A, uint8 V) {
 		setprg8(A,V);
 }
 
-static void UNLBMW8544CW(uint32 A, uint8 V) {
+static void UNLBMW8544CW(uint32_t A, uint8_t V) {
 	if(A == 0x0000)
 		setchr2(0x0000,(V >> 1) ^ EXPREGS[1]);
 	else if (A == 0x0800)

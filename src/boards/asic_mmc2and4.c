@@ -22,8 +22,8 @@
 #include "asic_mmc2and4.h"
 
 static void (*MMC24_cbSync)();
-static uint8 MMC24_reg[6];
-static uint8 MMC24_latch[2];
+static uint8_t MMC24_reg[6];
+static uint8_t MMC24_latch[2];
 
 static SFORMAT MMC24_state[] = {
 	{ MMC24_reg,    6, "MC2R" },
@@ -58,7 +58,7 @@ void MMC24_syncMirror () {
 	setmirror(MMC24_reg[5] &1? MI_H: MI_V);
 }
 
-static void FP_FASTAPASS(1) MMC24_trapPPUAddressChange (uint32 A) {
+static void FP_FASTAPASS(1) MMC24_trapPPUAddressChange (uint32_t A) {
 	if ((A &0x2FF0) == 0xFD0 || (A &0x2FF0) == 0xFE0) {
 		MMC24_latch[A >>12 &1] = A >>5 &1;
 		MMC24_cbSync();
@@ -86,7 +86,7 @@ static void MMC24_configure (void (*sync)()) {
 	MMC24_cbSync = sync;
 }
 
-void MMC24_activate (uint8 clear, void (*sync)()) {
+void MMC24_activate (uint8_t clear, void (*sync)()) {
 	MMC24_configure(sync);
 	MMC24_setHandlers();
 	if (clear)

@@ -24,12 +24,12 @@
 
 #include "mapinc.h"
 
-static uint8 reg[16], is153, x24c02;
-static uint8 IRQa;
-static int16 IRQCount, IRQLatch;
+static uint8_t reg[16], is153, x24c02;
+static uint8_t IRQa;
+static int16_t IRQCount, IRQLatch;
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 /* TODO: Clean this up. State variables are expanded for
  * big-endian compatibility when saving and loading states */
@@ -65,15 +65,15 @@ static SFORMAT StateRegs[] =
 #define X24C0X_READ			3
 #define X24C0X_WRITE		4
 
-static uint8 x24c0x_data[512];
+static uint8_t x24c0x_data[512];
 
-static uint8 x24c01_state;
-static uint8 x24c01_addr, x24c01_word, x24c01_latch, x24c01_bitcount;
-static uint8 x24c01_sda, x24c01_scl, x24c01_out;
+static uint8_t x24c01_state;
+static uint8_t x24c01_addr, x24c01_word, x24c01_latch, x24c01_bitcount;
+static uint8_t x24c01_sda, x24c01_scl, x24c01_out;
 
-static uint8 x24c02_state;
-static uint8 x24c02_addr, x24c02_word, x24c02_latch, x24c02_bitcount;
-static uint8 x24c02_sda, x24c02_scl, x24c02_out;
+static uint8_t x24c02_state;
+static uint8_t x24c02_addr, x24c02_word, x24c02_latch, x24c02_bitcount;
+static uint8_t x24c02_sda, x24c02_scl, x24c02_out;
 
 static SFORMAT x24c01StateRegs[] =
 {
@@ -111,9 +111,9 @@ static void x24c02_init(void) {
 	x24c02_state = X24C0X_STANDBY;
 }
 
-static void x24c01_write(uint8 data) {
-	uint8 scl = (data >> 5) & 1;
-	uint8 sda = (data >> 6) & 1;
+static void x24c01_write(uint8_t data) {
+	uint8_t scl = (data >> 5) & 1;
+	uint8_t sda = (data >> 6) & 1;
 
 	if(x24c01_scl && scl) {
 		if(x24c01_sda && !sda) {			/* START */
@@ -176,9 +176,9 @@ static void x24c01_write(uint8 data) {
 	x24c01_scl = scl;
 }
 
-static void x24c02_write(uint8 data) {
-	uint8 scl = (data >> 5) & 1;
-	uint8 sda = (data >> 6) & 1;
+static void x24c02_write(uint8_t data) {
+	uint8_t scl = (data >> 5) & 1;
+	uint8_t sda = (data >> 6) & 1;
 
 	if (x24c02_scl && scl) {
 		if (x24c02_sda && !sda) {			/* START */
@@ -395,7 +395,7 @@ void Mapper153_Init(CartInfo *info) {
 	MapIRQHook = BandaiIRQHook;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
@@ -410,14 +410,14 @@ void Mapper153_Init(CartInfo *info) {
 
 /* Datach Barcode Battler */
 
-static uint8 BarcodeData[256];
+static uint8_t BarcodeData[256];
 static int BarcodeReadPos;
 static int BarcodeCycleCount;
-static uint32 BarcodeOut;
+static uint32_t BarcodeOut;
 
 /* #define INTERL2OF5 */
 
-int FCEUI_DatachSet(uint8 *rcode) {
+int FCEUI_DatachSet(uint8_t *rcode) {
 	int prefix_parity_type[10][6] = {
 		{ 0, 0, 0, 0, 0, 0 }, { 0, 0, 1, 0, 1, 1 }, { 0, 0, 1, 1, 0, 1 }, { 0, 0, 1, 1, 1, 0 },
 		{ 0, 1, 0, 0, 1, 1 }, { 0, 1, 1, 0, 0, 1 }, { 0, 1, 1, 1, 0, 0 }, { 0, 1, 0, 1, 0, 1 },
@@ -438,9 +438,9 @@ int FCEUI_DatachSet(uint8 *rcode) {
 		{ 1, 0, 1, 1, 1, 0, 0 }, { 1, 0, 0, 1, 1, 1, 0 }, { 1, 0, 1, 0, 0, 0, 0 }, { 1, 0, 0, 0, 1, 0, 0 },
 		{ 1, 0, 0, 1, 0, 0, 0 }, { 1, 1, 1, 0, 1, 0, 0 }
 	};
-	uint8 code[13 + 1];
-	uint32 tmp_p = 0;
-	uint32 csum = 0;
+	uint8_t code[13 + 1];
+	uint32_t tmp_p = 0;
+	uint32_t csum = 0;
 	int i, j;
 	int len;
 

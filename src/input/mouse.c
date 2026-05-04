@@ -23,9 +23,9 @@
 #include "share.h"
 
 typedef struct {
-	int32 mzx, mzy, mzxold, mzyold;
-	uint32 readbit;
-	uint32 data;
+	int32_t mzx, mzy, mzxold, mzyold;
+	uint32_t readbit;
+	uint32_t data;
 } MOUSE;
 
 static MOUSE Mouse;
@@ -42,8 +42,8 @@ static void FP_FASTAPASS(1) StrobeMOUSE(int w) {
 		Mouse.data |= 0x10;
 }
 
-static uint8 FP_FASTAPASS(1) ReadMOUSE(int w) {
-	uint8 ret = 0;
+static uint8_t FP_FASTAPASS(1) ReadMOUSE(int w) {
+	uint8_t ret = 0;
 	if (Mouse.readbit >= 8)
 		ret |= 1;
 	else {
@@ -57,7 +57,7 @@ static uint8 FP_FASTAPASS(1) ReadMOUSE(int w) {
 }
 
 static void FP_FASTAPASS(3) UpdateMOUSE(int w, void *data, int arg) {
-	uint32 *ptr = (uint32*)data;
+	uint32_t *ptr = (uint32_t*)data;
 	Mouse.data = 0;
 	Mouse.mzxold = Mouse.mzx;
 	Mouse.mzyold = Mouse.mzy;

@@ -19,7 +19,7 @@ extern CartInfo iNESCart;
 
 typedef struct {
    const char  *name;
-   uint8       value;
+   uint8_t       value;
 } SETTING;
 
 typedef struct {
@@ -1077,7 +1077,7 @@ static char *core_key[MAX_CORE_OPTIONS];
 static unsigned dipswitch_type = DPSW_NONE;
 static unsigned numCoreOptions = 0;
 static unsigned numValues[MAX_VALUES] = {0};
-static uint8 dipswitchPreset = 0;
+static uint8_t dipswitchPreset = 0;
 
 static const char *str_to_corekey(char *s)
 {
@@ -1199,8 +1199,8 @@ static VSUNIGAME *get_vsuni_dipswitch(unsigned id)
 static void update_dipswitch_vsuni(void)
 {
    unsigned index_key;
-   uint8 vsdip_new = 0;
-   uint8 last_vsdip = FCEUI_VSUniGetDIPs();
+   uint8_t vsdip_new = 0;
+   uint8_t last_vsdip = FCEUI_VSUniGetDIPs();
 
    for (index_key = 0; index_key < numCoreOptions; index_key++)
    {
@@ -1215,7 +1215,7 @@ static void update_dipswitch_vsuni(void)
       for (index_value = 0; index_value < numValues[index_key]; index_value++)
       {
          const char *var_value = vscoreopt[index_key].values[index_value].value;
-         uint8 value = 0;
+         uint8_t value = 0;
 
          if (strcmp(var.value, var_value) != 0)
             continue;

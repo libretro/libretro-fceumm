@@ -20,9 +20,9 @@
 
 #include "mapinc.h"
 
-static uint8 latch;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t latch;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 static writefunc old4016;
 
 static SFORMAT StateRegs[] =
@@ -69,7 +69,7 @@ void Mapper99_Init(CartInfo *info) {
 	info->Close = M99Close;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 

@@ -22,8 +22,8 @@
 #include "mapinc.h"
 #include "pic16c5x.h"
 
-static uint32 address;
-static uint8 *picrom = NULL;
+static uint32_t address;
+static uint8_t *picrom = NULL;
 
 static uint8_t pci16c5x_read(int port) {
 	if (port == 0) {

@@ -25,10 +25,10 @@
 #include "fifo.h"
 #include "msm6585.h"
 
-static uint8 reg[4];
+static uint8_t reg[4];
 static FIFO fifo;
 static MSM6585 adpcm;
-static int32 soundOffset = 0;
+static int32_t soundOffset = 0;
 
 static void sync () {
 	int prgAND = 0x3F;
@@ -41,7 +41,7 @@ static void sync () {
 	MMC3_syncMirror();
 }
 
-static int getCHRBank (uint8 bank) {
+static int getCHRBank (uint8_t bank) {
 	return MMC3_getCHRBank(bank) | bank <<6 &0x100;
 }
 
@@ -103,7 +103,7 @@ static void mapperSound_fillBufferHigh () {
 	soundOffset = SOUNDTS;
 }
 
-static void mapperSound_setSoundOffset (int32 newSoundOffset) {
+static void mapperSound_setSoundOffset (int32_t newSoundOffset) {
 	soundOffset = newSoundOffset;
 }
 

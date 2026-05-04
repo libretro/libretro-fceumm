@@ -23,8 +23,8 @@
 
 #include "mapinc.h"
 
-static uint16 reg[2];
-static uint8 submapper;
+static uint16_t reg[2];
+static uint8_t submapper;
 
 static SFORMAT StateRegs[] ={
 	{ reg, 4 | FCEUSTATE_RLSB, "REGS" },
@@ -37,7 +37,7 @@ static DECLFR(Mapper221_ReadOB)
 }
 
 static void sync(void) {
-	uint8 prg =reg[0] >>(submapper ==1? 2: 3) &0x40 | reg[0] >>2 &0x38 | reg[1] &0x07;
+	uint8_t prg =reg[0] >>(submapper ==1? 2: 3) &0x40 | reg[0] >>2 &0x38 | reg[1] &0x07;
 	SetReadHandler(0x8000, 0xFFFF, prg <<14 >=PRGsize[0]? Mapper221_ReadOB: CartBR); /* Selecting unpopulated banks results in open bus */
 	if (reg[0] &(submapper ==1? 0x200: 0x100)) { /* UNROM */
 		setprg16(0x8000, prg);

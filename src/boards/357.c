@@ -27,13 +27,13 @@
 
 #include "mapinc.h"
 
-static uint8 preg[4];
-static uint8 dipswitch;
-static uint8 IRQa;
-static uint16 IRQCount;
+static uint8_t preg[4];
+static uint8_t dipswitch;
+static uint8_t IRQa;
+static uint16_t IRQCount;
 
-static const uint8 banks[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };
-static const uint8 outer_bank[4] = { 0x00, 0x08, 0x10, 0x18 };
+static const uint8_t banks[8] = { 4, 3, 5, 3, 6, 3, 7, 3 };
+static const uint8_t outer_bank[4] = { 0x00, 0x08, 0x10, 0x18 };
 
 static SFORMAT StateRegs[] =
 {

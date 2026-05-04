@@ -23,10 +23,10 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 reset_flag = 0x07;
+static uint8_t reset_flag = 0x07;
 
-static void BMCT2271CW(uint32 A, uint8 V) {
-	uint32 va = V;
+static void BMCT2271CW(uint32_t A, uint8_t V) {
+	uint32_t va = V;
 	if (EXPREGS[0] & 0x20) {
 		va |= 0x200;
 		va |= (EXPREGS[0] & 0x10) << 4;
@@ -37,8 +37,8 @@ static void BMCT2271CW(uint32 A, uint8 V) {
 	setchr1(A, va);
 }
 
-static void BMCT2271PW(uint32 A, uint8 V) {
-	uint32 va = V & 0x3F;
+static void BMCT2271PW(uint32_t A, uint8_t V) {
+	uint32_t va = V & 0x3F;
 	if (EXPREGS[0] & 0x20) {
 		va &= 0x1F;
 		va |= 0x40;
@@ -71,7 +71,7 @@ static DECLFW(BMCT2271LoWrite) {
 }
 
 static DECLFR(BMCT2271HiRead) {
-	uint32 av = A;
+	uint32_t av = A;
 	if (EXPREGS[0] & 0x40) av = (av & 0xFFF0) | reset_flag;
 	return CartBR(av);
 }

@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "asic_mmc1.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	MMC1_syncPRG(0x07, reg <<3);

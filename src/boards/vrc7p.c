@@ -22,9 +22,9 @@
 
 #include "mapinc.h"
 
-static uint8 prg[3], chr[8], mirr;
-static uint8 IRQLatch, IRQa, IRQd;
-static int32 IRQCount, CycleCount;
+static uint8_t prg[3], chr[8], mirr;
+static uint8_t IRQLatch, IRQa, IRQd;
+static int32_t IRQCount, CycleCount;
 
 static SFORMAT StateRegs[] =
 {
@@ -40,7 +40,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 i;
+	uint8_t i;
 	setprg8(0x8000, prg[0]);
 	setprg8(0xa000, prg[1]);
 	setprg8(0xc000, prg[2]);

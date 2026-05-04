@@ -20,11 +20,11 @@
 
 #include "mapinc.h"
 
-static uint16 IRQCount;
-static uint8 IRQa;
+static uint16_t IRQCount;
+static uint8_t IRQa;
 
-static uint8 WRAM[8192];
-static uint8 IRAM[128];
+static uint8_t WRAM[8192];
+static uint8_t IRAM[128];
 
 static DECLFR(AWRAM) {
 	return(WRAM[A - 0x6000]);
@@ -36,22 +36,22 @@ static DECLFW(BWRAM) {
 
 void Mapper19_ESI(void);
 
-static uint8 NTAPage[4];
+static uint8_t NTAPage[4];
 
-static uint8 dopol;
-static uint8 gorfus;
-static uint8 gorko;
+static uint8_t dopol;
+static uint8_t gorfus;
+static uint8_t gorko;
 
 static void NamcoSound(int Count);
 static void NamcoSoundHack(void);
-static void DoNamcoSound(int32 *Wave, int Count);
+static void DoNamcoSound(int32_t *Wave, int Count);
 static void DoNamcoSoundHQ(void);
-static void SyncHQ(int32 ts);
+static void SyncHQ(int32_t ts);
 
 static int is210;	/* Lesser mapper. */
 
-static uint8 PRG[3];
-static uint8 CHR[8];
+static uint8_t PRG[3];
+static uint8_t CHR[8];
 
 static SFORMAT N106_StateRegs[] = {
 	{ PRG, 3, "PRG" },
@@ -93,7 +93,7 @@ static void FP_FASTAPASS(1) NamcoIRQHook(int a) {
 }
 
 static DECLFR(Namco_Read4800) {
-	uint8 ret = IRAM[dopol & 0x7f];
+	uint8_t ret = IRAM[dopol & 0x7f];
 	/* Maybe I should call NamcoSoundHack() here? */
 	#ifdef FCEUDEF_DEBUGGER
 	if (!fceuindbg)
@@ -111,7 +111,7 @@ static DECLFR(Namco_Read5800) {
 	return(IRQCount >> 8);
 }
 
-static void FASTAPASS(2) DoNTARAMROM(int w, uint8 V) {
+static void FASTAPASS(2) DoNTARAMROM(int w, uint8_t V) {
 	NTAPage[w] = V;
 	if (V >= 0xE0)
 		setntamem(NTARAM + ((V & 1) << 10), 1, w);
@@ -127,7 +127,7 @@ static void FixNTAR(void) {
 		DoNTARAMROM(x, NTAPage[x]);
 }
 
-static void FASTAPASS(2) DoCHRRAMROM(int x, uint8 V) {
+static void FASTAPASS(2) DoCHRRAMROM(int x, uint8_t V) {
 	CHR[x] = V;
 	if (!is210 && !((gorfus >> ((x >> 2) + 6)) & 1) && (V >= 0xE0)) {
 	} else
@@ -144,9 +144,9 @@ static DECLFW(Mapper19C0D8_write) {
 	DoNTARAMROM((A - 0xC000) >> 11, V);
 }
 
-static uint32 FreqCache[8];
-static uint32 EnvCache[8];
-static uint32 LengthCache[8];
+static uint32_t FreqCache[8];
+static uint32_t EnvCache[8];
+static uint32_t LengthCache[8];
 
 static void FixCache(int a, int V) {
 	int w = (a >> 3) & 0x7;
@@ -218,7 +218,7 @@ static DECLFW(Mapper19_write) {
 static int dwave = 0;
 
 static void NamcoSoundHack(void) {
-	int32 z, a;
+	int32_t z, a;
 	if (FSettings.soundq >= 1) {
 		DoNamcoSoundHQ();
 		return;
@@ -230,16 +230,16 @@ static void NamcoSoundHack(void) {
 }
 
 static void NamcoSound(int Count) {
-	int32 z, a;
+	int32_t z, a;
 	z = ((SOUNDTS << 16) / soundtsinc) >> 4;
 	a = z - dwave;
 	if (a) DoNamcoSound(&Wave[dwave], a);
 	dwave = 0;
 }
 
-static uint32 PlayIndex[8];
-static int32 vcount[8];
-static int32 CVBC;
+static uint32_t PlayIndex[8];
+static int32_t vcount[8];
+static int32_t CVBC;
 
 #define TOINDEX        (16 + 1)
 
@@ -266,7 +266,7 @@ static SFORMAT N106_SStateRegs[] =
 };
 
 /* 16:15 */
-static void SyncHQ(int32 ts) {
+static void SyncHQ(int32_t ts) {
 	CVBC = ts;
 }
 
@@ -279,8 +279,8 @@ static void SyncHQ(int32 ts) {
 	...?
 */
 
-static INLINE uint32 FetchDuff(uint32 P, uint32 envelope) {
-	uint32 duff;
+static INLINE uint32_t FetchDuff(uint32_t P, uint32_t envelope) {
+	uint32_t duff;
 	duff = IRAM[((IRAM[0x46 + (P << 3)] + (PlayIndex[P] >> TOINDEX)) & 0xFF) >> 1];
 	if ((IRAM[0x46 + (P << 3)] + (PlayIndex[P] >> TOINDEX)) & 1)
 		duff >>= 4;
@@ -290,14 +290,14 @@ static INLINE uint32 FetchDuff(uint32 P, uint32 envelope) {
 }
 
 static void DoNamcoSoundHQ(void) {
-	int32 P, V;
-	int32 cyclesuck = (((IRAM[0x7F] >> 4) & 7) + 1) * 15;
+	int32_t P, V;
+	int32_t cyclesuck = (((IRAM[0x7F] >> 4) & 7) + 1) * 15;
 
 	for (P = 7; P >= (7 - ((IRAM[0x7F] >> 4) & 7)); P--) {
 		if ((IRAM[0x44 + (P << 3)] & 0xE0) && (IRAM[0x47 + (P << 3)] & 0xF)) {
-			uint32 freq;
-			int32 vco;
-			uint32 duff2, lengo, envelope;
+			uint32_t freq;
+			int32_t vco;
+			uint32_t duff2, lengo, envelope;
 
 			vco = vcount[P];
 			freq = FreqCache[P];
@@ -322,14 +322,14 @@ static void DoNamcoSoundHQ(void) {
 }
 
 
-static void DoNamcoSound(int32 *Wave, int Count) {
+static void DoNamcoSound(int32_t *Wave, int Count) {
 	int P, V;
 	for (P = 7; P >= 7 - ((IRAM[0x7F] >> 4) & 7); P--) {
 		if ((IRAM[0x44 + (P << 3)] & 0xE0) && (IRAM[0x47 + (P << 3)] & 0xF)) {
-			int32 inc;
-			uint32 freq;
-			int32 vco;
-			uint32 duff, duff2, lengo, envelope;
+			int32_t inc;
+			uint32_t freq;
+			int32_t vco;
+			uint32_t duff, duff2, lengo, envelope;
 
 			vco = vcount[P];
 			freq = FreqCache[P];
@@ -341,7 +341,11 @@ static void DoNamcoSound(int32 *Wave, int Count) {
 
 			{
 				int c = ((IRAM[0x7F] >> 4) & 7) + 1;
-				inc = (long double)(FSettings.SndRate << 15) / ((long double)freq * 21477272 / ((long double)0x400000 * c * 45));
+				/* Use double rather than long double for cross-platform
+				 * FP determinism (long double is 80-bit on x87, 64-bit
+				 * with SSE math, 128-bit elsewhere - the truncated
+				 * int32 result varies). */
+				inc = (int32_t)((double)(FSettings.SndRate << 15) / ((double)freq * 21477272.0 / ((double)0x400000 * c * 45)));
 			}
 
 			duff = IRAM[(((IRAM[0x46 + (P << 3)] + PlayIndex[P]) & 0xFF) >> 1)];

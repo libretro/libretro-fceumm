@@ -20,9 +20,9 @@
 
 #include "mapinc.h"
 
-static uint8 preg[3], creg[8], mirr;
-static uint8 IRQa;
-static int16 IRQCount, IRQLatch;
+static uint8_t preg[3], creg[8], mirr;
+static uint8_t IRQa;
+static int16_t IRQCount, IRQLatch;
 
 static SFORMAT StateRegs[] =
 {

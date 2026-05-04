@@ -26,8 +26,8 @@
 #include "mapinc.h"
 #include "../fds_apu.h"
 
-static uint8 reg, mirr;
-static uint8 prg;
+static uint8_t reg, mirr;
+static uint8_t prg;
 
 static SFORMAT StateRegs[] =
 {

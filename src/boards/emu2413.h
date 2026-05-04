@@ -16,36 +16,36 @@ enum { OPLL_VRC7_TONE=0 };
 
 /* voice data */
 typedef struct {
-	uint32 TL, FB, EG, ML, AR, DR, SL, RR, KR, KL, AM, PM, WF;
+	uint32_t TL, FB, EG, ML, AR, DR, SL, RR, KR, KL, AM, PM, WF;
 } OPLL_PATCH;
 
 /* slot */
 typedef struct {
 	OPLL_PATCH patch;
 
-	int32 type;			/* 0 : modulator 1 : carrier */
+	int32_t type;			/* 0 : modulator 1 : carrier */
 
 	/* OUTPUT */
-	int32 feedback;
-	int32 output[2];	/* Output value of slot */
+	int32_t feedback;
+	int32_t output[2];	/* Output value of slot */
 
 	/* for Phase Generator (PG) */
-	uint16 *sintbl;		/* Wavetable */
-	uint32 phase;		/* Phase */
-	uint32 dphase;		/* Phase increment amount */
-	uint32 pgout;		/* output */
+	uint16_t *sintbl;		/* Wavetable */
+	uint32_t phase;		/* Phase */
+	uint32_t dphase;		/* Phase increment amount */
+	uint32_t pgout;		/* output */
 
 	/* for Envelope Generator (EG) */
-	int32 fnum;			/* F-Number */
-	int32 block;		/* Block */
-	int32 volume;		/* Current volume */
-	int32 sustine;		/* Sustine 1 = ON, 0 = OFF */
-	uint32 tll;			/* Total Level + Key scale level*/
-	uint32 rks;			/* Key scale offset (Rks) */
-	int32 eg_mode;		/* Current state */
-	uint32 eg_phase;	/* Phase */
-	uint32 eg_dphase;	/* Phase increment amount */
-	uint32 egout;		/* output */
+	int32_t fnum;			/* F-Number */
+	int32_t block;		/* Block */
+	int32_t volume;		/* Current volume */
+	int32_t sustine;		/* Sustine 1 = ON, 0 = OFF */
+	uint32_t tll;			/* Total Level + Key scale level*/
+	uint32_t rks;			/* Key scale offset (Rks) */
+	int32_t eg_mode;		/* Current state */
+	uint32_t eg_phase;	/* Phase */
+	uint32_t eg_dphase;	/* Phase increment amount */
+	uint32_t egout;		/* output */
 } OPLL_SLOT;
 
 /* Mask */
@@ -53,68 +53,68 @@ typedef struct {
 
 /* opll */
 typedef struct {
-	uint32 adr;
-	int32 out;
+	uint32_t adr;
+	int32_t out;
 
-	uint32 realstep;
-	uint32 oplltime;
-	uint32 opllstep;
-	int32 prev, next;
+	uint32_t realstep;
+	uint32_t oplltime;
+	uint32_t opllstep;
+	int32_t prev, next;
 
 	/* Register */
-	uint8 LowFreq[6];
-	uint8 HiFreq[6];
-	uint8 InstVol[6];
+	uint8_t LowFreq[6];
+	uint8_t HiFreq[6];
+	uint8_t InstVol[6];
 
-	uint8 CustInst[8];
+	uint8_t CustInst[8];
 
-	int32 slot_on_flag[6 * 2];
+	int32_t slot_on_flag[6 * 2];
 
 	/* Pitch Modulator */
-	uint32 pm_phase;
-	int32 lfo_pm;
+	uint32_t pm_phase;
+	int32_t lfo_pm;
 
 	/* Amp Modulator */
-	int32 am_phase;
-	int32 lfo_am;
+	int32_t am_phase;
+	int32_t lfo_am;
 
-	uint32 quality;
+	uint32_t quality;
 
 	/* Channel Data */
-	int32 patch_number[6];
-	int32 key_status[6];
+	int32_t patch_number[6];
+	int32_t key_status[6];
 
 	/* Slot */
 	OPLL_SLOT slot[6 * 2];
 
-	uint32 mask;
+	uint32_t mask;
 } OPLL;
 
 /* Create Object */
-OPLL *OPLL_new(uint32 clk, uint32 rate);
+OPLL *OPLL_new(uint32_t clk, uint32_t rate);
 void OPLL_delete(OPLL *);
 
 /* Setup */
 void OPLL_reset(OPLL *);
-void OPLL_set_rate(OPLL *opll, uint32 r);
-void OPLL_set_quality(OPLL *opll, uint32 q);
+void OPLL_set_rate(OPLL *opll, uint32_t r);
+void OPLL_set_quality(OPLL *opll, uint32_t q);
 
 /* Port/Register access */
-void OPLL_writeIO(OPLL *, uint32 reg, uint32 val);
-void OPLL_writeReg(OPLL *, uint32 reg, uint32 val);
+void OPLL_writeIO(OPLL *, uint32_t reg, uint32_t val);
+void OPLL_writeReg(OPLL *, uint32_t reg, uint32_t val);
 
 /* Synthsize */
-int16 OPLL_calc(OPLL *);
+int16_t OPLL_calc(OPLL *);
 
 /* Misc */
 void OPLL_forceRefresh(OPLL *);
 
 /* Channel Mask */
-uint32 OPLL_setMask(OPLL *, uint32 mask);
-uint32 OPLL_toggleMask(OPLL *, uint32 mask);
+uint32_t OPLL_setMask(OPLL *, uint32_t mask);
+uint32_t OPLL_toggleMask(OPLL *, uint32_t mask);
 
 
-void OPLL_fillbuf(OPLL* opll, int32 *buf, int32 len, int shift);
+void OPLL_fillbuf(OPLL* opll, int32_t *buf, int32_t len, int shift);
 
 #ifdef __cplusplus
 }

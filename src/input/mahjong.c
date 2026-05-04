@@ -21,9 +21,9 @@
 #include <string.h>
 #include "share.h"
 
-static uint32 MReal, MRet;
+static uint32_t MReal, MRet;
 
-static uint8 FP_FASTAPASS(2) MJ_Read(int w, uint8 ret) {
+static uint8_t FP_FASTAPASS(2) MJ_Read(int w, uint8_t ret) {
 	if (w) {
 /*  ret|=(MRet&1)<<1; */
 		ret |= ((MRet & 0x80) >> 6) & 2;
@@ -36,7 +36,7 @@ static uint8 FP_FASTAPASS(2) MJ_Read(int w, uint8 ret) {
 	return(ret);
 }
 
-static void FP_FASTAPASS(1) MJ_Write(uint8 v) {
+static void FP_FASTAPASS(1) MJ_Write(uint8_t v) {
 	/* 1: I-D7, J-D6, K-D5, L-D4, M-D3, Big Red-D2
 	   2: A-D7, B-D6, C-D5, D-D4, E-D3, F-D2, G-D1, H-D0
 	   3: Sel-D6, Start-D7, D5, D4, D3, D2, D1
@@ -55,7 +55,7 @@ static void FP_FASTAPASS(1) MJ_Write(uint8 v) {
 }
 
 static void FP_FASTAPASS(2) MJ_Update(void *data, int arg) {
-	MReal = *(uint32*)data;
+	MReal = *(uint32_t*)data;
 }
 
 static INPUTCFC Mahjong = { MJ_Read, MJ_Write, 0, MJ_Update, 0, 0 };

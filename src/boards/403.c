@@ -26,12 +26,12 @@
 
 #include "mapinc.h"
 
-static uint8 reg[3];
+static uint8_t reg[3];
 
 static void Sync(void) {
-	uint8 prg  = reg[0];
-	uint8 chr  = reg[1];
-	uint8 mode = reg[2];
+	uint8_t prg  = reg[0];
+	uint8_t chr  = reg[1];
+	uint8_t mode = reg[2];
 
 	/* NROM-128 */
 	if (mode & 1) {

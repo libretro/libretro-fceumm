@@ -21,7 +21,7 @@
 
 #include "mapinc.h"
 
-static uint8 latch;
+static uint8_t latch;
 
 static void Mapper294_sync (void) {
 	setprg16(0x8000, latch);

@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 latche;
+static uint8_t latche;
 
 static void Sync(void) {
 	setprg16(0x8000, latche);

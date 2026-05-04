@@ -20,9 +20,9 @@
 
 #include "mapinc.h"
 
-static uint8 latch_data;
-static uint32 latch_addr;
-static uint8 dipswitch;
+static uint8_t latch_data;
+static uint32_t latch_addr;
+static uint8_t dipswitch;
 
 static SFORMAT StateRegs[] =
 {

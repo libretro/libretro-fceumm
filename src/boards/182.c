@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 reg[4];
+static uint8_t reg[4];
 
 static void sync () {
 	int prgAND = reg[1] &0x20? 0x1F: 0x0F;
@@ -51,8 +51,8 @@ static DECLFW (writeReg) {
 }
 
 static DECLFW (unscramble) {
-	static const uint16 lutAddress[8] = { 0xA001, 0xA000, 0x8000, 0xC000, 0x8001, 0xC001, 0xE000, 0xE001 }; /* i <5? 4-i: i */
-	static const uint8 lutIndex[8] = { 0, 3, 1, 5, 6, 7, 2, 4 }; /* i <6? (i^3)-1: i */
+	static const uint16_t lutAddress[8] = { 0xA001, 0xA000, 0x8000, 0xC000, 0x8001, 0xC001, 0xE000, 0xE001 }; /* i <5? 4-i: i */
+	static const uint8_t lutIndex[8] = { 0, 3, 1, 5, 6, 7, 2, 4 }; /* i <6? (i^3)-1: i */
 	MMC3_writeReg(lutAddress[A >>12 &6 | A &1], (A &0xE001) == 0xA000? lutIndex[V &7]: V);
 }
 

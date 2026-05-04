@@ -24,27 +24,27 @@
 
 typedef struct {
 	char ID[4];		/*NES^Z*/
-	uint8 ROM_size;
-	uint8 VROM_size;
-	uint8 ROM_type;
-	uint8 ROM_type2;
-	uint8 ROM_type3;
-	uint8 upper_PRG_CHR_size;
-	uint8 PRGRAM_size;
-	uint8 CHRRAM_size;
-	uint8 Region;
-	uint8 VS_hardware;
-	uint8 MiscRoms;
-	uint8 ExpDevice;
+	uint8_t ROM_size;
+	uint8_t VROM_size;
+	uint8_t ROM_type;
+	uint8_t ROM_type2;
+	uint8_t ROM_type3;
+	uint8_t upper_PRG_CHR_size;
+	uint8_t PRGRAM_size;
+	uint8_t CHRRAM_size;
+	uint8_t Region;
+	uint8_t VS_hardware;
+	uint8_t MiscRoms;
+	uint8_t ExpDevice;
 } iNES_HEADER;
 
-extern uint8 *trainerpoo;
-extern uint8 *ROM;
-extern uint8 *VROM;
-extern uint8 *MiscROM;
-extern uint32 ROM_size;		/* prg size in 16K chunks */
-extern uint32 VROM_size;	/* chr size in 8K chunks */
-extern uint32 MiscROM_size;
+extern uint8_t *trainerpoo;
+extern uint8_t *ROM;
+extern uint8_t *VROM;
+extern uint8_t *MiscROM;
+extern uint32_t ROM_size;		/* prg size in 16K chunks */
+extern uint32_t VROM_size;	/* chr size in 8K chunks */
+extern uint32_t MiscROM_size;
 extern iNES_HEADER head;
 
 void NSFVRC6_Init(void);

@@ -33,7 +33,7 @@ static void sync () {
 	setmirror(Latch_address &1? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* The address bits are only updated on a falling edge of D3. */
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* The address bits are only updated on a falling edge of D3. */
 	if (!(Latch_data &0x08 && ~*newValue &0x08)) *newAddress = Latch_address;
 }
 

@@ -30,16 +30,16 @@
 #define BUNG 1
 #define VENUS 2
 
-static uint8 maker;
-static uint8 mc1Mode, mc1ModeInitial; /* register 42Fx */
-static uint8 mc2Mode, mc2ModeInitial; /* register 43Fx */
-static uint8 extMode, extModeInitial; /* register 4500 on FFE, 4411 on Venus, does not exist on Bung */
-static uint8 latch;		/* 8000-FFFF register for 1M modes */
-static uint8 lockCHR;		/* CHR-RAM write-protected via undocumented protection mechanism */
-static uint8 prg8K[4];		/* 8 KiB PRG registers in 2M or 4M mode */
-static uint8 chr1K[12];		/* Not used by Bung, 8 registers by Venus, 12 registers by FFE */
-static uint8 chr8K;		/* Not used by FFE, only by Bung and Venus */
-static uint8 lastCHRBank;	/* Only used by Venus */
+static uint8_t maker;
+static uint8_t mc1Mode, mc1ModeInitial; /* register 42Fx */
+static uint8_t mc2Mode, mc2ModeInitial; /* register 43Fx */
+static uint8_t extMode, extModeInitial; /* register 4500 on FFE, 4411 on Venus, does not exist on Bung */
+static uint8_t latch;		/* 8000-FFFF register for 1M modes */
+static uint8_t lockCHR;		/* CHR-RAM write-protected via undocumented protection mechanism */
+static uint8_t prg8K[4];		/* 8 KiB PRG registers in 2M or 4M mode */
+static uint8_t chr1K[12];		/* Not used by Bung, 8 registers by Venus, 12 registers by FFE */
+static uint8_t chr8K;		/* Not used by FFE, only by Bung and Venus */
+static uint8_t lastCHRBank;	/* Only used by Venus */
 
 /* IRQ counter used by FFE and Bung */
 static signed short int irqCounter;
@@ -48,22 +48,22 @@ static signed short int irqCounter;
 static unsigned short int tgdCounter, tgdTarget;
 
 /* FFE-only registers */
-static uint8 latchMMC4[2];	/* For MMC4 emulation mode */
-static uint8 smcIRQ;		/* IRQ enable register */
+static uint8_t latchMMC4[2];	/* For MMC4 emulation mode */
+static uint8_t smcIRQ;		/* IRQ enable register */
 
 /* FDS data IRQ, used for frame timing purposes */
-static uint8 fdsIO;
+static uint8_t fdsIO;
 static signed short int fdsCounter;
 
-static uint8 *WRAM =NULL;	/* 0000-1FFF: CPU 6000-7FFF; 2000-2FFF: CPU 5000-5FFF (FFE only) */
-static uint8 *CHRRAM =NULL;	/* up to 32 KiB for Bung, up to 256 KiB for FFE and Venus */
+static uint8_t *WRAM =NULL;	/* 0000-1FFF: CPU 6000-7FFF; 2000-2FFF: CPU 5000-5FFF (FFE only) */
+static uint8_t *CHRRAM =NULL;	/* up to 32 KiB for Bung, up to 256 KiB for FFE and Venus */
 
-static uint32 trainerSize;
-static uint8 *trainerSource, *trainerTarget;
-static uint16 trainerInit, resetAddress;
+static uint32_t trainerSize;
+static uint8_t *trainerSource, *trainerTarget;
+static uint16_t trainerInit, resetAddress;
 
 /* For trapping writes to CHR-RAM, which can trigger a protection mechanism in FFE and Venus devices */
-extern uint32 RefreshAddr;
+extern uint32_t RefreshAddr;
 static writefunc writePPU;
 static DECLFW(interceptPPUWrite) { /* Only called in modes 5-7 with single-screen mirroring. Then, Writing anything to CHR-RAM locks (CIRAM page 1) or unlocks (CIRAM page 0) CHR memory in modes 0-3. Needed for (F4040) Karnov). */
 	if (~RefreshAddr &0x2000) lockCHR =!!(mc1Mode &0x10);
@@ -229,7 +229,7 @@ static void sync () {
 
 
 /* Some Venus games check values in BIOS at 4800-4FFF to lock out Bung and FFE devices. Do not need to include the full BIOS, just a selection of values. */
-static const uint8 tgdBIOSExtract[32] ={
+static const uint8_t tgdBIOSExtract[32] ={
 	0xfe, 0x60, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
 	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 	0xff, 0x4c, 0xd9, 0x48, 0x4c, 0x18, 0x49, 0x4c,
@@ -493,7 +493,7 @@ static void pseudoScanlineFFE () {
 	}
 }
 
-static void FP_FASTAPASS(1) trapPPUAddressChangeFFE (uint32 A) {
+static void FP_FASTAPASS(1) trapPPUAddressChangeFFE (uint32_t A) {
 	if (extMode &0x01 && ~extMode &0x04 && ((A &0x2FF0) ==0xFD0 || (A &0x2FF0) ==0xFE0))   {
 		/* If MMC4 mode is enabled, and CHR mode[0] is 4 KiB, and tile FD or FE is being fetched ... */
 		latchMMC4[A >>12 &1] =(A >>10 &4) | (A >>4 &2); /* ... switch the left or right pattern table's latch to 0 (FD) or 2 (FE), being used as an offset for the CHR register index. */
@@ -501,7 +501,7 @@ static void FP_FASTAPASS(1) trapPPUAddressChangeFFE (uint32 A) {
 	}
 }
 
-static void FP_FASTAPASS(1) trapPPUAddressChangeVenus (uint32 A) {
+static void FP_FASTAPASS(1) trapPPUAddressChangeVenus (uint32_t A) {
 	if (A &~0x2000) lastCHRBank =A >>10;
 }
 
@@ -528,17 +528,17 @@ void FFE_Init(CartInfo *info) {
 	mc2ModeInitial =info->mapper ==12 || info->mapper ==17? 0x00: 0x03;
 	extModeInitial =info->mapper ==17? 0x47: 0x42;
 	
-	WRAM =(uint8*)FCEU_gmalloc(16384); /* Just 12 KiB actually, but need power-of-two size */
+	WRAM =(uint8_t*)FCEU_gmalloc(16384); /* Just 12 KiB actually, but need power-of-two size */
 	SetupCartPRGMapping(0x10, WRAM, 16384, 1);
 	memset(WRAM, 0x00, 16384);
 	AddExState(WRAM, 16384, 0, "WRAM");
 
-	CHRRAM =(uint8*)FCEU_gmalloc(262144);
+	CHRRAM =(uint8_t*)FCEU_gmalloc(262144);
 	SetupCartCHRMapping(0x10, CHRRAM, 262144, 1);
 	AddExState(CHRRAM, 262144, 0, "CRAM");
 	memset(CHRRAM, 0xFF, 262144); /* Don't initialize to $00 because 8 Eyes (F4089) uses a sprite 0 hit sprite with uninitialized CHR data */
 	if (info->mapper ==12 && info->submapper ==1 && info->CHRRomSize) { /* FFE F6xxx needs CHR data in PRG-ROM. Enlarge to 512 KiB, copy and replace previous PRG-ROM buffer. */
-		uint8* newROM =(uint8*)FCEU_gmalloc(524288);
+		uint8_t* newROM =(uint8_t*)FCEU_gmalloc(524288);
 		memset(newROM, 0xFF, 524288);
 		memcpy(newROM +     0,  ROM, info->PRGRomSize >524288? 524288: info->PRGRomSize);
 		memcpy(newROM +262144, VROM, info->CHRRomSize >262144? 262144: info->CHRRomSize);
@@ -583,18 +583,18 @@ void Mapper561_562_Init(CartInfo *info) {
 	mc2ModeInitial =0x03;
 	extModeInitial =0x03;
 	
-	WRAM =(uint8*)FCEU_gmalloc(8192);
+	WRAM =(uint8_t*)FCEU_gmalloc(8192);
 	SetupCartPRGMapping(0x10, WRAM, 8192, 1);
 	memset(WRAM, 0x00, 8192);
 	AddExState(WRAM, 8192, 0, "WRAM");
 
 	CHRRAMSize =info->CHRRomSize? info->CHRRomSize: (info->CHRRamSize +info->CHRRamSaveSize);
-	CHRRAM =(uint8*)FCEU_gmalloc(CHRRAMSize);
+	CHRRAM =(uint8_t*)FCEU_gmalloc(CHRRAMSize);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);
 	AddExState(CHRRAM, CHRRAMSize, 0, "CRAM");
 	memset(CHRRAM, 0xFF, CHRRAMSize);
 	if (info->mapper ==561 && info->submapper ==3 && info->PRGRomSize ==131072) { /* Crazy Climber (G026) is 128 KiB but expects to find PRG-DRAM above it */
-		uint8* newROM =(uint8*)FCEU_gmalloc(262144);
+		uint8_t* newROM =(uint8_t*)FCEU_gmalloc(262144);
 		memset(newROM, 0xFF, 262144);
 		memcpy(newROM,  ROM, 131072);
 		FCEU_gfree(ROM);

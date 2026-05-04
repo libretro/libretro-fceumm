@@ -28,8 +28,8 @@
 
 #include "mapinc.h"
 
-static uint8 reg[2];
-static uint8 dipswitch;
+static uint8_t reg[2];
+static uint8_t dipswitch;
 
 static SFORMAT StateRegs[] =
 {
@@ -40,9 +40,9 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 bank = (reg[1] & 0x07);
-	uint8 base = (reg[1] & 0x18) | ((reg[0] & 0x04) << 3);
-	uint8 mode = (reg[1] & 0xC0) >> 6;
+	uint8_t bank = (reg[1] & 0x07);
+	uint8_t base = (reg[1] & 0x18) | ((reg[0] & 0x04) << 3);
+	uint8_t mode = (reg[1] & 0xC0) >> 6;
 
 	setchr8(0);
 	setprg16(0x8000, base | (bank & ~(mode & 1)));

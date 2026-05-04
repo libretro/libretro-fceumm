@@ -22,10 +22,10 @@
 #include "share.h"
 
 static int seq, ptr, bit, cnt, have;
-static uint8 bdata[20];
+static uint8_t bdata[20];
 
 
-static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret) {
+static uint8_t FP_FASTAPASS(2) Read(int w, uint8_t ret) {
 	if (w && have) {
 		switch (seq) {
 		case 0: seq++; ptr = 0; ret |= 0x4; break;
@@ -43,14 +43,14 @@ static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret) {
 	return(ret);
 }
 
-static void FP_FASTAPASS(1) Write(uint8 V) {
+static void FP_FASTAPASS(1) Write(uint8_t V) {
 }
 
 static void FP_FASTAPASS(2) Update(void *data, int arg) {
-	if (*(uint8*)data) {
+	if (*(uint8_t*)data) {
 		size_t i;
-		const uint8 *src = (uint8*)data + 1;
-		*(uint8*)data = 0;
+		const uint8_t *src = (uint8_t*)data + 1;
+		*(uint8_t*)data = 0;
 		seq = ptr = 0;
 		have = 1;
 		/* bdata is 20 bytes total; bytes 13..19 are filled by the

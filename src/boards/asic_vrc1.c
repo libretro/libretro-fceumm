@@ -22,7 +22,7 @@
 #include "asic_vrc1.h"
 
 static void (*VRC1_cbSync)();
-static uint8 VRC1_reg[8];
+static uint8_t VRC1_reg[8];
 
 static SFORMAT VRC1_state[] = {
 	{ VRC1_reg, 8, "VC1R" },
@@ -64,7 +64,7 @@ static void VRC1_configure (void (*sync)()) {
 	VRC1_cbSync = sync;
 }
 
-void VRC1_activate (uint8 clear, void (*sync)()) {
+void VRC1_activate (uint8_t clear, void (*sync)()) {
 	VRC1_configure(sync);
 	VRC1_setHandlers();
 	if (clear)

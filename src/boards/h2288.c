@@ -21,11 +21,11 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-extern uint8 m114_perm[8];
+extern uint8_t m114_perm[8];
 
-static void H2288PW(uint32 A, uint8 V) {
+static void H2288PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x40) {
-		uint8 bank = (EXPREGS[0] & 5) | ((EXPREGS[0] & 8) >> 2) | ((EXPREGS[0] & 0x20) >> 2);
+		uint8_t bank = (EXPREGS[0] & 5) | ((EXPREGS[0] & 8) >> 2) | ((EXPREGS[0] & 0x20) >> 2);
 		if (EXPREGS[0] & 2)
 			setprg32(0x8000, bank >> 1);
 		else {

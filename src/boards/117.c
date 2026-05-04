@@ -20,8 +20,8 @@
 
 #include "mapinc.h"
 
-static uint8 prgreg[4], chrreg[8], mirror;
-static uint8 IRQa, IRQCount, IRQLatch;
+static uint8_t prgreg[4], chrreg[8], mirror;
+static uint8_t IRQa, IRQCount, IRQLatch;
 
 static SFORMAT StateRegs[] =
 {

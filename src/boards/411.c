@@ -31,9 +31,9 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
-static void M411CW(uint32 A, uint8 V) {
+static void M411CW(uint32_t A, uint8_t V) {
 	int chrAND, chrOR;
 	switch(submapper) {
 		default:chrOR =EXPREGS[1] <<5 &0x080 | EXPREGS[0] <<4 &0x100 | EXPREGS[1] <<2 &0x200;
@@ -49,7 +49,7 @@ static void M411CW(uint32 A, uint8 V) {
 	setchr1(A, V &chrAND | chrOR &~chrAND);
 }
 
-static void M411PW(uint32 A, uint8 V) {
+static void M411PW(uint32_t A, uint8_t V) {
 	int prgAND, prgOR;
 	switch(submapper) {
 		default:prgOR =EXPREGS[1] <<1 &0x10 | EXPREGS[1] >>1 &0x60;
@@ -63,7 +63,7 @@ static void M411PW(uint32 A, uint8 V) {
 			break;
 	}	
 	if (EXPREGS[0] & 0x40) { /* NROM Mode */
-		uint32 bank = EXPREGS[0] &5 | EXPREGS[0] >>2 &2 | prgOR >>1;		
+		uint32_t bank = EXPREGS[0] &5 | EXPREGS[0] >>2 &2 | prgOR >>1;		
 		if (EXPREGS[0] & 0x02) /* NROM-256 */
 			setprg32(0x8000, bank >> 1);
 		else { 	/* NROM-128 */

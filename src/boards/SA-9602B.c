@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void SA9602BPW(uint32 A, uint8 V) {
+static void SA9602BPW(uint32_t A, uint8_t V) {
 	setprg8(A, (EXPREGS[1] & 0xC0) | (V & 0x3F));
 	if (MMC3_cmd & 0x40)
 		setprg8(0x8000, 62);

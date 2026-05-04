@@ -22,7 +22,7 @@
 #include "asic_vrc2and4.h"
 #include "eeprom_93Cx6.h"
 
-static uint8 eeprom_data[256];
+static uint8_t eeprom_data[256];
 
 static SFORMAT stateRegs[] ={
         { eeprom_data, 256, "EEPR" },

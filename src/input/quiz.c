@@ -21,10 +21,10 @@
 #include <string.h>
 #include "share.h"
 
-static uint8 QZVal, QZValR;
-static uint8 FunkyMode;
+static uint8_t QZVal, QZValR;
+static uint8_t FunkyMode;
 
-static uint8 FP_FASTAPASS(2) QZ_Read(int w, uint8 ret) {
+static uint8_t FP_FASTAPASS(2) QZ_Read(int w, uint8_t ret) {
 	if (w) {
 		ret |= (QZValR & 0x7) << 2;
 		QZValR = QZValR >> 3;
@@ -42,12 +42,12 @@ static void QZ_Strobe(void) {
 	QZValR = QZVal;
 }
 
-static void FP_FASTAPASS(1) QZ_Write(uint8 V) {
+static void FP_FASTAPASS(1) QZ_Write(uint8_t V) {
 	FunkyMode = V & 4;
 }
 
 static void FP_FASTAPASS(2) QZ_Update(void *data, int arg) {
-	QZVal = *(uint8*)data;
+	QZVal = *(uint8_t*)data;
 }
 
 static INPUTCFC QuizKing = { QZ_Read, QZ_Write, QZ_Strobe, QZ_Update, 0, 0 };

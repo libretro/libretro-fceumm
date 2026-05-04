@@ -41,18 +41,18 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSize;
+static uint8_t submapper;
+static uint8_t *CHRRAM = NULL;
+static uint32_t CHRRAMSize;
 
-static void BMC1024CA1PW(uint32 A, uint8 V) {
+static void BMC1024CA1PW(uint32_t A, uint8_t V) {
 	if ((EXPREGS[0]>>3)&1)
 		setprg8(A, (V&0x1F) | ((EXPREGS[0] & 7) << 4));
 	else 
 		setprg8(A, (V&0x0F) | ((EXPREGS[0] & 7) << 4));
 }
 
-static void BMC1024CA1CW(uint32 A, uint8 V) {
+static void BMC1024CA1CW(uint32_t A, uint8_t V) {
 	if ((EXPREGS[0]>>4)&1)
 	 	setchr1r(0x10, A, V);
 	else if (((EXPREGS[0]>>5)&1) && ((EXPREGS[0]>>3)&1))
@@ -63,7 +63,7 @@ static void BMC1024CA1CW(uint32 A, uint8 V) {
 	if (submapper == 1 && EXPREGS[0] &0x08) setmirror(DRegBuf[MMC3_cmd &0x80? 2: 0] &0x80? MI_1: MI_0);
 }
 
-static void BMC1024CA1MW(uint8 V) {
+static void BMC1024CA1MW(uint8_t V) {
 	A000B = V;
 	if (EXPREGS[0] &0x08)
 		setmirror(DRegBuf[MMC3_cmd &0x80? 2: 0] &0x80? MI_1: MI_0);
@@ -104,7 +104,7 @@ void BMC1024CA1_Init(CartInfo *info) {
 	submapper = info->submapper;
 	GenMMC3_Init(info, 256, 256, 8, 0);
 	CHRRAMSize = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSize);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSize);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);
 	AddExState(CHRRAM, CHRRAMSize, 0, "CHRR");
 	pwrap = BMC1024CA1PW;

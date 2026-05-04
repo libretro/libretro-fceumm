@@ -27,11 +27,11 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMC830134CCW(uint32 A, uint8 V) {
+static void BMC830134CCW(uint32_t A, uint8_t V) {
 	setchr1(A, (V & 0xFF) | ((EXPREGS[0] & 0x01) << 8) | ((EXPREGS[0] & 0x02) << 6) | ((EXPREGS[0] & 0x08) << 3));
 }
 
-static void BMC830134CPW(uint32 A, uint8 V) {
+static void BMC830134CPW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x08) {
 		if (A == 0x8000) {
 			setprg8(A, (V & 0x0F) | ((EXPREGS[0] & 0x06) << 3));

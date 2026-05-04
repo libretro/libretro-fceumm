@@ -33,8 +33,8 @@
 
 #include "mapinc.h"
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 char *GetKeyboard(void);
 
@@ -44,7 +44,7 @@ static int TransformerCycleCount, TransformerChar = 0;
 static void FP_FASTAPASS(1) TransformerIRQHook(int a) {
 	TransformerCycleCount += a;
 	if (TransformerCycleCount >= 1000) {
-		uint32 i;
+		uint32_t i;
 		TransformerCycleCount -= 1000;
 		TransformerKeys = GetKeyboard();
 
@@ -63,7 +63,7 @@ static void FP_FASTAPASS(1) TransformerIRQHook(int a) {
 }
 
 static DECLFR(TransformerRead) {
-	uint8 ret = 0;
+	uint8_t ret = 0;
 	switch (A & 3) {
 	case 0: ret = TransformerChar & 15; break;
 	case 1: ret = (TransformerChar >> 4); break;
@@ -99,7 +99,7 @@ void Transformer_Init(CartInfo *info) {
 	info->Close = TransformerClose;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;

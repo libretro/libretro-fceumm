@@ -22,19 +22,19 @@
 #include "asic_mmc3.h"
 
 static void (*MMC3_cbSync)();
-static int (*MMC3_cbGetPRGBank)(uint8);
-static int (*MMC3_cbGetCHRBank)(uint8);
+static int (*MMC3_cbGetPRGBank)(uint8_t);
+static int (*MMC3_cbGetCHRBank)(uint8_t);
 static DECLFR ((*MMC3_cbReadWRAM));
 static DECLFW ((*MMC3_cbWriteWRAM));
-static uint8 MMC3_type;
-static uint8 MMC3_index;
-static uint8 MMC3_reg[8];
-static uint8 MMC3_mirroring;
-static uint8 MMC3_wramControl;
-static uint8 MMC3_reloadValue;
-static uint8 MMC3_reloadRequest;
-static uint8 MMC3_irqEnable;
-static uint8 MMC3_counter;
+static uint8_t MMC3_type;
+static uint8_t MMC3_index;
+static uint8_t MMC3_reg[8];
+static uint8_t MMC3_mirroring;
+static uint8_t MMC3_wramControl;
+static uint8_t MMC3_reloadValue;
+static uint8_t MMC3_reloadRequest;
+static uint8_t MMC3_irqEnable;
+static uint8_t MMC3_counter;
 
 static SFORMAT MMC3_state[] = {
 	{ MMC3_reg,           8, "M3GS" },
@@ -52,19 +52,19 @@ void MMC3_syncWRAM (int OR) {
 	if (PRGsize[0x10]) setprg8r(0x10, 0x6000, OR);
 }
 
-int MMC3_getPRGBank (uint8 bank) {
+int MMC3_getPRGBank (uint8_t bank) {
 	bank &= 3;
 	if (MMC3_index &0x40 && ~bank &1) bank ^= 2;
 	return bank &2? 0xFE | bank &1: MMC3_reg[6 | bank &1];
 }
 
-int MMC3_getCHRBank (uint8 bank) {
+int MMC3_getCHRBank (uint8_t bank) {
 	bank &= 7;
 	if (MMC3_index &0x80) bank ^= 4;
 	return bank &4? MMC3_reg[bank -2]: MMC3_reg[bank >>1] &~1 | bank &1;
 }
 
-uint8 MMC3_getMirroring (void) {
+uint8_t MMC3_getMirroring (void) {
 	return MMC3_mirroring;
 }
 
@@ -106,7 +106,7 @@ void MMC3_syncMirror () {
 }
 
 void MMC3_clockCounter () {
-	uint8 prevCounter = MMC3_counter;
+	uint8_t prevCounter = MMC3_counter;
 	if (MMC3_reloadRequest || !MMC3_counter)
 		MMC3_counter = MMC3_reloadValue;
 	else
@@ -148,7 +148,7 @@ static void MMC3_setHandlers () {
 	GameHBIRQHook = MMC3_clockCounter;
 }
 
-static void MMC3_configure (void (*sync)(), uint8 type, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write))) {
+static void MMC3_configure (void (*sync)(), uint8_t type, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {
 	MMC3_type = type;
 	MMC3_cbSync = sync;
 	MMC3_cbGetPRGBank = prg? prg: MMC3_getPRGBank;
@@ -157,7 +157,7 @@ static void MMC3_configure (void (*sync)(), uint8 type, int (*prg)(uint8), int (
 	MMC3_cbWriteWRAM = write;
 }
 
-void MMC3_activate (uint8 clear, void (*sync)(), uint8 type, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write))) {
+void MMC3_activate (uint8_t clear, void (*sync)(), uint8_t type, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {
 	MMC3_configure(sync, type, prg, chr, read, write);
 	MMC3_setHandlers();
 	if (clear)
@@ -179,7 +179,7 @@ void MMC3_power () {
 	MMC3_clear();
 }
 
-void MMC3_init (CartInfo *info, void (*sync)(), uint8 type, int (*prg)(uint8), int (*chr)(uint8), DECLFR((*read)), DECLFW((*write))) {
+void MMC3_init (CartInfo *info, void (*sync)(), uint8_t type, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {
 	MMC3_addExState();
 	MMC3_configure(sync, type, prg, chr, read, write);
 	info->Power = MMC3_power;

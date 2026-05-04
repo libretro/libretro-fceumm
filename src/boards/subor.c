@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 is167, regs[4];
+static uint8_t is167, regs[4];
 
 static SFORMAT StateRegs[] =
 {

@@ -25,10 +25,10 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 PPUCHRBus;
-static uint8 mirr[8];
+static uint8_t PPUCHRBus;
+static uint8_t mirr[8];
 
-static void FP_FASTAPASS(1) M370PPU(uint32 A) {
+static void FP_FASTAPASS(1) M370PPU(uint32_t A) {
 	if ((EXPREGS[0] & 7) == 1) {
 		A &= 0x1FFF;
 		A >>= 10;
@@ -37,8 +37,8 @@ static void FP_FASTAPASS(1) M370PPU(uint32 A) {
 	}
 }
 
-static void M370CW(uint32 A, uint8 V) {
-	uint8 mask = (EXPREGS[0] & 4) ? 0x7F : 0xFF;
+static void M370CW(uint32_t A, uint8_t V) {
+	uint8_t mask = (EXPREGS[0] & 4) ? 0x7F : 0xFF;
 	/* FIXME: Mario VII, mask is reversed? */
 	if ((EXPREGS[0] & 7) == 6 && V & 0x80)
 		mask = 0xFF;
@@ -48,12 +48,12 @@ static void M370CW(uint32 A, uint8 V) {
 		setmirror(MI_0 + (V >> 7));
 }
 
-static void M370PW(uint32 A, uint8 V) {
-	uint8 mask = EXPREGS[0] & 0x20 ? 0x0F : 0x1F;
+static void M370PW(uint32_t A, uint8_t V) {
+	uint8_t mask = EXPREGS[0] & 0x20 ? 0x0F : 0x1F;
 	setprg8(A, (V & mask) | ((EXPREGS[0] & 0x38) << 1));
 }
 
-static void M370MW(uint8 V) {
+static void M370MW(uint8_t V) {
 	A000B = V;
 	if ((EXPREGS[0] & 7) != 1)
 		setmirror((V & 1) ^ 1);

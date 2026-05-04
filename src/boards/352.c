@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 game;
+static uint8_t game;
 
 static void sync () {
 	setprg32(0x8000, game);

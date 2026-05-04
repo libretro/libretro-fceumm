@@ -21,14 +21,14 @@
 #ifndef _ASIC_TC3294_H
 #define _ASIC_TC3294_H
 
-extern uint8 TC3294_reg[4];
+extern uint8_t TC3294_reg[4];
 void TC3294_syncWRAM (int);
 void TC3294_syncPRG (int, int);
 void TC3294_syncCHR (int, int);
 void TC3294_syncMirror ();
 DECLFW (TC3294_writeReg);
 void TC3294_clear ();
-void TC3294_activate (uint8, void (*)());
+void TC3294_activate (uint8_t, void (*)());
 void TC3294_addExState ();
 void TC3294_restore (int);
 void TC3294_power ();

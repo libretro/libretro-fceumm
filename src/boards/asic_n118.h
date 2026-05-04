@@ -21,16 +21,16 @@
 #ifndef _ASIC_N118_H
 #define _ASIC_N118_H
 
-int N118_getPRGBank (uint8);
-int N118_getCHRBank (uint8);
+int N118_getPRGBank (uint8_t);
+int N118_getCHRBank (uint8_t);
 void N118_syncPRG (int, int);
 void N118_syncCHR (int, int);
 DECLFW (N118_writeReg);
 void N118_clear ();
-void N118_activate (uint8, void (*)(), int (*)(uint8), int (*)(uint8));
+void N118_activate (uint8_t, void (*)(), int (*)(uint8_t), int (*)(uint8_t));
 void N118_addExState();
 void N118_restore (int);
 void N118_power ();
-void N118_init (CartInfo *, void (*)(), int (*)(uint8), int (*)(uint8));
+void N118_init (CartInfo *, void (*)(), int (*)(uint8_t), int (*)(uint8_t));
 
 #endif

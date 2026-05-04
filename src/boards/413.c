@@ -20,14 +20,14 @@
  
 #include "mapinc.h"
 
-static uint8 reg[4];
-static uint32 pcmAddress, pcmAddressMask;
-static uint8 pcmControl;
-static uint8 scanlineCounter;
-static uint8 scanlineReload;
-static uint8 scanlineIRQ;
-static uint32 lasttime;
-extern uint32 timestamp;
+static uint8_t reg[4];
+static uint32_t pcmAddress, pcmAddressMask;
+static uint8_t pcmControl;
+static uint8_t scanlineCounter;
+static uint8_t scanlineReload;
+static uint8_t scanlineIRQ;
+static uint32_t lasttime;
+extern uint32_t timestamp;
 
 static SFORMAT stateRegs[] ={
 	{ reg, 4, "REGS" },
@@ -51,7 +51,7 @@ static void sync() {
 }
 
 static DECLFR(readPCM) {
-	uint8 result =MiscROM[pcmAddress &pcmAddressMask];
+	uint8_t result =MiscROM[pcmAddress &pcmAddressMask];
 	if (timestamp <lasttime || timestamp >(lasttime +6)) {
 		if (pcmControl &2) ++pcmAddress;
 		lasttime =timestamp;

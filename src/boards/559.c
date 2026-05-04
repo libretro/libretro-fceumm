@@ -21,8 +21,8 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
-static uint8 nt[4];
-static uint8 prg;
+static uint8_t nt[4];
+static uint8_t prg;
 
 static SFORMAT stateRegs[] ={
         { nt, 4, "EXPN" },
@@ -38,7 +38,7 @@ static void sync () {
 	setmirrorw(nt[0] &1, nt[1] &1, nt[2] &1, nt[3] &1);
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	return bank ==2? prg: VRC24_getPRGBank(bank);
 }
 

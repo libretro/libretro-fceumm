@@ -26,17 +26,17 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper; /* 0: K-3006, 1: unmarked, 2: TL 8058, 3: K-3091/GN-16 */
+static uint8_t submapper; /* 0: K-3006, 1: unmarked, 2: TL 8058, 3: K-3091/GN-16 */
 
 static DECLFR (readPad) {
 	return CartBR(A &~3 | EXPREGS[1] &3);
 }
 
-static void BMCK3006CW(uint32 A, uint8 V) {
+static void BMCK3006CW(uint32_t A, uint8_t V) {
 	setchr1(A, (V & 0x7F) | (EXPREGS[0] & 0x18) << 4);
 }
 
-static void BMCK3006PW(uint32 A, uint8 V) {
+static void BMCK3006PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x20) {				/* MMC3 mode */
 		setprg8(A, (V & 0x0F) | (EXPREGS[0] & 0x18) << 1);
 	} else {

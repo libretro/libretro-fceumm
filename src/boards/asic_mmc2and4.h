@@ -31,7 +31,7 @@ void MMC24_clear ();
 void MMC24_power ();
 void MMC24_restore (int);
 void MMC24_addExState ();
-void MMC24_activate (uint8, void (*)());
+void MMC24_activate (uint8_t, void (*)());
 void MMC24_init (CartInfo *, void (*)());
 
 #endif

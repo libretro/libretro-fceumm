@@ -91,7 +91,7 @@ int SerialIsOpen(void) {
 }
 
 int SerialGetChar(void) {
-	uint8 ch;
+	uint8_t ch;
 	DWORD cr;
 	if (SerialPort != NULL) {
 		if (ReadFile(SerialPort, &ch, 1, (LPDWORD)&cr, NULL) && cr)
@@ -100,14 +100,14 @@ int SerialGetChar(void) {
 	return EOF;
 }
 
-void SendCmd(uint8 *cmd, int size) {
+void SendCmd(uint8_t *cmd, int size) {
 	int i;
 	for (i = 0; i < size; i++) {
 		SerialSendChar(cmd[i]);
 	}
 }
 
-int ReadResp(uint8 *resp, int size) {
+int ReadResp(uint8_t *resp, int size) {
 	int i = 0, sum = 0, data;
 	while (i < size) {
 		while ((data = SerialGetChar()) == EOF) {
@@ -141,10 +141,10 @@ int SerialGetChar(void) {
 	return EOF;
 }
 
-void SendCmd(uint8 *cmd, int size) {
+void SendCmd(uint8_t *cmd, int size) {
 }
 
-int ReadResp(uint8 *resp, int size) {
+int ReadResp(uint8_t *resp, int size) {
 	return 0;
 }
 

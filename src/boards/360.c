@@ -22,8 +22,8 @@
 
 #include "mapinc.h"
 
-static uint8 reg;
-static uint8 submapper;
+static uint8_t reg;
+static uint8_t submapper;
 
 static SFORMAT StateRegs[] =
 {

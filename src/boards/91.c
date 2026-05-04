@@ -28,11 +28,11 @@
 
 #include "mapinc.h"
 
-static uint8 cregs[4], pregs[2];
-static uint8 IRQCount, IRQa;
-static uint8 submapper;
-static uint8 outerbank;
-static uint8 mirr;
+static uint8_t cregs[4], pregs[2];
+static uint8_t IRQCount, IRQa;
+static uint8_t submapper;
+static uint8_t outerbank;
+static uint8_t mirr;
 
 static SFORMAT StateRegs[] =
 {

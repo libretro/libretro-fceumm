@@ -26,7 +26,7 @@
 #include "asic_latch.h"
 #include "asic_mmc1.h"
 
-static uint8 game;
+static uint8_t game;
 
 static void sync_SLROM () {
 	MMC1_syncPRG(0x07, game <<3);
@@ -46,7 +46,7 @@ static void sync_SEROM () {
 	MMC1_syncMirror();
 }
 
-static void applyMode (uint8 clear) {
+static void applyMode (uint8_t clear) {
 	if (game <= 2)
 		MMC1_activate(clear, sync_SLROM, MMC1_TYPE_MMC1B, NULL, NULL, NULL, NULL);
 	else

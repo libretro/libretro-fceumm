@@ -22,8 +22,8 @@
 
 #define CARD_EXTERNAL_INSERED 0x80
 
-static uint8 prg_reg;
-static uint8 chr_reg;
+static uint8_t prg_reg;
+static uint8_t chr_reg;
 static SFORMAT StateRegs[] =
 {
 	{ &prg_reg, 1, "PREG" },
@@ -85,7 +85,7 @@ byte_8CC6:           .BYTE   0,$78,  0,  0,$12
 #endif
 
 #if 0 /* Silenced since unused */
-static uint8 sim0reset[0x1F] = {
+static uint8_t sim0reset[0x1F] = {
 	0x3B, 0xE9, 0x00, 0xFF, 0xC1, 0x10, 0x31, 0xFE,
 	0x55, 0xC8, 0x10, 0x20, 0x55, 0x47, 0x4F, 0x53,
 	0x56, 0x53, 0x43, 0xAD, 0x10, 0x10, 0x10, 0x10,

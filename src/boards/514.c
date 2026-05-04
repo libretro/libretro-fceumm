@@ -22,7 +22,7 @@
 #include "asic_latch.h"
 #include "cartram.h"
 
-static uint8 chr;
+static uint8_t chr;
 
 static void sync () {
 	setprg8r(0x10, 0x6000, 0);
@@ -32,7 +32,7 @@ static void sync () {
 	setmirror(Latch_data &0x40? MI_H: MI_V);
 }
 
-static void FP_FASTAPASS(1) trapPPUAddressChange (uint32 A) {
+static void FP_FASTAPASS(1) trapPPUAddressChange (uint32_t A) {
 	if (A &0x2000 && (A &0x23C0) < 0x23C0) {
 		chr = A >>(10 +(Latch_data &0x40? 1: 0)) &1;
 		setchr4(0x0000, Latch_data &0x80? chr: 0);

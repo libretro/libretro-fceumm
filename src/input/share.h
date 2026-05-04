@@ -9,7 +9,7 @@
 #include "../palette.h"
 #include "../state.h"
 
-void FCEU_DrawCursor(uint8 *buf, int xc, int yc);
-void FCEU_DrawGunSight(uint8 *buf, int xc, int yc);
+void FCEU_DrawCursor(uint8_t *buf, int xc, int yc);
+void FCEU_DrawGunSight(uint8_t *buf, int xc, int yc);
 
 #endif /* _SHARE_H */

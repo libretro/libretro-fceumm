@@ -25,8 +25,8 @@
 #define MMC1_TYPE_MMC1B 1
 
 void MMC1_syncWRAM (int);
-int MMC1_getPRGBank (uint8);
-int MMC1_getCHRBank (uint8);
+int MMC1_getPRGBank (uint8_t);
+int MMC1_getCHRBank (uint8_t);
 void MMC1_syncPRG (int, int);
 void MMC1_syncCHR (int, int);
 void MMC1_syncMirror ();
@@ -36,7 +36,7 @@ void MMC1_clear ();
 void MMC1_addExState ();
 void MMC1_restore (int);
 void MMC1_power ();
-void MMC1_activate (uint8, void (*)(), uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
-void MMC1_init (CartInfo *, void (*)(), uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
+void MMC1_activate (uint8_t, void (*)(), uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
+void MMC1_init (CartInfo *, void (*)(), uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
 
 #endif

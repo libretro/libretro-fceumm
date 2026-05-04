@@ -23,7 +23,7 @@
 
 #include "mapinc.h"
 
-static uint8 regs[4];
+static uint8_t regs[4];
 
 static SFORMAT StateRegs[] =
 {
@@ -33,7 +33,7 @@ static SFORMAT StateRegs[] =
 
 static void Sync(void)
 {
-   uint8 mirr;
+   uint8_t mirr;
 	int r = 0;
 
 	if ((regs[1]) & 0x20)

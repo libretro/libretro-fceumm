@@ -42,29 +42,29 @@
 
 #include "mapinc.h"
 
-static uint8 *WRAM            = NULL;
-static uint8 *CHRRAM          = NULL;
-static uint32 WRAMSIZE        = 0;
-static uint32 CHRRAMSIZE      = 0;
+static uint8_t *WRAM            = NULL;
+static uint8_t *CHRRAM          = NULL;
+static uint32_t WRAMSIZE        = 0;
+static uint32_t CHRRAMSIZE      = 0;
 
-static uint8 fk23_regs[8]     = { 0 }; /* JX9003B has eight registers, all others have four */
-static uint8 mmc3_regs[12]    = { 0 };
-static uint8 mmc3_ctrl        = 0;
-static uint8 mmc3_mirr        = 0;
-static uint8 mmc3_wram        = 0;
-static uint8 irq_count        = 0;
-static uint8 irq_latch        = 0;
-static uint8 irq_enabled      = 0;
-static uint8 irq_reload       = 0;
-static uint8 latch            = 0;
-static uint8 dipswitch        = 0;
-static uint8 subType          = 0; /* NES 2.0 Submapper, denoting PCB variants */
-static uint8 jncota523        = 0; /* Jncota board with unusual wiring that turns 1 KiB CHR banks into 2 KiB banks, and has hard-wired nametable mirroring. */
-static uint8 dipsw_enable     = 0; /* Change the address mask on every reset? */
-static uint8 after_power      = 0; /* Used for detecting whether a DIP switch is used or not (see above) */
+static uint8_t fk23_regs[8]     = { 0 }; /* JX9003B has eight registers, all others have four */
+static uint8_t mmc3_regs[12]    = { 0 };
+static uint8_t mmc3_ctrl        = 0;
+static uint8_t mmc3_mirr        = 0;
+static uint8_t mmc3_wram        = 0;
+static uint8_t irq_count        = 0;
+static uint8_t irq_latch        = 0;
+static uint8_t irq_enabled      = 0;
+static uint8_t irq_reload       = 0;
+static uint8_t latch            = 0;
+static uint8_t dipswitch        = 0;
+static uint8_t subType          = 0; /* NES 2.0 Submapper, denoting PCB variants */
+static uint8_t jncota523        = 0; /* Jncota board with unusual wiring that turns 1 KiB CHR banks into 2 KiB banks, and has hard-wired nametable mirroring. */
+static uint8_t dipsw_enable     = 0; /* Change the address mask on every reset? */
+static uint8_t after_power      = 0; /* Used for detecting whether a DIP switch is used or not (see above) */
 
-extern uint32 ROM_size;
-extern uint32 VROM_size;
+extern uint32_t ROM_size;
+extern uint32_t VROM_size;
 
 static SFORMAT StateRegs[] = {
    { fk23_regs,               8, "EXPR" },
@@ -94,7 +94,7 @@ static SFORMAT StateRegs[] = {
 #define CHR_OUTER_BANK_SIZE !!( fk23_regs[0] & 0x10)                 /* Switch between 256 and 128 KiB CHR, or 32 and 16 KiB CHR in CNROM mode */
 #define CHR_MIXED           !!(WRAM_EXTENDED && mmc3_wram &0x04)     /* First 8 KiB of CHR address space are RAM, then ROM */
 
-static void cwrap(uint32 A, uint32 V)
+static void cwrap(uint32_t A, uint32_t V)
 {
    int bank = 0;
 
@@ -118,12 +118,12 @@ static void cwrap(uint32 A, uint32 V)
 
 static void SyncCHR(void)
 {
-   uint32 outer = fk23_regs[2] | (subType == 3? (fk23_regs[6] << 8): 0);    /* Outer 8 KiB CHR bank. Subtype 3 has an MSB register providing more bits. */
+   uint32_t outer = fk23_regs[2] | (subType == 3? (fk23_regs[6] << 8): 0);    /* Outer 8 KiB CHR bank. Subtype 3 has an MSB register providing more bits. */
    if (CHR_8K_MODE)
    {
-      uint32 mask = (CHR_CNROM_MODE? (CHR_OUTER_BANK_SIZE? 0x01: 0x03): 0x00);
+      uint32_t mask = (CHR_CNROM_MODE? (CHR_OUTER_BANK_SIZE? 0x01: 0x03): 0x00);
       /* In Submapper 1, address bits come either from outer bank or from latch. In Submapper 5, they are OR'd. Both verified on original hardware. */
-      uint32 bank = ((subType ==5? outer: (outer & ~mask)) | (latch & mask)) << 3;
+      uint32_t bank = ((subType ==5? outer: (outer & ~mask)) | (latch & mask)) << 3;
 
       cwrap(0x0000, bank + 0);
       cwrap(0x0400, bank + 1);
@@ -137,8 +137,8 @@ static void SyncCHR(void)
    }
    else
    {
-      uint32 cbase = (INVERT_CHR? 0x1000: 0);
-      uint32 mask  = (CHR_OUTER_BANK_SIZE? 0x7F: 0xFF);
+      uint32_t cbase = (INVERT_CHR? 0x1000: 0);
+      uint32_t mask  = (CHR_OUTER_BANK_SIZE? 0x7F: 0xFF);
              outer = (outer << 3) & ~mask; /* From 8 KiB to 1 KiB banks. Address bits are never OR'd; they either come from the outer bank or from the MMC3. */
 
       if (MMC3_EXTENDED)
@@ -170,8 +170,8 @@ static void SyncCHR(void)
 
 static void SyncPRG(void)
 {
-   uint32 mask = 0x3F >> PRG_MODE;        /* For PRG modes 0-2, the mode# decides how many bits of the inner 8 KiB bank are used. This is greatly relevant to map the correct bank that contains the reset vectors. */
-   uint32 prg_base = fk23_regs[1] & 0x7F; /* The bits for the first 2 MiB are the same between all the variants. */
+   uint32_t mask = 0x3F >> PRG_MODE;        /* For PRG modes 0-2, the mode# decides how many bits of the inner 8 KiB bank are used. This is greatly relevant to map the correct bank that contains the reset vectors. */
+   uint32_t prg_base = fk23_regs[1] & 0x7F; /* The bits for the first 2 MiB are the same between all the variants. */
    switch (subType)
    {
       case 1: /* FK-xxx */
@@ -198,7 +198,7 @@ static void SyncPRG(void)
       case 1: /* MMC3 with 256 KiB addressable */
       case 2: /* MMC3 with 128 KiB addressable */
       {
-         uint32 cbase = (INVERT_PRG ? 0x4000 : 0);
+         uint32_t cbase = (INVERT_PRG ? 0x4000 : 0);
       
          prg_base =(prg_base << 1) & ~mask; /* from 16 to 8 KiB. Address bits are never OR'd; they either come from the outer bank or from the MMC3.  */
       
@@ -302,7 +302,7 @@ static DECLFW(Write8000)
    {
       case 0x8000:
       {
-         uint8 old_ctrl;
+         uint8_t old_ctrl;
          if (A & 2) return; /* Confirmed on real hardware: writes to 8002 and 8003, or 9FFE and 9FFF, are ignored. Needed for Dr. Mario on some of the "bouncing ball" multis. */
          old_ctrl = mmc3_ctrl;
       
@@ -328,7 +328,7 @@ static DECLFW(Write8000)
       }
       case 0x8001:
       {
-         uint8 ctrl_mask;
+         uint8_t ctrl_mask;
          if (A & 2) return; /* Confirmed on real hardware: writes to 8002 and 8003, or 9FFE and 9FFF, are ignored. Needed for Dr. Mario on some of the "bouncing ball" multis. */
          ctrl_mask = MMC3_EXTENDED ? 0x0F : 0x07;
       
@@ -477,14 +477,14 @@ void Init(CartInfo *info)
 
    if (CHRRAMSIZE)
    {
-      CHRRAM = (uint8 *)FCEU_gmalloc(CHRRAMSIZE);
+      CHRRAM = (uint8_t *)FCEU_gmalloc(CHRRAMSIZE);
       SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
       AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
    }
 
    if (WRAMSIZE)
    {
-      WRAM = (uint8 *)FCEU_gmalloc(WRAMSIZE);
+      WRAM = (uint8_t *)FCEU_gmalloc(WRAMSIZE);
       SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
       AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 

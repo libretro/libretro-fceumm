@@ -21,11 +21,11 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void Mapper456_PRGWrap(uint32 A, uint8 V) {
+static void Mapper456_PRGWrap(uint32_t A, uint8_t V) {
 	setprg8(A, V &0x0F | EXPREGS[0] <<4);
 }
 
-static void Mapper456_CHRWrap(uint32 A, uint8 V) {
+static void Mapper456_CHRWrap(uint32_t A, uint8_t V) {
 	setchr1(A, V &0x7F | EXPREGS[0] <<7);
 }
 

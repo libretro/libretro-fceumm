@@ -22,7 +22,7 @@
 #include "mapinc.h"
 #include "latch.h"
 
-static uint8 inesMirroring;
+static uint8_t inesMirroring;
 
 static void Sync(void) {
     if (!(latch.data & 1) && (latch.data & 8)) {

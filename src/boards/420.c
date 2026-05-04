@@ -21,16 +21,16 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M420CW(uint32 A, uint8 V) {
-	uint8 mask = (EXPREGS[1] & 0x80) ? 0x7F : 0xFF;
+static void M420CW(uint32_t A, uint8_t V) {
+	uint8_t mask = (EXPREGS[1] & 0x80) ? 0x7F : 0xFF;
 	setchr1(A, ((EXPREGS[1] << 1) & 0x100) | ((EXPREGS[1] << 5) & 0x80) | (V & mask));
 }
 
-static void M420PW(uint32 A, uint8 V) {
+static void M420PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x80) {
 		setprg32(0x8000, ((EXPREGS[2] >> 2) & 8) | ((EXPREGS[0] >> 1) & 7));
 	} else {
-		uint8 mask = (EXPREGS[0] & 0x20) ? 0x0F : ((EXPREGS[3] & 0x20) ? 0x1F : 0x3F);
+		uint8_t mask = (EXPREGS[0] & 0x20) ? 0x0F : ((EXPREGS[3] & 0x20) ? 0x1F : 0x3F);
 		setprg8(A, ((EXPREGS[3] << 3) & 0x20) | (V & mask));
 	}
 }

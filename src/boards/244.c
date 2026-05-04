@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 preg, creg;
+static uint8_t preg, creg;
 static SFORMAT StateRegs[] =
 {
 	{ &preg, 1, "PREG" },
@@ -28,14 +28,14 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static uint8 prg_perm[4][4] = {
+static uint8_t prg_perm[4][4] = {
 	{ 0, 1, 2, 3, },
 	{ 3, 2, 1, 0, },
 	{ 0, 2, 1, 3, },
 	{ 3, 1, 2, 0, },
 };
 
-static uint8 chr_perm[8][8] = {
+static uint8_t chr_perm[8][8] = {
 	{ 0, 1, 2, 3, 4, 5, 6, 7, },
 	{ 0, 2, 1, 3, 4, 6, 5, 7, },
 	{ 0, 1, 4, 5, 2, 3, 6, 7, },

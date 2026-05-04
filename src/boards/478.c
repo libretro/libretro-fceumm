@@ -23,12 +23,12 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void PRGWrap(uint32 A, uint8 V) {
+static void PRGWrap(uint32_t A, uint8_t V) {
 	int prgAND =EXPREGS[0] &8 && EXPREGS[0] &4? 0x03: 0x0F;
 	setprg8(A, V &prgAND | EXPREGS[0] <<2 &~prgAND);
 }
 
-static void CHRWrap(uint32 A, uint8 V) {
+static void CHRWrap(uint32_t A, uint8_t V) {
 	int chrAND =EXPREGS[0] &8 && EXPREGS[0] &4? 0x1F: 0x7F;
 	setchr1(A, V &chrAND | EXPREGS[0] <<5 &~chrAND);
 }

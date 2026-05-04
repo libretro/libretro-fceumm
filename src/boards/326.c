@@ -24,7 +24,7 @@
 
 #include "mapinc.h"
 
-static uint8 PRG[3], CHR[8], NTAPage[4];
+static uint8_t PRG[3], CHR[8], NTAPage[4];
 
 static SFORMAT StateRegs[] =
 {
@@ -41,7 +41,7 @@ static void SyncPRG(void) {
 	setprg8(0xE000, ~0);
 }
 
-static void DoCHR(int x, uint8 V) {
+static void DoCHR(int x, uint8_t V) {
 	CHR[x] = V;
 	setchr1(x << 10, V);
 }
@@ -52,7 +52,7 @@ static void FixCHR(void) {
 		DoCHR(x, CHR[x]);
 }
 
-static void FASTAPASS(2) DoNTARAM(int w, uint8 V) {
+static void FASTAPASS(2) DoNTARAM(int w, uint8_t V) {
 	NTAPage[w] = V;
 	setntamem(NTARAM + ((V & 1) << 10), 1, w);
 }

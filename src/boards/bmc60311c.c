@@ -24,7 +24,7 @@
 
 #include "mapinc.h"
 
-static uint8 latch, reg[2], solderPad;
+static uint8_t latch, reg[2], solderPad;
 
 static SFORMAT StateRegs[] =
 {

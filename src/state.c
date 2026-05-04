@@ -77,13 +77,13 @@ SFORMAT SFCPUC[] = {
 
 static int SubWrite(memstream_t *mem, SFORMAT *sf)
 {
-   uint32 acc = 0;
+   uint32_t acc = 0;
 
    while(sf->v)
    {
-      if(sf->s == (~(uint32)0)) /* Link to another struct. */
+      if(sf->s == (~(uint32_t)0)) /* Link to another struct. */
       {
-         uint32 tmp;
+         uint32_t tmp;
 
          if(!(tmp = SubWrite(mem, (SFORMAT *)sf->v)))
             return(0);
@@ -102,14 +102,14 @@ static int SubWrite(memstream_t *mem, SFORMAT *sf)
 
 #ifdef MSB_FIRST
          if(sf->s & RLSB)
-            FlipByteOrder((uint8 *)sf->v, sf->s & (~RLSB));
+            FlipByteOrder((uint8_t *)sf->v, sf->s & (~RLSB));
 #endif
          memstream_write(mem, (char *)sf->v, sf->s & (~RLSB));
 
          /* Now restore the original byte order. */
 #ifdef MSB_FIRST
          if(sf->s & RLSB)
-            FlipByteOrder((uint8 *)sf->v, sf->s & (~RLSB));
+            FlipByteOrder((uint8_t *)sf->v, sf->s & (~RLSB));
 #endif
       }
       sf++;
@@ -132,11 +132,11 @@ static int WriteStateChunk(memstream_t *mem, int type, SFORMAT *sf)
    return bsize + 5;
 }
 
-static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
+static SFORMAT *CheckS(SFORMAT *sf, uint32_t tsize, char *desc)
 {
    while (sf->v)
    {
-      if (sf->s == (~(uint32)0))
+      if (sf->s == (~(uint32_t)0))
       { /* Link to another SFORMAT structure. */
          SFORMAT *tmp;
          if ((tmp = CheckS((SFORMAT*)sf->v, tsize, desc)))
@@ -158,12 +158,12 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32 tsize, char *desc)
 static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 {
    SFORMAT *tmp;
-   uint64 temp;
+   uint64_t temp;
    temp = memstream_pos(mem);
 
    while(memstream_pos(mem) < (temp + size))
    {
-      uint32 tsize;
+      uint32_t tsize;
       char toa[4];
       if(memstream_read(mem, toa, 4) <= 0)
          return 0;
@@ -176,7 +176,7 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 
 #ifdef MSB_FIRST
          if(tmp->s & RLSB)
-            FlipByteOrder((uint8 *)tmp->v, tmp->s & (~RLSB));
+            FlipByteOrder((uint8_t *)tmp->v, tmp->s & (~RLSB));
 #endif
       }
       else
@@ -185,10 +185,10 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
    return 1;
 }
 
-static int ReadStateChunks(memstream_t *st, int32 totalsize)
+static int ReadStateChunks(memstream_t *st, int32_t totalsize)
 {
    int t;
-   uint32 size;
+   uint32_t size;
    int ret = 1;
 
    while (totalsize > 0)
@@ -244,8 +244,8 @@ void FCEUSS_Save_Mem(void)
 {
    memstream_t *mem = memstream_open(1);
 
-   uint32 totalsize;
-   uint8 header[16] = {0};
+   uint32_t totalsize;
+   uint8_t header[16] = {0};
 
    header[0] = 'F';
    header[1] = 'C';
@@ -280,7 +280,7 @@ void FCEUSS_Load_Mem(void)
 {
    memstream_t *mem = memstream_open(0);
 
-   uint8 header[16];
+   uint8_t header[16];
    int stateversion;
    int totalsize;
    int x;
@@ -322,7 +322,7 @@ void ResetExState(void (*PreSave)(void), void (*PostSave)(void))
    SFMDATA[0].s = 0;
 }
 
-void AddExState(void *v, uint32 s, int type, char *desc)
+void AddExState(void *v, uint32_t s, int type, char *desc)
 {
    /* prevent adding a terminator to the list if a NULL pointer was provided */
    if (v == NULL) return;
@@ -353,7 +353,7 @@ void AddExState(void *v, uint32 s, int type, char *desc)
    SFMDATA[SFEXINDEX].v = 0;   /* End marker. */
 }
 
-void FCEU_DrawSaveStates(uint8 *XBuf)
+void FCEU_DrawSaveStates(uint8_t *XBuf)
 {
 }
 

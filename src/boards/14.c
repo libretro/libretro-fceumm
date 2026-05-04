@@ -22,9 +22,9 @@
 #include "asic_mmc3.h"
 #include "asic_vrc2and4.h"
 
-static uint8 reg;
-static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield to track it */
-static void applyMode (uint8);
+static uint8_t reg;
+static uint8_t init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield to track it */
+static void applyMode (uint8_t);
 
 static SFORMAT StateRegs[] = {
 	{ &reg, 1, "MODE" },
@@ -44,16 +44,16 @@ static void sync (void) {
 	}
 }
 
-int getCHRBank_MMC3 (uint8 bank) {
+int getCHRBank_MMC3 (uint8_t bank) {
 	return MMC3_getCHRBank(bank) | reg <<(~bank &4? 5: ~bank &2? 3: 1) &0x100;
 }
 
-int getCHRBank_VRC2 (uint8 bank) {
+int getCHRBank_VRC2 (uint8_t bank) {
 	return VRC24_getCHRBank(bank) | reg <<(~bank &4? 5: ~bank &2? 3: 1) &0x100;
 }
 
 static DECLFW (writeReg) {
-	uint8 previousReg = reg;
+	uint8_t previousReg = reg;
 	reg = V;
 	if ((previousReg ^V) &2)
 		applyMode(1);
@@ -61,7 +61,7 @@ static DECLFW (writeReg) {
 		sync();
 }
 
-static void applyMode (uint8 clear) {
+static void applyMode (uint8_t clear) {
 	PPU_hook = NULL;
 	MapIRQHook = NULL;
 	GameHBIRQHook = NULL;

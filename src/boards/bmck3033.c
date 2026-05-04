@@ -27,7 +27,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMCK3033CW(uint32 A, uint8 V) {
+static void BMCK3033CW(uint32_t A, uint8_t V) {
 	if (EXPREGS[2]) {
 		if (EXPREGS[3]) {
 /*			FCEU_printf("MMC3-256: A:%04x V:%02x R1:%02x\n", A, V, EXPREGS[1]); */
@@ -42,7 +42,7 @@ static void BMCK3033CW(uint32 A, uint8 V) {
 	}
 }
 
-static void BMCK3033PW(uint32 A, uint8 V) {
+static void BMCK3033PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[2]) {
 		if (EXPREGS[3] ) {
 /*			FCEU_printf("MMC3-256 A:%04x V:%02x chip:%02x\n", A, V, EXPREGS[1] & ~0x01); */
@@ -52,7 +52,7 @@ static void BMCK3033PW(uint32 A, uint8 V) {
 			setprg8(A, (EXPREGS[1] << 4) | (V & 0x0F));
 		}
 	} else {
-		uint32 base = (EXPREGS[1] << 3);
+		uint32_t base = (EXPREGS[1] << 3);
 		if (EXPREGS[0] & 0x03) {
 /*			FCEU_printf("NROM-256 base:%02x chip:%02x\n", EXPREGS[0] >> 1, EXPREGS[1]); */
 			setprg32(0x8000, base | EXPREGS[0] >> 1);

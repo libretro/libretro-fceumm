@@ -28,10 +28,10 @@
  * the games on the regular FK23C boards couldn't run on this mapper and vice versa...
  */
 
-static uint8 unromchr, lock;
-static uint32 dipswitch;
+static uint8_t unromchr, lock;
+static uint32_t dipswitch;
 
-static void BMCHPxxCW(uint32 A, uint8 V) {
+static void BMCHPxxCW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 4) {		/* custom banking */
 		switch(EXPREGS[0] & 3) {
 		case 0:
@@ -63,7 +63,7 @@ static void BMCHPxxCW(uint32 A, uint8 V) {
 }
 
 /* PRG wrapper */
-static void BMCHPxxPW(uint32 A, uint8 V) {
+static void BMCHPxxPW(uint32_t A, uint8_t V) {
 	if(EXPREGS[0] & 4) {		/* custom banking */
 		if((EXPREGS[0] & 0xF) == 4) {	/* 16K mode */
 /*			FCEU_printf("\tPRG16 %02X\n",EXPREGS[1]&0x1F); */
@@ -74,7 +74,7 @@ static void BMCHPxxPW(uint32 A, uint8 V) {
 			setprg32(0x8000, (EXPREGS[1] & 0x1F) >> 1);
 		}
 	} else {				/* mmc3 banking */
-		uint8 base, mask;
+		uint8_t base, mask;
 		if(EXPREGS[0] & 2) {	/* 128K mode */
 			base = EXPREGS[1] & 0x18;
 			mask = 0x0F;
@@ -89,7 +89,7 @@ static void BMCHPxxPW(uint32 A, uint8 V) {
 }
 
 /* MIRROR wrapper */
-static void BMCHPxxMW(uint8 V) {
+static void BMCHPxxMW(uint8_t V) {
 	if(EXPREGS[0] & 4) {		/* custom banking */
 /*		FCEU_printf("CUSTOM MIRR: %d\n",(unromchr>>2)&1); */
 		setmirror(((unromchr >> 2) & 1) ^ 1);

@@ -24,13 +24,13 @@
 
 #define AK(x)	FKB_ ## x
 
-static uint8 bufit[0x66];
-static uint8 kspos, kstrobe;
-static uint8 ksindex;
+static uint8_t bufit[0x66];
+static uint8_t kspos, kstrobe;
+static uint8_t ksindex;
 
 /* TODO: check all keys, some of the are wrong */
 
-static uint16 matrix[13][8] =
+static uint16_t matrix[13][8] =
 {
 	{ AK(ESCAPE),AK(SPACE),AK(LMENU),AK(LCONTROL),AK(LSHIFT),AK(GRAVE),AK(TAB),AK(CAPITAL) },
 	{ AK(F6),AK(F7),AK(F5),AK(F4),AK(F8),AK(F2),AK(F1),AK(F3) },
@@ -47,7 +47,7 @@ static uint16 matrix[13][8] =
 	{ AK(INSERT),AK(NUMPAD1),AK(HOME),AK(PRIOR),AK(DELETE),AK(END),AK(NEXT),AK(NUMLOCK) },
 };
 
-static void FP_FASTAPASS(1) PEC586KB_Write(uint8 v) {
+static void FP_FASTAPASS(1) PEC586KB_Write(uint8_t v) {
 	if (!(kstrobe & 2) && (v & 2)) {
 		kspos = 0;
 	}
@@ -61,7 +61,7 @@ static void FP_FASTAPASS(1) PEC586KB_Write(uint8 v) {
 	kstrobe = v;
 }
 
-static uint8 FP_FASTAPASS(2) PEC586KB_Read(int w, uint8 ret) {
+static uint8_t FP_FASTAPASS(2) PEC586KB_Read(int w, uint8_t ret) {
 #ifdef FCEUDEF_DEBUGGER
 	if (!fceuindbg) {
 #endif

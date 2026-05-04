@@ -21,7 +21,7 @@
 #ifndef _VRC2AND4_H
 #define _VRC2AND4_H
 
-extern uint8 VRC2_pins;
+extern uint8_t VRC2_pins;
 
 DECLFR(VRC2_readMicrowire);
 DECLFW(VRC2_writeMicrowire);
@@ -31,22 +31,22 @@ DECLFW(VRC24_writeWRAM);
 void VRC24_syncWRAM (int);
 void VRC24_syncPRG (int, int);
 void VRC24_syncCHR (int, int);
-int  VRC24_getPRGBank (uint8);
-int  VRC24_getCHRBank (uint8);
+int  VRC24_getPRGBank (uint8_t);
+int  VRC24_getCHRBank (uint8_t);
 void VRC24_syncMirror ();
 DECLFW(VRC24_writeReg);
 
 void FP_FASTAPASS(1) VRC4_cpuCycle(int);
 void VRC24_reconfigure (int, int);
 void VRC24_clear ();
-void VRC2_activate (uint8, void (*)(), int, int, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
-void VRC4_activate (uint8, void (*)(), int, int, uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)), DECLFW((*)));
+void VRC2_activate (uint8_t, void (*)(), int, int, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
+void VRC4_activate (uint8_t, void (*)(), int, int, uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)), DECLFW((*)));
 void VRC2_addExState ();
 void VRC4_addExState ();
 void VRC24_addExState ();
 void VRC24_restore (int);
 void VRC24_power ();
-void VRC2_init (CartInfo *, void (*)(), int, int, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)));
-void VRC4_init (CartInfo *, void (*)(), int, int, uint8, int (*)(uint8), int (*)(uint8), DECLFR((*)), DECLFW((*)), DECLFW((*)));
+void VRC2_init (CartInfo *, void (*)(), int, int, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
+void VRC4_init (CartInfo *, void (*)(), int, int, uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)), DECLFW((*)));
 
 #endif

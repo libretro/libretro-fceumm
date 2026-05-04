@@ -23,7 +23,7 @@
 #include "asic_mmc3.h"
 
 static void (*PT8154_cbSync)();
-static uint8 PT8154_reg;
+static uint8_t PT8154_reg;
 
 static SFORMAT PT8154_state[] = {
 	{&PT8154_reg,   1, "189R" },
@@ -69,7 +69,7 @@ static void PT8154_configure (void (*sync)()) {
 	PT8154_cbSync = sync;
 }
 
-void PT8154_activate (uint8 clear, void (*sync)()) {
+void PT8154_activate (uint8_t clear, void (*sync)()) {
 	MMC3_activate(clear, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, PT8154_writeWRAM);
 	PT8154_configure(sync);
 	PT8154_setHandlers();

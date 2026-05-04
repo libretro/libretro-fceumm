@@ -22,10 +22,10 @@
 #include "asic_n118.h"
 
 static void (*N118_cbSync)();
-static int (*N118_cbGetPRGBank)(uint8);
-static int (*N118_cbGetCHRBank)(uint8);
-static uint8 N118_index;
-static uint8 N118_reg[8];
+static int (*N118_cbGetPRGBank)(uint8_t);
+static int (*N118_cbGetCHRBank)(uint8_t);
+static uint8_t N118_index;
+static uint8_t N118_reg[8];
 
 static SFORMAT N118_state[] = {
 	{ N118_reg,   8, "N8RG" },
@@ -33,11 +33,11 @@ static SFORMAT N118_state[] = {
 	{ 0 }
 };
 
-int N118_getPRGBank (uint8 bank) {
+int N118_getPRGBank (uint8_t bank) {
 	return bank &2? (0xFE | bank &1): N118_reg[6 | bank &1];
 }
 
-int N118_getCHRBank (uint8 bank) {
+int N118_getCHRBank (uint8_t bank) {
 	return bank &4? N118_reg[bank -2]: (N118_reg[bank >>1] &~1 | bank &1);
 }
 
@@ -71,13 +71,13 @@ static void N118_setHandlers () {
 	SetWriteHandler(0x8000, 0x9FFF, N118_writeReg);
 }
 
-static void N118_configure (void (*sync)(), int (*prg)(uint8), int (*chr)(uint8)) {
+static void N118_configure (void (*sync)(), int (*prg)(uint8_t), int (*chr)(uint8_t)) {
 	N118_cbSync = sync;
 	N118_cbGetPRGBank = prg? prg: N118_getPRGBank;
 	N118_cbGetCHRBank = chr? chr: N118_getCHRBank;
 }
 
-void N118_activate (uint8 clear, void (*sync)(), int (*prg)(uint8), int (*chr)(uint8)) {
+void N118_activate (uint8_t clear, void (*sync)(), int (*prg)(uint8_t), int (*chr)(uint8_t)) {
 	N118_configure(sync, prg, chr);
 	N118_setHandlers();
 	if (clear)
@@ -99,7 +99,7 @@ void N118_power () {
 	N118_clear();
 }
 
-void N118_init (CartInfo *info, void (*sync)(), int (*prg)(uint8), int (*chr)(uint8)) {
+void N118_init (CartInfo *info, void (*sync)(), int (*prg)(uint8_t), int (*chr)(uint8_t)) {
 	N118_addExState();
 	N118_configure(sync, prg, chr);
 	info->Power = N118_power;

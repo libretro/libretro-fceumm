@@ -30,7 +30,7 @@ static void sync () {
 		setmirror(Latch_data &0x10? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* After the lock bit is set, only update the (mode-specific) inner bank bits. */
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* After the lock bit is set, only update the (mode-specific) inner bank bits. */
 	if (Latch_data &0x20) {
 		if (Latch_data &0x08)
 			*newValue = Latch_data &0x28 | *newValue &~0x28; /* AOROM */

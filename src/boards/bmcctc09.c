@@ -27,7 +27,7 @@
 #define PRG 0
 #define CHR 1
 
-static uint8 regs[2];
+static uint8_t regs[2];
 
 static SFORMAT StateRegs[] =
 {

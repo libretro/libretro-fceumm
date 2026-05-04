@@ -21,10 +21,10 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 *CHRRAM;
-static uint8 tekker;
+static uint8_t *CHRRAM;
+static uint8_t tekker;
 
-static void MSHCW(uint32 A, uint8 V) {
+static void MSHCW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x40)
 		setchr8r(0x10, 0);
 	else {
@@ -73,7 +73,7 @@ void UNLSHeroes_Init(CartInfo *info) {
 	info->Power = MSHPower;
 	info->Reset = MSHReset;
 	info->Close = MSHClose;
-	CHRRAM = (uint8*)FCEU_gmalloc(8192);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(8192);
 	SetupCartCHRMapping(0x10, CHRRAM, 8192, 1);
 	AddExState(EXPREGS, 4, 0, "EXPR");
 	AddExState(&tekker, 1, 0, "DIPSW");

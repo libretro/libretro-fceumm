@@ -31,13 +31,13 @@
 #include "asic_vrc7.h"
 #include "cartram.h"
 
-static uint8 submapper;
-static uint8 reg[4]; /* Supervisor registers */
-static uint8 Custom_reg[4]; /* Registers for custom mappers */
-static uint8 eeprom[16], eep_clock, state, command, output; /* Serial EEPROM */
+static uint8_t submapper;
+static uint8_t reg[4]; /* Supervisor registers */
+static uint8_t Custom_reg[4]; /* Registers for custom mappers */
+static uint8_t eeprom[16], eep_clock, state, command, output; /* Serial EEPROM */
 
 static void (*mapperSync)(int) = NULL;
-static void applyMode (uint8);
+static void applyMode (uint8_t);
 
 static SFORMAT stateRegs[] = {
 	{ &reg,         4, "REGS" },
@@ -51,7 +51,7 @@ static SFORMAT stateRegs[] = {
 };
 
 /* Serial EEPROM */
-static const uint16 lut509[512] = { /* Look-up table, used only by Legendary Games of NES 509-in-1 */
+static const uint16_t lut509[512] = { /* Look-up table, used only by Legendary Games of NES 509-in-1 */
    7,   8,   9,  10,  11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,
   47,  48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,   0,   1,  73,  74,  75,  76,  77,  78,  79,  80,  81,  82,  83,  84,
   85,  86,  87,  88,  89,  90,   4,  91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123,
@@ -67,7 +67,7 @@ static const uint16 lut509[512] = { /* Look-up table, used only by Legendary Gam
  483, 484, 485, 486, 487, 488, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499, 500, 501, 502, 503, 504, 505, 506, 507, 508, 512, 513, 514, 515, 516, 517
 };
 
-static void setPins(uint8 select, uint8 newClock, uint8 newData) { /* Serial EEPROM */
+static void setPins(uint8_t select, uint8_t newClock, uint8_t newData) { /* Serial EEPROM */
 	if (select)
 		state = 0;
 	else
@@ -259,7 +259,7 @@ static void sync_SUROM (int prgOR) {
 	MMC1_syncMirror();
 }
 
-static int SUROM_getPRGBank (uint8 bank) {
+static int SUROM_getPRGBank (uint8_t bank) {
 	return MMC1_getPRGBank(bank) | MMC1_getCHRBank(0) &0x10;
 }
 
@@ -380,8 +380,8 @@ static DECLFW (writeReg) {
 	}
 }
 
-static void applyMode (uint8 clear) {
-	uint8 previousMirroring;
+static void applyMode (uint8_t clear) {
+	uint8_t previousMirroring;
 	MapIRQHook = NULL;
 	PPU_hook = NULL;
 	GameHBIRQHook = NULL;

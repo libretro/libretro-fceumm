@@ -22,12 +22,12 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M364CW(uint32 A, uint8 V) {
+static void M364CW(uint32_t A, uint8_t V) {
 	V &= (EXPREGS[0] & 0x20) ? 0x7F : 0xFF;
 	setchr1(A, V | ((EXPREGS[0] << 4) & 0x100));
 }
 
-static void M364PW(uint32 A, uint8 V) {
+static void M364PW(uint32_t A, uint8_t V) {
 	V &= (EXPREGS[0] & 0x20) ? 0x0F : 0x1F;
 	setprg8(A, V | ((EXPREGS[0] >> 1) & 0x20));
 }

@@ -37,7 +37,7 @@ static void sync () {
 	setchr8(0);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) {
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) {
 	if (Latch_address &0x20) *newAddress = Latch_address; /* Once bit 5 is set, only the inner bank bits can be modified. */
 	*newValue &= romValue; /* AND-type bus conflicts */
 }

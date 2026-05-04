@@ -31,16 +31,16 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 reset_flag = 0;
-static uint8 isK3088;
+static uint8_t reset_flag = 0;
+static uint8_t isK3088;
 
-static void BMC411120CCW(uint32 A, uint8 V) {
-	uint32 mask = isK3088 ? 0x07 : 0x03;
+static void BMC411120CCW(uint32_t A, uint8_t V) {
+	uint32_t mask = isK3088 ? 0x07 : 0x03;
 	setchr1(A, V | ((EXPREGS[0] & mask) << 7));
 }
 
-static void BMC411120CPW(uint32 A, uint8 V) {
-	uint32 mask = isK3088 ? 0x07 : 0x03;
+static void BMC411120CPW(uint32_t A, uint8_t V) {
+	uint32_t mask = isK3088 ? 0x07 : 0x03;
 	if (EXPREGS[0] & (isK3088 ? 8 : (8 | reset_flag))) { 	/* 32K Mode */
 		if (A == 0x8000)
 			/* bit 0-1 of register should be used as outer bank regardless of banking modes */

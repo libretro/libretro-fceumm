@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
-static uint8  prg;
+static uint8_t  prg;
 
 static SFORMAT stateRegs[] ={
 	{ &prg, 1, "PRG6" },

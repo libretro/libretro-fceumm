@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 latch;
+static uint8_t latch;
 
 static void DoNovel(void) {
 	setprg32(0x8000, latch & 3);

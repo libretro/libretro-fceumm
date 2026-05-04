@@ -27,7 +27,7 @@
 #define A16    EXPREGS[1]
 #define A17A18 EXPREGS[2]
 
-static void M383PRGWrap (uint32 A, uint8 V)
+static void M383PRGWrap (uint32_t A, uint8_t V)
 {
 	switch(A17A18)
 	{
@@ -54,7 +54,7 @@ static void M383PRGWrap (uint32 A, uint8 V)
 	}
 }
 
-static void M383CHRWrap (uint32 A, uint8 V)
+static void M383CHRWrap (uint32_t A, uint8_t V)
 {
 	setchr1(A, V &0x7F | A17A18 <<3);
 }

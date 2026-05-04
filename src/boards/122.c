@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 reg[2];
+static uint8_t reg[2];
 
 static void sync () {
 	setprg32(0x8000, 0);

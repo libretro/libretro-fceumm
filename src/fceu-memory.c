@@ -26,7 +26,7 @@
 #include "fceu-memory.h"
 #include "general.h"
 
-void *FCEU_gmalloc(uint32 size)
+void *FCEU_gmalloc(uint32_t size)
 {
    void *ret = malloc(size);
    if (!ret)
@@ -38,7 +38,7 @@ void *FCEU_gmalloc(uint32 size)
    return ret;
 }
 
-void *FCEU_malloc(uint32 size)
+void *FCEU_malloc(uint32_t size)
 {
    void *ret = (void*)malloc(size);
 

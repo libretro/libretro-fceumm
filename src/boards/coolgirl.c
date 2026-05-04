@@ -99,136 +99,136 @@
 #include <ctype.h>
 #include "mapinc.h"
 
-const uint32 SAVE_FLASH_SIZE = 1024 * 1024 * 8;
-const uint32 FLASH_SECTOR_SIZE = 128 * 1024;
+const uint32_t SAVE_FLASH_SIZE = 1024 * 1024 * 8;
+const uint32_t FLASH_SECTOR_SIZE = 128 * 1024;
 const int ROM_CHIP = 0x00;
 const int WRAM_CHIP = 0x10;
 const int FLASH_CHIP = 0x11;
 const int CFI_CHIP = 0x13;
 
 static int CHR_SIZE = 0;
-static uint32 WRAM_SIZE = 0;
-static uint8 *WRAM = NULL;
-static uint8 *SAVE_FLASH = NULL;
-static uint8* CFI;
+static uint32_t WRAM_SIZE = 0;
+static uint8_t *WRAM = NULL;
+static uint8_t *SAVE_FLASH = NULL;
+static uint8_t* CFI;
 
-static uint8 sram_enabled = 0;
-static uint8 sram_page = 0;		/* [1:0] */
-static uint8 can_write_chr = 0;
-static uint8 map_rom_on_6000 = 0;
-static uint8 flags = 0;			/* [2:0] */
-static uint8 mapper = 0;		/* [5:0] */
-static uint8 can_write_flash = 0;
-static uint8 mirroring = 0;		/* [1:0] */
-static uint8 four_screen = 0;
-static uint8 lockout = 0;
+static uint8_t sram_enabled = 0;
+static uint8_t sram_page = 0;		/* [1:0] */
+static uint8_t can_write_chr = 0;
+static uint8_t map_rom_on_6000 = 0;
+static uint8_t flags = 0;			/* [2:0] */
+static uint8_t mapper = 0;		/* [5:0] */
+static uint8_t can_write_flash = 0;
+static uint8_t mirroring = 0;		/* [1:0] */
+static uint8_t four_screen = 0;
+static uint8_t lockout = 0;
 
-static uint32 prg_base = 0;		/* [26:14] */
-static uint32 prg_mask = 0xF8 << 14; /* 11111000, 128KB		[20:14] */
-static uint8 prg_mode = 0;		/* [2:0] */
-static uint8 prg_bank_6000 = 0;	/* [7:0] */
-static uint8 prg_bank_a = 0;	/* [7:0] */
-static uint8 prg_bank_b = 1;	/* [7:0] */
-static uint8 prg_bank_c = ~1;	/* [7:0] */
-static uint8 prg_bank_d = ~0;	/* [7:0] */
+static uint32_t prg_base = 0;		/* [26:14] */
+static uint32_t prg_mask = 0xF8 << 14; /* 11111000, 128KB		[20:14] */
+static uint8_t prg_mode = 0;		/* [2:0] */
+static uint8_t prg_bank_6000 = 0;	/* [7:0] */
+static uint8_t prg_bank_a = 0;	/* [7:0] */
+static uint8_t prg_bank_b = 1;	/* [7:0] */
+static uint8_t prg_bank_c = ~1;	/* [7:0] */
+static uint8_t prg_bank_d = ~0;	/* [7:0] */
 
-static uint32 chr_mask = 0;		/* [18:13] */
-static uint8 chr_mode = 0;		/* [2:0] */
-static uint16 chr_bank_a = 0;	/* [8:0] */
-static uint16 chr_bank_b = 1;	/* [8:0] */
-static uint16 chr_bank_c = 2;	/* [8:0] */
-static uint16 chr_bank_d = 3;	/* [8:0] */
-static uint16 chr_bank_e = 4;	/* [8:0] */
-static uint16 chr_bank_f = 5;	/* [8:0] */
-static uint16 chr_bank_g = 6;	/* [8:0] */
-static uint16 chr_bank_h = 7;	/* [8:0] */
+static uint32_t chr_mask = 0;		/* [18:13] */
+static uint8_t chr_mode = 0;		/* [2:0] */
+static uint16_t chr_bank_a = 0;	/* [8:0] */
+static uint16_t chr_bank_b = 1;	/* [8:0] */
+static uint16_t chr_bank_c = 2;	/* [8:0] */
+static uint16_t chr_bank_d = 3;	/* [8:0] */
+static uint16_t chr_bank_e = 4;	/* [8:0] */
+static uint16_t chr_bank_f = 5;	/* [8:0] */
+static uint16_t chr_bank_g = 6;	/* [8:0] */
+static uint16_t chr_bank_h = 7;	/* [8:0] */
 
-static uint8 TKSMIR[8];
+static uint8_t TKSMIR[8];
 
-static uint32 prg_bank_6000_mapped = 0;
-static uint32 prg_bank_a_mapped = 0;
-static uint32 prg_bank_b_mapped = 0;
-static uint32 prg_bank_c_mapped = 0;
-static uint32 prg_bank_d_mapped = 0;
+static uint32_t prg_bank_6000_mapped = 0;
+static uint32_t prg_bank_a_mapped = 0;
+static uint32_t prg_bank_b_mapped = 0;
+static uint32_t prg_bank_c_mapped = 0;
+static uint32_t prg_bank_d_mapped = 0;
 
 /* for MMC2/MMC4 */
-static uint8 ppu_latch0 = 0;
-static uint8 ppu_latch1 = 0;
+static uint8_t ppu_latch0 = 0;
+static uint8_t ppu_latch1 = 0;
 /* for MMC1 */
-static uint64 lreset = 0;
-static uint8 mmc1_load_register = 0;	/* [5:0] */
+static uint64_t lreset = 0;
+static uint8_t mmc1_load_register = 0;	/* [5:0] */
 /* for MMC3 */
-static uint8 mmc3_internal = 0;			/* [2:0] */
+static uint8_t mmc3_internal = 0;			/* [2:0] */
 /* for mapper #69 */
-static uint8 mapper69_internal = 0;		/* [3:0] */
+static uint8_t mapper69_internal = 0;		/* [3:0] */
 /* for mapper #112 */
-static uint8 mapper112_internal = 0;	/* [2:0] */
+static uint8_t mapper112_internal = 0;	/* [2:0] */
 /* for mapper #163 */
-static uint8 mapper_163_latch = 0;
-static uint8 mapper163_r0 = 0;			/* [7:0] */
-static uint8 mapper163_r1 = 0;			/* [7:0] */
-static uint8 mapper163_r2 = 0;			/* [7:0] */
-static uint8 mapper163_r3 = 0;			/* [7:0] */
-static uint8 mapper163_r4 = 0;			/* [7:0] */
-static uint8 mapper163_r5 = 0;			/* [7:0] */
+static uint8_t mapper_163_latch = 0;
+static uint8_t mapper163_r0 = 0;			/* [7:0] */
+static uint8_t mapper163_r1 = 0;			/* [7:0] */
+static uint8_t mapper163_r2 = 0;			/* [7:0] */
+static uint8_t mapper163_r3 = 0;			/* [7:0] */
+static uint8_t mapper163_r4 = 0;			/* [7:0] */
+static uint8_t mapper163_r5 = 0;			/* [7:0] */
 
 /* For mapper #90 */
-static uint8 mul1 = 0;
-static uint8 mul2 = 0;
+static uint8_t mul1 = 0;
+static uint8_t mul2 = 0;
 
 /* for MMC3 scanline-based interrupts, counts A12 rises after long A12 falls */
-static uint8 mmc3_irq_enabled = 0;				/* register to enable/disable counter */
-static uint8 mmc3_irq_latch = 0;				/* [7:0], stores counter reload latch value */
-static uint8 mmc3_irq_counter = 0;				/* [7:0], counter itself (downcounting) */
-static uint8 mmc3_irq_reload = 0;				/* flag to reload counter from latch */
+static uint8_t mmc3_irq_enabled = 0;				/* register to enable/disable counter */
+static uint8_t mmc3_irq_latch = 0;				/* [7:0], stores counter reload latch value */
+static uint8_t mmc3_irq_counter = 0;				/* [7:0], counter itself (downcounting) */
+static uint8_t mmc3_irq_reload = 0;				/* flag to reload counter from latch */
 /* for MMC5 scanline-based interrupts, counts dummy PPU reads */
-static uint8 mmc5_irq_enabled = 0;				/* register to enable/disable counter */
-static uint8 mmc5_irq_line = 0;					/* [7:0], scanline on which IRQ will be triggered */
-static uint8 mmc5_irq_out = 0;					/* stores 1 when IRQ is triggered */
+static uint8_t mmc5_irq_enabled = 0;				/* register to enable/disable counter */
+static uint8_t mmc5_irq_line = 0;					/* [7:0], scanline on which IRQ will be triggered */
+static uint8_t mmc5_irq_out = 0;					/* stores 1 when IRQ is triggered */
 /* for mapper #18 */
-static uint16 mapper18_irq_value = 0;			/* [15:0], counter itself (downcounting) */
-static uint8 mapper18_irq_control = 0;			/* [3:0], IRQ settings */
-static uint16 mapper18_irq_latch = 0;			/* [15:0], stores counter reload latch value */
+static uint16_t mapper18_irq_value = 0;			/* [15:0], counter itself (downcounting) */
+static uint8_t mapper18_irq_control = 0;			/* [3:0], IRQ settings */
+static uint16_t mapper18_irq_latch = 0;			/* [15:0], stores counter reload latch value */
 /* for mapper #65 */
-static uint8 mapper65_irq_enabled = 0;			/* register to enable/disable IRQ */
-static uint16 mapper65_irq_value = 0;			/* [15:0], counter itself (downcounting) */
-static uint16 mapper65_irq_latch = 0;			/* [15:0], stores counter reload latch value */
+static uint8_t mapper65_irq_enabled = 0;			/* register to enable/disable IRQ */
+static uint16_t mapper65_irq_value = 0;			/* [15:0], counter itself (downcounting) */
+static uint16_t mapper65_irq_latch = 0;			/* [15:0], stores counter reload latch value */
 /* reg mapper65_irq_out = 0;
  * for Sunsoft FME-7 */
-static uint8 mapper69_irq_enabled = 0;			/* register to enable/disable IRQ */
-static uint8 mapper69_counter_enabled = 0;		/* register to enable/disable counter */
-static uint16 mapper69_irq_value = 0;			/* counter itself (downcounting) */
+static uint8_t mapper69_irq_enabled = 0;			/* register to enable/disable IRQ */
+static uint8_t mapper69_counter_enabled = 0;		/* register to enable/disable counter */
+static uint16_t mapper69_irq_value = 0;			/* counter itself (downcounting) */
 /* for VRC4 CPU-based interrupts */
-static uint8 vrc4_irq_value = 0;				/* [7:0], counter itself (upcounting) */
-static uint8 vrc4_irq_control = 0;				/* [2:0]� IRQ settings */
-static uint8 vrc4_irq_latch = 0;				/* [7:0], stores counter reload latch value */
-static uint8 vrc4_irq_prescaler = 0;			/* [6:0], prescaler counter for VRC4 */
-static uint8 vrc4_irq_prescaler_counter = 0;	/* prescaler cicles counter for VRC4 */
+static uint8_t vrc4_irq_value = 0;				/* [7:0], counter itself (upcounting) */
+static uint8_t vrc4_irq_control = 0;				/* [2:0]� IRQ settings */
+static uint8_t vrc4_irq_latch = 0;				/* [7:0], stores counter reload latch value */
+static uint8_t vrc4_irq_prescaler = 0;			/* [6:0], prescaler counter for VRC4 */
+static uint8_t vrc4_irq_prescaler_counter = 0;	/* prescaler cicles counter for VRC4 */
 /* for VRC3 CPU-based interrupts */
-static uint16 vrc3_irq_value = 0;				/* [15:0], counter itself (upcounting) */
-static uint8 vrc3_irq_control = 0;				/* [3:0], IRQ settings */
-static uint16 vrc3_irq_latch = 0;				/* [15:0], stores counter reload latch value */
+static uint16_t vrc3_irq_value = 0;				/* [15:0], counter itself (upcounting) */
+static uint8_t vrc3_irq_control = 0;				/* [3:0], IRQ settings */
+static uint16_t vrc3_irq_latch = 0;				/* [15:0], stores counter reload latch value */
 /* for mapper #42 (only Baby Mario) */
-static uint8 mapper42_irq_enabled = 0;			/* register to enable/disable counter */
-static uint16 mapper42_irq_value = 0;			/* [14:0], counter itself (upcounting) */
+static uint8_t mapper42_irq_enabled = 0;			/* register to enable/disable counter */
+static uint16_t mapper42_irq_value = 0;			/* [14:0], counter itself (upcounting) */
 /* for mapper #83 */
-static uint8 mapper83_irq_enabled_latch = 0;
-static uint8 mapper83_irq_enabled = 0;
-static uint16 mapper83_irq_counter = 0;
+static uint8_t mapper83_irq_enabled_latch = 0;
+static uint8_t mapper83_irq_enabled = 0;
+static uint16_t mapper83_irq_counter = 0;
 /* for mapper #90 */
-static uint8 mapper90_xor = 0;
+static uint8_t mapper90_xor = 0;
 /* for mapper #67 */
-static uint8 mapper67_irq_enabled = 0;
-static uint8 mapper67_irq_latch = 0;
-static uint16 mapper67_irq_counter = 0;
+static uint8_t mapper67_irq_enabled = 0;
+static uint8_t mapper67_irq_latch = 0;
+static uint16_t mapper67_irq_counter = 0;
 
-static uint8 flash_state = 0;
-static uint16 flash_buffer_a[10];
-static uint8 flash_buffer_v[10];
-static uint8 cfi_mode = 0;
+static uint8_t flash_state = 0;
+static uint16_t flash_buffer_a[10];
+static uint8_t flash_buffer_v[10];
+static uint8_t cfi_mode = 0;
 
 /* Micron 4-gbit memory CFI data */
-const uint8 cfi_data[] =
+const uint8_t cfi_data[] =
 { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x51, 0x52, 0x59, 0x02, 0x00, 0x40, 0x00, 0x00,
@@ -248,10 +248,10 @@ const uint8 cfi_data[] =
 
 #define SET_BITS(target, target_bits, source, source_bits) target = set_bits(target, target_bits, get_bits(source, source_bits))
 
-static INLINE uint8 string_to_bits(char* bitsstr, int* bits)
+static INLINE uint8_t string_to_bits(char* bitsstr, int* bits)
 {
 	int i;
-	uint8 bit1, bit2, count = 0;
+	uint8_t bit1, bit2, count = 0;
 	for (i = 0; i < 32; i++)
 		bits[i] = -1;
 	while (*bitsstr)
@@ -300,10 +300,10 @@ static INLINE uint8 string_to_bits(char* bitsstr, int* bits)
 	return count;
 }
 
-static INLINE uint32 get_bits(uint32 V, char* bitsstr)
+static INLINE uint32_t get_bits(uint32_t V, char* bitsstr)
 {
 	int i;
-	uint32 result = 0;
+	uint32_t result = 0;
 	int bits[32];
 	string_to_bits(bitsstr, bits);
 	for (i = 0; bits[i] >= 0; i++)
@@ -314,11 +314,11 @@ static INLINE uint32 get_bits(uint32 V, char* bitsstr)
 	return result;
 }
 
-static INLINE uint32 set_bits(uint32 V, char* bitsstr, uint32 new_bits)
+static INLINE uint32_t set_bits(uint32_t V, char* bitsstr, uint32_t new_bits)
 {
 	int i;
 	int bits[32];
-	uint8 count = string_to_bits(bitsstr, bits);
+	uint8_t count = string_to_bits(bitsstr, bits);
 	for (i = 0; i < count; i++)
 	{
 		if ((new_bits >> (count - i - 1)) & 1)
@@ -330,7 +330,7 @@ static INLINE uint32 set_bits(uint32 V, char* bitsstr, uint32 new_bits)
 }
 
 static void COOLGIRL_Sync_PRG(void) {
-	uint8 REG_A_CHIP, REG_B_CHIP, REG_C_CHIP, REG_D_CHIP;
+	uint8_t REG_A_CHIP, REG_B_CHIP, REG_C_CHIP, REG_D_CHIP;
 	prg_bank_6000_mapped = (prg_base >> 13) | (prg_bank_6000 & ((~(prg_mask >> 13) & 0xFE) | 1));
 	prg_bank_a_mapped = (prg_base >> 13) | (prg_bank_a & ((~(prg_mask >> 13) & 0xFE) | 1));
 	prg_bank_b_mapped = (prg_base >> 13) | (prg_bank_b & ((~(prg_mask >> 13) & 0xFE) | 1));
@@ -486,7 +486,7 @@ static void COOLGIRL_Sync(void) {
 
 static DECLFW(COOLGIRL_Flash_Write) {
 	int sector;
-	uint32 i, flash_addr;
+	uint32_t i, flash_addr;
 	if (flash_state < sizeof(flash_buffer_a) / sizeof(flash_buffer_a[0]))
 	{
 		flash_buffer_a[flash_state] = A & 0xFFF;
@@ -550,7 +550,7 @@ static DECLFW(COOLGIRL_Flash_Write) {
 }
 
 static DECLFW(COOLGIRL_WRITE) {
-	uint8 vrc_2b_hi, vrc_2b_low;
+	uint8_t vrc_2b_hi, vrc_2b_low;
 
 	if (sram_enabled && A >= 0x6000 && A < 0x8000 && !map_rom_on_6000)
 		CartBW(A, V); /* SRAM is enabled and writable */
@@ -1880,7 +1880,7 @@ static DECLFW(COOLGIRL_WRITE) {
 
 static DECLFR(MAFRAM) {
 	int ppuon;
-	uint8 r, p;
+	uint8_t r, p;
 
 	if ((mapper == 0x00) && (A >= 0x5000) && (A < 0x6000))
 		return 0;
@@ -1961,7 +1961,7 @@ static void COOLGIRL_ScanlineCounter(void) {
 }
 
 static void COOLGIRL_CpuCounter(int a) {
-	uint8 carry;
+	uint8_t carry;
 
 	while (a--)
 	{
@@ -2118,7 +2118,7 @@ static void COOLGIRL_CpuCounter(int a) {
 	}
 }
 
-static void COOLGIRL_PPUHook(uint32 A) {
+static void COOLGIRL_PPUHook(uint32_t A) {
 	/* For TxROM */
 	if ((mapper == 0x14) && (flags & 1))
 	{
@@ -2267,7 +2267,7 @@ void COOLGIRL_Init(CartInfo *info) {
 
 	WRAM_SIZE = (info->PRGRamSize + info->PRGRamSaveSize) ? (info->PRGRamSize + info->PRGRamSaveSize) : (32 * 1024);
 	if (WRAM_SIZE > 0) {
-		WRAM = (uint8*)FCEU_gmalloc(WRAM_SIZE);
+		WRAM = (uint8_t*)FCEU_gmalloc(WRAM_SIZE);
 		memset(WRAM, 0, WRAM_SIZE);
 		SetupCartPRGMapping(WRAM_CHIP, WRAM, WRAM_SIZE, 1);
 		AddExState(WRAM, 32 * 1024, 0, "SRAM");
@@ -2280,13 +2280,13 @@ void COOLGIRL_Init(CartInfo *info) {
 
 	if (info->battery)
 	{
-		SAVE_FLASH = (uint8*)FCEU_gmalloc(SAVE_FLASH_SIZE);
+		SAVE_FLASH = (uint8_t*)FCEU_gmalloc(SAVE_FLASH_SIZE);
 		SetupCartPRGMapping(FLASH_CHIP, SAVE_FLASH, SAVE_FLASH_SIZE, 1);
 		info->SaveGame[1] = SAVE_FLASH;
 		info->SaveGameLen[1] = SAVE_FLASH_SIZE;
 	}
 
-	CFI = (uint8*)FCEU_gmalloc(sizeof(cfi_data) * 2);
+	CFI = (uint8_t*)FCEU_gmalloc(sizeof(cfi_data) * 2);
 	for (i = 0; i < sizeof(cfi_data); i++)
 		CFI[i * 2] = CFI[i * 2 + 1] = cfi_data[i];
 	SetupCartPRGMapping(CFI_CHIP, CFI, sizeof(cfi_data) * 2, 0);

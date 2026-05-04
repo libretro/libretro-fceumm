@@ -21,8 +21,8 @@
 
 #include "mapinc.h"
 
-static uint8 *DummyCHR = NULL;
-static uint8 datareg;
+static uint8_t *DummyCHR = NULL;
+static uint8_t datareg;
 static void (*Sync)(void);
 
 
@@ -87,7 +87,7 @@ void Mapper185_Init(CartInfo *info) {
 	info->Power = MPower;
 	info->Close = MClose;
 	GameStateRestore = MRestore;
-	DummyCHR = (uint8*)FCEU_gmalloc(8192);
+	DummyCHR = (uint8_t*)FCEU_gmalloc(8192);
 	for (x = 0; x < 8192; x++)
 		DummyCHR[x] = 0xff;
 	SetupCartCHRMapping(0x10, DummyCHR, 8192, 0);
@@ -100,7 +100,7 @@ void Mapper181_Init(CartInfo *info) {
 	info->Power = MPower;
 	info->Close = MClose;
 	GameStateRestore = MRestore;
-	DummyCHR = (uint8*)FCEU_gmalloc(8192);
+	DummyCHR = (uint8_t*)FCEU_gmalloc(8192);
 	for (x = 0; x < 8192; x++)
 		DummyCHR[x] = 0xff;
 	SetupCartCHRMapping(0x10, DummyCHR, 8192, 0);

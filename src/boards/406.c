@@ -22,7 +22,7 @@
 #include "mmc3.h"
 #include "flashrom.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
 static DECLFW(Write) {
 	flashrom_write(A &0x1FFF | (Page[A >>11] +A -PRGptr[0]) &~0x1FFF, V);

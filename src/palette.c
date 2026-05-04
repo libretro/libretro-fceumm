@@ -37,12 +37,12 @@
 static pal palette_game[512];		/* Custom palette for an individual game. */
 static pal palette_user[512];		/* Custom "global" palette. */
 
-uint8 palette_game_available = false;
-uint8 palette_user_available = false;
+uint8_t palette_game_available = false;
+uint8_t palette_user_available = false;
 
 static void ChoosePalette(void);
 static void WritePalette(void);
-uint8 default_palette_selected = 0;
+uint8_t default_palette_selected = 0;
 
 pal *palo;
 static pal *default_palette[8] =
@@ -55,7 +55,7 @@ static pal *default_palette[8] =
 	rp2c03,
 };
 
-static void ApplyDeemphasisClassic(int entry, uint8 *r, uint8 *g, uint8 *b) {
+static void ApplyDeemphasisClassic(int entry, uint8_t *r, uint8_t *g, uint8_t *b) {
 	static const float rtmul[] = { 1.239f, 0.794f, 1.019f, 0.905f, 1.023f, 0.741f, 0.75f };
 	static const float gtmul[] = { 0.915f, 1.086f, 0.98f,  1.026f, 0.908f, 0.987f, 0.75f };
 	static const float btmul[] = { 0.743f, 0.882f, 0.653f, 1.277f, 0.979f, 0.101f, 0.75f };
@@ -75,9 +75,9 @@ static void ApplyDeemphasisClassic(int entry, uint8 *r, uint8 *g, uint8 *b) {
 	if (nr > 0xFF) nr = 0xFF;
 	if (ng > 0xFF) ng = 0xFF;
 	if (nb > 0xFF) nb = 0xFF;
-	*r = (uint8)nr;
-	*g = (uint8)ng;
-	*b = (uint8)nb;
+	*r = (uint8_t)nr;
+	*g = (uint8_t)ng;
+	*b = (uint8_t)nb;
 }
 
 static void ApplyDeemphasisComplete(pal *pal512) {
@@ -93,16 +93,16 @@ static void ApplyDeemphasisComplete(pal *pal512) {
 	}
 }
 
-void FCEUI_SetPaletteArray(uint8 *pal, int nEntries) {
+void FCEUI_SetPaletteArray(uint8_t *pal, int nEntries) {
 	if (!pal || !nEntries)
 		palette_user_available = false;
 	else {
 		int x;
 		palette_user_available = true;
 		for (x = 0; x < nEntries; x++) {
-			palette_user[x].r = *((uint8*)pal + x + x + x);
-			palette_user[x].g = *((uint8*)pal + x + x + x + 1);
-			palette_user[x].b = *((uint8*)pal + x + x + x + 2);
+			palette_user[x].r = *((uint8_t*)pal + x + x + x);
+			palette_user[x].g = *((uint8_t*)pal + x + x + x + 1);
+			palette_user[x].b = *((uint8_t*)pal + x + x + x + 2);
 		}
 		if (nEntries != 512) {
 			ApplyDeemphasisComplete(palette_user);
@@ -111,12 +111,12 @@ void FCEUI_SetPaletteArray(uint8 *pal, int nEntries) {
 	FCEU_ResetPalette();
 }
 
-static uint8 lastd = 0;
-void SetNESDeemph(uint8 d, int force) {
-	static uint16 rtmul[7] = { 32768 * 1.239, 32768 * .794, 32768 * 1.019, 32768 * .905, 32768 * 1.023, 32768 * .741, 32768 * .75 };
-	static uint16 gtmul[7] = { 32768 * .915, 32768 * 1.086, 32768 * .98, 32768 * 1.026, 32768 * .908, 32768 * .987, 32768 * .75 };
-	static uint16 btmul[7] = { 32768 * .743, 32768 * .882, 32768 * .653, 32768 * 1.277, 32768 * .979, 32768 * .101, 32768 * .75 };
-	uint32 r, g, b;
+static uint8_t lastd = 0;
+void SetNESDeemph(uint8_t d, int force) {
+	static uint16_t rtmul[7] = { 32768 * 1.239, 32768 * .794, 32768 * 1.019, 32768 * .905, 32768 * 1.023, 32768 * .741, 32768 * .75 };
+	static uint16_t gtmul[7] = { 32768 * .915, 32768 * 1.086, 32768 * .98, 32768 * 1.026, 32768 * .908, 32768 * .987, 32768 * .75 };
+	static uint16_t btmul[7] = { 32768 * .743, 32768 * .882, 32768 * .653, 32768 * 1.277, 32768 * .979, 32768 * .101, 32768 * .75 };
+	uint32_t r, g, b;
 	int x;
 
 	/* If it's not forced(only forced when the palette changes),
@@ -130,7 +130,7 @@ void SetNESDeemph(uint8 d, int force) {
 		b = rtmul[6];
 
 		for (x = 0; x < 0x40; x++) {
-			uint32 m, n, o;
+			uint32_t m, n, o;
 			m = palo[x].r;
 			n = palo[x].g;
 			o = palo[x].b;
@@ -150,7 +150,7 @@ void SetNESDeemph(uint8 d, int force) {
 	b = btmul[d - 1];
 
 	for (x = 0; x < 0x40; x++) {
-		uint32 m, n, o;
+		uint32_t m, n, o;
 
 		m = palo[x].r;
 		n = palo[x].g;
@@ -169,7 +169,7 @@ void SetNESDeemph(uint8 d, int force) {
 }
 
 void FCEU_LoadGamePalette(void) {
-	uint8 ptmp[64 * 8 * 3];
+	uint8_t ptmp[64 * 8 * 3];
 	RFILE *fp = NULL;
 	char *fn = NULL;
 

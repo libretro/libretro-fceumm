@@ -1,12 +1,12 @@
 #include "mapinc.h"
 #include "vrcirq.h"
 
-static int16 IRQPrescaler;
-static uint8 IRQCount;
-static uint8 IRQLatch;
-static uint8 IRQd;
-static uint8 IRQa;
-static uint8 IRQm;
+static int16_t IRQPrescaler;
+static uint8_t IRQCount;
+static uint8_t IRQLatch;
+static uint8_t IRQd;
+static uint8_t IRQa;
+static uint8_t IRQm;
 
 static SFORMAT StateRegs[] =
 {
@@ -56,12 +56,12 @@ void VRCIRQ_Init(void)
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
-void VRCIRQ_Latch(uint8 V)
+void VRCIRQ_Latch(uint8_t V)
 {
 	IRQLatch = V;
 }
 
-void VRCIRQ_LatchNibble(uint8 V, uint8 highBit)
+void VRCIRQ_LatchNibble(uint8_t V, uint8_t highBit)
 {
 	if (highBit) {
 		IRQLatch &= 0x0F;
@@ -72,7 +72,7 @@ void VRCIRQ_LatchNibble(uint8 V, uint8 highBit)
 	}
 }
 
-void VRCIRQ_Control(uint8 V)
+void VRCIRQ_Control(uint8_t V)
 {
 	IRQd = (V & 0x01) == 0x01;
 	IRQa = (V & 0x02) == 0x02;

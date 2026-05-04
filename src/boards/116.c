@@ -23,10 +23,10 @@
 #include "asic_mmc3.h"
 #include "asic_vrc2and4.h"
 
-static uint8 submapper;
-static uint8 reg;
-static uint8 init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield to track it */
-static uint8 game;
+static uint8_t submapper;
+static uint8_t reg;
+static uint8_t init; /* Games switch between ASICs expecting registers to keep their value, so initialize each ASIC only on the first switch and use this bitfield to track it */
+static uint8_t game;
 
 static SFORMAT stateRegs[] = {
 	{ &reg, 1, "MODE" },
@@ -72,11 +72,11 @@ static void sync (void) {
 	}
 }
 
-int Huang2_getPRGBank (uint8 bank) {
+int Huang2_getPRGBank (uint8_t bank) {
 	return MMC1_getPRGBank(bank) >>1;
 }
 
-static void applyMode (uint8 clear) {
+static void applyMode (uint8_t clear) {
 	PPU_hook = NULL;
 	MapIRQHook = NULL;
 	GameHBIRQHook = NULL;
@@ -102,7 +102,7 @@ static void applyMode (uint8 clear) {
 
 static DECLFW (writeReg) {
 	if (A &0x100) {
-		uint8 previousReg = reg;
+		uint8_t previousReg = reg;
 		reg = V;
 		if ((previousReg ^V) &3)
 			applyMode(1);

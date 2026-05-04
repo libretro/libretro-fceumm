@@ -2,12 +2,12 @@
 #define _FCEU_VSUNI_H
 
 void FCEU_VSUniPower(void);
-void FCEU_VSUniCheck(uint64 md5partial, int *, int *);
-void FCEU_VSUniDraw(uint8 *XBuf);
+void FCEU_VSUniCheck(uint64_t md5partial, int *, int *);
+void FCEU_VSUniDraw(uint8_t *XBuf);
 
 void FCEU_VSUniToggleDIP(int);	/* For movies and netplay */
 void FCEU_VSUniCoin(void);
-void FCEU_VSUniSwap(uint8 *j0, uint8 *j1);
+void FCEU_VSUniSwap(uint8_t *j0, uint8_t *j1);
 
 enum {
 	VS_BASEBALL = 1,

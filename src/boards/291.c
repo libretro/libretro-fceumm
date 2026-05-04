@@ -21,11 +21,11 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M291CW(uint32 A, uint8 V) {
+static void M291CW(uint32_t A, uint8_t V) {
 	setchr1(A, V | ((EXPREGS[0] << 2) & 0x100));
 }
 
-static void M291PW(uint32 A, uint8 V) {
+static void M291PW(uint32_t A, uint8_t V) {
 	if (EXPREGS[0] & 0x20)
 		setprg32(0x8000, ((EXPREGS[0] >> 1) & 3) | ((EXPREGS[0] >> 4) & 4));
 	else

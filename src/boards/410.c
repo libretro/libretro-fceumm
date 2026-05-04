@@ -27,11 +27,11 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 *CHRRAM;
+static uint8_t *CHRRAM;
 
-static void M410CW(uint32 A, uint8 V) {
+static void M410CW(uint32_t A, uint8_t V) {
 	if (!(EXPREGS[2] & 0x40)) {
-		uint32 NV = V;
+		uint32_t NV = V;
 		NV &= (1 << ((EXPREGS[2] & 7) + 1)) - 1;
 		NV |= EXPREGS[0] | ((EXPREGS[2] & 0xF0) << 4);
 		setchr1(A, NV);
@@ -39,8 +39,8 @@ static void M410CW(uint32 A, uint8 V) {
 		setchr8r(0x10, 0);
 }
 
-static void M410PW(uint32 A, uint8 V) {
-	uint32 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
+static void M410PW(uint32_t A, uint8_t V) {
+	uint32_t MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
 	MV |= EXPREGS[1];
 	MV |= ((EXPREGS[2] & 0x40) << 2);
 	setprg8(A, MV);
@@ -83,7 +83,7 @@ void Mapper410_Init(CartInfo *info) {
 	info->Close = M410Close;
 	AddExState(EXPREGS, 5, 0, "EXPR");
 
-	CHRRAM = (uint8*)FCEU_gmalloc(8192);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(8192);
 	SetupCartCHRMapping(0x10, CHRRAM, 8192, 1);
 	AddExState(CHRRAM, 8192, 0, "CRAM");
 }

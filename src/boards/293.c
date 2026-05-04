@@ -22,7 +22,7 @@
 
 #include "mapinc.h"
 
-static uint8 regs[2];
+static uint8_t regs[2];
 static SFORMAT StateRegs[] =
 {
 	{ regs, 2, "REGS" },
@@ -30,9 +30,9 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 mode  = ((regs[0] >> 2) & 2) | ((regs[1] >> 6) & 1);
-	uint8 bank  = ((regs[1] << 5) & 0x20) | ((regs[1] >> 1) & 0x18);
-	uint8 block = (regs[0] & 7);
+	uint8_t mode  = ((regs[0] >> 2) & 2) | ((regs[1] >> 6) & 1);
+	uint8_t bank  = ((regs[1] << 5) & 0x20) | ((regs[1] >> 1) & 0x18);
+	uint8_t block = (regs[0] & 7);
 	switch (mode) {
 	case 0: /* UNROM */
 		setprg16(0x8000, bank | block);

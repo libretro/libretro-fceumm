@@ -23,7 +23,7 @@
 /* This source code file only applies to Sanchez' original UNIF file with the incorrect bank order.
    The correctly-specified mapper, used for all NES 2.0 ROM files, is implemented in 319.c. */
 
-static uint8 regs[2];
+static uint8_t regs[2];
 
 static SFORMAT StateRegs[] =
 {
@@ -32,9 +32,9 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {	
-	uint8 chr = (regs[0] >> 4) & 7;
-	uint8 prg = (regs[1] >> 3) & 7;
-	uint8 dec = (regs[1] >> 4) & 4;
+	uint8_t chr = (regs[0] >> 4) & 7;
+	uint8_t prg = (regs[1] >> 3) & 7;
+	uint8_t dec = (regs[1] >> 4) & 4;
 	setchr8(chr & (~(((regs[0] & 1) << 2) | (regs[0] & 2))));
 	setprg16(0x8000, prg & (~dec));
 	setprg16(0xC000, prg | dec);

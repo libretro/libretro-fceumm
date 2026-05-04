@@ -13,11 +13,11 @@ typedef int BOOL;
 
 #include "../fceu-types.h"
 
-void SendCmd(uint8 *cmd, int size);
-int ReadResp(uint8 *resp, int size);
+void SendCmd(uint8_t *cmd, int size);
+int ReadResp(uint8_t *resp, int size);
 
-#define SEND(cmd) SendCmd((uint8*)&cmd[0], sizeof(cmd))
-#define GET(buf, size) ReadResp((uint8*)&buf, size)
+#define SEND(cmd) SendCmd((uint8_t*)&cmd[0], sizeof(cmd))
+#define GET(buf, size) ReadResp((uint8_t*)&buf, size)
 #define SENDGET(cmd, buf, size) SEND(cmd); GET(buf, size)
 
 BOOL SerialOpen(int port, int baud);

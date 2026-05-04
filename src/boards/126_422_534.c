@@ -38,17 +38,17 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 reverseCHR_A18_A19;
-static uint8 invertC000;
-static uint8 SL0;
-static uint8 submapper;
+static uint8_t reverseCHR_A18_A19;
+static uint8_t invertC000;
+static uint8_t SL0;
+static uint8_t submapper;
 
-static uint8 getMMC3Bank(int bank) {
+static uint8_t getMMC3Bank(int bank) {
 	if (~bank &1 && MMC3_cmd &0x40) bank ^=2;
 	return bank &2? 0xFE | bank &1: DRegBuf[6 | bank &1];
 }
 
-static void wrapPRG(uint32 A, uint8 V) {
+static void wrapPRG(uint32_t A, uint8_t V) {
 	int prgAND = EXPREGS[0] &0x40? 0x0F: 0x1F; /* 128 KiB or 256 KiB inner PRG bank selection */
 	int prgOR  =(EXPREGS[0] <<4 &0x70 | (EXPREGS[0] ^0x20) <<3 &0x180) &~prgAND; /* Outer PRG bank */
 	if (submapper ==1) prgOR =prgOR &0x7F | prgOR >>1 &0x80;    /* Submapper 1 uses PRG A21 as a chip select between two 1 MiB chips */
@@ -78,7 +78,7 @@ static void wrapPRG(uint32 A, uint8 V) {
 	mwrap(A000B); /* After 8000 write */
 }
 
-static void wrapCHR(uint32 A, uint8 V) {
+static void wrapCHR(uint32_t A, uint8_t V) {
 	int chrAND = EXPREGS[0] &0x80? 0x7F: 0xFF; /* 128 KiB or 256 KiB innter CHR bank selection */
 	int chrOR; /* outer CHR bank */
 	if (reverseCHR_A18_A19) /* Mapper 126 swaps CHR A18 and A19 */
@@ -99,7 +99,7 @@ static void wrapCHR(uint32 A, uint8 V) {
 		setchr1(A, (V & chrAND) | chrOR);
 }
 
-static void wrapMirroring(uint8 V) {
+static void wrapMirroring(uint8_t V) {
 	A000B =V;
 	if (EXPREGS[3] &0x20) { /* ANROM mirroring */
 		if (DRegBuf[6] &0x10)

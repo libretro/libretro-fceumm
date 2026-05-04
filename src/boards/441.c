@@ -24,9 +24,9 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
-static void Mapper441_PRGWrap(uint32 A, uint8 V) {
+static void Mapper441_PRGWrap(uint32_t A, uint8_t V) {
 	int prgAND = EXPREGS[0] &0x08? 0x0F: 0x1F;
 	int prgOR  = EXPREGS[0] <<4 &0x30;
 	if (EXPREGS[0] &0x04) {
@@ -38,7 +38,7 @@ static void Mapper441_PRGWrap(uint32 A, uint8 V) {
 		setprg8(A, V &prgAND | prgOR &~prgAND);
 }
 
-static void Mapper441_CHRWrap(uint32 A, uint8 V) {
+static void Mapper441_CHRWrap(uint32_t A, uint8_t V) {
 	int chrAND = EXPREGS[0] &0x40? 0x7F: 0xFF;
 	int chrOR  = EXPREGS[0] <<3 &0x180;
 	setchr1(A, V &chrAND | chrOR &~chrAND);

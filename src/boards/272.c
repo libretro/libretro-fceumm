@@ -27,13 +27,13 @@
 
 #include "mapinc.h"
 
-static uint8 prg[2];
-static uint8 chr[8];
-static uint8 mirr;
-static uint8 pal_mirr;
-static uint8 last_pa13;
-static uint8 IRQCount;
-static uint8 IRQa;
+static uint8_t prg[2];
+static uint8_t chr[8];
+static uint8_t mirr;
+static uint8_t pal_mirr;
+static uint8_t last_pa13;
+static uint8_t IRQCount;
+static uint8_t IRQa;
 
 static SFORMAT StateRegs[] =
 {
@@ -51,13 +51,13 @@ static SFORMAT StateRegs[] =
 #define shi(exp, bit, pos) \
 	((((exp) & (1 << (bit))) >> (bit)) << (pos))
 
-static uint32 vrc_addr_mix(uint32 A) {
+static uint32_t vrc_addr_mix(uint32_t A) {
 	/* this game wires A0 to VRC_A0 and A1 to VRC_A1 */
 	return (A & 0xf000) | shi(A, 0, 0) | shi(A, 1, 1);
 }
 
 static void Sync(void) {
-	uint8 i;
+	uint8_t i;
 	setprg8(0x8000, prg[0]);
 	setprg8(0xa000, prg[1]);
 	setprg16(0xc000, -1);	
@@ -141,8 +141,8 @@ static void M272Power(void) {
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
 }
 
-static void M272Hook(uint32 A) {
-	uint8 pa13 = (A >> 13) & 1;
+static void M272Hook(uint32_t A) {
+	uint8_t pa13 = (A >> 13) & 1;
 	if ((last_pa13 == 1) && (pa13 == 0)) {
 		if (IRQa) {
 			IRQCount++;

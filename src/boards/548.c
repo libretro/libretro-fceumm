@@ -24,10 +24,10 @@
 #include "cartram.h"
 #include "../fds_apu.h"
 
-static uint8 reg;
-static uint8 latch;
-static uint8 counting;
-static uint16 counter;
+static uint8_t reg;
+static uint8_t latch;
+static uint8_t counting;
+static uint16_t counter;
 
 static SFORMAT stateRegs[] ={
 	{ &reg, 1, "REGM" },

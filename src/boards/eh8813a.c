@@ -22,7 +22,7 @@
 
 #include "mapinc.h"
 
-static uint8 datalatch, addrlatch, lock, hw_mode;
+static uint8_t datalatch, addrlatch, lock, hw_mode;
 
 static SFORMAT StateRegs[] =
 {
@@ -34,7 +34,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 prg = (addrlatch & 0x3F);
+	uint8_t prg = (addrlatch & 0x3F);
 	setchr8(datalatch);
 	if (addrlatch & 0x80) {
 		setprg16(0x8000,prg);

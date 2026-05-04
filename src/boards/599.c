@@ -22,7 +22,7 @@
 #include "asic_latch.h"
 #include "cartram.h"
 
-static uint8 pad;
+static uint8_t pad;
 
 static DECLFR (readOB) {
 	return X.DB;
@@ -57,7 +57,7 @@ static void sync () {
 	setmirror(Latch_address &0x002? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* Latch address bit 14 is an address lock bit */
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* Latch address bit 14 is an address lock bit */
 	if (Latch_address &0x4000) *newAddress = Latch_address;
 }
 

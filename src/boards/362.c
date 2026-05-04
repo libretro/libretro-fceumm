@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
-static uint8 game;
+static uint8_t game;
 
 static SFORMAT stateRegs[] ={
 	{ &game, 1, "GAME" },

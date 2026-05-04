@@ -20,7 +20,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void PRGWrap(uint32 A, uint8 V) {
+static void PRGWrap(uint32_t A, uint8_t V) {
 	if (EXPREGS[1] &1) {
 		if ((EXPREGS[0] &3) ==3)
 			setprg32(0x8000, EXPREGS[0] <<2 &0xC | EXPREGS[0] >>2 &0x3);
@@ -30,7 +30,7 @@ static void PRGWrap(uint32 A, uint8 V) {
 		setprg32(0x8000, EXPREGS[0] >>4 &0x3 | 0x10);
 }
 
-static void CHRWrap(uint32 A, uint8 V) {
+static void CHRWrap(uint32_t A, uint8_t V) {
 	if (EXPREGS[1] &1)
 		setchr1(A, V &0x7F | EXPREGS[0] <<7 &0x180);
 	else

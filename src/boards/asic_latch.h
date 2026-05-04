@@ -21,16 +21,16 @@
 #ifndef _ASIC_LATCH_H
 #define _ASIC_LATCH_H
 
-extern uint16 Latch_address;
-extern uint8 Latch_data;
+extern uint16_t Latch_address;
+extern uint8_t Latch_data;
 
 DECLFW (Latch_write);
 void Latch_addExState ();
 void Latch_restore (int);
 void Latch_clear ();
 void Latch_power ();
-void Latch_activate (uint8, void (*)(), uint16, uint16, void (*)(uint16*, uint8*, uint8));
-void Latch6_activate (uint8, void (*)(), uint16, uint16, void (*)(uint16*, uint8*, uint8));
-void Latch_init (CartInfo *, void (*)(), uint16, uint16, void (*)(uint16*, uint8*, uint8));
+void Latch_activate (uint8_t, void (*)(), uint16_t, uint16_t, void (*)(uint16_t*, uint8_t*, uint8_t));
+void Latch6_activate (uint8_t, void (*)(), uint16_t, uint16_t, void (*)(uint16_t*, uint8_t*, uint8_t));
+void Latch_init (CartInfo *, void (*)(), uint16_t, uint16_t, void (*)(uint16_t*, uint8_t*, uint8_t));
 
 #endif

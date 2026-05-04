@@ -39,9 +39,9 @@
 #include "mapinc.h"
 #include "../fds_apu.h"
 
-static uint8 reg0, reg1;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t reg0, reg1;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -149,7 +149,7 @@ void UNLKS7030_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 
 	AddExState(&StateRegs, ~0, 0, 0);

@@ -23,11 +23,11 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 mode;
-static uint8 mmc3_count, mmc3_latch, mmc3_enabled, mmc3_reload;
-static uint8 smb2_reg;
-static uint8 smb2j_enabled;
-static uint16 smb2j_count;
+static uint8_t mode;
+static uint8_t mmc3_count, mmc3_latch, mmc3_enabled, mmc3_reload;
+static uint8_t smb2_reg;
+static uint8_t smb2j_enabled;
+static uint16_t smb2j_count;
 
 static SFORMAT StateRegs[] = {
 	{ &mode, 1, "MODE" },
@@ -41,7 +41,7 @@ static SFORMAT StateRegs[] = {
 	{ 0 }
 };
 
-static void SyncPRG(uint32 A, uint8 V) {
+static void SyncPRG(uint32_t A, uint8_t V) {
 	switch (mode) {
 	case 0x00:
 	case 0x01: /* NROM */
@@ -65,7 +65,7 @@ static void SyncPRG(uint32 A, uint8 V) {
 	}
 }
 
-static void SyncCHR(uint32 A, uint8 V) {
+static void SyncCHR(uint32_t A, uint8_t V) {
 	switch (mode) {
 	case 0x00:
 	case 0x01: /* NROM */
@@ -148,7 +148,7 @@ static void FP_FASTAPASS(1) SMB2JIRQHook(int a) {
 }
 
 static void MMC3IRQHook(void) {
-	int32 count = mmc3_count;
+	int32_t count = mmc3_count;
 
 	if (mode == 0x13)
 		return;

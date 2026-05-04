@@ -23,11 +23,11 @@
 #include "suborkb.h"
 #define AK(x)	FKB_ ## x
 
-static uint8 bufit[0x66];
-static uint8 ksmode;
-static uint8 ksindex;
+static uint8_t bufit[0x66];
+static uint8_t ksmode;
+static uint8_t ksindex;
 
-static uint16 matrix[13][2][4] =
+static uint16_t matrix[13][2][4] =
 {
 	{ { AK(4), AK(G), AK(F), AK(C) }, { AK(F2), AK(E), AK(5), AK(V) } },
 	{ { AK(2), AK(D), AK(S), AK(END) }, { AK(F1), AK(W), AK(3), AK(X) } },
@@ -44,7 +44,7 @@ static uint16 matrix[13][2][4] =
 	{ { AK(GRAVE), AK(NUMPAD6), AK(PAUSE), AK(SPACE) },	 { AK(F9), AK(NUMPAD3), AK(DECIMAL), AK(NUMPAD0) } },
 };
 
-static void FP_FASTAPASS(1) SuborKB_Write(uint8 v) {
+static void FP_FASTAPASS(1) SuborKB_Write(uint8_t v) {
 	v >>= 1;
 	if (v & 2) {
 		if ((ksmode & 1) && !(v & 1))
@@ -53,7 +53,7 @@ static void FP_FASTAPASS(1) SuborKB_Write(uint8 v) {
 	ksmode = v;
 }
 
-static uint8 FP_FASTAPASS(2) SuborKB_Read(int w, uint8 ret) {
+static uint8_t FP_FASTAPASS(2) SuborKB_Read(int w, uint8_t ret) {
 	if (w) {
 		int x;
 

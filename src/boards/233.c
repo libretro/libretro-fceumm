@@ -27,8 +27,8 @@
 
 #include "mapinc.h"
 
-static uint8 latche;
-static uint8 reset;
+static uint8_t latche;
+static uint8_t reset;
 
 static SFORMAT StateRegs[] =
 {
@@ -38,7 +38,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 bank = (latche & 0x1f) | (reset << 5);
+	uint8_t bank = (latche & 0x1f) | (reset << 5);
 
 	if (!(latche & 0x20))
 		setprg32(0x8000, bank >> 1);

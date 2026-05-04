@@ -28,10 +28,10 @@
 #include "mapinc.h"
 #include "eeprom_93Cx6.h"
 
-static uint8 *WRAM;
-static uint32 WRAMSIZE;
-static uint8 reg[8];
-static uint8 eeprom_data[512];
+static uint8_t *WRAM;
+static uint32_t WRAMSIZE;
+static uint8_t reg[8];
+static uint8_t eeprom_data[512];
 static SFORMAT StateRegs[] =
 {
         { reg,           8, "REGS" },
@@ -41,8 +41,8 @@ static SFORMAT StateRegs[] =
 
 static void sync()
 {
-   uint8 prgLow  = reg[0] &0x0F | reg[0] >>1 &0x10;
-   uint8 prgHigh = reg[1] <<5;
+   uint8_t prgLow  = reg[0] &0x0F | reg[0] >>1 &0x10;
+   uint8_t prgHigh = reg[1] <<5;
    switch (reg[0] >>5 &2 | reg[0] >>4 &1)
    {
       case 0: /* UNROM-512 */
@@ -125,7 +125,7 @@ void Mapper164_Init (CartInfo *info)
    AddExState(StateRegs, ~0, 0, 0);
 
    WRAMSIZE = info->iNES2? (info->PRGRamSize + (info->PRGRamSaveSize &~0x7FF)): 8192;
-   WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
+   WRAM = (uint8_t*) FCEU_gmalloc(WRAMSIZE);
    SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
    AddExState(WRAM, WRAMSIZE, 0, "WRAM");
    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);

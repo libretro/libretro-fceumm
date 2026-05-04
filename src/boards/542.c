@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static SFORMAT stateRegs[] ={
         { &reg, 1, "EXP0" },

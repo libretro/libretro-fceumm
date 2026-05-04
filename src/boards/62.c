@@ -20,8 +20,8 @@
 
 #include "mapinc.h"
 
-static uint8 bank;
-static uint16 mode;
+static uint8_t bank;
+static uint16_t mode;
 static SFORMAT StateRegs[] =
 {
 	{ &bank, 1, "BANK" },

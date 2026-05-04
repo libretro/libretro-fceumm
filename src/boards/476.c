@@ -20,7 +20,7 @@
  
 #include "mapinc.h"
 
-static uint8 reg[4];
+static uint8_t reg[4];
 static readfunc read4016 =NULL;
 
 static SFORMAT stateRegs[] ={
@@ -41,7 +41,7 @@ static void sync () {
 
 static DECLFR(remapButtons) {
 	int i;
-	uint8 result =0x40;
+	uint8_t result =0x40;
 	GetWriteHandler(0x4016)(0x4016, 1);
 	GetWriteHandler(0x4016)(0x4016, 0);
 	if (A ==0x4016) {

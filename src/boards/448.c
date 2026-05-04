@@ -22,7 +22,7 @@
 #include "asic_vrc2and4.h"
 #include "cartram.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static SFORMAT stateRegs[] ={
 	{ &reg, 1, "EXP0" },

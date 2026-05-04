@@ -23,9 +23,9 @@
 
 #include "mapinc.h"
 
-static uint8 cmd, dip;
-static uint8 latch[8];
-static uint8 mapperNum;
+static uint8_t cmd, dip;
+static uint8_t latch[8];
+static uint8_t mapperNum;
 
 static int type;
 static void S8259Synco(void) {
@@ -227,7 +227,7 @@ void SA0037_Init(CartInfo *info) {
 /* --------------------------------------------- */
 
 static DECLFR(TCA01Read) {
-	uint8 ret;
+	uint8_t ret;
 	if ((A & 0x4100) == 0x4100)
 		ret = (X.DB & 0xC0) | ((~A) & 0x3F);
 	else
@@ -254,7 +254,7 @@ void TCA01_Init(CartInfo *info) {
 /* Mapper 243 - SA-020A */
 
 static void S74LS374NSynco(void) {
-	uint32 chrBank;
+	uint32_t chrBank;
 	if (mapperNum == 150)
 		chrBank = (latch[6] & 3) | ((latch[4] << 2) & 4) | (latch[2] << 3);
 	else
@@ -272,7 +272,7 @@ static void S74LS374NSynco(void) {
 }
 
 static DECLFR(S74LS374NRead) {
-	uint8 ret;
+	uint8_t ret;
 	if ((A & 0xC101) == 0x4101) {
 		if (dip & 1)
 			ret = (latch[cmd] & 3) | (X.DB & 0xFC);

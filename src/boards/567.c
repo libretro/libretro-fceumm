@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	MMC3_syncPRG(0x0F, reg <<4);
@@ -34,14 +34,14 @@ static void sync () {
 	MMC3_syncMirror();
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	if (reg == 0x08) {
 		return MMC3_getPRGBank(bank &1) &~3 | bank &3;
 	} else
 		return MMC3_getPRGBank(bank);
 }
 
-static int getCHRBank (uint8 bank) {
+static int getCHRBank (uint8_t bank) {
 	if (reg == 0x0F)
 		return MMC3_getCHRBank(bank &6 | bank >>1 &1) <<1 | bank &1;
 	else

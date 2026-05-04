@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	if (reg &0x80) { /* ANROM mode */

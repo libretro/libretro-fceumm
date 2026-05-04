@@ -20,11 +20,11 @@
 
 #include "mapinc.h"
 
-static uint8 chr_reg[4];
-static uint8 kogame, prg_reg, nt1, nt2, mirr;
+static uint8_t chr_reg[4];
+static uint8_t kogame, prg_reg, nt1, nt2, mirr;
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE, count;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE, count;
 
 static SFORMAT StateRegs[] =
 {
@@ -153,7 +153,7 @@ void Mapper68_Init(CartInfo *info) {
 	info->Close = M68Close;
 	GameStateRestore = StateRestore;
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;

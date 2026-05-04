@@ -24,11 +24,11 @@
 
 
 static char side;
-static uint32 pprsb[2];
-static uint32 pprdata[2];
+static uint32_t pprsb[2];
+static uint32_t pprdata[2];
 
-static uint8 FP_FASTAPASS(1) ReadPP(int w) {
-	uint8 ret = 0;
+static uint8_t FP_FASTAPASS(1) ReadPP(int w) {
+	uint8_t ret = 0;
 	ret |= ((pprdata[w] >> pprsb[w]) & 1) << 3;
 	ret |= ((pprdata[w] >> (pprsb[w] + 8)) & 1) << 4;
 	if (pprsb[w] >= 4) {
@@ -56,10 +56,10 @@ void FP_FASTAPASS(3) UpdatePP(int w, void *data, int arg) {
 
 	if (side == 'A')
 		for (x = 0; x < 12; x++)
-			pprdata[w] |= (((*(uint32*)data) >> x) & 1) << shifttableA[x];
+			pprdata[w] |= (((*(uint32_t*)data) >> x) & 1) << shifttableA[x];
 	else
 		for (x = 0; x < 12; x++)
-			pprdata[w] |= (((*(uint32*)data) >> x) & 1) << shifttableB[x];
+			pprdata[w] |= (((*(uint32_t*)data) >> x) & 1) << shifttableB[x];
 }
 
 static INPUTC PwrPadCtrl = { ReadPP, 0, StrobePP, UpdatePP, 0, 0 };

@@ -22,7 +22,7 @@
 #include "mapinc.h"
 #include "latch.h"
 
-static uint8 reg[2];
+static uint8_t reg[2];
 
 static SFORMAT StateRegs[] = {
     { reg, 2, "REGS" },
@@ -30,7 +30,7 @@ static SFORMAT StateRegs[] = {
 };
 
 static void Sync(void) {
-	uint8 mask = (8 << (reg[1] >> 4 & 3)) - 1;
+	uint8_t mask = (8 << (reg[1] >> 4 & 3)) - 1;
 	setprg4(0x7000, 0);
 	if (reg[1] & 6)
 		setprg32(0x8000, (reg[0] << 2) + (latch.data & (mask >> 1)));

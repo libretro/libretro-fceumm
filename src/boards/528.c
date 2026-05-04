@@ -25,10 +25,10 @@
 #include "mapinc.h"
 #include "vrcirq.h"
 
-static uint8 preg[4], creg[8], mirr;
-static uint8 gamesel;
-static uint8 *WRAM;
-static uint32 WRAMSIZE;
+static uint8_t preg[4], creg[8], mirr;
+static uint8_t gamesel;
+static uint8_t *WRAM;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -40,7 +40,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-    uint8 mask = (gamesel << 4) | 0x0F;
+    uint8_t mask = (gamesel << 4) | 0x0F;
 	if (preg[3] == 1) {
 		setprg8r(0x10, 0x6000, 0);
     } else {
@@ -128,7 +128,7 @@ void Mapper528_Init(CartInfo *info) {
     AddExState(&StateRegs, ~0, 0, 0);
 
     WRAMSIZE = 8192;
-    WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
+    WRAM = (uint8_t*) FCEU_gmalloc(WRAMSIZE);
     SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
     AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 }

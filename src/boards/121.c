@@ -44,7 +44,7 @@ static void Sync() {
 	}
 }
 
-static void M121CW(uint32 A, uint8 V) {
+static void M121CW(uint32_t A, uint8_t V) {
 	if (PRGsize[0] == CHRsize[0]) {	/* A9713 multigame extension hack! */
 		setchr1(A, V | ((EXPREGS[3] & 0x80) << 1));
 	} else {
@@ -55,7 +55,7 @@ static void M121CW(uint32 A, uint8 V) {
 	}
 }
 
-static void M121PW(uint32 A, uint8 V) {
+static void M121PW(uint32_t A, uint8_t V) {
 	setprg8(A, (V & 0x1F) | ((EXPREGS[3] & 0x80) >> 2));
 	if (EXPREGS[5] & 0x3F) {
 		setprg8(0xE000, (EXPREGS[0]) | ((EXPREGS[3] & 0x80) >> 2));
@@ -91,7 +91,7 @@ static DECLFW(M121Write) {
 	}
 }
 
-static uint8 prot_array[16] = { 0x83, 0x83, 0x42, 0x00 };
+static uint8_t prot_array[16] = { 0x83, 0x83, 0x42, 0x00 };
 static DECLFW(M121LoWrite) {
 	EXPREGS[4] = prot_array[V & 3];	/* 0x100 bit in address seems to be switch arrays 0, 2, 2, 3 (Contra Fighter) */
 	if ((A & 0x5180) == 0x5180) {	/* A9713 multigame extension */

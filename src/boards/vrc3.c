@@ -23,13 +23,13 @@
 
 #include "mapinc.h"
 
-static uint8 preg;
-static uint8 IRQx;	/* autoenable */
-static uint8 IRQm;	/* mode */
-static uint8 IRQa;
-static uint16 IRQReload, IRQCount;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t preg;
+static uint8_t IRQx;	/* autoenable */
+static uint8_t IRQm;	/* mode */
+static uint8_t IRQa;
+static uint16_t IRQReload, IRQCount;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -74,16 +74,16 @@ static DECLFW(M73Write) {
 }
 
 static void M73IRQHook(int a) {
-	int32 i;
+	int32_t i;
 	if (!IRQa) return;
 	for (i = 0; i < a; i++) {
 		if (IRQm) {
-			uint16 temp = IRQCount;
+			uint16_t temp = IRQCount;
 			temp &= 0xFF;
 			IRQCount &= 0xFF00;
 			if (temp == 0xFF) {
 				IRQCount = IRQReload;
-				IRQCount |= (uint16)(IRQReload & 0xFF);
+				IRQCount |= (uint16_t)(IRQReload & 0xFF);
 				X6502_IRQBegin(FCEU_IQEXT);
 			} else {
 				temp++;
@@ -125,7 +125,7 @@ void Mapper73_Init(CartInfo *info) {
 	MapIRQHook = M73IRQHook;
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 

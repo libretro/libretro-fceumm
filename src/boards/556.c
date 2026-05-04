@@ -27,8 +27,8 @@
 #include "asic_vrc2and4.h"
 #include "cartram.h"
 
-static uint8 reg[4];
-static uint8 rIdx;
+static uint8_t reg[4];
+static uint8_t rIdx;
 
 static SFORMAT StateRegs[] = {
 	{ reg, 4, "REGS" },
@@ -54,7 +54,7 @@ static void sync (void) {
 	}
 }
 
-static void applyMode (uint8 clear) {
+static void applyMode (uint8_t clear) {
 	if (reg[2] &0x80)
 		VRC4_activate(clear, sync, 0x05, 0x0A, 1, NULL, NULL, NULL, NULL, NULL);
 	else

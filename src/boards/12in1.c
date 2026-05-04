@@ -24,7 +24,7 @@
 
 #include "mapinc.h"
 
-static uint8 prgchr[2], ctrl;
+static uint8_t prgchr[2], ctrl;
 static SFORMAT StateRegs[] =
 {
 	{ prgchr, 2, "REGS" },
@@ -33,7 +33,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 bank = (ctrl & 3) << 3;
+	uint8_t bank = (ctrl & 3) << 3;
 	setchr4(0x0000, (prgchr[0] >> 3) | (bank << 2));
 	setchr4(0x1000, (prgchr[1] >> 3) | (bank << 2));
 	if (ctrl & 8) {

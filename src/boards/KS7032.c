@@ -31,11 +31,11 @@
 
 #include "mapinc.h"
 
-static uint8 reg[8], creg[8], mirr, cmd, IRQa = 0;
-static int32 IRQCount, IRQLatch;
-static uint8 KS7032;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t reg[8], creg[8], mirr, cmd, IRQa = 0;
+static int32_t IRQCount, IRQLatch;
+static uint8_t KS7032;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegsKS7032[] =
 {
@@ -91,7 +91,7 @@ static DECLFW(UNLKS7032Write) {
 	case 0xD000: X6502_IRQEnd(FCEU_IQEXT); break;
 	case 0xE000: cmd = V & 7; break;
 	case 0xF000: {
-		uint8 bank = (cmd - 1);
+		uint8_t bank = (cmd - 1);
 		if (bank < 3)
 			reg[bank] = (reg[bank] & 0x10) | (V & 0x0F);
 		else if (bank < 4)
@@ -168,7 +168,7 @@ void UNLKS202_Init(CartInfo *info) {
 	AddExState(&StateRegsKS202, ~0, 0, 0);
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	if (info->battery) {
 		info->SaveGame[0] = WRAM;

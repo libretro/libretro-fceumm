@@ -29,22 +29,22 @@
 #define FDSClock (1789772.7272727272727272 / 2)
 
 typedef struct {
-	int64 cycles;		/* Cycles per PCM sample */
-	int64 count;		/* Cycle counter */
-	int64 envcount;		/* Envelope cycle counter */
-	uint32 b19shiftreg60;
-	uint32 b24adder66;
-	uint32 b24latch68;
-	uint32 b17latch76;
-	int32 clockcount;	/* Counter to divide frequency by 8. */
-	uint8 b8shiftreg88;	/* Modulation register. */
-	uint8 amplitude[2];	/* Current amplitudes. */
-	uint8 speedo[2];
-	uint8 mwcount;
-	uint8 mwstart;
-	uint8 mwave[0x20];	/* Modulation waveform */
-	uint8 cwave[0x40];	/* Game-defined waveform(carrier) */
-	uint8 SPSG[0xB];
+	int64_t cycles;		/* Cycles per PCM sample */
+	int64_t count;		/* Cycle counter */
+	int64_t envcount;		/* Envelope cycle counter */
+	uint32_t b19shiftreg60;
+	uint32_t b24adder66;
+	uint32_t b24latch68;
+	uint32_t b17latch76;
+	int32_t clockcount;	/* Counter to divide frequency by 8. */
+	uint8_t b8shiftreg88;	/* Modulation register. */
+	uint8_t amplitude[2];	/* Current amplitudes. */
+	uint8_t speedo[2];
+	uint8_t mwcount;
+	uint8_t mwstart;
+	uint8_t mwave[0x20];	/* Modulation waveform */
+	uint8_t cwave[0x40];	/* Game-defined waveform(carrier) */
+	uint8_t SPSG[0xB];
 } FDSSOUND;
 
 static FDSSOUND fdso;
@@ -193,11 +193,11 @@ static INLINE void ClockFall(void) {
 	clockcount = (clockcount + 1) & 7;
 }
 
-static INLINE int32 FDSDoSound(void) {
+static INLINE int32_t FDSDoSound(void) {
 	fdso.count += fdso.cycles;
-	if (fdso.count >= ((int64)1 << 40)) {
+	if (fdso.count >= ((int64_t)1 << 40)) {
  dogk:
-		fdso.count -= (int64)1 << 40;
+		fdso.count -= (int64_t)1 << 40;
 		ClockRise();
 		ClockFall();
 		fdso.envcount--;
@@ -216,11 +216,11 @@ static INLINE int32 FDSDoSound(void) {
 	}
 }
 
-static int32 FBC = 0;
+static int32_t FBC = 0;
 
 static void RenderSound(void) {
-	int32 end, start;
-	int32 x;
+	int32_t end, start;
+	int32_t x;
 
 	start = FBC;
 	end = (SOUNDTS << 16) / soundtsinc;
@@ -230,7 +230,7 @@ static void RenderSound(void) {
 
 	if (!(SPSG[0x9] & 0x80))
 		for (x = start; x < end; x++) {
-			uint32 t = FDSDoSound();
+			uint32_t t = FDSDoSound();
 			t += t >> 1;
 			t >>= 4;
 			Wave[x >> 4] += t;	/* (t>>2)-(t>>3); */ /* >>3; */
@@ -238,18 +238,18 @@ static void RenderSound(void) {
 }
 
 static void RenderSoundHQ(void) {
-	uint32 x;
+	uint32_t x;
 
 	if (!(SPSG[0x9] & 0x80))
 		for (x = FBC; x < SOUNDTS; x++) {
-			uint32 t = FDSDoSound();
+			uint32_t t = FDSDoSound();
 			t += t >> 1;
 			WaveHi[x] += t;	/* (t<<2)-(t<<1); */
 		}
 	FBC = SOUNDTS;
 }
 
-static void HQSync(int32 ts) {
+static void HQSync(int32_t ts) {
 	FBC = ts;
 }
 
@@ -261,9 +261,9 @@ void FDSSound(int c) {
 static void FDS_ESI(void) {
 	if (FSettings.SndRate) {
 		if (FSettings.soundq >= 1) {
-			fdso.cycles = (int64)1 << 39;
+			fdso.cycles = (int64_t)1 << 39;
 		} else {
-			fdso.cycles = ((int64)1 << 40) * FDSClock;
+			fdso.cycles = ((int64_t)1 << 40) * FDSClock;
 			fdso.cycles /= FSettings.SndRate * 16;
 		}
 	}
@@ -282,13 +282,13 @@ void FDSSoundReset(void) {
 	GameExpSound.RChange = FDS_ESI;
 }
 
-uint8 FDSSoundRead(uint32 A) {
+uint8_t FDSSoundRead(uint32_t A) {
 	if (A >= 0x4040 && A < 0x4080) return FDSWaveRead(A);
 	if (A >= 0x4090 && A < 0x4093) return FDSSRead(A);
 	return X.DB;
 }
 
-void FDSSoundWrite(uint32 A, uint8 V) {
+void FDSSoundWrite(uint32_t A, uint8_t V) {
 	if (A >= 0x4040 && A < 0x4080) FDSWaveWrite(A, V);
 	else if (A >= 0x4080 && A < 0x408B) FDSSWrite(A, V);
 }

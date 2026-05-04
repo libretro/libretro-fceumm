@@ -28,7 +28,7 @@ static void sync () {
 	setmirror(Latch_address &0x04? MI_V: MI_H);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) { /* The address bits are only updated when the new A4=0 and A3=1. */
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* The address bits are only updated when the new A4=0 and A3=1. */
 	if (!(~*newAddress &0x10 && *newAddress &0x08)) *newAddress = Latch_address;
 }
 

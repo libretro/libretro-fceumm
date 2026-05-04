@@ -24,9 +24,9 @@
 
 #include "mapinc.h"
 
-static uint8 *WRAM;
-static uint32 WRAMSIZE;
-static uint8 reg[4];
+static uint8_t *WRAM;
+static uint32_t WRAMSIZE;
+static uint8_t reg[4];
 static SFORMAT StateRegs[] =
 {
         { reg, 4, "REGS" },
@@ -58,7 +58,7 @@ static DECLFR(readReg)
 
 static DECLFW(writeReg)
 {
-   uint8 index = A >>8 &3;
+   uint8_t index = A >>8 &3;
    
    /* Swap bits of registers 0-2 again if the "swap bits" bit is set. Exclude register 2 on when PRG-ROM is 1 MiB. */
    if (reg[3] &0x01 && index <= (ROM_size == 64? 1: 2))
@@ -112,7 +112,7 @@ void Mapper163_Init (CartInfo *info)
    AddExState(StateRegs, ~0, 0, 0);
 
    WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;
-   WRAM = (uint8*) FCEU_gmalloc(WRAMSIZE);
+   WRAM = (uint8_t*) FCEU_gmalloc(WRAMSIZE);
    SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
    AddExState(WRAM, WRAMSIZE, 0, "WRAM");
    FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);

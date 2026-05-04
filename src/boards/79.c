@@ -21,7 +21,7 @@
 
 #include "mapinc.h"
 
-static uint8 creg, preg;
+static uint8_t creg, preg;
 static SFORMAT StateRegs[] =
 {
 	{ &creg, 1, "CREG" },

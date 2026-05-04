@@ -24,10 +24,10 @@
 
 #include "mapinc.h"
 
-static uint8 cmd, mirr, regs[11];
-static uint8 rmode, IRQmode, IRQCount, IRQa, IRQLatch;
+static uint8_t cmd, mirr, regs[11];
+static uint8_t rmode, IRQmode, IRQCount, IRQa, IRQLatch;
 
-static void (*cwrap)(uint32 A, uint8 V);
+static void (*cwrap)(uint32_t A, uint8_t V);
 static int _isM158;
 
 static SFORMAT StateRegs[] = {
@@ -43,7 +43,7 @@ static SFORMAT StateRegs[] = {
 };
 
 static void FP_FASTAPASS(1) RAMBO1IRQHook(int a) {
-	static int32 smallcount;
+	static int32_t smallcount;
 	if (IRQmode) {
 		smallcount += a;
 		while (smallcount >= 4) {
@@ -155,7 +155,7 @@ static void RAMBO1_Init(CartInfo *info) {
 	AddExState(&StateRegs, ~0, 0, 0);
 }
 
-static void M64CWRAP(uint32 A, uint8 V) {
+static void M64CWRAP(uint32_t A, uint8_t V) {
 	setchr1(A, V);
 }
 
@@ -165,17 +165,17 @@ void Mapper64_Init(CartInfo *info) {
 	RAMBO1_Init(info);
 }
 
-static uint8 M158MIR[8];
-static uint8 PPUCHRBus;
+static uint8_t M158MIR[8];
+static uint8_t PPUCHRBus;
 
-static void FP_FASTAPASS(1) M158PPU(uint32 A) {
+static void FP_FASTAPASS(1) M158PPU(uint32_t A) {
 	A &= 0x1FFF;
 	A >>= 10;
 	PPUCHRBus = A;
 	setmirror(MI_0 + M158MIR[A]);
 }
 
-static void M158CWRAP(uint32 A, uint8 V) {
+static void M158CWRAP(uint32_t A, uint8_t V) {
 	M158MIR[A >> 10] = (V >> 7) & 1;
 	setchr1(A, V);
 	if (PPUCHRBus == (A >> 10))

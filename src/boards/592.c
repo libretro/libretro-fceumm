@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
 static void sync () {
 	if (submapper == 1)

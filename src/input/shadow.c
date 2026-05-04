@@ -24,16 +24,16 @@
 #include        "share.h"
 
 typedef struct {
-	uint32 mzx, mzy, mzb;
+	uint32_t mzx, mzy, mzb;
 	int zap_readbit;
 	int bogo;
 	int zappo;
-	uint64 zaphit;
+	uint64_t zaphit;
 } ZAPPER;
 
 static ZAPPER ZD;
 
-static void FP_FASTAPASS(3) ZapperFrapper(uint8 * bg, uint8 * spr, uint32 linets, int final) {
+static void FP_FASTAPASS(3) ZapperFrapper(uint8_t * bg, uint8_t * spr, uint32_t linets, int final) {
 	int xs, xe;
 	int zx, zy;
 
@@ -51,8 +51,8 @@ static void FP_FASTAPASS(3) ZapperFrapper(uint8 * bg, uint8 * spr, uint32 linets
 
 	if (scanline >= (zy - 4) && scanline <= (zy + 4)) {
 		while (xs < xe) {
-			uint8 a1, a2;
-			uint32 sum;
+			uint8_t a1, a2;
+			uint32_t sum;
 			if (xs <= (zx + 4) && xs >= (zx - 4)) {
 				a1 = bg[xs];
 				if (spr) {
@@ -66,7 +66,7 @@ static void FP_FASTAPASS(3) ZapperFrapper(uint8 * bg, uint8 * spr, uint32 linets
 
 				sum = palo[a1].r + palo[a1].g + palo[a1].b;
 				if (sum >= 100 * 3) {
-					ZD.zaphit = ((uint64)linets + (uint64)(xs + 16) * (PAL ? 15 : 16)) / 48 + timestampbase;
+					ZD.zaphit = ((uint64_t)linets + (uint64_t)(xs + 16) * (PAL ? 15 : 16)) / 48 + timestampbase;
 					goto endo;
 				}
 			}
@@ -86,7 +86,7 @@ static INLINE int CheckColor(void) {
 }
 
 
-static uint8 FP_FASTAPASS(2) ReadZapper(int w, uint8 ret) {
+static uint8_t FP_FASTAPASS(2) ReadZapper(int w, uint8_t ret) {
 	if (w) {
 		ret &= ~0x18;
 		if (ZD.bogo)
@@ -104,13 +104,13 @@ static uint8 FP_FASTAPASS(2) ReadZapper(int w, uint8 ret) {
 	return ret;
 }
 
-static void FP_FASTAPASS(2) DrawZapper(uint8 * buf, int arg) {
+static void FP_FASTAPASS(2) DrawZapper(uint8_t * buf, int arg) {
 	if (arg)
 		FCEU_DrawGunSight(buf, ZD.mzx, ZD.mzy);
 }
 
 static void FP_FASTAPASS(2) UpdateZapper(void *data, int arg) {
-	uint32 *ptr = (uint32*)data;
+	uint32_t *ptr = (uint32_t*)data;
 
 	if (ZD.bogo)
 		ZD.bogo--;

@@ -22,7 +22,7 @@
 #include "asic_mmc1.h"
 #include "asic_mmc3.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync (void) {
 	if (reg &0x01) {
@@ -36,7 +36,7 @@ static void sync (void) {
 	}
 }
 
-static void applyMode (uint8 clear) {
+static void applyMode (uint8_t clear) {
 	PPU_hook = NULL;
 	MapIRQHook = NULL;
 	GameHBIRQHook = NULL;

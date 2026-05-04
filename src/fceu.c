@@ -47,7 +47,7 @@
 #include  "crc32.h"
 #include  "vsuni.h"
 
-uint64 timestampbase;
+uint64_t timestampbase;
 
 FCEUGI *GameInfo = NULL;
 void (*GameInterface)(int h);
@@ -101,7 +101,7 @@ int AllocGenieRW(void)
 
 void FlushGenieRW(void)
 {
-   int32 x;
+   int32_t x;
 
    if (RWWrap)
    {
@@ -118,7 +118,7 @@ void FlushGenieRW(void)
    RWWrap = 0;
 }
 
-readfunc FASTAPASS(1) GetReadHandler(int32 a)
+readfunc FASTAPASS(1) GetReadHandler(int32_t a)
 {
 	if (a >= 0x8000 && RWWrap)
 		return AReadG[a - 0x8000];
@@ -126,9 +126,9 @@ readfunc FASTAPASS(1) GetReadHandler(int32 a)
 		return ARead[a];
 }
 
-void FASTAPASS(3) SetReadHandler(int32 start, int32 end, readfunc func)
+void FASTAPASS(3) SetReadHandler(int32_t start, int32_t end, readfunc func)
 {
-	int32 x;
+	int32_t x;
 
 	if (!func)
 		func = ANull;
@@ -146,7 +146,7 @@ void FASTAPASS(3) SetReadHandler(int32 start, int32 end, readfunc func)
 			ARead[x] = func;
 }
 
-writefunc FASTAPASS(1) GetWriteHandler(int32 a)
+writefunc FASTAPASS(1) GetWriteHandler(int32_t a)
 {
 	if (RWWrap && a >= 0x8000)
 		return BWriteG[a - 0x8000];
@@ -154,9 +154,9 @@ writefunc FASTAPASS(1) GetWriteHandler(int32 a)
 		return BWrite[a];
 }
 
-void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func)
+void FASTAPASS(3) SetWriteHandler(int32_t start, int32_t end, writefunc func)
 {
-	int32 x;
+	int32_t x;
 
 	if (!func)
 		func = BNull;
@@ -174,9 +174,9 @@ void FASTAPASS(3) SetWriteHandler(int32 start, int32 end, writefunc func)
 			BWrite[x] = func;
 }
 
-uint8 RAM[0x800];
+uint8_t RAM[0x800];
 
-uint8 PAL = 0;
+uint8_t PAL = 0;
 
 static DECLFW(BRAML)
 {
@@ -334,7 +334,7 @@ void FCEUI_Kill(void) {
 	FCEU_KillGenie();
 }
 
-void FCEUI_Emulate(uint8 **pXBuf, int32 **SoundBuf, int32 *SoundBufSize, int skip) {
+void FCEUI_Emulate(uint8_t **pXBuf, int32_t **SoundBuf, int32_t *SoundBufSize, int skip) {
 	int r, ssize;
 
 	FCEU_UpdateInput();
@@ -366,7 +366,35 @@ void ResetNES(void)
 
 int option_ramstate = 0;
 
-void FCEU_MemoryRand(uint8 *ptr, uint32 size)
+/* Deterministic PRNG state for FCEU_MemoryRand. We use a local xorshift32
+ * seeded from a ROM-identity-derived constant rather than libc rand() so
+ * that the same ROM produces the same initial RAM/CHRRAM contents across
+ * runs and across builds. This matters for replay and netplay frame-
+ * determinism: games that read uninitialised memory (NES titles do this
+ * routinely) would otherwise diverge based on libc rand() state. The
+ * seed is reset by FCEU_MemoryRand_Reseed() before each cart's power-on
+ * sequence so multiple FCEU_MemoryRand calls during one cart load share
+ * a single advancing state, and so different ROMs get different patterns. */
+static uint32_t fceu_memrand_state = 0xDEADBEEF;
+
+void FCEU_MemoryRand_Reseed(uint32_t seed)
+{
+	/* Avoid the all-zero fixed point of xorshift; if seed is 0, use a
+	 * sentinel. */
+	fceu_memrand_state = seed ? seed : 0xDEADBEEF;
+}
+
+static INLINE uint32_t fceu_memrand_step(void)
+{
+	uint32_t x = fceu_memrand_state;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+	fceu_memrand_state = x;
+	return x;
+}
+
+void FCEU_MemoryRand(uint8_t *ptr, uint32_t size)
 {
 	int x = 0;
 	while (size) {
@@ -384,7 +412,7 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 		{
 		case 0: v = 0xff; break;
 		case 1: v = 0x00; break;
-		case 2: v = (uint8_t)rand(); break;
+		case 2: v = (uint8_t)fceu_memrand_step(); break;
 		}
 		*ptr = v;
 		x++;
@@ -393,12 +421,14 @@ void FCEU_MemoryRand(uint8 *ptr, uint32 size)
 	}
 }
 
-void hand(X6502 *X, int type, uint32 A)
+void hand(X6502 *X, int type, uint32_t A)
 {
 }
 
 void PowerNES(void)
 {
+	uint32_t md5_seed;
+
 	if (!GameInfo)
       return;
 
@@ -408,6 +438,15 @@ void PowerNES(void)
 	FCEU_CheatAddRAM(2, 0, RAM);
 
 	FCEU_GeniePower();
+
+	/* Seed the deterministic memory PRNG from the cart's MD5 so the same
+	 * ROM gets the same RAM contents but different ROMs differ. The MD5
+	 * is set by all loaders (iNES/UNIF/FDS/NSF) before PowerNES runs. */
+	md5_seed = ((uint32_t)GameInfo->MD5[0])
+	         | ((uint32_t)GameInfo->MD5[1] << 8)
+	         | ((uint32_t)GameInfo->MD5[2] << 16)
+	         | ((uint32_t)GameInfo->MD5[3] << 24);
+	FCEU_MemoryRand_Reseed(md5_seed);
 
 	FCEU_MemoryRand(RAM, 0x800);
 
@@ -536,7 +575,7 @@ void FCEUI_SetGameGenie(int a)
 	FSettings.GameGenie = a ? 1 : 0;
 }
 
-int32 FCEUI_GetDesiredFPS(void)
+int32_t FCEUI_GetDesiredFPS(void)
 {
 	if (PAL || dendy)
 		return(838977920);	/* ~50.007 */

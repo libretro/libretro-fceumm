@@ -23,7 +23,7 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	int prgAND = reg &0x04? 0x1F: 0x0F;

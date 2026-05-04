@@ -21,9 +21,9 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
-static uint8 irqEnabled;
-static uint8 irqCounter;
-static uint8 irqPrescaler;
+static uint8_t irqEnabled;
+static uint8_t irqCounter;
+static uint8_t irqPrescaler;
 
 static SFORMAT stateRegs[] ={
 	{ &irqEnabled, 1, "IRQE" },

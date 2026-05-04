@@ -74,7 +74,7 @@ static const int16_t diff_lookup[49*16] = {
 };
 static const int16_t index_shift[8] = { -1, -1, -1, -1, 2, 4, 6, 8 };
 
-void MSM6585_init (MSM6585* chip, int32 newHostClock, int (*newGetInput)(void)) {
+void MSM6585_init (MSM6585* chip, int32_t newHostClock, int (*newGetInput)(void)) {
 	chip->hostClock = newHostClock;
 	chip->getInput = newGetInput;
 	AddExState(&chip->whichNibble, 1, 0, "MSMW");
@@ -91,7 +91,7 @@ void MSM6585_reset (MSM6585* chip) {
 	chip->signal = -2;
 }
 
-void MSM6585_setRate (MSM6585* chip, uint8 rateByte) {
+void MSM6585_setRate (MSM6585* chip, uint8_t rateByte) {
 	chip->rate = 4000 <<(rateByte &3);
 }
 

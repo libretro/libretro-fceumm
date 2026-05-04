@@ -23,12 +23,12 @@
 #include "mapinc.h"
 #include "cartram.h"
 
-static uint8 reg[16];
-static uint8 scratch[4];
-static uint8 flags;
-static uint8 pad;
+static uint8_t reg[16];
+static uint8_t scratch[4];
+static uint8_t flags;
+static uint8_t pad;
 static int mapper;
-static uint8 submapper;
+static uint8_t submapper;
 
 static SFORMAT stateRegs[] = {
 	{ reg,    16, "REGS" },
@@ -157,7 +157,7 @@ static DECLFW (writeReg) {
 }
 
 void clockCounter (void) {
-	uint16 counter = reg[2] | reg[3] <<8;
+	uint16_t counter = reg[2] | reg[3] <<8;
 	if (flags &0x80 && counter) {
 		if (reg[1] &0x40)
 			counter--;

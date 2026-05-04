@@ -45,7 +45,7 @@
 
 typedef struct {
 	char ID[4];
-	uint32 info;
+	uint32_t info;
 } UNIF_HEADER;
 
 typedef struct {
@@ -66,30 +66,30 @@ static int vramo;
 static int mirrortodo;
 static int submapper;
 static int cspecial;
-static uint8 *boardname;
-static uint8 *sboardname;
+static uint8_t *boardname;
+static uint8_t *sboardname;
 
-static uint32 CHRRAMSize;
-uint8 *UNIFchrrama = 0;
+static uint32_t CHRRAMSize;
+uint8_t *UNIFchrrama = 0;
 
 static UNIF_HEADER unhead;
 static UNIF_HEADER uchead;
 
 
-static uint8 *malloced[32];
-static uint32 mallocedsizes[32];
+static uint8_t *malloced[32];
+static uint32_t mallocedsizes[32];
 /* used to preserve the rom order as found in the rom file
  * at least one mapper has bank 4 at the beginning for e.g. */
-static uint32 prg_idx[16];
-static uint32 chr_idx[16];
+static uint32_t prg_idx[16];
+static uint32_t chr_idx[16];
 
-static uint32 prg_chip_count;
-static uint32 chr_chip_count;
+static uint32_t prg_chip_count;
+static uint32_t chr_chip_count;
 
-static uint64 UNIF_PRGROMSize, UNIF_CHRROMSize;
+static uint64_t UNIF_PRGROMSize, UNIF_CHRROMSize;
 
-static int FixRomSize(uint32 size, uint32 minimum) {
-	uint32 x = 1;
+static int FixRomSize(uint32_t size, uint32_t minimum) {
+	uint32_t x = 1;
 
 	if (size < minimum)
 		return minimum;
@@ -147,7 +147,7 @@ static void Cleanup(void) {
 	ResetUNIF();
 }
 
-static uint8 exntar[2048];
+static uint8_t exntar[2048];
 
 static void MooMirroring(void) {
 	if (mirrortodo < 0x4)
@@ -162,7 +162,7 @@ static void MooMirroring(void) {
 
 static int DoMirroring(FCEUFILE *fp) {
 	int t;
-	uint32 i;
+	uint32_t i;
 	if (uchead.info == 1) {
 		if ((t = FCEU_fgetc(fp)) == EOF)
 			return(0);
@@ -211,8 +211,8 @@ static int NAME(FCEUFILE *fp) {
 
 static int DINF(FCEUFILE *fp) {
 	char name[100], method[100];
-	uint8 d, m;
-	uint16 y;
+	uint8_t d, m;
+	uint16_t y;
 	int t;
 
 	if (FCEU_fread(name, 1, 100, fp) != 100)
@@ -246,7 +246,7 @@ static int DINF(FCEUFILE *fp) {
 
 static int CTRL(FCEUFILE *fp) {
 	int t;
-	uint32 i;
+	uint32_t i;
 	if (uchead.info == 1) {
 		if ((t = FCEU_fgetc(fp)) == EOF)
 			return(0);
@@ -297,12 +297,12 @@ static int EnableBattery(FCEUFILE *fp) {
 
 static int LoadPRG(FCEUFILE *fp) {
 	int z;
-	uint32 t;
+	uint32_t t;
 	z = uchead.ID[3] - '0';
 
 	if (z < 0 || z > 15)
 		return(0);
-	/* uchead.info is uint32 from the file; reject sizes that would either
+	/* uchead.info is uint32_t from the file; reject sizes that would either
 	 * overflow when added below, or that are obviously bogus. The largest
 	 * legitimate single PRG chunk is in the low MiB. Cap at 64 MiB which
 	 * is well above reality but still safe. */
@@ -312,7 +312,7 @@ static int LoadPRG(FCEUFILE *fp) {
 	if (malloced[z])
 		free(malloced[z]);
 	t = uchead.info;
-	if (!(malloced[z] = (uint8*)FCEU_malloc(t)))
+	if (!(malloced[z] = (uint8_t*)FCEU_malloc(t)))
 		return(0);
 	mallocedsizes[z] = t;
 	if (FCEU_fread(malloced[z], 1, uchead.info, fp) != uchead.info) {
@@ -336,12 +336,12 @@ static int SetBoardName(FCEUFILE *fp) {
 		FCEU_PrintError(" MAPR chunk too small (%u bytes); ignoring.\n", (unsigned)uchead.info);
 		return 0;
 	}
-	if (!(boardname = (uint8*)FCEU_malloc(uchead.info + 1)))
+	if (!(boardname = (uint8_t*)FCEU_malloc(uchead.info + 1)))
 		return(0);
 	FCEU_fread(boardname, 1, uchead.info, fp);
 	boardname[uchead.info] = 0;
 	/* strip whitespaces */
-	boardname = (uint8*)string_trim_whitespace((char *const)boardname);
+	boardname = (uint8_t*)string_trim_whitespace((char *const)boardname);
 	FCEU_printf(" Board name: %s\n", boardname);
 	sboardname = boardname;
 	if (!memcmp(boardname, "NES-", 4) || !memcmp(boardname, "UNL-", 4) ||
@@ -354,7 +354,7 @@ static int SetBoardName(FCEUFILE *fp) {
 
 static int LoadCHR(FCEUFILE *fp) {
 	int z;
-	uint32 t;
+	uint32_t t;
 	z = uchead.ID[3] - '0';
 	if (z < 0 || z > 15)
 		return(0);
@@ -364,7 +364,7 @@ static int LoadCHR(FCEUFILE *fp) {
 	if (malloced[16 + z])
 		free(malloced[16 + z]);
 	t = uchead.info;
-	if (!(malloced[16 + z] = (uint8*)FCEU_malloc(t)))
+	if (!(malloced[16 + z] = (uint8_t*)FCEU_malloc(t)))
 		return(0);
 	mallocedsizes[16 + z] = t;
 	if (FCEU_fread(malloced[16 + z], 1, uchead.info, fp) != uchead.info) {
@@ -382,7 +382,7 @@ static int LoadCHR(FCEUFILE *fp) {
 #define NO_BUSC 1
 
 struct _unif_db {
-	uint64 partialMD5;
+	uint64_t partialMD5;
 	char *boardname;
 	int submapper;
 	int mirroring;
@@ -399,10 +399,10 @@ static struct _unif_db unif_db[] = {
 
 static void CheckHashInfo(void) {
 	unsigned x = 0;
-	uint64 partialMD5 = 0;
+	uint64_t partialMD5 = 0;
 
 	for (x = 0; x < 8; x++)
-		partialMD5 |= (uint64)UNIFCart.MD5[15 - x] << (x * 8);
+		partialMD5 |= (uint64_t)UNIFCart.MD5[15 - x] << (x * 8);
 
 	x = 0;
 	do {
@@ -412,7 +412,7 @@ static void CheckHashInfo(void) {
 			FCEU_PrintError(" For now, the information will be corrected in RAM.\n");
 			if (unif_db[x].boardname != NULL && strcmp((char*)unif_db[x].boardname, (char*)sboardname) != 0) {
 				FCEU_printf(" Boardname should be set to %s\n", unif_db[x].boardname);
-				sboardname = (uint8*)unif_db[x].boardname;
+				sboardname = (uint8_t*)unif_db[x].boardname;
 			}
 			if (unif_db[x].submapper >= 0 && unif_db[x].submapper != submapper) {
 				FCEU_PrintError(" Submapper should be set to %d\n", unif_db[x].submapper);
@@ -727,7 +727,7 @@ static int InitializeBoard(void) {
 				else
 					CHRRAMSize = 8;
                 CHRRAMSize <<= 10;
-				if ((UNIFchrrama = (uint8*)FCEU_malloc(CHRRAMSize))) {
+				if ((UNIFchrrama = (uint8_t*)FCEU_malloc(CHRRAMSize))) {
 					SetupCartCHRMapping(0, UNIFchrrama, CHRRAMSize, 1);
 					AddExState(UNIFchrrama, CHRRAMSize, 0, "CHRR");
 				} else
@@ -772,7 +772,7 @@ static void UNIFGI(int h) {
 
 int UNIFLoad(const char *name, FCEUFILE *fp) {
 	struct md5_context md5;
-	uint64 prg_size_bytes = 0, chr_size_bytes = 0;
+	uint64_t prg_size_bytes = 0, chr_size_bytes = 0;
 	int x = 0;
 
 	FCEU_fseek(fp, 0, SEEK_SET);
@@ -815,12 +815,12 @@ int UNIFLoad(const char *name, FCEUFILE *fp) {
 
 	/* Note: Use rounded size for memory allocations and board mapping */
 
-	if (!(ROM = (uint8*)malloc(UNIF_PRGROMSize))) {
+	if (!(ROM = (uint8_t*)malloc(UNIF_PRGROMSize))) {
 		Cleanup();
 		return 0;
 	}
 	if (UNIF_CHRROMSize) {
-		if (!(VROM = (uint8*)malloc(UNIF_CHRROMSize))) {
+		if (!(VROM = (uint8_t*)malloc(UNIF_CHRROMSize))) {
 			Cleanup();
 			return 0;
 		}

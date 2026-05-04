@@ -21,10 +21,10 @@
 #include <string.h>
 #include "share.h"
 
-static uint32 bs, bss;
-static uint32 boop;
+static uint32_t bs, bss;
+static uint32_t boop;
 
-static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret) {
+static uint8_t FP_FASTAPASS(2) Read(int w, uint8_t ret) {
 	if (w) {
 		ret |= (bs & 1) << 3;
 		ret |= (boop & 1) << 4;
@@ -34,12 +34,12 @@ static uint8 FP_FASTAPASS(2) Read(int w, uint8 ret) {
 	return(ret);
 }
 
-static void FP_FASTAPASS(1) Write(uint8 V) {
+static void FP_FASTAPASS(1) Write(uint8_t V) {
 	bs = bss;
 }
 
 static void FP_FASTAPASS(2) Update(void *data, int arg) {
-	bss = *(uint8*)data;
+	bss = *(uint8_t*)data;
 	bss |= bss << 8;
 	bss |= bss << 8;
 }

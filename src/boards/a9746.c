@@ -21,13 +21,13 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void UNLA9746PWrap(uint32 A, uint8 V) {
+static void UNLA9746PWrap(uint32_t A, uint8_t V) {
 	int prgAND = EXPREGS[0] &0x40? 0x0F: 0x1F;
 	int prgOR = EXPREGS[0] <<4 &0x10 | EXPREGS[1] &0x20;
 	setprg8(A, V &prgAND | prgOR &~prgAND);
 }
 
-static void UNLA9746CWrap(uint32 A, uint8 V) {
+static void UNLA9746CWrap(uint32_t A, uint8_t V) {
 	int chrAND = EXPREGS[0] &0x80? 0x7F: 0xFF;
 	int chrOR = EXPREGS[0] <<4 &0x80 | EXPREGS[1] <<3 &0x100;
 	setchr1(A, V &chrAND | chrOR &~chrAND);

@@ -21,13 +21,13 @@
 #include "mapinc.h"
 #include "emu2413.h"
 
-static int32 dwave = 0;
+static int32_t dwave = 0;
 static OPLL *VRC7Sound = NULL;
-static uint8 vrc7idx, preg[3], creg[8], mirr;
-static uint8 IRQLatch, IRQa, IRQd;
-static int32 IRQCount, CycleCount;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t vrc7idx, preg[3], creg[8], mirr;
+static uint8_t IRQLatch, IRQa, IRQd;
+static int32_t IRQCount, CycleCount;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static SFORMAT StateRegs[] =
 {
@@ -46,7 +46,7 @@ static SFORMAT StateRegs[] =
 /* VRC7 Sound */
 
 void DoVRC7Sound(void) {
-	int32 z, a;
+	int32_t z, a;
 	if (FSettings.soundq >= 1)
 		return;
 	z = ((SOUNDTS << 16) / soundtsinc) >> 4;
@@ -55,12 +55,12 @@ void DoVRC7Sound(void) {
 	dwave += a;
 }
 
-void UpdateOPLNEO(int32 *Wave, int Count) {
+void UpdateOPLNEO(int32_t *Wave, int Count) {
 	OPLL_fillbuf(VRC7Sound, Wave, Count, 4);
 }
 
 void UpdateOPL(int Count) {
-	int32 z, a;
+	int32_t z, a;
 	z = ((SOUNDTS << 16) / soundtsinc) >> 4;
 	a = z - dwave;
 	if (VRC7Sound && a)
@@ -90,7 +90,7 @@ static void VRC7_ESI(void) {
 /* VRC7 Sound */
 
 static void Sync(void) {
-	uint8 i;
+	uint8_t i;
 	setprg8r(0x10, 0x6000, 0);
 	setprg8(0x8000, preg[0]);
 	setprg8(0xA000, preg[1]);
@@ -185,7 +185,7 @@ void Mapper85_Init(CartInfo *info) {
 	info->Close = VRC7Close;
 	MapIRQHook = VRC7IRQHook;
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	if (info->battery) {
@@ -218,7 +218,7 @@ void Mapper85_Init(CartInfo *info) {
 	AddExState(&VRC7Sound->patch_number, sizeof(VRC7Sound->patch_number), 0, "PNUM");
 	AddExState(&VRC7Sound->key_status, sizeof(VRC7Sound->key_status), 0, "KET");
 	AddExState(&VRC7Sound->mask, sizeof(VRC7Sound->mask), 0, "MASK");
-	AddExState((uint8 *)VRC7Sound->slot, sizeof(VRC7Sound->slot), 0, "SLOT");
+	AddExState((uint8_t *)VRC7Sound->slot, sizeof(VRC7Sound->slot), 0, "SLOT");
 #endif
 }
 

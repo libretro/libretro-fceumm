@@ -23,7 +23,7 @@
 
 #include "mapinc.h"
 
-static uint8 reg[8], mirror;
+static uint8_t reg[8], mirror;
 static SFORMAT StateRegs[] =
 {
 	{ reg, 8, "PRG" },

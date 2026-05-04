@@ -20,14 +20,14 @@
 
 #include "mapinc.h"
 
-static uint8 reg[8];
-static uint8 IRQa;
-static int16 IRQCount, IRQLatch;
+static uint8_t reg[8];
+static uint8_t IRQa;
+static int16_t IRQCount, IRQLatch;
 /*
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSIZE;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
+static uint8_t *CHRRAM = NULL;
+static uint32_t CHRRAMSIZE;
 */
 
 static SFORMAT StateRegs[] =
@@ -81,12 +81,12 @@ void MapperNNN_Init(CartInfo *info) {
 	GameStateRestore = StateRestore;
 #if 0
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CRAM");
 
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	if (info->battery) {

@@ -27,12 +27,12 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	int result =VRC24_getPRGBank(bank);
 	return result <<2 &0x8 | result >>2 &0x2 | result &~0xA;
 }
 
-static int getCHRBank (uint8 bank) {
+static int getCHRBank (uint8_t bank) {
 	int result =VRC24_getCHRBank(bank);
 	return result <<1 &0x40 | result >>1 &0x20 | result &~0x60;
 }

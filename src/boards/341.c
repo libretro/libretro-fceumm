@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
 static void sync () {
 	setprg32(0x8000, Latch_address >>8);
@@ -29,7 +29,7 @@ static void sync () {
 	setmirror(Latch_address &(submapper == 1? 0x800: 0x200)? MI_H: MI_V);
 }
 
-static void trapLatchWrite (uint16 *newAddress, uint8 *newValue, uint8 romValue) {
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) {
 	if (!((*newAddress &0xF0) == 0xA0)) *newAddress = Latch_address; /* Update address only if new A7..A4 = $A */
 }
 

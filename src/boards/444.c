@@ -24,10 +24,10 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 pads;
-static uint8 dip;
+static uint8_t pads;
+static uint8_t dip;
 
-static void Mapper444_PRGWrap(uint32 A, uint8 V) {
+static void Mapper444_PRGWrap(uint32_t A, uint8_t V) {
 	int prgAND =pads &4 && EXPREGS[0] &0x02? 0x1F: 0x0F;
 	int prgOR  =EXPREGS[0] <<4;
 	if (EXPREGS[0] &0x04) {
@@ -39,7 +39,7 @@ static void Mapper444_PRGWrap(uint32 A, uint8 V) {
 		setprg8(A, V &prgAND | prgOR &~prgAND);
 }
 
-static void Mapper444_CHRWrap(uint32 A, uint8 V) {
+static void Mapper444_CHRWrap(uint32_t A, uint8_t V) {
 	int chrAND =pads &1? 0xFF: 0x7F;
 	int chrOR  =EXPREGS[0] <<7 &(pads &1? 0x00: 0x80) | EXPREGS[0] <<(pads &2? 4: 7) &0x100;
 	setchr1(A, V &chrAND | chrOR &~chrAND);

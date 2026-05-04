@@ -26,13 +26,13 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 WRAM[0x2000];
-static uint32 CHRRAMSIZE;
-static uint8 *CHRRAM;
+static uint8_t WRAM[0x2000];
+static uint32_t CHRRAMSIZE;
+static uint8_t *CHRRAM;
 
-static void M372CW(uint32 A, uint8 V) {
+static void M372CW(uint32_t A, uint8_t V) {
 	if (!UNIFchrrama) {
-		uint32 NV = V;
+		uint32_t NV = V;
 		if (EXPREGS[2] & 8)
 			NV &= (1 << ((EXPREGS[2] & 7) + 1)) - 1;
 		else if (EXPREGS[2])
@@ -47,8 +47,8 @@ static void M372CW(uint32 A, uint8 V) {
 		setchr1(A, V);
 }
 
-static void M372PW(uint32 A, uint8 V) {
-	uint32 MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
+static void M372PW(uint32_t A, uint8_t V) {
+	uint32_t MV = V & ((EXPREGS[3] & 0x3F) ^ 0x3F);
 	MV |= EXPREGS[1];
 	if(UNIFchrrama)
 		MV |= ((EXPREGS[2] & 0x40) << 2);
@@ -68,7 +68,7 @@ static DECLFW(M372Write) {
 }
 
 static DECLFR(M372Read) {
-	uint32 addr = 1 << (EXPREGS[5] + 4);
+	uint32_t addr = 1 << (EXPREGS[5] + 4);
 	if (A & (addr | (addr - 1)))
 		return X.DB | 1;
 	else
@@ -104,7 +104,7 @@ void Mapper372_Init(CartInfo *info) {
 	info->Power = M372Power;
 	info->Close = M372Close;
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	AddExState(EXPREGS, 5, 0, "EXPR");

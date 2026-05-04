@@ -25,18 +25,18 @@
 
 #ifdef FCEUDEF_DEBUGGER
 void X6502_Debug(void (*CPUHook)(X6502 *),
-				 uint8 (*ReadHook)(X6502 *, uint32),
-				 void (*WriteHook)(X6502 *, uint32, uint8));
+				 uint8_t (*ReadHook)(X6502 *, uint32_t),
+				 void (*WriteHook)(X6502 *, uint32_t, uint8_t));
 
-extern void (*X6502_Run)(int32 cycles);
+extern void (*X6502_Run)(int32_t cycles);
 #else
-void X6502_Run(int32 cycles);
+void X6502_Run(int32_t cycles);
 #endif
 
-extern uint32 timestamp;
-extern uint32 sound_timestamp;
+extern uint32_t timestamp;
+extern uint32_t sound_timestamp;
 extern X6502 X;
-extern uint8 encryptOpcodes;
+extern uint8_t encryptOpcodes;
 
 #define N_FLAG  0x80
 #define V_FLAG  0x40
@@ -69,8 +69,8 @@ void X6502_Power(void);
 void TriggerNMI(void);
 void TriggerNMI2(void);
 
-uint8 FASTAPASS(1) X6502_DMR(uint32 A);
-void FASTAPASS(2) X6502_DMW(uint32 A, uint8 V);
+uint8_t FASTAPASS(1) X6502_DMR(uint32_t A);
+void FASTAPASS(2) X6502_DMW(uint32_t A, uint8_t V);
 
 void FASTAPASS(1) X6502_IRQBegin(int w);
 void FASTAPASS(1) X6502_IRQEnd(int w);

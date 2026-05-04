@@ -23,12 +23,12 @@
 
 static void (*VRC7_cbSync)();
 static int VRC7_A0;
-static uint8 VRC7_prg[3];
-static uint8 VRC7_chr[8];
-static uint8 VRC7_misc;
-static uint8 VRC7_latch;
-static uint8 VRC7_mode;
-static uint8 VRC7_count;
+static uint8_t VRC7_prg[3];
+static uint8_t VRC7_chr[8];
+static uint8_t VRC7_misc;
+static uint8_t VRC7_latch;
+static uint8_t VRC7_mode;
+static uint8_t VRC7_count;
 static signed short int VRC7_cycles;
 
 static SFORMAT VRC7_stateRegs[] = {
@@ -148,7 +148,7 @@ static void VRC7_configure (void (*sync)(), int A0) {
 	VRC7_cbSync = sync;
 }
 
-void VRC7_activate (uint8 clear, void (*sync)(), int A0) {
+void VRC7_activate (uint8_t clear, void (*sync)(), int A0) {
 	VRC7_configure(sync, A0);
 	VRC7_setHandlers();
 	if (clear)

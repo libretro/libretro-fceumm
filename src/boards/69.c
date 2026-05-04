@@ -21,11 +21,11 @@
 
 #include "mapinc.h"
 
-static uint8 cmdreg, preg[4], creg[8], mirr;
-static uint8 IRQa;
-static int32 IRQCount;
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t cmdreg, preg[4], creg[8], mirr;
+static uint8_t IRQa;
+static int32_t IRQCount;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 static void(*sfun[3]) (void);
 
@@ -41,7 +41,7 @@ static SFORMAT StateRegs[] =
 };
 
 static void Sync(void) {
-	uint8 i;
+	uint8_t i;
 	if ((preg[3] & 0xC0) == 0xC0)
 		setprg8r(0x10, 0x6000, preg[3] & 0x3F);
 	else
@@ -104,9 +104,9 @@ static void AYSoundHQ(void);
 static void DoAYSQ(int x);
 static void DoAYSQHQ(int x);
 
-static uint8 sndcmd, sreg[14];
-static int32 vcount[3];
-static int32 dcount[3];
+static uint8_t sndcmd, sreg[14];
+static int32_t vcount[3];
+static int32_t dcount[3];
 static int CAYBC[3];
 
 static SFORMAT SStateRegs[] =
@@ -156,9 +156,9 @@ static DECLFW(M69SWrite1) {
 }
 
 static void DoAYSQ(int x) {
-	int32 freq = ((sreg[x << 1] | ((sreg[(x << 1) + 1] & 15) << 8)) + 1) << (4 + 17);
-	int32 amp = (sreg[0x8 + x] & 15) << 2;
-	int32 start, end;
+	int32_t freq = ((sreg[x << 1] | ((sreg[(x << 1) + 1] & 15) << 8)) + 1) << (4 + 17);
+	int32_t amp = (sreg[0x8 + x] & 15) << 2;
+	int32_t start, end;
 	int V;
 
 	amp += amp >> 1;
@@ -181,9 +181,9 @@ static void DoAYSQ(int x) {
 }
 
 static void DoAYSQHQ(int x) {
-	uint32 V;
-	int32 freq = ((sreg[x << 1] | ((sreg[(x << 1) + 1] & 15) << 8)) + 1) << 4;
-	int32 amp = (sreg[0x8 + x] & 15) << 6;
+	uint32_t V;
+	int32_t freq = ((sreg[x << 1] | ((sreg[(x << 1) + 1] & 15) << 8)) + 1) << 4;
+	int32_t amp = (sreg[0x8 + x] & 15) << 6;
 
 	amp += amp >> 1;
 
@@ -240,7 +240,7 @@ static void AYSoundHQ(void) {
 	DoAYSQ3HQ();
 }
 
-static void AYHiSync(int32 ts) {
+static void AYHiSync(int32_t ts) {
 	int x;
 
 	for (x = 0; x < 3; x++)
@@ -309,7 +309,7 @@ void Mapper69_Init(CartInfo *info) {
 	info->Close = M69Close;
 	MapIRQHook = M69IRQHook;
 	WRAMSIZE = 8192;
-	WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+	WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 	SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 	AddExState(WRAM, WRAMSIZE, 0, "WRAM");
 	if (info->battery) {

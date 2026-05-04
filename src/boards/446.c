@@ -35,10 +35,10 @@
 #include "flashrom.h"
 #include "cartram.h"
 
-static uint8 submapper;
-static uint8 reg[8];
+static uint8_t submapper;
+static uint8_t reg[8];
 static void (*mapperSync)(int, int, int, int) = NULL;
-static void applyMode (uint8);
+static void applyMode (uint8_t);
 
 static void sync () {
 	int prgAND = reg[3] ^ (submapper == 2? 0x00: 0xFF);
@@ -244,11 +244,11 @@ static DECLFW (writeFlash) {
 	flashrom_write(A &0x1FFF | (Page[A >>11] +A -PRGptr[0]) &~0x1FFF, V);
 }
 
-static int SUROM_getPRGBank (uint8 bank) {
+static int SUROM_getPRGBank (uint8_t bank) {
 	return MMC1_getPRGBank(bank) | MMC1_getCHRBank(0) &0x10;
 }
 
-static int Mapper22_getCHRBank (uint8 bank) {
+static int Mapper22_getCHRBank (uint8_t bank) {
 	return VRC24_getCHRBank(bank &7) >>1;
 }
 
@@ -260,7 +260,7 @@ static DECLFW (writeReg) {
 		sync();
 }
 
-static void applyMode (uint8 clear) {
+static void applyMode (uint8_t clear) {
 	if (reg[0] &0x80) {
 		SetWriteHandler(0x5000, 0x5FFF, CartBW);
 		switch(submapper <<8 | reg[0] &0x1F) {

@@ -22,9 +22,9 @@
 #include "asic_vrc2and4.h"
 #include "cartram.h"
 
-static uint8 submapper;
-static uint8 reg;
-static uint8 pad;
+static uint8_t submapper;
+static uint8_t reg;
+static uint8_t pad;
 
 static void sync () {
 	VRC24_syncPRG(0x0F, reg <<4);
@@ -33,7 +33,7 @@ static void sync () {
 	VRC24_syncWRAM(0);
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	if (reg &0x04) {
 		int mask = reg &(submapper == 0? 0x02: 0x08) ? 1: 3;
 		return VRC24_getPRGBank(bank &1) &~mask | bank &mask;

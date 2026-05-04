@@ -31,27 +31,27 @@
 
 typedef struct
 {
-  uint8 state;
-  uint8 cmd;
-  uint8 addr;
-  uint8 iswritable;
-  uint16 acc;
-  uint16 data[128];
+  uint8_t state;
+  uint8_t cmd;
+  uint8_t addr;
+  uint8_t iswritable;
+  uint16_t acc;
+  uint16_t data[128];
 } EEPROM;
 
 EEPROM serialROM[2];
-uint8 oldCLK, bankFlip, DIFlip, OUT0state;
+uint8_t oldCLK, bankFlip, DIFlip, OUT0state;
 
-uint8 serialROMautomat(uint8 chip, uint16 data)
+uint8_t serialROMautomat(uint8_t chip, uint16_t data)
 {
-  uint8 resp = 1;
+  uint8_t resp = 1;
   chip &= 1;
   if(!(data & CS))
   {
 	if(!(data & CLK))
 	{
-	  uint8 state = serialROM[chip].state;
-	  uint8 mask, i;
+	  uint8_t state = serialROM[chip].state;
+	  uint8_t mask, i;
 	  switch (serialROM[chip].cmd)
 	  {
 		case 0x00:
@@ -141,9 +141,9 @@ uint8 serialROMautomat(uint8 chip, uint16 data)
   return resp;
 }
 
-uint8 serialROMstate(uint8 linestate)
+uint8_t serialROMstate(uint8_t linestate)
 {
-  uint8 answ = 0, newCLK = linestate & CLK;
+  uint8_t answ = 0, newCLK = linestate & CLK;
   if((!oldCLK)&&newCLK)
   {
 	DIFlip^=1;
@@ -160,7 +160,7 @@ uint8 serialROMstate(uint8 linestate)
   return answ;
 }
 
-static uint8 FP_FASTAPASS(2) BBRead(int w, uint8 ret)
+static uint8_t FP_FASTAPASS(2) BBRead(int w, uint8_t ret)
 {
   if(w)
   {
@@ -170,7 +170,7 @@ static uint8 FP_FASTAPASS(2) BBRead(int w, uint8 ret)
   return(ret);
 }
 
-static void FP_FASTAPASS(1) BBWrite(uint8 V)
+static void FP_FASTAPASS(1) BBWrite(uint8_t V)
 {
   OUT0state = V;
   serialROMstate(OUT0state?OUT0:0);

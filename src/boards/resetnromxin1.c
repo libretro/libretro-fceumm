@@ -29,7 +29,7 @@
 
 #include "mapinc.h"
 
-static uint8 gameblock, limit;
+static uint8_t gameblock, limit;
 
 static SFORMAT StateRegs[] =
 {

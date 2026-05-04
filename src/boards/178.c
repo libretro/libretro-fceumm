@@ -27,16 +27,16 @@
 
 #include "mapinc.h"
 
-static uint8 submapper;
-static uint8 reg[4];
-static uint8 pad[2];
+static uint8_t submapper;
+static uint8_t reg[4];
+static uint8_t pad[2];
 
-static uint8 *WRAM = NULL;
-static uint32 WRAMSIZE;
+static uint8_t *WRAM = NULL;
+static uint32_t WRAMSIZE;
 
 /* SND Registers */
-static uint8 pcm_enable = 0;
-static int16 pcm_latch = 0x3F6, pcm_clock = 0x3F6;
+static uint8_t pcm_enable = 0;
+static int16_t pcm_latch = 0x3F6, pcm_clock = 0x3F6;
 static writefunc pcmwrite;
 
 static SFORMAT StateRegs[] =
@@ -45,19 +45,19 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-static int16 step_size[49] = {
+static int16_t step_size[49] = {
 	16, 17, 19, 21, 23, 25, 28, 31, 34, 37,
 	41, 45, 50, 55, 60, 66, 73, 80, 88, 97,
 	107, 118, 130, 143, 157, 173, 190, 209, 230, 253,
 	279, 307, 337, 371, 408, 449, 494, 544, 598, 658,
 	724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552
 };	/* 49 items */
-static int32 step_adj[16] = { -1, -1, -1, -1, 2, 5, 7, 9, -1, -1, -1, -1, 2, 5, 7, 9 };
+static int32_t step_adj[16] = { -1, -1, -1, -1, 2, 5, 7, 9, -1, -1, -1, -1, 2, 5, 7, 9 };
 
 /* decode stuff */
-static int32 jedi_table[16 * 49];
-static int32 acc = 0;	/* ADPCM accumulator, initial condition must be 0 */
-static int32 decstep = 0;	/* ADPCM decoding step, initial condition must be 0 */
+static int32_t jedi_table[16 * 49];
+static int32_t acc = 0;	/* ADPCM accumulator, initial condition must be 0 */
+static int32_t decstep = 0;	/* ADPCM decoding step, initial condition must be 0 */
 
 static void jedi_table_init() {
 	int step, nib;
@@ -70,7 +70,7 @@ static void jedi_table_init() {
 	}
 }
 
-static uint8 decode(uint8 code) {
+static uint8_t decode(uint8_t code) {
 	acc += jedi_table[decstep + code];
 	if ((acc & ~0x7ff) != 0)	/* acc is > 2047 */
 		acc |= ~0xfff;
@@ -86,8 +86,8 @@ static DECLFR(readPad) {
 }
 
 static void M178Sync(void) {
-	uint32 sbank = reg[1] & 0x7;
-	uint32 bbank = reg[2];
+	uint32_t sbank = reg[1] & 0x7;
+	uint32_t bbank = reg[2];
 	setchr8(0);
 	setprg8r(0x10, 0x6000, reg[3] & 3);
 	if (reg[0] & 2) {	/* UNROM mode */
@@ -97,7 +97,7 @@ static void M178Sync(void) {
 		else
 			setprg16(0xC000, (bbank << 3) | 7);
 	} else {			/* NROM mode */
-		uint32 bank = (bbank << 3) | sbank;
+		uint32_t bank = (bbank << 3) | sbank;
 		if (reg[0] & 4) {
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);
@@ -110,8 +110,8 @@ static void M178Sync(void) {
 }
 
 static void M551Sync(void) {
-	uint32 sbank = reg[1] & 0x7;
-	uint32 bbank = reg[2];
+	uint32_t sbank = reg[1] & 0x7;
+	uint32_t bbank = reg[2];
 	if (reg[0] & 2) {	/* UNROM mode */
 		setprg16(0x8000, (bbank << 3) | sbank);
 		if (reg[0] & 4)
@@ -119,7 +119,7 @@ static void M551Sync(void) {
 		else
 			setprg16(0xC000, (bbank << 3) | 7);
 	} else {			/* NROM mode */
-		uint32 bank = (bbank << 3) | sbank;
+		uint32_t bank = (bbank << 3) | sbank;
 		if (reg[0] & 4) {
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);
@@ -249,7 +249,7 @@ void Mapper178_Init(CartInfo *info) {
 		AddExState(pad, 2, 0, "DIPS");
 	else {
 		WRAMSIZE = 32768;
-		WRAM = (uint8*)FCEU_gmalloc(WRAMSIZE);
+		WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
 		SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
 		if (info->battery) {
 			info->SaveGame[0] = WRAM;

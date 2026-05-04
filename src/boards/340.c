@@ -25,7 +25,7 @@
    Submapper 1 - K-3055 PCB:                  H mirroring via A2 in NROM mode, and via A3=0,A4=1 in UNROM mode (used by Thundercade).
 */
 
-static uint8 submapper;
+static uint8_t submapper;
 static void sync () {
 	int prg = Latch_address >>2 &0x20 | Latch_address &0x1F;
 	if (Latch_address &0x20) { /* NROM mode */

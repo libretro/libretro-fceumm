@@ -50,7 +50,7 @@
 #define RED_EXPAND 3
 #define GREEN_EXPAND 2
 #define BLUE_EXPAND 3
-typedef uint16 bpp_t;
+typedef uint16_t bpp_t;
 #elif defined (FRONTEND_SUPPORTS_ABGR1555)
 #define RED_SHIFT 0
 #define GREEN_SHIFT 5
@@ -61,7 +61,7 @@ typedef uint16 bpp_t;
 #define RED_MASK 0x1F
 #define GREEN_MASK 0x3E0
 #define BLUE_MASK 0x7C00
-typedef uint16 bpp_t;
+typedef uint16_t bpp_t;
 #elif defined (FRONTEND_SUPPORTS_RGB888)
 #define RED_SHIFT 16
 #define GREEN_SHIFT 8
@@ -72,7 +72,7 @@ typedef uint16 bpp_t;
 #define RED_MASK 0xFF0000
 #define GREEN_MASK 0x00FF00
 #define BLUE_MASK 0x0000FF
-typedef uint32 bpp_t;
+typedef uint32_t bpp_t;
 #elif defined (FRONTEND_SUPPORTS_RGB565)
 #define RED_SHIFT 11
 #define GREEN_SHIFT 5
@@ -83,7 +83,7 @@ typedef uint32 bpp_t;
 #define RED_MASK 0xF800
 #define GREEN_MASK 0x7e0
 #define BLUE_MASK 0x1f
-typedef uint16 bpp_t;
+typedef uint16_t bpp_t;
 #else
 #define RED_SHIFT 10
 #define GREEN_SHIFT 5
@@ -91,7 +91,7 @@ typedef uint16 bpp_t;
 #define RED_EXPAND 3
 #define GREEN_EXPAND 3
 #define BLUE_EXPAND 3
-typedef uint16 bpp_t;
+typedef uint16_t bpp_t;
 #endif
 
 #define MAX_PLAYERS 4 /* max supported players */
@@ -255,7 +255,7 @@ static unsigned libretro_msg_interface_version = 0;
 
 const size_t PPU_BIT = 1ULL << 31ULL;
 
-extern uint8 NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], PPU[4];
+extern uint8_t NTARAM[0x800], PALRAM[0x20], SPRAM[0x100], PPU[4];
 
 /* overclock the console by adding dummy scanlines to PPU loop
  * disables DMC DMA and WaveHi filling for these dummies
@@ -298,7 +298,7 @@ static unsigned serialize_size;
 
 /* extern forward decls.*/
 extern FCEUGI *GameInfo;
-extern uint8 *XBuf;
+extern uint8_t *XBuf;
 extern CartInfo iNESCart;
 extern CartInfo UNIFCart;
 extern int show_crosshair;
@@ -315,9 +315,9 @@ const char * GetKeyboard(void)
 
 #define BUILD_PIXEL_RGB565(R,G,B) (((int) ((R)&0x1f) << RED_SHIFT) | ((int) ((G)&0x3f) << GREEN_SHIFT) | ((int) ((B)&0x1f) << BLUE_SHIFT))
 
-void FCEUD_SetPalette(uint16 index, uint8_t r, uint8_t g, uint8_t b)
+void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
 {
-   uint16 index_to_write = index;
+   uint16_t index_to_write = index;
 #if defined(RENDER_GSKIT_PS2)
    /* Index correction for PS2 GS */
    int modi = index & 63;
@@ -418,7 +418,7 @@ void FCEUD_SoundToggle (void)
 #define PAL_CUSTOM   (PAL_INTERNAL + 3)
 #define PAL_TOTAL    PAL_CUSTOM
 
-static uint8 external_palette_exist = false;
+static uint8_t external_palette_exist = false;
 
 /* table for currently loaded palette */
 static uint8_t base_palette[192];
@@ -2455,7 +2455,7 @@ static void check_variables(bool startup)
    update_option_visibility();
 }
 
-void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) {
+void add_powerpad_input(unsigned port, uint32_t variant, uint32_t *ppdata) {
    unsigned k;
    const uint32_t* map = powerpadmap;
    for (k = 0 ; k < 12 ; k++)
@@ -2463,7 +2463,7 @@ void add_powerpad_input(unsigned port, uint32 variant, uint32_t *ppdata) {
             *ppdata |= (1 << k);
 }
 
-void add_fkb_input(unsigned port, uint32 variant, uint8_t *fkbkeys) {
+void add_fkb_input(unsigned port, uint32_t variant, uint8_t *fkbkeys) {
    unsigned k;
    const uint32_t* map = fkbmap;
    for (k = 0 ; k < 0x48 ; k++)
@@ -2473,7 +2473,7 @@ void add_fkb_input(unsigned port, uint32 variant, uint8_t *fkbkeys) {
             fkbkeys[k]=0;
 }
 
-void add_suborkey_input(unsigned port, uint32 variant, uint8_t *suborkeys) {
+void add_suborkey_input(unsigned port, uint32_t variant, uint8_t *suborkeys) {
    unsigned k;
    const uint32_t* map = suborkbmap;
    for (k = 0 ; k < 0x65 ; k++)
@@ -2485,7 +2485,7 @@ void add_suborkey_input(unsigned port, uint32 variant, uint8_t *suborkeys) {
 
 static int mzx = 0, mzy = 0;
 
-void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
+void get_mouse_input(unsigned port, uint32_t variant, uint32_t *mousedata)
 {
    int min_width, min_height, max_width, max_height;
 
@@ -2565,7 +2565,7 @@ void get_mouse_input(unsigned port, uint32 variant, uint32_t *mousedata)
 
       if (_x != 0 || _y != 0)
       {
-         int32 raw = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
+         int32_t raw = (_x + (0x7FFF + offset_x)) * max_width  / ((0x7FFF + offset_x) * 2);
          if (arkanoidmode == RetroArkanoidAbsMouse) {
              /* remap so full screen movement ends up within the encoder range 0-240
                 game board: 176 wide
@@ -2907,7 +2907,7 @@ static void FCEUD_UpdateInput(void)
       palette_switch_counter = 0;
 }
 
-void FCEUD_Update(uint8 *XBuf, int32 *Buffer, int Count)
+void FCEUD_Update(uint8_t *XBuf, int32_t *Buffer, int Count)
 {
 }
 
@@ -3039,7 +3039,7 @@ static void retro_run_blit(uint8_t *gfx)
                }
                else
                {
-                  uint8 pixel_mask = use_raw_palette ? 0x3F : 0xFF;
+                  uint8_t pixel_mask = use_raw_palette ? 0x3F : 0xFF;
                   fceu_video_out[y * width + x] = retro_palette[*gfx & pixel_mask];
                }
             }
@@ -3131,7 +3131,7 @@ static int checkGG(char c)
 static int GGisvalid(const char *code)
 {
    size_t len = strlen(code);
-   uint32 i;
+   uint32_t i;
 
    if (len != 6 && len != 8)
       return 0;
@@ -3152,8 +3152,8 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    char name[256];
    char temp[1024];
    char *codepart;
-   uint16 a;
-   uint8  v;
+   uint16_t a;
+   uint8_t  v;
    int    c;
    int    type = 1;
 

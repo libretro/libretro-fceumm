@@ -37,9 +37,9 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
-static uint8 regperm[8][8] =
+static uint8_t regperm[8][8] =
 {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 0, 2, 6, 1, 7, 3, 4, 5 },
@@ -51,7 +51,7 @@ static uint8 regperm[8][8] =
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
 };
 
-static uint8 adrperm[8][8] =
+static uint8_t adrperm[8][8] =
 {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },
 	{ 3, 2, 0, 4, 1, 5, 6, 7 },
@@ -63,7 +63,7 @@ static uint8 adrperm[8][8] =
 	{ 0, 1, 2, 3, 4, 5, 6, 7 },		/* empty */
 };
 
-static uint8 protarray[8][8] = {
+static uint8_t protarray[8][8] = {
 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, /* 0 Super Hang-On               */
 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00 }, /* 1 Monkey King                 */
 	{ 0x00, 0x00, 0x00, 0x00, 0x03, 0x04, 0x00, 0x00 }, /* 2 Super Hang-On/Monkey King   */
@@ -74,8 +74,8 @@ static uint8 protarray[8][8] = {
 	{ 0x00, 0x00, 0x00, 0x01, 0x02, 0x04, 0x0F, 0x00 }  /* 7 (default) Blood of Jurassic */
 };
 
-static void UNL8237CW(uint32 A, uint8 V) {
-	uint16 outer_bank;
+static void UNL8237CW(uint32_t A, uint8_t V) {
+	uint16_t outer_bank;
 
 	if (submapper == 1)
 		outer_bank = ((EXPREGS[1] & 0xE) << 7);
@@ -88,16 +88,16 @@ static void UNL8237CW(uint32 A, uint8 V) {
 		setchr1(A, outer_bank | V);
 }
 
-static void UNL8237PW(uint32 A, uint8 V) {
-	uint8 outer_bank = ((EXPREGS[1] & 3) << 5);
+static void UNL8237PW(uint32_t A, uint8_t V) {
+	uint8_t outer_bank = ((EXPREGS[1] & 3) << 5);
 
 	if (submapper == 1)
 		outer_bank |= ((EXPREGS[1] & 8) << 4);
 
 	if (EXPREGS[0] & 0x40) {
-		uint8 sbank = (EXPREGS[1] & 0x10);
+		uint8_t sbank = (EXPREGS[1] & 0x10);
 		if (EXPREGS[0] & 0x80) { /* NROM */
-			uint8 bank = (outer_bank >> 1) | (EXPREGS[0] & 0x7) | (sbank >> 1);
+			uint8_t bank = (outer_bank >> 1) | (EXPREGS[0] & 0x7) | (sbank >> 1);
 			if (EXPREGS[0] & 0x20) /* NROM-256 */
 				setprg32(0x8000, bank >> 1);
 			else { /* NROM-128 */
@@ -108,7 +108,7 @@ static void UNL8237PW(uint32 A, uint8 V) {
 			setprg8(A, outer_bank | (V & 0x0F) | sbank);
 	} else {
 		if (EXPREGS[0] & 0x80) { /* NROM */
-			uint8 bank = (outer_bank >> 1) | (EXPREGS[0] & 0xF);
+			uint8_t bank = (outer_bank >> 1) | (EXPREGS[0] & 0xF);
 			if (EXPREGS[0] & 0x20) /* NROM-256 */
 				setprg32(0x8000, bank >> 1);
 			else { /* NROM-128 */
@@ -125,9 +125,9 @@ static DECLFR(UNL8237ProtRead) {
 }
 
 static DECLFW(UNL8237Write) {
-	uint8 dat = V;
-	uint8 adr = adrperm[EXPREGS[2]][((A >> 12) & 6) | (A & 1)];
-	uint16 addr = (adr & 1) | ((adr & 6) << 12) | 0x8000;
+	uint8_t dat = V;
+	uint8_t adr = adrperm[EXPREGS[2]][((A >> 12) & 6) | (A & 1)];
+	uint16_t addr = (adr & 1) | ((adr & 6) << 12) | 0x8000;
 	if (adr < 4) {
 		if (!adr)
 			dat = (dat & 0xC0) | (regperm[EXPREGS[2]][dat & 7]);

@@ -24,7 +24,7 @@
 
 #include "mapinc.h"
 
-static uint8 latche, reset;
+static uint8_t latche, reset;
 static SFORMAT StateRegs[] =
 {
 	{ &reset, 1, "RST" },
@@ -38,7 +38,7 @@ static void Sync(void) {
 		setprg16(0xC000, 7);
 		setmirror(MI_V);
 	} else {
-		uint32 bank = (latche & 0x1F) + 8;
+		uint32_t bank = (latche & 0x1F) + 8;
 		if (latche & 0x20) {
 			setprg16(0x8000, bank);
 			setprg16(0xC000, bank);

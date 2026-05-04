@@ -24,7 +24,7 @@
 #include "asic_mmc3.h"
 #include "cartram.h"
 
-static uint8 reg;
+static uint8_t reg;
 
 static void sync () {
 	MMC3_syncWRAM(0);
@@ -33,7 +33,7 @@ static void sync () {
 	MMC3_syncMirror();
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	int result = MMC3_getPRGBank(bank);
 	if (reg &0x08 && ~result &0x10)
 		result =          0x40 | result &0x0F;

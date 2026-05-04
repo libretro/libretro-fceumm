@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void M189PW(uint32 A, uint8 V) {
+static void M189PW(uint32_t A, uint8_t V) {
 	setprg32(0x8000, EXPREGS[0] & 7);
 }
 

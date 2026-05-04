@@ -20,9 +20,9 @@
 
 #include "mapinc.h"
 
-static uint8 prg[3];
-static uint8 chr[4];
-static uint8 latch[2];
+static uint8_t prg[3];
+static uint8_t chr[4];
+static uint8_t latch[2];
 
 static SFORMAT stateRegs[] = {
 	{ prg,   3, "PRGR" },
@@ -46,7 +46,7 @@ static void sync () {
 	}
 }
 
-static void FP_FASTAPASS(1) trapPPUAddressChange (uint32 A) {
+static void FP_FASTAPASS(1) trapPPUAddressChange (uint32_t A) {
 	if ((A &0x2FF0) == 0xFD0 || (A &0x2FF0) == 0xFE0) {
 		latch[A >>12 &1] = ~A >>5 &1;
 		sync();

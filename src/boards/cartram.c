@@ -21,10 +21,10 @@
 #include "mapinc.h"
 #include "cartram.h"
 
-static uint8 *CHRRAMData = NULL;
-static uint8 *WRAMData = NULL;
-uint32 CHRRAMSize = 0;
-uint32 WRAMSize = 0;
+static uint8_t *CHRRAMData = NULL;
+static uint8_t *WRAMData = NULL;
+uint32_t CHRRAMSize = 0;
+uint32_t WRAMSize = 0;
 
 void CartRAM_close (void) { /* Need to combine this in one function to avoid the problem of having to properly cascade two separate Close() functions for WRAM and CHR-RAM each */
 	if (WRAMData) {
@@ -37,10 +37,10 @@ void CartRAM_close (void) { /* Need to combine this in one function to avoid the
 	}
 }
 
-void CartRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB, uint8 defaultCHRRAMSizeKiB) {
+void CartRAM_init (CartInfo *info, uint8_t defaultWRAMSizeKiB, uint8_t defaultCHRRAMSizeKiB) {
 	WRAMSize = info->iNES2? (info->PRGRamSize +info->PRGRamSaveSize): (defaultWRAMSizeKiB *1024);
 	if (WRAMSize) {
-		WRAMData = (uint8*)FCEU_gmalloc(WRAMSize);
+		WRAMData = (uint8_t*)FCEU_gmalloc(WRAMSize);
 		SetupCartPRGMapping(0x10, WRAMData, WRAMSize, 1);
 		AddExState(WRAMData, WRAMSize, 0, "WRAM");
 		if (info->battery && (info->PRGRamSaveSize || !info->iNES2)) {
@@ -51,7 +51,7 @@ void CartRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB, uint8 defaultCHRRAM
 	CHRRAMSize = info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): (defaultCHRRAMSizeKiB *1024);
 	if (ROM_size == 0) CHRRAMSize = 0; /* If there is no CHR-ROM, then any CHR-RAM will not be "extra" and therefore will be handled by ines.c, not here. */
 	if (CHRRAMSize) {
-		CHRRAMData = (uint8*)FCEU_gmalloc(CHRRAMSize);
+		CHRRAMData = (uint8_t*)FCEU_gmalloc(CHRRAMSize);
 		SetupCartCHRMapping(0x10, CHRRAMData, CHRRAMSize, 1);
 		AddExState(CHRRAMData, CHRRAMSize, 0, "CRAM");
 		if (info->battery && (info->CHRRamSaveSize || !info->iNES2)) {
@@ -62,10 +62,10 @@ void CartRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB, uint8 defaultCHRRAM
 	if (WRAMSize || CHRRAMSize) info->Close = CartRAM_close;
 }
 
-void CHRRAM_init (CartInfo *info, uint8 defaultCHRRAMSizeKiB) {
+void CHRRAM_init (CartInfo *info, uint8_t defaultCHRRAMSizeKiB) {
 	CartRAM_init(info, 0, defaultCHRRAMSizeKiB);
 }
 
-void WRAM_init (CartInfo *info, uint8 defaultWRAMSizeKiB) {
+void WRAM_init (CartInfo *info, uint8_t defaultWRAMSizeKiB) {
 	CartRAM_init(info, defaultWRAMSizeKiB, 0);
 }

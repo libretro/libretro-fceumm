@@ -21,7 +21,7 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void PRGWrap(uint32 A, uint8 V) {
+static void PRGWrap(uint32_t A, uint8_t V) {
 	int prgAND =EXPREGS[0] &0x80? 0x1F: 0x3F;
 	int prgOR  =EXPREGS[0] <<5 &0x20;
 	setprg8(A, V &prgAND | prgOR &~prgAND);

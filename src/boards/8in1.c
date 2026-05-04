@@ -27,13 +27,13 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static uint8 submapper;
+static uint8_t submapper;
 
-static void BMC8IN1CW(uint32 A, uint8 V) {
+static void BMC8IN1CW(uint32_t A, uint8_t V) {
 	setchr1(A, ((EXPREGS[0] & 0xC) << 5) | (V & 0x7F));
 }
 
-static void BMC8IN1PW(uint32 A, uint8 V) {
+static void BMC8IN1PW(uint32_t A, uint8_t V) {
 	if(EXPREGS[0] & 0x10 || submapper == 1) {		/* MMC3 mode */
 		setprg8(A, ((EXPREGS[0] & 0xC) << 2) | (V & 0xF));
 	} else {

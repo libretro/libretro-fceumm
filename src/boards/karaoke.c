@@ -20,8 +20,8 @@
 
 #include "mapinc.h"
 
-extern uint32 ROM_size;
-static uint8 latche;
+extern uint32_t ROM_size;
+static uint8_t latche;
 
 static void Sync(void) {
 	if (latche) {

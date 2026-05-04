@@ -22,10 +22,10 @@
 #include "asic_vrc3.h"
 
 static void (*VRC3_cbSync)();
-static uint8 VRC3_prg;
-static uint8 VRC3_irq;
-static uint16 VRC3_count;
-static uint16 VRC3_reload;
+static uint8_t VRC3_prg;
+static uint8_t VRC3_irq;
+static uint16_t VRC3_count;
+static uint16_t VRC3_reload;
 
 static SFORMAT VRC3_state[] = {
 	{&VRC3_prg, 1, "VC3P" },
@@ -98,7 +98,7 @@ static void VRC3_configure (void (*sync)()) {
 	VRC3_cbSync = sync;
 }
 
-void VRC3_activate (uint8 clear, void (*sync)()) {
+void VRC3_activate (uint8_t clear, void (*sync)()) {
 	VRC3_configure(sync);
 	VRC3_setHandlers();
 	if (clear)

@@ -33,10 +33,10 @@
 #include "mapinc.h"
 #include "mmc3.h"
 
-static void BMCF15PW(uint32 A, uint8 V) {
-	uint32 bank = EXPREGS[0] & 0xF;
-	uint32 mode = (EXPREGS[0] & 8) >> 3;
-	uint32 mask = ~(mode);
+static void BMCF15PW(uint32_t A, uint8_t V) {
+	uint32_t bank = EXPREGS[0] & 0xF;
+	uint32_t mode = (EXPREGS[0] & 8) >> 3;
+	uint32_t mask = ~(mode);
 	setprg16(0x8000, (bank & mask));
 	setprg16(0xC000, (bank & mask) | mode);
 }

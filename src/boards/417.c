@@ -20,12 +20,12 @@
 
 #include "mapinc.h"
 
-static uint8 preg[4];
-static uint8 creg[8];
-static uint8 nt[4];
-static uint8 IRQa;
-static uint16 IRQCount;
-static uint8 submapper;
+static uint8_t preg[4];
+static uint8_t creg[8];
+static uint8_t nt[4];
+static uint8_t IRQa;
+static uint16_t IRQCount;
+static uint8_t submapper;
 
 static SFORMAT StateRegs[] = {
 	{ preg, 4, "PREG" },

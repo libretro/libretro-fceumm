@@ -22,12 +22,12 @@
 #include "asic_vrc2and4.h"
 #include "cartram.h"
 
-static uint8 nt[4];
-static uint8 prg;
-static uint8 mask;
-static uint8 compare;
+static uint8_t nt[4];
+static uint8_t prg;
+static uint8_t mask;
+static uint8_t compare;
 
-extern uint32 RefreshAddr;
+extern uint32_t RefreshAddr;
 static writefunc writePPU;
 
 static SFORMAT stateRegs[] ={
@@ -46,7 +46,7 @@ static void sync () {
 	setmirrorw(nt[0] &1, nt[1] &1, nt[2] &1, nt[3] &1);
 }
 
-static const uint8 compares[8] = { 0x28, 0x00, 0x4C, 0x64, 0x46, 0x7C, 0x04, 0xFF };
+static const uint8_t compares[8] = { 0x28, 0x00, 0x4C, 0x64, 0x46, 0x7C, 0x04, 0xFF };
 static DECLFW (interceptPPUWrite) {
 	if (~RefreshAddr &0x2000) {
 		int bank =VRC24_getCHRBank(RefreshAddr >>10 &7);
@@ -65,7 +65,7 @@ static DECLFW (interceptPPUWrite) {
 	writePPU(A, V);
 }
 
-static int getPRGBank (uint8 bank) {
+static int getPRGBank (uint8_t bank) {
 	return bank ==2? prg: VRC24_getPRGBank(bank);
 }
 

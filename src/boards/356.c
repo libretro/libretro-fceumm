@@ -23,8 +23,8 @@
 #include "mapinc.h"
 #include "asic_tc3294.h"
 
-static uint8 *CHRRAM = NULL;
-static uint32 CHRRAMSize;
+static uint8_t *CHRRAM = NULL;
+static uint32_t CHRRAMSize;
 
 static void sync () {
 	TC3294_syncPRG(0xFF, 0x00);
@@ -52,7 +52,7 @@ void Mapper356_Init (CartInfo *info) {
 	TC3294_init(info, sync);
 	info->Close = close;
 	CHRRAMSize = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSize);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSize);
 	AddExState(CHRRAM, CHRRAMSize, 0, "CRAM");
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSize, 1);
 }

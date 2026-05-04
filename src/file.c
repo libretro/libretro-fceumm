@@ -55,7 +55,7 @@ static MEMWRAP *MakeMemWrap(RFILE *tz)
    tmp->location = 0;
    tmp->size     = (size_t)fsize;
 
-   if (tmp->size && !(tmp->data_int = (uint8*)FCEU_malloc(tmp->size)))
+   if (tmp->size && !(tmp->data_int = (uint8_t*)FCEU_malloc(tmp->size)))
    {
       free(tmp);
       tmp = NULL;
@@ -70,7 +70,7 @@ doret:
    return tmp;
 }
 
-static MEMWRAP *MakeMemWrapBuffer(const uint8 *buffer, size_t bufsize)
+static MEMWRAP *MakeMemWrapBuffer(const uint8_t *buffer, size_t bufsize)
 {
    MEMWRAP *tmp = (MEMWRAP*)FCEU_malloc(sizeof(MEMWRAP));
 
@@ -85,7 +85,7 @@ static MEMWRAP *MakeMemWrapBuffer(const uint8 *buffer, size_t bufsize)
    return tmp;
 }
 
-FCEUFILE * FCEU_fopen(const char *path, const uint8 *buffer, size_t bufsize)
+FCEUFILE * FCEU_fopen(const char *path, const uint8_t *buffer, size_t bufsize)
 {
    FCEUFILE *fceufp = (FCEUFILE*)malloc(sizeof(FCEUFILE));
 
@@ -149,7 +149,7 @@ int FCEU_fclose(FCEUFILE *fp)
 	return 1;
 }
 
-uint64 FCEU_fread(void *ptr, size_t element_size, size_t nmemb, FCEUFILE *fp)
+uint64_t FCEU_fread(void *ptr, size_t element_size, size_t nmemb, FCEUFILE *fp)
 {
    uint32_t total = nmemb * element_size;
 
@@ -195,7 +195,7 @@ int FCEU_fseek(FCEUFILE *fp, long offset, int whence)
    return 0;
 }
 
-int FCEU_read32le(uint32 *Bufo, FCEUFILE *fp)
+int FCEU_read32le(uint32_t *Bufo, FCEUFILE *fp)
 {
    if ((fp->fp->location + 4) > fp->fp->size)
       return 0;
@@ -215,12 +215,12 @@ int FCEU_fgetc(FCEUFILE *fp)
    return EOF;
 }
 
-uint64 FCEU_ftell(FCEUFILE *fp)
+uint64_t FCEU_ftell(FCEUFILE *fp)
 {
    return fp->fp->location;
 }
 
-uint64 FCEU_fgetsize(FCEUFILE *fp)
+uint64_t FCEU_fgetsize(FCEUFILE *fp)
 {
    return fp->fp->size;
 }

@@ -22,7 +22,7 @@
 #include "mapinc.h"
 #include "latch.h"
 
-static uint8 dip;
+static uint8_t dip;
 
 static SFORMAT StateRegs[] = {
     { &dip, 1, "DIPS" },

@@ -21,8 +21,8 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8 half;
-static uint8 reg;
+static uint8_t half;
+static uint8_t reg;
 
 static void sync () {
 	setprg16(0x8000, half <<5 &0x20 | reg <<3 &0x18 | Latch_data &0x07);

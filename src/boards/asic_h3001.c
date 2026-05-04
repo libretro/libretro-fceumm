@@ -22,13 +22,13 @@
 #include "asic_h3001.h"
 
 static void (*H3001_cbSync)();
-static uint8 H3001_prg[2];
-static uint8 H3001_chr[8];
-static uint8 H3001_layout;
-static uint8 H3001_nt;
-static uint8 H3001_irq;
-static uint16 H3001_reload;
-static uint16 H3001_count;
+static uint8_t H3001_prg[2];
+static uint8_t H3001_chr[8];
+static uint8_t H3001_layout;
+static uint8_t H3001_nt;
+static uint8_t H3001_irq;
+static uint16_t H3001_reload;
+static uint16_t H3001_count;
 
 static SFORMAT H3001_state[] = {
 	{ H3001_prg,    2, "H31P" },
@@ -41,7 +41,7 @@ static SFORMAT H3001_state[] = {
 	{ 0 }
 };
 
-static int H3001_getPRGBank (uint8 bank) {
+static int H3001_getPRGBank (uint8_t bank) {
 	if (H3001_layout &0x80 && ~bank &1) bank ^= 2;
 	return bank &2? 0xFE | bank &1: H3001_prg[bank &1];
 }
@@ -133,7 +133,7 @@ static void H3001_configure (void (*sync)()) {
 	H3001_cbSync = sync;
 }
 
-void H3001_activate (uint8 clear, void (*sync)()) {
+void H3001_activate (uint8_t clear, void (*sync)()) {
 	H3001_configure(sync);
 	H3001_setHandlers();
 	if (clear)

@@ -20,7 +20,7 @@
 
 #include "mapinc.h"
 
-static uint8 reg[3];
+static uint8_t reg[3];
 
 static void sync () {
 	int prg = reg[0] &0x34 | reg[1] <<3 &0x08;
