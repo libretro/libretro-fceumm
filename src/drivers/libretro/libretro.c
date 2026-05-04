@@ -2440,7 +2440,7 @@ static void check_variables(bool startup)
 
    enable_apu = 0xff;
 
-   strcpy(key, "fceumm_apu_x");
+   strlcpy(key, "fceumm_apu_x", sizeof(key));
    for (i = 0; i < 5; i++)
    {
       key[strlen("fceumm_apu_")] = '1' + i;
@@ -3164,7 +3164,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
     * separators). The previous strcpy into a 256-byte stack buffer was
     * trivially overflowable. Use strlcpy and a larger buffer; truncate
     * if necessary rather than overflow. */
-   sprintf(name, "N/A");
+   strlcpy(name, "N/A", sizeof(name));
    strlcpy(temp, code, sizeof(temp));
    codepart = strtok(temp, "+,;._ ");
 

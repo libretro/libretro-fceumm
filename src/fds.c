@@ -255,9 +255,6 @@ static DECLFR(FDSRead4030) {
 	if (X.IRQlow & FCEU_IQEXT) ret |= 1;
 	if (X.IRQlow & FCEU_IQEXT2) ret |= 2;
 
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
 	{
 		X6502_IRQEnd(FCEU_IQEXT);
 		X6502_IRQEnd(FCEU_IQEXT2);
@@ -748,7 +745,7 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	for (x = 0; x < TotalSides; x++) {
 		char temp[5];
-		sprintf(temp, "DDT%d", x);
+		snprintf(temp, sizeof(temp), "DDT%d", x);
 		AddExState(diskdata[x], 65500, 0, temp);
 	}
 

@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <compat/strl.h>
+
 #include "../../fceu.h"
 #include "../../fceu-types.h"
 #include "../../vsuni.h"
@@ -1109,9 +1111,14 @@ static void make_core_options(struct retro_core_option_v2_definition *vs_core_op
             sizeof(struct retro_core_option_v2_definition));
 
       /* Set core key and sanitize string */
-      sprintf(key, "fceumm_dipswitch_%s-%s", game_name, option_name);
-      core_key[i] = calloc(strlen(key) + 1, sizeof(char));
-      strcpy(core_key[i], key);
+      snprintf(key, sizeof(key), "fceumm_dipswitch_%s-%s", game_name, option_name);
+      {
+         size_t key_size = strlen(key) + 1;
+         core_key[i] = calloc(key_size, sizeof(char));
+         if (!core_key[i])
+            continue;
+         strlcpy(core_key[i], key, key_size);
+      }
       vs_core_options[i].key = str_to_corekey(core_key[i]);
 
       /* Set desc */

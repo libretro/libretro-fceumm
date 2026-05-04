@@ -48,9 +48,6 @@ static uint8_t FP_FASTAPASS(1) ReadMOUSE(int w) {
 		ret |= 1;
 	else {
 		ret |= (Mouse.data >> Mouse.readbit) & 1;
-	#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-	#endif
 		Mouse.readbit++;
 	}
 	return(ret);

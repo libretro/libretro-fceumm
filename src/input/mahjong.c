@@ -28,9 +28,6 @@ static uint8_t FP_FASTAPASS(2) MJ_Read(int w, uint8_t ret) {
 /*  ret|=(MRet&1)<<1; */
 		ret |= ((MRet & 0x80) >> 6) & 2;
 /*  MRet>>=1; */
-  #ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-  #endif
 		MRet <<= 1;
 	}
 	return(ret);

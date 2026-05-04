@@ -23,6 +23,8 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <compat/strl.h>
+
 #include "fceu-types.h"
 #include "x6502.h"
 #include "cheat.h"
@@ -210,12 +212,13 @@ void FCEU_ResetCheats(void)
 
 int FCEUI_AddCheat(const char *name, uint32_t addr, uint8_t val, int compare, int type) {
 	char *t;
-	if (!(t = (char*)malloc(strlen(name) + 1)))
+	size_t n = strlen(name) + 1;
+	if (!(t = (char*)malloc(n)))
 	{
 		CheatMemErr();
 		return(0);
 	}
-	strcpy(t, name);
+	strlcpy(t, name, n);
 	if (!AddCheatEntry(t, addr, val, compare, 1, type)) {
 		free(t);
 		return(0);
@@ -426,10 +429,11 @@ int FCEUI_SetCheat(uint32_t which, const char *name, int32_t a, int32_t v, int c
 		if (x == which) {
 			if (name) {
 				char *t;
+				size_t n = strlen(name) + 1;
 
-				if ((t = (char*)realloc(next->name, strlen(name) + 1))) {
+				if ((t = (char*)realloc(next->name, n))) {
 					next->name = t;
-					strcpy(next->name, name);
+					strlcpy(next->name, name, n);
 				} else
 					return(0);
 			}

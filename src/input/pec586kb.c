@@ -62,9 +62,6 @@ static void FP_FASTAPASS(1) PEC586KB_Write(uint8_t v) {
 }
 
 static uint8_t FP_FASTAPASS(2) PEC586KB_Read(int w, uint8_t ret) {
-#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg) {
-#endif
 	if (w) {
 		ret &= ~2;
 		if(bufit[matrix[kspos][7-ksindex]])
@@ -72,9 +69,6 @@ static uint8_t FP_FASTAPASS(2) PEC586KB_Read(int w, uint8_t ret) {
 		ksindex++;
 		ksindex&=7;
 	}
-#ifdef FCEUDEF_DEBUGGER
-	}
-#endif
 	return(ret);
 }
 

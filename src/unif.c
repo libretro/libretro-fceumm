@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <compat/strl.h>
+
 
 #include  "fceu-types.h"
 #include  "fceu.h"
@@ -201,10 +203,11 @@ static int NAME(FCEUFILE *fp) {
 	FCEU_printf(" Name: %s\n", namebuf);
 
 	if (!GameInfo->name) {
-		GameInfo->name = malloc(strlen(namebuf) + 1);
+		size_t n = strlen(namebuf) + 1;
+		GameInfo->name = malloc(n);
 		if (!GameInfo->name)
 			return(0);
-		strcpy((char*)GameInfo->name, namebuf);
+		strlcpy((char*)GameInfo->name, namebuf, n);
 	}
 	return(1);
 }

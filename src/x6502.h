@@ -23,15 +23,7 @@
 
 #include "x6502struct.h"
 
-#ifdef FCEUDEF_DEBUGGER
-void X6502_Debug(void (*CPUHook)(X6502 *),
-				 uint8_t (*ReadHook)(X6502 *, uint32_t),
-				 void (*WriteHook)(X6502 *, uint32_t, uint8_t));
-
-extern void (*X6502_Run)(int32_t cycles);
-#else
 void X6502_Run(int32_t cycles);
-#endif
 
 extern uint32_t timestamp;
 extern uint32_t sound_timestamp;

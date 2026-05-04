@@ -23,6 +23,8 @@
 #include <string.h>
 #include <math.h>
 
+#include <compat/strl.h>
+
 #include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
@@ -357,15 +359,9 @@ static DECLFR(NSF_read) {
 
 	switch (A) {
 	case 0x3ff0: x = SongReload;
-				#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-				#endif
 		SongReload = 0;
 		return x;
 	case 0x3ff1:
-			#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-			#endif
 		{
 			memset(RAM, 0x00, 0x800);
 
@@ -486,7 +482,7 @@ void DrawNSF(uint8_t *XBuf) {
 	DrawTextTrans(XBuf + 42 * 256 + 4 + (((31 - strlen((char*)NSFHeader.Copyright)) << 2)), 256, NSFHeader.Copyright, 6);
 
 	DrawTextTrans(XBuf + 70 * 256 + 4 + (((31 - strlen("Song:")) << 2)), 256, (uint8_t*)"Song:", 6);
-	sprintf(snbuf, "<%d/%d>", CurrentSong, NSFHeader.TotalSongs);
+	snprintf(snbuf, sizeof(snbuf), "<%d/%d>", CurrentSong, NSFHeader.TotalSongs);
 	DrawTextTrans(XBuf + 82 * 256 + 4 + (((31 - strlen(snbuf)) << 2)), 256, (uint8_t*)snbuf, 6);
 
 	{
@@ -540,8 +536,9 @@ int FCEUI_NSFChange(int amount) {
 
 /* Returns total songs */
 int FCEUI_NSFGetInfo(uint8_t *name, uint8_t *artist, uint8_t *copyright, int maxlen) {
-	strncpy((char*)name, (const char*)NSFHeader.SongName, (size_t)maxlen);
-	strncpy((char*)artist, (const char*)NSFHeader.Artist, (size_t)maxlen);
-	strncpy((char*)copyright, (const char*)NSFHeader.Copyright, (size_t)maxlen);
+	if (maxlen <= 0) return NSFHeader.TotalSongs;
+	strlcpy((char*)name,      (const char*)NSFHeader.SongName,  (size_t)maxlen);
+	strlcpy((char*)artist,    (const char*)NSFHeader.Artist,    (size_t)maxlen);
+	strlcpy((char*)copyright, (const char*)NSFHeader.Copyright, (size_t)maxlen);
 	return(NSFHeader.TotalSongs);
 }

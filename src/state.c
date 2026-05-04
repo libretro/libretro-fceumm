@@ -27,6 +27,8 @@
 #include <unistd.h>
 #endif
 
+#include <compat/strl.h>
+
 #include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
@@ -344,7 +346,7 @@ void AddExState(void *v, uint32_t s, int type, char *desc)
    }
    memset(SFMDATA[SFEXINDEX].desc, 0, sizeof(SFMDATA[SFEXINDEX].desc));
    if (desc)
-      strncpy(SFMDATA[SFEXINDEX].desc, desc, sizeof(SFMDATA[SFEXINDEX].desc));
+      strlcpy(SFMDATA[SFEXINDEX].desc, desc, sizeof(SFMDATA[SFEXINDEX].desc));
    SFMDATA[SFEXINDEX].v = v;
    SFMDATA[SFEXINDEX].s = s;
    if (type)

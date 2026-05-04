@@ -36,9 +36,6 @@ static uint8_t FP_FASTAPASS(1) ReadPP(int w) {
 		if (pprsb[w] >= 8)
 			ret |= 0x08;
 	}
-				#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-				#endif
 	pprsb[w]++;
 	return ret;
 }

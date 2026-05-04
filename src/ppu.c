@@ -90,7 +90,6 @@ static void makeppulut(void) {
 
 static uint8_t ppudead = 1;
 static uint8_t kook = 0;
-int fceuindbg = 0;
 
 int MMC5Hack = 0, PEC586Hack = 0;
 uint32_t MMC5HackVROMMask = 0;
@@ -152,9 +151,6 @@ static DECLFR(A2002) {
 	ret = PPU_status;
 	ret |= PPUGenLatch & 0x1F;
 
-#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-#endif
 	{
 		vtoggle = 0;
 		PPU_status &= 0x7F;
@@ -185,9 +181,6 @@ static DECLFR(A2007) {
 			ret = PALRAM[tmp & 0x1F];
 		if (GRAYSCALE)
 			ret &= 0x30;
-		#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-		#endif
 		{
 			if ((tmp - 0x1000) < 0x2000)
 				VRAMBuffer = VPage[(tmp - 0x1000) >> 10][tmp - 0x1000];
@@ -197,9 +190,6 @@ static DECLFR(A2007) {
 		}
 	} else {
 		ret = VRAMBuffer;
-		#ifdef FCEUDEF_DEBUGGER
-		if (!fceuindbg)
-		#endif
 		{
 			if (PPU_hook) PPU_hook(tmp);
 			PPUGenLatch = VRAMBuffer;
@@ -210,9 +200,6 @@ static DECLFR(A2007) {
 		}
 	}
 
-	#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-	#endif
 	{
 		if ((ScreenON || SpriteON) && (scanline < 240)) {
 			uint32_t rad = RefreshAddr;
@@ -375,9 +362,6 @@ static void ResetRL(uint8_t *target) {
 static uint8_t sprlinebuf[256 + 8];
 
 void FCEUPPU_LineUpdate(void) {
-#ifdef FCEUDEF_DEBUGGER
-	if (!fceuindbg)
-#endif
 	if (Pline) {
 		int l = GETLASTPIXEL;
 		RefreshLine(l);
@@ -805,7 +789,12 @@ static void FetchSpriteData(void) {
 					dst.x = spr->x;
 					dst.atr = spr->atr;
 
-					*(uint32_t*)&SPRBUF[ns << 2] = *(uint32_t*)&dst;
+					/* memcpy avoids the strict-aliasing UB of casting
+					 * a uint8_t buffer and a struct SPRB through a
+					 * uint32_t* and also dodges the alignment trap on
+					 * strict-alignment hosts. The compiler emits the
+					 * same single 32-bit move on x86/ARM. */
+					memcpy(&SPRBUF[ns << 2], &dst, 4);
 				}
 
 				ns++;
@@ -858,7 +847,7 @@ static void FetchSpriteData(void) {
 					dst.atr = spr->atr;
 
 
-					*(uint32_t*)&SPRBUF[ns << 2] = *(uint32_t*)&dst;
+					memcpy(&SPRBUF[ns << 2], &dst, 4);
 				}
 
 				ns++;

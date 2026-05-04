@@ -13,14 +13,6 @@ typedef struct __X6502 {
 	uint32_t IRQlow;		/* Simulated IRQ pin held low(or is it high?).
 						And other junk hooked on for speed reasons.*/
 	uint8_t DB;			/* Data bus "cache" for reads from certain areas */
-
-	int preexec;		/* Pre-exec'ing for debug breakpoints. */
-
-	#ifdef FCEUDEF_DEBUGGER
-	void (*CPUHook)(struct __X6502 *);
-	uint8_t (*ReadHook)(struct __X6502 *, uint32_t);
-	void (*WriteHook)(struct __X6502 *, uint32_t, uint8_t);
-	#endif
 } X6502;
 
 #endif

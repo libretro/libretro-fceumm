@@ -12,9 +12,9 @@ BOOL SerialOpen(int port, int baud) {
 	char str[100];
 
 	if (port > 9)
-		sprintf(str, "\\\\.\\COM%d", port);
+		snprintf(str, sizeof(str), "\\\\.\\COM%d", port);
 	else
-		sprintf(str, "COM%d", port);
+		snprintf(str, sizeof(str), "COM%d", port);
 
 	/* Open the serial port */
 	if ((Comport = CreateFile(str, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)

@@ -24,6 +24,8 @@
 #include <string.h>
 #include <math.h>
 
+#include <compat/strl.h>
+
 #include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
@@ -394,38 +396,66 @@ static void CheckHInfo(void)
       iNESCart.mirror = 2;
 
    if (tofix) {
-      size_t gigastr_len;
       char gigastr[768];
-      strcpy(gigastr, " The iNES header contains incorrect information.  For now, the information will be corrected in RAM. ");
-      gigastr_len = strlen(gigastr);
-      if (tofix & 1)
-         sprintf(gigastr + gigastr_len, "Current mapper # is %d. The mapper number should be set to %d. ", current_mapper, iNESCart.mapper);
+      size_t pos;
+
+      /* Each piece appends to the running buffer rather than (as the
+       * previous code did) clobbering the same suffix from a fixed
+       * offset captured once at the start. snprintf into the tail
+       * keeps writes bounded; strlcpy at offset replaces strcat. */
+      pos = strlcpy(gigastr, " The iNES header contains incorrect information.  For now, the information will be corrected in RAM. ", sizeof(gigastr));
+      if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
+
+      if (tofix & 1) {
+         int n = snprintf(gigastr + pos, sizeof(gigastr) - pos,
+               "Current mapper # is %d. The mapper number should be set to %d. ",
+               current_mapper, iNESCart.mapper);
+         if (n > 0) pos += (size_t)n;
+         if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
+      }
       if (tofix & 2) {
          uint8_t *mstr[3] = { (uint8_t*)"Horizontal", (uint8_t*)"Vertical", (uint8_t*)"Four-screen" };
-         sprintf(gigastr + gigastr_len, "Current mirroring is %s. Mirroring should be set to \"%s\". ", mstr[cur_mirr & 3], mstr[iNESCart.mirror & 3]);
+         int n = snprintf(gigastr + pos, sizeof(gigastr) - pos,
+               "Current mirroring is %s. Mirroring should be set to \"%s\". ",
+               mstr[cur_mirr & 3], mstr[iNESCart.mirror & 3]);
+         if (n > 0) pos += (size_t)n;
+         if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
       }
-      if (tofix & 4)
-         strcat(gigastr, "The battery-backed bit should be set.  ");
-      if (tofix & 8)
-         strcat(gigastr, "This game should not have any CHR ROM.  ");
+      if (tofix & 4) {
+         pos += strlcpy(gigastr + pos, "The battery-backed bit should be set.  ", sizeof(gigastr) - pos);
+         if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
+      }
+      if (tofix & 8) {
+         pos += strlcpy(gigastr + pos, "This game should not have any CHR ROM.  ", sizeof(gigastr) - pos);
+         if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
+      }
       if (tofix & 16) {
          uint8_t *rstr[4] = { (uint8_t*)"NTSC", (uint8_t*)"PAL", (uint8_t*)"Multi", (uint8_t*)"Dendy" };
-         sprintf(gigastr + gigastr_len, "This game should run with \"%s\" timings.", rstr[iNESCart.region]);
+         int n = snprintf(gigastr + pos, sizeof(gigastr) - pos,
+               "This game should run with \"%s\" timings.",
+               rstr[iNESCart.region]);
+         if (n > 0) pos += (size_t)n;
+         if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
       }
       if (tofix & 32) {
          unsigned PRGRAM = iNESCart.PRGRamSize + iNESCart.PRGRamSaveSize;
          unsigned CHRRAM = iNESCart.CHRRamSize + iNESCart.CHRRamSaveSize;
          if (PRGRAM || CHRRAM) {
+            int n;
             if (iNESCart.PRGRamSaveSize == 0)
-               sprintf(gigastr + gigastr_len, "workram: %d KB, ", PRGRAM / 1024);
+               n = snprintf(gigastr + pos, sizeof(gigastr) - pos, "workram: %d KB, ", PRGRAM / 1024);
             else if (iNESCart.PRGRamSize == 0)
-               sprintf(gigastr + gigastr_len, "saveram: %d KB, ", PRGRAM / 1024);
+               n = snprintf(gigastr + pos, sizeof(gigastr) - pos, "saveram: %d KB, ", PRGRAM / 1024);
             else
-               sprintf(gigastr + gigastr_len, "workram: %d KB (%dKB battery-backed), ", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
-            sprintf(gigastr + gigastr_len, "chrram: %d KB.", (CHRRAM + iNESCart.CHRRamSaveSize) / 1024);
+               n = snprintf(gigastr + pos, sizeof(gigastr) - pos, "workram: %d KB (%dKB battery-backed), ", PRGRAM / 1024, iNESCart.PRGRamSaveSize / 1024);
+            if (n > 0) pos += (size_t)n;
+            if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
+            n = snprintf(gigastr + pos, sizeof(gigastr) - pos, "chrram: %d KB.", (CHRRAM + iNESCart.CHRRamSaveSize) / 1024);
+            if (n > 0) pos += (size_t)n;
+            if (pos >= sizeof(gigastr)) pos = sizeof(gigastr) - 1;
          }
       }
-      strcat(gigastr, "\n");
+      strlcpy(gigastr + pos, "\n", sizeof(gigastr) - pos);
       FCEU_printf("%s\n", gigastr);
    }
 

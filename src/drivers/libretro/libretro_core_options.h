@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <compat/strl.h>
 #include <libretro.h>
 #include <retro_inline.h>
 
@@ -961,6 +962,7 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb,
                /* Build values string */
                if (num_values > 0)
                {
+                  size_t pos;
                   buf_len += num_values - 1;
                   buf_len += strlen(desc);
 
@@ -968,19 +970,24 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb,
                   if (!values_buf[i])
                      goto error;
 
-                  strcpy(values_buf[i], desc);
-                  strcat(values_buf[i], "; ");
+                  /* strlcpy at offset is used in place of strcat:
+                   * strlcpy returns the source length (which equals
+                   * what was written when buf_len is sized exactly),
+                   * letting us track position without rescanning the
+                   * buffer with strlen on each append. */
+                  pos  = strlcpy(values_buf[i],         desc,                            buf_len);
+                  if (pos < buf_len) pos += strlcpy(values_buf[i] + pos, "; ",                            buf_len - pos);
 
                   /* Default value goes first */
-                  strcat(values_buf[i], values[default_index].value);
+                  if (pos < buf_len) pos += strlcpy(values_buf[i] + pos, values[default_index].value,     buf_len - pos);
 
                   /* Add remaining values */
                   for (j = 0; j < num_values; j++)
                   {
                      if (j != default_index)
                      {
-                        strcat(values_buf[i], "|");
-                        strcat(values_buf[i], values[j].value);
+                        if (pos < buf_len) pos += strlcpy(values_buf[i] + pos, "|",                       buf_len - pos);
+                        if (pos < buf_len) pos += strlcpy(values_buf[i] + pos, values[j].value,           buf_len - pos);
                      }
                   }
                }

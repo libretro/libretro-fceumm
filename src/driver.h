@@ -9,7 +9,6 @@ extern "C" {
 
 #include "fceu-types.h"
 #include "git.h"
-#include "debug.h"
 
 #define FCEUNPCMD_RESET       0x01
 #define FCEUNPCMD_POWER       0x02
@@ -167,16 +166,6 @@ int FCEUI_SetCheat(uint32_t which, const char *name, int32_t a, int32_t v, int c
 
 void FCEUI_CheatSearchShowExcluded(void);
 void FCEUI_CheatSearchSetCurrentAsOriginal(void);
-
-#ifdef FCEUDEF_DEBUGGER
-void FCEUI_MemDump(uint16_t a, int32_t len, void (*callb)(uint16_t a, uint8_t v));
-uint8_t FCEUI_MemSafePeek(uint16_t A);
-void FCEUI_MemPoke(uint16_t a, uint8_t v, int hl);
-void FCEUI_NMI(void);
-void FCEUI_IRQ(void);
-uint16_t FCEUI_Disassemble(void *XA, uint16_t a, char *stringo);
-void FCEUI_GetIVectors(uint16_t *reset, uint16_t *irq, uint16_t *nmi);
-#endif
 
 void FCEUI_SetLowPass(int q);
 
