@@ -54,7 +54,7 @@ void FME7_syncCHR (int AND, int OR) {
 	setchr1(0x1C00, FME7_reg[7] &AND | OR);
 }
 
-void FME7_syncMirror () {
+void FME7_syncMirror(void) {
 	setmirror(FME7_reg[12] &2? (FME7_reg[12] &1? MI_1: MI_0): FME7_reg[12] &1? MI_H: MI_V);
 }
 
@@ -84,7 +84,7 @@ void FP_FASTAPASS(1) FME7_cpuCycle (int a) {
 	}
 }
 
-void FME7_clear () {
+void FME7_clear(void) {
 	int i;
 	for (i = 0; i < 16; i++) FME7_reg[i] = 0;
 	FME7_cbSync();
@@ -111,7 +111,7 @@ void FME7_activate (uint8_t clear, void (*sync)()) {
 		FME7_cbSync();
 }
 
-void FME7_addExState () {
+void FME7_addExState(void) {
 	AddExState(FME7_stateRegs, ~0, 0, 0);
 }
 
@@ -119,7 +119,7 @@ void FME7_restore (int version) {
 	FME7_cbSync();
 }
 
-void FME7_power () {
+void FME7_power(void) {
 	FME7_setHandlers();
 	FME7_clear();
 }

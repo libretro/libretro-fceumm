@@ -24,16 +24,16 @@
 void VRC7_syncWRAM (int);
 void VRC7_syncPRG (int, int);
 void VRC7_syncCHR (int, int);
-void VRC7_syncMirror ();
+void VRC7_syncMirror(void);
 DECLFR(VRC7_readWRAM);
 DECLFW(MMC3_writeWRAM);
 DECLFW(VRC7_writeReg);
 void FP_FASTAPASS(1) VRC7_cpuCycle (int);
-void VRC7_clear ();
+void VRC7_clear(void);
 void VRC7_activate (uint8_t, void (*)(), int);
-void VRC7_addExState ();
+void VRC7_addExState(void);
 void VRC7_restore (int);
-void VRC7_power ();
+void VRC7_power(void);
 void VRC7_init (CartInfo *, void (*)(), int);
 
 #endif

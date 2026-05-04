@@ -38,7 +38,7 @@ DECLFW(LatchWrite) {
 	WSync();
 }
 
-void LatchHardReset() {
+void LatchHardReset(void) {
 	latch.addr = 0;
 	latch.data = 0;
 	WSync();

@@ -22,6 +22,8 @@
 #ifndef _FCEU_INES_H
 #define _FCEU_INES_H
 
+#include "file.h"
+
 typedef struct {
 	char ID[4];		/*NES^Z*/
 	uint8_t ROM_size;
@@ -509,5 +511,7 @@ void Mapper616_Init(CartInfo *);
 void Mapper617_Init(CartInfo *);
 void Mapper618_Init(CartInfo *);
 void FFE_Init(CartInfo *);
+
+int iNESLoad(const char *name, FCEUFILE *fp);
 
 #endif

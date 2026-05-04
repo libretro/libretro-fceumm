@@ -71,7 +71,7 @@ DECLFW (VRC3_write) {
 	}
 }
 
-void FP_FASTAPASS(1) VRC3_cpuCycle (int a) {
+static void FP_FASTAPASS(1) VRC3_cpuCycle (int a) {
 	while (a--) {
 		int mask = VRC3_irq &4? 0xFF: 0xFFFF;
 		if ((VRC3_count++ &mask) == mask) {
@@ -81,7 +81,7 @@ void FP_FASTAPASS(1) VRC3_cpuCycle (int a) {
 	}
 }
 
-void VRC3_clear () {
+void VRC3_clear(void) {
 	VRC3_prg = VRC3_irq = VRC3_count = VRC3_reload = 0;
 	X6502_IRQEnd(FCEU_IQEXT);
 	VRC3_cbSync();
@@ -107,7 +107,7 @@ void VRC3_activate (uint8_t clear, void (*sync)()) {
 		VRC3_cbSync();
 }
 
-void VRC3_addExState () {
+void VRC3_addExState(void) {
 	AddExState(VRC3_state, ~0, 0, 0);
 }
 
@@ -115,7 +115,7 @@ void VRC3_restore (int version) {
 	VRC3_cbSync();
 }
 
-void VRC3_power () {
+void VRC3_power(void) {
 	VRC3_setHandlers();
 	VRC3_clear();
 }

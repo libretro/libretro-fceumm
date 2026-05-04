@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include <compat/strl.h>
-
 #include "../../fceu.h"
 #include "../../fceu-types.h"
 #include "../../vsuni.h"
@@ -1110,8 +1109,15 @@ static void make_core_options(struct retro_core_option_v2_definition *vs_core_op
       memset(&vs_core_options[i], 0,
             sizeof(struct retro_core_option_v2_definition));
 
-      /* Set core key and sanitize string */
-      snprintf(key, sizeof(key), "fceumm_dipswitch_%s-%s", game_name, option_name);
+      /* Set core key and sanitize string. Build "fceumm_dipswitch_<game>-<option>"
+       * with strlcpy/strlcat instead of snprintf, since snprintf isn't
+       * available on pre-MSVC2015 unless compat_snprintf.c is linked
+       * (some build configurations omit it). strlcpy/strlcat truncate
+       * safely if the inputs together would overflow key[]. */
+      strlcpy(key, "fceumm_dipswitch_", sizeof(key));
+      strlcat(key, game_name,            sizeof(key));
+      strlcat(key, "-",                  sizeof(key));
+      strlcat(key, option_name,          sizeof(key));
       {
          size_t key_size = strlen(key) + 1;
          core_key[i] = calloc(key_size, sizeof(char));

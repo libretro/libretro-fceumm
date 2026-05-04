@@ -386,7 +386,7 @@ static DECLFR(MMC5_read) {
 	return(X.DB);
 }
 
-void MMC5Synco(void) {
+static void MMC5Synco(void) {
 	int x;
 
 	MMC5PRG();
@@ -422,10 +422,11 @@ void MMC5Synco(void) {
 	 /* X6502_IRQEnd(FCEU_IQEXT); */
 }
 
-void MMC5_hb(int scanline) {
+void MMC5_hb(int sl_param);
+void MMC5_hb(int sl_param) {
 	/* zero 24-jul-2014 - revised for newer understanding, to fix metal slader glory credits. see r7371 in bizhawk */
 	
-	int sl = scanline + 1;
+	int sl = sl_param + 1;
 	int ppuon = (PPU[1] & 0x18);
 
 	if (!ppuon || sl >= 241)
@@ -460,7 +461,7 @@ void MMC5_hb(int scanline) {
 
 }
 
-void MMC5_StateRestore(int version) {
+static void MMC5_StateRestore(int version) {
 	MMC5Synco();
 }
 
@@ -612,7 +613,7 @@ void MMC5RunSoundHQ(void) {
 	Do5PCMHQ();
 }
 
-void MMC5HiSync(int32_t ts) {
+static void MMC5HiSync(int32_t ts) {
 	int x;
 	for (x = 0; x < 3; x++)
 		MMC5Sound.BC[x] = ts;
@@ -627,7 +628,7 @@ void MMC5RunSound(int Count) {
 		MMC5Sound.BC[x] = Count;
 }
 
-void Mapper5_ESI(void) {
+static void Mapper5_ESI(void) {
 	GameExpSound.RChange = Mapper5_ESI;
 	if (FSettings.SndRate) {
 		if (FSettings.soundq >= 1) {
@@ -659,6 +660,7 @@ void NSFMMC5_Init(void) {
 	SetReadHandler(0x5205, 0x5206, MMC5_read);
 }
 
+void NSFMMC5_Close(void);
 void NSFMMC5_Close(void) {
 	if (WRAM)
 		FCEU_gfree(WRAM);

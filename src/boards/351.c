@@ -85,7 +85,7 @@ static void sync () {
 		MMC1_syncMirror();
 }
 
-DECLFW (VRC24_trapWriteReg) { /* When A11 is set, VRC4's A0 and A1 are swapped */
+static DECLFW (VRC24_trapWriteReg) { /* When A11 is set, VRC4's A0 and A1 are swapped */
 	if (A &0x800) A = A &~0xF | A >>1 &0x5 | A <<1 &0xA;
 	VRC24_writeReg(A, V);
 }

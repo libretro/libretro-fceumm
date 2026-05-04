@@ -97,7 +97,7 @@ static void Close(void) {
 
 void Mapper480_Init(CartInfo *info) {
 	submapper =info->submapper;
-	GenMMC3_Init(info, 256, 256, info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize) /1024: 8, info->battery);
+	GenMMC3_Init(info, 256, 256, CartInfo_PRGRAM_bytes(info, 8 * 1024) / 1024, info->battery);
 	pwrap = submapper ==2? PRGWrap2: submapper==1? PRGWrap1: PRGWrap0;
 	cwrap = submapper ==2? CHRWrap2: submapper==1? CHRWrap1: CHRWrap0;
 	info->Power = Power;

@@ -440,7 +440,7 @@ static void JYASIC_restore (int version)
 	sync();
 }
 
-void JYASIC_init (CartInfo *info)
+static void JYASIC_init (CartInfo *info)
 {
    cpuWriteHandlersSet =0;
    info->Reset = JYASIC_reset;
@@ -549,7 +549,7 @@ void Mapper282_Init(CartInfo *info)
 	JYASIC_init(info);
 }
 
-void sync295 (void)
+static void sync295 (void)
 {
    syncPRG(0x0F, mode[3] <<4);
    syncCHR(0x7F, mode[3] <<7);
@@ -564,7 +564,7 @@ void Mapper295_Init(CartInfo *info)
 	JYASIC_init(info);
 }
 
-void sync358 (void)
+static void sync358 (void)
 {
    syncPRG(0x1F, mode[3] <<4 &~0x1F);
    if (mode[3] &0x20)
@@ -587,7 +587,7 @@ void Mapper358_Init(CartInfo *info)
 	JYASIC_init(info);
 }
 
-void sync386 (void)
+static void sync386 (void)
 {
    syncPRG(0x1F, mode[3] <<4 &0x20 | mode[3] <<3 &0x40);
    if (mode[3] &0x20)
@@ -610,7 +610,7 @@ void Mapper386_Init(CartInfo *info)
 	JYASIC_init(info);
 }
 	
-void sync387(void)
+static void sync387(void)
 {
 	syncPRG(0x0F, mode[3] <<3 &0x10 | mode[3] <<2 &0x20);
 	if (mode[3] &0x20)
@@ -633,7 +633,7 @@ void Mapper387_Init(CartInfo *info)
    JYASIC_init(info);
 }
 
-void sync388 (void)
+static void sync388 (void)
 {
    syncPRG(0x1F, mode[3] <<3 &0x60);
 
@@ -657,7 +657,7 @@ void Mapper388_Init(CartInfo *info)
 	JYASIC_init(info);
 }
 
-void sync397 (void)
+static void sync397 (void)
 {
 	syncPRG(0x1F, mode[3] <<4 &~0x1F);
 	syncCHR(0x7F, mode[3] <<7);
@@ -672,7 +672,7 @@ void Mapper397_Init(CartInfo *info)
    JYASIC_init(info);
 }
 
-void sync421 (void)
+static void sync421 (void)
 {
    if (mode[3] &0x04)
       syncPRG(0x3F, mode[3] <<4 &~0x3F);
@@ -692,7 +692,7 @@ void Mapper421_Init(CartInfo *info)
 
 /* Mapper 394: HSK007 circuit board that can simulate J.Y. ASIC, MMC3, and NROM. */
 static uint8_t HSK007Reg[4];
-void sync394 (void) /* Called when J.Y. ASIC is active */
+static void sync394 (void) /* Called when J.Y. ASIC is active */
 {
 	int prgOR  =HSK007Reg[3] <<1 &0x010 | HSK007Reg[1] <<5 &0x060;
 	int chrOR  =HSK007Reg[3] <<1 &0x080 | HSK007Reg[1] <<6 &0x100 | HSK007Reg[1] <<8 &0x200;

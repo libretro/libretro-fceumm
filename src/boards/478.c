@@ -71,7 +71,7 @@ static void Reset(void) {
 }
 
 void Mapper478_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize) /1024: 8, info->battery);
+	GenMMC3_Init(info, 128, 128, CartInfo_PRGRAM_bytes(info, 8 * 1024) / 1024, info->battery);
 	pwrap = PRGWrap;
 	cwrap = CHRWrap;
 	info->Power = Power;

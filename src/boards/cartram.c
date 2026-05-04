@@ -26,7 +26,7 @@ static uint8_t *WRAMData = NULL;
 uint32_t CHRRAMSize = 0;
 uint32_t WRAMSize = 0;
 
-void CartRAM_close (void) { /* Need to combine this in one function to avoid the problem of having to properly cascade two separate Close() functions for WRAM and CHR-RAM each */
+static void CartRAM_close (void) { /* Need to combine this in one function to avoid the problem of having to properly cascade two separate Close() functions for WRAM and CHR-RAM each */
 	if (WRAMData) {
 		FCEU_gfree(WRAMData);
 		WRAMData = NULL;
@@ -38,7 +38,7 @@ void CartRAM_close (void) { /* Need to combine this in one function to avoid the
 }
 
 void CartRAM_init (CartInfo *info, uint8_t defaultWRAMSizeKiB, uint8_t defaultCHRRAMSizeKiB) {
-	WRAMSize = info->iNES2? (info->PRGRamSize +info->PRGRamSaveSize): (defaultWRAMSizeKiB *1024);
+	WRAMSize = CartInfo_PRGRAM_bytes(info, (uint32_t)defaultWRAMSizeKiB * 1024);
 	if (WRAMSize) {
 		WRAMData = (uint8_t*)FCEU_gmalloc(WRAMSize);
 		SetupCartPRGMapping(0x10, WRAMData, WRAMSize, 1);
@@ -48,7 +48,7 @@ void CartRAM_init (CartInfo *info, uint8_t defaultWRAMSizeKiB, uint8_t defaultCH
 			info->SaveGameLen[0] = info->iNES2? (uint32_t)info->PRGRamSaveSize: WRAMSize;
 		}
 	}
-	CHRRAMSize = info->iNES2? (info->CHRRamSize +info->CHRRamSaveSize): (defaultCHRRAMSizeKiB *1024);
+	CHRRAMSize = CartInfo_CHRRAM_bytes(info, (uint32_t)defaultCHRRAMSizeKiB * 1024);
 	if (ROM_size == 0) CHRRAMSize = 0; /* If there is no CHR-ROM, then any CHR-RAM will not be "extra" and therefore will be handled by ines.c, not here. */
 	if (CHRRAMSize) {
 		CHRRAMData = (uint8_t*)FCEU_gmalloc(CHRRAMSize);

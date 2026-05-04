@@ -134,7 +134,7 @@ uint8_t UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
 #define VRAMADR(V)          &VPage[(V) >> 10][(V)]
 
-uint8_t * MMC5BGVRAMADR(uint32_t V) {
+static uint8_t * MMC5BGVRAMADR(uint32_t V) {
 	if (!Sprite16) {
 		extern uint8_t mmc5ABMode;				/* A=0, B=1 */
 		if (mmc5ABMode == 0)

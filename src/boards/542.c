@@ -36,7 +36,7 @@ static void sync () {
 	if (reg &1) setchr1r(0x10, 0x0C00, 1);
 }
 
-DECLFW (writeExtra) {
+static DECLFW (writeExtra) {
 	if (A &0x800) {
 		reg =A >>12;
 		sync();
@@ -45,7 +45,7 @@ DECLFW (writeExtra) {
 }
 
 
-void power (void) {
+static void power (void) {
 	reg =0;
 	VRC24_power();
 	SetReadHandler(0x6000, 0x7FFF, CartBR);

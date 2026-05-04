@@ -111,7 +111,7 @@ void Mapper163_Init (CartInfo *info)
    GameStateRestore = StateRestore;
    AddExState(StateRegs, ~0, 0, 0);
 
-   WRAMSIZE = info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize): 8192;
+   WRAMSIZE = CartInfo_PRGRAM_bytes(info, 8192);
    WRAM = (uint8_t*) FCEU_gmalloc(WRAMSIZE);
    SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
    AddExState(WRAM, WRAMSIZE, 0, "WRAM");

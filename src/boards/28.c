@@ -36,7 +36,7 @@ static SFORMAT StateRegs[] = {
 	{0}
 };
 
-void SyncMirror() {
+static void SyncMirror(void) {
 	switch (mode & 3) {
 	case 0: setmirror(MI_0); break;
 	case 1: setmirror(MI_1); break;
@@ -45,7 +45,7 @@ void SyncMirror() {
 	}
 }
 
-void Mirror(uint8_t value)
+static void Mirror(uint8_t value)
 {
 	if ((mode & 2) == 0) {
 		mode &= 0xfe;

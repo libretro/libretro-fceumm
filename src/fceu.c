@@ -421,7 +421,7 @@ void FCEU_MemoryRand(uint8_t *ptr, uint32_t size)
 	}
 }
 
-void hand(X6502 *X, int type, uint32_t A)
+static void hand(X6502 *X, int type, uint32_t A)
 {
 }
 

@@ -54,7 +54,7 @@ void MMC24_syncCHR (int AND, int OR) {
 	setchr4(0x1000, MMC24_reg[3 +MMC24_latch[1]] &AND |OR);
 }
 
-void MMC24_syncMirror () {
+void MMC24_syncMirror(void) {
 	setmirror(MMC24_reg[5] &1? MI_H: MI_V);
 }
 
@@ -70,7 +70,7 @@ DECLFW (MMC24_write) {
 	MMC24_cbSync();
 }
 
-void MMC24_clear () {
+void MMC24_clear(void) {
 	MMC24_reg[0] = 0; MMC24_reg[1] = 0; MMC24_reg[2] = 2; MMC24_reg[3] = 0; MMC24_reg[4] = 0; MMC24_reg[5] = 0;
 	MMC24_latch[0] = 0; MMC24_latch[1] = 0;
 	MMC24_cbSync();
@@ -95,7 +95,7 @@ void MMC24_activate (uint8_t clear, void (*sync)()) {
 		MMC24_cbSync();
 }
 
-void MMC24_addExState () {
+void MMC24_addExState(void) {
 	AddExState(MMC24_state, ~0, 0, 0);
 }
 
@@ -103,7 +103,7 @@ void MMC24_restore (int version) {
 	MMC24_cbSync();
 }
 
-void MMC24_power () {
+void MMC24_power(void) {
 	MMC24_setHandlers();
 	MMC24_clear();
 }

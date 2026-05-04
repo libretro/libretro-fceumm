@@ -41,7 +41,7 @@ DECLFW (Latch_write) {
 	Latch_cbSync();
 }
 
-void Latch_clear () {
+void Latch_clear(void) {
 	Latch_address = 0;
 	Latch_data = 0;
 	Latch_cbSync();
@@ -69,7 +69,7 @@ void Latch_activate (uint8_t clear, void (*sync)(), uint16_t from, uint16_t to, 
 		Latch_cbSync();
 }
 
-void Latch_addExState () {
+void Latch_addExState(void) {
 	AddExState(Latch_state, ~0, 0, 0);
 }
 
@@ -77,7 +77,7 @@ void Latch_restore (int version) {
 	Latch_cbSync();
 }
 
-void Latch_power () {
+void Latch_power(void) {
 	Latch_setHandlers();
 	Latch_clear();
 }

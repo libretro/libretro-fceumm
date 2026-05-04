@@ -49,7 +49,40 @@ static void (*SPostSave)(void);
 static SFORMAT SFMDATA[64];
 int SFEXINDEX;
 
-#define RLSB     FCEUSTATE_RLSB     /* 0x80000000 */
+/* Convenience aliases for the SFORMAT 's' field bit layout. The
+ * encoding is documented in state.h. */
+#define RLSB         FCEUSTATE_RLSB
+#define STRIDE_MASK  FCEUSTATE_STRIDE_MASK
+#define STRIDE_SHIFT FCEUSTATE_STRIDE_SHIFT
+#define SIZE_MASK    FCEUSTATE_SIZE_MASK
+
+/* Extract the on-disk byte count of an SFORMAT entry. */
+static INLINE uint32_t sf_size(uint32_t s) { return s & SIZE_MASK; }
+
+/* Extract the byte stride (the size in bytes of one element of an
+ * RLSB array). When the stride bits are zero we fall back to
+ * "whole entry is one element", preserving the legacy single-
+ * primitive interpretation that pre-stride code relied on. */
+static INLINE uint32_t sf_stride(uint32_t s)
+{
+   uint32_t st = (s & STRIDE_MASK) >> STRIDE_SHIFT;
+   if (st)
+      return st;
+   return s & SIZE_MASK;
+}
+
+/* Byte-swap an SFORMAT entry's value buffer in place. Only called
+ * when MSB_FIRST is defined - on LE hosts the on-disk LE format
+ * matches the in-memory layout and no swap is needed. */
+static INLINE void sf_flip(void *v, uint32_t s)
+{
+   uint32_t size   = sf_size(s);
+   uint32_t stride = sf_stride(s);
+   if (stride == size)
+      FlipByteOrder((uint8_t *)v, size);
+   else
+      FlipByteOrderStrided((uint8_t *)v, size, stride);
+}
 
 extern SFORMAT FCEUPPU_STATEINFO[];
 extern SFORMAT FCEUSND_STATEINFO[];
@@ -95,23 +128,23 @@ static int SubWrite(memstream_t *mem, SFORMAT *sf)
       }
 
       acc += 8; /* Description + size */
-      acc += sf->s & (~RLSB);
+      acc += sf_size(sf->s);
 
       if(mem) /* Are we writing or calculating the size of this block? */
       {
          memstream_write(mem, sf->desc, 4);
-         write32le_mem(sf->s & (~RLSB), mem);
+         write32le_mem(sf_size(sf->s), mem);
 
 #ifdef MSB_FIRST
          if(sf->s & RLSB)
-            FlipByteOrder((uint8_t *)sf->v, sf->s & (~RLSB));
+            sf_flip(sf->v, sf->s);
 #endif
-         memstream_write(mem, (char *)sf->v, sf->s & (~RLSB));
+         memstream_write(mem, (char *)sf->v, sf_size(sf->s));
 
          /* Now restore the original byte order. */
 #ifdef MSB_FIRST
          if(sf->s & RLSB)
-            FlipByteOrder((uint8_t *)sf->v, sf->s & (~RLSB));
+            sf_flip(sf->v, sf->s);
 #endif
       }
       sf++;
@@ -148,7 +181,7 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32_t tsize, char *desc)
       }
       if (!strncmp(desc, sf->desc, 4))
       {
-         if (tsize != (sf->s & (~RLSB)))
+         if (tsize != sf_size(sf->s))
             return(0);
          return(sf);
       }
@@ -174,11 +207,11 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 
       if((tmp = CheckS(sf, tsize, toa)))
       {
-         memstream_read(mem, (char *)tmp->v, tmp->s & (~RLSB));
+         memstream_read(mem, (char *)tmp->v, sf_size(tmp->s));
 
 #ifdef MSB_FIRST
          if(tmp->s & RLSB)
-            FlipByteOrder((uint8_t *)tmp->v, tmp->s & (~RLSB));
+            sf_flip(tmp->v, tmp->s);
 #endif
       }
       else

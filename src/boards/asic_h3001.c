@@ -64,7 +64,7 @@ void H3001_syncCHR (int AND, int OR) {
 	setchr1(0x1C00, H3001_chr[7]);
 }
 
-void H3001_syncMirror () {
+void H3001_syncMirror(void) {
 	setmirror(H3001_nt &0x40? (H3001_nt &0x80? MI_1: MI_0): H3001_nt &0x80? MI_H: MI_V);
 }
 
@@ -107,14 +107,14 @@ DECLFW (H3001_write) {
 	}
 }
 
-void FP_FASTAPASS(1) H3001_cpuCycle (int a) {
+static void FP_FASTAPASS(1) H3001_cpuCycle (int a) {
 	while (a--) if (H3001_irq &0x80 && !--H3001_count) {
 		X6502_IRQBegin(FCEU_IQEXT);
 		H3001_irq = 0;
 	}
 }
 
-void H3001_clear () {
+void H3001_clear(void) {
 	int i;
 	for (i = 0; i < 2; i++) H3001_prg[i] = i;
 	for (i = 0; i < 8; i++) H3001_chr[i] = i;
@@ -143,7 +143,7 @@ void H3001_activate (uint8_t clear, void (*sync)()) {
 
 }
 
-void H3001_addExState () {
+void H3001_addExState(void) {
 	AddExState(H3001_state, ~0, 0, 0);
 }
 
@@ -151,7 +151,7 @@ void H3001_restore (int version) {
 	H3001_cbSync();
 }
 
-void H3001_power () {
+void H3001_power(void) {
 	H3001_setHandlers();
 	H3001_clear();
 }

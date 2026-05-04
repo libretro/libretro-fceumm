@@ -70,7 +70,7 @@ static INLINE void setfpageptr(int s, uint32_t A, uint8_t *p) {
 		}
 }
 
-void setfprg16(uint32_t A, uint32_t V) {
+static void setfprg16(uint32_t A, uint32_t V) {
 	if (PRGsize[0] >= 16384) {
 		V &= PRGmask16[0];
 		setfpageptr(16, A, flashdata ? (&flashdata[V << 14]) : 0);
@@ -109,14 +109,14 @@ static INLINE void fwc_store(uint32_t idx, uint32_t v) {
 #endif
 }
 
-void inc_flash_write_count(uint8_t bank, uint32_t A) {
+static void inc_flash_write_count(uint8_t bank, uint32_t A) {
 	uint32_t idx = (bank * 4) + ((A & 0x3000) >> 12);
 	uint32_t v = fwc_load(idx) + 1;
 	if (v == 0) v = 1;	/* avoid wrap to 0 (which means "never written") */
 	fwc_store(idx, v);
 }
 
-uint32_t GetFlashWriteCount(uint8_t bank, uint32_t A) {
+static uint32_t GetFlashWriteCount(uint8_t bank, uint32_t A) {
 	return fwc_load((bank * 4) + ((A & 0x3000) >> 12));
 }
 

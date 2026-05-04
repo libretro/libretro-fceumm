@@ -72,7 +72,7 @@ static void sync (void) {
 	}
 }
 
-int Huang2_getPRGBank (uint8_t bank) {
+static int Huang2_getPRGBank (uint8_t bank) {
 	return MMC1_getPRGBank(bank) >>1;
 }
 

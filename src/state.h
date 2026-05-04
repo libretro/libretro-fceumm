@@ -35,7 +35,34 @@ typedef struct {
 void ResetExState(void (*PreSave)(void), void (*PostSave)(void));
 void AddExState(void *v, uint32_t s, int type, char *desc);
 
-#define FCEUSTATE_RLSB      0x80000000
+/* SFORMAT 's' field encoding:
+ *   bit 31     (0x80000000): FCEUSTATE_RLSB - byte-swap on save/load when
+ *                            the host endianness differs from on-disk LE.
+ *   bits 24-30 (0x7F000000): FCEUSTATE_STRIDE - element size in bytes
+ *                            for multi-element arrays, encoded directly
+ *                            (1, 2, 4, 8 ...). 0 means "legacy" - take
+ *                            the whole buffer as one element of size
+ *                            equal to the byte count. The legacy
+ *                            interpretation is correct only when the
+ *                            entry is a single primitive (size <= 8) -
+ *                            the previous savestate code only ever set
+ *                            RLSB on single primitives, so legacy is
+ *                            safe for old code.
+ *   bits 0-23  (0x00FFFFFF): byte size of the entry. 16 MiB max, well
+ *                            beyond any actual save state field.
+ *
+ * Use FCEUSTATE_RLSB_ARRAY(stride) to express "array of N elements,
+ * each of `stride` bytes, byte-swap each element independently". For
+ * single primitives use the bare FCEUSTATE_RLSB as before.
+ */
+#define FCEUSTATE_RLSB           0x80000000u
+#define FCEUSTATE_STRIDE_MASK    0x7F000000u
+#define FCEUSTATE_STRIDE_SHIFT   24
+#define FCEUSTATE_SIZE_MASK      0x00FFFFFFu
+/* Compose the stride bits for an N-byte element. */
+#define FCEUSTATE_STRIDE(n)      (((uint32_t)(n) << FCEUSTATE_STRIDE_SHIFT) & FCEUSTATE_STRIDE_MASK)
+/* Convenience: byte-swap-each-element flag for an array. */
+#define FCEUSTATE_RLSB_ARRAY(n)  (FCEUSTATE_RLSB | FCEUSTATE_STRIDE(n))
 
 void FCEU_DrawSaveStates(uint8_t *XBuf);
 

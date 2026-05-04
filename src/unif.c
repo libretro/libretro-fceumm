@@ -680,7 +680,7 @@ static BFMAPPING bfunc[] = {
 	{ NULL, NULL }
 };
 
-int LoadUNIFChunks(FCEUFILE *fp) {
+static int LoadUNIFChunks(FCEUFILE *fp) {
 	int x;
 	int t;
 	for (;; ) {

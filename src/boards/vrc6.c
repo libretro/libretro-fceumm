@@ -316,7 +316,7 @@ static void DoSawVHQ(void) {
 	cvbc[2] = SOUNDTS;
 }
 
-void VRC6Sound(int Count) {
+static void VRC6Sound(int Count) {
 	int x;
 
 	DoSQV1();
@@ -326,13 +326,13 @@ void VRC6Sound(int Count) {
 		cvbc[x] = Count;
 }
 
-void VRC6SoundHQ(void) {
+static void VRC6SoundHQ(void) {
 	DoSQV1HQ();
 	DoSQV2HQ();
 	DoSawVHQ();
 }
 
-void VRC6SyncHQ(int32_t ts) {
+static void VRC6SyncHQ(int32_t ts) {
 	int x;
 	for (x = 0; x < 3; x++) cvbc[x] = ts;
 }

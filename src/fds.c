@@ -110,7 +110,7 @@ uint32_t FDSROM_size(void) {
 	return (FDSROMSize);
 }
 
-void FDSGI(int h) {
+static void FDSGI(int h) {
 	switch (h) {
 	case GI_CLOSE: FDSClose(); break;
 	case GI_POWER: FDSInit(); break;
@@ -749,7 +749,11 @@ int FDSLoad(const char *name, FCEUFILE *fp) {
 
 	for (x = 0; x < TotalSides; x++) {
 		char temp[5];
-		snprintf(temp, sizeof(temp), "DDT%d", x);
+		/* TotalSides is capped to 8 above, so the formatted string is
+		 * at most "DDT8\0" - exactly fits temp[5]. sprintf is portable;
+		 * snprintf isn't on pre-MSVC2015 without linking
+		 * compat_snprintf.c. */
+		sprintf(temp, "DDT%d", x);
 		AddExState(diskdata[x], 65500, 0, temp);
 	}
 

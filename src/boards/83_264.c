@@ -156,7 +156,7 @@ static DECLFW (writeReg) {
 	}
 }
 
-void clockCounter (void) {
+static void clockCounter (void) {
 	uint16_t counter = reg[2] | reg[3] <<8;
 	if (flags &0x80 && counter) {
 		if (reg[1] &0x40)
@@ -172,11 +172,11 @@ void clockCounter (void) {
 	reg[3] = counter >>8 &0xFF;
 }
 
-void FP_FASTAPASS(1) cycleCounter (int a) {
+static void FP_FASTAPASS(1) cycleCounter (int a) {
 	while (a--) if (~flags &0x40) clockCounter();
 }
 
-void scanlineCounter() {
+static void scanlineCounter() {
 	if (flags &0x40) {
 		clockCounter();
 		clockCounter();
@@ -211,7 +211,8 @@ static void power () {
 	sync();
 }
 
-void restore (int version) {
+static void restore (int version) {
+	(void)version;
 	sync();
 }
 

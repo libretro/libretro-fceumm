@@ -1342,7 +1342,7 @@ static void GN45Power(void) {
 	SetWriteHandler(0x7000, 0x7fff, GN45Write1);	/* OK-411 boards, the same logic, but data latched, 2-in-1 frankenstein */
 }
 
-void GN45_Init(CartInfo *info) {
+static void GN45_Init(CartInfo *info) {
 	GenMMC3_Init(info, 128, 128, 8, 0);
 	pwrap = GN45PW;
 	cwrap = GN45CW;

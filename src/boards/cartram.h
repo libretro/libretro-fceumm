@@ -26,6 +26,5 @@ extern uint32_t WRAMSize;
 void CartRAM_init (CartInfo *, uint8_t, uint8_t);
 void CHRRAM_init (CartInfo *, uint8_t);
 void WRAM_init (CartInfo *, uint8_t);
-void CartRAM_close ();
 
 #endif

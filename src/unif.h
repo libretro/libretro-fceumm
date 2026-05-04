@@ -21,6 +21,8 @@
 #ifndef _FCEU_UNIF_H
 #define _FCEU_UNIF_H
 
+#include "file.h"
+
 void AC08_Init(CartInfo *info);
 void ANROM_Init(CartInfo *info);
 void BMC11160_Init(CartInfo *info);
@@ -189,5 +191,7 @@ void COOLGIRL_Init(CartInfo* info);		/* m342 */
 extern uint8_t *UNIFchrrama;	/* Meh.  So I can stop CHR RAM
 							 * bank switcherooing with certain boards...
 							 */
+
+int UNIFLoad(const char *name, FCEUFILE *fp);
 
 #endif

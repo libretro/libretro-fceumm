@@ -33,19 +33,19 @@ void VRC24_syncPRG (int, int);
 void VRC24_syncCHR (int, int);
 int  VRC24_getPRGBank (uint8_t);
 int  VRC24_getCHRBank (uint8_t);
-void VRC24_syncMirror ();
+void VRC24_syncMirror(void);
 DECLFW(VRC24_writeReg);
 
 void FP_FASTAPASS(1) VRC4_cpuCycle(int);
 void VRC24_reconfigure (int, int);
-void VRC24_clear ();
+void VRC24_clear(void);
 void VRC2_activate (uint8_t, void (*)(), int, int, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
 void VRC4_activate (uint8_t, void (*)(), int, int, uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)), DECLFW((*)));
-void VRC2_addExState ();
-void VRC4_addExState ();
-void VRC24_addExState ();
+void VRC2_addExState(void);
+void VRC4_addExState(void);
+void VRC24_addExState(void);
 void VRC24_restore (int);
-void VRC24_power ();
+void VRC24_power(void);
 void VRC2_init (CartInfo *, void (*)(), int, int, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
 void VRC4_init (CartInfo *, void (*)(), int, int, uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)), DECLFW((*)));
 

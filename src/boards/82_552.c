@@ -35,7 +35,7 @@ static SFORMAT StateRegs[] =
 	{ 0 }
 };
 
-uint8_t prgBits (uint8_t val) {
+static uint8_t prgBits (uint8_t val) {
 	if (is552)
 		return val >>5 &0x01 | val >>3 &0x02 | val >>1 &0x04 | val <<1 &0x08 | val <<3 &0x10 | val <<5 &0x20;
 	else

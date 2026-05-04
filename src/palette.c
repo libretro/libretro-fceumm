@@ -93,16 +93,16 @@ static void ApplyDeemphasisComplete(pal *pal512) {
 	}
 }
 
-void FCEUI_SetPaletteArray(uint8_t *pal, int nEntries) {
-	if (!pal || !nEntries)
+void FCEUI_SetPaletteArray(uint8_t *data, int nEntries) {
+	if (!data || !nEntries)
 		palette_user_available = false;
 	else {
 		int x;
 		palette_user_available = true;
 		for (x = 0; x < nEntries; x++) {
-			palette_user[x].r = *((uint8_t*)pal + x + x + x);
-			palette_user[x].g = *((uint8_t*)pal + x + x + x + 1);
-			palette_user[x].b = *((uint8_t*)pal + x + x + x + 2);
+			palette_user[x].r = *((uint8_t*)data + x + x + x);
+			palette_user[x].g = *((uint8_t*)data + x + x + x + 1);
+			palette_user[x].b = *((uint8_t*)data + x + x + x + 2);
 		}
 		if (nEntries != 512) {
 			ApplyDeemphasisComplete(palette_user);

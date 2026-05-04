@@ -52,6 +52,37 @@ void FlipByteOrder(uint8_t *src, uint32_t count)
    }
 }
 
+void FlipByteOrderStrided(uint8_t *src, uint32_t count, uint32_t stride)
+{
+   uint32_t off;
+
+   if (stride <= 1 || !count)
+      return;
+   if (count % stride)
+      return;     /* malformed - bail rather than half-swap */
+
+   /* For arrays of multi-byte primitives we byte-swap each element
+    * independently. The previous code (FlipByteOrder) reversed the
+    * entire buffer end-to-end, which is correct for a single
+    * primitive but wrong for an array - it would swap element 0
+    * with element N-1 and reverse their bytes too, scrambling the
+    * data. With per-element strides, [a0 a1 b0 b1] becomes
+    * [a1 a0 b1 b0] (correct), not [b1 b0 a1 a0] (legacy bug). */
+   for (off = 0; off < count; off += stride)
+   {
+      uint8_t *s = src + off;
+      uint8_t *e = s + stride - 1;
+      while (s < e)
+      {
+         uint8_t tmp = *e;
+         *e = *s;
+         *s = tmp;
+         e--;
+         s++;
+      }
+   }
+}
+
 int write32le_mem(uint32_t b, memstream_t *mem)
 {
    uint8_t s[4];

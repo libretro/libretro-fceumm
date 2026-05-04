@@ -1,6 +1,8 @@
 #ifndef _FCEU_CART_H
 #define _FCEU_CART_H
 
+#include "fceu-types.h"
+
 typedef struct {
 	/* Set by mapper/board code: */
 	void (*Power)(void);
@@ -106,5 +108,30 @@ void FCEU_GeniePower(void);
 void FCEU_OpenGenie(void);
 void FCEU_CloseGenie(void);
 void FCEU_KillGenie(void);
+
+/* Helpers for the iNES1-vs-iNES2 sizing dichotomy.
+ *
+ * iNES1 headers don't carry explicit RAM-size fields, so mappers fall
+ * back to a default (typically 8 KiB WRAM). iNES2 headers do, in which
+ * case the runtime must use PRGRamSize + PRGRamSaveSize (resp.
+ * CHRRamSize + CHRRamSaveSize). This pattern was hand-coded at every
+ * site as `info->iNES2 ? (info->PRGRamSize + info->PRGRamSaveSize)
+ * : default_bytes`, which is verbose and easy to write inconsistently.
+ *
+ * These inline helpers centralise the rule. They return byte counts
+ * (caller divides by 1024 if it needs KiB). */
+static INLINE uint32_t CartInfo_PRGRAM_bytes(const CartInfo *info, uint32_t default_bytes)
+{
+	if (info->iNES2)
+		return (uint32_t)(info->PRGRamSize + info->PRGRamSaveSize);
+	return default_bytes;
+}
+
+static INLINE uint32_t CartInfo_CHRRAM_bytes(const CartInfo *info, uint32_t default_bytes)
+{
+	if (info->iNES2)
+		return (uint32_t)(info->CHRRamSize + info->CHRRamSaveSize);
+	return default_bytes;
+}
 
 #endif

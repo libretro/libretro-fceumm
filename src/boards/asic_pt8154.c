@@ -40,7 +40,7 @@ void PT8154_syncCHR (int AND, int OR) {
 	MMC3_syncCHR(AND, OR &~AND);
 }
 
-void PT8154_syncMirror () {
+void PT8154_syncMirror(void) {
 	MMC3_syncMirror();
 }
 
@@ -56,7 +56,7 @@ DECLFW (PT8154_writeWRAM) {
 	PT8154_cbSync();
 }
 
-void PT8154_clear () {
+void PT8154_clear(void) {
 	PT8154_reg = 0;
 	PT8154_cbSync();
 }
@@ -79,7 +79,7 @@ void PT8154_activate (uint8_t clear, void (*sync)()) {
 		PT8154_cbSync();
 }
 
-void PT8154_addExState () {
+void PT8154_addExState(void) {
 	AddExState(PT8154_state, ~0, 0, 0);
 }
 
@@ -87,7 +87,7 @@ void PT8154_restore (int version) {
 	PT8154_cbSync();
 }
 
-void PT8154_power () {
+void PT8154_power(void) {
 	MMC3_power();
 	PT8154_setHandlers();
 	PT8154_clear();

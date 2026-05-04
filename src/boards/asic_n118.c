@@ -59,7 +59,7 @@ DECLFW (N118_writeReg) {
 		N118_index = V;
 }
 
-void N118_clear () {
+void N118_clear(void) {
 	N118_reg[0] = 0; N118_reg[1] = 2; N118_reg[2] = 4; N118_reg[3] = 5; N118_reg[4] = 6; N118_reg[5] = 7; N118_reg[6] = 0; N118_reg[7] = 1;
 	N118_index = 0;
 	N118_cbSync();
@@ -86,7 +86,7 @@ void N118_activate (uint8_t clear, void (*sync)(), int (*prg)(uint8_t), int (*ch
 		N118_cbSync();
 }
 
-void N118_addExState () {
+void N118_addExState(void) {
 	AddExState(N118_state, ~0, 0, 0);
 }
 
@@ -94,7 +94,7 @@ void N118_restore (int version) {
 	N118_cbSync();
 }
 
-void N118_power () {
+void N118_power(void) {
 	N118_setHandlers();
 	N118_clear();
 }

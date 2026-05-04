@@ -73,7 +73,7 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-void MapperNNN_Init(CartInfo *info) {
+static void MapperNNN_Init(CartInfo *info) {
 	info->Reset = MNNNReset;
 	info->Power = MNNNPower;
 /*	info->Close = MNNNClose; */

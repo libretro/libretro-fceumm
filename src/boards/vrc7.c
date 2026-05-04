@@ -45,7 +45,7 @@ static SFORMAT StateRegs[] =
 
 /* VRC7 Sound */
 
-void DoVRC7Sound(void) {
+static void DoVRC7Sound(void) {
 	int32_t z, a;
 	if (FSettings.soundq >= 1)
 		return;
@@ -55,11 +55,11 @@ void DoVRC7Sound(void) {
 	dwave += a;
 }
 
-void UpdateOPLNEO(int32_t *Wave, int Count) {
-	OPLL_fillbuf(VRC7Sound, Wave, Count, 4);
+static void UpdateOPLNEO(int32_t *WaveBuf, int Count) {
+	OPLL_fillbuf(VRC7Sound, WaveBuf, Count, 4);
 }
 
-void UpdateOPL(int Count) {
+static void UpdateOPL(int Count) {
 	int32_t z, a;
 	z = ((SOUNDTS << 16) / soundtsinc) >> 4;
 	a = z - dwave;

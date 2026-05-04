@@ -99,7 +99,7 @@ int VRC24_getCHRBank (uint8_t bank) {
 	return VRC24_chr[bank &7];
 }
 
-void VRC24_syncMirror () {
+void VRC24_syncMirror(void) {
 	setmirror(VRC24_isVRC4 && VRC24_mirroring &2? (VRC24_mirroring &1? MI_1: MI_0): (VRC24_mirroring &1? MI_H: MI_V));
 }
 
@@ -194,7 +194,7 @@ void FP_FASTAPASS(1) VRC4_cpuCycle (int a) {
 	}
 }
 
-void VRC24_clear () {
+void VRC24_clear(void) {
 	VRC24_prg[0] = 0; VRC24_prg[1] = 0;
 	VRC24_chr[0] = 0; VRC24_chr[1] = 1; VRC24_chr[2] = 2; VRC24_chr[3] = 3; VRC24_chr[4] = 4; VRC24_chr[5] = 5; VRC24_chr[6] = 6; VRC24_chr[7] = 7;
 	VRC24_mirroring = VRC2_pins = VRC4_latch = VRC4_mode = VRC4_count = VRC4_cycles = 0;
@@ -263,17 +263,17 @@ void VRC4_activate (uint8_t clear, void (*sync)(), int A0, int A1, uint8_t useRe
 		VRC24_cbSync();
 }
 
-void VRC2_addExState () {
+void VRC2_addExState(void) {
 	AddExState(VRC24_stateRegs, ~0, 0, 0);
 	AddExState(VRC2_stateRegs, ~0, 0, 0);
 }
 
-void VRC4_addExState () {
+void VRC4_addExState(void) {
 	AddExState(VRC24_stateRegs, ~0, 0, 0);
 	AddExState(VRC4_stateRegs, ~0, 0, 0);
 }
 
-void VRC24_addExState () {
+void VRC24_addExState(void) {
 	AddExState(VRC24_stateRegs, ~0, 0, 0);
 	AddExState(VRC2_stateRegs, ~0, 0, 0);
 	AddExState(VRC4_stateRegs, ~0, 0, 0);
@@ -283,7 +283,7 @@ void VRC24_restore (int version) {
 	VRC24_cbSync();
 }
 
-void VRC24_power () {
+void VRC24_power(void) {
 	VRC24_setHandlers();
 	VRC24_clear();
 }

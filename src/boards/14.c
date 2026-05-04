@@ -44,11 +44,11 @@ static void sync (void) {
 	}
 }
 
-int getCHRBank_MMC3 (uint8_t bank) {
+static int getCHRBank_MMC3 (uint8_t bank) {
 	return MMC3_getCHRBank(bank) | reg <<(~bank &4? 5: ~bank &2? 3: 1) &0x100;
 }
 
-int getCHRBank_VRC2 (uint8_t bank) {
+static int getCHRBank_VRC2 (uint8_t bank) {
 	return VRC24_getCHRBank(bank) | reg <<(~bank &4? 5: ~bank &2? 3: 1) &0x100;
 }
 

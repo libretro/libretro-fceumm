@@ -505,7 +505,7 @@ void FASTAPASS(1) FCEU_SoundCPUHook(int cycles) {
 	}
 }
 
-void RDoPCM(void) {
+static void RDoPCM(void) {
 	uint32_t V;
 
 	for (V = ChannelBC[4]; V < SOUNDTS; V++)
@@ -915,7 +915,7 @@ static void RDoNoise(void) {
 	ChannelBC[3] = SOUNDTS;
 }
 
-DECLFW(Write_IRQFM) {
+static DECLFW(Write_IRQFM) {
 	V = (V & 0xC0) >> 6;
 	fcnt = 0;
 	if (V & 2)

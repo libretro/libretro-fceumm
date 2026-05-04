@@ -29,13 +29,13 @@ int MMC1_getPRGBank (uint8_t);
 int MMC1_getCHRBank (uint8_t);
 void MMC1_syncPRG (int, int);
 void MMC1_syncCHR (int, int);
-void MMC1_syncMirror ();
+void MMC1_syncMirror(void);
 void FP_FASTAPASS(1) MMC1_cpuCycle(int);
 DECLFW (MMC1_writeReg);
-void MMC1_clear ();
-void MMC1_addExState ();
+void MMC1_clear(void);
+void MMC1_addExState(void);
 void MMC1_restore (int);
-void MMC1_power ();
+void MMC1_power(void);
 void MMC1_activate (uint8_t, void (*)(), uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
 void MMC1_init (CartInfo *, void (*)(), uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
 

@@ -247,7 +247,7 @@ static void AYHiSync(int32_t ts) {
 		CAYBC[x] = ts;
 }
 
-void Mapper69_ESI(void) {
+static void Mapper69_ESI(void) {
 	GameExpSound.RChange = Mapper69_ESI;
 	GameExpSound.HiSync = AYHiSync;
 	memset(dcount, 0, sizeof(dcount));

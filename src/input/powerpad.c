@@ -44,7 +44,7 @@ static void FP_FASTAPASS(1) StrobePP(int w) {
 	pprsb[w] = 0;
 }
 
-void FP_FASTAPASS(3) UpdatePP(int w, void *data, int arg) {
+static void FP_FASTAPASS(3) UpdatePP(int w, void *data, int arg) {
 	static const char shifttableA[12] = { 8, 9, 0, 1, 11, 7, 4, 2, 10, 6, 5, 3 };
 	static const char shifttableB[12] = { 1, 0, 9, 8, 2, 4, 7, 11, 3, 5, 6, 10 };
 	int x;

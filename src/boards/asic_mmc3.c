@@ -68,14 +68,14 @@ uint8_t MMC3_getMirroring (void) {
 	return MMC3_mirroring;
 }
 
-DECLFR (MMC3_readWRAM) {
+static DECLFR (MMC3_readWRAM) {
 	if (MMC3_wramControl &0x80 || MMC3_type == MMC3_TYPE_AX5202P || MMC3_type == MMC3_TYPE_MMC6)
 		return MMC3_cbReadWRAM? MMC3_cbReadWRAM(A): CartBR(A);
 	else
 		return A >>8;
 }
 
-DECLFW (MMC3_writeWRAM) {
+static DECLFW (MMC3_writeWRAM) {
 	if ((MMC3_wramControl &0x80 || MMC3_type == MMC3_TYPE_AX5202P) && ~MMC3_wramControl &0x40 || MMC3_type == MMC3_TYPE_MMC6) {
 		CartBW(A, V);
 		if (MMC3_cbWriteWRAM) MMC3_cbWriteWRAM(A, V);
@@ -101,11 +101,11 @@ void MMC3_syncCHR (int AND, int OR) {
 	for (bank = 0; bank < 8; bank++) setchr1(bank <<10, MMC3_cbGetCHRBank(bank) &AND |OR);
 }
 
-void MMC3_syncMirror () {
+void MMC3_syncMirror(void) {
 	setmirror(MMC3_mirroring &1? MI_H: MI_V);
 }
 
-void MMC3_clockCounter () {
+void MMC3_clockCounter(void) {
 	uint8_t prevCounter = MMC3_counter;
 	if (MMC3_reloadRequest || !MMC3_counter)
 		MMC3_counter = MMC3_reloadValue;
@@ -115,7 +115,7 @@ void MMC3_clockCounter () {
 	MMC3_reloadRequest = 0;
 }
 
-void MMC3_clockCounter_KickMaster () {
+void MMC3_clockCounter_KickMaster(void) {
 	if (scanline == 238) MMC3_clockCounter();
 	MMC3_clockCounter();
 }
@@ -134,7 +134,7 @@ DECLFW(MMC3_writeReg) {
 	if (A <0xC000) MMC3_cbSync();
 }
 
-void MMC3_clear () {
+void MMC3_clear(void) {
 	MMC3_reg[0] = 0; MMC3_reg[1] = 2; MMC3_reg[2] = 4; MMC3_reg[3] = 5; MMC3_reg[4] = 6; MMC3_reg[5] = 7; MMC3_reg[6] = 0; MMC3_reg[7] = 1;
 	MMC3_index = MMC3_mirroring = MMC3_wramControl = MMC3_reloadValue = MMC3_reloadRequest = MMC3_irqEnable = MMC3_counter = 0;
 	MMC3_cbSync();
@@ -166,7 +166,7 @@ void MMC3_activate (uint8_t clear, void (*sync)(), uint8_t type, int (*prg)(uint
 		MMC3_cbSync();
 }
 
-void MMC3_addExState () {
+void MMC3_addExState(void) {
 	AddExState(MMC3_state, ~0, 0, 0);
 }
 
@@ -174,7 +174,7 @@ void MMC3_restore (int version) {
 	MMC3_cbSync();
 }
 
-void MMC3_power () {
+void MMC3_power(void) {
 	MMC3_setHandlers();
 	MMC3_clear();
 }

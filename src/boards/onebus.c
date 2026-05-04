@@ -371,7 +371,7 @@ static void StateRestore(int version) {
 	Sync();
 }
 
-void UNLOneBus_Close(void) {
+static void UNLOneBus_Close(void) {
 	if (WRAM)
 		FCEU_gfree(WRAM);
 	WRAM = NULL;

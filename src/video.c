@@ -85,7 +85,7 @@ void FCEU_PutImage(void)
 		FCEU_DrawInput(XBuf);
 }
 
-void FCEU_PutImageDummy(void)
+static void FCEU_PutImageDummy(void)
 {
 }
 

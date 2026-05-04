@@ -68,7 +68,7 @@ void VRC6_syncCHR (int AND, int OR) {
 	setchr1(0x1C00, VRC6_cbGetCHRBank(7) &AND | OR);
 }
 
-void VRC6_syncMirror () { /* Only emulates features used by known games, meaning mode 0 with CHR A10 substitution */
+void VRC6_syncMirror(void) { /* Only emulates features used by known games, meaning mode 0 with CHR A10 substitution */
 	setmirror(VRC6_misc &8? (VRC6_misc &4? MI_1: MI_0): VRC6_misc &4? MI_H: MI_V);
 }
 
@@ -90,7 +90,7 @@ DECLFR (VRC6_readWRAM) {
 		return A >>8;
 }
 
-DECLFW (VRC6_writeWRAM) {
+static DECLFW (VRC6_writeWRAM) {
 	if (VRC6_misc &0x80) {
 		CartBW(A, V);
 		if (VRC6_cbWriteWRAM) VRC6_cbWriteWRAM(A, V);
@@ -151,7 +151,7 @@ void FP_FASTAPASS(1) VRC6_cpuCycle (int a) {
 	}
 }
 
-void VRC6_clear () {
+void VRC6_clear(void) {
 	VRC6_prg[0] = 0; VRC6_prg[1] = 0xFE;
 	VRC6_chr[0] = 0; VRC6_chr[1] = 1; VRC6_chr[2] = 2; VRC6_chr[3] = 3; VRC6_chr[4] = 4; VRC6_chr[5] = 5; VRC6_chr[6] = 6; VRC6_chr[7] = 7;
 	VRC6_misc = VRC6_latch = VRC6_mode = VRC6_count = VRC6_cycles = 0;
@@ -185,7 +185,7 @@ void VRC6_activate (uint8_t clear, void (*sync)(), int A0, int A1, int (*prg)(ui
 		VRC6_cbSync();
 }
 
-void VRC6_addExState () {
+void VRC6_addExState(void) {
 	AddExState(VRC6_stateRegs, ~0, 0, 0);
 }
 
@@ -193,7 +193,7 @@ void VRC6_restore (int version) {
 	VRC6_cbSync();
 }
 
-void VRC6_power () {
+void VRC6_power(void) {
 	VRC6_setHandlers();
 	VRC6_clear();
 }

@@ -308,6 +308,7 @@ extern int zapper_sensor_invert_option;
 
 /* emulator-specific callback functions */
 
+const char *GetKeyboard(void); /* used by src/boards/transformer.c */
 const char * GetKeyboard(void)
 {
    return "";
@@ -406,7 +407,7 @@ void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char
    }
 }
 
-void FCEUD_SoundToggle (void)
+static void FCEUD_SoundToggle (void)
 {
    FCEUI_SetSoundVolume(sndvolume);
 }
@@ -1904,20 +1905,20 @@ static void retro_set_custom_palette(void)
  */
 static void FCEUD_RegionOverride(unsigned region)
 {
-   unsigned pal = 0;
+   unsigned is_pal = 0;
    unsigned d = 0;
 
    switch (region)
    {
       case 0: /* auto */
          d = (systemRegion >> 1) & 1;
-         pal = systemRegion & 1;
+         is_pal = systemRegion & 1;
          break;
       case 1: /* ntsc */
          FCEUD_DispMessage(RETRO_LOG_INFO, 2000, "System: NTSC");
          break;
       case 2: /* pal */
-         pal = 1;
+         is_pal = 1;
          FCEUD_DispMessage(RETRO_LOG_INFO, 2000, "System: PAL");
          break;
       case 3: /* dendy */
@@ -1927,7 +1928,7 @@ static void FCEUD_RegionOverride(unsigned region)
    }
 
    dendy = d;
-   FCEUI_SetVidSystem(pal);
+   FCEUI_SetVidSystem(is_pal);
    ResetPalette();
 }
 
@@ -2458,7 +2459,7 @@ static void check_variables(bool startup)
    update_option_visibility();
 }
 
-void add_powerpad_input(unsigned port, uint32_t variant, uint32_t *ppdata) {
+static void add_powerpad_input(unsigned port, uint32_t variant, uint32_t *ppdata) {
    unsigned k;
    const uint32_t* map = powerpadmap;
    for (k = 0 ; k < 12 ; k++)
@@ -2466,7 +2467,7 @@ void add_powerpad_input(unsigned port, uint32_t variant, uint32_t *ppdata) {
             *ppdata |= (1 << k);
 }
 
-void add_fkb_input(unsigned port, uint32_t variant, uint8_t *fkbkeys) {
+static void add_fkb_input(unsigned port, uint32_t variant, uint8_t *fkbkeys) {
    unsigned k;
    const uint32_t* map = fkbmap;
    for (k = 0 ; k < 0x48 ; k++)
@@ -2476,7 +2477,7 @@ void add_fkb_input(unsigned port, uint32_t variant, uint8_t *fkbkeys) {
             fkbkeys[k]=0;
 }
 
-void add_suborkey_input(unsigned port, uint32_t variant, uint8_t *suborkeys) {
+static void add_suborkey_input(unsigned port, uint32_t variant, uint8_t *suborkeys) {
    unsigned k;
    const uint32_t* map = suborkbmap;
    for (k = 0 ; k < 0x65 ; k++)
@@ -2488,7 +2489,7 @@ void add_suborkey_input(unsigned port, uint32_t variant, uint8_t *suborkeys) {
 
 static int mzx = 0, mzy = 0;
 
-void get_mouse_input(unsigned port, uint32_t variant, uint32_t *mousedata)
+static void get_mouse_input(unsigned port, uint32_t variant, uint32_t *mousedata)
 {
    int min_width, min_height, max_width, max_height;
 
@@ -2910,7 +2911,7 @@ static void FCEUD_UpdateInput(void)
       palette_switch_counter = 0;
 }
 
-void FCEUD_Update(uint8_t *XBuf, int32_t *Buffer, int Count)
+static void FCEUD_Update(uint8_t *XBuf, int32_t *Buffer, int Count)
 {
 }
 

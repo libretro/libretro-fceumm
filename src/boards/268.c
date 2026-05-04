@@ -94,7 +94,7 @@ static void Mapper268_CHRWrap(uint32_t A, uint8_t V) {
 	setchr1r(CHRRAM && EXPREGS[4] &0x01 && (V &0xFE) ==(EXPREGS[4] &0xFE)? 0x10: 0x00, A, V &chrMaskMMC3 | chrOffset | A >>10 &chrMaskGNROM);
 }
 
-void Mapper268_MirrorWrap(uint8_t V) {
+static void Mapper268_MirrorWrap(uint8_t V) {
 	A000B =V;
 	if ((submapper &~1) ==10 && ~EXPREGS[0] &0x20)
 		setmirror(EXPREGS[0] &0x10? MI_1: MI_0);

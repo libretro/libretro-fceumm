@@ -24,7 +24,6 @@
 #include <math.h>
 
 #include <compat/strl.h>
-
 #include "fceu-types.h"
 #include "x6502.h"
 #include "fceu.h"
@@ -97,7 +96,7 @@ static NSF_HEADER NSFHeader;
 void NSFMMC5_Close(void);
 static uint8_t *ExWRAM = 0;
 
-void NSFGI(int h) {
+static void NSFGI(int h) {
 	switch (h) {
 	case GI_CLOSE:
 		if (NSFDATA) {
@@ -484,7 +483,11 @@ void DrawNSF(uint8_t *XBuf) {
 	DrawTextTrans(XBuf + 42 * 256 + 4 + (((31 - strlen((char*)NSFHeader.Copyright)) << 2)), 256, NSFHeader.Copyright, 6);
 
 	DrawTextTrans(XBuf + 70 * 256 + 4 + (((31 - (sizeof("Song:") - 1)) << 2)), 256, (uint8_t*)"Song:", 6);
-	snprintf(snbuf, sizeof(snbuf), "<%d/%d>", CurrentSong, NSFHeader.TotalSongs);
+	/* CurrentSong / NSFHeader.TotalSongs are uint8_t, so the formatted
+	 * string is at most "<255/255>" (9 chars) which fits trivially in
+	 * snbuf[16]. sprintf is portable; snprintf isn't on pre-MSVC2015
+	 * without linking compat_snprintf.c. */
+	sprintf(snbuf, "<%d/%d>", CurrentSong, NSFHeader.TotalSongs);
 	DrawTextTrans(XBuf + 82 * 256 + 4 + (((31 - strlen(snbuf)) << 2)), 256, (uint8_t*)snbuf, 6);
 
 	{

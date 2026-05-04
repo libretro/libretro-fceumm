@@ -39,7 +39,7 @@ static void Sync(void) {
 	setmirror((bank >> 7) ^ 1);
 }
 
-DECLFR(M234ReadBank) {
+static DECLFR(M234ReadBank) {
 	uint8_t r = CartBR(A);
 	if (!bank) {
 		bank = r;
@@ -48,7 +48,7 @@ DECLFR(M234ReadBank) {
 	return r;
 }
 
-DECLFR(M234ReadPreg) {
+static DECLFR(M234ReadPreg) {
 	uint8_t r = CartBR(A);
 	preg = r;
 	Sync();

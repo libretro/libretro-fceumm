@@ -24,13 +24,13 @@
 void QJ_syncWRAM (int);
 void QJ_syncPRG (int, int);
 void QJ_syncCHR (int, int);
-void QJ_syncMirror ();
+void QJ_syncMirror(void);
 DECLFW (QJ_write);
-void QJ_clear ();
+void QJ_clear(void);
 void QJ_activate (uint8_t, void (*)());
-void QJ_addExState ();
+void QJ_addExState(void);
 void QJ_restore (int);
-void QJ_power ();
+void QJ_power(void);
 void QJ_init (CartInfo *, void (*)());
 
 #endif

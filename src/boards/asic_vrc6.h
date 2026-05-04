@@ -24,18 +24,18 @@
 void VRC6_syncWRAM (int);
 void VRC6_syncPRG (int, int);
 void VRC6_syncCHR (int, int);
-void VRC6_syncMirror ();
+void VRC6_syncMirror(void);
 int VRC6_getPRGBank (uint8_t);
 int VRC6_getCHRBank (uint8_t);
 DECLFR(VRC6_readWRAM);
 DECLFW(MMC3_writeWRAM);
 DECLFW(VRC6_writeReg);
 void FP_FASTAPASS(1) VRC6_cpuCycle (int);
-void VRC6_clear ();
+void VRC6_clear(void);
 void VRC6_activate (uint8_t, void (*)(), int, int, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
-void VRC6_addExState ();
+void VRC6_addExState(void);
 void VRC6_restore (int);
-void VRC6_power ();
+void VRC6_power(void);
 void VRC6_init (CartInfo *, void (*)(), int, int, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
 
 #endif

@@ -96,14 +96,14 @@ static DECLFR(M111FlashID) {
 	}
 }
 
-void M111FlashIDEnter() {
+static void M111FlashIDEnter() {
 	if (flash_id)
 		return;
 	flash_id = 1;
 	SetReadHandler(0x8000, 0xFFFF, M111FlashID);
 }
 
-void M111FlashIDExit() {
+static void M111FlashIDExit() {
 	if (!flash_id)
 		return;
 	flash_id = 0;

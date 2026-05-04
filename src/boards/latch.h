@@ -12,6 +12,6 @@ void Latch_Init(CartInfo *info, void (*proc)(void), readfunc func, uint8_t wram,
 void LatchPower(void);
 void LatchClose(void);
 void LatchWrite(uint32_t A, uint8_t V);
-void LatchHardReset();
+void LatchHardReset(void);
 
 #endif /* _FCEU_LATCH_H */

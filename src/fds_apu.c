@@ -25,6 +25,7 @@
 #include "fceu.h"
 #include "sound.h"
 #include "state.h"
+#include "fds_apu.h"
 
 #define FDSClock (1789772.7272727272727272 / 2)
 
@@ -253,7 +254,7 @@ static void HQSync(int32_t ts) {
 	FBC = ts;
 }
 
-void FDSSound(int c) {
+static void FDSSound(int c) {
 	RenderSound();
 	FBC = c;
 }
@@ -282,7 +283,7 @@ void FDSSoundReset(void) {
 	GameExpSound.RChange = FDS_ESI;
 }
 
-uint8_t FDSSoundRead(uint32_t A) {
+static uint8_t FDSSoundRead(uint32_t A) {
 	if (A >= 0x4040 && A < 0x4080) return FDSWaveRead(A);
 	if (A >= 0x4090 && A < 0x4093) return FDSSRead(A);
 	return X.DB;

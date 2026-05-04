@@ -188,7 +188,7 @@ static void M61Sync(void) {
 	setmirror(((latche >> 7) & 1) ^ 1);
 }
 
-void Mapper61_Reset() {
+static void Mapper61_Reset() {
 	latche =0;
 	RAM[0x1A] =0;
 	RAM[0x1B] =0;
@@ -640,7 +640,7 @@ static void BMC810544CA1Sync(void) {
 	setmirror(((latche >> 4) & 1) ^ 1);
 }
 
-void BMC810544CA1Reset() {
+static void BMC810544CA1Reset() {
 	latche =0;
 	RAM[0x133] =0;
 	BMC810544CA1Sync();
@@ -784,13 +784,13 @@ static void M435Sync(void) {
 	SetReadHandler(0x8000, 0xFFFF, ~latche &0x200 && latche &(submapper == 1? 0x001: 0x400) && dipswitch &1? ReadOB: CartBR);
 }
 
-void Mapper435_Power() {
+static void Mapper435_Power() {
 	LatchPower();
 	dipswitch = 0;
 	M435Sync();
 }
 
-void Mapper435_Reset() {
+static void Mapper435_Reset() {
 	latche = 0;
 	dipswitch++;
 	M435Sync();
@@ -836,7 +836,7 @@ static void M464Sync(void) {
 	setmirror(latche &0x20? MI_H: MI_V);
 }
 
-void Mapper464_reset () {
+static void Mapper464_reset () {
 	RAM[0x133] = 0;
 	latche = 0;
 	M464Sync();

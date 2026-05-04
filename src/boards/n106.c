@@ -44,7 +44,7 @@ static uint8_t gorko;
 
 static void NamcoSound(int Count);
 static void NamcoSoundHack(void);
-static void DoNamcoSound(int32_t *Wave, int Count);
+static void DoNamcoSound(int32_t *WaveBuf, int Count);
 static void DoNamcoSoundHQ(void);
 static void SyncHQ(int32_t ts);
 
@@ -319,7 +319,7 @@ static void DoNamcoSoundHQ(void) {
 }
 
 
-static void DoNamcoSound(int32_t *Wave, int Count) {
+static void DoNamcoSound(int32_t *WaveBuf, int Count) {
 	int P, V;
 	for (P = 7; P >= 7 - ((IRAM[0x7F] >> 4) & 7); P--) {
 		if ((IRAM[0x44 + (P << 3)] & 0xE0) && (IRAM[0x47 + (P << 3)] & 0xF)) {
@@ -362,7 +362,7 @@ static void DoNamcoSound(int32_t *Wave, int Count) {
 					duff &= 0xF;
 					duff2 = (duff * envelope) >> 19;
 				}
-				Wave[V >> 4] += duff2;
+				WaveBuf[V >> 4] += duff2;
 				vco += 0x8000;
 			}
 			vcount[P] = vco;

@@ -76,7 +76,7 @@ static void Mapper195_Power(void) {
 	}
 }
 
-void Mapper195_Close(void) {
+static void Mapper195_Close(void) {
 	if (CHRRAM)
 		FCEU_gfree(CHRRAM);
 	CHRRAM = NULL;

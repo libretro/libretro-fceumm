@@ -24,16 +24,16 @@
 void FME7_syncWRAM (int);
 void FME7_syncPRG (int, int);
 void FME7_syncCHR (int, int);
-void FME7_syncMirror ();
+void FME7_syncMirror(void);
 DECLFR (FME7_readWRAM);
 DECLFW (FME7_writeWRAM);
 DECLFW (FME7_writeReg);
 void FP_FASTAPASS(1) FME7_cpuCycle (int);
-void FME7_clear ();
+void FME7_clear(void);
 void FME7_activate (uint8_t, void (*)());
-void FME7_addExState ();
+void FME7_addExState(void);
 void FME7_restore (int);
-void FME7_power ();
+void FME7_power(void);
 void FME7_init (CartInfo *, void (*)());
 
 #endif

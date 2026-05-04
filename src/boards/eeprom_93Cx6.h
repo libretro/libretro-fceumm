@@ -5,6 +5,6 @@
 extern uint8_t* eeprom_93Cx6_storage;
 
 void  eeprom_93Cx6_init  (size_t capacity, uint8_t wordSize);
-uint8_t eeprom_93Cx6_read  ();
+uint8_t eeprom_93Cx6_read  (void);
 void  eeprom_93Cx6_write (uint8_t CS, uint8_t CLK, uint8_t DAT);
 #endif

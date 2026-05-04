@@ -25,10 +25,10 @@ extern uint16_t Latch_address;
 extern uint8_t Latch_data;
 
 DECLFW (Latch_write);
-void Latch_addExState ();
+void Latch_addExState(void);
 void Latch_restore (int);
-void Latch_clear ();
-void Latch_power ();
+void Latch_clear(void);
+void Latch_power(void);
 void Latch_activate (uint8_t, void (*)(), uint16_t, uint16_t, void (*)(uint16_t*, uint8_t*, uint8_t));
 void Latch6_activate (uint8_t, void (*)(), uint16_t, uint16_t, void (*)(uint16_t*, uint8_t*, uint8_t));
 void Latch_init (CartInfo *, void (*)(), uint16_t, uint16_t, void (*)(uint16_t*, uint8_t*, uint8_t));

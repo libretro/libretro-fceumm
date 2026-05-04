@@ -23,13 +23,13 @@
 
 void VRC1_syncPRG (int, int);
 void VRC1_syncCHR (int, int);
-void VRC1_syncMirror ();
+void VRC1_syncMirror(void);
 DECLFW (VRC1_writeReg);
-void VRC1_clear ();
+void VRC1_clear(void);
 void VRC1_activate (uint8_t, void (*)());
-void VRC1_addExState ();
+void VRC1_addExState(void);
 void VRC1_restore (int);
-void VRC1_power ();
+void VRC1_power(void);
 void VRC1_init (CartInfo *, void (*)());
 
 #endif

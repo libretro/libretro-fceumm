@@ -33,15 +33,15 @@ int MMC3_getCHRBank (uint8_t);
 uint8_t MMC3_getMirroring (void);
 void MMC3_syncPRG (int, int);
 void MMC3_syncCHR (int, int);
-void MMC3_syncMirror ();
-void MMC3_clockCounter ();
-void MMC3_clockCounter_KickMaster ();
+void MMC3_syncMirror(void);
+void MMC3_clockCounter(void);
+void MMC3_clockCounter_KickMaster(void);
 DECLFW (MMC3_writeReg);
-void MMC3_clear ();
+void MMC3_clear(void);
 void MMC3_activate (uint8_t, void (*)(), uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
-void MMC3_addExState();
+void MMC3_addExState(void);
 void MMC3_restore (int);
-void MMC3_power ();
+void MMC3_power(void);
 void MMC3_init (CartInfo *, void (*)(), uint8_t, int (*)(uint8_t), int (*)(uint8_t), DECLFR((*)), DECLFW((*)));
 
 #endif

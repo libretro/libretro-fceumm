@@ -130,6 +130,7 @@ void FCEU_DrawInput(uint8_t *buf)
 /* This function is a quick hack to get the NSF player to use emulated gamepad
    input.
 */
+uint8_t FCEU_GetJoyJoy(void); /* used by src/nsf.c */
 uint8_t FCEU_GetJoyJoy(void) {
 	return(joy[0] | joy[1] | joy[2] | joy[3]);
 }
@@ -440,7 +441,7 @@ void FCEU_DoSimpleCommand(int cmd)
    }
 }
 
-void FCEU_QSimpleCommand(int cmd)
+static void FCEU_QSimpleCommand(int cmd)
 {
    FCEU_DoSimpleCommand(cmd);
 }

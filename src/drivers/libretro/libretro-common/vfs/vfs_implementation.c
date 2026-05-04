@@ -221,7 +221,7 @@
 
 #define RFILE_HINT_UNBUFFERED (1 << 8)
 
-int64_t retro_vfs_file_seek_internal(
+static int64_t retro_vfs_file_seek_internal(
       libretro_vfs_implementation_file *stream,
       int64_t offset, int whence)
 {

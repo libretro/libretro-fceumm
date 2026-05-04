@@ -241,7 +241,7 @@ static void init( init_t* impl, nes_ntsc_setup_t const* setup )
 			do
 			{
 				float const* in = decoder;
-				int n = 3;
+				int k = 3;
 				do
 				{
 					float i = *in++;
@@ -249,7 +249,7 @@ static void init( init_t* impl, nes_ntsc_setup_t const* setup )
 					*out++ = i * c - q * s;
 					*out++ = i * s + q * c;
 				}
-				while ( --n );
+				while ( --k );
 				if ( burst_count <= 1 )
 					break;
 				ROTATE_IQ( s, c, 0.866025f, -0.5f ); /* +120 degrees */

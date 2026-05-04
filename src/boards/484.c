@@ -41,7 +41,7 @@ static void Power(void) {
 }
 
 void Mapper484_Init(CartInfo *info) {
-	GenMMC3_Init(info, 512, 256, info->iNES2? (info->PRGRamSize + info->PRGRamSaveSize) /1024: 8, info->battery);
+	GenMMC3_Init(info, 512, 256, CartInfo_PRGRAM_bytes(info, 8 * 1024) / 1024, info->battery);
 	pwrap = PRGWrap;
 	info->Power = Power;
 	AddExState(EXPREGS, 1, 0, "EXPR");

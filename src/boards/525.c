@@ -27,12 +27,12 @@ static void sync () {
 	VRC24_syncMirror();
 }
 
-DECLFW (UNLKS7021A_writeCHR) {
+static DECLFW (UNLKS7021A_writeCHR) {
 	VRC24_writeReg(0xB000 +(A <<11 &0x3000 | A <<1 &0x0002), V &0x0F);
 	VRC24_writeReg(0xB001 +(A <<11 &0x3000 | A <<1 &0x0002), V >>4);
 }
 
-void UNLKS7021A_power (void) {
+static void UNLKS7021A_power (void) {
 	VRC24_power();
 	SetWriteHandler(0xB000, 0xEFFF, UNLKS7021A_writeCHR);
 }

@@ -30,7 +30,7 @@ typedef struct {
 		often) in lq mode than in high-quality mode.  Maybe that
 		should be fixed. :)
 	*/
-	void (*NeoFill)(int32_t *Wave, int Count);
+	void (*NeoFill)(int32_t *WaveBuf, int Count);
 	void (*HiFill)(void);
 	void (*HiSync)(int32_t ts);
 

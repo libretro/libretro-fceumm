@@ -401,15 +401,15 @@ void SL1ROM_Init(CartInfo *info) {
 	similarly functioning boards?
 */
 
-void SL2ROM_Init(CartInfo *info) {
+static void SL2ROM_Init(CartInfo *info) {
 	GenMMC1Init(info, 256, 256, 0, 0);
 }
 
-void SFROM_Init(CartInfo *info) {
+static void SFROM_Init(CartInfo *info) {
 	GenMMC1Init(info, 256, 256, 0, 0);
 }
 
-void SHROM_Init(CartInfo *info) {
+static void SHROM_Init(CartInfo *info) {
 	GenMMC1Init(info, 256, 256, 0, 0);
 }
 

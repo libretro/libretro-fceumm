@@ -23,13 +23,13 @@
 
 void H3001_syncPRG (int, int);
 void H3001_syncCHR (int, int);
-void H3001_syncMirror ();
+void H3001_syncMirror(void);
 DECLFW (H3001_write);
-void H3001_clear ();
+void H3001_clear(void);
 void H3001_activate (uint8_t, void (*)());
-void H3001_addExState ();
+void H3001_addExState(void);
 void H3001_restore (int);
-void H3001_power ();
+void H3001_power(void);
 void H3001_init (CartInfo *, void (*)());
 
 #endif

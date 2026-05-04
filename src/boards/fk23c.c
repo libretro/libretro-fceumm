@@ -465,7 +465,7 @@ static void StateRestore(int version)
    Sync();
 }
 
-void Init(CartInfo *info)
+static void Init(CartInfo *info)
 {
    /* Initialization for iNES and UNIF. subType and dipsw_enable must have been set. */
    info->Power       = Power;

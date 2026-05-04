@@ -25,11 +25,11 @@ void VRC3_syncWRAM (int);
 void VRC3_syncPRG (int, int);
 void VRC3_syncCHR (int, int);
 DECLFW (VRC3_write);
-void VRC3_clear ();
+void VRC3_clear(void);
 void VRC3_activate (uint8_t, void (*)());
-void VRC3_addExState ();
+void VRC3_addExState(void);
 void VRC3_restore (int);
-void VRC3_power ();
+void VRC3_power(void);
 void VRC3_init (CartInfo *, void (*)());
 
 #endif

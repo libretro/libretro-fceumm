@@ -26,11 +26,11 @@ int N118_getCHRBank (uint8_t);
 void N118_syncPRG (int, int);
 void N118_syncCHR (int, int);
 DECLFW (N118_writeReg);
-void N118_clear ();
+void N118_clear(void);
 void N118_activate (uint8_t, void (*)(), int (*)(uint8_t), int (*)(uint8_t));
-void N118_addExState();
+void N118_addExState(void);
 void N118_restore (int);
-void N118_power ();
+void N118_power(void);
 void N118_init (CartInfo *, void (*)(), int (*)(uint8_t), int (*)(uint8_t));
 
 #endif

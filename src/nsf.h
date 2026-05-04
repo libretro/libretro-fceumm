@@ -21,6 +21,8 @@
 #ifndef _FCEU_NSF_H
 #define _FCEU_NSF_H
 
+#include "file.h"
+
 typedef struct {
 	char ID[5];				/* NESM^Z */
 	uint8_t Version;
@@ -48,5 +50,6 @@ void DrawNSF(uint8_t *XBuf);
 void NSFDealloc(void);
 void NSFDodo(void);
 void DoNSFFrame(void);
+int NSFLoad(FCEUFILE *fp);
 
 #endif

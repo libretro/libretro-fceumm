@@ -25,13 +25,13 @@ extern uint8_t TC3294_reg[4];
 void TC3294_syncWRAM (int);
 void TC3294_syncPRG (int, int);
 void TC3294_syncCHR (int, int);
-void TC3294_syncMirror ();
+void TC3294_syncMirror(void);
 DECLFW (TC3294_writeReg);
-void TC3294_clear ();
+void TC3294_clear(void);
 void TC3294_activate (uint8_t, void (*)());
-void TC3294_addExState ();
+void TC3294_addExState(void);
 void TC3294_restore (int);
-void TC3294_power ();
+void TC3294_power(void);
 void TC3294_init (CartInfo *, void (*)());
 
 #endif

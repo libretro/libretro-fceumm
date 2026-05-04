@@ -41,7 +41,7 @@ void VRC1_syncCHR (int AND, int OR) {
 	setchr4(0x1000, (VRC1_reg[7] &0x0F | VRC1_reg[1] <<2 &0x10) &AND |OR);
 }
 
-void VRC1_syncMirror () {
+void VRC1_syncMirror(void) {
 	setmirror(VRC1_reg[1] &0x01? MI_H: MI_V);
 }
 
@@ -50,7 +50,7 @@ DECLFW (VRC1_writeReg) {
 	VRC1_cbSync();
 }
 
-void VRC1_clear () {
+void VRC1_clear(void) {
 	VRC1_reg[0] = 0x00; VRC1_reg[1] = 0; VRC1_reg[2] = 2; VRC1_reg[3] = 0;VRC1_reg[4] = 0x00; VRC1_reg[5] = 0; VRC1_reg[6] = 2; VRC1_reg[7] = 0;
 	VRC1_cbSync();
 }
@@ -73,7 +73,7 @@ void VRC1_activate (uint8_t clear, void (*sync)()) {
 		VRC1_cbSync();
 }
 
-void VRC1_addExState () {
+void VRC1_addExState(void) {
 	AddExState(VRC1_state, ~0, 0, 0);
 }
 
@@ -81,7 +81,7 @@ void VRC1_restore (int version) {
 	VRC1_cbSync();
 }
 
-void VRC1_power () {
+void VRC1_power(void) {
 	VRC1_setHandlers();
 	VRC1_clear();
 }
