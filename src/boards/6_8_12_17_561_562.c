@@ -255,6 +255,8 @@ static DECLFR(readReg) {
 			return mc1Mode;
 		case 0x4420: /* Venus allows reading the last accessed CHR-RAM bank register, used by some Venus games to lock out Bung and FFE devices. */
 			return chr1K[lastCHRBank &7];
+		default:
+			return A >>8; /* Open Bus */
 	} else
 	if (maker ==FFE) switch(A) {
 		case 0x4500:
