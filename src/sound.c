@@ -733,6 +733,9 @@ static void RDoTriangleNoisePCMLQ(void) {
 	uint32_t amptab[2];
 	uint32_t noiseout;
 	int nshift;
+	uint32_t scaled_tcout;
+	uint32_t scaled_dmc;
+	const uint32_t tri_vol = FSettings.TriangleVolume;
 
 	int32_t totalout;
 
@@ -754,13 +757,18 @@ static void RDoTriangleNoisePCMLQ(void) {
 	else
 		amptab[0] = EnvUnits[2].decvolume;
 
-	/* Modify Triangle wave volume based on channel volume modifiers
-	 * Note: the formulat x = x * y /100 does not yield exact results,
-	 * but is "close enough" and avoids the need for using double vales
-	 * or implicit cohersion which are slower (we need speed here)
-	 * TODO: Optimize this. */
-	if (FSettings.TriangleVolume != 256)
-		amptab[0] = (amptab[0] * FSettings.TriangleVolume) / 256;
+	/* Apply per-channel volume modifiers (set via fceumm_apu_N options).
+	 *
+	 * EnvUnits[2] is the Noise envelope (not Triangle - Triangle has no
+	 * envelope; EnvUnits[0]=SQ1, [1]=SQ2, [2]=Noise). The previous code
+	 * scaled amptab[0] by FSettings.TriangleVolume, which crossed the
+	 * Triangle and Noise mute toggles in LQ mode and left Triangle
+	 * itself never muted. Triangle's contribution enters wlookup2 via
+	 * lq_tcout below; PCM enters via RawDALatch. Scale each input
+	 * channel by its own volume before the non-linear DAC mix - 0 in
+	 * still produces 0 out, and 256 leaves the value unchanged. */
+	if (FSettings.NoiseVolume != 256)
+		amptab[0] = (amptab[0] * FSettings.NoiseVolume) / 256;
 
 	amptab[1] = 0;
 	amptab[0] <<= 1;
@@ -775,7 +783,14 @@ static void RDoTriangleNoisePCMLQ(void) {
 	else
 		nshift = 13;
 
-	totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+	scaled_tcout = (tri_vol != 256)
+	             ? ((lq_tcout * tri_vol) / 256)
+	             : lq_tcout;
+	scaled_dmc   = (FSettings.PCMVolume != 256)
+	             ? ((RawDALatch * FSettings.PCMVolume) / 256)
+	             : RawDALatch;
+
+	totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
 
 	if (inie[0] && inie[1]) {
 		for (V = start; V < end; V++) {
@@ -792,7 +807,10 @@ static void RDoTriangleNoisePCMLQ(void) {
 				lq_tcout = (tristep & 0xF);
 				if (!(tristep & 0x10)) lq_tcout ^= 0xF;
 				lq_tcout = lq_tcout * 3;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+				scaled_tcout = (tri_vol != 256)
+				             ? ((lq_tcout * tri_vol) / 256)
+				             : lq_tcout;
+				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
 			}
 
 			if (lq_noiseacc <= 0) {
@@ -808,7 +826,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				nreg &= 0x7fff;
 				noiseout = amptab[(nreg >> 0xe) & 1];
 				if (lq_noiseacc <= 0) goto rea2;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
 			}	/* noiseacc<=0 */
 		}	/* for(V=... */
 	} else if (inie[0]) {
@@ -825,7 +843,10 @@ static void RDoTriangleNoisePCMLQ(void) {
 				lq_tcout = (tristep & 0xF);
 				if (!(tristep & 0x10)) lq_tcout ^= 0xF;
 				lq_tcout = lq_tcout * 3;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+				scaled_tcout = (tri_vol != 256)
+				             ? ((lq_tcout * tri_vol) / 256)
+				             : lq_tcout;
+				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
 			}
 		}
 	} else if (inie[1]) {
@@ -845,7 +866,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				nreg &= 0x7fff;
 				noiseout = amptab[(nreg >> 0xe) & 1];
 				if (lq_noiseacc <= 0) goto area2;
-				totalout = wlookup2[lq_tcout + noiseout + RawDALatch];
+				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
 			}	/* noiseacc<=0 */
 		}
 	} else {

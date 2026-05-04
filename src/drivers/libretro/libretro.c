@@ -1975,11 +1975,23 @@ void retro_reset(void)
 
 static void set_apu_channels(int chan)
 {
-   FSettings.SquareVolume[1] = (chan & 1) ? 256 : 0;
-   FSettings.SquareVolume[0] = (chan & 2) ? 256 : 0;
-   FSettings.TriangleVolume  = (chan & 3) ? 256 : 0;
-   FSettings.NoiseVolume     = (chan & 4) ? 256 : 0;
-   FSettings.PCMVolume       = (chan & 5) ? 256 : 0;
+   /* Bitmask layout (set up by check_variables): bit i = fceumm_apu_(i+1)
+    * is enabled. Channel order matches the libretro core options:
+    *   bit 0  = Square 1   (apu_1)
+    *   bit 1  = Square 2   (apu_2)
+    *   bit 2  = Triangle   (apu_3)
+    *   bit 3  = Noise      (apu_4)
+    *   bit 4  = PCM / DMC  (apu_5)
+    *
+    * The previous masks crossed the SQ1/SQ2 indices and used non-power-of-
+    * two values for the remaining channels, which silently broke the
+    * apu_3..apu_5 toggles entirely (any combination of bits 0/1/2 left
+    * those channels audible) and made apu_1 mute SQ2 and vice versa. */
+   FSettings.SquareVolume[0] = (chan & 0x01) ? 256 : 0;
+   FSettings.SquareVolume[1] = (chan & 0x02) ? 256 : 0;
+   FSettings.TriangleVolume  = (chan & 0x04) ? 256 : 0;
+   FSettings.NoiseVolume     = (chan & 0x08) ? 256 : 0;
+   FSettings.PCMVolume       = (chan & 0x10) ? 256 : 0;
 }
 
 static void check_variables(bool startup)
