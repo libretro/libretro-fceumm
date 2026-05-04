@@ -33,6 +33,34 @@
 static uint32_t wlookup1[32];
 static uint32_t wlookup2[203];
 
+/* Helper: clamp wlookup2's combined index to the table size.
+ *
+ * The LQ Tri/Noise/PCM mix sums lq_tcout, noiseout, and RawDALatch (with
+ * per-channel volume scalars applied) and uses the result as the index
+ * into wlookup2[203]. Each input is bounded under normal emulation:
+ * lq_tcout is (tristep & 0xF) * 3 (max 45), noiseout is the noise
+ * envelope decvolume << 1 (max 30 with 0..15 envelope range), and
+ * RawDALatch is the $4011 DAC latch (writes mask off the top bit, so
+ * 0..127 in the running emulator). Sum max ~202 fits the table.
+ *
+ * After loading a savestate, however, every one of those state fields
+ * is whatever the file said, so EnvUnits[2].decvolume (loaded as raw
+ * uint8_t) can be 0..255, RawDALatch can be 0..255, lq_tcout (loaded
+ * as uint32_t) can be anything, and the sum can overflow the table by
+ * a wide margin - a heap-buffer-overflow read that AddressSanitizer
+ * surfaces in retro_run after retro_unserialize on a malformed state.
+ *
+ * Clamp at the access site so the protection holds regardless of which
+ * piece of state was tampered with. Out-of-range values play wrong
+ * audio for one frame until DoEnv / channel writes restore sane state,
+ * but the emulator stays alive. */
+static INLINE uint32_t wl2(uint32_t idx)
+{
+   if (idx >= sizeof(wlookup2) / sizeof(wlookup2[0]))
+      idx = sizeof(wlookup2) / sizeof(wlookup2[0]) - 1;
+   return wlookup2[idx];
+}
+
 int32_t Wave[2048 + 512];
 int32_t WaveHi[40000];
 int32_t WaveFinal[2048 + 512];
@@ -646,7 +674,17 @@ static void RDoSQLQ(void) {
 		freq[x] <<= 17;
 	}
 
-	totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
+	/* RectDutyCount[] is reloaded from savestate as raw int32_t and may
+	 * hold any value at this point - the inner-loop increments later mask
+	 * it back to 0..7, but this first lookup hits the table before any
+	 * such mask. Without bounds protection, ttable[0..7] (int[8]) reads
+	 * garbage memory and feeds it into wlookup1[32], which then OOB-reads
+	 * - reachable via a malformed savestate. Mask both indices defensively
+	 * here and at every other ttable/wlookup1 call site below. The mask
+	 * is one instruction and runs only at the chunk boundaries, not per
+	 * inner-loop sample. */
+	totalout = wlookup1[(ttable[0][RectDutyCount[0] & 7]
+	                  +  ttable[1][RectDutyCount[1] & 7]) & 31];
 
 	if (!inie[0] && !inie[1]) {
 		/* Both squares silent: amp[x] was forced to 0 above (line
@@ -676,7 +714,8 @@ static void RDoSQLQ(void) {
 				sqacc[0] += freq[0];
 				RectDutyCount[0] = (RectDutyCount[0] + 1) & 7;
 				if (sqacc[0] <= 0) goto rea;
-				totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
+				totalout = wlookup1[(ttable[0][RectDutyCount[0]]
+				                  +  ttable[1][RectDutyCount[1] & 7]) & 31];
 			}
 
 			if (sqacc[1] <= 0) {
@@ -684,7 +723,8 @@ static void RDoSQLQ(void) {
 				sqacc[1] += freq[1];
 				RectDutyCount[1] = (RectDutyCount[1] + 1) & 7;
 				if (sqacc[1] <= 0) goto rea2;
-				totalout = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
+				totalout = wlookup1[(ttable[0][RectDutyCount[0] & 7]
+				                  +  ttable[1][RectDutyCount[1]]) & 31];
 			}
 		}
 	}
@@ -790,7 +830,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 	             ? ((RawDALatch * FSettings.PCMVolume) / 256)
 	             : RawDALatch;
 
-	totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
+	totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
 
 	if (inie[0] && inie[1]) {
 		for (V = start; V < end; V++) {
@@ -810,7 +850,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				scaled_tcout = (tri_vol != 256)
 				             ? ((lq_tcout * tri_vol) / 256)
 				             : lq_tcout;
-				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
+				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
 			}
 
 			if (lq_noiseacc <= 0) {
@@ -826,7 +866,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				nreg &= 0x7fff;
 				noiseout = amptab[(nreg >> 0xe) & 1];
 				if (lq_noiseacc <= 0) goto rea2;
-				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
+				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
 			}	/* noiseacc<=0 */
 		}	/* for(V=... */
 	} else if (inie[0]) {
@@ -846,7 +886,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				scaled_tcout = (tri_vol != 256)
 				             ? ((lq_tcout * tri_vol) / 256)
 				             : lq_tcout;
-				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
+				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
 			}
 		}
 	} else if (inie[1]) {
@@ -866,7 +906,7 @@ static void RDoTriangleNoisePCMLQ(void) {
 				nreg &= 0x7fff;
 				noiseout = amptab[(nreg >> 0xe) & 1];
 				if (lq_noiseacc <= 0) goto area2;
-				totalout = wlookup2[scaled_tcout + noiseout + scaled_dmc];
+				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
 			}	/* noiseacc<=0 */
 		}
 	} else {
@@ -989,7 +1029,7 @@ int FlushEmulateSound(void) {
 
 		for (x = sound_timestamp; x; x--) {
 			uint32_t b = *tmpo;
-			*tmpo = (b & 65535) + wlookup2[(b >> 16) & 255] + wlookup1[b >> 24];
+			*tmpo = (b & 65535) + wl2((b >> 16) & 255) + wlookup1[(b >> 24) & 31];
 			tmpo++;
 		}
 

@@ -200,14 +200,25 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
    {
       uint32_t tsize;
       char toa[4];
-      if(memstream_read(mem, toa, 4) <= 0)
+      /* memstream_read returns the number of bytes read, or 0/negative on
+       * error. Treat anything less than the requested four bytes as a
+       * truncation; the previous <= 0 check let a 1- to 3-byte short read
+       * leave toa[] partially uninitialised before strncmp consumed it. */
+      if (memstream_read(mem, toa, 4) != 4u)
          return 0;
 
-      read32le_mem(&tsize, mem);
+      if (!read32le_mem(&tsize, mem))
+         return 0;
 
       if((tmp = CheckS(sf, tsize, toa)))
       {
-         memstream_read(mem, (char *)tmp->v, sf_size(tmp->s));
+         /* sf_size(tmp->s) was already validated to equal tsize by
+          * CheckS, and tmp->v points at the fixed-size in-memory buffer
+          * for this state field, so the read is bounded. Still treat a
+          * short read here as a parse failure rather than leaving the
+          * buffer in a half-updated state. */
+         if (memstream_read(mem, (char *)tmp->v, sf_size(tmp->s)) != (uint64_t)sf_size(tmp->s))
+            return 0;
 
 #ifdef MSB_FIRST
          if(tmp->s & RLSB)
@@ -215,7 +226,17 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
 #endif
       }
       else
-         memstream_seek(mem, tsize, SEEK_CUR);
+      {
+         /* Skip past the unknown chunk's payload. memstream_seek already
+          * bounds-checks against the stream end and returns -1 on
+          * out-of-range, but the caller previously ignored the return,
+          * leaving the read loop spinning at the same offset and re-
+          * parsing whatever bytes happened to follow. Treat a failed
+          * skip as a parse error so we don't silently load a truncated
+          * state. */
+         if (memstream_seek(mem, tsize, SEEK_CUR) < 0)
+            return 0;
+      }
    }
    return 1;
 }
@@ -233,7 +254,21 @@ static int ReadStateChunks(memstream_t *st, int32_t totalsize)
          break;
       if (!read32le_mem(&size, st))
          break;
-      totalsize -= size + 5;
+      /* size came straight off disk and is attacker-controlled. The
+       * arithmetic below was previously
+       *
+       *   totalsize -= size + 5;
+       *
+       * but `size + 5` is computed as uint32_t and can wrap to a small
+       * value (e.g. size = 0xFFFFFFFB makes size + 5 == 0), so totalsize
+       * fails to decrement and the outer loop spins through the rest of
+       * the stream. Reject any size that would either (a) overflow the
+       * +5 housekeeping bytes or (b) exceed the remaining declared
+       * payload, which is the only legitimate range. */
+      if (size > (uint32_t)0x7FFFFFFFu - 5
+            || (uint32_t)totalsize < size + 5)
+         break;
+      totalsize -= (int32_t)(size + 5);
 
       switch(t)
       {
@@ -315,22 +350,52 @@ void FCEUSS_Load_Mem(void)
 {
    memstream_t *mem = memstream_open(0);
 
-   uint8_t header[16];
+   uint8_t header[16] = {0};
    int stateversion;
-   int totalsize;
+   uint32_t totalsize_u;
+   int32_t totalsize;
    int x;
 
-   memstream_read(mem, header, 16);
+   /* memstream_open can't legitimately return NULL in the libretro path
+    * (the buffer is set by retro_unserialize via memstream_set_buffer),
+    * but treat NULL defensively rather than dereferencing. */
+   if (!mem)
+      return;
+
+   /* If the buffer is shorter than the 16-byte header the read returns
+    * fewer bytes; the magic-string memcmp would otherwise compare against
+    * a stack-uninitialised tail. Zeroed header[] above plus the read-
+    * length check below leave the comparisons well-defined. */
+   if (memstream_read(mem, header, 16) != 16u)
+   {
+      memstream_close(mem);
+      return;
+   }
 
    if (memcmp(header, "FCS", 3) != 0)
+   {
+      memstream_close(mem);
       return;
+   }
 
    if (header[3] == 0xFF)
       stateversion = FCEU_de32lsb(header + 8);
    else
       stateversion = header[3] * 100;
-   
-   totalsize = FCEU_de32lsb(header + 4);
+
+   /* totalsize on disk is unsigned 32-bit. The previous code stored it
+    * straight into a signed int, so a malicious header with bit 31 set
+    * would silently produce a negative totalsize - the chunk loop would
+    * then never enter and the savestate would "load" without applying
+    * any of its data. Read into a uint32_t and reject obviously bogus
+    * sizes that exceed INT32_MAX or what's actually in the buffer. */
+   totalsize_u = FCEU_de32lsb(header + 4);
+   if (totalsize_u > 0x7FFFFFFFu)
+   {
+      memstream_close(mem);
+      return;
+   }
+   totalsize = (int32_t)totalsize_u;
 
    x = ReadStateChunks(mem, totalsize);
 
