@@ -153,6 +153,12 @@ static int crop_overscan_v_bottom;
 static bool use_raw_palette;
 static int aspect_ratio_par;
 
+/* Pixel format negotiated with the frontend at retro_load_game. Cached
+ * here for retro_run_blit so it can validate that
+ * GET_CURRENT_SOFTWARE_FRAMEBUFFER returned a format we can write into
+ * directly. */
+static enum retro_pixel_format active_pixformat = RETRO_PIXEL_FORMAT_UNKNOWN;
+
 /*
  * Flags to keep track of whether turbo
  * buttons toggled on or off.
@@ -2925,7 +2931,6 @@ static void retro_run_blit(uint8_t *gfx)
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* texture_vram_p = NULL;
 #endif
-   unsigned incr   = 0;
    unsigned width  = 256;
    unsigned height = 240;
    unsigned pitch  = width * sizeof(bpp_t);
@@ -3008,52 +3013,86 @@ static void retro_run_blit(uint8_t *gfx)
       width    = NES_WIDTH - crop_overscan_h_left - crop_overscan_h_right;
       width    = NES_NTSC_OUT_WIDTH(width);
       height   = NES_HEIGHT - crop_overscan_v_top - crop_overscan_v_bottom;
-      pitch    = width * sizeof(bpp_t);
+      pitch    = NES_NTSC_WIDTH * sizeof(bpp_t);
 
+      /* Pass ntsc_video_out directly to the frontend with the wider
+       * source pitch instead of memcpy'ing into a tightly-packed
+       * fceu_video_out. video_cb's pitch parameter already lets the
+       * frontend skip past the unused right margin per scanline; the
+       * memcpy was redundant. Saves ~580 KB per frame at 32 bpp full
+       * NES_NTSC_OUT_WIDTH * NES_HEIGHT - i.e. ~35 MB/s of bandwidth
+       * at 60 fps. */
       {
-         int32_t h_offset   = (crop_overscan_h_left ? NES_NTSC_OUT_WIDTH(crop_overscan_h_left) : 0);
-         int32_t v_offset   = crop_overscan_v_top;
+         int32_t h_offset = (crop_overscan_h_left ? NES_NTSC_OUT_WIDTH(crop_overscan_h_left) : 0);
+         int32_t v_offset = crop_overscan_v_top;
          const bpp_t *in = ntsc_video_out + h_offset + NES_NTSC_WIDTH * v_offset;
-         bpp_t *out      = fceu_video_out;
-
-         for (y = 0; y < height; y++)
-         {
-            memcpy(out, in, pitch);
-            in += NES_NTSC_WIDTH;
-            out += width;
-         }
+         video_cb(in, width, height, pitch);
       }
-      video_cb(fceu_video_out, width, height, pitch);
    }
    else
 #endif /* HAVE_NTSC_FILTER */
    {
-      incr   += (crop_overscan_h_left + crop_overscan_h_right);
       width  -= (crop_overscan_h_left + crop_overscan_h_right);
       height -= (crop_overscan_v_top + crop_overscan_v_bottom);
-      pitch  -= (crop_overscan_h_left + crop_overscan_h_right) * sizeof(bpp_t);
+      pitch   = width * sizeof(bpp_t);
       gfx    += (crop_overscan_v_top * 256) + crop_overscan_h_left;
 
       {
-         uint8_t *deemp = XDBuf + (gfx - XBuf);
-         for (y = 0; y < height; y++, gfx += incr, deemp += incr)
+         /* Try GET_CURRENT_SOFTWARE_FRAMEBUFFER for zero-copy: if the
+          * frontend can hand us its own scanout buffer, we write the
+          * pixel-format conversion directly into it and skip a round
+          * trip through fceu_video_out. */
+         struct retro_framebuffer fb = {0};
+         bpp_t *target = fceu_video_out;
+         size_t target_stride = (size_t)width;  /* in pixels */
+
+         fb.width  = width;
+         fb.height = height;
+         fb.access_flags = RETRO_MEMORY_ACCESS_WRITE;
+         if (environ_cb(RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER, &fb)
+               && fb.format == active_pixformat
+               && fb.data
+               && (fb.pitch % sizeof(bpp_t)) == 0)
          {
-            for (x = 0; x < width; x++, gfx++, deemp++)
+            target        = (bpp_t *)fb.data;
+            target_stride = fb.pitch / sizeof(bpp_t);
+            pitch         = fb.pitch;
+         }
+
+         /* Hoist loop-invariant decisions out of the hot per-pixel
+          * loop. The PPU writes a uniform colour_emphasis byte to
+          * every entry of XDBuf for a given scanline (ppu.c:683-685),
+          * so emphasis is constant per row - branch once per row, not
+          * per pixel. NSF and use_raw_palette flags don't change mid-
+          * frame either. */
+         {
+            const uint8_t *deemp_row = XDBuf + (gfx - XBuf);
+            const bool is_nsf        = (GameInfo->type == GIT_NSF);
+            const uint8_t pixel_mask = use_raw_palette ? 0x3F : 0xFF;
+
+            for (y = 0; y < height; y++)
             {
-               if (*deemp != 0 && GameInfo->type != GIT_NSF)
+               bpp_t *out_row = target + (size_t)y * target_stride;
+               uint8_t deemp = is_nsf ? 0 : deemp_row[0];
+
+               if (deemp != 0)
                {
-                  fceu_video_out[y * width + x] = retro_palette[256 + (*gfx & 0x3F) + ((*deemp & 0x07) << 6)];
+                  unsigned base = 256u + ((unsigned)(deemp & 0x07) << 6);
+                  for (x = 0; x < width; x++)
+                     out_row[x] = retro_palette[base + (gfx[x] & 0x3F)];
                }
                else
                {
-                  uint8_t pixel_mask = use_raw_palette ? 0x3F : 0xFF;
-                  fceu_video_out[y * width + x] = retro_palette[*gfx & pixel_mask];
+                  for (x = 0; x < width; x++)
+                     out_row[x] = retro_palette[gfx[x] & pixel_mask];
                }
+               gfx       += 256;
+               deemp_row += 256;
             }
          }
-      }
 
-      video_cb(fceu_video_out, width, height, pitch);
+         video_cb(target, width, height, pitch);
+      }
    }
 #endif
 }
@@ -3655,12 +3694,18 @@ bool retro_load_game(const struct retro_game_info *info)
 #ifdef FRONTEND_SUPPORTS_RGB888
    pixformat = RETRO_PIXEL_FORMAT_XRGB8888;
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixformat))
+   {
       log_cb.log(RETRO_LOG_INFO, "Frontend supports RGBX888 - will use that instead of XRGB1555.\n");
+      active_pixformat = pixformat;
+   }
 #else
    #if FRONTEND_SUPPORTS_RGB565
       pixformat = RETRO_PIXEL_FORMAT_RGB565;
       if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixformat))
+      {
          log_cb.log(RETRO_LOG_INFO, "Frontend supports RGB565 - will use that instead of XRGB1555.\n");
+         active_pixformat = pixformat;
+      }
    #endif
 #endif
 
