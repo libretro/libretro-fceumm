@@ -38,6 +38,10 @@ static void Mapper376PW(uint32_t A, uint8_t V) {
 		setprg8(A, (base << 1) | (V & 0x0F));
 }
 
+static DECLFR(Mapper376Read) {
+	return EXPREGS[2];
+}
+
 static DECLFW(Mapper376Write) {
 	EXPREGS[A & 1] = V;
 	FixMMC3PRG(MMC3_cmd);
@@ -47,11 +51,16 @@ static DECLFW(Mapper376Write) {
 static void Mapper376Reset(void) {
 	EXPREGS[0] = 0;
 	EXPREGS[1] = 0;
+	EXPREGS[2]++;
 	MMC3RegReset();
 }
 
 static void Mapper376Power(void) {
+	EXPREGS[0] = 0;
+	EXPREGS[1] = 0;
+	EXPREGS[2] = 0;
 	GenMMC3Power();
+	SetReadHandler(0x6000, 0x7FFF, Mapper376Read);
 	SetWriteHandler(0x6000, 0x7FFF, Mapper376Write);
 }
 
@@ -61,5 +70,5 @@ void Mapper376_Init(CartInfo *info) {
 	cwrap = Mapper376CW;
 	info->Power = Mapper376Power;
 	info->Reset = Mapper376Reset;
-	AddExState(EXPREGS, 2, 0, "EXPR");
+	AddExState(EXPREGS, 3, 0, "EXPR");
 }
