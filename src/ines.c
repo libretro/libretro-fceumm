@@ -1068,6 +1068,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "K-3044",                   616, Mapper616_Init         )
 	INES_BOARD( "AD-301",                   617, Mapper617_Init         )
 	INES_BOARD( "FC 4-in-1 (NS32)",         618, Mapper618_Init         )
+	INES_BOARD( "68-in-1",                  619, Mapper619_Init         )
 INES_BOARD_END()
 
 static uint32_t iNES_get_mapper_id(void)
