@@ -66,9 +66,16 @@ static void sync () {
 	SetReadHandler(0x8000, 0xFFFF, reg[0] &0xC0 && (reg[0] &0xC0) == dip? NULL: CartBR);
 }
 
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* The Latch only overlaps the MMC3/VRC4 */
+	if (reg[3] &0x10)
+		VRC24_writeReg(*newAddress, *newValue);
+	else
+		MMC3_writeReg(*newAddress, *newValue);
+}
+
 static void applyMode (uint8_t clear) {
 	if ((reg[2] >>3 &7) >= 5)
-		Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
+		Latch_activate(clear, sync, 0x8000, 0xFFFF, trapLatchWrite);
 	else
 	if (reg[3] &0x10) {
 		if (reg[3] &0x01)
