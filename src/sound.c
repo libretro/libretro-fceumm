@@ -1128,7 +1128,30 @@ void FCEUSND_Reset(void) {
 
 	fhcnt = fhinc;
 	fcnt = 0;
-	nreg = 1;
+	/* Power-on noise shift register state.
+	 *
+	 * Real hardware initializes the 15-bit noise LFSR to $0001 with bit
+	 * 0 set (the output bit, muting the channel until the first feedback
+	 * cycle).  This file stores the LFSR with the bit order reversed -
+	 * the output is read from bit 14, the feedback taps are at 13/14
+	 * (long mode) or 8/14 (short mode), and the shift goes left rather
+	 * than right (see RDoNoise / NoLQNoise).  Under that mirroring, the
+	 * real-hardware $0001 state corresponds to nreg = 0x4000 here, not
+	 * nreg = 1.
+	 *
+	 * Initialising to 1 left the LFSR running 14 long-mode steps ahead
+	 * of every other accurate emulator (Mesen, NSFPlay, _next), and made
+	 * short-mode output diverge entirely - the 93-cycle period is short
+	 * enough that the position offset is audible as "rougher" or
+	 * subtly wrong percussion.  Reported as libretro-fceumm issue #466
+	 * (Moon8 audio inaccuracy, by NSFPlay author Brad Smith).
+	 *
+	 * Per-channel bisection of moon8.nes against negativeExponent's
+	 * _next branch (which uses the un-mirrored layout from nesdev wiki)
+	 * shows the noise channel as the only meaningful divergence after
+	 * the music kicks in at ~22 s; squares and DMC are bit-identical.
+	 */
+	nreg = 0x4000;
 
 	for (x = 0; x < 2; x++) {
 		wlcount[x] = 2048;
