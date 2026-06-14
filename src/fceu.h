@@ -104,6 +104,18 @@ typedef struct {
 	                             * that behaviour in HQ.  Default off to
 	                             * preserve existing HQ output bit-exactly
 	                             * when the option is not set. */
+	int ReduceDMCPopping;		/* Smooth direct writes to the DMC DAC
+	                             * register ($4011) by stepping the DAC
+	                             * only halfway from its previous value
+	                             * toward the newly written value, which
+	                             * attenuates the audible click games
+	                             * like Castlevania II generate when they
+	                             * pulse the DAC for manual sample
+	                             * playback.  Normal DPCM bit-decode
+	                             * playback (the +/-2 per bit update) is
+	                             * NOT affected.  Default off so the DAC
+	                             * trajectory is bit-exact when the
+	                             * option is not set. */
 } FCEUS;
 
 extern FCEUS FSettings;

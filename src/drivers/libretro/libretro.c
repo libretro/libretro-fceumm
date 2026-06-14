@@ -1574,6 +1574,7 @@ static bool update_option_visibility(void)
             "fceumm_sndquality",
             "fceumm_sndlowpass",
             "fceumm_removetrianglenoise",
+            "fceumm_reducedmcpopping",
             "fceumm_sndstereodelay",
             "fceumm_swapduty",
             "fceumm_apu_1",
@@ -2398,6 +2399,14 @@ static void check_variables(bool startup)
    {
       int newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
       FCEUI_RemoveTriangleNoise(newval);
+   }
+
+   var.key = "fceumm_reducedmcpopping";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      int newval = (!strcmp(var.value, "enabled")) ? 1 : 0;
+      FCEUI_ReduceDmcPopping(newval);
    }
 
    var.key = "fceumm_sndstereodelay";

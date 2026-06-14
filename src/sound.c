@@ -313,7 +313,25 @@ static DECLFW(Write_DMCRegs) {
 		DMCFormat = V;
 		break;
 	case 0x01: DoPCM();
-		RawDALatch = V & 0x7F;
+		{
+			/* $4011 is the 7-bit DAC latch.  Games like Castlevania II
+			 * pulse this register directly to produce sample-style audio
+			 * out-of-band from the DPCM bit-stream; the abrupt steps
+			 * between successive writes are the audible "pop".  When
+			 * ReduceDMCPopping is on, take only the midpoint of the
+			 * old-vs-new transition - i.e. step the DAC halfway toward
+			 * the requested value rather than jumping straight to it.
+			 * This is the same algorithm libretro-fceumm_next ships
+			 * (backport reference: negativeExponent's fceumm_next).
+			 * The DPCM playback path (the +/-2 per bit update further
+			 * down) is left untouched. */
+			uint8_t newval  = V & 0x7F;
+			uint8_t lastval = RawDALatch;
+			RawDALatch = newval;
+			if (FSettings.ReduceDMCPopping) {
+				RawDALatch = (uint8_t)(newval - ((int)newval - (int)lastval) / 2);
+			}
+		}
 		if (RawDALatch)
 			DMC_7bit = 1;
 		break;
@@ -1259,6 +1277,10 @@ void FCEUI_SetLowPass(int q) {
 
 void FCEUI_RemoveTriangleNoise(int d) {
 	FSettings.RemoveTriangleNoise = d ? 1 : 0;
+}
+
+void FCEUI_ReduceDmcPopping(int d) {
+	FSettings.ReduceDMCPopping = d ? 1 : 0;
 }
 
 void FCEUI_SetSoundQuality(int quality) {

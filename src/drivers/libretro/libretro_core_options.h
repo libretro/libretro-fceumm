@@ -336,6 +336,20 @@ struct retro_core_option_v2_definition option_defs[] = {
       "disabled",
    },
    {
+      "fceumm_reducedmcpopping",
+      "Reduce DMC Channel Popping",
+      NULL,
+      "Smooth direct writes to the DMC DAC register ($4011) by stepping the DAC only halfway toward each new value.  Reduces the audible click when games (Castlevania II: Simon's Quest, etc.) pulse the DAC for manual sample playback.  Normal DPCM bit-stream sample playback is unaffected.",
+      NULL,
+      "audio",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled",
+   },
+   {
       "fceumm_sndstereodelay",
       "Stereo Sound Effect",
       NULL,
