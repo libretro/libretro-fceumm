@@ -31,13 +31,21 @@ if (X1 >= 2) {
 	 * a stack scratch (which the obvious __builtin_memcpy / packed-
 	 * struct form would force, costing the optimisation entirely). */
 	{
-		typedef uint64_t fceu_u64_unaligned __attribute__((may_alias, aligned(1)));
 		uint64_t packed =
 			(uint64_t)fceu_bg_pair_lut[ pixdata        & 0xFF]        |
 			((uint64_t)fceu_bg_pair_lut[(pixdata >>  8) & 0xFF] << 16) |
 			((uint64_t)fceu_bg_pair_lut[(pixdata >> 16) & 0xFF] << 32) |
 			((uint64_t)fceu_bg_pair_lut[(pixdata >> 24) & 0xFF] << 48);
+#if defined(__GNUC__) || defined(__clang__)
+		/* may_alias + aligned(1) lets gcc emit a direct movq without
+		 * routing through a stack scratch. */
+		typedef uint64_t fceu_u64_unaligned __attribute__((may_alias, aligned(1)));
 		*(fceu_u64_unaligned *)P = packed;
+#else
+		/* MSVC has no may_alias; memcpy is strict-aliasing-safe and is
+		 * lowered to the same unaligned 64-bit store. */
+		memcpy(P, &packed, sizeof(packed));
+#endif
 	}
 	P += 8;
 }
