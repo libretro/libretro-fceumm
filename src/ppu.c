@@ -131,6 +131,29 @@ uint8_t UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
 					 * 0x20 are 0 to not break fceu rendering.
 					 */
 
+/* Background pair LUT for pputile.h's per-tile 8-pixel palette gather.
+ * Each 8-bit chunk of pixdata indexes two 4-bit pens (low nibble = even
+ * pixel, high nibble = odd), so a 256-entry uint16_t table maps each
+ * pixdata byte to a pre-packed 2-pen pair, letting the per-tile body
+ * emit four pair-lookups and a single 64-bit store instead of eight
+ * serial nibble-load-store iterations.
+ *
+ * Rebuilt at the start of every RefreshLine call so that mid-frame
+ * raster effects writing to $3F00-$3F0F see their pen changes on the
+ * very next scanline.  256 entries x ~3 ops = ~768 ops per rebuild;
+ * RefreshLine runs once per scanline plus the occasional mid-scanline
+ * call from FCEUPPU_LineUpdate, so the worst-case rebuild cost is
+ * well under 1% of frame budget. */
+static uint16_t fceu_bg_pair_lut[256];
+
+static void FCEU_BuildBgPairLUT(void)
+{
+	int b;
+	for (b = 0; b < 256; b++)
+		fceu_bg_pair_lut[b] = (uint16_t)PALRAM[b & 0x0F] |
+		                      ((uint16_t)PALRAM[b >> 4] << 8);
+}
+
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
 #define VRAMADR(V)          &VPage[(V) >> 10][(V)]
 
@@ -444,6 +467,13 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	numtiles = lasttile - firsttile;
 
 	if (numtiles <= 0) return;
+
+	/* Rebuild the bg pair LUT once per RefreshLine call.  This covers
+	 * both per-scanline calls from FCEUPPU_Loop and mid-scanline calls
+	 * from FCEUPPU_LineUpdate (raster effects); any PALRAM[0x00..0x0F]
+	 * change done since the previous RefreshLine is reflected for the
+	 * about-to-be-rendered tile span. */
+	FCEU_BuildBgPairLUT();
 
 	P = Pline;
 

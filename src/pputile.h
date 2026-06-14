@@ -12,28 +12,33 @@ uint32_t vadr;
 #endif
 
 if (X1 >= 2) {
-	uint8_t *S = PALRAM;
 	uint32_t pixdata;
 
 	pixdata = ppulut1[(pshift[0] >> (8 - XOffset)) & 0xFF] | ppulut2[(pshift[1] >> (8 - XOffset)) & 0xFF];
 
 	pixdata |= ppulut3[XOffset | (atlatch << 3)];
 
-	P[0] = S[pixdata & 0xF];
-	pixdata >>= 4;
-	P[1] = S[pixdata & 0xF];
-	pixdata >>= 4;
-	P[2] = S[pixdata & 0xF];
-	pixdata >>= 4;
-	P[3] = S[pixdata & 0xF];
-	pixdata >>= 4;
-	P[4] = S[pixdata & 0xF];
-	pixdata >>= 4;
-	P[5] = S[pixdata & 0xF];
-	pixdata >>= 4;
-	P[6] = S[pixdata & 0xF];
-	pixdata >>= 4;
-	P[7] = S[pixdata & 0xF];
+	/* Per-tile palette gather: 8 nibbles of pixdata index PALRAM[0..15].
+	 * Equivalent scalar form is
+	 *   for (k = 0; k < 8; k++) { P[k] = PALRAM[pixdata & 0xF]; pixdata >>= 4; }
+	 * which gcc unrolls into 8 byte loads + a shift-OR-accumulate chain
+	 * + one 64-bit store.  The pair-LUT replacement at ppu.c file scope
+	 * (fceu_bg_pair_lut[256], rebuilt at the start of RefreshLine)
+	 * halves the load count: each 8-bit slice of pixdata fetches a
+	 * pre-packed 2-pen pair, so we read four 16-bit values, OR-merge
+	 * into a 64-bit tile word, and emit a single store.  may_alias
+	 * + aligned(1) lets gcc emit a direct movq without going through
+	 * a stack scratch (which the obvious __builtin_memcpy / packed-
+	 * struct form would force, costing the optimisation entirely). */
+	{
+		typedef uint64_t fceu_u64_unaligned __attribute__((may_alias, aligned(1)));
+		uint64_t packed =
+			(uint64_t)fceu_bg_pair_lut[ pixdata        & 0xFF]        |
+			((uint64_t)fceu_bg_pair_lut[(pixdata >>  8) & 0xFF] << 16) |
+			((uint64_t)fceu_bg_pair_lut[(pixdata >> 16) & 0xFF] << 32) |
+			((uint64_t)fceu_bg_pair_lut[(pixdata >> 24) & 0xFF] << 48);
+		*(fceu_u64_unaligned *)P = packed;
+	}
 	P += 8;
 }
 
