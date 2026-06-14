@@ -166,14 +166,21 @@ static INLINE void ClockRise(void) {
 		if (!(SPSG[0x7] & 0x80)) {
 			int t = fdso.mwave[(b17latch76 >> 13) & 0x1F] & 7;
 			int t2 = amplitude[1];
-			int adj = 0;
-
-			if ((t & 3)) {
-				if ((t & 4))
-					adj -= (t2 * ((4 - (t & 3))));
-				else
-					adj += (t2 * ((t & 3)));
-			}
+			int adj;
+			/* Per-step bias the modulator unit applies for each
+			 * 3-bit mod table entry.  Real hardware uses powers of
+			 * 2 ({-4,-2,-1,0,+1,+2,+4} + RESET); the conditional
+			 * form previously here computed { +/- (4 - (t & 3)) }
+			 * for the negate cases and { +/- (t & 3) } for the
+			 * positive cases, yielding ±3 instead of ±4 at table
+			 * positions 3 and 5.  Documented at nesdev wiki
+			 * "FDS audio" / Modulator unit; same table is used in
+			 * MDFN/NSFPlay and negativeExponent's fceumm_next. */
+			static const int8_t mod_bias_tab[8] = {
+				 0,  1,  2,  4,
+				 0, -4, -2, -1
+			};
+			adj = t2 * mod_bias_tab[t];
 			adj *= 2;
 			if (adj > 0x7F) adj = 0x7F;
 			if (adj < -0x80) adj = -0x80;
