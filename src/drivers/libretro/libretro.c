@@ -1972,6 +1972,12 @@ void retro_deinit (void)
 
 void retro_reset(void)
 {
+   /* Reset clears the turbo toggle phase so the rapid-fire cycle starts
+    * at the same point every reset, matching how the core's other
+    * input-poll state behaves on power-cycle.  Without this, a held
+    * turbo button would resume mid-cycle after Reset and produce a
+    * different first-frame input than a fresh boot. */
+   memset(turbo_button_toggle, 0, sizeof(turbo_button_toggle));
    ResetNES();
 }
 
@@ -3852,6 +3858,19 @@ bool retro_load_game(const struct retro_game_info *info)
 #endif
       return false;
    }
+
+   /* Piggyback the libretro-side turbo toggle phase into the core's
+    * savestate (#75).  FCEUI_LoadGame just finished populating SFMDATA[]
+    * with the mapper's chunks via AddExState; appending one more chunk
+    * here for the turbo counters makes them save/restore alongside
+    * everything else.  Without this, the toggle phase isn't part of
+    * the state - host and client in a netplay session can drift on
+    * the counter even after exchanging savestates, producing input
+    * desync whenever the turbo button is held.  The "TBTG" tag is
+    * unused by any mapper, and ReadStateChunk's skip-unknown logic
+    * handles older states gracefully (the array stays at retro_reset's
+    * zero initialisation, which is the post-#75-fix steady state). */
+   AddExState(turbo_button_toggle, sizeof(turbo_button_toggle), 0, "TBTG");
 
    if (palette_switch_enabled)
       environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc_ps);
