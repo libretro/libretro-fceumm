@@ -48,9 +48,28 @@ static void FP_FASTAPASS(1) RAMBO1IRQHook(int a) {
 		smallcount += a;
 		while (smallcount >= 4) {
 			smallcount -= 4;
-			IRQCount--;
-			if (IRQCount == 0xFF)
-				if (IRQa) X6502_IRQBegin(FCEU_IQEXT);
+			/* Mesen / _next reference: the Tengen RAMBO-1 IRQ counter
+			 * auto-reloads from the latch when it would otherwise
+			 * underflow, and the IRQ triggers when the counter
+			 * REACHES zero (going from 1 to 0) rather than on the
+			 * underflow step that follows.  Upstream's earlier model
+			 * triggered on underflow (count 0 -> 0xFF) and then
+			 * continued decrementing through 0xFE, 0xFD, ... until
+			 * the game wrote a reload register.  Match the hardware
+			 * model: trigger on reach-0, and on the following clock
+			 * reload from latch automatically so the counter cycles
+			 * continuously without needing per-IRQ register writes. */
+			if (IRQCount == 0) {
+				IRQCount = IRQLatch;
+				if (IRQCount == 0 && IRQa) {
+					X6502_IRQBegin(FCEU_IQEXT);
+				}
+			} else {
+				IRQCount--;
+				if (IRQCount == 0 && IRQa) {
+					X6502_IRQBegin(FCEU_IQEXT);
+				}
+			}
 		}
 	}
 }
@@ -58,9 +77,20 @@ static void FP_FASTAPASS(1) RAMBO1IRQHook(int a) {
 static void RAMBO1HBHook(void) {
 	if ((!IRQmode) && (scanline != 240)) {
 		rmode = 0;
-		IRQCount--;
-		if (IRQCount == 0xFF) {
-			if (IRQa) {
+		/* See comment in RAMBO1IRQHook above for the auto-reload /
+		 * trigger-on-reach-0 model.  Same change applies here for the
+		 * scanline-clocked (A12 approximation) IRQ path. */
+		if (IRQCount == 0) {
+			IRQCount = IRQLatch;
+			/* Latch == 0 means fire on every clock - reload yields
+			 * 0 again, which is the reach-0 trigger condition. */
+			if (IRQCount == 0 && IRQa) {
+				rmode = 1;
+				X6502_IRQBegin(FCEU_IQEXT);
+			}
+		} else {
+			IRQCount--;
+			if (IRQCount == 0 && IRQa) {
 				rmode = 1;
 				X6502_IRQBegin(FCEU_IQEXT);
 			}
