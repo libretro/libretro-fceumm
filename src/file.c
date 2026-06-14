@@ -179,13 +179,15 @@ int FCEU_fseek(FCEUFILE *fp, long offset, int whence)
    switch (whence)
    {
       case SEEK_SET:
-         if (offset >= fp->fp->size)
+         if (offset < 0 || (uint32_t)offset >= fp->fp->size)
             return -1;
 
-         fp->fp->location = offset;
+         fp->fp->location = (uint32_t)offset;
          break;
       case SEEK_CUR:
-         if ((offset + fp->fp->location) > fp->fp->size)
+         if (offset < 0 && (uint32_t)(-offset) > fp->fp->location)
+            return -1;
+         if ((uint32_t)(fp->fp->location + offset) > fp->fp->size)
             return -1;
 
          fp->fp->location += offset;
