@@ -94,6 +94,16 @@ typedef struct {
 	uint32_t SndRate;
 	int soundq;
 	int lowpass;
+	int RemoveTriangleNoise;	/* Mute triangle channel when its period
+	                             * is low enough to produce only ultrasonic
+	                             * output (period <= 3, > ~12 kHz at NTSC),
+	                             * which the DAC reconstruction filter
+	                             * folds back as audible popping in HQ
+	                             * mode.  LQ already silences these
+	                             * unconditionally; this option mirrors
+	                             * that behaviour in HQ.  Default off to
+	                             * preserve existing HQ output bit-exactly
+	                             * when the option is not set. */
 } FCEUS;
 
 extern FCEUS FSettings;

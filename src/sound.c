@@ -733,10 +733,21 @@ static void RDoSQLQ(void) {
 static void RDoTriangle(void) {
 	uint32_t V;
 	int32_t tcout = (tristep & 0xF);
+	uint32_t triangle_raw_period = (PSG[0xa] | ((PSG[0xb] & 7) << 8));
 	if (!(tristep & 0x10)) tcout ^= 0xF;
 	tcout = (tcout * 3) << 16;	/* (tcout<<1); */
 
-	if (!lengthcount[2] || !TriCount) {	/* Counter is halted, but we still need to output. */
+	/* The LQ tri/noise/PCM mixer (RDoTriangleNoisePCMLQ below) already
+	 * forces the triangle channel quiet when its period is low enough
+	 * to produce only ultrasonic output - games like Castlevania II
+	 * and Jackal repeatedly drop the triangle into that range when
+	 * they want silence, and without the gate the DAC reconstruction
+	 * filter folds the high-frequency content back as audible
+	 * popping.  Mirror the gate in the HQ path, conditional on the
+	 * RemoveTriangleNoise option so the default HQ output stays
+	 * bit-exact with the original code unless the user opts in. */
+	if (!lengthcount[2] || !TriCount
+	    || (FSettings.RemoveTriangleNoise && triangle_raw_period <= 3)) {	/* Counter is halted, but we still need to output. */
 		int32_t *start = &WaveHi[ChannelBC[2]];
 		int32_t count = SOUNDTS - ChannelBC[2];
 		while (count--) {
@@ -1244,6 +1255,10 @@ void FCEUI_Sound(int Rate) {
 
 void FCEUI_SetLowPass(int q) {
 	FSettings.lowpass = q;
+}
+
+void FCEUI_RemoveTriangleNoise(int d) {
+	FSettings.RemoveTriangleNoise = d ? 1 : 0;
 }
 
 void FCEUI_SetSoundQuality(int quality) {

@@ -322,6 +322,20 @@ struct retro_core_option_v2_definition option_defs[] = {
       "disabled",
    },
    {
+      "fceumm_removetrianglenoise",
+      "Reduce Triangle Channel Popping",
+      NULL,
+      "Mute the triangle channel when its period drops into the ultrasonic range (period <= 3, > ~12 kHz at NTSC).  Eliminates the audible popping some games (Castlevania II: Simon's Quest, Jackal, etc.) produce in High / Very High sound quality, where the DAC reconstruction filter would otherwise fold the ultrasonic content back into the audible range.  Low quality is unaffected (it already silences ultrasonic triangle output).",
+      NULL,
+      "audio",
+      {
+         { "disabled", NULL },
+         { "enabled",  NULL },
+         { NULL, NULL },
+      },
+      "disabled",
+   },
+   {
       "fceumm_sndstereodelay",
       "Stereo Sound Effect",
       NULL,

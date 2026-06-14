@@ -160,6 +160,7 @@ void FCEUI_CheatSearchShowExcluded(void);
 void FCEUI_CheatSearchSetCurrentAsOriginal(void);
 
 void FCEUI_SetLowPass(int q);
+void FCEUI_RemoveTriangleNoise(int d);
 
 void FCEUI_NSFSetVis(int mode);
 int FCEUI_NSFChange(int amount);
