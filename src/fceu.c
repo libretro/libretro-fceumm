@@ -324,6 +324,15 @@ int FCEUI_Initialize(void) {
 	FSettings.UsrLastSLine[0] = 231;
 	FSettings.UsrLastSLine[1] = 239;
 	FSettings.SoundVolume = 100;
+	/* Default expansion-audio channel volumes to 256 (unscaled).  Mirrors
+	 * the convention used for the NES APU per-channel volume fields:
+	 * a value of 256 in any of these slots leaves the corresponding
+	 * mixing path bit-identical to pre-#512 builds. */
+	{
+		int i;
+		for (i = 0; i < (int)(sizeof(FSettings.ExpVolume) / sizeof(FSettings.ExpVolume[0])); i++)
+			FSettings.ExpVolume[i] = 256;
+	}
 	FCEUPPU_Init();
 	X6502_Init();
 	return 1;

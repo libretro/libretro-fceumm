@@ -489,16 +489,20 @@ static void Do5PCM(void) {
 	if (end <= start) return;
 	MMC5Sound.BC[2] = end;
 
-	if (!(MMC5Sound.rawcontrol & 0x40) && MMC5Sound.raw)
+	if (!(MMC5Sound.rawcontrol & 0x40) && MMC5Sound.raw) {
+		int32_t amp = GetExpOutput(SND_MMC5, MMC5Sound.raw << 1);
 		for (V = start; V < end; V++)
-			Wave[V >> 4] += MMC5Sound.raw << 1;
+			Wave[V >> 4] += amp;
+	}
 }
 
 static void Do5PCMHQ(void) {
 	uint32_t V;
-	if (!(MMC5Sound.rawcontrol & 0x40) && MMC5Sound.raw)
+	if (!(MMC5Sound.rawcontrol & 0x40) && MMC5Sound.raw) {
+		int32_t amp = GetExpOutput(SND_MMC5, MMC5Sound.raw << 5);
 		for (V = MMC5Sound.BC[2]; V < SOUNDTS; V++)
-			WaveHi[V] += MMC5Sound.raw << 5;
+			WaveHi[V] += amp;
+	}
 	MMC5Sound.BC[2] = SOUNDTS;
 }
 
@@ -552,7 +556,7 @@ static void Do5SQ(int P) {
 	MMC5Sound.BC[P] = end;
 
 	wl = MMC5Sound.wl[P] + 1;
-	amp = (MMC5Sound.env[P] & 0xF) << 4;
+	amp = GetExpOutput(SND_MMC5, (MMC5Sound.env[P] & 0xF) << 4);
 	rthresh = tal[(MMC5Sound.env[P] & 0xC0) >> 6];
 
 	if (wl >= 8 && (MMC5Sound.running & (P + 1))) {
@@ -582,7 +586,7 @@ static void Do5SQHQ(int P) {
 	int32_t amp, rthresh, wl;
 
 	wl = MMC5Sound.wl[P] + 1;
-	amp = ((MMC5Sound.env[P] & 0xF) << 8);
+	amp = GetExpOutput(SND_MMC5, ((MMC5Sound.env[P] & 0xF) << 8));
 	rthresh = tal[(MMC5Sound.env[P] & 0xC0) >> 6];
 
 	if (wl >= 8 && (MMC5Sound.running & (P + 1))) {

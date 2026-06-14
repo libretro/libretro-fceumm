@@ -301,13 +301,13 @@ static void DoNamcoSoundHQ(void) {
 			envelope = EnvCache[P];
 			lengo = LengthCache[P];
 
-			duff2 = FetchDuff(P, envelope);
+			duff2 = GetExpOutput(SND_N163, FetchDuff(P, envelope));
 			for (V = CVBC << 1; V < (int)SOUNDTS << 1; V++) {
 				WaveHi[V >> 1] += duff2;
 				if (!vco) {
 					PlayIndex[P] += freq;
 					while ((PlayIndex[P] >> TOINDEX) >= lengo) PlayIndex[P] -= lengo << TOINDEX;
-					duff2 = FetchDuff(P, envelope);
+					duff2 = GetExpOutput(SND_N163, FetchDuff(P, envelope));
 					vco = cyclesuck;
 				}
 				vco--;
@@ -349,7 +349,7 @@ static void DoNamcoSound(int32_t *WaveBuf, int Count) {
 			if ((IRAM[0x46 + (P << 3)] + PlayIndex[P]) & 1)
 				duff >>= 4;
 			duff &= 0xF;
-			duff2 = (duff * envelope) >> 19;
+			duff2 = GetExpOutput(SND_N163, (duff * envelope) >> 19);
 			for (V = 0; V < Count * 16; V++) {
 				if (vco >= inc) {
 					PlayIndex[P]++;
@@ -360,7 +360,7 @@ static void DoNamcoSound(int32_t *WaveBuf, int Count) {
 					if ((IRAM[0x46 + (P << 3)] + PlayIndex[P]) & 1)
 						duff >>= 4;
 					duff &= 0xF;
-					duff2 = (duff * envelope) >> 19;
+					duff2 = GetExpOutput(SND_N163, (duff * envelope) >> 19);
 				}
 				WaveBuf[V >> 4] += duff2;
 				vco += 0x8000;

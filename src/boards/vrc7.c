@@ -45,26 +45,50 @@ static SFORMAT StateRegs[] =
 
 /* VRC7 Sound */
 
+/* Apply per-channel volume (#512) around OPLL_fillbuf.  Default volume
+ * 256 dispatches to the plain OPLL_fillbuf for a bit-identical
+ * pre-#512 path; volume 0 drops the chip silently; intermediate
+ * values run a local mix loop that calls OPLL_calc (equivalent to
+ * the internal calc() when quality=0, which is the VRC7 default).
+ * The (calc + 32768) << shift formulation matches OPLL_fillbuf's
+ * inner expression. */
+static void VRC7Mix(int32_t *buf, int32_t len, int shift) {
+	int v;
+	if (!VRC7Sound || len <= 0)
+		return;
+	v = FSettings.ExpVolume[SND_VRC7];
+	if (v == 0)
+		return;
+	if (v == 256) {
+		OPLL_fillbuf(VRC7Sound, buf, len, shift);
+	} else {
+		int32_t i;
+		for (i = 0; i < len; i++) {
+			int32_t s = (OPLL_calc(VRC7Sound) + 32768);
+			buf[i] += ((s * v) / 256) << shift;
+		}
+	}
+}
+
 static void DoVRC7Sound(void) {
 	int32_t z, a;
 	if (FSettings.soundq >= 1)
 		return;
 	z = ((SOUNDTS << 16) / soundtsinc) >> 4;
 	a = z - dwave;
-	OPLL_fillbuf(VRC7Sound, &Wave[dwave], a, 1);
+	VRC7Mix(&Wave[dwave], a, 1);
 	dwave += a;
 }
 
 static void UpdateOPLNEO(int32_t *WaveBuf, int Count) {
-	OPLL_fillbuf(VRC7Sound, WaveBuf, Count, 4);
+	VRC7Mix(WaveBuf, Count, 4);
 }
 
 static void UpdateOPL(int Count) {
 	int32_t z, a;
 	z = ((SOUNDTS << 16) / soundtsinc) >> 4;
 	a = z - dwave;
-	if (VRC7Sound && a)
-		OPLL_fillbuf(VRC7Sound, &Wave[dwave], a, 1);
+	VRC7Mix(&Wave[dwave], a, 1);
 	dwave = 0;
 }
 

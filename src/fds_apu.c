@@ -379,7 +379,7 @@ static void FDSDoSound(void) {
 		sample = fdso.cwave[(fdso.cwave_pos >> fdso.cwave_pos_shift) & 0x3F]
 		         * k * 4;
 		sample = (int32_t)((uint32_t)sample * fds_div_lut[idx]) >> 16;
-		fdso.sample_out_cache = sample;
+		fdso.sample_out_cache = GetExpOutput(SND_FDS, sample);
 	}
 }
 

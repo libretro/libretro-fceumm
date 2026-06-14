@@ -21,6 +21,32 @@
 #ifndef _FCEU_SOUND_H
 #define _FCEU_SOUND_H
 
+#include "fceu-types.h"
+
+/* Identifiers for the expansion-audio channels exposed to the
+ * per-channel volume API (#512).  Indices into FSettings.ExpVolume[].
+ * Numbering is internal-only - the savestate format and core options
+ * key names do not depend on these values - but the count must match
+ * FSettings.ExpVolume[]'s declared length in fceu.h. */
+enum {
+	SND_FDS  = 0,	/* Famicom Disk System 2C33 wavetable */
+	SND_S5B  = 1,	/* Sunsoft 5B / YM2149F (mapper 69) */
+	SND_N163 = 2,	/* Namco 163 (mapper 19 / "n106") */
+	SND_VRC6 = 3,	/* Konami VRC6 (mappers 24, 26) */
+	SND_VRC7 = 4,	/* Konami VRC7 / YM2413-clone (mapper 85) */
+	SND_MMC5 = 5,	/* Nintendo MMC5 PCM + square (mapper 5) */
+	SND_EXP_LAST = 6
+};
+
+/* Apply the per-channel volume modifier from FSettings.ExpVolume[].
+ * Scale is 0..256: 256 (default) returns the sample unchanged so the
+ * hot path stays free of multiplies on builds where the user has not
+ * touched the new options; 0 returns silence; intermediate values
+ * scale the sample by (in * vol) / 256.  Used by the six expansion-
+ * audio modules (see fds_apu.c, boards/vrc6.c, boards/vrc7.c,
+ * boards/n106.c, boards/mmc5.c, boards/69.c). */
+int32_t GetExpOutput(int channel, int32_t in);
+
 typedef struct {
 	void (*Fill)(int Count);	/* Low quality ext sound. */
 

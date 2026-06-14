@@ -179,7 +179,8 @@ static void DoSawV(void);
 
 static INLINE void DoSQV(int x) {
 	int32_t V;
-	int32_t amp = (((vpsg1[x << 2] & 15) << 8) * 6 / 8) >> 4;
+	int32_t amp = GetExpOutput(SND_VRC6,
+		(((vpsg1[x << 2] & 15) << 8) * 6 / 8) >> 4);
 	int32_t start, end;
 
 	start = cvbc[x];
@@ -251,7 +252,8 @@ static void DoSawV(void) {
 				}
 				if (vcount[2] <= 0)
 					goto rea;
-				duff = (((phaseacc >> 3) & 0x1f) << 4) * 6 / 8;
+				duff = GetExpOutput(SND_VRC6,
+					(((phaseacc >> 3) & 0x1f) << 4) * 6 / 8);
 			}
 			Wave[V >> 4] += duff;
 		}
@@ -260,7 +262,8 @@ static void DoSawV(void) {
 
 static INLINE void DoSQVHQ(int x) {
 	int32_t V;
-	int32_t amp = ((vpsg1[x << 2] & 15) << 8) * 6 / 8;
+	int32_t amp = GetExpOutput(SND_VRC6,
+		((vpsg1[x << 2] & 15) << 8) * 6 / 8);
 
 	if (vpsg1[(x << 2) | 0x2] & 0x80) {
 		if (vpsg1[x << 2] & 0x80) {
@@ -300,7 +303,8 @@ static void DoSawVHQ(void) {
 
 	if (vpsg2[2] & 0x80) {
 		for (V = cvbc[2]; V < (int)SOUNDTS; V++) {
-			WaveHi[V] += (((phaseacc >> 3) & 0x1f) << 8) * 6 / 8;
+			WaveHi[V] += GetExpOutput(SND_VRC6,
+				(((phaseacc >> 3) & 0x1f) << 8) * 6 / 8);
 			vcount[2]--;
 			if (vcount[2] <= 0) {
 				vcount[2] = (vpsg2[1] + ((vpsg2[2] & 15) << 8) + 1) << 1;

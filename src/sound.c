@@ -1315,6 +1315,22 @@ void FCEUI_SetSoundVolume(uint32_t volume) {
 	FSettings.SoundVolume = volume;
 }
 
+/* Per-channel expansion-audio volume scaling.  See sound.h for context.
+ * Hot-path consideration: the common case (vol == 256, the default)
+ * returns immediately with no multiply, keeping the existing
+ * bit-identical behaviour on builds where the new options haven't
+ * been touched.  When vol is 0 the channel is silenced cleanly
+ * regardless of the input sample. */
+int32_t GetExpOutput(int channel, int32_t in) {
+	int v;
+	if ((unsigned)channel >= (unsigned)SND_EXP_LAST)
+		return in;
+	v = FSettings.ExpVolume[channel];
+	if (v == 256) return in;
+	if (v == 0)   return 0;
+	return (in * v) / 256;
+}
+
 
 SFORMAT FCEUSND_STATEINFO[] = {
 	{ &fhcnt, 4 | FCEUSTATE_RLSB, "FHCN" },

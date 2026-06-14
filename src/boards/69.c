@@ -162,6 +162,7 @@ static void DoAYSQ(int x) {
 	int V;
 
 	amp += amp >> 1;
+	amp = GetExpOutput(SND_S5B, amp);
 
 	start = CAYBC[x];
 	end = (SOUNDTS << 16) / soundtsinc;
@@ -186,6 +187,7 @@ static void DoAYSQHQ(int x) {
 	int32_t amp = (sreg[0x8 + x] & 15) << 6;
 
 	amp += amp >> 1;
+	amp = GetExpOutput(SND_S5B, amp);
 
 	if (!(sreg[0x7] & (1 << x))) {
 		for (V = CAYBC[x]; V < SOUNDTS; V++) {

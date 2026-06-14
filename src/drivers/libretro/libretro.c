@@ -2493,6 +2493,39 @@ static void check_variables(bool startup)
    }
    set_apu_channels(enable_apu);
 
+   /* Per-channel expansion-audio volume controls (#512).  Six options
+    * map 1:1 to SND_FDS..SND_MMC5 indexing FSettings.ExpVolume[].  UI
+    * values are 0..100 in steps of 5; the internal scale is 0..256
+    * (matching the convention used for FSettings.SquareVolume[] etc).
+    * A value of 256 (i.e. UI "100") is the default and leaves the
+    * mixing path bit-identical to pre-#512 builds. */
+   {
+      static const struct { int channel; const char *key; } expvol_opts[] = {
+         { SND_FDS,  "fceumm_apu_fds"  },
+         { SND_S5B,  "fceumm_apu_s5b"  },
+         { SND_N163, "fceumm_apu_n163" },
+         { SND_VRC6, "fceumm_apu_vrc6" },
+         { SND_VRC7, "fceumm_apu_vrc7" },
+         { SND_MMC5, "fceumm_apu_mmc5" },
+      };
+      size_t j;
+      for (j = 0; j < sizeof(expvol_opts) / sizeof(expvol_opts[0]); j++)
+      {
+         struct retro_variable expv = { 0 };
+         expv.key = expvol_opts[j].key;
+         if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &expv) && expv.value)
+         {
+            int pct = atoi(expv.value);
+            int newval;
+            if (pct < 0)   pct = 0;
+            if (pct > 100) pct = 100;
+            newval = (256 * pct) / 100;
+            if (FSettings.ExpVolume[expvol_opts[j].channel] != newval)
+               FSettings.ExpVolume[expvol_opts[j].channel] = newval;
+         }
+      }
+   }
+
    update_dipswitch();
 
    update_option_visibility();

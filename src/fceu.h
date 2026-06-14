@@ -80,6 +80,12 @@ typedef struct {
 	int SquareVolume[2];
 	int NoiseVolume;
 	int PCMVolume;
+	int ExpVolume[6];	/* Per-channel expansion-audio volume,
+	                     * indexed by SND_FDS..SND_MMC5 (see
+	                     * src/sound.h).  Scale is 0-256 where 256 =
+	                     * unscaled output and 0 = silence.  Default
+	                     * 256 leaves output bit-identical to builds
+	                     * predating issue #512. */
 	int GameGenie;
 
 	/* Current first and last rendered scanlines. */
