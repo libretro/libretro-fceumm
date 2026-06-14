@@ -138,12 +138,16 @@ uint8_t UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
  * emit four pair-lookups and a single 64-bit store instead of eight
  * serial nibble-load-store iterations.
  *
- * Rebuilt at the start of every RefreshLine call so that mid-frame
- * raster effects writing to $3F00-$3F0F see their pen changes on the
- * very next scanline.  256 entries x ~3 ops = ~768 ops per rebuild;
- * RefreshLine runs once per scanline plus the occasional mid-scanline
- * call from FCEUPPU_LineUpdate, so the worst-case rebuild cost is
- * well under 1% of frame budget. */
+ * Rebuilt INSIDE RefreshLine just before the pputile.h includes, so
+ * that:
+ *   (a) any PALRAM[0x00..0x0F] change since the previous RefreshLine
+ *       is reflected on the next tile span, and
+ *   (b) crucially, the 0x40 "background priority" bit that RefreshLine
+ *       OR's into Pal[0/4/8/0xC] right before rendering -- and ANDs
+ *       off again after -- is captured in the LUT.  Without that the
+ *       sprite compositor cannot tell BG-color pixels apart from the
+ *       universal background, breaking sprite priority for any game
+ *       that hits Pal[0x04/0x08/0x0C] (e.g. Mega Man 3 sprites). */
 static uint16_t fceu_bg_pair_lut[256];
 
 static void FCEU_BuildBgPairLUT(void)
@@ -468,13 +472,6 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 
 	if (numtiles <= 0) return;
 
-	/* Rebuild the bg pair LUT once per RefreshLine call.  This covers
-	 * both per-scanline calls from FCEUPPU_Loop and mid-scanline calls
-	 * from FCEUPPU_LineUpdate (raster effects); any PALRAM[0x00..0x0F]
-	 * change done since the previous RefreshLine is reflected for the
-	 * about-to-be-rendered tile span. */
-	FCEU_BuildBgPairLUT();
-
 	P = Pline;
 
 	vofs = 0;
@@ -511,6 +508,17 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	Pal[4] |= 64;
 	Pal[8] |= 64;
 	Pal[0xC] |= 64;
+
+	/* Rebuild the bg pair LUT *after* the priority |= 64 modification
+	 * above so that the LUT entries for PALRAM[0/4/8/0xC] carry the
+	 * 0x40 bit while the pputile.h includes below run.  The matching
+	 * Pal[i] &= 63 cleanup at the bottom of this function does NOT
+	 * require a second rebuild: the LUT is only consumed by the
+	 * pputile.h block, which runs between the |= 64 and the &= 63.
+	 * The LUT is also rebuilt at every mid-scanline RefreshLine call
+	 * via FCEUPPU_LineUpdate, picking up any $3F00..$3F0F write the
+	 * CPU made since the previous tile span. */
+	FCEU_BuildBgPairLUT();
 
 	/* This high-level graphics MMC5 emulation code was written for MMC5 carts in "CL" mode.
 	 * It's probably not totally correct for carts in "SL" mode.
