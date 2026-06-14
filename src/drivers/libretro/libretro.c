@@ -3185,7 +3185,17 @@ bool retro_unserialize(const void * data, size_t size)
    if (geniestage == 1)
       return false;
 
-   if (!data || size != retro_serialize_size())
+   /* The state file's own 16-byte header carries an explicit totalsize
+    * and ReadStateChunk already skips unknown chunk tags, so a strict
+    * size-equality check against the current build's serialize_size is
+    * not necessary for parser safety - and is actively harmful when
+    * SFORMAT contents change between builds (recent example: the FDS
+    * audio rewrite for #560 added/removed chunk tags, leaving older
+    * savestates a fixed delta smaller than the new core's expected
+    * size, with no recourse for the user).  Accept any buffer at least
+    * as large as the header; cap the upper end to a generous multiple
+    * of the current size as a sanity guard against pathological input. */
+   if (!data || size < 16 || size > retro_serialize_size() * 4)
       return false;
 
    memstream_set_buffer((uint8_t*)data, size);
