@@ -10,6 +10,14 @@
 #endif
 
 #include <libretro.h>
+
+/* Older bundled libretro.h headers may not define this experimental
+ * environment callback. Define it locally so the core still builds and
+ * can probe for it at runtime (the frontend returns false when absent). */
+#ifndef RETRO_ENVIRONMENT_GET_TARGET_SAMPLE_RATE
+#define RETRO_ENVIRONMENT_GET_TARGET_SAMPLE_RATE (81 | RETRO_ENVIRONMENT_EXPERIMENTAL)
+#endif
+
 #include <string/stdstring.h>
 #include <file/file_path.h>
 #include <streams/file_stream.h>
@@ -293,6 +301,9 @@ static bpp_t* fceu_video_out;
 
 /* Some timing-related variables. */
 static unsigned sndsamplerate;
+/* User-selected samplerate hint: 0 = Auto, else an explicit rate in Hz
+ * (one of the supported 32000/44100/48000/96000 values). */
+static unsigned sndsamplerate_hint = 0;
 static unsigned sndquality;
 static unsigned sndvolume;
 unsigned swapDuty;
@@ -2002,6 +2013,59 @@ static void set_apu_channels(int chan)
    FSettings.PCMVolume       = (chan & 0x10) ? 256 : 0;
 }
 
+/* Resolve the user's samplerate hint into an actual output rate in Hz.
+ *
+ * The NES has no sample-based audio hardware; sound is synthesized in
+ * realtime, so there is no single 'native' rate. We support 32000, 44100,
+ * 48000 and 96000 Hz. When the hint is "Auto", we query the frontend for
+ * its target output rate via RETRO_ENVIRONMENT_GET_TARGET_SAMPLE_RATE and
+ * snap to whichever of our supported rates is closest, minimising the work
+ * the frontend's resampler has to do (lower latency, less aliasing, no
+ * low-pass "smearing", better time-domain resolution at the higher rates).
+ *
+ * Fallback: if the frontend does not implement the callback (older
+ * frontends return false), or returns an implausible value, we fall back
+ * to a platform-appropriate default (32000 Hz on Wii, else 48000 Hz). */
+static unsigned resolve_samplerate_hint(void)
+{
+   static const unsigned supported[4] = { 32000, 44100, 48000, 96000 };
+
+   /* Explicit user selection always wins over Auto. */
+   if (sndsamplerate_hint != 0)
+      return sndsamplerate_hint;
+
+   /* Auto: ask the frontend what it is targeting. */
+   {
+      unsigned target = 0;
+      if (environ_cb(RETRO_ENVIRONMENT_GET_TARGET_SAMPLE_RATE, &target) &&
+            target >= 8000 && target <= 384000)
+      {
+         unsigned best      = supported[0];
+         unsigned best_dist = (target > supported[0]) ?
+               (target - supported[0]) : (supported[0] - target);
+         int i;
+         for (i = 1; i < 4; i++)
+         {
+            unsigned dist = (target > supported[i]) ?
+                  (target - supported[i]) : (supported[i] - target);
+            if (dist < best_dist)
+            {
+               best_dist = dist;
+               best      = supported[i];
+            }
+         }
+         return best;
+      }
+   }
+
+   /* Fallback: callback unavailable or returned an implausible value. */
+#ifdef GEKKO
+   return 32000;
+#else
+   return 48000;
+#endif
+}
+
 static void check_variables(bool startup)
 {
    struct retro_variable var = {0};
@@ -2372,6 +2436,47 @@ static void check_variables(bool startup)
       if (opt_region != oldval)
       {
          FCEUD_RegionOverride(opt_region);
+         audio_video_updated = 2;
+      }
+   }
+
+   var.key = "fceumm_sndrate_hint";
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      unsigned oldhint = sndsamplerate_hint;
+      unsigned oldrate = sndsamplerate;
+      unsigned newrate;
+
+      if (!strcmp(var.value, "32KHz"))
+         sndsamplerate_hint = 32000;
+      else if (!strcmp(var.value, "44KHz"))
+         sndsamplerate_hint = 44100;
+      else if (!strcmp(var.value, "48KHz"))
+         sndsamplerate_hint = 48000;
+      else if (!strcmp(var.value, "96KHz"))
+         sndsamplerate_hint = 96000;
+      else /* "Auto" */
+         sndsamplerate_hint = 0;
+
+      newrate = resolve_samplerate_hint();
+
+      if (startup)
+      {
+         /* During load, just settle the rate before the av_info is first
+          * reported to the frontend. No SET_SYSTEM_AV_INFO needed yet. */
+         if (newrate != oldrate)
+         {
+            sndsamplerate = newrate;
+            FCEUI_Sound(sndsamplerate);
+         }
+      }
+      /* Re-init the synthesizer and request a frontend av_info update only
+       * when the resolved output rate actually changes at runtime. */
+      else if (sndsamplerate_hint != oldhint || newrate != oldrate)
+      {
+         sndsamplerate = newrate;
+         FCEUI_Sound(sndsamplerate);
          audio_video_updated = 2;
       }
    }

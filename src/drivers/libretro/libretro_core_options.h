@@ -293,6 +293,23 @@ struct retro_core_option_v2_definition option_defs[] = {
    },
 #endif
    {
+      "fceumm_sndrate_hint",
+      "Sound Samplerate (Hint)",
+      NULL,
+      "The NES has no sample-based audio hardware; sound is synthesized in realtime, so there is no fixed output samplerate. Select the rate the core generates audio at. Higher rates lower latency and reduce aliasing and low-pass 'smearing' from frontend resampling, at a small performance cost. 'Auto' picks whichever supported rate is closest to the frontend's target output rate.",
+      NULL,
+      "audio",
+      {
+         { "Auto",  NULL },
+         { "32KHz", NULL },
+         { "44KHz", NULL },
+         { "48KHz", NULL },
+         { "96KHz", NULL },
+         { NULL, NULL },
+      },
+      "Auto",
+   },
+   {
       "fceumm_sndquality",
       "Sound Quality",
       NULL,
