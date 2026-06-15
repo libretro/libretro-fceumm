@@ -49,8 +49,6 @@ static int32_t SQ2C96000PAL[SQ2NCOEFFS / 2] =
 
 static int32_t coeffs[NCOEFFS];
 
-/* 96000hz filter could probably be improved. */
-
 /*
 Parks-McClellan FIR Filter Design
 
