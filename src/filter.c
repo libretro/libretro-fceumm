@@ -140,14 +140,15 @@ int32_t NeoFilterSound(int32_t *in, int32_t *out, uint32_t inlen, int32_t *lefto
 }
 
 void MakeFilters(int32_t rate) {
-	int32_t *tabs[6] = { C44100NTSC, C44100PAL, C48000NTSC, C48000PAL, C96000NTSC,
-					   C96000PAL };
-	int32_t *sq2tabs[6] = { SQ2C44100NTSC, SQ2C44100PAL, SQ2C48000NTSC, SQ2C48000PAL,
-						  SQ2C96000NTSC, SQ2C96000PAL };
+	int32_t *tabs[8] = { C44100NTSC, C44100PAL, C48000NTSC, C48000PAL, C96000NTSC,
+					   C96000PAL, C32000NTSC, C32000PAL };
+	int32_t *sq2tabs[8] = { SQ2C44100NTSC, SQ2C44100PAL, SQ2C48000NTSC, SQ2C48000PAL,
+						  SQ2C96000NTSC, SQ2C96000PAL, SQ2C32000NTSC, SQ2C32000PAL };
 
 	int32_t *tmp;
 	int32_t x;
 	uint32_t nco;
+	uint32_t idx;
 
 	if (FSettings.soundq == 2)
 		nco = SQ2NCOEFFS;
@@ -157,10 +158,23 @@ void MakeFilters(int32_t rate) {
 	mrindex = (nco + 1) << 16;
 	mrratio = (PAL ? (int64_t)(PAL_CPU * 65536) : (int64_t)(NTSC_CPU * 65536)) / rate;
 
+	/* Select the coefficient table matched to the output rate. Bit 0 is
+	 * the PAL/NTSC region; the rate selects the base index. Rates without
+	 * a dedicated table fall back to the 44100 design (index 0/1). */
+	if (rate == 48000)
+		idx = 2;
+	else if (rate == 96000)
+		idx = 4;
+	else if (rate == 32000)
+		idx = 6;
+	else /* 44100 and any other rate */
+		idx = 0;
+	idx |= (PAL ? 1 : 0);
+
 	if (FSettings.soundq == 2)
-		tmp = sq2tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
+		tmp = sq2tabs[idx];
 	else
-		tmp = tabs[(PAL ? 1 : 0) | (rate == 48000 ? 2 : 0) | (rate == 96000 ? 4 : 0)];
+		tmp = tabs[idx];
 
 	if (FSettings.soundq == 2)
 		for (x = 0; x < (SQ2NCOEFFS >> 1); x++)

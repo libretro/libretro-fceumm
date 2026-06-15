@@ -5,6 +5,11 @@
 
 static int32_t sq2coeffs[SQ2NCOEFFS];
 
+static int32_t SQ2C32000NTSC[SQ2NCOEFFS / 2] =
+{
+	#include "fir/c32000ntsc.h"
+};
+
 static int32_t SQ2C44100NTSC[SQ2NCOEFFS / 2] =
 {
 	#include "fir/c44100ntsc.h"
@@ -18,6 +23,11 @@ static int32_t SQ2C48000NTSC[SQ2NCOEFFS / 2] =
 static int32_t SQ2C96000NTSC[SQ2NCOEFFS / 2] =
 {
 	#include "fir/c96000ntsc.h"
+};
+
+static int32_t SQ2C32000PAL[SQ2NCOEFFS / 2] =
+{
+	#include "fir/c32000pal.h"
 };
 
 static int32_t SQ2C44100PAL[SQ2NCOEFFS / 2] =
@@ -829,6 +839,16 @@ Stopband attenuation: 66.4 dB
 Coefficients:
 */
 
+/*
+32000 NTSC low-pass FIR (Parks-McClellan / Remez), 484-tap.
+Passband 0-5933 Hz, stopband from 16000 Hz (= 32 kHz Nyquist),
+transition width 0.005625*fs to match the other 484-tap tables.
+*/
+static int32_t C32000NTSC[NCOEFFS / 2] =
+{
+	#include "fir/c32000ntsc_ncoeffs.h"
+};
+
 static int32_t C44100NTSC[NCOEFFS / 2] =
 {
 /*0*/ 65536 * 16 * 2.7250584077004043E-4
@@ -1345,6 +1365,16 @@ Stopband attenuation: 60.5 dB
 
 Coefficients:
 */
+/*
+32000 PAL low-pass FIR (Parks-McClellan / Remez), 484-tap.
+Passband 0-6648 Hz, stopband from 16000 Hz (= 32 kHz Nyquist),
+transition width 0.005625*fs to match the other 484-tap tables.
+*/
+static int32_t C32000PAL[NCOEFFS / 2] =
+{
+	#include "fir/c32000pal_ncoeffs.h"
+};
+
 static int32_t C44100PAL[NCOEFFS / 2] =
 {
 /*0*/ 65536 * 16 * 5.793783958720019E-4

@@ -2,7 +2,7 @@ CC	= gcc
 %.h:	%.coef
 	cat $< | ./toh > $@ || true
 
-all:            floogie c44100ntsc.h c48000ntsc.h c96000ntsc.h c44100pal.h c48000pal.h c96000pal.h
+all:            floogie c44100ntsc.h c48000ntsc.h c96000ntsc.h c44100pal.h c48000pal.h c96000pal.h c32000ntsc.h c32000pal.h
 
 #c44100ntsc.h:    c44100ntsc.coef
 #c48000ntsc.h:    c48000ntsc.coef
