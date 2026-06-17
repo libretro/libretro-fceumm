@@ -122,21 +122,39 @@ void MMC3_clockCounter_KickMaster(void) {
 
 DECLFW(MMC3_writeReg) {
 	switch(A &0xE001) {
-		case 0x8000: MMC3_index = V; break;
-		case 0x8001: MMC3_reg[MMC3_index &7] = V; break;
-		case 0xA000: MMC3_mirroring = V; break;
-		case 0xA001: MMC3_wramControl = V; break;
-		case 0xC000: MMC3_reloadValue = V; break;
-		case 0xC001: MMC3_reloadRequest = 1; MMC3_counter = 0; break;
-		case 0xE000: X6502_IRQEnd(FCEU_IQEXT); /* Fall-through */
-		case 0xE001: MMC3_irqEnable = A &1; break;
+		case 0x8000:
+			MMC3_index = V;
+			break;
+		case 0x8001:
+			MMC3_reg[MMC3_index &7] = V;
+			break;
+		case 0xA000:
+			MMC3_mirroring = V;
+			break;
+		case 0xA001:
+			MMC3_wramControl = V;
+			break;
+		case 0xC000:
+			MMC3_reloadValue = V;
+			break;
+		case 0xC001:
+			MMC3_reloadRequest = 1;
+			MMC3_counter = 0;
+			break;
+		case 0xE000:
+			X6502_IRQEnd(FCEU_IQEXT);
+			/* Fall-through */
+		case 0xE001:
+			MMC3_irqEnable = A &1;
+			break;
 	}
-	if (A <0xC000) MMC3_cbSync();
+	if (A < 0xC000) MMC3_cbSync();
 }
 
 void MMC3_clear(void) {
 	MMC3_reg[0] = 0; MMC3_reg[1] = 2; MMC3_reg[2] = 4; MMC3_reg[3] = 5; MMC3_reg[4] = 6; MMC3_reg[5] = 7; MMC3_reg[6] = 0; MMC3_reg[7] = 1;
 	MMC3_index = MMC3_mirroring = MMC3_wramControl = MMC3_reloadValue = MMC3_reloadRequest = MMC3_irqEnable = MMC3_counter = 0;
+	X6502_IRQEnd(FCEU_IQEXT);
 	MMC3_cbSync();
 }
 

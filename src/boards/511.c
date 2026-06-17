@@ -23,6 +23,7 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
+static uint8_t submapper;
 static uint8_t reg;
 static uint8_t pad;
 
@@ -32,7 +33,7 @@ static DECLFR (readPad) {
 
 static void sync () {
 	int prgAND = 0x0F;
-	int chrAND = 0xFF;
+	int chrAND = submapper == 1? 0x7F: 0xFF;
 	int prgOR = reg <<4;
 	int chrOR = reg <<7;
 	MMC3_syncPRG(prgAND, prgOR &~prgAND);
@@ -67,6 +68,7 @@ static void power () {
 }
 
 void Mapper511_Init (CartInfo *info) {
+	submapper = info->submapper;
 	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, NULL, NULL, writeReg);
 	info->Power = power;
 	info->Reset = reset;
