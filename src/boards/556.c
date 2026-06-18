@@ -39,8 +39,8 @@ static SFORMAT StateRegs[] = {
 static void sync (void) {
 	int prgAND = ~reg[3] &0x3F;
 	int chrAND = 0xFF >>(~reg[2] &0xF);
-	int prgOR  = (reg[1] | reg[3] <<2 &0x100) &~prgAND;
-	int chrOR  = (reg[0] | reg[2] <<4 &0x0F00 | reg[3] <<6 &0x1000) &~chrAND;
+	int prgOR  = (reg[1] | reg[2] <<2 &0x300) &~prgAND;
+	int chrOR  = (reg[0] | reg[2] <<4 &0x300 | reg[1] <<3 &0x400 | reg[2] <<5 &0x800) &~chrAND;
 	if (reg[2] &0x80) {
 		VRC24_syncWRAM(0);
 		VRC24_syncPRG(prgAND, prgOR);
@@ -54,10 +54,16 @@ static void sync (void) {
 	}
 }
 
+static DECLFW (VRC24_trapWriteReg) { /* When A11 is set, VRC4's A0 and A1 are swapped */
+	if (A &0x800) A = A &~0xF | A >>1 &0x5 | A <<1 &0xA;
+	VRC24_writeReg(A, V);
+}
+
 static void applyMode (uint8_t clear) {
-	if (reg[2] &0x80)
+	if (reg[2] &0x80) {
 		VRC4_activate(clear, sync, 0x05, 0x0A, 1, NULL, NULL, NULL, NULL, NULL);
-	else
+		SetWriteHandler(0x8000, 0xFFFF, VRC24_trapWriteReg);
+	} else
 		MMC3_activate(clear, sync, MMC3_TYPE_AX5202P, NULL, NULL, NULL, NULL);
 }
 
@@ -65,7 +71,7 @@ static DECLFW(writeReg) {
 	if (~reg[3] &0x80) {
 		reg[rIdx++ &3] = V;
 		if (rIdx == 3)
-			applyMode(1);
+			applyMode(0);
 		else
 			sync();
 	}
