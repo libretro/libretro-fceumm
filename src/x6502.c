@@ -27,7 +27,8 @@
 #include "sound.h"
 
 X6502 X;
-uint8_t encryptOpcodes =0;
+uint8_t encryptOpcodes = 0;
+uint8_t encryptOpcodesConfig = 0;
 
 uint32_t timestamp;
 uint32_t sound_timestamp;
@@ -372,7 +373,138 @@ void X6502_Power(void) {
 	X6502_Reset();
 }
 
+<<<<<<< HEAD
 void X6502_Run(int32_t cycles)
+=======
+#ifdef FCEUDEF_DEBUGGER
+static void X6502_RunDebug(int32 cycles) {
+	#define RdRAM RdMemHook
+	#define WrRAM WrMemHook
+	#define RdMem RdMemHook
+	#define WrMem WrMemHook
+
+	if (PAL)
+		cycles *= 15;	/* 15*4=60 */
+	else
+		cycles *= 16;	/* 16*4=64 */
+
+	_count += cycles;
+
+	while (_count > 0) {
+		int32 temp;
+		uint8 b1;
+
+		if (_IRQlow) {
+			if (_IRQlow & FCEU_IQRESET) {
+				_PC = RdMem(0xFFFC);
+				_PC |= RdMem(0xFFFD) << 8;
+				_jammed = 0;
+				_PI = _P = I_FLAG;
+				_IRQlow &= ~FCEU_IQRESET;
+			} else if (_IRQlow & FCEU_IQNMI2) {
+				_IRQlow &= ~FCEU_IQNMI2;
+				_IRQlow |= FCEU_IQNMI;
+			} else if (_IRQlow & FCEU_IQNMI) {
+				if (!_jammed) {
+					ADDCYC(7);
+					PUSH(_PC >> 8);
+					PUSH(_PC);
+					PUSH((_P & ~B_FLAG) | (U_FLAG));
+					_P |= I_FLAG;
+					_PC = RdMem(0xFFFA);
+					_PC |= RdMem(0xFFFB) << 8;
+					_IRQlow &= ~FCEU_IQNMI;
+				}
+			} else {
+				if (!(_PI & I_FLAG) && !_jammed) {
+					ADDCYC(7);
+					PUSH(_PC >> 8);
+					PUSH(_PC);
+					PUSH((_P & ~B_FLAG) | (U_FLAG));
+					_P |= I_FLAG;
+					_PC = RdMem(0xFFFE);
+					_PC |= RdMem(0xFFFF) << 8;
+				}
+			}
+			_IRQlow &= ~(FCEU_IQTEMP);
+			if (_count <= 0) {
+				_PI = _P;
+				return;
+			}	/* Should increase accuracy without a
+				 * major speed hit.
+				 */
+		}
+
+		if (X.CPUHook) X.CPUHook(&X);
+		/* Ok, now the real fun starts.
+		 * Do the pre-exec voodoo.
+		 */
+		if (X.ReadHook || X.WriteHook) {
+			uint32 tsave = timestamp;
+			XSave = X;
+
+			fceuindbg = 1;
+			X.preexec = 1;
+			b1 = RdMem(_PC);
+			_PC++;
+			if (encryptOpcodes == 10) b1 = b1 &~0x36 | b1 >>1 &0x12 | b1 <<1 &0x24;
+			if (encryptOpcodes == 11) {
+				if (encryptOpcodesConfig &0x02) b1 = b1 &~0x30 | b1 >>1 &0x10 | b1 <<1 &0x20;
+				if (encryptOpcodesConfig &0x40) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+			}
+			if (encryptOpcodes == 12) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+			if (encryptOpcodes == 14) b1 = b1 &~0xC0 | b1 >>1 &0x40 | b1 <<1 &0x80;
+			switch (b1) {
+				#include "ops.h"
+			}
+
+			timestamp = tsave;
+
+			/* In case an NMI/IRQ/RESET was triggered by the debugger.
+			 * Should we also copy over the other hook variables?
+			 */
+			XSave.IRQlow = X.IRQlow;
+			XSave.ReadHook = X.ReadHook;
+			XSave.WriteHook = X.WriteHook;
+			XSave.CPUHook = X.CPUHook;
+			X = XSave;
+			fceuindbg = 0;
+		}
+
+		_PI = _P;
+		b1 = RdMem(_PC);
+		ADDCYC(CycTable[b1]);
+
+		temp = _tcount;
+		_tcount = 0;
+		if (MapIRQHook) MapIRQHook(temp);
+
+      if (!overclocked)
+         FCEU_SoundCPUHook(temp);
+
+		_PC++;
+		if (encryptOpcodes == 10) b1 = b1 &~0x36 | b1 >>1 &0x12 | b1 <<1 &0x24;
+		if (encryptOpcodes == 11) {
+			if (encryptOpcodesConfig &0x02) b1 = b1 &~0x30 | b1 >>1 &0x10 | b1 <<1 &0x20;
+			if (encryptOpcodesConfig &0x40) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+		}
+		if (encryptOpcodes == 12) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+		if (encryptOpcodes == 14) b1 = b1 &~0xC0 | b1 >>1 &0x40 | b1 <<1 &0x80;
+		switch (b1) {
+			#include "ops.h"
+		}
+	}
+	#undef RdRAM
+	#undef WrRAM
+	#undef RdMem
+	#undef WrMem
+}
+
+static void X6502_RunNormal(int32 cycles)
+#else
+void X6502_Run(int32 cycles)
+#endif
+>>>>>>> 8937655... Add mapper 408 and encryption submappers 10,11,12.
 {
 	#define RdRAM RdRAMFast
 	#define WrRAM WrRAMFast
@@ -456,8 +588,13 @@ void X6502_Run(int32_t cycles)
 			FCEU_SoundCPUHook(temp);
 		X.PC = pbackus;
 		_PC++;
-		if (encryptOpcodes ==12) b1 =b1 &0x39 | b1 >>1 &0x42 | b1 <<1 &0x84;
-		if (encryptOpcodes ==14) b1 =b1 &0x3F | b1 >>1 &0x40 | b1 <<1 &0x80;
+		if (encryptOpcodes == 10) b1 = b1 &~0x36 | b1 >>1 &0x12 | b1 <<1 &0x24;
+		if (encryptOpcodes == 11) {
+			if (encryptOpcodesConfig &0x02) b1 = b1 &~0x30 | b1 >>1 &0x10 | b1 <<1 &0x20;
+			if (encryptOpcodesConfig &0x40) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+		}
+		if (encryptOpcodes == 12) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+		if (encryptOpcodes == 14) b1 = b1 &~0xC0 | b1 >>1 &0x40 | b1 <<1 &0x80;
 		switch (b1) {
 			#include "ops.h"
 		}

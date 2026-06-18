@@ -116,12 +116,21 @@ static void CSync(int AND, int OR) {
 	setmirror((mirror ^ 1) & 1);
 }
 
+static void SyncEncryption (void) {
+	encryptOpcodes = 0;
+	if (submapper == 10 && cpu410x[0x1C] &0x02) encryptOpcodes =10;
+	if (submapper == 11) {
+		encryptOpcodes = 11;
+		encryptOpcodesConfig = cpu410x[0x1C];
+	}
+	if (submapper == 12 && cpu410x[0x1C] &0x40) encryptOpcodes =12;
+	if (submapper == 14 && cpu410x[0x1C] &0x40) encryptOpcodes =14;
+}
+
 static void Sync256(void) {
 	PSync(0x0FFF, 0x000);
 	CSync(0x7FFF, 0x000);
-	encryptOpcodes =0;
-	if (submapper ==12 && cpu410x[0x1C] &0x40) encryptOpcodes =12;
-	if (submapper ==14 && cpu410x[0x1C] &0x40) encryptOpcodes =14;
+	SyncEncryption();
 }
 
 static const uint8_t cpuMangles[16][4] = {
@@ -135,8 +144,8 @@ static const uint8_t cpuMangles[16][4] = {
 	{ 0, 1, 2, 3 }, 	/* Submapper 7: unused so far                           */
 	{ 0, 1, 2, 3 }, 	/* Submapper 8: unused so far                           */
 	{ 0, 1, 2, 3 }, 	/* Submapper 9: unused so far                           */
-	{ 0, 1, 2, 3 }, 	/* Submapper A: unused so far                           */
-	{ 0, 1, 2, 3 }, 	/* Submapper B: unused so far                           */
+	{ 0, 1, 2, 3 }, 	/* Submapper A: CPU opcode encryption                   */
+	{ 0, 1, 2, 3 }, 	/* Submapper B: CPU opcode encryption                   */
 	{ 0, 1, 2, 3 }, 	/* Submapper C: Cheertone (CPU opcode encryption only)  */
 	{ 0, 1, 2, 3 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only)  */
 	{ 0, 1, 2, 3 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
@@ -173,9 +182,9 @@ static const uint8_t ppuMangles[16][6] = {
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 7: unused so far                           */
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 8: unused so far                           */
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper 9: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper A: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper B: unused so far                           */
-	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper C: unused so far                           */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper A: CPU opcode encryption                   */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper B: CPU opcode encryption                   */
+	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper C: Cheertone (CPU opcode encryption only)  */
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only)  */
 	{ 0, 1, 2, 3, 4, 5 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)    */
 	{ 0, 1, 2, 3, 4, 5 }  	/* Submapper F: Jungletac (CPU opcode encryption only)  */
@@ -199,13 +208,14 @@ static const uint8_t mmc3Mangles[16][8] = {
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 7: unused so far                          */
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 8: unused so far                          */
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper 9: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper A: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper B: unused so far                          */
-	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper C: unused so far                          */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper A: CPU opcode encryption                  */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper B: CPU opcode encryption                  */
+	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper C: Cheertone (CPU opcode encryption only) */
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper D: Cube Tech (CPU opcode encryption only) */
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }, 	/* Submapper E: Karaoto (CPU opcode encryption only)   */
 	{ 0, 1, 2, 3, 4, 5, 6, 7 }  	/* Submapper F: Jungletac (CPU opcode encryption only) */
 };
+
 static DECLFW(UNLOneBusWriteMMC3) {
 /*	FCEU_printf("MMC %04x:%04x\n",A,V); */
 	if (~cpu410x[0x0B] &0x08) /* FWEN bit must be 0 */
@@ -264,6 +274,15 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 			pcm_size = (V << 4) + 1;
 		}
 		break;
+	case 0x14: /* OneBus DMA: extra 4 bits for address, can write to 2007 instead of 2004 */
+		{
+			uint32 t = V <<8 | apu40xx[0x34] &0xF0;
+			int shift = apu40xx[0x34] >>1 &7;
+			int x;
+			if (shift == 0) shift = 8;			
+			for (x = 0; x < (1 <<shift); x++) X6502_DMW(apu40xx[0x34] &1? 0x2007: 0x2004, X6502_DMR(t + x));
+		}
+		return;
 	case 0x15:
 		if (apu40xx[0x30] & 0x10) {
 			pcm_enable = V & 0x10;
@@ -327,8 +346,9 @@ static void UNLOneBusPower(void) {
 	memset(cpu410x, 0x00, sizeof(cpu410x));
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
-	cpu410x[0x0F] =0xFF;
-	cpu410x[0x1C] =submapper ==12 || submapper ==14? 0x40: 0x00;
+	cpu410x[0x0F] = 0xFF;
+	if (submapper == 10 || submapper == 11) cpu410x[0x1C] = 0x02;
+	if (submapper == 12 || submapper == 14) cpu410x[0x1C] = 0x40;
 
 	SetupCartCHRMapping(0, PRGptr[0], PRGsize[0], 0);
 
@@ -359,8 +379,9 @@ static void UNLOneBusReset(void) {
 	memset(cpu410x, 0x00, sizeof(cpu410x));
 	memset(ppu201x, 0x00, sizeof(ppu201x));
 	memset(apu40xx, 0x00, sizeof(apu40xx));
-	cpu410x[0x0F] =0xFF;
-	cpu410x[0x1C] =submapper ==12 || submapper ==14? 0x40: 0x00;
+	cpu410x[0x0F] = 0xFF;
+	if (submapper == 10 || submapper == 11) cpu410x[0x1C] = 0x02;
+	if (submapper == 12 || submapper == 14) cpu410x[0x1C] = 0x40;
 	reg4242 =0;
 	dipswitch++;
 
@@ -387,7 +408,7 @@ void UNLOneBus_Init(CartInfo *info) {
 	info->Power = UNLOneBusPower;
 	info->Reset = UNLOneBusReset;
 	info->Close = UNLOneBus_Close;
-	Sync =Sync256;
+	Sync = Sync256;
 
 	if (info->iNES2)
 		submapper =info->submapper;
@@ -435,20 +456,52 @@ static void Sync270(void) {
 		setmirror((mirror ^ 1) & 1);
 	} else
 		CSync(0x3FFF, OR <<3);
+	SyncEncryption();
 }
 
 void Mapper270_Init(CartInfo *info) {
 	UNLOneBus_Init(info);
-	cpuMangle =cpuMangles[0];
-	ppuMangle =ppuMangles[0];
-	mmc3Mangle =mmc3Mangles[0];
+	cpuMangle = cpuMangles[0];
+	ppuMangle = ppuMangles[0];
+	mmc3Mangle = mmc3Mangles[0];
+	
+	CHRRAMSIZE = 8192;
+	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
+	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
+	
+	Sync = Sync270;
+}
+
+static DECLFW(UNLOneBusWriteUNROM) {
+	cpu410x[0x7] = V <<1 | 0;
+	cpu410x[0x8] = V <<1 | 1;
+	Sync();
+}
+
+static void Sync408(void) {
+	PSync(0x07FF, cpu410x[0x38] <<10 &0x800);
+	SetWriteHandler(0x8000, 0xffff, cpu410x[0x0B] &0x10? UNLOneBusWriteUNROM: UNLOneBusWriteMMC3);
+	if (cpu410x[0x00] &0x08) {
+		setchr8r(0x10, 0);
+		setmirror((mirror ^ 1) & 1);
+	} else
+		CSync(0x3FFF, cpu410x[0x38] <<13 &0x4000);
+	SyncEncryption();
+}
+
+void Mapper408_Init(CartInfo *info) {
+	UNLOneBus_Init(info);
+	cpuMangle = cpuMangles[0];
+	ppuMangle = ppuMangles[0];
+	mmc3Mangle = mmc3Mangles[0];
 	
 	CHRRAMSIZE = 8192;
 	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	
-	Sync =Sync270;
+	Sync = Sync408;
 }
 
 static void Sync436(void) {
@@ -462,18 +515,19 @@ static void Sync436(void) {
                          CSync(0x9FFF, (cpu410x[0x0F] &0x20? 0x2000: 0x0000) | (cpu410x[0x00] &0x04? 0x4000: 0x0000));
 			 break;
 	}
+	SyncEncryption();
 }
 
 void Mapper436_Init(CartInfo *info) {
 	UNLOneBus_Init(info);
-	cpuMangle =cpuMangles[0];
-	ppuMangle =ppuMangles[0];
-	mmc3Mangle =mmc3Mangles[0];
+	cpuMangle = cpuMangles[0];
+	ppuMangle = ppuMangles[0];
+	mmc3Mangle = mmc3Mangles[0];
 	
 	CHRRAMSIZE = 8192;
 	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	
-	Sync =Sync436;
+	Sync = Sync436;
 }
