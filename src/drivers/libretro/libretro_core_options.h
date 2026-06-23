@@ -23,7 +23,7 @@ extern "C" {
 */
 
 /* NOTE: add 8 for dipswitch */
-#define MAX_CORE_OPTIONS 42
+#define MAX_CORE_OPTIONS 64
 
 /* RETRO_LANGUAGE_ENGLISH */
 
