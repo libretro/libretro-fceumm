@@ -21,10 +21,12 @@
 #ifndef _FCEU_STATE_H_
 #define _FCEU_STATE_H_
 
+#include <stddef.h>
+
 #include "fceu-memory.h"
 
-void FCEUSS_Load_Mem(void);
-void FCEUSS_Save_Mem(void);
+void FCEUSS_Load_Mem(const void *buf, size_t size);
+size_t FCEUSS_Save_Mem(void *buf, size_t size);
 
 typedef struct {
 	void *v;

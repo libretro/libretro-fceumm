@@ -416,12 +416,15 @@ endo:
 
 extern int geniestage;
 
-void FCEUSS_Save_Mem(void)
+size_t FCEUSS_Save_Mem(void *buf, size_t size)
 {
-   memstream_t *mem = memstream_open(1);
+   memstream_t *mem = memstream_open((uint8_t*)buf, size, 1);
 
    uint32_t totalsize;
    uint8_t header[16] = {0};
+
+   if (!mem)
+      return 0;
 
    header[0] = 'F';
    header[1] = 'C';
@@ -450,11 +453,14 @@ void FCEUSS_Save_Mem(void)
    write32le_mem(totalsize, mem);
 
    memstream_close(mem);
+
+   /* 16-byte header + payload. */
+   return (size_t)totalsize + 16;
 }
 
-void FCEUSS_Load_Mem(void)
+void FCEUSS_Load_Mem(const void *buf, size_t size)
 {
-   memstream_t *mem = memstream_open(0);
+   memstream_t *mem = memstream_open((uint8_t*)buf, size, 0);
 
    uint8_t header[16] = {0};
    int stateversion;
@@ -462,9 +468,9 @@ void FCEUSS_Load_Mem(void)
    int32_t totalsize;
    int x;
 
-   /* memstream_open can't legitimately return NULL in the libretro path
-    * (the buffer is set by retro_unserialize via memstream_set_buffer),
-    * but treat NULL defensively rather than dereferencing. */
+   /* memstream_open only returns NULL on allocation failure now that the
+    * buffer is supplied directly by retro_unserialize; treat NULL
+    * defensively rather than dereferencing. */
    if (!mem)
       return;
 

@@ -62,6 +62,13 @@ SOURCES_C += \
 	$(CORE_DIR)/unif.c \
 	$(CORE_DIR)/x6502.c
 
+# memory_stream is consumed directly by the core's savestate code
+# (state.c / FCEUSS_Save_Mem / FCEUSS_Load_Mem) and must be linked into
+# the core itself even on statically-linked platforms, where the frontend
+# does not export libretro-common symbols. Keep it outside the
+# STATIC_LINKING guard below.
+SOURCES_C += $(LIBRETRO_COMM_DIR)/streams/memory_stream.c
+
 ifneq ($(STATIC_LINKING), 1)
 	SOURCES_C += \
 		$(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
@@ -74,7 +81,6 @@ ifneq ($(STATIC_LINKING), 1)
 		$(LIBRETRO_COMM_DIR)/file/file_path_io.c \
 		$(LIBRETRO_COMM_DIR)/streams/file_stream.c \
 		$(LIBRETRO_COMM_DIR)/streams/file_stream_transforms.c \
-		$(LIBRETRO_COMM_DIR)/streams/memory_stream.c \
 		$(LIBRETRO_COMM_DIR)/string/stdstring.c \
 		$(LIBRETRO_COMM_DIR)/time/rtime.c \
 		$(LIBRETRO_COMM_DIR)/vfs/vfs_implementation.c
