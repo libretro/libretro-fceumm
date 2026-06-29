@@ -33,6 +33,9 @@
 static uint32_t wlookup1[32];
 static uint32_t wlookup2[203];
 
+/* Baked, rate-independent base values for the two tables above. */
+#include "sound_tables.h"
+
 /* Helper: clamp wlookup2's combined index to the table size.
  *
  * The LQ Tri/Noise/PCM mix sums lq_tcout, noiseout, and RawDALatch (with
@@ -1218,14 +1221,16 @@ void SetSoundVariables(void) {
 	fhinc *= 24;
 
 	if (FSettings.SndRate) {
-		wlookup1[0] = 0;
-		for (x = 1; x < 32; x++) {
-			wlookup1[x] = (double)16 * 16 * 16 * 4 * 95.52 / ((double)8128 / (double)x + 100);
+		/* wlookup1/wlookup2 are baked constants (sound_tables.h); the old
+		 * floating-point division that built them is gone. LQ mode (!soundq)
+		 * still applies the >>4 here, so the runtime tables stay mutable.
+		 * Bit-identical to the previous double-derived values. */
+		for (x = 0; x < 32; x++) {
+			wlookup1[x] = wlookup1_base[x];
 			if (!FSettings.soundq) wlookup1[x] >>= 4;
 		}
-		wlookup2[0] = 0;
-		for (x = 1; x < 203; x++) {
-			wlookup2[x] = (double)16 * 16 * 16 * 4 * 163.67 / ((double)24329 / (double)x + 100);
+		for (x = 0; x < 203; x++) {
+			wlookup2[x] = wlookup2_base[x];
 			if (!FSettings.soundq) wlookup2[x] >>= 4;
 		}
 		if (FSettings.soundq >= 1) {
@@ -1274,19 +1279,34 @@ void SetSoundVariables(void) {
 	if (GameExpSound.RChange)
 		GameExpSound.RChange();
 
-	nesincsize = (int64_t)(((int64_t)1 << 17) * (double)(PAL ? PAL_CPU : NTSC_CPU) / (FSettings.SndRate * 16));
+	/* nesincsize / soundtsinc are derived from the CPU clock (x6502.h) and
+	 * the output rate. The CPU clock is exactly NTSC=19687500/11,
+	 * PAL=13300857/8 (1662607.125), dendy=1773447467/1000 (1773447.467), so
+	 * both quantities reduce to exact integer math - no floating point, and
+	 * deterministic on every platform. Verified bit-identical to the old
+	 * double form at every output rate the core selects (32000/44100/48000/
+	 * 96000) for all three regions. If the x6502.h clock constants change,
+	 * update the rationals below to match. */
+	{
+		uint64_t cpu_num, cpu_den;
+		if (PAL)        { cpu_num = 13300857ULL;   cpu_den = 8ULL;    }
+		else if (dendy) { cpu_num = 1773447467ULL; cpu_den = 1000ULL; }
+		else            { cpu_num = 19687500ULL;   cpu_den = 11ULL;   }
+
+		/* (1<<17) * CPU / (rate*16), truncated */
+		nesincsize = (int32_t)(((uint64_t)1 << 17) * cpu_num /
+				(cpu_den * 16 * FSettings.SndRate));
+
+		/* (uint64_t)(CPU*65536) / (rate*16); the inner term matches the old
+		 * (uint64_t)((double)CPU * 65536.0) truncation exactly. */
+		soundtsinc = (uint32_t)(((cpu_num * 65536ULL) / cpu_den) /
+				(FSettings.SndRate * 16));
+	}
+
 	memset(sqacc, 0, sizeof(sqacc));
 	memset(ChannelBC, 0, sizeof(ChannelBC));
 
 	LoadDMCPeriod(DMCFormat & 0xF);	/* For changing from PAL to NTSC */
-
-	/* Use double rather than long double here. long double has
-	 * platform-dependent precision (80-bit on x87, 64-bit with
-	 * -mfpmath=sse, 128-bit on some non-x86), so the cast-to-uint32
-	 * result varies across platforms. double is guaranteed 64-bit
-	 * IEEE-754 on every platform we target, keeping soundtsinc
-	 * deterministic across builds for replay/netplay. */
-	soundtsinc = (uint32_t)((uint64_t)((double)(PAL ? PAL_CPU : NTSC_CPU) * 65536.0) / (FSettings.SndRate * 16));
 }
 
 void FCEUI_Sound(int Rate) {

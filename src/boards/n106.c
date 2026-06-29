@@ -341,11 +341,17 @@ static void DoNamcoSound(int32_t *WaveBuf, int Count) {
 
 			{
 				int c = ((IRAM[0x7F] >> 4) & 7) + 1;
-				/* Use double rather than long double for cross-platform
-				 * FP determinism (long double is 80-bit on x87, 64-bit
-				 * with SSE math, 128-bit elsewhere - the truncated
-				 * int32 result varies). */
-				inc = (int32_t)((double)(FSettings.SndRate << 15) / ((double)freq * 21477272.0 / ((double)0x400000 * c * 45)));
+				/* inc = (SndRate<<15) / (freq * 21477272 / (0x400000 * c * 45))
+				 *     = (SndRate * 2^37 * c * 45) / (freq * 21477272), in exact
+				 * 64-bit integer math. SndRate<=96000 so SndRate<<37 (<=1.3e16)
+				 * times c*45 (<=360) stays well within uint64. Verified
+				 * bit-identical to the old double form for every in-range
+				 * (int32) result across all rates/channels/frequencies; the only
+				 * divergence is at frequencies so low that inc overflows int32,
+				 * which was undefined behaviour in the double cast anyway and is
+				 * never reached by real N163 audio. No floating point. */
+				inc = (int32_t)((((uint64_t)FSettings.SndRate << 37) * (uint64_t)(c * 45)) /
+						((uint64_t)freq * 21477272ULL));
 			}
 
 			duff = IRAM[(((IRAM[0x46 + (P << 3)] + PlayIndex[P]) & 0xFF) >> 1)];
