@@ -157,7 +157,10 @@ static void FixCache(int a, int V) {
 		/* fix be like in https://github.com/SourMesen/Mesen/blob/cda0a0bdcb5525480784f4b8c71de6fc7273b570/Core/Namco163Audio.h#L61 */
 		LengthCache[w] = 256 - (V & 0xFC);
 		break;
-	case 0x07: EnvCache[w] = (double)(V & 0xF) * 576716; break;
+	/* (V & 0xF) is 0..15; 15 * 576716 = 8650740 fits an int32 exactly, so
+	 * the old (double) multiply produced an integer result anyway - compute
+	 * it directly to keep this audio TU free of floating point. */
+	case 0x07: EnvCache[w] = (uint32_t)(V & 0xF) * 576716; break;
 	}
 }
 

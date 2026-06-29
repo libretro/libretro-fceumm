@@ -826,21 +826,19 @@ void OPLL_fillbuf(OPLL* opll, int32_t *buf, int32_t len, int shift) {
 	}
 }
 
+/* fceumm drives the OPLL exclusively through the integer-accurate calc()
+ * path: opll->quality is calloc-zeroed in OPLL_new and OPLL_set_quality is
+ * never called anywhere in the core, so the old sub-sample interpolator
+ * below was unreachable. It was also the *only* floating-point arithmetic
+ * left in any function that returns an audio sample, so it is removed here
+ * to guarantee a deterministic, FP-free int16 output end-to-end.
+ *
+ * The realstep/opllstep/oplltime/prev/next/out fields are deliberately kept
+ * (see emu2413.h): the VRC7 mapper serialises them into its savestate block,
+ * and they have always stayed zero on this path, so leaving them in place
+ * keeps the on-disk state layout byte-identical. */
 int16_t OPLL_calc(OPLL * opll) {
-	if (!opll->quality)
-		return calc(opll);
-
-	while (opll->realstep > opll->oplltime) {
-		opll->oplltime += opll->opllstep;
-		opll->prev = opll->next;
-		opll->next = calc(opll);
-	}
-
-	opll->oplltime -= opll->realstep;
-	opll->out = (int16_t)(((double)opll->next * (opll->opllstep - opll->oplltime)
-						 + (double)opll->prev * opll->oplltime) / opll->opllstep);
-
-	return (int16_t)opll->out;
+	return calc(opll);
 }
 
 uint32_t OPLL_setMask(OPLL * opll, uint32_t mask) {
