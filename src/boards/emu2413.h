@@ -30,7 +30,7 @@ typedef struct {
 	int32_t output[2];	/* Output value of slot */
 
 	/* for Phase Generator (PG) */
-	uint16_t *sintbl;		/* Wavetable */
+	const uint16_t *sintbl;		/* Wavetable */
 	uint32_t phase;		/* Phase */
 	uint32_t dphase;		/* Phase increment amount */
 	uint32_t pgout;		/* output */

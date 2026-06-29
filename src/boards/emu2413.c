@@ -147,8 +147,18 @@ static const unsigned char default_inst[15][8] = {
 /* Expand x which is s bits to d bits and fill expanded bits '1' */
 #define EXPAND_BITS_X(x, s, d) (((x) << ((d) - (s))) | ((1 << ((d) - (s))) - 1))
 
-/* Adjust envelope speed which depends on sampling rate. */
-#define rate_adjust(x) (rate == 49716 ? (uint32_t)(x) : (uint32_t)((double)(x) * clk / 72 / rate + 0.5))			/* added 0.5 to round the value*/
+/* Adjust envelope speed which depends on sampling rate.
+ *
+ * Old form: (uint32_t)((double)(x) * clk / 72 / rate + 0.5). Every call site
+ * for the phase-increment tables passes a non-negative integer x, so the
+ * result is simply round(x*clk/(72*rate)). We compute that in exact 64-bit
+ * integer math with round-half-up - no floating point. Verified bit-identical
+ * to the old double form for clk=3579545 at every rate the core can select
+ * (32000/44100/48000/96000 and the 49716 native passthrough).
+ *
+ * NOTE: only valid for integer x. The pm/am LFO deltas, whose arguments were
+ * fractional doubles, are computed separately in internal_refresh(). */
+#define rate_adjust(x) ((rate == 49716) ? (uint32_t)(x) : (uint32_t)(((uint64_t)(x) * clk + 36ULL * rate) / (72ULL * rate)))
 
 #define MOD(o, x) (&(o)->slot[(x) << 1])
 #define CAR(o, x) (&(o)->slot[((x) << 1) | 1])
@@ -160,25 +170,18 @@ static uint32_t clk = 844451141;
 /* Sampling rate */
 static uint32_t rate = 3354932;
 
-/* WaveTable for each envelope amp */
-static uint16_t fullsintable[PG_WIDTH];
-static uint16_t halfsintable[PG_WIDTH];
+/* Constant (rate/clk-independent) tables that used to be generated at init
+ * with pow/log/sin/log10. They are now baked as deterministic const arrays
+ * in emu2413_tables.h, so this TU pulls in no libm and produces byte-identical
+ * tables on every platform. Provides: fullsintable, halfsintable, pmtable,
+ * amtable, DB2LIN_TABLE, AR_ADJUST_TABLE. */
+#include "emu2413_tables.h"
 
-static uint16_t *waveform[2] = { fullsintable, halfsintable };
-
-/* LFO Table */
-static int32_t pmtable[PM_PG_WIDTH];
-static int32_t amtable[AM_PG_WIDTH];
+static const uint16_t *waveform[2] = { fullsintable, halfsintable };
 
 /* Phase delta for LFO */
 static uint32_t pm_dphase;
 static uint32_t am_dphase;
-
-/* dB to Liner table */
-static int16_t DB2LIN_TABLE[(DB_MUTE + DB_MUTE) * 2];
-
-/* Liner to Log curve conversion table (for Attack rate). */
-static uint16_t AR_ADJUST_TABLE[1 << EG_BITS];
 
 /* Definition of envelope mode */
 enum
@@ -201,80 +204,11 @@ static uint32_t dphaseTable[512][8][16];
                   Create tables
 
 ****************************************************/
-INLINE static int32_t Min(int32_t i, int32_t j) {
-	if (i < j)
-		return i;
-	else
-		return j;
-}
-
-/* Table for AR to LogCurve. */
-static void makeAdjustTable(void) {
-	int32_t i;
-
-	AR_ADJUST_TABLE[0] = (1 << EG_BITS);
-	for (i = 1; i < 128; i++)
-		AR_ADJUST_TABLE[i] = (uint16_t)((double)(1 << EG_BITS) - 1 - (1 << EG_BITS) * log(i) / log(128));
-}
-
-
-/* Table for dB(0 -- (1<<DB_BITS)-1) to Liner(0 -- DB2LIN_AMP_WIDTH) */
-static void makeDB2LinTable(void) {
-	int32_t i;
-
-	for (i = 0; i < DB_MUTE + DB_MUTE; i++) {
-		DB2LIN_TABLE[i] = (int16_t)((double)((1 << DB2LIN_AMP_BITS) - 1) * pow(10, -(double)i * DB_STEP / 20));
-		if (i >= DB_MUTE) DB2LIN_TABLE[i] = 0;
-		DB2LIN_TABLE[i + DB_MUTE + DB_MUTE] = (int16_t)(-DB2LIN_TABLE[i]);
-	}
-}
-
-/* Liner(+0.0 - +1.0) to dB((1<<DB_BITS) - 1 -- 0) */
-static int32_t lin2db(double d) {
-	if (d == 0)
-		return(DB_MUTE - 1);
-	else
-		return Min(-(int32_t)(20.0 * log10(d) / DB_STEP), DB_MUTE - 1);	/* 0 -- 127 */
-}
-
-
-/* Sin Table */
-static void makeSinTable(void) {
-	int32_t i;
-
-	for (i = 0; i < PG_WIDTH / 4; i++) {
-		fullsintable[i] = (uint32_t)lin2db(sin(2.0 * PI * i / PG_WIDTH));
-	}
-
-	for (i = 0; i < PG_WIDTH / 4; i++) {
-		fullsintable[PG_WIDTH / 2 - 1 - i] = fullsintable[i];
-	}
-
-	for (i = 0; i < PG_WIDTH / 2; i++) {
-		fullsintable[PG_WIDTH / 2 + i] = (uint32_t)(DB_MUTE + DB_MUTE + fullsintable[i]);
-	}
-
-	for (i = 0; i < PG_WIDTH / 2; i++)
-		halfsintable[i] = fullsintable[i];
-	for (i = PG_WIDTH / 2; i < PG_WIDTH; i++)
-		halfsintable[i] = fullsintable[0];
-}
-
-/* Table for Pitch Modulator */
-static void makePmTable(void) {
-	int32_t i;
-
-	for (i = 0; i < PM_PG_WIDTH; i++)
-		pmtable[i] = (int32_t)((double)PM_AMP * pow(2, (double)PM_DEPTH * sin(2.0 * PI * i / PM_PG_WIDTH) / 1200));
-}
-
-/* Table for Amp Modulator */
-static void makeAmTable(void) {
-	int32_t i;
-
-	for (i = 0; i < AM_PG_WIDTH; i++)
-		amtable[i] = (int32_t)((double)AM_DEPTH / 2 / DB_STEP * (1.0 + sin(2.0 * PI * i / PM_PG_WIDTH)));
-}
+/* AR_ADJUST_TABLE, DB2LIN_TABLE, fullsintable/halfsintable, pmtable and
+ * amtable are now baked constants (emu2413_tables.h); the pow/log/sin/log10
+ * generators that built them - makeAdjustTable, makeDB2LinTable, lin2db,
+ * makeSinTable, makePmTable, makeAmTable and the Min() helper - have been
+ * removed. */
 
 /* Phase increment counter table */
 static void makeDphaseTable(void) {
@@ -289,11 +223,13 @@ static void makeDphaseTable(void) {
 }
 
 static void makeTllTable(void) {
-#define dB2(x) ((x) * 2)
-
-	static double kltable[16] = {
-		dB2(0.000), dB2(9.000), dB2(12.000), dB2(13.875), dB2(15.000), dB2(16.125), dB2(16.875), dB2(17.625),
-		dB2(18.000), dB2(18.750), dB2(19.125), dB2(19.500), dB2(19.875), dB2(20.250), dB2(20.625), dB2(21.000)
+	/* kltable[] values are all multiples of 0.25 dB, so kltable4[] = kltable*4
+	 * is exact integer. EG_STEP is exactly 3/8, so the "/EG_STEP" divide is a
+	 * "*8/3". The (int) truncation of (kltable[fnum] - 6*(7-block)) is
+	 * reproduced by C integer division (also truncates toward zero). Verified
+	 * bit-identical to the original double version across all 32768 entries. */
+	static const int32_t kltable4[16] = {
+		0, 72, 96, 111, 120, 129, 135, 141, 144, 150, 153, 156, 159, 162, 165, 168
 	};
 
 	int32_t tmp;
@@ -306,11 +242,11 @@ static void makeTllTable(void) {
 					if (KL == 0) {
 						tllTable[fnum][block][TL][KL] = TL2EG(TL);
 					} else {
-						tmp = (int32_t)(kltable[fnum] - dB2(3.000) * (7 - block));
+						tmp = (kltable4[fnum] - 24 * (7 - block)) / 4;
 						if (tmp <= 0)
 							tllTable[fnum][block][TL][KL] = TL2EG(TL);
 						else
-							tllTable[fnum][block][TL][KL] = (uint32_t)((tmp >> (3 - KL)) / EG_STEP) + TL2EG(TL);
+							tllTable[fnum][block][TL][KL] = (uint32_t)(((tmp >> (3 - KL)) * 8) / 3) + TL2EG(TL);
 					}
 				}
 }
@@ -532,21 +468,30 @@ static void internal_refresh(void) {
 	makeDphaseTable();
 	makeDphaseARTable();
 	makeDphaseDRTable();
-	pm_dphase = (uint32_t)rate_adjust(PM_SPEED * PM_DP_WIDTH / (clk / 72));
-	am_dphase = (uint32_t)rate_adjust(AM_SPEED * AM_DP_WIDTH / (clk / 72));
+	/* pm/am LFO phase deltas. The old code fed a fractional double argument
+	 * (PM_SPEED=6.4, AM_SPEED=3.7) through rate_adjust. As exact rationals
+	 * (6.4=32/5, 3.7=37/10) the whole thing is integer:
+	 *   round( SPEEDnum * PG_WIDTH * clk / (SPEEDden * (clk/72) * 72 * rate) ).
+	 * Bit-identical to the old double result at every supported rate; the
+	 * 49716 native rate keeps rate_adjust's passthrough of the truncated arg. */
+	if (rate == 49716) {
+		pm_dphase = (uint32_t)(32ULL * PM_DP_WIDTH / (5ULL * (clk / 72)));
+		am_dphase = (uint32_t)(37ULL * AM_DP_WIDTH / (10ULL * (clk / 72)));
+	} else {
+		uint64_t pden = 5ULL * (clk / 72) * 72ULL * rate;
+		uint64_t aden = 10ULL * (clk / 72) * 72ULL * rate;
+		pm_dphase = (uint32_t)((32ULL * PM_DP_WIDTH * clk + pden / 2) / pden);
+		am_dphase = (uint32_t)((37ULL * AM_DP_WIDTH * clk + aden / 2) / aden);
+	}
 }
 
 static void maketables(uint32_t c, uint32_t r) {
 	if (c != clk) {
 		clk = c;
-		makePmTable();
-		makeAmTable();
-		makeDB2LinTable();
-		makeAdjustTable();
+		/* Only the rate/clk-independent integer tables remain to build here;
+		 * the transcendental ones are baked constants (emu2413_tables.h). */
 		makeTllTable();
 		makeRksTable();
-		makeSinTable();
-		/* makeDefaultPatch (); */
 	}
 
 	if (r != rate) {
