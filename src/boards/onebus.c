@@ -276,7 +276,7 @@ static DECLFW(UNLOneBusWriteAPU40XX) {
 		break;
 	case 0x14: /* OneBus DMA: extra 4 bits for address, can write to 2007 instead of 2004 */
 		{
-			uint32 t = V <<8 | apu40xx[0x34] &0xF0;
+			uint32_t t = V <<8 | apu40xx[0x34] &0xF0;
 			int shift = apu40xx[0x34] >>1 &7;
 			int x;
 			if (shift == 0) shift = 8;			
@@ -466,7 +466,7 @@ void Mapper270_Init(CartInfo *info) {
 	mmc3Mangle = mmc3Mangles[0];
 	
 	CHRRAMSIZE = 8192;
-	CHRRAM = (uint8*)FCEU_gmalloc(CHRRAMSIZE);
+	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 	
