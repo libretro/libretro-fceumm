@@ -196,6 +196,7 @@ void VRC6_restore (int version) {
 void VRC6_power(void) {
 	VRC6_setHandlers();
 	VRC6_clear();
+	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
 }
 
 void VRC6_init (CartInfo *info, void (*sync)(), int A0, int A1, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {
