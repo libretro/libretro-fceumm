@@ -49,7 +49,7 @@ static void sync () {
 		setprg16(0x8000, prgOR | Latch_address >>2 &prgAND);
 		setprg16(0xC000, prgOR);
 	}
-	SetReadHandler(0x8000, 0xFFFF, ROM_size >=32 && Latch_address &0x200 && pad &1? readOB: CartBR);
+	SetReadHandler(0x8000, 0xFFFF, ROM_size >=32 && Latch_address &0x200 && ~Latch_address &0x400 && pad &1? readOB: CartBR);
 	if (Latch_address &0x400)
 		setchr8(Latch_address >>6 &~0x03 | Latch_data &0x03);
 	else
