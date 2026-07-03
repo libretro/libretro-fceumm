@@ -21,12 +21,22 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
+static uint8_t submapper;
 static uint8_t reg;
 
 static void sync () {
-	setprg32(0x8000, Latch_data);
+	if (submapper == 0 && (reg &0x07) == 0x00)
+		setprg32(0x8000, reg <<2 | Latch_data &3);
+	else {
+		setprg16(0x8000, reg <<3 | Latch_data &7);
+		setprg16(0xC000, reg <<3 |             7);
+	}
 	setchr8(0);
 	setmirror(reg &0x08? MI_H: MI_V);
+}
+
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* Jackal on the 11-in-1 needs AND-type bus conflicts. */
+	*newValue &= romValue;
 }
 
 static DECLFW (writeReg) {
@@ -46,7 +56,8 @@ static void power () {
 }
 
 void Mapper343_Init (CartInfo *info) {
-	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
+	submapper = info->submapper;
+	Latch_init(info, sync, 0x8000, 0xFFFF, trapLatchWrite);
 	info->Power = power;
 	info->Reset = reset;
 	AddExState(&reg, 1, 0, "REGS");
