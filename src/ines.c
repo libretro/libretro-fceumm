@@ -1073,6 +1073,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "4782/820226",              620, Mapper620_Init         )
 	INES_BOARD( "3945",                     622, Mapper622_Init         )
 	INES_BOARD( "J-2083",                   623, Mapper623_Init         )
+	INES_BOARD( "KL-08/KL-09B",             624, Mapper624_Init         )
 INES_BOARD_END()
 
 static uint32_t iNES_get_mapper_id(void)
