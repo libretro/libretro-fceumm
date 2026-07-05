@@ -63,14 +63,6 @@ static void sync () {
 	else
 		setprg8(0x6000, reg[7]);
 
-	if (submapper == 2 || reg[1] &0x20) {
-		SetReadHandler (0x6000, 0x7FFF, CartBR);
-		SetWriteHandler(0x6000, 0x7FFF, CartBW);
-	} else {
-		SetReadHandler (0x6000, 0xFFFF, CartBROB);
-		SetWriteHandler(0x6000, 0x7FFF, NULL);
-	}
-
 	switch(mapper == 264? 1: submapper) {
 		case 0:
 			setchr1(0x0000, reg[8 | 0]);
@@ -190,6 +182,14 @@ static void scanlineCounter() {
 	}
 }
 
+static DECLFR (readPRGRAM) {
+	return submapper == 2 || reg[1] &0x20? CartBR(A): X.DB;
+}
+
+static DECLFW (writePRGRAM) {
+	if (submapper == 2 || reg[1] &0x20) CartBW(A, V);
+}
+
 static void reset () {
 	int i;
 	for (i = 0; i < 16; i++) reg[i] = 0;
@@ -206,7 +206,9 @@ static void power () {
 	int i;
 	SetReadHandler(0x5000, 0x5FFF, readPadScratch);
 	SetWriteHandler(0x5000, 0x5FFF, writeScratch);
+	SetReadHandler (0x6000, 0x7FFF, readPRGRAM);
 	SetReadHandler (0x8000, 0xFFFF, CartBR);
+	SetWriteHandler(0x6000, 0x7FFF, writePRGRAM);
 	SetWriteHandler(0x8000, 0xFFFF, writeReg);
 	MapIRQHook = cycleCounter;
 	GameHBIRQHook = scanlineCounter;

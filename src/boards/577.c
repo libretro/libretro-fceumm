@@ -23,20 +23,20 @@
 
 static uint8_t pad;
 
-static DECLFR (readOB) {
-	return X.DB;
-}
-
 static void sync () {
 	setprg16(0x8000, Latch_address);
 	setprg16(0xC000, Latch_address);
-	SetReadHandler(0x8000, 0xFFFF, Latch_address &pad &0x30? readOB: CartBR);
 	setchr8(Latch_address >>1);
+}
+
+static DECLFR (interceptPRGRead) {
+	return Latch_address &pad &0x30? X.DB: CartBR(A);
 }
 
 static void power () {
 	pad = 0;
 	Latch_power();
+	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 static void reset () {

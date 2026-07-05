@@ -81,10 +81,6 @@ static uint8_t decode(uint8_t code) {
 	return (acc >> 8) & 0xff;
 }
 
-static DECLFR(readPad) {
-	return CartBR(A &~3 | pad[1] &3);
-}
-
 static void M178Sync(void) {
 	uint32_t sbank = reg[1] & 0x7;
 	uint32_t bbank = reg[2];
@@ -106,7 +102,6 @@ static void M178Sync(void) {
 	}
 
 	setmirror((reg[0] & 1) ^ 1);
-	if (submapper == 3) SetReadHandler(0x8000, 0xffff, pad[0] &1? readPad: CartBR);
 }
 
 static void M551Sync(void) {
@@ -164,6 +159,10 @@ static DECLFW(writePad) {
 	M178Sync();
 }
 
+static DECLFR (interceptPRGRead_submapper3) {
+	return pad[0] &1? CartBR(A &~3 | pad[1] &3): CartBR(A);
+}
+
 static void M551Power(void) {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	M551Sync();
@@ -184,7 +183,7 @@ static void M178Power(void) {
 	SetWriteHandler(0x4800, 0x4fff, M178Write);
 	SetWriteHandler(0x5800, 0x5fff, M178WriteSnd);
 	SetReadHandler(0x5800, 0x5fff, M178ReadSnd);
-	SetReadHandler(0x8000, 0xffff, CartBR);
+	SetReadHandler(0x8000, 0xffff, submapper == 3? interceptPRGRead_submapper3: CartBR);
 	if (submapper == 3)
 		SetWriteHandler(0x6000, 0x7fff, writePad);
 	else {

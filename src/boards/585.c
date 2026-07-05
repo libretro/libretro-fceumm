@@ -23,10 +23,6 @@
 
 static uint8_t pad;
 
-static DECLFR (readOB) {
-	return X.DB;
-}
-
 static void sync () {
 	if (Latch_address &0x01)
 		setprg32(0x8000, Latch_address >>2);
@@ -34,14 +30,18 @@ static void sync () {
 		setprg16(0x8000, Latch_address >>1);
 		setprg16(0xC000, Latch_address >>1);
 	}
-	SetReadHandler(0x8000, 0xFFFF, Latch_address &pad &0x60? readOB: CartBR);
 	setchr8(Latch_address >>1);
 	setmirror(Latch_address &0x10? MI_V: MI_H);
+}
+
+static DECLFR (interceptPRGRead) {
+	return Latch_address &pad &0x60? X.DB: CartBR(A);
 }
 
 static void power () {
 	pad = 0;
 	Latch_power();
+	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 static void reset () {

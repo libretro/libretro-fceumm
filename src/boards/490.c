@@ -26,10 +26,6 @@
 static uint8_t reg;
 static uint8_t pad;
 
-static DECLFR (readPad) {
-	return CartBR(A &~0xF | pad &0xF);
-}
-
 static void sync () {
 	if (reg &0x20)
 		setprg32(0x8000, reg >>1);
@@ -39,7 +35,6 @@ static void sync () {
 	}
 	MMC3_syncCHR(0xFF, reg <<4 &~0xFF);
 	MMC3_syncMirror();
-	SetReadHandler(0x8000, 0xFFFF, reg &0x80? readPad: CartBR);
 }
 
 static DECLFW (writeReg) {
@@ -47,10 +42,15 @@ static DECLFW (writeReg) {
 	sync();
 }
 
+static DECLFR (interceptPRGRead) {
+	return reg &0x80? CartBR(A &~0x1 | pad &0x1): CartBR(A);
+}
+
 static void power () {
 	reg = 0;
 	pad = 0;
 	MMC3_power();
+	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 static void reset () {

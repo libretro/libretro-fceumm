@@ -26,10 +26,6 @@
 static uint8_t reg;
 static uint8_t pad;
 
-static DECLFR (readPad) {
-	return CartBR(A &~0xF | pad &0xF);
-}
-
 static void sync () {
 	int prgAND = 0x0F;
 	int chrAND = reg &0x01? 0xFF: 0x7F;
@@ -38,7 +34,6 @@ static void sync () {
 	MMC3_syncPRG(prgAND, prgOR &~prgAND);
 	MMC3_syncCHR(chrAND, chrOR &~chrAND);
 	MMC3_syncMirror();
-	SetReadHandler(0x8000, 0xFFFF, reg &0x20? readPad: CartBR);
 }
 
 static int getPRGBank (uint8_t bank) {
@@ -54,6 +49,10 @@ static DECLFW (writeReg) {
 	sync();
 }
 
+static DECLFR (interceptPRGRead) {
+	return reg &0x20? CartBR(A &~0x1 | pad &0x1): CartBR(A);
+}
+
 static void reset () {
 	reg = 0;
 	pad++;
@@ -64,6 +63,7 @@ static void power () {
 	reg = 0;
 	pad = 0;
 	MMC3_power();
+	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 void Mapper597_Init (CartInfo *info) {

@@ -24,10 +24,7 @@
 
 static uint8_t unrom;
 static uint8_t pad;
-
-static DECLFR (readOB) {
-	return X.DB;
-}
+static uint8_t submapper;
 
 static void sync0 () {
 	if (Latch_address &0x01)
@@ -38,7 +35,6 @@ static void sync0 () {
 	}
 	setchr8(Latch_data >>1);
 	setmirror(Latch_data &0x01? MI_H: MI_V);
-	SetReadHandler(0x8000, 0xFFFF, Latch_address &0x80 && ~Latch_address &0x20 && ~Latch_address &0x100 && pad &1? readOB: CartBR);
 }
 
 static void sync1 () {
@@ -61,10 +57,15 @@ static void sync1 () {
 	}
 }
 
+static DECLFR (interceptPRGRead) {
+	return Latch_address &0x80 && ~Latch_address &0x20 && ~Latch_address &0x100 && pad &1? X.DB: CartBR(A);
+}
+
 static void power () {
 	unrom = 0;
 	pad = 0;
 	Latch_power();
+	if (submapper == 0) SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 static void reset () {
@@ -74,6 +75,7 @@ static void reset () {
 }
 
 void Mapper438_Init (CartInfo *info) {
+	submapper = info->submapper;
 	if (info->submapper == 1) {
 		Latch_init(info, sync1, 0x8000, 0xFFFF, NULL);
 		CHRRAM_init(info, 8);
