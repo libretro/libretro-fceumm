@@ -273,9 +273,35 @@ static void M200Sync(void) {
 	setmirror(latche &(submapper ==1? 4: 8)? MI_H: MI_V);
 }
 
+static DECLFR (Mapper200_interceptPRGRead_small) {
+	return latche &4 && dipswitch &1 || latche &8 && dipswitch &2? X.DB: CartBR(A);
+}
+
+static DECLFR (Mapper200_interceptPRGRead_large) {
+	if (A &0xF)
+		return latche &8 && dipswitch &1? X.DB: CartBR(A);
+	else
+		return latche &8? CartBR(A &~0x1F | dipswitch &0x1F): CartBR(A);
+}
+
+static void Mapper200_Power() {
+	LatchPower();
+	dipswitch = 0;
+	SetReadHandler(0x8000, 0xFFFF, ROM_size == 4? Mapper200_interceptPRGRead_small: Mapper200_interceptPRGRead_large);
+	M200Sync();
+}
+
+static void Mapper200_Reset() {
+	latche = 0;
+	dipswitch++;
+	M200Sync();
+}
+
 void Mapper200_Init(CartInfo *info) {
 	submapper = info->submapper;
 	Latch_Init(info, M200Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+	info->Power = Mapper200_Power;
+	info->Reset = Mapper200_Reset;
 }
 
 /*------------------ Map 201 ---------------------------*/
