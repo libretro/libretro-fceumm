@@ -508,7 +508,7 @@ static void power () {
 	eep_clock = command = output = 1;
 	command = state = 0;
 	applyMode(1);
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 

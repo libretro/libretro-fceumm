@@ -89,7 +89,7 @@ static void power () {
 	SetWriteHandler(0x5000, 0x57FF, writeReg);
 	SetWriteHandler(0x6000, 0x7FFF, CartBW);
 	reset();
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 static void stateRestore (int version) {

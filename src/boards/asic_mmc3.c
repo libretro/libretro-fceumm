@@ -195,7 +195,7 @@ void MMC3_restore (int version) {
 void MMC3_power(void) {
 	MMC3_setHandlers();
 	MMC3_clear();
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 void MMC3_init (CartInfo *info, void (*sync)(), uint8_t type, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {

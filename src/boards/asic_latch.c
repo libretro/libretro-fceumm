@@ -80,7 +80,7 @@ void Latch_restore (int version) {
 void Latch_power(void) {
 	Latch_setHandlers();
 	Latch_clear();
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 void Latch_init (CartInfo *info, void (*sync)(), uint16_t from, uint16_t to, void (*write)(uint16_t*, uint8_t*, uint8_t)) {

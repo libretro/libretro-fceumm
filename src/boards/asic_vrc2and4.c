@@ -286,7 +286,7 @@ void VRC24_restore (int version) {
 void VRC24_power(void) {
 	VRC24_setHandlers();
 	VRC24_clear();
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 void VRC2_init (CartInfo *info, void (*sync)(), int A0, int A1, int (*prg)(uint8_t), int (*chr)(uint8_t), DECLFR((*read)), DECLFW((*write))) {

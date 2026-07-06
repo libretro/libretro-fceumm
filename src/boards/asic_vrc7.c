@@ -168,7 +168,7 @@ void VRC7_restore (int version) {
 void VRC7_power(void) {
 	VRC7_setHandlers();
 	VRC7_clear();
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 void VRC7_init (CartInfo *info, void (*sync)(), int A0) {

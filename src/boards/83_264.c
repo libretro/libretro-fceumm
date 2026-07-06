@@ -220,7 +220,7 @@ static void power () {
 	if (forcePadValue == 2)
 		pad = PAL? 0: 1;
 	sync();
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 static void restore (int version) {

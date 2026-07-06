@@ -97,7 +97,7 @@ void N118_restore (int version) {
 void N118_power(void) {
 	N118_setHandlers();
 	N118_clear();
-	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
 
 void N118_init (CartInfo *info, void (*sync)(), int (*prg)(uint8_t), int (*chr)(uint8_t)) {
