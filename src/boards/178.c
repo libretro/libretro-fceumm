@@ -173,7 +173,7 @@ static void M551Power(void) {
 	SetReadHandler(0x8000, 0xffff, CartBR);
 	SetReadHandler(0x6000, 0x7fff, CartBR);
 	SetWriteHandler(0x6000, 0x7fff, CartBW);
-	FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+	FCEU_CheatAddRAM((WRAMSIZE >> 10) < 8 ? (WRAMSIZE >> 10) : 8, 0x6000, WRAM);
 }
 
 static void M178Power(void) {
@@ -189,7 +189,7 @@ static void M178Power(void) {
 	else {
 		SetReadHandler(0x6000, 0x7fff, CartBR);
 		SetWriteHandler(0x6000, 0x7fff, CartBW);
-		FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+		FCEU_CheatAddRAM((WRAMSIZE >> 10) < 8 ? (WRAMSIZE >> 10) : 8, 0x6000, WRAM);
 	}
 	pad[0] = pad[1] = 0;
 }

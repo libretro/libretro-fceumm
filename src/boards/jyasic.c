@@ -462,7 +462,7 @@ static void JYASIC_init (CartInfo *info)
    {
       WRAM = (uint8_t*)FCEU_gmalloc(WRAMSIZE);
       SetupCartPRGMapping(0x10, WRAM, WRAMSIZE, 1);
-      FCEU_CheatAddRAM(WRAMSIZE >> 10, 0x6000, WRAM);
+      FCEU_CheatAddRAM((WRAMSIZE >> 10) < 8 ? (WRAMSIZE >> 10) : 8, 0x6000, WRAM);
    }
 }
 
