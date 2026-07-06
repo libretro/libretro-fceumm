@@ -106,6 +106,7 @@ void MMC24_restore (int version) {
 void MMC24_power(void) {
 	MMC24_setHandlers();
 	MMC24_clear();
+	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
 }
 
 void MMC24_init (CartInfo *info, void (*sync)()) {

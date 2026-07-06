@@ -1,7 +1,7 @@
-/* FCEUmm - NES/Famicom Emulator
+/* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020
+ *  Copyright (C) 2025 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,60 +16,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- *
  */
 
 #include "mapinc.h"
-#include "asic_mmc3.h"
+#include "asic_latch.h"
 
-static uint8_t reg;
 static uint8_t pad;
 
 static void sync () {
-	int prgAND = reg &0x20? 0x1F: 0x0F;
-	int chrAND = reg &0x20? 0xFF: 0x7F;
-	int prgOR = reg <<1;
-	int chrOR = reg <<4;
-	MMC3_syncPRG(prgAND, prgOR &~prgAND);
-	MMC3_syncCHR(chrAND, chrOR &~chrAND);
-	MMC3_syncMirror();
-}
-
-static int getPRGBank (uint8_t bank) {
-	if (reg &0x02) {
-		int mask = reg &0x01? 3: 1;
-		return MMC3_getPRGBank(0) &~mask | bank &mask;
+	if (Latch_address &0x01) {
+		setprg16(0x8000, Latch_address >>1);
+		setprg16(0xC000, Latch_address >>1);
 	} else
-		return MMC3_getPRGBank(bank);
-}
-
-static DECLFW (writeReg) {
-	reg = A &0xFF;
-	sync();
+		setprg32(0x8000, Latch_address >>2);
+	setchr8(Latch_address >>1);
+	setmirror(Latch_address &0x10? MI_V: MI_H);
 }
 
 static DECLFR (interceptPRGRead) {
-	return reg &0x40? CartBR(A &~0xF | pad &0xF): CartBR(A);
-}
-
-static void reset () {
-	reg = 0;
-	pad++;
-	MMC3_clear();
+	return Latch_address &0x20? CartBR(A &~0xF | pad &0xF): CartBR(A);
 }
 
 static void power () {
-	reg = 0;
 	pad = 0;
-	MMC3_power();
+	Latch_power();
 	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
-void Mapper568_Init (CartInfo *info) {
-	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, NULL, NULL, writeReg);
+static void reset () {
+	pad++;
+	Latch_clear();
+}
+
+void Mapper624_Init (CartInfo *info) {
+	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
 	info->Power = power;
 	info->Reset = reset;
-	AddExState(&reg, 1, 0, "EXPR");
 	AddExState(&pad, 1, 0, "DIPS");
 }

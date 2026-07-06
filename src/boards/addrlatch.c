@@ -273,9 +273,35 @@ static void M200Sync(void) {
 	setmirror(latche &(submapper ==1? 4: 8)? MI_H: MI_V);
 }
 
+static DECLFR (Mapper200_interceptPRGRead_small) {
+	return latche &4 && dipswitch &1 || latche &8 && dipswitch &2? X.DB: CartBR(A);
+}
+
+static DECLFR (Mapper200_interceptPRGRead_large) {
+	if (A &0xF)
+		return latche &8 && dipswitch &1? X.DB: CartBR(A);
+	else
+		return latche &8? CartBR(A &~0x1F | dipswitch &0x1F): CartBR(A);
+}
+
+static void Mapper200_Power() {
+	LatchPower();
+	dipswitch = 0;
+	SetReadHandler(0x8000, 0xFFFF, ROM_size == 4? Mapper200_interceptPRGRead_small: Mapper200_interceptPRGRead_large);
+	M200Sync();
+}
+
+static void Mapper200_Reset() {
+	latche = 0;
+	dipswitch++;
+	M200Sync();
+}
+
 void Mapper200_Init(CartInfo *info) {
 	submapper = info->submapper;
 	Latch_Init(info, M200Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
+	info->Power = Mapper200_Power;
+	info->Reset = Mapper200_Reset;
 }
 
 /*------------------ Map 201 ---------------------------*/
@@ -467,85 +493,6 @@ static void M231Sync(void) {
 
 void Mapper231_Init(CartInfo *info) {
 	Latch_Init(info, M231Sync, NULL, 0x0000, 0x8000, 0xFFFF, 0);
-}
-
-/*------------------ Map 242 ---------------------------*/
-static uint8_t M242TwoChips;
-static void M242Sync(void) {
-	uint32_t S = latche & 1;
-	uint32_t p = (latche >> 2) & 0x1F;
-	uint32_t L = (latche >> 9) & 1;
-	
-	if (M242TwoChips) {
-		if (latche &0x600)
-		{	/* First chip */
-			p &= 0x1F; 
-		}
-		else
-		{	/* Second chip */
-			p &= 0x07;
-			p += 0x20;
-		}
-	}
-
-	if ((latche >> 7) & 1) {
-		if (S) {
-			setprg32(0x8000, p >> 1);
-		} else {
-			setprg16(0x8000, p);
-			setprg16(0xC000, p);
-		}
-	} else {
-		if (S) {
-			if (L) {
-				setprg16(0x8000, p & 0x3E);
-				setprg16(0xC000, p | 7);
-			} else {
-				setprg16(0x8000, p & 0x3E);
-				setprg16(0xC000, p & 0x38);
-			}
-		} else {
-			if (L) {
-				setprg16(0x8000, p);
-				setprg16(0xC000, p | 7);
-			} else {
-				setprg16(0x8000, p);
-				setprg16(0xC000, p & 0x38);
-			}
-		}
-	}
-	
-	if (latche &0x80 && submapper >0) /* CHR-RAM write protection not used on single-game cartridges (submapper 0) */
-		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 0);
-	else
-		SetupCartCHRMapping(0, CHRptr[0], 0x2000, 1);
-
-	setmirror(((latche >> 1) & 1) ^ 1);
-	setchr8(0);
-	if (PRGsize[0x10]) setprg8r(0x10, 0x6000, 0);
-}
-
-static DECLFR(M242Read) {
-	if (latche &0x0100 && (latche &0x00FF) ==0)
-		return CartBR(A | dipswitch);
-	else
-		return CartBR(A);
-}
-
-static void Mapper242_Reset(void) {
-	dipswitch++;
-	dipswitch &= 31;
-	latche = 0;
-	M242Sync();
-}
-
-void Mapper242_Init(CartInfo *info) {
-	dipswitch = 0;
-	submapper = info->submapper;
-	M242TwoChips = info->PRGRomSize &0x20000 && info->PRGRomSize >0x20000;
-	Latch_Init(info, M242Sync, M242Read, 0x0000, 0x8000, 0xFFFF,  info->iNES2 && (info->PRGRamSize || info->PRGRamSaveSize) || info->battery);
-	info->Reset = Mapper242_Reset;
-	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
 /*------------------ Map 288 ---------------------------*/
@@ -756,10 +703,6 @@ void Mapper409_Init(CartInfo *info) {
 }
 
 /*------------------ Map 435 ---------------------------*/
-static DECLFR(ReadOB) {
-	return X.DB;
-}
-
 static void M435Sync(void) {
 	int p =latche >>2 &0x1F | latche >>3 &0x20 | latche >>4 &0x40;
 	if (latche &0x200) {
@@ -781,12 +724,20 @@ static void M435Sync(void) {
 
 	setmirror(latche &0x002? MI_H: MI_V);
 	setchr8(0);
-	SetReadHandler(0x8000, 0xFFFF, ~latche &0x200 && latche &(submapper == 1? 0x001: 0x400) && dipswitch &1? ReadOB: CartBR);
+}
+
+static DECLFR (Mapper435_interceptPRGRead_submapper0) {
+	return ~latche &0x200 && latche &0x400 && dipswitch &1? X.DB: CartBR(A);
+}
+
+static DECLFR (Mapper435_interceptPRGRead_submapper1) {
+	return ~latche &0x200 && latche &0x001 && dipswitch &1? X.DB: CartBR(A);
 }
 
 static void Mapper435_Power() {
 	LatchPower();
 	dipswitch = 0;
+	SetReadHandler(0x8000, 0xFFFF, submapper == 1? Mapper435_interceptPRGRead_submapper1: Mapper435_interceptPRGRead_submapper0);
 	M435Sync();
 }
 

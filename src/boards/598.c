@@ -23,10 +23,10 @@
 static uint8_t reg[2];
 
 static void sync () {
-	setprg16(0x8000, reg[0] &0x18 | reg[1] &0x07);
-	setprg16(0xC000, reg[0] &0x18 |         0x07);
+	setprg16(0x8000, reg[1] &0x18 | reg[0] &0x07);
+	setprg16(0xC000, reg[1] &0x18 |         0x07);
 	setchr8(0);
-	switch(reg[0] &0x03) {
+	switch(reg[1] &0x03) {
 		case 0x00: setmirror(MI_0); break;
 		case 0x01: setmirror(MI_V); break;
 		case 0x02: setmirror(MI_H); break;
@@ -35,7 +35,7 @@ static void sync () {
 }
 
 static DECLFW (writeReg) {
-	reg[A >>14 &1] = V;
+	reg[V >>7 &1] = V;
 	sync();
 }
 

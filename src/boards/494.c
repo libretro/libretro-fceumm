@@ -40,12 +40,15 @@ static void sync () {
 	}
 	setchr8(Latch_address >>5 &7 | Latch_address >>1 &8);
 	setmirror(Latch_address &0x002? MI_H: MI_V);
-	SetReadHandler(0x8000, 0xFFFF, ~Latch_address &0x100 && Latch_address &0x001 &pad? readOB: CartBR);
 }
 
+static DECLFR (interceptPRGRead) {
+	return ~Latch_address &0x100 && Latch_address &0x001 &pad? X.DB: CartBR(A);
+}
 static void power () {
 	pad = 0;
 	Latch_power();
+	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 static void reset () {

@@ -27,7 +27,8 @@
 #include "sound.h"
 
 X6502 X;
-uint8_t encryptOpcodes =0;
+uint8_t encryptOpcodes = 0;
+uint8_t encryptOpcodesConfig = 0;
 
 uint32_t timestamp;
 uint32_t sound_timestamp;
@@ -456,8 +457,13 @@ void X6502_Run(int32_t cycles)
 			FCEU_SoundCPUHook(temp);
 		X.PC = pbackus;
 		_PC++;
-		if (encryptOpcodes ==12) b1 =b1 &0x39 | b1 >>1 &0x42 | b1 <<1 &0x84;
-		if (encryptOpcodes ==14) b1 =b1 &0x3F | b1 >>1 &0x40 | b1 <<1 &0x80;
+		if (encryptOpcodes == 10) b1 = b1 &~0x36 | b1 >>1 &0x12 | b1 <<1 &0x24;
+		if (encryptOpcodes == 11) {
+			if (encryptOpcodesConfig &0x02) b1 = b1 &~0x30 | b1 >>1 &0x10 | b1 <<1 &0x20;
+			if (encryptOpcodesConfig &0x40) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+		}
+		if (encryptOpcodes == 12) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
+		if (encryptOpcodes == 14) b1 = b1 &~0xC0 | b1 >>1 &0x40 | b1 <<1 &0x80;
 		switch (b1) {
 			#include "ops.h"
 		}

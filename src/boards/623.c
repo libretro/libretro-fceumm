@@ -1,7 +1,7 @@
-/* FCEUmm - NES/Famicom Emulator
+/* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020
+ *  Copyright (C) 2026 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,60 +16,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- *
- *
  */
 
 #include "mapinc.h"
-#include "asic_mmc3.h"
+#include "asic_latch.h"
 
 static uint8_t reg;
-static uint8_t pad;
 
 static void sync () {
-	int prgAND = reg &0x20? 0x1F: 0x0F;
-	int chrAND = reg &0x20? 0xFF: 0x7F;
-	int prgOR = reg <<1;
-	int chrOR = reg <<4;
-	MMC3_syncPRG(prgAND, prgOR &~prgAND);
-	MMC3_syncCHR(chrAND, chrOR &~chrAND);
-	MMC3_syncMirror();
-}
-
-static int getPRGBank (uint8_t bank) {
-	if (reg &0x02) {
-		int mask = reg &0x01? 3: 1;
-		return MMC3_getPRGBank(0) &~mask | bank &mask;
+	if (reg &0x08) {
+		setprg16(0x8000, Latch_data &0x0F);
+		setprg16(0xC000, Latch_data &0x0F | 0x07);
 	} else
-		return MMC3_getPRGBank(bank);
+		setprg32(0x8000, Latch_data >>1);
+	setchr8(0);
 }
 
 static DECLFW (writeReg) {
-	reg = A &0xFF;
+	reg = V;
 	sync();
-}
-
-static DECLFR (interceptPRGRead) {
-	return reg &0x40? CartBR(A &~0xF | pad &0xF): CartBR(A);
 }
 
 static void reset () {
 	reg = 0;
-	pad++;
-	MMC3_clear();
+	Latch_clear();
 }
 
 static void power () {
 	reg = 0;
-	pad = 0;
-	MMC3_power();
-	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
+	Latch_power();
+	SetWriteHandler(0x5000, 0x5FFF, writeReg);
 }
 
-void Mapper568_Init (CartInfo *info) {
-	MMC3_init(info, sync, MMC3_TYPE_AX5202P, getPRGBank, NULL, NULL, writeReg);
+void Mapper623_Init (CartInfo *info) {
+	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
 	info->Power = power;
 	info->Reset = reset;
-	AddExState(&reg, 1, 0, "EXPR");
-	AddExState(&pad, 1, 0, "DIPS");
+	AddExState(&reg, 1, 0, "REGS");
 }

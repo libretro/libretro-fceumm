@@ -22,19 +22,19 @@
 #include "asic_latch.h"
 
 static uint8_t submapper;
-uint8_t pad;
-uint8_t padSelect;
+static uint8_t pad;
+static uint8_t padSelect;
 
-static DECLFR (readPad_submapper0) {
-	return CartBR(A &~0xF | pad &0xF);
+static DECLFR (interceptPRGRead_submapper0) {
+	return Latch_address &0x200? CartBR(A &~0xF | pad &0xF): CartBR(A);
 }
 
 static DECLFR (readPad_submapper1) {
 	return pad;
 }
 
-static DECLFR (readPad_submapper2) {
-	return CartBR(A &~0x3 | pad &0x3);
+static DECLFR (interceptPRGRead_submapper2) {
+	return padSelect &1? CartBR(A &~0x3 | pad &0x3): CartBR(A);
 }
 
 static void sync () {
@@ -54,7 +54,6 @@ static void sync () {
 	SetupCartCHRMapping(0, CHRptr[0], CHRsize[0], submapper == 0 && Latch_address &0x80? 0: 1);
 	setchr8(Latch_data);
 	setmirror(Latch_address &0x002? MI_H: MI_V);
-	SetReadHandler(0x8000, 0xFFFF, submapper == 0 && Latch_address &0x200? readPad_submapper0: submapper == 2 && padSelect &1? readPad_submapper2: CartBR);
 }
 
 static DECLFW (writePad_submapper2) {
@@ -65,11 +64,18 @@ static DECLFW (writePad_submapper2) {
 static void power () {
 	pad = padSelect = 0;
 	Latch_power();
-	if (submapper == 1)
-		SetReadHandler(0x5000, 0x5FFF, readPad_submapper1);
-	else
-	if (submapper == 2)
-		SetWriteHandler(0x6000, 0x7FFF, writePad_submapper2);
+	switch(submapper) {
+		case 0:
+			SetReadHandler(0x8000, 0xFFFF, interceptPRGRead_submapper0);
+			break;
+		case 1:
+			SetReadHandler(0x5000, 0x5FFF, readPad_submapper1);
+			break;
+		case 2:
+			SetReadHandler(0x8000, 0xFFFF, interceptPRGRead_submapper2);
+			SetWriteHandler(0x6000, 0x7FFF, writePad_submapper2);
+			break;
+	}
 }
 
 static void reset () {

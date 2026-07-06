@@ -27,8 +27,13 @@ static uint8_t reg;
 static uint8_t pad;
 
 static void sync () {
-	VRC24_syncPRG(0x0F, reg <<4);
-	VRC24_syncCHR(0x7F, reg <<7);
+	if (submapper == 2) {
+		VRC24_syncPRG(0x1F, reg <<4 &~0x1F);
+		VRC24_syncCHR(0x7F, reg <<6 &~0x7F);
+	} else {
+		VRC24_syncPRG(0x0F, reg <<4);
+		VRC24_syncCHR(0x7F, reg <<7);
+	}
 	VRC24_syncMirror();
 	VRC24_syncWRAM(0);
 }
@@ -42,7 +47,7 @@ static int getPRGBank (uint8_t bank) {
 }
 
 static DECLFR (readPRG) {
-	return CartBR(reg &0x08? (A &~0x03 | pad &0x03): A);
+	return CartBR(reg &0x08 && ~reg &0x04? (A &~0x03 | pad &0x03): A);
 }
 
 static DECLFW (writeReg) {
@@ -57,7 +62,7 @@ static void power (void) {
 	reg = 0;
 	pad = 0;
 	VRC24_power();
-	if (submapper == 0) SetReadHandler(0x8000, 0xFFFF, readPRG);
+	if (submapper == 0 || submapper == 2) SetReadHandler(0x8000, 0xFFFF, readPRG);
 }
 
 static void reset (void) {
@@ -68,7 +73,10 @@ static void reset (void) {
 
 void Mapper447_Init (CartInfo *info) {
 	submapper = info->submapper;
-	VRC4_init(info, sync, 0x04, 0x08, 0, getPRGBank, NULL, NULL, writeReg, NULL );
+	if (submapper == 2)
+		VRC4_init(info, sync, 0x02, 0x04, 0, getPRGBank, NULL, NULL, writeReg, NULL );
+	else
+		VRC4_init(info, sync, 0x04, 0x08, 0, getPRGBank, NULL, NULL, writeReg, NULL );
 	WRAM_init(info, 2);
 	info->Power = power;
 	info->Reset = reset;

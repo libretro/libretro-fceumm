@@ -98,7 +98,7 @@ static void applyMode (uint8_t clear) {
 		MMC3_activate(clear, sync, MMC3_TYPE_SHARP, NULL, NULL, NULL, NULL);
 	else
 	if (reg[0] &0x01) {
-		if (reg[2] &0x04)
+		if (reg[2] &0x05)
 			VRC4_activate(clear, sync, 0x05, 0x0A, 1, NULL, NULL, NULL, NULL, NULL);
 		else
 			VRC4_activate(clear, sync, 0x02, 0x04, 1, NULL, NULL, NULL, NULL, NULL);

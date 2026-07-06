@@ -21,10 +21,6 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static DECLFR(readOB) {
-	return X.DB;
-}
-
 static void sync () {
 	if (Latch_address &0x02) {
 		setprg16(0x8000, Latch_address <<3 &0x10 | Latch_data &0x0F);
@@ -33,7 +29,6 @@ static void sync () {
 		setprg16(0x8000, Latch_address <<3 &0x18 | Latch_data &0x07);
 		setprg16(0xC000, Latch_address <<3 &0x18 |             0x07);
 	}
-	SetReadHandler(0x8000, 0xFFFF, Latch_address &0x10 && ROM_size >8? readOB: CartBR);
 	setchr8(0);
 }
 
@@ -42,7 +37,17 @@ static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t rom
 	*newValue &= romValue; /* AND-type bus conflicts */
 }
 
+static DECLFR (interceptPRGRead) {
+	return Latch_address &0x10? X.DB: CartBR(A);
+}
+
+static void power () {
+	Latch_power();
+	if (ROM_size >8) SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
+}
+
 void Mapper573_Init (CartInfo *info) {
 	Latch_init(info, sync, 0x8000, 0xFFFF, trapLatchWrite);
 	info->Reset = Latch_clear;
+	info->Power = power;
 }

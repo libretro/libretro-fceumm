@@ -392,6 +392,7 @@ static void power () {
 	reg[0] = reg[1] = reg[2] = reg[3] = reg[4] = reg[5] = reg[6] = reg[7] = 0;
 	applyMode(1);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
+	if (PRGsize[0x10]) FCEU_CheatAddRAM(8, 0x6000, PRGptr[0x10]);
 }
 
 static void stateRestore (int version) {

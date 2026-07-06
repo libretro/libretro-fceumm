@@ -178,7 +178,7 @@ static DECLFW(M36Write) {
 
 static DECLFR(M36Read) {
 	uint8_t ret = X.DB;
-	if ((A & 0x103) == 0x100)
+	if (A & 0x100)
 	  ret = (X.DB & 0xCF) | ((TXC_CMDRead() << 4) & 0x30);
 	return ret;
 }
@@ -210,7 +210,7 @@ static DECLFW(M132Write) {
 
 static DECLFR(M132Read) {
 	uint8_t ret = X.DB;
-	if ((A & 0x103) == 0x100)
+	if (A & 0x100)
 	  ret = ((X.DB & 0xF0) | (TXC_CMDRead() & 0x0F));
 	return ret;
 }
@@ -258,7 +258,7 @@ static DECLFW(M136Write) {
 
 static DECLFR(M136Read) {
 	uint8_t ret = X.DB;
-	if ((A & 0x103) == 0x100)
+	if (A & 0x100)
 	  ret = ((X.DB & 0xC0) | (TXC_CMDRead() & 0x3F));
 	return ret;
 }
@@ -288,7 +288,7 @@ static DECLFW(M147Write) {
 
 static DECLFR(M147Read) {
 	uint8_t ret = X.DB;
-	if ((A & 0x103) == 0x100) {
+	if (A & 0x100) {
 	  uint8_t value = TXC_CMDRead();
 	  ret = ((value << 2) & 0xFC) | ((value >> 6) & 0x03);
 	}
@@ -326,7 +326,7 @@ static DECLFW(M172Write) {
 
 static DECLFR(M172Read) {
 	uint8_t ret = X.DB;
-	if ((A & 0x103) == 0x100)
+	if (A & 0x100)
 	  ret = (X.DB & 0xC0) | GetValue(TXC_CMDRead());
 	return ret;
 }

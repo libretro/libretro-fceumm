@@ -1,7 +1,7 @@
 /* FCE Ultra - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2025 NewRisingSun
+ *  Copyright (C) 2026 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,37 +21,18 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8_t pad;
-
 static void sync () {
-	if (Latch_address &0x01)
-		setprg32(0x8000, Latch_address >>2);
+	if (Latch_address &0x10)
+		setprg32(0x8000, Latch_address >>3 &0x04 | Latch_address >>1 &0x03);
 	else {
-		setprg16(0x8000, Latch_address >>1);
-		setprg16(0xC000, Latch_address >>1);
+		setprg16(0x8000, Latch_address >>2 &0x08 | Latch_address &0x07);
+		setprg16(0xC000, Latch_address >>2 &0x08 | Latch_address &0x07);		
 	}
-	setchr8(Latch_address >>1);
-	setmirror(Latch_address &0x10? MI_V: MI_H);
+	setchr8(Latch_address >>2 &0x08 | Latch_address &0x07);
+	setmirror(Latch_address &0x08? MI_H: MI_V);
 }
 
-static DECLFR (interceptPRGRead) {
-	return Latch_address &pad &0x60? X.DB: CartBR(A);
-}
-
-static void power () {
-	pad = 0;
-	Latch_power();
-	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
-}
-
-static void reset () {
-	pad += 0x20;
-	Latch_clear();
-}
-
-void Mapper585_Init (CartInfo *info) {
+void Mapper622_Init (CartInfo *info) {
 	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
-	info->Power = power;
-	info->Reset = reset;
-	AddExState(&pad, 1, 0, "DIPS");
+	info->Reset = Latch_clear;
 }

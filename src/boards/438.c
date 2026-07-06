@@ -23,6 +23,8 @@
 #include "cartram.h"
 
 static uint8_t unrom;
+static uint8_t pad;
+static uint8_t submapper;
 
 static void sync0 () {
 	if (Latch_address &0x01)
@@ -55,25 +57,33 @@ static void sync1 () {
 	}
 }
 
+static DECLFR (interceptPRGRead) {
+	return Latch_address &0x80 && ~Latch_address &0x20 && ~Latch_address &0x100 && pad &1? X.DB: CartBR(A);
+}
+
 static void power () {
 	unrom = 0;
+	pad = 0;
 	Latch_power();
+	if (submapper == 0) SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 static void reset () {
 	unrom = !unrom;
+	pad++;
 	Latch_clear();
 }
 
 void Mapper438_Init (CartInfo *info) {
+	submapper = info->submapper;
 	if (info->submapper == 1) {
 		Latch_init(info, sync1, 0x8000, 0xFFFF, NULL);
 		CHRRAM_init(info, 8);
-		info->Power = power;
-		info->Reset = reset;
 		AddExState(&unrom, 1, 0, "UNRO");
 	} else {
 		Latch_init(info, sync0, 0x8000, 0xFFFF, NULL);
-		info->Reset = Latch_clear;
+		AddExState(&pad, 1, 0, "DIPS");
 	}
+	info->Power = power;
+	info->Reset = reset;
 }

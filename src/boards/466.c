@@ -36,13 +36,7 @@ static DECLFR(Mapper466_ReadOB)
 static void Mapper466_Sync(void)
 {
    int prg =regs[1] <<5 | regs[0] <<1 &0x1E | regs[0] >>5 &1;
-   
-   /* Return open bus when selecting unpopulated PRG chip */
-   if (prg &0x20 && PRGsize[0] <1024*1024)
-	   SetReadHandler(0x8000, 0xFFFF, Mapper466_ReadOB);
-   else
-	   SetReadHandler(0x8000, 0xFFFF, CartBR);
-   
+    
    if (regs[0] &0x40)
    {
       if (regs[0] &0x10)
@@ -83,13 +77,18 @@ static void Mapper466_Reset(void)
    Mapper466_Sync();
 }
 
+static DECLFR (interceptPRGRead) { /* Return open bus when selecting unpopulated PRG chip */
+	return regs[1] <<5 &0x20? X.DB: CartBR(A);
+}
+
 static void Mapper466_Power(void)
 {
    regs[0] =regs[1] =0;
    Mapper466_Sync();
    SetWriteHandler(0x5000, 0x5FFF, Mapper466_Write5000);
    SetWriteHandler(0x8000, 0xFFFF, Mapper466_WriteLatch);
-   SetReadHandler(0x6000, 0xFFFF, CartBR);
+   SetReadHandler(0x6000, 0x7FFF, CartBR);
+   SetReadHandler(0x8000, 0xFFFF, PRGsize[0] <1024*1024? interceptPRGRead: CartBR);
 }
 
 void Mapper466_Init(CartInfo *info)

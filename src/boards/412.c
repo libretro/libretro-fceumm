@@ -68,7 +68,7 @@ static void M412Reset(void) {
 static void M412Power(void) {
 	EXPREGS[0] =EXPREGS[1] =EXPREGS[2] =EXPREGS[3] =EXPREGS[4] =0;
 	GenMMC3Power();
-	SetReadHandler(0x5000, 0x5FFF, M412Read);
+	SetReadHandler(0x5000, 0x7FFF, M412Read);
 	SetWriteHandler(0x6000, 0x7FFF, M412Write);
 }
 

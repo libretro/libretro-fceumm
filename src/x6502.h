@@ -29,6 +29,7 @@ extern uint32_t timestamp;
 extern uint32_t sound_timestamp;
 extern X6502 X;
 extern uint8_t encryptOpcodes;
+extern uint8_t encryptOpcodesConfig;
 
 #define N_FLAG  0x80
 #define V_FLAG  0x40

@@ -1,7 +1,7 @@
-/* FCE Ultra - NES/Famicom Emulator
+/* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2025 NewRisingSun
+ *  Copyright (C) 2026 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,42 +16,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ *
  */
 
 #include "mapinc.h"
-#include "asic_latch.h"
-
-static uint8_t pad;
+#include "asic_mmc1.h"
 
 static void sync () {
-	if (Latch_address &0x01)
-		setprg32(0x8000, Latch_address >>2);
-	else {
-		setprg16(0x8000, Latch_address >>1);
-		setprg16(0xC000, Latch_address >>1);
-	}
-	setchr8(Latch_address >>1);
-	setmirror(Latch_address &0x10? MI_V: MI_H);
+	MMC1_syncPRG(0x0F, 0x00);
+	MMC1_syncCHR(0x1F, 0x00);
+	MMC1_syncMirror();
 }
 
-static DECLFR (interceptPRGRead) {
-	return Latch_address &pad &0x60? X.DB: CartBR(A);
+static DECLFW (writeReg) {
+	if (V &0x80)
+		MMC1_writeReg(0x8000, V);
+	else {
+		MMC1_writeReg(0x8000 | A <<13 &0x6000, V >>0 &1); MMC1_cpuCycle(2);
+		MMC1_writeReg(0x8000 | A <<13 &0x6000, V >>1 &1); MMC1_cpuCycle(2);
+		MMC1_writeReg(0x8000 | A <<13 &0x6000, V >>2 &1); MMC1_cpuCycle(2);
+		MMC1_writeReg(0x8000 | A <<13 &0x6000, V >>3 &1); MMC1_cpuCycle(2);
+		MMC1_writeReg(0x8000 | A <<13 &0x6000, V >>4 &1);
+	}
 }
 
 static void power () {
-	pad = 0;
-	Latch_power();
-	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
+	MMC1_power();
+	SetWriteHandler(0x6000, 0x7FFF, writeReg);
 }
 
-static void reset () {
-	pad += 0x20;
-	Latch_clear();
-}
-
-void Mapper585_Init (CartInfo *info) {
-	Latch_init(info, sync, 0x8000, 0xFFFF, NULL);
+void Mapper621_Init (CartInfo *info) {
+	MMC1_init(info, sync, MMC1_TYPE_MMC1A, NULL, NULL, NULL, NULL);
 	info->Power = power;
-	info->Reset = reset;
-	AddExState(&pad, 1, 0, "DIPS");
 }

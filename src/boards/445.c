@@ -63,12 +63,22 @@ static void sync () {
 		VRC24_syncMirror();
 	else
 		MMC3_syncMirror();
-	SetReadHandler(0x8000, 0xFFFF, reg[0] &0xC0 && (reg[0] &0xC0) == dip? NULL: CartBR);
+}
+
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* The Latch only overlaps the MMC3/VRC4 */
+	if (reg[3] &0x10)
+		VRC24_writeReg(*newAddress, *newValue);
+	else
+		MMC3_writeReg(*newAddress, *newValue);
+}
+
+static DECLFR (interceptPRGRead) {
+	return reg[0] &0xC0 && (reg[0] &0xC0) == dip? X.DB: CartBR(A);
 }
 
 static void applyMode (uint8_t clear) {
 	if ((reg[2] >>3 &7) >= 5)
-		Latch_activate(clear, sync, 0x8000, 0xFFFF, NULL);
+		Latch_activate(clear, sync, 0x8000, 0xFFFF, trapLatchWrite);
 	else
 	if (reg[3] &0x10) {
 		if (reg[3] &0x01)
@@ -77,6 +87,7 @@ static void applyMode (uint8_t clear) {
 			VRC4_activate(clear, sync, 0x05, 0x0A, 1, NULL, NULL, NULL, NULL, NULL);
 	} else
 		MMC3_activate(clear, sync, MMC3_TYPE_SHARP, NULL, NULL, NULL, NULL);
+	SetReadHandler(0x8000, 0xFFFF, interceptPRGRead);
 }
 
 static void Mapper445_restore (int version) {
@@ -95,7 +106,6 @@ static DECLFW (writeReg) {
 static void Mapper445_power(void) {
 	reg[0] = reg[1] = reg[2] = reg[3] = 0;
 	dip =0;
-	SetReadHandler(0x6000, 0xFFFF, CartBR);
 	SetWriteHandler(0x5000, 0x5FFF, writeReg);
 	applyMode(1);
 }

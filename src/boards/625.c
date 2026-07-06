@@ -21,44 +21,30 @@
 #include "mapinc.h"
 #include "asic_latch.h"
 
-static uint8_t submapper;
-static uint8_t reg;
-
 static void sync () {
-	if (submapper == 0 && (reg &0x07) == 0x00)
-		setprg32(0x8000, reg <<2 | Latch_data &3);
-	else {
-		setprg16(0x8000, reg <<3 | Latch_data &7);
-		setprg16(0xC000, reg <<3 |             7);
-	}
+	int prg = Latch_data >>1 &0x40 | Latch_address <<5 &0x20 | Latch_data &0x1F;
+	if (prg &0x40) prg ^= 0x20; /* 0,1,2,3 -> 0,1,3,2 so that the UNROM game comes at the end */
+	if (Latch_address &0x08) { /* UNROM mode */
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg |7);
+	} else
+	if (Latch_data &0x20) { /* NROM-128 mode */
+		setprg16(0x8000, prg);
+		setprg16(0xC000, prg);
+	} else /* NROM-256 mode */
+		setprg32(0x8000, prg >>1);
 	setchr8(0);
-	setmirror(reg &0x08? MI_H: MI_V);
+	setmirror(Latch_data &0x40? MI_V: MI_H);
 }
 
-static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* Jackal on the 11-in-1 needs AND-type bus conflicts. */
-	*newValue &= romValue;
+static void trapLatchWrite (uint16_t *newAddress, uint8_t *newValue, uint8_t romValue) { /* Only update PRG A14-A17 in UNROM mode. */
+	if (Latch_address &0x08) {
+		*newAddress = Latch_address;
+		*newValue = Latch_data &~0x07 | *newValue &0x07;
+	}
 }
 
-static DECLFW (writeReg) {
-	reg = V;
-	sync();
-}
-
-static void reset () {
-	reg = 0;
-	Latch_clear();
-}
-
-static void power () {
-	reg = 0;
-	Latch_power();
-	SetWriteHandler(0x5000, 0x5FFF, writeReg);
-}
-
-void Mapper343_Init (CartInfo *info) {
-	submapper = info->submapper;
+void Mapper625_Init (CartInfo *info) {
 	Latch_init(info, sync, 0x8000, 0xFFFF, trapLatchWrite);
-	info->Power = power;
-	info->Reset = reset;
-	AddExState(&reg, 1, 0, "REGS");
+	info->Reset = Latch_clear;
 }
