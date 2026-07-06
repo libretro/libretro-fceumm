@@ -819,7 +819,15 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 
 	if (battery) {
 		info->SaveGame[0] = WRAM;
-		if (wsize <= 16)
+		if (info->iNES2 && info->PRGRamSaveSize)
+			/* NES 2.0 declares the battery-backed size explicitly; honor it
+			 * (clamped to the allocation) so larger homebrew configurations
+			 * such as the 64K PRG-RAM used by Risa Tracker persist fully
+			 * instead of being truncated to the commercial 8K/32K sizes. */
+			info->SaveGameLen[0] = (info->PRGRamSaveSize < (uint32_t)wsize * 1024)
+			                       ? (uint32_t)info->PRGRamSaveSize
+			                       : (uint32_t)wsize * 1024;
+		else if (wsize <= 16)
 			info->SaveGameLen[0] = 8192;
 		else
 			info->SaveGameLen[0] = 32768;
