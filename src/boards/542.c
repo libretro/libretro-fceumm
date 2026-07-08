@@ -56,5 +56,5 @@ void Mapper542_Init (CartInfo *info) {
 	VRC4_init(info, sync, 0x01, 0x02, 1, NULL, NULL, NULL, NULL, NULL);
 	info->Power =power;
 	AddExState(stateRegs, ~0, 0, 0);
-	SetupCartCHRMapping(0x10, NTARAM, 0x200, 1);
+	SetupCartCHRMapping(0x10, NTARAM +0x400, 0x400, 1);
 }
