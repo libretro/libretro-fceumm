@@ -1429,15 +1429,15 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &sexyfilter2_acc, sizeof(sexyfilter2_acc) | FCEUSTATE_RLSB, "FAC3" },
 	{ &lq_tcout, sizeof(lq_tcout) | FCEUSTATE_RLSB, "TCOU"},
 
-/* 2018-12-14 - Wii and possibly other big-endian platforms are having
- * issues loading states with this. Increasing it only helps a few games.
- * Disabling this state variable for Wii/WiiU/GC for now. */
-/* TODO: fix this for better runahead feature for big-endian */
-/* UPDATE: Try to ignore this for all big-endian for now */
-#ifndef MSB_FIRST
+/* Historical note: this entry was excluded on big-endian hosts
+ * (2018-12-14, Wii state-load failures). The root causes are gone:
+ * FlipByteOrder's over-iteration no-op and ReadStateChunk's unchecked
+ * seek were both fixed, and FCEUSTATE_RLSB_ARRAY gives per-element
+ * byte-swapping so the int32_t array is stored little-endian on disk
+ * on every host. On LE builds the flag is inert and the on-disk
+ * format is unchanged. */
 	/* wave buffer is used for filtering, only need first 17 values from it */
-	{ &Wave, 32 * sizeof(int32_t), "WAVE"},
-#endif
+	{ &Wave, (32 * sizeof(int32_t)) | FCEUSTATE_RLSB_ARRAY(sizeof(int32_t)), "WAVE"},
 
 	{ 0 }
 };

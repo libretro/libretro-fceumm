@@ -57,8 +57,13 @@ static SFORMAT SStateRegs[] =
 	{ vpsg1, 8, "PSG1" },
 	{ vpsg2, 4, "PSG2" },
 
-/* Ignoring these sound state files for Wii since it causes states unable to load */
-#ifndef GEKKO
+/* These were excluded on Wii/GC (GEKKO) after 2018 reports of states
+ * failing to load on big-endian hosts. The failures traced back to the
+ * since-fixed FlipByteOrder over-iteration no-op and ReadStateChunk's
+ * unchecked skip-seek, not to these entries: they are plain 4-byte
+ * scalars with FCEUSTATE_RLSB, which the state layer byte-swaps
+ * correctly on MSB_FIRST hosts. Register them everywhere so big-endian
+ * builds save and restore the full expansion-audio state. */
 	/* rw - 2018-11-28 Added */
 	{ &cvbc[0], 4 | FCEUSTATE_RLSB, "BC01" },
 	{ &cvbc[1], 4 | FCEUSTATE_RLSB, "BC02" },
@@ -70,7 +75,6 @@ static SFORMAT SStateRegs[] =
 	{ &vcount[1], 4 | FCEUSTATE_RLSB, "VCT1" },
 	{ &vcount[2], 4 | FCEUSTATE_RLSB, "VCT2" },
 	{ &phaseacc, 4 | FCEUSTATE_RLSB, "ACCU" },
-#endif
 	{ 0 }
 };
 

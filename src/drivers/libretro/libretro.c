@@ -1051,6 +1051,23 @@ static void stereo_filter_apply_null(int32_t *sound_buffer, size_t size)
             (sound_buffer[i] & 0xFFFF);
 }
 
+/* Pack a (current, delayed) stereo sample pair into one int32_t such
+ * that the in-memory int16_t order seen by audio_batch_cb is the same
+ * on every host: delayed sample in the first (left) slot, current
+ * sample in the second (right) slot. On little-endian the low half of
+ * the word is stored first; on big-endian the high half is, so the
+ * two halves must be swapped to keep the interleaved channel order
+ * host-independent. (stereo_filter_apply_null needs no such handling
+ * because it duplicates the same mono sample into both halves.) */
+static INLINE int32_t stereo_filter_pack_pair(int32_t current, int32_t delayed)
+{
+#ifdef MSB_FIRST
+   return (delayed << 16) | (current & 0xFFFF);
+#else
+   return (current << 16) | (delayed & 0xFFFF);
+#endif
+}
+
 static void stereo_filter_apply_delay(int32_t *sound_buffer, size_t size)
 {
    size_t delay_capacity = stereo_filter_delay.samples_size -
@@ -1113,13 +1130,14 @@ static void stereo_filter_apply_delay(int32_t *sound_buffer, size_t size)
 
       /* Each element of sound_buffer is a 16 bit mono sample
        * stored in a 32 bit value. We convert this to stereo
-       * by copying the mono sample to the high (left channel)
-       * 16 bit region and the delayed sample to the low
-       * (right channel) region, casting sound_buffer
-       * to int16_t when uploading to the frontend */
+       * by mixing the current sample with the delayed sample
+       * as an interleaved pair, casting sound_buffer to
+       * int16_t when uploading to the frontend. The packing
+       * helper keeps the delayed/current channel order the
+       * same on little- and big-endian hosts. */
       for (i = size - samples_to_mix; i < size; i++)
-         sound_buffer[i] = (sound_buffer[i] << 16) |
-               (stereo_filter_delay.samples[delay_index++] & 0xFFFF);
+         sound_buffer[i] = stereo_filter_pack_pair(sound_buffer[i],
+               stereo_filter_delay.samples[delay_index++]);
 
       /* Remove the mixed samples from the delay buffer */
       memmove(stereo_filter_delay.samples,
