@@ -154,8 +154,19 @@ static void FCEU_BuildBgPairLUT(void)
 {
 	int b;
 	for (b = 0; b < 256; b++)
+	{
+#ifdef MSB_FIRST
+		/* Big-endian: the 64-bit tile word in pputile.h is stored
+		 * most-significant byte first, so the even (leftmost) pen of
+		 * each pair must live in the HIGH byte of the LUT entry for
+		 * it to land at the lower memory address. */
+		fceu_bg_pair_lut[b] = ((uint16_t)PALRAM[b & 0x0F] << 8) |
+		                       (uint16_t)PALRAM[b >> 4];
+#else
 		fceu_bg_pair_lut[b] = (uint16_t)PALRAM[b & 0x0F] |
 		                      ((uint16_t)PALRAM[b >> 4] << 8);
+#endif
+	}
 }
 
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]

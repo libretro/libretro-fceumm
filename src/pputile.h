@@ -31,11 +31,25 @@ if (X1 >= 2) {
 	 * a stack scratch (which the obvious __builtin_memcpy / packed-
 	 * struct form would force, costing the optimisation entirely). */
 	{
+#ifdef MSB_FIRST
+		/* Big-endian: bytes are stored most-significant first, so the
+		 * first pixel pair (pens 0-1) must occupy the TOP 16 bits of
+		 * the tile word to land at P[0]/P[1].  The LUT entries are
+		 * built with the even pen in the high byte (see
+		 * FCEU_BuildBgPairLUT), completing the mirror of the
+		 * little-endian layout below. */
+		uint64_t packed =
+			((uint64_t)fceu_bg_pair_lut[ pixdata        & 0xFF] << 48) |
+			((uint64_t)fceu_bg_pair_lut[(pixdata >>  8) & 0xFF] << 32) |
+			((uint64_t)fceu_bg_pair_lut[(pixdata >> 16) & 0xFF] << 16) |
+			 (uint64_t)fceu_bg_pair_lut[(pixdata >> 24) & 0xFF];
+#else
 		uint64_t packed =
 			(uint64_t)fceu_bg_pair_lut[ pixdata        & 0xFF]        |
 			((uint64_t)fceu_bg_pair_lut[(pixdata >>  8) & 0xFF] << 16) |
 			((uint64_t)fceu_bg_pair_lut[(pixdata >> 16) & 0xFF] << 32) |
 			((uint64_t)fceu_bg_pair_lut[(pixdata >> 24) & 0xFF] << 48);
+#endif
 #if defined(__GNUC__) || defined(__clang__)
 		/* may_alias + aligned(1) lets gcc emit a direct movq without
 		 * routing through a stack scratch. */
