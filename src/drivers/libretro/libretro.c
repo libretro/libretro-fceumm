@@ -41,6 +41,10 @@
 #include "../../unif.h"
 #include "../../fds.h"
 #include "../../vsuni.h"
+
+#ifdef HAVE_HDPACK
+#include "../../hdpack/hdpack.h"
+#endif
 #include "../../video.h"
 
 #ifdef PSP
@@ -166,6 +170,13 @@ static int aspect_ratio_par;
  * GET_CURRENT_SOFTWARE_FRAMEBUFFER returned a format we can write into
  * directly. */
 static enum retro_pixel_format active_pixformat = RETRO_PIXEL_FORMAT_UNKNOWN;
+
+#ifdef HAVE_HDPACK
+/* Set while a hires.txt parsed successfully in retro_load_game but the
+ * game itself has not finished loading yet (hdnes_active is only raised
+ * by HDNes_PostLoadInit). */
+static int hd_pack_pending = 0;
+#endif
 
 /*
  * Flags to keep track of whether turbo
@@ -336,6 +347,13 @@ const char * GetKeyboard(void)
 void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
 {
    uint16_t index_to_write = index;
+
+#ifdef HAVE_HDPACK
+   /* HD pack composition uses its own 32-bit palette so output follows
+    * the user's palette selection unless the pack ships palette.dat. */
+   if (index < 64)
+      HDNes_SetPaletteColor(index, r, g, b);
+#endif
 #if defined(RENDER_GSKIT_PS2)
    /* Index correction for PS2 GS */
    int modi = index & 63;
@@ -1837,6 +1855,20 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 {
    unsigned width  = NES_WIDTH  - crop_overscan_h_left - crop_overscan_h_right;
    unsigned height = NES_HEIGHT - crop_overscan_v_top - crop_overscan_v_bottom;
+#ifdef HAVE_HDPACK
+   if (hdnes_active)
+   {
+      unsigned scale = HDNes_GetScale();
+      info->geometry.base_width = width * scale;
+      info->geometry.max_width = NES_WIDTH * scale;
+      info->geometry.base_height = height * scale;
+      info->geometry.max_height = NES_HEIGHT * scale;
+      info->geometry.aspect_ratio = get_aspect_ratio(width, height);
+      info->timing.sample_rate = (float)sndsamplerate;
+      info->timing.fps = (FSettings.PAL || dendy) ? NES_PAL_FPS : NES_NTSC_FPS;
+      return;
+   }
+#endif
 #ifdef HAVE_NTSC_FILTER
    info->geometry.base_width = (use_ntsc ? NES_NTSC_OUT_WIDTH(width) : width);
    info->geometry.max_width = (use_ntsc ? NES_NTSC_WIDTH : NES_WIDTH);
@@ -2008,6 +2040,11 @@ void retro_reset(void)
     * different first-frame input than a fresh boot. */
    memset(turbo_button_toggle, 0, sizeof(turbo_button_toggle));
    ResetNES();
+#ifdef HAVE_HDPACK
+   /* Mapper power/reset handler reinstalls can shadow the HD audio
+    * registers; claim them back. */
+   HDNes_InstallAudioHandlers();
+#endif
 }
 
 static void set_apu_channels(int chan)
@@ -3127,6 +3164,25 @@ static void retro_run_blit(uint8_t *gfx)
    unsigned height = 240;
    unsigned pitch  = width * sizeof(bpp_t);
 
+#ifdef HAVE_HDPACK
+   if (hdnes_active)
+   {
+      const uint32_t *hdbuf = HDNes_ComposeFrame();
+      if (hdbuf)
+      {
+         unsigned scale   = HDNes_GetScale();
+         unsigned hwidth  = (NES_WIDTH - crop_overscan_h_left - crop_overscan_h_right) * scale;
+         unsigned hheight = (NES_HEIGHT - crop_overscan_v_top - crop_overscan_v_bottom) * scale;
+         size_t   stride  = (size_t)NES_WIDTH * scale;
+
+         video_cb(hdbuf + (size_t)crop_overscan_v_top * scale * stride
+                    + (size_t)crop_overscan_h_left * scale,
+               hwidth, hheight, stride * sizeof(uint32_t));
+         return;
+      }
+   }
+#endif
+
 #ifdef PSP
    if (crop_overscan)
    {
@@ -3301,9 +3357,21 @@ void retro_run(void)
    FCEUD_UpdateInput();
    FCEUI_Emulate(&gfx, &sound, &ssize, 0);
 
+#ifdef HAVE_HDPACK
+   if (hdnes_active)
+      HDNes_FrameEnd();
+#endif
+
    retro_run_blit(gfx);
 
    stereo_filter_apply(sound, ssize);
+#ifdef HAVE_HDPACK
+   if (hdnes_active)
+   {
+      HDNes_AudioStateSync();
+      HDNes_MixAudio(sound, (size_t)ssize, sndsamplerate);
+   }
+#endif
    audio_batch_cb((const int16_t*)sound, ssize);
 }
 
@@ -3889,6 +3957,46 @@ bool retro_load_game(const struct retro_game_info *info)
             sizeof(content_path));
    }
 
+#ifdef HAVE_HDPACK
+   /* Look for <system_dir>/HdPacks/<rom name>/hires.txt before pixel
+    * format negotiation: HD composition outputs XRGB8888 regardless of
+    * the build's native SD format. */
+   hd_pack_pending = 0;
+   {
+      struct retro_variable hd_var;
+      const char *hd_sys_dir = NULL;
+      int hd_enabled = 1;
+
+      hd_var.key = "fceumm_hdpacks";
+      hd_var.value = NULL;
+      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &hd_var) && hd_var.value)
+         hd_enabled = (strcmp(hd_var.value, "disabled") != 0);
+
+      if (hd_enabled &&
+            environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &hd_sys_dir) &&
+            hd_sys_dir)
+         hd_pack_pending = HDNes_LoadPack(hd_sys_dir, content_path);
+   }
+
+   if (hd_pack_pending)
+   {
+      pixformat = RETRO_PIXEL_FORMAT_XRGB8888;
+      if (environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixformat))
+      {
+         log_cb.log(RETRO_LOG_INFO, "HD pack found - using XRGB8888 output.\n");
+         active_pixformat = pixformat;
+      }
+      else
+      {
+         log_cb.log(RETRO_LOG_WARN, "Frontend refused XRGB8888; HD pack disabled.\n");
+         HDNes_Unload();
+         hd_pack_pending = 0;
+      }
+   }
+
+   if (!hd_pack_pending)
+#endif
+   {
 #ifdef FRONTEND_SUPPORTS_RGB888
    pixformat = RETRO_PIXEL_FORMAT_XRGB8888;
    if(environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixformat))
@@ -3906,6 +4014,7 @@ bool retro_load_game(const struct retro_game_info *info)
       }
    #endif
 #endif
+   }
 
    /* initialize some of the default variables */
 #ifdef GEKKO
@@ -3959,6 +4068,10 @@ bool retro_load_game(const struct retro_game_info *info)
 
    if (!GameInfo)
    {
+#ifdef HAVE_HDPACK
+      HDNes_Unload();
+      hd_pack_pending = 0;
+#endif
       /* On load failure the libretro frontend won't call retro_unload_game,
        * so free the framebuffer we just allocated to avoid leaking ~256 KB
        * per failed load. */
@@ -3991,6 +4104,22 @@ bool retro_load_game(const struct retro_game_info *info)
     * zero initialisation, which is the post-#75-fix steady state). */
    AddExState(turbo_button_toggle, sizeof(turbo_button_toggle), 0, "TBTG");
 
+#ifdef HAVE_HDPACK
+   if (hd_pack_pending)
+   {
+      /* Game is loaded: resolve CHR ROM info, fallback tiles, sprite
+       * limit and audio, then raise hdnes_active. */
+      HDNes_PostLoadInit();
+      if (hdnes_active)
+      {
+         HDNes_InstallAudioHandlers();
+         if (HDNes_HasAudio())
+            AddExState(&hdnes_audio_ss, sizeof(hdnes_audio_ss), 0, "HDAU");
+      }
+      hd_pack_pending = 0;
+   }
+#endif
+
    if (palette_switch_enabled)
       environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc_ps);
    else
@@ -4016,6 +4145,13 @@ bool retro_load_game(const struct retro_game_info *info)
    check_variables(true);
    stereo_filter_init();
    PowerNES();
+
+#ifdef HAVE_HDPACK
+   /* PowerNES resets every bus handler to the defaults and lets the
+    * mapper reinstall its own, so the HD audio registers must be
+    * claimed after it (same as in retro_reset). */
+   HDNes_InstallAudioHandlers();
+#endif
 
    FCEUI_DisableFourScore(1);
 
@@ -4123,6 +4259,9 @@ bool retro_load_game_special(
 
 void retro_unload_game(void)
 {
+#ifdef HAVE_HDPACK
+   HDNes_Unload();
+#endif
    FCEUI_CloseGame();
 #if defined(_3DS)
    if (fceu_video_out)

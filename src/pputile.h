@@ -14,6 +14,14 @@ uint32_t vadr;
 if (X1 >= 2) {
 	uint32_t pixdata;
 
+#ifdef HAVE_HDPACK
+	/* HD packs: remember the fine-x scroll active for this emitted
+	 * 8-pixel group so HDNes_RecordLine can map screen pixels back to
+	 * the two overlapping tile fetches that produced them. */
+	if (hdnes_active)
+		HDNes_RecordBgGroup(X1 - 2, XOffset);
+#endif
+
 	pixdata = ppulut1[(pshift[0] >> (8 - XOffset)) & 0xFF] | ppulut2[(pshift[1] >> (8 - XOffset)) & 0xFF];
 
 	pixdata |= ppulut3[XOffset | (atlatch << 3)];
@@ -124,6 +132,16 @@ pshift[1] <<= 8;
 #else
 	pshift[0] |= C[0];
 	pshift[1] |= C[8];
+#endif
+
+#if defined(HAVE_HDPACK) && !defined(PPU_BGFETCH)
+	/* HD packs: record this tile fetch (CHR tile base pointer,
+	 * attribute palette, fine-y).  The low 3 bits of vadr are the fine
+	 * scanline within the tile in every fetch variant, so C - (vadr&7)
+	 * is the 16-byte tile base.  The PEC586 interleaved layout
+	 * (PPU_BGFETCH) is not supported. */
+	if (hdnes_active)
+		HDNes_RecordBgFetch(X1, C - (vadr & 7), cc, (uint8_t)(vadr & 7));
 #endif
 
 if ((RefreshAddr & 0x1f) == 0x1f)

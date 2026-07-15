@@ -4,6 +4,7 @@ STATIC_LINKING=0
 ENDIANNESS_DEFINES=
 SIGNED_CHAR=0
 HAVE_NTSC=1
+HAVE_HDPACK=1
 WANT_32BPP=0
 
 SPACE :=
@@ -750,6 +751,13 @@ ifeq ($(SIGNED_CHAR), 1)
 endif
 
 CORE_DIR := src
+
+# Mesen HD texture pack support needs a 32bpp-capable frontend and a
+# reasonable amount of memory for the decoded artwork; keep it off on
+# constrained console targets and the palettized PS2/PSP render paths.
+ifneq (,$(filter $(platform), ps2 psp1 ctr dos ngc wii gekko))
+	HAVE_HDPACK = 0
+endif
 
 include Makefile.common
 

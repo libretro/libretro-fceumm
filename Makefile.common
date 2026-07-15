@@ -62,6 +62,44 @@ SOURCES_C += \
 	$(CORE_DIR)/unif.c \
 	$(CORE_DIR)/x6502.c
 
+ifeq ($(HAVE_HDPACK), 1)
+	COREDEFINES += -DHAVE_HDPACK -DHAVE_ZLIB=1 -DZ_SOLO
+	SOURCES_C += \
+		$(CORE_DIR)/hdpack/hdpack_load.c \
+		$(CORE_DIR)/hdpack/hdpack_image.c \
+		$(CORE_DIR)/hdpack/hdpack_ppu.c \
+		$(CORE_DIR)/hdpack/hdpack_render.c \
+		$(CORE_DIR)/hdpack/hdpack_audio.c \
+		$(LIBRETRO_COMM_DIR)/formats/png/rpng.c \
+		$(LIBRETRO_COMM_DIR)/formats/dds/rdds.c \
+		$(LIBRETRO_COMM_DIR)/formats/webp/rwebp.c \
+		$(LIBRETRO_COMM_DIR)/formats/vp8/rvp8.c \
+		$(LIBRETRO_COMM_DIR)/formats/vorbis/rvorbis.c \
+		$(LIBRETRO_COMM_DIR)/formats/wav/rwav.c \
+		$(LIBRETRO_COMM_DIR)/streams/trans_stream.c \
+		$(LIBRETRO_COMM_DIR)/streams/trans_stream_pipe.c \
+		$(LIBRETRO_COMM_DIR)/streams/trans_stream_zlib.c
+
+	# rpng's IDAT inflate needs zlib; use the system library when the
+	# platform provides one (EXTERNAL_ZLIB=1), else build the bundled
+	# inflate-only zlib 1.2.8 subset.
+	ifeq ($(EXTERNAL_ZLIB), 1)
+		LIBS += -lz
+	else
+		INCFLAGS += -I$(CORE_DIR)/drivers/libretro/deps/zlib
+		SOURCES_C += \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/adler32.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/crc32.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/deflate.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/inffast.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/inflate.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/inftrees.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/trees.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/zutil.c \
+			$(CORE_DIR)/drivers/libretro/deps/zlib/zsolo_alloc.c
+	endif
+endif
+
 # memory_stream is consumed directly by the core's savestate code
 # (state.c / FCEUSS_Save_Mem / FCEUSS_Load_Mem) and must be linked into
 # the core itself even on statically-linked platforms, where the frontend

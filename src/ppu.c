@@ -38,6 +38,10 @@
 #include        "video.h"
 #include        "input.h"
 
+#ifdef HAVE_HDPACK
+#include        "hdpack/hdpack.h"
+#endif
+
 #define VBlankON        (PPU[0] & 0x80)		/* Generate VBlank NMI */
 #define Sprite16        (PPU[0] & 0x20)		/* Sprites 8x16/8x8 */
 #define BGAdrHI         (PPU[0] & 0x10)		/* BG pattern adr $0000/$1000 */
@@ -697,6 +701,13 @@ static void DoLine(void)
 	target = XBuf + ((scanline < 240 ? scanline : 240) << 8);
 	dtarget = XDBuf + ((scanline < 240 ? scanline : 240) << 8);
 
+#ifdef HAVE_HDPACK
+	/* HD packs: snapshot the loopy-t / fine-x scroll registers at line
+	 * start and invalidate the per-line tile fetch slots. */
+	if (hdnes_active && scanline < 240)
+		HDNes_LineStart(scanline);
+#endif
+
 	if (MMC5Hack && (ScreenON || SpriteON)) MMC5_hb(scanline);
 
 	X6502_Run(256);
@@ -708,6 +719,15 @@ static void DoLine(void)
 		tem |= 0x40404040;
 		FCEU_dwmemset(target, tem, 256);
 	}
+
+#ifdef HAVE_HDPACK
+	/* HD packs: the line's XBuf still holds pure background pixels
+	 * here (bit 6 = colour-0 transparency), which is exactly what the
+	 * per-pixel HD screen info needs; sprites are merged from the
+	 * records made by FetchSpriteData on the previous line. */
+	if (hdnes_active && scanline < 240)
+		HDNes_RecordLine(scanline, target, rendis);
+#endif
 
 	if (SpriteON)
 		CopySprites(target);
@@ -798,6 +818,11 @@ static void FetchSpriteData(void) {
 	vofs = (uint32_t)(P0 & 0x8 & (((P0 & 0x20) ^ 0x20) >> 2)) << 9;
 	H += (P0 & 0x20) >> 2;
 
+#ifdef HAVE_HDPACK
+	if (hdnes_active)
+		HDNes_SpriteFetchStart();
+#endif
+
 	if (!PPU_hook)
 		for (n = 63; n >= 0; n--, spr++) {
 			if ((uint32_t)(scanline - spr->y) >= H) continue;
@@ -844,6 +869,18 @@ static void FetchSpriteData(void) {
 					 * strict-alignment hosts. The compiler emits the
 					 * same single 32-bit move on x86/ARM. */
 					memcpy(&SPRBUF[ns << 2], &dst, 4);
+
+#ifdef HAVE_HDPACK
+					/* HD packs: record the sprite for next
+					 * line's per-pixel assembly.  vadr has
+					 * v-flip and the 8x16 half applied, so
+					 * (vadr & 7) is the source row and
+					 * C - (vadr & 7) the 16-byte tile base. */
+					if (hdnes_active)
+						HDNes_RecordSprite(ns, spr->x, spr->atr,
+							C - (vadr & 7), (uint8_t)(vadr & 7),
+							dst.ca[0], dst.ca[1]);
+#endif
 				}
 
 				ns++;
@@ -897,6 +934,18 @@ static void FetchSpriteData(void) {
 
 
 					memcpy(&SPRBUF[ns << 2], &dst, 4);
+
+#ifdef HAVE_HDPACK
+					/* HD packs: record the sprite for next
+					 * line's per-pixel assembly.  vadr has
+					 * v-flip and the 8x16 half applied, so
+					 * (vadr & 7) is the source row and
+					 * C - (vadr & 7) the 16-byte tile base. */
+					if (hdnes_active)
+						HDNes_RecordSprite(ns, spr->x, spr->atr,
+							C - (vadr & 7), (uint8_t)(vadr & 7),
+							dst.ca[0], dst.ca[1]);
+#endif
 				}
 
 				ns++;

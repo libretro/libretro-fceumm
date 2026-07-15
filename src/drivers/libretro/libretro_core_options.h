@@ -292,6 +292,22 @@ struct retro_core_option_v2_definition option_defs[] = {
       "disabled"
    },
 #endif
+#ifdef HAVE_HDPACK
+   {
+      "fceumm_hdpacks",
+      "HD Texture Packs (Restart)",
+      NULL,
+      "Load Mesen-format HD texture packs from '<system>/HdPacks/<rom name>/hires.txt' when present. Replaces tiles/sprites with high-resolution artwork (PNG, DDS or WebP) and enables the pack's custom backgrounds and OGG/WAV music and sound effects. Requires a frontend that supports XRGB8888 output.",
+      NULL,
+      "video",
+      {
+         { "enabled",  NULL },
+         { "disabled", NULL },
+         { NULL, NULL },
+      },
+      "enabled"
+   },
+#endif
    {
       "fceumm_sndrate_hint",
       "Sound Samplerate (Hint)",
