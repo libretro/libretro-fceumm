@@ -8,6 +8,8 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include <compat/msvc.h>
+
 #include "../fceu-types.h"
 #include "../fceu.h"
 #include "../driver.h"
