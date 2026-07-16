@@ -51,7 +51,7 @@ RETRO_BEGIN_DECLS
 char *strtok_r(char *str, const char *delim, char **saveptr);
 #endif
 
-#if defined(_MSC_VER) || defined(DOXYGEN)
+#if defined(_WIN32) || defined(DOXYGEN)
 #undef strcasecmp
 #undef strdup
 
@@ -74,7 +74,7 @@ int strcasecmp(const char *a, const char *b);
 char *strdup(const char *orig);
 
 /* isblank is available since MSVC 2013 */
-#if _MSC_VER < 1800
+#if !defined(_MSC_VER) || (_MSC_VER < 1800)
 #undef isblank
 #define isblank(c)       retro_isblank__(c)
 /**

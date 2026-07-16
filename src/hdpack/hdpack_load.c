@@ -768,7 +768,9 @@ static void hd_process_condition(char **tok, int ntok, int inverted)
    c->negate = (uint8_t)(inverted ? 1 : 0);
 
    {
-      char trimmed[HD_COND_NAME_LEN];
+      /* one byte shorter than c->name so the optional '!' prefix always
+       * fits (also silences -Wformat-truncation) */
+      char trimmed[HD_COND_NAME_LEN - 1];
       strncpy(trimmed, tok[0], sizeof(trimmed) - 1);
       trimmed[sizeof(trimmed) - 1] = '\0';
       hd_rtrim(trimmed);

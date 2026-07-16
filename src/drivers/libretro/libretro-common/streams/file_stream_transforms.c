@@ -25,6 +25,10 @@
 
 #include <libretro.h>
 #include <streams/file_stream.h>
+/* Pull in the rf* prototypes without redirecting the real stdio
+ * functions this file is implemented on top of. */
+#define SKIP_STDIO_REDEFINES
+#include <streams/file_stream_transforms.h>
 
 RFILE* rfopen(const char *path, const char *mode)
 {

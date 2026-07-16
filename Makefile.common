@@ -94,6 +94,12 @@ ifeq ($(HAVE_HDPACK), 1)
 	# Z_PREFIX list omits it even though every zlib in the world exports
 	# that exact name -- rename it explicitly.
 	COREDEFINES += -DZ_PREFIX -Dz_errmsg=fceu_z_errmsg
+# zlib compiles its LFS-conditional *64 combine functions even when
+# neither Z_LARGE64 nor Z_WANT64 exposes their prototypes; upstream
+# zlib does not build with -Wmissing-prototypes, so drop that flag for
+# the vendored translation units only. (No tab indent: this is a
+# pattern-specific variable, not a recipe line.)
+$(CORE_DIR)/drivers/libretro/deps/zlib/%.o: CFLAGS += -Wno-missing-prototypes
 	INCFLAGS += -I$(CORE_DIR)/drivers/libretro/deps/zlib
 	SOURCES_C += \
 		$(CORE_DIR)/drivers/libretro/deps/zlib/adler32.c \

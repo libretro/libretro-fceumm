@@ -824,7 +824,7 @@ static void GenMMC5_Init(CartInfo *info, int wsize, int battery) {
 			 * (clamped to the allocation) so larger homebrew configurations
 			 * such as the 64K PRG-RAM used by Risa Tracker persist fully
 			 * instead of being truncated to the commercial 8K/32K sizes. */
-			info->SaveGameLen[0] = (info->PRGRamSaveSize < (uint32_t)wsize * 1024)
+			info->SaveGameLen[0] = ((uint32_t)info->PRGRamSaveSize < (uint32_t)wsize * 1024)
 			                       ? (uint32_t)info->PRGRamSaveSize
 			                       : (uint32_t)wsize * 1024;
 		else if (wsize <= 16)

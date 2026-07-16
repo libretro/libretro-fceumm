@@ -99,9 +99,9 @@ need to be full of platform-specific workarounds.
 #endif
 
 /* MSVC obviously has to have some non-standard constants... */
-#if _M_IX86_FP == 1
+#if defined(_M_IX86_FP) && (_M_IX86_FP == 1)
 #define __SSE__ 1
-#elif _M_IX86_FP == 2 || (defined(_M_AMD64) || defined(_M_X64))
+#elif (defined(_M_IX86_FP) && (_M_IX86_FP == 2)) || (defined(_M_AMD64) || defined(_M_X64))
 #define __SSE__ 1
 #define __SSE2__ 1
 #endif
