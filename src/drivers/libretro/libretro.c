@@ -353,9 +353,12 @@ void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
 
 #ifdef HAVE_HDPACK
    /* HD pack composition uses its own 32-bit palette so output follows
-    * the user's palette selection unless the pack ships palette.dat. */
-   if (index < 64)
-      HDNes_SetPaletteColor(index, r, g, b);
+    * the user's palette selection unless the pack ships palette.dat.
+    * WritePalette() installs the visible 64-colour NES palette at
+    * frontend indices 128..191 (0..127 is the "unvaried" region padded
+    * with 205,205,205 filler), so capture that window. */
+   if (index >= 128 && index < 128 + 64)
+      HDNes_SetPaletteColor(index - 128, r, g, b);
 #endif
 #if defined(RENDER_GSKIT_PS2)
    /* Index correction for PS2 GS */

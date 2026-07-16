@@ -596,7 +596,7 @@ static void hd_on_line_start(int y)
    }
 }
 
-static void hd_draw_background_layer(uint8_t cfg_index, uint32_t x,
+static int hd_draw_background_layer(uint8_t cfg_index, uint32_t x,
       uint32_t y, uint32_t *out, uint32_t screen_width)
 {
    const hd_bg_cfg *cfg = &hd_bg_cfgs[cfg_index];
@@ -605,7 +605,9 @@ static void hd_draw_background_layer(uint8_t cfg_index, uint32_t x,
       const hd_background *bg = &hd.bgs[cfg->priority][cfg->bg_index];
       hd_draw_custom_background(bg, out, x + cfg->scroll_x,
             y + cfg->scroll_y, screen_width, hd.scale);
+      return 1;
    }
+   return 0;
 }
 
 /* ---- tile lookup ------------------------------------------------------------ */
@@ -957,6 +959,7 @@ static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
    int render_original =
          (hd.option_flags & HD_OPT_NO_ORIGINAL_TILES) == 0;
    int lowest_bg_sprite = 999;
+   int has_background = 0;
    uint32_t scale = hd.scale;
    int i;
    int k;
@@ -964,11 +967,14 @@ static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
    if (px->tile.tile_index != HD_NO_TILE)
       hd_tile = hd_get_cached_matching_tile(x, y, &px->tile);
 
+
+
    hd_draw_color(hd_palette[px->tile.ppu_bg_color], out, screen_width,
          scale);
 
    for (i = 0; i < hd_active_bg_count[0]; i++)
-      hd_draw_background_layer((uint8_t)(0 * HD_PRIO_PER_LAYER + i),
+      has_background |= hd_draw_background_layer(
+            (uint8_t)(0 * HD_PRIO_PER_LAYER + i),
             x, y, out, screen_width);
 
    if (has_sprite)
@@ -991,14 +997,19 @@ static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
    }
 
    for (i = 0; i < hd_active_bg_count[1]; i++)
-      hd_draw_background_layer((uint8_t)(1 * HD_PRIO_PER_LAYER + i),
+      has_background |= hd_draw_background_layer(
+            (uint8_t)(1 * HD_PRIO_PER_LAYER + i),
             x, y, out, screen_width);
 
    if (hd_tile)
       hd_draw_tile(&px->tile, hd_tile, out, screen_width, scale);
    else if (render_original)
    {
-      if (px->tile.bg_color_index != 0)
+      /* Mesen parity: without an active custom background at this
+       * pixel the SD colour is drawn even for colour index 0 (the
+       * backdrop) - this is what hides behind-background sprite
+       * pixels where the BG is transparent. */
+      if (!has_background || px->tile.bg_color_index != 0)
          hd_draw_color(hd_palette[px->tile.bg_color], out,
                screen_width, scale);
    }
@@ -1091,6 +1102,7 @@ static void hd_process_grayscale_emphasis(int line, uint32_t *out,
 
 const uint32_t *HDNes_ComposeFrame(void)
 {
+
    uint32_t screen_width = HD_SCREEN_WIDTH * hd.scale;
    uint32_t i;
    int layer;
