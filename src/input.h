@@ -27,7 +27,7 @@ extern void (*InputScanlineHook)(uint8_t *bg, uint8_t *spr, uint32_t linets, int
 
 void FCEU_DoSimpleCommand(int cmd);
 
-/* Input device initialisers. Defined in src/input/*.c, called from
+/* Input device initialisers. Defined in the src/input sources, called from
  * src/input.c. Centralised here so each .c file can include this
  * header and get a matching prototype, satisfying
  * -Wmissing-prototypes. */
