@@ -28,6 +28,14 @@ typedef struct hd_bg_cfg
    int32_t scroll_y;
    int32_t min_x;
    int32_t max_x;
+   /* Per-line cache, filled by hd_on_line_start so the per-pixel draw
+    * avoids re-deriving the bitmap, blend mode and brightness. */
+   const uint32_t *row;          /* first source pixel for this line, at
+                                  * bitmap column (left - scroll_x)*scale */
+   uint32_t        bmp_width;
+   uint8_t         blend_mode;
+   uint8_t         brightness;
+   uint8_t         simple_copy;  /* scale==1, ALPHA blend, brightness 255 */
 } hd_bg_cfg;
 
 static hd_bg_cfg hd_bg_cfgs[HD_BG_LAYER_COUNT];
@@ -583,9 +591,24 @@ static void hd_on_line_start(int y)
                (uint32_t)((y + (int32_t)bg->top + cfg->scroll_y + 1) *
                   (int32_t)hd.scale) <= bmp->height)
          {
+            uint32_t sc = hd.scale;
             cfg->min_x = -cfg->scroll_x;
-            cfg->max_x = (int32_t)(bmp->width / hd.scale) -
+            cfg->max_x = (int32_t)(bmp->width / sc) -
                   (int32_t)bg->left - cfg->scroll_x - 1;
+            /* Cache the source row and draw parameters for the per-pixel
+             * loop. The source column for screen x is
+             * (bg->left + x + scroll_x)*scale; store the base at x==0 so
+             * the draw can index by (x + scroll_x). */
+            cfg->bmp_width  = bmp->width;
+            cfg->row = bmp->pixels +
+                  (size_t)((bg->top + y + cfg->scroll_y) * sc) *
+                     bmp->width +
+                  (size_t)((int32_t)bg->left) * sc;
+            cfg->blend_mode = bg->blend_mode;
+            cfg->brightness = bg->brightness;
+            cfg->simple_copy = (uint8_t)(sc == 1 &&
+                  bg->blend_mode == HD_BLEND_ALPHA &&
+                  bg->brightness == 255);
          }
          else
          {
@@ -596,18 +619,38 @@ static void hd_on_line_start(int y)
    }
 }
 
-static int hd_draw_background_layer(uint8_t cfg_index, uint32_t x,
+static INLINE int hd_draw_background_layer(uint8_t cfg_index, uint32_t x,
       uint32_t y, uint32_t *out, uint32_t screen_width)
 {
    const hd_bg_cfg *cfg = &hd_bg_cfgs[cfg_index];
-   if ((int32_t)x >= cfg->min_x && (int32_t)x <= cfg->max_x)
+   const uint32_t *png;
+   uint32_t pixel;
+
+   if ((int32_t)x < cfg->min_x || (int32_t)x > cfg->max_x)
+      return 0;
+
+   /* Fast path: scale 1, ALPHA blend, no brightness adjust. Most
+    * backgrounds (full-screen backdrops, HUD overlays) are exactly
+    * this, so specialise it to a single load + opaque store/alpha
+    * blend with no inner scale loops and no blend-mode switch. */
+   png = cfg->row + (size_t)((int32_t)x + cfg->scroll_x);
+   if (cfg->simple_copy)
+   {
+      pixel = *png;
+      if (pixel >= 0xFF000000u)
+         *out = pixel;
+      else if (pixel >= 0x01000000u)
+         hd_blend_alpha((uint8_t*)out, (const uint8_t*)&pixel);
+      return 1;
+   }
+
+   /* General path (scale > 1, non-alpha blend, or brightness). */
    {
       const hd_background *bg = &hd.bgs[cfg->priority][cfg->bg_index];
       hd_draw_custom_background(bg, out, x + cfg->scroll_x,
             y + cfg->scroll_y, screen_width, hd.scale);
-      return 1;
    }
-   return 0;
+   return 1;
 }
 
 /* ---- tile lookup ------------------------------------------------------------ */
