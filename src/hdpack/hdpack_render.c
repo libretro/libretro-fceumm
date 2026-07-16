@@ -964,7 +964,14 @@ static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
    int i;
    int k;
 
-   if (px->tile.tile_index != HD_NO_TILE)
+   /* CHR-RAM tiles are keyed by tile data, not index, and the PPU
+    * recorder legitimately leaves tile_index at HD_NO_TILE for them
+    * (e.g. the partial tile in the leftmost fine-x-scrolled column).
+    * Gating the lookup on tile_index != HD_NO_TILE therefore skipped
+    * CHR-RAM matches for that column, leaving the raw SD tile visible
+    * as a moving vertical strip. Match by data for CHR-RAM regardless
+    * of index (Mesen looks up unconditionally by key). */
+   if (px->tile.is_chr_ram || px->tile.tile_index != HD_NO_TILE)
       hd_tile = hd_get_cached_matching_tile(x, y, &px->tile);
 
 
