@@ -1594,6 +1594,13 @@ int HDNes_HasAudio(void)
    return hdnes_active && (hd.bgm_count > 0 || hd.sfx_count > 0);
 }
 
+static int hd_pack_loaded = 0;
+
+int HDNes_PackLoaded(void)
+{
+   return hd_pack_loaded;
+}
+
 int HDNes_LoadPack(const char *system_dir, const char *rom_path)
 {
    const char *base;
@@ -1645,6 +1652,7 @@ int HDNes_LoadPack(const char *system_dir, const char *rom_path)
    hd_log("HD pack loaded: scale %ux, %u tiles, %u conditions, "
          "%u bgm, %u sfx", hd.scale, hd.tile_count, hd.cond_count,
          hd.bgm_count, hd.sfx_count);
+   hd_pack_loaded = 1;
    return 1;
 }
 
@@ -1784,6 +1792,8 @@ void HDNes_PostLoadInit(void)
 void HDNes_Unload(void)
 {
    uint32_t i;
+
+   hd_pack_loaded = 0;
 
    hdnes_active = 0;
    hd_audio_free();

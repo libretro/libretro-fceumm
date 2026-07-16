@@ -51,6 +51,11 @@ extern int hdnes_active;
  * successfully loaded. */
 int HDNes_LoadPack(const char *system_dir, const char *rom_path);
 
+/* Nonzero between a successful HDNes_LoadPack and HDNes_Unload; used
+ * by the loader to apply Mesen-parity initialisation (e.g. zeroed
+ * CHR RAM) while a pack is in play. */
+int HDNes_PackLoaded(void);
+
 /* Must be called after FCEUI_LoadGame succeeded: resolves CHR ROM
  * information, fallback tiles, sprite-limit option and allocates the
  * screen-info buffers. */

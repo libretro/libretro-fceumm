@@ -969,6 +969,7 @@ static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
 
 
 
+
    hd_draw_color(hd_palette[px->tile.ppu_bg_color], out, screen_width,
          scale);
 

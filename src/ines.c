@@ -40,6 +40,9 @@
 #include "crc32.h"
 #include "md5.h"
 #include "cheat.h"
+#ifdef HAVE_HDPACK
+#include "hdpack/hdpack.h"
+#endif
 #include "vsuni.h"
 
 extern SFORMAT FCEUVSUNI_STATEINFO[];
@@ -1473,12 +1476,26 @@ static int iNES_Init(int num) {
 				}
 				if (CHRRAMSize > 0) { /* TODO: CHR-RAM are sometimes handled in mappers e.g. MMC1 using submapper 1/2/4 and CHR-RAM can be zero here */
 					if ((VROM = (uint8_t*)malloc(CHRRAMSize)) == NULL) return 0;
+#ifdef HAVE_HDPACK
+					/* HD packs key replacement tiles and conditions by
+					 * CHR tile data and are authored against Mesen,
+					 * whose RAM power-on default is all zeros. Tiles a
+					 * game never writes must stay all-zero (invisible,
+					 * colour 0) rather than taking the RAM-state fill
+					 * pattern, which turns them into solid colour-3
+					 * blocks that no pack entry matches. */
+					if (HDNes_PackLoaded())
+						memset(VROM, 0, CHRRAMSize);
+					else
+#endif
+					{
 					/* Seed the deterministic memory PRNG from the cart's
 					 * PRG CRC32 so the same ROM always produces the same
 					 * initial CHR-RAM contents but different ROMs differ.
 					 * iNESCart.PRGCRC32 was set above. */
 					FCEU_MemoryRand_Reseed(iNESCart.PRGCRC32);
 					FCEU_MemoryRand(VROM, CHRRAMSize);
+					}
 					UNIFchrrama = VROM;
 					SetupCartCHRMapping(0, VROM, CHRRAMSize, 1);
 					AddExState(VROM, CHRRAMSize, 0, "CHRR");
