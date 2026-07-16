@@ -260,11 +260,51 @@ malformed:
 
 /* ---- public entry point ------------------------------------------------ */
 
+/* Hash-match tolerant of iNES header variants: packs store the SHA-1
+ * of the file the author had, but the same game circulates with
+ * iNES 1.0, NES 2.0 and garbage-padded ("DiskDude!") headers whose
+ * PRG/CHR are identical. Digests tried, in order:
+ *   0: the file exactly as delivered (Mesen's semantics)
+ *   1: with an iNES 1.0-normalised header (bytes 7..15 zeroed)
+ *   2: PRG/CHR only (header stripped)
+ * Variants 1/2 only apply when the file carries an iNES signature. */
+#define HD_ROM_DIGESTS 3
+
+static void hd_rom_digests(const uint8_t *rom, size_t rom_size,
+      uint8_t digests[HD_ROM_DIGESTS][20], int *count)
+{
+   hd_sha1_ctx ctx;
+   int is_ines = rom_size > 16 && rom[0] == 'N' && rom[1] == 'E' &&
+         rom[2] == 'S' && rom[3] == 0x1A;
+
+   hd_sha1_init(&ctx);
+   hd_sha1_update(&ctx, rom, rom_size);
+   hd_sha1_final(&ctx, digests[0]);
+   *count = 1;
+
+   if (is_ines)
+   {
+      uint8_t hdr[16];
+      memcpy(hdr, rom, 16);
+      memset(hdr + 7, 0, 9);
+      hd_sha1_init(&ctx);
+      hd_sha1_update(&ctx, hdr, 16);
+      hd_sha1_update(&ctx, rom + 16, rom_size - 16);
+      hd_sha1_final(&ctx, digests[1]);
+
+      hd_sha1_init(&ctx);
+      hd_sha1_update(&ctx, rom + 16, rom_size - 16);
+      hd_sha1_final(&ctx, digests[2]);
+      *count = 3;
+   }
+}
+
 int HDNes_PatchRom(const uint8_t *rom, size_t rom_size,
       uint8_t **patched, size_t *patched_size)
 {
-   uint8_t digest[20];
-   hd_sha1_ctx ctx;
+   uint8_t digests[HD_ROM_DIGESTS][20];
+   int digest_count = 0;
+   int d;
    uint32_t i;
 
    *patched = NULL;
@@ -273,13 +313,15 @@ int HDNes_PatchRom(const uint8_t *rom, size_t rom_size,
    if (!hd.patch_count || !rom || !rom_size)
       return 0;
 
-   hd_sha1_init(&ctx);
-   hd_sha1_update(&ctx, rom, rom_size);
-   hd_sha1_final(&ctx, digest);
+   hd_rom_digests(rom, rom_size, digests, &digest_count);
 
    for (i = 0; i < hd.patch_count; i++)
    {
-      if (memcmp(hd.patches[i].sha1, digest, 20) == 0)
+      int match = 0;
+      for (d = 0; d < digest_count; d++)
+         if (memcmp(hd.patches[i].sha1, digests[d], 20) == 0)
+            match = 1;
+      if (match)
       {
          uint8_t *ips = NULL;
          size_t ips_size = 0;
