@@ -36,6 +36,7 @@ extern uint8_t PALRAM[0x20];
 extern uint8_t UPALRAM[0x03];
 extern uint8_t XOffset;
 extern uint32_t TempAddr;
+extern uint32_t RefreshAddr;
 
 #define HD_ATR_VFLIP   0x80
 #define HD_ATR_HFLIP   0x40
@@ -125,7 +126,15 @@ void HDNes_LineStart(int line)
    if (line < 0 || line >= HD_SCREEN_HEIGHT)
       return;
    hd_cur_line = line;
-   hd_screen.line_tmp_vram_addr[line] = (uint16_t)(TempAddr & 0x7FFF);
+   /* Snapshot the *active* loopy-V scroll (RefreshAddr), not the T
+    * latch: fceumm restores V's horizontal bits from T each scanline
+    * and clears TempAddr, so TempAddr reads 0 mid-frame. The HD
+    * compositor decodes this value as loopy-V (coarse/fine X and Y,
+    * nametable select), matching the SD renderer which scrolls from
+    * RefreshAddr. Reading TempAddr made every line scroll as 0, so the
+    * rightmost columns scrolled in showed the backdrop's leftmost
+    * (unscrolled) pixels - residue during rightward scroll. */
+   hd_screen.line_tmp_vram_addr[line] = (uint16_t)(RefreshAddr & 0x7FFF);
    hd_screen.line_x_scroll[line] = (uint8_t)(XOffset & 7);
    for (i = 0; i < HD_BG_FETCH_SLOTS; i++)
       hd_bg_slots[i].valid = 0;
