@@ -176,6 +176,9 @@ static enum retro_pixel_format active_pixformat = RETRO_PIXEL_FORMAT_UNKNOWN;
  * game itself has not finished loading yet (hdnes_active is only raised
  * by HDNes_PostLoadInit). */
 static int hd_pack_pending = 0;
+/* Soft-patched ROM copy produced from the pack's <patch> IPS; owned
+ * here for the lifetime of the loaded game. */
+static uint8_t *hd_patched_rom = NULL;
 #endif
 
 /*
@@ -4063,6 +4066,67 @@ bool retro_load_game(const struct retro_game_info *info)
    FCEUI_SetSoundVolume(sndvolume);
    FCEUI_Sound(sndsamplerate);
 
+#ifdef HAVE_HDPACK
+   /* Apply the pack's <patch> IPS (SHA-1 verified) to an in-memory
+    * copy so packs that rely on soft-patched game behaviour - e.g.
+    * button-driven overlay triggers - work out of the box, matching
+    * Mesen. */
+   if (hd_patched_rom)
+   {
+      free(hd_patched_rom);
+      hd_patched_rom = NULL;
+   }
+   if (hd_pack_pending)
+   {
+      const uint8_t *hd_rom      = content_data;
+      size_t hd_rom_size         = content_size;
+      uint8_t *hd_file_buf       = NULL;
+      size_t hd_patched_size     = 0;
+
+      /* Fall back to the classic game_info buffer, then to reading the
+       * content file, for frontends without GAME_INFO_EXT or with
+       * need_fullpath loading. */
+      if (!hd_rom && info && info->data && info->size)
+      {
+         hd_rom      = (const uint8_t *)info->data;
+         hd_rom_size = info->size;
+      }
+      if (!hd_rom && content_path[0])
+      {
+         FILE *hd_f = fopen(content_path, "rb");
+         if (hd_f)
+         {
+            long hd_len;
+            fseek(hd_f, 0, SEEK_END);
+            hd_len = ftell(hd_f);
+            fseek(hd_f, 0, SEEK_SET);
+            if (hd_len > 0)
+            {
+               hd_file_buf = (uint8_t*)malloc((size_t)hd_len);
+               if (hd_file_buf &&
+                     fread(hd_file_buf, 1, (size_t)hd_len, hd_f) ==
+                        (size_t)hd_len)
+               {
+                  hd_rom      = hd_file_buf;
+                  hd_rom_size = (size_t)hd_len;
+               }
+            }
+            fclose(hd_f);
+         }
+      }
+
+      if (hd_rom &&
+            HDNes_PatchRom(hd_rom, hd_rom_size, &hd_patched_rom,
+               &hd_patched_size))
+      {
+         content_data = hd_patched_rom;
+         content_size = hd_patched_size;
+      }
+      if (hd_file_buf)
+         free(hd_file_buf);
+   }
+#endif
+
    GameInfo = (FCEUGI*)FCEUI_LoadGame(content_path, content_data, content_size,
          frontend_post_load_init);
 
@@ -4261,6 +4325,11 @@ void retro_unload_game(void)
 {
 #ifdef HAVE_HDPACK
    HDNes_Unload();
+   if (hd_patched_rom)
+   {
+      free(hd_patched_rom);
+      hd_patched_rom = NULL;
+   }
 #endif
    FCEUI_CloseGame();
 #if defined(_3DS)

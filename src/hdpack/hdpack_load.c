@@ -102,6 +102,19 @@ static void hd_rtrim(char *s)
       s[--len] = '\0';
 }
 
+/* hires.txt paths routinely use Windows separators
+ * ("Backdrops\\file.png"); normalize to forward slashes, which every
+ * supported platform's fopen accepts. */
+static void hd_normalize_path(char *p)
+{
+   while (*p)
+   {
+      if (*p == '\\')
+         *p = '/';
+      p++;
+   }
+}
+
 static int hd_load_file(const char *filename, uint8_t **data, size_t *size)
 {
    char path[1600];
@@ -110,6 +123,7 @@ static int hd_load_file(const char *filename, uint8_t **data, size_t *size)
    uint8_t *buf;
 
    snprintf(path, sizeof(path), "%s/%s", hd.pack_dir, filename);
+   hd_normalize_path(path);
    f = fopen(path, "rb");
    if (!f)
       return 0;
@@ -139,11 +153,17 @@ static int hd_load_file(const char *filename, uint8_t **data, size_t *size)
    return 1;
 }
 
+int hd_pack_read_file(const char *filename, uint8_t **data, size_t *size)
+{
+   return hd_load_file(filename, data, size);
+}
+
 static int hd_file_exists(const char *filename)
 {
    char path[1600];
    FILE *f;
    snprintf(path, sizeof(path), "%s/%s", hd.pack_dir, filename);
+   hd_normalize_path(path);
    f = fopen(path, "rb");
    if (!f)
       return 0;
@@ -1227,7 +1247,10 @@ static char *hd_full_path(const char *filename)
    size_t len = strlen(hd.pack_dir) + strlen(filename) + 2;
    char *p = (char*)malloc(len);
    if (p)
+   {
       snprintf(p, len, "%s/%s", hd.pack_dir, filename);
+      hd_normalize_path(p);
+   }
    return p;
 }
 
@@ -1276,6 +1299,56 @@ static void hd_process_sfx(char **tok, int ntok)
       hd.sfx[hd.sfx_count].loop_position = 0;
       hd.sfx_count++;
    }
+}
+
+static void hd_process_patch(char **tok, int ntok)
+{
+   hd_patch *np;
+   hd_patch *p;
+   const char *sha;
+   int i;
+
+   if (ntok < 2)
+   {
+      hd_parse_error("Patch tag requires 2 parameters");
+      return;
+   }
+   sha = tok[1];
+   if (strlen(sha) != 40)
+   {
+      hd_parse_error("Invalid SHA1 hash for patch");
+      return;
+   }
+   if (!hd_file_exists(tok[0]))
+   {
+      char msg[1200];
+      snprintf(msg, sizeof(msg), "Patch file not found: %s", tok[0]);
+      hd_parse_error(msg);
+      return;
+   }
+
+   np = (hd_patch*)realloc(hd.patches,
+         (hd.patch_count + 1) * sizeof(hd_patch));
+   if (!np)
+      return;
+   hd.patches = np;
+   p = &hd.patches[hd.patch_count];
+   p->filename = hd_strdup(tok[0]);
+   if (!p->filename)
+      return;
+   for (i = 0; i < 20; i++)
+   {
+      int hi = hd_hex_digit(sha[i * 2]);
+      int lo = hd_hex_digit(sha[i * 2 + 1]);
+      if (hi < 0 || lo < 0)
+      {
+         hd_parse_error("Invalid SHA1 hash for patch");
+         free(p->filename);
+         return;
+      }
+      p->sha1[i] = (uint8_t)((hi << 4) | lo);
+   }
+   hd.patch_count++;
 }
 
 static void hd_process_options(char **tok, int ntok)
@@ -1479,10 +1552,8 @@ static int hd_parse_definition(uint8_t *def, size_t len)
       }
       else if (strncmp(content, "<patch>", 7) == 0)
       {
-         /* ROM soft-patching by hash is not wired into the libretro
-          * port; place the IPS next to the ROM instead to use FCEU's
-          * own auto-patching. */
-         hd_log("<patch> tags are not supported by this core; skipping.");
+         ntok = hd_split(content + 7, tok);
+         hd_process_patch(tok, ntok);
       }
       else if (strncmp(content, "<options>", 9) == 0)
       {
@@ -1769,6 +1840,11 @@ void HDNes_Unload(void)
       free(hd.sfx[i].path);
    if (hd.sfx)
       free(hd.sfx);
+
+   for (i = 0; i < hd.patch_count; i++)
+      free(hd.patches[i].filename);
+   if (hd.patches)
+      free(hd.patches);
 
    hd_map_free(&hd.tile_map);
    hd_map_free(&hd.default_map);

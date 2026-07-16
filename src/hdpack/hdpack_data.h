@@ -238,6 +238,12 @@ typedef struct hd_track
    uint32_t loop_position;       /* BGM only */
 } hd_track;
 
+typedef struct hd_patch
+{
+   char   *filename;
+   uint8_t sha1[20];
+} hd_patch;
+
 /* ---- hash tables ------------------------------------------------------ */
 
 typedef struct hd_map_entry
@@ -292,6 +298,9 @@ typedef struct hd_pack
    hd_track *sfx;
    uint32_t  sfx_count;
 
+   hd_patch *patches;
+   uint32_t  patch_count;
+
    uint32_t custom_palette[64];
    uint8_t  has_custom_palette;
 
@@ -320,6 +329,7 @@ void hd_bitmap_free(hd_bitmap *bmp);
 
 /* hdpack_load.c helpers shared with other units */
 void hd_log(const char *fmt, ...);
+int  hd_pack_read_file(const char *filename, uint8_t **data, size_t *size);
 int32_t hd_get_fallback_tile(int32_t tile_index);
 uint32_t hd_tile_key_hash(const hd_tile_key *key);
 int hd_tile_key_equal(const hd_tile_key *a, const hd_tile_key *b);

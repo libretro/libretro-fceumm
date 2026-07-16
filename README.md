@@ -158,8 +158,10 @@ Audio referenced by `<bgm>` and `<sfx>` may be:
 
 ### Differences from Mesen
 
-- `<patch>` tags are parsed but not applied. To soft-patch a ROM,
-  place an IPS file next to it and use FCEU's regular auto-patching.
+- `<patch>` tags are fully supported: the pack's IPS is applied to an
+  in-memory copy of the ROM at load time when the ROM's SHA-1 matches
+  the tag (a mismatching ROM revision runs unpatched, with a log
+  message). The original file on disk is never modified.
 - A pack's `<overscan>` setting is parsed but the core's own overscan
   crop options control the visible area.
 - The Blargg NTSC filter is bypassed while a pack is active (the HD

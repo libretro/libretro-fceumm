@@ -58,6 +58,14 @@ void HDNes_PostLoadInit(void);
 
 void HDNes_Unload(void);
 
+/* Applies the pack's <patch> IPS to a malloc'd copy of the ROM when
+ * its SHA-1 matches a <patch> entry.  Returns 1 and fills
+ * patched/patched_size on success; the caller owns the buffer.
+ * Returns 0 (outputs untouched NULL/0) when the pack has no patches,
+ * no entry matches, or the patch is unusable. */
+int HDNes_PatchRom(const uint8_t *rom, size_t rom_size,
+      uint8_t **patched, size_t *patched_size);
+
 uint32_t HDNes_GetScale(void);
 int HDNes_HasAudio(void);
 

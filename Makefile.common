@@ -70,6 +70,7 @@ ifeq ($(HAVE_HDPACK), 1)
 		$(CORE_DIR)/hdpack/hdpack_ppu.c \
 		$(CORE_DIR)/hdpack/hdpack_render.c \
 		$(CORE_DIR)/hdpack/hdpack_audio.c \
+		$(CORE_DIR)/hdpack/hdpack_patch.c \
 		$(LIBRETRO_COMM_DIR)/formats/png/rpng.c \
 		$(LIBRETRO_COMM_DIR)/formats/dds/rdds.c \
 		$(LIBRETRO_COMM_DIR)/formats/webp/rwebp.c \
