@@ -24,6 +24,7 @@
 
 #include <formats/rvorbis.h>
 #include <formats/rwav.h>
+#include <streams/file_stream.h>
 
 #include "../fceu-types.h"
 #include "../fceu.h"
@@ -94,31 +95,32 @@ static void hd_stream_close(hd_stream *s)
    memset(s, 0, sizeof(*s));
 }
 
+/* Through libretro-common's filestream so the frontend's VFS is used
+ * when available. */
 static int hd_load_whole_file(const char *path, uint8_t **data,
       size_t *size)
 {
-   FILE *f = fopen(path, "rb");
-   long len;
+   RFILE *f = filestream_open(path, RETRO_VFS_FILE_ACCESS_READ,
+         RETRO_VFS_FILE_ACCESS_HINT_NONE);
+   int64_t len;
    uint8_t *buf;
    if (!f)
       return 0;
-   fseek(f, 0, SEEK_END);
-   len = ftell(f);
-   fseek(f, 0, SEEK_SET);
+   len = filestream_get_size(f);
    if (len <= 0)
    {
-      fclose(f);
+      filestream_close(f);
       return 0;
    }
    buf = (uint8_t*)malloc((size_t)len);
-   if (!buf || fread(buf, 1, (size_t)len, f) != (size_t)len)
+   if (!buf || filestream_read(f, buf, len) != len)
    {
       if (buf)
          free(buf);
-      fclose(f);
+      filestream_close(f);
       return 0;
    }
-   fclose(f);
+   filestream_close(f);
    *data = buf;
    *size = (size_t)len;
    return 1;

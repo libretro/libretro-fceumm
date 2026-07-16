@@ -9,6 +9,7 @@
 #include <stdarg.h>
 
 #include <compat/msvc.h>
+#include <streams/file_stream.h>
 
 #include "../fceu-types.h"
 #include "../fceu.h"
@@ -104,7 +105,7 @@ static void hd_rtrim(char *s)
 
 /* hires.txt paths routinely use Windows separators
  * ("Backdrops\\file.png"); normalize to forward slashes, which every
- * supported platform's fopen accepts. */
+ * supported platform accepts through the VFS layer. */
 static void hd_normalize_path(char *p)
 {
    while (*p)
@@ -115,39 +116,41 @@ static void hd_normalize_path(char *p)
    }
 }
 
+/* All pack file access goes through libretro-common's filestream so
+ * it is routed via the frontend's VFS interface when one is provided
+ * (fceumm initialises it with filestream_vfs_init at startup). */
 static int hd_load_file(const char *filename, uint8_t **data, size_t *size)
 {
    char path[1600];
-   FILE *f;
-   long len;
+   RFILE *f;
+   int64_t len;
    uint8_t *buf;
 
    snprintf(path, sizeof(path), "%s/%s", hd.pack_dir, filename);
    hd_normalize_path(path);
-   f = fopen(path, "rb");
+   f = filestream_open(path, RETRO_VFS_FILE_ACCESS_READ,
+         RETRO_VFS_FILE_ACCESS_HINT_NONE);
    if (!f)
       return 0;
-   fseek(f, 0, SEEK_END);
-   len = ftell(f);
-   fseek(f, 0, SEEK_SET);
+   len = filestream_get_size(f);
    if (len < 0)
    {
-      fclose(f);
+      filestream_close(f);
       return 0;
    }
    buf = (uint8_t*)malloc(len ? (size_t)len : 1);
    if (!buf)
    {
-      fclose(f);
+      filestream_close(f);
       return 0;
    }
-   if (len > 0 && fread(buf, 1, (size_t)len, f) != (size_t)len)
+   if (len > 0 && filestream_read(f, buf, len) != len)
    {
       free(buf);
-      fclose(f);
+      filestream_close(f);
       return 0;
    }
-   fclose(f);
+   filestream_close(f);
    *data = buf;
    *size = (size_t)len;
    return 1;
@@ -161,14 +164,9 @@ int hd_pack_read_file(const char *filename, uint8_t **data, size_t *size)
 static int hd_file_exists(const char *filename)
 {
    char path[1600];
-   FILE *f;
    snprintf(path, sizeof(path), "%s/%s", hd.pack_dir, filename);
    hd_normalize_path(path);
-   f = fopen(path, "rb");
-   if (!f)
-      return 0;
-   fclose(f);
-   return 1;
+   return filestream_exists(path) ? 1 : 0;
 }
 
 /* ---- tile key hashing ------------------------------------------------ */

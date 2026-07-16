@@ -1822,7 +1822,13 @@ void retro_set_environment(retro_environment_t cb)
 
    environ_cb(RETRO_ENVIRONMENT_SET_CONTROLLER_INFO, (void*)ports);
 
-   vfs_iface_info.required_interface_version = 1;
+   /* libretro-common's file_stream wires the v2 truncate callback, so
+    * it ignores any interface negotiated below
+    * FILESTREAM_REQUIRED_VFS_VERSION (2). Requesting version 1 here
+    * made filestream_vfs_init a silent no-op and left every
+    * filestream call on the local fallback implementation instead of
+    * the frontend's VFS. */
+   vfs_iface_info.required_interface_version = FILESTREAM_REQUIRED_VFS_VERSION;
    vfs_iface_info.iface                      = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
       filestream_vfs_init(&vfs_iface_info);
@@ -4093,25 +4099,23 @@ bool retro_load_game(const struct retro_game_info *info)
       }
       if (!hd_rom && content_path[0])
       {
-         FILE *hd_f = fopen(content_path, "rb");
+         RFILE *hd_f = filestream_open(content_path,
+               RETRO_VFS_FILE_ACCESS_READ,
+               RETRO_VFS_FILE_ACCESS_HINT_NONE);
          if (hd_f)
          {
-            long hd_len;
-            fseek(hd_f, 0, SEEK_END);
-            hd_len = ftell(hd_f);
-            fseek(hd_f, 0, SEEK_SET);
+            int64_t hd_len = filestream_get_size(hd_f);
             if (hd_len > 0)
             {
                hd_file_buf = (uint8_t*)malloc((size_t)hd_len);
                if (hd_file_buf &&
-                     fread(hd_file_buf, 1, (size_t)hd_len, hd_f) ==
-                        (size_t)hd_len)
+                     filestream_read(hd_f, hd_file_buf, hd_len) == hd_len)
                {
                   hd_rom      = hd_file_buf;
                   hd_rom_size = (size_t)hd_len;
                }
             }
-            fclose(hd_f);
+            filestream_close(hd_f);
          }
       }
 
