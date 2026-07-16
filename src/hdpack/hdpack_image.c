@@ -190,6 +190,44 @@ int hd_bitmap_init(hd_bitmap *bmp)
    bmp->pixels = pixels;
    bmp->width = width;
    bmp->height = height;
+
+   /* Precompute the per-row non-transparent extent so the background
+    * span blit can skip transparent runs. A pixel is transparent iff
+    * its premultiplied ARGB is 0 (alpha 0). Failure to allocate is not
+    * fatal: the blit falls back to scanning the whole row. */
+   bmp->row_min = (uint32_t*)malloc((size_t)height * sizeof(uint32_t));
+   bmp->row_max = (uint32_t*)malloc((size_t)height * sizeof(uint32_t));
+   if (bmp->row_min && bmp->row_max)
+   {
+      uint32_t r, c;
+      const uint32_t *p = pixels;
+      for (r = 0; r < height; r++)
+      {
+         uint32_t mn = width;
+         uint32_t mx = 0;
+         for (c = 0; c < width; c++)
+         {
+            if (p[c])
+            {
+               if (c < mn)
+                  mn = c;
+               mx = c;
+            }
+         }
+         bmp->row_min[r] = mn;
+         bmp->row_max[r] = mx;
+         p += width;
+      }
+   }
+   else
+   {
+      if (bmp->row_min)
+         free(bmp->row_min);
+      if (bmp->row_max)
+         free(bmp->row_max);
+      bmp->row_min = NULL;
+      bmp->row_max = NULL;
+   }
    return 1;
 }
 
@@ -201,5 +239,9 @@ void hd_bitmap_free(hd_bitmap *bmp)
       free(bmp->file_data);
    if (bmp->pixels)
       free(bmp->pixels);
+   if (bmp->row_min)
+      free(bmp->row_min);
+   if (bmp->row_max)
+      free(bmp->row_max);
    memset(bmp, 0, sizeof(*bmp));
 }

@@ -157,6 +157,14 @@ typedef struct hd_bitmap
    uint32_t  height;
    uint8_t   init_done;
    uint8_t   failed;
+   /* Per-row non-transparent extent in *bitmap* pixel columns (0-based),
+    * computed once at decode. row_min[r] is the first column with a
+    * non-zero pixel and row_max[r] the last; row_min[r] > row_max[r]
+    * (specifically row_min=width, row_max=0) marks a fully transparent
+    * row. Lets the background span blit skip transparent runs, which
+    * dominate HUD/parallax overlay rows. NULL until computed. */
+   uint32_t *row_min;
+   uint32_t *row_max;
 } hd_bitmap;
 
 /* ---- tiles ---------------------------------------------------------- */

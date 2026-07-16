@@ -36,6 +36,14 @@ typedef struct hd_bg_cfg
    uint8_t         blend_mode;
    uint8_t         brightness;
    uint8_t         simple_copy;  /* scale==1, ALPHA blend, brightness 255 */
+   /* Screen-x range (inclusive) over which this line's source bitmap
+    * row has any non-transparent pixel, derived from the bitmap's
+    * per-row extent. The span blit intersects [min_x,max_x] with this
+    * to skip fully-transparent leading/trailing runs. If the source
+    * bitmap lacks precomputed extents, opaque_lo/opaque_hi cover the
+    * whole width so behaviour is unchanged. */
+   int32_t         opaque_lo;
+   int32_t         opaque_hi;
 } hd_bg_cfg;
 
 static hd_bg_cfg hd_bg_cfgs[HD_BG_LAYER_COUNT];
@@ -622,6 +630,38 @@ static void hd_on_line_start(int y)
             cfg->simple_copy = (uint8_t)(sc == 1 &&
                   bg->blend_mode == HD_BLEND_ALPHA &&
                   bg->brightness == 255);
+            /* Translate the source row's non-transparent bitmap-column
+             * extent into screen-x. srcrow[x] in the blit reads bitmap
+             * column (bg->left + scroll_x + x), so a non-transparent
+             * column c maps to screen x = c - bg->left - scroll_x.
+             * Only meaningful for the scale-1 simple_copy path; other
+             * paths leave the full-width default. */
+            cfg->opaque_lo = 0;
+            cfg->opaque_hi = (int32_t)(bmp->width / sc) - 1;
+            if (sc == 1 && bmp->row_min && bmp->row_max)
+            {
+               int32_t srow_s = (int32_t)bg->top + y + cfg->scroll_y;
+               uint32_t srow = (uint32_t)srow_s;
+               if (srow_s < 0 || srow >= bmp->height)
+               {
+                  /* Out of the bitmap: leave full-width default so the
+                   * existing in-range guard governs (should not happen
+                   * given the guard above, but keep it safe). */
+               }
+               else if (bmp->row_min[srow] > bmp->row_max[srow])
+               {
+                  /* Fully transparent source row: nothing to draw. */
+                  cfg->opaque_lo = 1;
+                  cfg->opaque_hi = 0;
+               }
+               else
+               {
+                  cfg->opaque_lo = (int32_t)bmp->row_min[srow] -
+                        (int32_t)bg->left - cfg->scroll_x;
+                  cfg->opaque_hi = (int32_t)bmp->row_max[srow] -
+                        (int32_t)bg->left - cfg->scroll_x;
+               }
+            }
          }
          else
          {
@@ -1041,7 +1081,20 @@ static void hd_blit_bg_group(int group, uint32_t *line_out, uint32_t y,
       if (cfg->simple_copy)
       {
          const uint32_t *srcrow = cfg->row + cfg->scroll_x;
-         for (x = lo; x <= hi; x++)
+         /* Clip the actual draw to the source row's non-transparent
+          * extent: pixels outside [opaque_lo, opaque_hi] are guaranteed
+          * transparent (alpha 0) and would be a no-op, so skip the
+          * load/compare entirely. has_background coverage (hb) still
+          * spans the full in-range [lo, hi] because the old per-pixel
+          * path returned "drawn" for any in-range pixel regardless of
+          * transparency - output is therefore unchanged. */
+         int32_t dlo = lo;
+         int32_t dhi = hi;
+         if (cfg->opaque_lo > dlo)
+            dlo = cfg->opaque_lo;
+         if (cfg->opaque_hi < dhi)
+            dhi = cfg->opaque_hi;
+         for (x = dlo; x <= dhi; x++)
          {
             uint32_t pixel = srcrow[x];
             if (pixel >= 0xFF000000u)
