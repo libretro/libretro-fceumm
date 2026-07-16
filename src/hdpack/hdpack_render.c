@@ -41,6 +41,19 @@ typedef struct hd_bg_cfg
 static hd_bg_cfg hd_bg_cfgs[HD_BG_LAYER_COUNT];
 static uint8_t hd_active_bg_count[4];
 
+/* Per-line scratch used by the span-based compositor (HDNes_ComposeFrame):
+ *   hd_line_has_bg[x]  - nonzero if a custom background covered pixel x
+ *                        during BG groups 0 or 1 (drives the SD tile
+ *                        fallback, matching the old per-pixel
+ *                        has_background accumulation).
+ *   hd_line_low_bg_spr[x] - the lowest behind-background sprite index that
+ *                        drew an opaque pixel at x (999 if none), recorded
+ *                        in the behind-sprite pass and read in the front-
+ *                        sprite pass, exactly as the old per-pixel
+ *                        lowest_bg_sprite local did. */
+static uint8_t  hd_line_has_bg[HD_SCREEN_WIDTH];
+static int16_t  hd_line_low_bg_spr[HD_SCREEN_WIDTH];
+
 static int32_t hd_scroll_x_line;
 static hd_pack_tile *hd_cached_tile;
 static int hd_use_cached_tile;
@@ -993,49 +1006,130 @@ static void hd_process_additional_sprites(void)
 
 /* ---- per-pixel composition ------------------------------------------------- */
 
-static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
-      uint32_t *out, uint32_t screen_width)
+/* Blit one background-layer group across a scanline in tight per-layer
+ * span loops instead of per-pixel-per-layer calls. For each active
+ * layer in the group we walk only its in-range [min_x, max_x] and, for
+ * the common simple_copy case (scale 1, ALPHA blend, full brightness),
+ * do a single load + opaque store or alpha blend. The general path
+ * (scale > 1, additive/subtractive blend, or brightness) defers to the
+ * per-pixel hd_draw_background_layer so its exact semantics are
+ * preserved. If hb is non-NULL, hb[x] is set to 1 for every pixel any
+ * layer draws over (matching the old has_background accumulation).
+ * line_out points at x==0 of the scanline. */
+static void hd_blit_bg_group(int group, uint32_t *line_out, uint32_t y,
+      uint32_t screen_width, uint8_t *hb)
 {
-   hd_pack_tile *hd_tile = NULL;
-   hd_pack_tile *hd_sprite;
-   int has_sprite = px->sprite_count > 0;
+   uint32_t scale = hd.scale;
+   int count = hd_active_bg_count[group];
+   int i;
+
+   for (i = 0; i < count; i++)
+   {
+      const hd_bg_cfg *cfg =
+            &hd_bg_cfgs[group * HD_PRIO_PER_LAYER + i];
+      int32_t lo = cfg->min_x;
+      int32_t hi = cfg->max_x;
+      int32_t x;
+
+      if (lo < 0)
+         lo = 0;
+      if (hi > (int32_t)HD_SCREEN_WIDTH - 1)
+         hi = (int32_t)HD_SCREEN_WIDTH - 1;
+      if (lo > hi)
+         continue;
+
+      if (cfg->simple_copy)
+      {
+         const uint32_t *srcrow = cfg->row + cfg->scroll_x;
+         for (x = lo; x <= hi; x++)
+         {
+            uint32_t pixel = srcrow[x];
+            if (pixel >= 0xFF000000u)
+               line_out[x] = pixel;
+            else if (pixel >= 0x01000000u)
+               hd_blend_alpha((uint8_t*)&line_out[x],
+                     (const uint8_t*)&pixel);
+         }
+         if (hb)
+            for (x = lo; x <= hi; x++)
+               hb[x] = 1;
+      }
+      else
+      {
+         for (x = lo; x <= hi; x++)
+         {
+            hd_draw_background_layer(
+                  (uint8_t)(group * HD_PRIO_PER_LAYER + i),
+                  (uint32_t)x, y,
+                  line_out + (size_t)x * scale, screen_width);
+            if (hb)
+               hb[x] = 1;
+         }
+      }
+   }
+}
+
+/* Span-based per-line compositor. Reproduces the exact painter's order
+ * of the previous per-pixel hd_get_pixels (see the 8 numbered steps
+ * below) but pulls each of the four background-layer groups out into a
+ * tight per-line span loop instead of a per-pixel-per-layer call. The
+ * couplings that made naive extraction unsafe are preserved with two
+ * per-line scratch arrays:
+ *   - hd_line_has_bg[x]: set while blitting BG groups 0 and 1 (steps 2
+ *     and 4); read by the SD-tile fallback (step 5), exactly as the old
+ *     has_background local was accumulated and read.
+ *   - hd_line_low_bg_spr[x]: the lowest opaque behind-BG sprite index
+ *     recorded in the behind-sprite pass (step 3) and read in the
+ *     front-sprite pass (step 7), exactly as the old lowest_bg_sprite
+ *     local carried between them.
+ * The drawing primitives (hd_draw_color/tile/background_layer) are
+ * unchanged, so per-pixel output is bit-for-bit identical; only the
+ * loop nesting changes. line_out points at the first (x==0) output
+ * pixel of scanline y. */
+static void hd_compose_line(uint32_t y, uint32_t *line_out,
+      uint32_t screen_width)
+{
+   uint32_t scale = hd.scale;
    int render_original =
          (hd.option_flags & HD_OPT_NO_ORIGINAL_TILES) == 0;
-   int lowest_bg_sprite = 999;
-   int has_background = 0;
-   uint32_t scale = hd.scale;
+   uint32_t x;
    int i;
    int k;
 
-   /* CHR-RAM tiles are keyed by tile data, not index, and the PPU
-    * recorder legitimately leaves tile_index at HD_NO_TILE for them
-    * (e.g. the partial tile in the leftmost fine-x-scrolled column).
-    * Gating the lookup on tile_index != HD_NO_TILE therefore skipped
-    * CHR-RAM matches for that column, leaving the raw SD tile visible
-    * as a moving vertical strip. Match by data for CHR-RAM regardless
-    * of index (Mesen looks up unconditionally by key). */
-   if (px->tile.is_chr_ram || px->tile.tile_index != HD_NO_TILE)
-      hd_tile = hd_get_cached_matching_tile(x, y, &px->tile);
-
-
-
-
-   hd_draw_color(hd_palette[px->tile.ppu_bg_color], out, screen_width,
-         scale);
-
-   for (i = 0; i < hd_active_bg_count[0]; i++)
-      has_background |= hd_draw_background_layer(
-            (uint8_t)(0 * HD_PRIO_PER_LAYER + i),
-            x, y, out, screen_width);
-
-   if (has_sprite)
+   /* Step 1: backdrop fill, per pixel (ppu_bg_color varies per pixel).
+    * Also clears the per-line has_background coverage and initialises
+    * the behind-sprite record. */
+   for (x = 0; x < HD_SCREEN_WIDTH; x++)
    {
+      hd_ppu_pixel_info *px = &hd_screen.pixels[(y << 8) | x];
+      uint32_t *out = line_out + (size_t)x * scale;
+      hd_draw_color(hd_palette[px->tile.ppu_bg_color], out,
+            screen_width, scale);
+      hd_line_has_bg[x] = 0;
+      hd_line_low_bg_spr[x] = 999;
+   }
+
+   /* Step 2: BG group 0, blitted per line, recording has_background. */
+   hd_blit_bg_group(0, line_out, y, screen_width, hd_line_has_bg);
+
+   /* Step 3: behind-background sprites, per pixel. Records the lowest
+    * opaque behind-BG sprite index into hd_line_low_bg_spr[x]. */
+   for (x = 0; x < HD_SCREEN_WIDTH; x++)
+   {
+      hd_ppu_pixel_info *px = &hd_screen.pixels[(y << 8) | x];
+      uint32_t *out;
+      int low = 999;
+
+      if (px->sprite_count <= 0)
+         continue;
+      out = line_out + (size_t)x * scale;
       for (k = px->sprite_count - 1; k >= 0; k--)
       {
          if (px->sprite[k].bg_priority)
          {
+            hd_pack_tile *hd_sprite;
             if (px->sprite[k].sprite_color_index != 0)
-               lowest_bg_sprite = k;
+               low = k;
             hd_sprite = hd_get_matching_tile(x, y, &px->sprite[k], NULL);
             if (hd_sprite)
                hd_draw_tile(&px->sprite[k], hd_sprite, out,
@@ -1045,37 +1139,56 @@ static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
                      out, screen_width, scale);
          }
       }
+      hd_line_low_bg_spr[x] = (int16_t)low;
    }
 
-   for (i = 0; i < hd_active_bg_count[1]; i++)
-      has_background |= hd_draw_background_layer(
-            (uint8_t)(1 * HD_PRIO_PER_LAYER + i),
-            x, y, out, screen_width);
+   /* Step 4: BG group 1, blitted per line, updating has_background. */
+   hd_blit_bg_group(1, line_out, y, screen_width, hd_line_has_bg);
 
-   if (hd_tile)
-      hd_draw_tile(&px->tile, hd_tile, out, screen_width, scale);
-   else if (render_original)
+   /* Step 5: HD tile, else SD fallback gated by has_background. The tile
+    * match must use the same 8-pixel cache walk as before, so iterate x
+    * ascending and reset the cache exactly as hd_get_cached_matching_tile
+    * expects (it keys off hd_scroll_x_line + x). */
+   for (x = 0; x < HD_SCREEN_WIDTH; x++)
    {
-      /* Mesen parity: without an active custom background at this
-       * pixel the SD colour is drawn even for colour index 0 (the
-       * backdrop) - this is what hides behind-background sprite
-       * pixels where the BG is transparent. */
-      if (!has_background || px->tile.bg_color_index != 0)
-         hd_draw_color(hd_palette[px->tile.bg_color], out,
-               screen_width, scale);
+      hd_ppu_pixel_info *px = &hd_screen.pixels[(y << 8) | x];
+      uint32_t *out = line_out + (size_t)x * scale;
+      hd_pack_tile *hd_tile = NULL;
+
+      if (px->tile.is_chr_ram || px->tile.tile_index != HD_NO_TILE)
+         hd_tile = hd_get_cached_matching_tile(x, y, &px->tile);
+
+      if (hd_tile)
+         hd_draw_tile(&px->tile, hd_tile, out, screen_width, scale);
+      else if (render_original)
+      {
+         if (!hd_line_has_bg[x] || px->tile.bg_color_index != 0)
+            hd_draw_color(hd_palette[px->tile.bg_color], out,
+                  screen_width, scale);
+      }
    }
 
-   for (i = 0; i < hd_active_bg_count[2]; i++)
-      hd_draw_background_layer((uint8_t)(2 * HD_PRIO_PER_LAYER + i),
-            x, y, out, screen_width);
+   /* Step 6: BG group 2, blitted per line. */
+   hd_blit_bg_group(2, line_out, y, screen_width, NULL);
 
-   if (has_sprite)
+   /* Step 7: front (above-background) sprites, gated by the recorded
+    * lowest_bg_sprite for this pixel. */
+   for (x = 0; x < HD_SCREEN_WIDTH; x++)
    {
+      hd_ppu_pixel_info *px = &hd_screen.pixels[(y << 8) | x];
+      uint32_t *out;
+      int low;
+
+      if (px->sprite_count <= 0)
+         continue;
+      out = line_out + (size_t)x * scale;
+      low = hd_line_low_bg_spr[x];
       for (k = px->sprite_count - 1; k >= 0; k--)
       {
-         if (!px->sprite[k].bg_priority && lowest_bg_sprite > k)
+         if (!px->sprite[k].bg_priority && low > k)
          {
-            hd_sprite = hd_get_matching_tile(x, y, &px->sprite[k], NULL);
+            hd_pack_tile *hd_sprite =
+                  hd_get_matching_tile(x, y, &px->sprite[k], NULL);
             if (hd_sprite)
                hd_draw_tile(&px->sprite[k], hd_sprite, out,
                      screen_width, scale);
@@ -1086,9 +1199,8 @@ static void hd_get_pixels(uint32_t x, uint32_t y, hd_ppu_pixel_info *px,
       }
    }
 
-   for (i = 0; i < hd_active_bg_count[3]; i++)
-      hd_draw_background_layer((uint8_t)(3 * HD_PRIO_PER_LAYER + i),
-            x, y, out, screen_width);
+   /* Step 8: BG group 3, blitted per line. */
+   hd_blit_bg_group(3, line_out, y, screen_width, NULL);
 }
 
 static void hd_process_grayscale_emphasis(int line, uint32_t *out,
@@ -1206,13 +1318,9 @@ const uint32_t *HDNes_ComposeFrame(void)
       uint32_t line_start = buffer_index;
 
       hd_on_line_start(y);
-      for (x = 0; x < HD_SCREEN_WIDTH; x++)
-      {
-         hd_get_pixels(x, (uint32_t)y,
-               &hd_screen.pixels[(y << 8) | x],
-               hd_frame_buf + buffer_index, screen_width);
-         buffer_index += hd.scale;
-      }
+      hd_compose_line((uint32_t)y, hd_frame_buf + line_start,
+            screen_width);
+      (void)buffer_index;
 
       hd_process_grayscale_emphasis(y, hd_frame_buf + line_start,
             screen_width);
