@@ -189,9 +189,28 @@ uint32_t hd_tile_key_hash(const hd_tile_key *key)
          result += chunk;
          result = (result << 2) | (result >> 30);
       }
+      /* Finalize with an integer avalanche (Murmur3 fmix32). The rolling
+       * accumulator above clusters badly for CHR-RAM tiles whose data has
+       * repeated bytes (e.g. large flat fills), giving ~10 linear-probe
+       * comparisons per lookup. This hash is internal to the bucket index
+       * only - never stored or compared - so strengthening it is safe and
+       * does not affect Mesen key-equality semantics. */
+      result ^= result >> 16;
+      result *= 0x85ebca6bu;
+      result ^= result >> 13;
+      result *= 0xc2b2ae35u;
+      result ^= result >> 16;
       return result;
    }
-   return (uint32_t)key->tile_index ^ key->palette_colors;
+   {
+      uint32_t h = (uint32_t)key->tile_index ^ key->palette_colors;
+      h ^= h >> 16;
+      h *= 0x85ebca6bu;
+      h ^= h >> 13;
+      h *= 0xc2b2ae35u;
+      h ^= h >> 16;
+      return h;
+   }
 }
 
 int hd_tile_key_equal(const hd_tile_key *a, const hd_tile_key *b)
