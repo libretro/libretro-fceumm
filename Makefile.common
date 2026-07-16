@@ -97,9 +97,13 @@ ifeq ($(HAVE_HDPACK), 1)
 # zlib compiles its LFS-conditional *64 combine functions even when
 # neither Z_LARGE64 nor Z_WANT64 exposes their prototypes; upstream
 # zlib does not build with -Wmissing-prototypes, so drop that flag for
-# the vendored translation units only. (No tab indent: this is a
-# pattern-specific variable, not a recipe line.)
-$(CORE_DIR)/drivers/libretro/deps/zlib/%.o: CFLAGS += -Wno-missing-prototypes
+# the vendored translation units only. Emitted via $(if ...) keyed on
+# WARNING_DEFINES (deferred expansion: that variable is assigned after
+# this file is included) so compilers that never get the warning flag
+# -- MSVC's cl.exe rejects any -W word with D8021 -- never see the
+# counter-flag either. (No tab indent: this is a pattern-specific
+# variable, not a recipe line.)
+$(CORE_DIR)/drivers/libretro/deps/zlib/%.o: CFLAGS += $(if $(findstring -Wmissing-prototypes,$(WARNING_DEFINES)),-Wno-missing-prototypes)
 	INCFLAGS += -I$(CORE_DIR)/drivers/libretro/deps/zlib
 	SOURCES_C += \
 		$(CORE_DIR)/drivers/libretro/deps/zlib/adler32.c \
