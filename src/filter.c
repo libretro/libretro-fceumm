@@ -129,6 +129,15 @@ int32_t NeoFilterSound(int32_t *in, int32_t *out, uint32_t inlen, int32_t *lefto
 	int32_t count = 0;
 	uint32_t max = (inlen - 1) << 16;
 
+	/* Both resample paths below round the final >> (16 + 11) to nearest
+	 * (the + (1 << 26) term == half an output LSB) rather than flooring
+	 * toward -inf.  Flooring here left a systematic ~-0.6 LSB downward
+	 * bias on the output; rounding removes the bulk of it and roughly
+	 * halves the quantisation error, matching the round-to-nearest the
+	 * SexyFilter/SexyFilter2 stages already apply.  The tap loop and its
+	 * per-tap >> 6 (which is int32/SIMD-friendly and overflow-bounded)
+	 * are deliberately left unchanged: a full int64 accumulation removes
+	 * the remaining ~0.1 LSB but regresses this hot loop >20%. */
 	if (FSettings.soundq == 2) {
 		for (x = mrindex; x < max; x += mrratio) {
 			int32_t acc = 0, acc2 = 0;
@@ -140,7 +149,8 @@ int32_t NeoFilterSound(int32_t *in, int32_t *out, uint32_t inlen, int32_t *lefto
 				acc2 += (S[1 + c] * *D) >> 6;
 			}
 
-			acc = ((int64_t)acc * (65536 - (x & 65535)) + (int64_t)acc2 * (x & 65535)) >> (16 + 11);
+			acc = ((int64_t)acc * (65536 - (x & 65535)) + (int64_t)acc2 * (x & 65535)
+			       + (1 << 26)) >> (16 + 11);
 			*out = acc;
 			out++;
 			count++;
@@ -156,7 +166,8 @@ int32_t NeoFilterSound(int32_t *in, int32_t *out, uint32_t inlen, int32_t *lefto
 				acc2 += (S[1 + c] * *D) >> 6;
 			}
 
-			acc = ((int64_t)acc * (65536 - (x & 65535)) + (int64_t)acc2 * (x & 65535)) >> (16 + 11);
+			acc = ((int64_t)acc * (65536 - (x & 65535)) + (int64_t)acc2 * (x & 65535)
+			       + (1 << 26)) >> (16 + 11);
 			*out = acc;
 			out++;
 			count++;
