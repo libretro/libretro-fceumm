@@ -199,6 +199,7 @@ static void reset () {
 	if (forcePadValue == 2)
 		pad = PAL? 0: 1;
 	X6502_IRQEnd(FCEU_IQEXT);
+	flags = 0;
 	sync();
 }
 
@@ -219,6 +220,7 @@ static void power () {
 	else
 	if (forcePadValue == 2)
 		pad = PAL? 0: 1;
+	flags = 0;
 	sync();
 	if (PRGsize[0x10]) FCEU_CheatAddRAM((PRGsize[0x10] >> 10) < 8 ? (PRGsize[0x10] >> 10) : 8, 0x6000, PRGptr[0x10]);
 }
