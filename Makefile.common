@@ -63,7 +63,7 @@ SOURCES_C += \
 	$(CORE_DIR)/x6502.c
 
 ifeq ($(HAVE_HDPACK), 1)
-	COREDEFINES += -DHAVE_HDPACK -DHAVE_ZLIB=1
+	COREDEFINES += -DHAVE_HDPACK
 	SOURCES_C += \
 		$(CORE_DIR)/hdpack/hdpack_load.c \
 		$(CORE_DIR)/hdpack/hdpack_image.c \
@@ -79,44 +79,15 @@ ifeq ($(HAVE_HDPACK), 1)
 		$(LIBRETRO_COMM_DIR)/formats/wav/rwav.c \
 		$(LIBRETRO_COMM_DIR)/streams/trans_stream.c \
 		$(LIBRETRO_COMM_DIR)/streams/trans_stream_pipe.c \
-		$(LIBRETRO_COMM_DIR)/streams/trans_stream_zlib.c \
 		$(LIBRETRO_COMM_DIR)/streams/trans_stream_deflate.c \
 		$(LIBRETRO_COMM_DIR)/encodings/encoding_deflate.c
-
-	# rpng's IDAT inflate needs zlib. Always build the bundled subset
-	# rather than trusting EXTERNAL_ZLIB: several console SDKs set that
-	# knob without shipping zlib.h on the default include path (psl1ght,
-	# wiiu). The gz*/compress translation units are simply not compiled;
-	# their zlib.h declarations are harmless. Z_SOLO is deliberately NOT
-	# used: it removes the default zcalloc/zcfree allocators and makes
-	# inflateInit/deflateInit reject the Z_NULL allocators that
-	# libretro-common's trans_stream_zlib passes.
-	# Z_PREFIX renames every public symbol to z_* so a statically linked
-	# core can never collide with the frontend's own zlib. The one
-	# exception is z_errmsg: it already starts with z_, so zlib 1.2.8's
-	# Z_PREFIX list omits it even though every zlib in the world exports
-	# that exact name -- rename it explicitly.
-	COREDEFINES += -DZ_PREFIX -Dz_errmsg=fceu_z_errmsg
-# zlib compiles its LFS-conditional *64 combine functions even when
-# neither Z_LARGE64 nor Z_WANT64 exposes their prototypes; upstream
-# zlib does not build with -Wmissing-prototypes, so drop that flag for
-# the vendored translation units only. Emitted via $(if ...) keyed on
-# WARNING_DEFINES (deferred expansion: that variable is assigned after
-# this file is included) so compilers that never get the warning flag
-# -- MSVC's cl.exe rejects any -W word with D8021 -- never see the
-# counter-flag either. (No tab indent: this is a pattern-specific
-# variable, not a recipe line.)
-$(CORE_DIR)/drivers/libretro/deps/zlib/%.o: CFLAGS += $(if $(findstring -Wmissing-prototypes,$(WARNING_DEFINES)),-Wno-missing-prototypes)
-	INCFLAGS += -I$(CORE_DIR)/drivers/libretro/deps/zlib
-	SOURCES_C += \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/adler32.c \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/crc32.c \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/deflate.c \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/inffast.c \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/inflate.c \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/inftrees.c \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/trees.c \
-		$(CORE_DIR)/drivers/libretro/deps/zlib/zutil.c
+	# rpng's IDAT inflate goes through libretro-common's clean-room
+	# DEFLATE codec (encodings/encoding_deflate.c, RFC 1950/1951).
+	# HAVE_ZLIB is deliberately left undefined so trans_stream's
+	# backend getters resolve to the deflate backend. This removes the
+	# bundled zlib subset and with it the whole Z_PREFIX symbol-
+	# renaming dance that statically linked console cores needed to
+	# avoid colliding with the frontend's own zlib.
 endif
 
 # memory_stream is consumed directly by the core's savestate code
