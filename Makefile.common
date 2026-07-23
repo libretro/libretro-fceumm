@@ -79,7 +79,9 @@ ifeq ($(HAVE_HDPACK), 1)
 		$(LIBRETRO_COMM_DIR)/formats/wav/rwav.c \
 		$(LIBRETRO_COMM_DIR)/streams/trans_stream.c \
 		$(LIBRETRO_COMM_DIR)/streams/trans_stream_pipe.c \
-		$(LIBRETRO_COMM_DIR)/streams/trans_stream_zlib.c
+		$(LIBRETRO_COMM_DIR)/streams/trans_stream_zlib.c \
+		$(LIBRETRO_COMM_DIR)/streams/trans_stream_deflate.c \
+		$(LIBRETRO_COMM_DIR)/encodings/encoding_deflate.c
 
 	# rpng's IDAT inflate needs zlib. Always build the bundled subset
 	# rather than trusting EXTERNAL_ZLIB: several console SDKs set that
