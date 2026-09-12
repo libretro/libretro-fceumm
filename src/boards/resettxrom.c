@@ -53,9 +53,9 @@ static void M313PW(uint32_t A, uint8_t V) {
 	case 3: bank = (EXPREGS[0] << 5) | (V & 0x1F); break;
 	case 4:
 		if (EXPREGS[0] == 0)
-			bank = (EXPREGS[0] << 5) | (V & 0x1F);
+			bank = V & 0x1F;
 		else
-			bank = (EXPREGS[0] << 4) | (V & 0x0F);
+			bank = (EXPREGS[0] +1) <<4 | V &0x0F;
 		break;
 	}
 	setprg8(A, bank);
