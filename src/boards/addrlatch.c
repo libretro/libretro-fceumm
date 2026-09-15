@@ -344,8 +344,34 @@ static void M204Sync(void) {
 	setmirror(((latche >> 4) & 1) ^ 1);
 }
 
+static DECLFR (Mapper204_interceptPRGRead_small) {
+	return latche &4 && dipswitch &1 || latche &8 && dipswitch &2? X.DB: CartBR(A);
+}
+
+static DECLFR (Mapper204_interceptPRGRead_large) {
+	if (A &0xF)
+		return latche &8 && dipswitch &1? X.DB: CartBR(A);
+	else
+		return latche &8? CartBR(A &~0x1F | dipswitch &0x1F): CartBR(A);
+}
+
+static void Mapper204_Power() {
+	LatchPower();
+	dipswitch = 0;
+	SetReadHandler(0x8000, 0xFFFF, ROM_size == 4? Mapper204_interceptPRGRead_small: Mapper204_interceptPRGRead_large);
+	M204Sync();
+}
+
+static void Mapper204_Reset() {
+	latche = 0;
+	dipswitch++;
+	M204Sync();
+}
+
 void Mapper204_Init(CartInfo *info) {
 	Latch_Init(info, M204Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
+	info->Power = Mapper204_Power;
+	info->Reset = Mapper204_Reset;
 }
 
 /*------------------ Map 212 ---------------------------*/
