@@ -49,6 +49,7 @@
 
 #ifdef PSP
 #include "pspgu.h"
+#include <psputils.h>
 #endif
 
 #if defined(RENDER_GSKIT_PS2)
