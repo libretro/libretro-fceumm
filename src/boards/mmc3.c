@@ -1062,47 +1062,6 @@ void Mapper194_Init(CartInfo *info) {
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }
 
-/* ---------------------------- Mapper 196 ------------------------------- */
-/* MMC3 board with optional command address line connection, allows to
- * make three-four different wirings to IRQ address lines and separately to
- * CMD address line, Mali Boss additionally check if wiring are correct for
- * game
- */
-
-static void M196PW(uint32_t A, uint8_t V) {
-	if (EXPREGS[0])
-		setprg32(0x8000, EXPREGS[1]);
-	else
-		setprg8(A, V);
-}
-
-static DECLFW(Mapper196Write) {
-	A =A &0xF000 | (!!(A &0xE) ^(A &1));
-	if (A >= 0xC000)
-		MMC3_IRQWrite(A, V);
-	else
-		MMC3_CMDWrite(A, V);
-}
-
-static DECLFW(Mapper196WriteLo) {
-	EXPREGS[0] = 1;
-	EXPREGS[1] = (V & 0xf) | (V >> 4);
-	FixMMC3PRG(MMC3_cmd);
-}
-
-static void Mapper196Power(void) {
-	GenMMC3Power();
-	EXPREGS[0] = EXPREGS[1] = 0;
-	SetWriteHandler(0x6000, 0x6FFF, Mapper196WriteLo);
-	SetWriteHandler(0x8000, 0xFFFF, Mapper196Write);
-}
-
-void Mapper196_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 0, 0);
-	pwrap = M196PW;
-	info->Power = Mapper196Power;
-}
-
 /* ---------------------------- Mali Splash Bomb---------------------------- */
 /* The same board as for 196 mapper games, but with additional data bit swap
  * Also, it is impossible to work on the combined 196 mapper source with
