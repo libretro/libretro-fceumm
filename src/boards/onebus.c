@@ -350,7 +350,9 @@ static void UNLOneBusPower(void) {
 	if (submapper == 10 || submapper == 11) cpu410x[0x1C] = 0x02;
 	if (submapper == 12 || submapper == 14) cpu410x[0x1C] = 0x40;
 
-	SetupCartCHRMapping(0, PRGptr[0], PRGsize[0], 0);
+	/* Preserve separate CHR ROM in extracted OneBus games. */
+	if (!VROM_size)
+		SetupCartCHRMapping(0, PRGptr[0], PRGsize[0], 0);
 
 	for (i = 0; i < 64; i++) {
 		defapuread[i] = GetReadHandler(0x4000 | i);
