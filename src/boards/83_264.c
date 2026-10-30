@@ -61,7 +61,7 @@ static void sync () {
 	if (submapper == 2 && PRGsize[0x10])
 		setprg8r(0x10, 0x6000, reg[0] >>6);
 	else
-		setprg8(0x6000, reg[7]);
+		setprg8(0x6000, reg[0] <<1 &~prgAND | reg[7] &prgAND);
 
 	switch(mapper == 264? 1: submapper) {
 		case 0:
@@ -238,7 +238,7 @@ void Mapper83_Init (CartInfo *info) {
 		if (info->PRGRomSize ==1024*1024) submapper = 2; else
 		if (info->PRGRomSize ==512*1024) submapper = 3;
 	}
-	if (info->CRC32 == 0x390373DA || info->CRC32 == 0x797EB9FB) { /* For games that have garbled title screens on all except one solder pad value, force to that pad value. */
+	if (info->CRC32 == 0x390373DA || info->CRC32 == 0x797EB9FB || info->CRC32 == 0xC620471C) { /* For games that have garbled title screens on all except one solder pad value, force to that pad value. */
 		pad = 1;
 		forcePadValue = 1;
 	} else
