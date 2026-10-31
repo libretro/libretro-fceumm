@@ -21,18 +21,25 @@
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
 
+static uint8_t submapper;
 static uint8_t irqEnabled;
 static uint8_t irqCounter;
+static uint8_t reg;
 
 static SFORMAT Mapper563_stateRegs[] ={
 	{ &irqEnabled, 1, "IRQE" },
 	{ &irqCounter, 1, "CNTL" },
+	{ &reg,        1, "REGS" },
 	{ 0 }
 };
 
 static void sync () {
-	VRC24_syncPRG(0x01F, 0x000);
-	VRC24_syncCHR(0x1FF, 0x000);
+	int prgAND = submapper == 0 || reg &0x02? 0x1F: 0x0F;
+	int chrAND = submapper == 0 || reg &0x02? 0xFF: 0x7F;
+	int prgOR = reg <<4;
+	int chrOR = reg <<7;
+	VRC24_syncPRG(prgAND, prgOR &~prgAND);
+	VRC24_syncCHR(chrAND, chrOR &~chrAND);
 	VRC24_syncMirror();
 }
 
@@ -40,7 +47,8 @@ static DECLFW (Mapper563_writeIRQ) {
 	X6502_IRQEnd(FCEU_IQEXT);
 	switch(A &0x1C) {
 		case 0x0C: irqEnabled =0; break;
-		case 0x08: irqEnabled =1; break;
+		case 0x08: irqEnabled =1; irqCounter = 0; break;
+		case 0x18: reg = V; sync(); break;
 		case 0x1C: irqCounter =0; break;
 	}
 }
@@ -49,15 +57,22 @@ static void Mapper563_scanline (void) { /* Actually, a sixteen-stage counter tri
 	if (!(++irqCounter &1) && irqEnabled) X6502_IRQBegin(FCEU_IQEXT);
 }
 
+static void Mapper563_reset (void) {
+	irqEnabled = irqCounter = reg = 0;
+	VRC24_clear();
+}
+
 static void Mapper563_power (void) {
-	irqEnabled = irqCounter =0;
+	irqEnabled = irqCounter = reg = 0;
 	VRC24_power();
 	SetWriteHandler(0xF000, 0xFFFF, Mapper563_writeIRQ);
 }
 
 void Mapper563_Init (CartInfo *info) {
+	submapper = info->submapper;
 	VRC2_init(info, sync, 0x01, 0x02, NULL, NULL, NULL, NULL);
 	AddExState(Mapper563_stateRegs, ~0, 0, 0);
+	info->Reset = Mapper563_reset;
 	info->Power = Mapper563_power;
 	GameHBIRQHook = Mapper563_scanline;
 }
