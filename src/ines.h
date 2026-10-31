@@ -531,6 +531,7 @@ void Mapper635_Init(CartInfo *);
 void Mapper637_Init(CartInfo *);
 void Mapper638_Init(CartInfo *);
 void Mapper639_Init(CartInfo *);
+void Mapper640_Init(CartInfo *);
 void FFE_Init(CartInfo *);
 
 int iNESLoad(const char *name, FCEUFILE *fp);
