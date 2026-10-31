@@ -1082,6 +1082,7 @@ INES_BOARD_BEGIN()
 	INES_BOARD( "Rinco 12-in-1",            629, Mapper629_Init         )	
 	INES_BOARD( "200-in-1",                 630, Mapper630_Init         )	
 	INES_BOARD( "YS4IN1",                   631, Mapper631_Init         )	
+	INES_BOARD( "FC-71",                    632, Mapper632_Init         )	
 INES_BOARD_END()
 
 static uint32_t iNES_get_mapper_id(void)
