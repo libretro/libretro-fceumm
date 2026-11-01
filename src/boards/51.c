@@ -27,21 +27,20 @@ static SFORMAT StateRegs[] =
 	{ &mode, 1, "MODE" },
 	{ 0 }
 };
+static uint8_t inesMirroring;
 
 static void Sync(void) {
 	if (mode & 2) {
 		setprg8(0x6000, ((bank & 7) << 2) | 0x23);
 		setprg16(0x8000, (bank << 1) | 0);
 		setprg16(0xC000, (bank << 1) | 1);
+		setmirror(mode &0x10? MI_H: MI_V);
 	} else {
 		setprg8(0x6000, ((bank & 4) << 2) | 0x2F);
 		setprg16(0x8000, (bank << 1) | (mode >> 4));
 		setprg16(0xC000, ((bank & 0xC) << 1) | 7);
+		setmirror(inesMirroring); /* The UNROM game's mirroring is set via solder pad and not via hardware register, so use the mirroring setting from the iNES header. */
 	}
-	if (mode == 0x12)
-		setmirror(MI_H);
-	else
-		setmirror(MI_V);
 	setchr8(0);
 }
 
@@ -77,6 +76,7 @@ static void StateRestore(int version) {
 }
 
 void Mapper51_Init(CartInfo *info) {
+	inesMirroring = info->mirror;
 	info->Power = M51Power;
 	info->Reset = M51Reset;
 	AddExState(&StateRegs, ~0, 0, 0);
