@@ -22,7 +22,7 @@
 
 static uint8_t submapper, initialMirroring;
 static uint8_t reg[3];
-static uint8_t index, cycleCount, fetchCount;
+static uint8_t regIndex, cycleCount, fetchCount;
 
 static void sync () {
 	int prg, chr;
@@ -67,7 +67,7 @@ static DECLFR (readReg4_submapper1) {
 	/* Reading from 41xx selects a register for the subsequent read within five CPU cycles.
 	   However, because FCEU only executes the MapIRQHook after each instruction, this doesn't work, so it is necessary to count both cycle and fetches
 	   to account for switching code that executes from RAM and from ROM. */
-	index = A &0xFF;
+	regIndex = A &0xFF;
 	cycleCount = 5;
 	fetchCount = 4;
 	return X.DB;
@@ -75,7 +75,7 @@ static DECLFR (readReg4_submapper1) {
 
 static DECLFR (readReg8_submapper1) {
 	uint8_t result = CartBR(A);
-	if (cycleCount && fetchCount--) switch(index &0xC0) {
+	if (cycleCount && fetchCount--) switch(regIndex &0xC0) {
 		case 0x00:
 			reg[2] = result;
 			sync();
@@ -86,7 +86,7 @@ static DECLFR (readReg8_submapper1) {
 			break;
 		case 0x80:
 			reg[0] = result;
-			index = 0xFF;
+			regIndex = 0xFF;
 			sync();
 			break;			
 	}
@@ -101,7 +101,7 @@ static void FP_FASTAPASS(1) cpuCycle_submapper1 (int a) {
 
 static void reset () {
 	reg[0] = reg[1] = reg[2] = cycleCount = fetchCount = 0;
-	index = 0xFF;
+	regIndex = 0xFF;
 	if (ROM_size <= 4) { /* Extracts don't set up the mirroring and mode registers by themselves, so fill up these registers based on iNES header data */
 		reg[0] = 0x3F;
 		if (~initialMirroring &1) reg[0] |= 0x80;
