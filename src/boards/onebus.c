@@ -483,6 +483,10 @@ static SFORMAT StateRegs_408[] = {
 	{ &MMC1_shift, 1, "MM1S" },
 	{ &MMC1_bits, 1, "MM1B" },
 	{ MMC1_reg, 4, "MM1R" },
+	{ &securityROM_state, 2 | FCEUSTATE_RLSB, "SRST" },
+	{ &securityROM_bitPosition, 2 | FCEUSTATE_RLSB, "SRBP" },
+	{ &securityROM_command, 1, "SRCM" },
+	{ &securityROM_output, 1, "SROU" },
 	{ 0 }
 };
 
@@ -626,7 +630,7 @@ void Mapper408_Init(CartInfo *info) {
 	cpuMangle = cpuMangles[0];
 	ppuMangle = ppuMangles[0];
 	mmc3Mangle = mmc3Mangles[0];
-	securityROM_data = MiscROM && info->miscROMSize &256? MiscROM: NULL;
+	securityROM_data = MiscROM && info->miscROMSize >= 256? MiscROM: NULL;
 	
 	CHRRAMSIZE = 8192;
 	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
