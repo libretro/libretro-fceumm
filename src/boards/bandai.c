@@ -144,7 +144,7 @@ void Mapper16_Init(CartInfo *info) {
 	info->battery = 1;
 	info->SaveGame[0] = x24c0x_data + 256;
 	info->SaveGameLen[0] = 256;
-	AddExState(x24c0x_data, 256, 0, "DATA");
+	AddExState(x24c0x_data + 256, 256, 0, "DAT2"); /* 24C02 occupies the upper half; distinct key so older states that carried the unused lower half do not overwrite it */
 
 	GameStateRestore = StateRestore;
 	AddExState(&x24c02StateRegs, ~0, 0, 0);
