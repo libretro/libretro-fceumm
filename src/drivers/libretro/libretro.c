@@ -1052,7 +1052,7 @@ enum stereo_filter_type
 };
 static enum stereo_filter_type current_stereo_filter = STEREO_FILTER_NULL;
 
-#define STEREO_FILTER_DELAY_MS_DEFAULT 15.0f;
+#define STEREO_FILTER_DELAY_MS_DEFAULT 15.0f
 typedef struct
 {
    int32_t *samples;
@@ -2634,12 +2634,6 @@ static void check_variables(bool startup)
       if (strcmp(var.value, "disabled") &&
           (strlen(var.value) > 1))
       {
-         char value_str[3];
-
-         value_str[0] = var.value[0];
-         value_str[1] = var.value[1];
-         value_str[2] = '\0';
-
          filter_type     = STEREO_FILTER_DELAY;
          filter_delay_ms = (float)atoi(var.value);
 
