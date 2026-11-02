@@ -642,7 +642,7 @@ void Mapper408_Init(CartInfo *info) {
 }
 
 static void Sync436(void) {
-	int AND =0xFFFF, OR =0;
+	int OR =0;
 	switch(submapper) {
 		case 1:  OR = cpu410x[0x1C] &0x01 && ~cpu410x[0x1C] &0x04? 0x0800: 0x0000;
 	                 PSync(0xF7FF, OR);

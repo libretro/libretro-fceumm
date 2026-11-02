@@ -23,7 +23,6 @@
 #include "mapinc.h"
 #include "asic_mmc3.h"
 
-static uint8_t submapper;
 static uint8_t reg;
 static uint8_t pad;
 

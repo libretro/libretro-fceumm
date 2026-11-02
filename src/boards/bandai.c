@@ -379,7 +379,6 @@ static void BarcodeSync(void) {
 }
 
 static DECLFW(BarcodeWrite) {
-	int temp;
 	A &= 0x0F;
 	switch (A) {
 	case 0x00:

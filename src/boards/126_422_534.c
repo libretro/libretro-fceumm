@@ -67,7 +67,7 @@ static void wrapPRG (uint32_t A, uint8_t V) {
 		prgOR |= EXPREGS[0] &0x20? 0x00: 0x02;
 	}
 
-	/* Submapper 4 has an additional serial shift register for higher adress lines, addressing up to 32 MiB. */
+	/* Submapper 5 has an additional serial shift register for higher address lines, addressing up to 32 MiB. */
 	if (submapper == 5) prgOR |= EXPREGS[4] <<9;
 
 	/* Submappers 6 and 7 use an additional 6-bit register for A22..A17 and 6000.0 for A23. They only differ in the order of two address lines. */

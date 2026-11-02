@@ -63,7 +63,7 @@ static DECLFR (interceptPRGRead0) {
 }
 
 static DECLFR (interceptPRGRead1) {
-	return reg &0x40 && pad &1 || reg &0x80 && pad &2? X.DB: CartBR(A);;
+	return reg &0x40 && pad &1 || reg &0x80 && pad &2? X.DB: CartBR(A);
 }
 
 static void reset () {
