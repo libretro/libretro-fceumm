@@ -1654,12 +1654,11 @@ static bool update_option_visibility(void)
    return updated;
 }
 
-static void set_variables(void)
+/* Copies the options every game has into the main
+ * core option struct, returning how many there are */
+static unsigned copy_common_variables(void)
 {
-   struct retro_core_option_display option_display;
    unsigned index = 0;
-
-   option_display.visible = false;
 
    /* Initialize main core option struct */
    memset(&option_defs_us, 0, sizeof(option_defs_us));
@@ -1670,6 +1669,16 @@ static void set_variables(void)
             sizeof(struct retro_core_option_v2_definition));
       index++;
    }
+
+   return index;
+}
+
+static void set_variables(void)
+{
+   struct retro_core_option_display option_display;
+   unsigned index = copy_common_variables();
+
+   option_display.visible = false;
 
    /* Append dipswitch settings to core options if available */
    set_dipswitch_variables(index, option_defs_us);
@@ -1839,6 +1848,14 @@ void retro_set_environment(retro_environment_t cb)
 
    environ_cb(RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE,
          (void*)content_overrides);
+
+   /* Register the options every game has before any is loaded, so a
+    * frontend can list them without loading content. They are
+    * registered again once a game is loaded, with its dipswitches. */
+   copy_common_variables();
+   libretro_supports_option_categories = false;
+   libretro_set_core_options(environ_cb,
+         &libretro_supports_option_categories);
 }
 
 void retro_get_system_info(struct retro_system_info *info)
