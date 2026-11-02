@@ -21,6 +21,7 @@
 
 #include "mapinc.h"
 
+static uint8_t submapper;
 static uint16_t cmdreg;
 static uint8_t unrom, reg, openbus;
 
@@ -48,23 +49,22 @@ static void Sync(void) {
 			setmirror(MI_0);
 		else
 			setmirror(((cmdreg >> 13) & 1) ^ 1);
-		if (bank >= PRGROMSize / 32768)
-			openbus = 1;
-		else if (cmdreg & 0x800) {
+		openbus = bank >= PRGROMSize / 32768;
+		if (cmdreg & 0x800) {
 			setprg16(0x8000, (bank << 1) | ((cmdreg >> 12) & 1));
 			setprg16(0xC000, (bank << 1) | ((cmdreg >> 12) & 1));
 		} else
 			setprg32(0x8000, bank);
+		if (submapper == 1 && (bank &0x18) == 0x18) setprg16(0xC000,(bank <<1 | cmdreg >>12 &1) &~7);
 		setchr8(0);
 	}
 }
 
 static DECLFR(M235Read) {
-	if (openbus) {
-		openbus = 0;
+	if (openbus)
 		return X.DB;
-	}
-	return CartBR(A);
+	else
+		return CartBR(A);
 }
 
 static DECLFW(M235Write) {
@@ -94,6 +94,7 @@ static void M235Restore(int version) {
 }
 
 void Mapper235_Init(CartInfo *info) {
+	submapper = info->submapper;
 	info->Reset = M235Reset;
 	info->Power = M235Power;
 	GameStateRestore = M235Restore;

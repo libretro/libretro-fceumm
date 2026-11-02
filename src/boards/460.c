@@ -89,5 +89,5 @@ void Mapper460_Init (CartInfo *info) {
 	info->Power = power;
 	info->Reset = reset;
 	AddExState(&reg, 1, 0, "EXPR");
-	AddExState(&reg, 1, 0, "DIPS");
+	AddExState(&pad, 1, 0, "DIPS");
 }

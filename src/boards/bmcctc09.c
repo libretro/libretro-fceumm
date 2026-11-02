@@ -47,13 +47,17 @@ static void Sync(void) {
 }
 
 static DECLFW(WritePRG) {
-	regs[PRG] = V;
-	Sync();
+	if (~regs[PRG] &0x40) {
+		regs[PRG] = V;
+		Sync();
+	}
 }
 
 static DECLFW(WriteCHR) {
-	regs[CHR] = V;
-	Sync();
+	if (~regs[PRG] &0x40) {
+		regs[CHR] = V;
+		Sync();
+	}
 }
 
 static void BMCCTC09Power(void) {

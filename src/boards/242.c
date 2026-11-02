@@ -55,7 +55,7 @@ static void sync () {
 }
 
 static DECLFR (interceptPRGRead) {
-	if ((Latch_address &0x1FF) == 0x0100 || twoChips && (Latch_address &0x3FF) == 0x00C0) {
+	if ((Latch_address &0x1FF) == 0x0100 || twoChips && (Latch_address &0x03FF) == 0x00C0 || twoChips && Latch_address &0x0800) {
 		if (padMask == 0x01) /* When there are two menu choices only, switch between open bus and chip enable. */
 			return pad &0x01? X.DB: CartBR(A);
 		else

@@ -108,7 +108,7 @@ DECLFR (VRC2_readMicrowire) {
 }
 
 DECLFR (VRC24_readWRAM) {
-	if (VRC24_misc &1 || !VRC24_isVRC4) {
+	if (VRC24_misc &1 || !VRC24_isVRC4 || WRAMSize >= 8192) {
 		if (VRC24_cbReadWRAM)
 			return VRC24_cbReadWRAM(A);
 		else
@@ -126,7 +126,7 @@ DECLFW (VRC2_writeMicrowire) {
 }
 
 DECLFW (VRC24_writeWRAM) {
-	if (VRC24_misc &1 || !VRC24_isVRC4) {
+	if (VRC24_misc &1 || !VRC24_isVRC4 || WRAMSize >= 8192) {
 		if (WRAMSize)
 			CartBW(((A -0x6000) &(WRAMSize -1)) +0x6000, V);
 		if (VRC24_cbWriteWRAM)

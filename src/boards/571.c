@@ -1,7 +1,7 @@
 /* FCEUmm - NES/Famicom Emulator
  *
  * Copyright notice for this file:
- *  Copyright (C) 2020
+ *  Copyright (C) 2026 NewRisingSun
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,11 +17,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
- *
+ * Submappers 0 and 1 differ only in the way NROM-256 mode is actived. Submapper 2 adds PRG-RAM and uses $6000-$67FF for PRG-RAM and only $7000-$7FFF for outer bank writes.
  */
 
 #include "mapinc.h"
 #include "asic_vrc2and4.h"
+#include "cartram.h"
 
 static uint8_t submapper;
 static uint8_t reg;
@@ -31,10 +32,11 @@ static void sync () {
 	int chrAND = reg &0x10? 0xFF: 0x7F;
 	int prgOR = reg <<1;
 	int chrOR = reg <<4;
+	VRC24_syncWRAM(0);
 	if (reg &0x20)
 		VRC24_syncPRG(prgAND, prgOR &~prgAND);
 	else
-	if (submapper == 0 && reg &0x06 || submapper == 1 && reg &0x02 && reg &0x04)
+	if (submapper == 0 && reg &0x06 || submapper == 1 && reg &0x02 && reg &0x04 || submapper == 2)
 		setprg32(0x8000, reg >>1);
 	else {
 		setprg16(0x8000, reg);
@@ -48,11 +50,16 @@ static void sync () {
 		VRC24_reconfigure(4, 8);
 }
 
-static DECLFW (writeReg) {
+static DECLFW (writeReg01) {
 	if (~reg &0x01) {
 		reg = A &0xFF;
 		sync();
 	}
+}
+
+static DECLFW (writeReg2) {
+	reg = A &0xFF;
+	sync();
 }
 
 static void reset () {
@@ -63,11 +70,13 @@ static void reset () {
 static void power () {
 	reg = 0;
 	VRC24_power();
+	if (submapper == 2) SetWriteHandler(0x7000, 0x7FFF, writeReg2);
 }
 
 void Mapper571_Init (CartInfo *info) {
 	submapper = info->submapper;
-	VRC4_init(info, sync, 4, 8, 1, NULL, NULL, NULL, writeReg, NULL);
+	VRC4_init(info, sync, 4, 8, 1, NULL, NULL, NULL, submapper == 2? NULL: writeReg01, NULL);
+	WRAM_init(info, 2);
 	info->Power = power;
 	info->Reset = reset;
 	AddExState(&reg, 1, 0, "EXPR");

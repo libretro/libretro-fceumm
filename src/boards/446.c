@@ -19,6 +19,7 @@
  */
 
 #include "mapinc.h"
+#include "asic_fme7.h"
 #include "asic_h3001.h"
 #include "asic_latch.h"
 #include "asic_mmc1.h"
@@ -97,6 +98,12 @@ static void sync_CNROM_Konami (int prgAND, int prgOR, int chrAND, int chrOR) {
 	setprg8(0xE000, 3 &prgAND |prgOR);
 	setchr8(Latch_data <<1 &2 | Latch_data >>1 &1);
 	setmirror(reg[4] &0x01? MI_V: MI_H);
+}
+
+static void sync_FME7 (int prgAND, int prgOR, int chrAND, int chrOR) {
+	FME7_syncPRG(prgAND, prgOR &~prgAND);
+	FME7_syncCHR(chrAND, chrOR &~chrAND);
+	FME7_syncMirror();
 }
 
 static void sync_GNROM (int prgAND, int prgOR, int chrAND, int chrOR) {
@@ -373,6 +380,10 @@ static void applyMode (uint8_t clear) {
 				mapperSync = sync_TC3294;
 				TC3294_activate(clear, sync);
 				break;
+			case 0x402:
+				mapperSync = sync_FME7;
+				FME7_activate(clear, sync);
+				break;
 			default:
 				break;
 		}
@@ -414,6 +425,7 @@ void Mapper446_Init (CartInfo *info) {
 	QJ_addExState();
 	PT8154_addExState();
 	TC3294_addExState();
+	FME7_addExState();
 	WRAM_init(info, 32);
 	flashrom_init (0x01, 0x7E, 131072, 0xAAA, 0x555, 0xFFF);
 	info->Reset =power;

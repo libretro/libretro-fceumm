@@ -25,9 +25,11 @@
 
 static uint16_t reg[2];
 static uint8_t submapper;
+static uint8_t pad;
 
 static SFORMAT StateRegs[] ={
 	{ reg, 4 | FCEUSTATE_RLSB, "REGS" },
+	{&pad, 1, "DIPS" },
 	{ 0 }
 };
 
@@ -37,9 +39,9 @@ static DECLFR(Mapper221_ReadOB)
 }
 
 static void sync(void) {
-	uint8_t prg =reg[0] >>(submapper ==1? 2: 3) &0x40 | reg[0] >>2 &0x38 | reg[1] &0x07;
+	uint8_t prg =reg[0] >>(submapper == 1? 2: 3) &0x40 | reg[0] >>2 &0x38 | reg[1] &0x07;
 	SetReadHandler(0x8000, 0xFFFF, (uint32_t)(prg <<14) >=PRGsize[0]? Mapper221_ReadOB: CartBR); /* Selecting unpopulated banks results in open bus */
-	if (reg[0] &(submapper ==1? 0x200: 0x100)) { /* UNROM */
+	if (reg[0] &(submapper == 1? 0x200: 0x100)) { /* UNROM */
 		setprg16(0x8000, prg);
 		setprg16(0xC000, prg |7);
 	} else
@@ -54,19 +56,26 @@ static void sync(void) {
 	setmirror(reg[0] &0x0001? MI_H: MI_V);
 }
 
+static DECLFR (readPad) {
+	return pad;
+}
+
 static DECLFW(Mapper221Write) {
-	reg[A >>14 &1] =A;
+	reg[A >>14 &1] = A;
 	sync();
 }
 
 static void UNLN625092Power(void) {
-	reg[0] =reg[1] =0;
+	reg[0] = reg[1] = 0;
+	pad = 0;
 	sync();	
+	SetReadHandler(0x6000, 0x7FFF, readPad);
 	SetWriteHandler(0x8000, 0xFFFF, Mapper221Write);
 }
 
 static void UNLN625092Reset(void) {
-	reg[0] =reg[1] =0;
+	reg[0] = reg[1] = 0;
+	pad++;
 	sync();
 }
 
@@ -75,7 +84,7 @@ static void StateRestore(int version) {
 }
 
 void UNLN625092_Init(CartInfo *info) {
-	submapper =info->submapper;
+	submapper = info->submapper;
 	info->Reset = UNLN625092Reset;
 	info->Power = UNLN625092Power;
 	GameStateRestore = StateRestore;

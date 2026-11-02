@@ -24,11 +24,7 @@
 static void sync () {
 	int prg = Latch_address >>1 &0x20 | Latch_address &0x1F;
 	if (Latch_address &0x20) {
-		if (Latch_address &0x01) {
-			setprg16(0x8000, prg);
-			setprg16(0xC000, prg);
-		} else
-			setprg32(0x8000, prg >>1);
+		setprg32(0x8000, prg >>1);
 	} else {
 		setprg16(0x8000, prg);
 		setprg16(0xC000, prg |7);

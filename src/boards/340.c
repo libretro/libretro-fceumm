@@ -29,11 +29,7 @@ static uint8_t submapper;
 static void sync () {
 	int prg = Latch_address >>2 &0x20 | Latch_address &0x1F;
 	if (Latch_address &0x20) { /* NROM mode */
-		if (Latch_address &0x01) {
-			setprg16(0x8000, prg);
-			setprg16(0xC000, prg);		
-		} else
-			setprg32(0x8000, prg >>1);
+		setprg32(0x8000, prg >>1);
 		setmirror(Latch_address &0x04? MI_H: MI_V);
 	} else { /* UNROM mode */
 		setprg16(0x8000, prg);

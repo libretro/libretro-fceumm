@@ -475,39 +475,176 @@ void Mapper270_Init(CartInfo *info) {
 	Sync = Sync270;
 }
 
+static uint8_t MMC1_shift, MMC1_bits, MMC1_reg[4];
+static uint8_t* securityROM_data;
+static uint8_t securityROM_output;
+static uint16_t securityROM_state;
+static uint8_t securityROM_command;
+static uint16_t securityROM_bitPosition;
+static SFORMAT StateRegs_408[] = {
+	{ &MMC1_shift, 1, "MM1S" },
+	{ &MMC1_bits, 1, "MM1B" },
+	{ MMC1_reg, 4, "MM1R" },
+	{ &securityROM_state, 2 | FCEUSTATE_RLSB, "SRST" },
+	{ &securityROM_bitPosition, 2 | FCEUSTATE_RLSB, "SRBP" },
+	{ &securityROM_command, 1, "SRCM" },
+	{ &securityROM_output, 1, "SROU" },
+	{ 0 }
+};
+
+static void PSyncMMC1(int AND, int OR) {
+	uint8_t bankmode = cpu410x[0xB] &7;
+	uint8_t mask = bankmode == 0x7? 0xFF: (0x3F >>bankmode);
+	uint32_t block = cpu410x[0x0] <<4 &0xF00 | cpu410x[0xA] &~mask;
+	mask >>= 1;
+	block >>= 1;
+	AND >>= 1;
+	OR >>= 1;
+	if (MMC1_reg[0] &0x08) {
+		if (MMC1_reg[0] &0x04) {
+			setprg16(0x8000, (block | MMC1_reg[3] &mask) &AND | OR);
+			setprg16(0xC000, (block | 0xFF        &mask) &AND | OR);
+		} else {
+			setprg16(0x8000, (block | 0x0         &mask) &AND | OR);
+			setprg16(0xC000, (block | MMC1_reg[3] &mask) &AND | OR);
+		}
+	} else
+		setprg32(0x8000, ((block | MMC1_reg[3] &mask) &AND | OR) >>1);
+}
+
+static void Sync408(void) {
+	int bankSelect = 0;
+	if (securityROM_data)
+		bankSelect = cpu410x[0x0F] >>5;
+	else
+	if (submapper == 12 || submapper == 14)
+		bankSelect = (cpu410x[0x39] &0x08? 1: 0) | (cpu410x[0x39] &0x04? 2: 0);
+	else
+		bankSelect = cpu410x[0x39] &0x02? 1: 0;
+	
+	if (cpu410x[0x0B] &0x20 && ~cpu410x[0x0B] &0x10)
+		PSyncMMC1(0x07FF, bankSelect <<11);
+	else
+		PSync(0x07FF, bankSelect <<11);
+	
+	if (cpu410x[0x00] &0x08) {
+		setchr8r(0x10, 0);
+		setmirror((mirror ^ 1) & 1);
+	} else
+		CSync(0x3FFF, bankSelect <<14);
+	SyncEncryption();
+}
+
 static DECLFW(UNLOneBusWriteUNROM) {
 	cpu410x[0x7] = V <<1 | 0;
 	cpu410x[0x8] = V <<1 | 1;
 	Sync();
 }
 
-static void Sync408(void) {
-	PSync(0x07FF, cpu410x[0x38] <<10 &0x800);
-	SetWriteHandler(0x8000, 0xffff, cpu410x[0x0B] &0x10? UNLOneBusWriteUNROM: UNLOneBusWriteMMC3);
-	if (cpu410x[0x00] &0x08) {
-		setchr8r(0x10, 0);
-		setmirror((mirror ^ 1) & 1);
+static DECLFW(UNLOneBusWriteMMC1) {
+	if (V &0x80) {
+		MMC1_reg[0] |= 0x0C;
+		MMC1_shift = 0;
+		MMC1_bits = 0;
+	} else {
+		MMC1_shift |= (V &1) << MMC1_bits++;
+		if (MMC1_bits == 5) {
+			MMC1_reg[A >>13 &3] = MMC1_shift;
+			MMC1_shift = 0;
+			MMC1_bits =0 ;
+		}
+	}
+	if (MMC1_reg[0] &0x10) {
+		ppu201x[0x6] = MMC1_reg[1] <<2 |0;
+		ppu201x[0x7] = MMC1_reg[1] <<2 |2;
+		ppu201x[0x2] = MMC1_reg[2] <<2 |0;
+		ppu201x[0x3] = MMC1_reg[2] <<2 |1;
+		ppu201x[0x4] = MMC1_reg[2] <<2 |2;
+		ppu201x[0x5] = MMC1_reg[2] <<2 |3;
+	} else {
+		ppu201x[0x6] = MMC1_reg[1] <<2 &~7 |0;
+		ppu201x[0x7] = MMC1_reg[1] <<2 &~7 |2;
+		ppu201x[0x2] = MMC1_reg[1] <<2 &~7 |4;
+		ppu201x[0x3] = MMC1_reg[1] <<2 &~7 |5;
+		ppu201x[0x4] = MMC1_reg[1] <<2 &~7 |6;
+		ppu201x[0x5] = MMC1_reg[1] <<2 &~7 |7;
+	}
+	Sync();
+}
+
+static DECLFW (Mapper408_WriteEmulatedASIC) {
+	if (cpu410x[0x0B] &0x20) {
+		if (cpu410x[0x0B] &0x10)
+			UNLOneBusWriteUNROM(A, V);
+		else
+			UNLOneBusWriteMMC1(A, V);
 	} else
-		CSync(0x3FFF, cpu410x[0x38] <<13 &0x4000);
-	SyncEncryption();
+		UNLOneBusWriteMMC3(A, V);
+}
+
+static DECLFR (Mapper408_ReadSecurityROM) {
+	if (cpu410x[0x38] &0x08)
+		return cpu410x[0x39] &~0x01;
+	else
+		return cpu410x[0x39] &~0x09 | (securityROM_output? 0x08: 0x00);
+}
+
+static DECLFW (Mapper408_WriteSecurityROM) {
+	if (~V &0x04) { /* Chip Select */
+		if (~cpu410x[0x39] &0x02 & V &0x02) { /* Rising clock edge */
+			if (securityROM_state < 8) {
+				securityROM_command = securityROM_command <<1 | (V &0x08? 1: 0);
+				if (++securityROM_state == 8 && securityROM_command != 0x20)
+					securityROM_state = 0;
+				else
+					securityROM_bitPosition = 0;
+			} else {
+				securityROM_output = securityROM_data[securityROM_bitPosition >>3 &0xFF] >> (7 - (securityROM_bitPosition &7)) &1;
+				if (++securityROM_bitPosition >= 2048) securityROM_state = 0;
+			}
+		}
+	} else {
+		securityROM_state = 0;
+		securityROM_command = 0;
+		securityROM_bitPosition = 0;
+	}
+	cpu410x[0x39] = V;
+}
+
+static void Mapper408_Power (void) {
+	UNLOneBusPower();
+	SetWriteHandler(0x8000, 0XFFFF, Mapper408_WriteEmulatedASIC);
+	if (securityROM_data) {
+		SetReadHandler(0x4139, 0x4139, Mapper408_ReadSecurityROM);
+		SetWriteHandler(0x4139, 0x4139, Mapper408_WriteSecurityROM);
+		securityROM_state = 0;
+		securityROM_command = 0;
+		securityROM_bitPosition = 0;
+	}
+	MMC1_shift = 0;
+	MMC1_bits = 0;
+	MMC1_reg[0] = 0x0C;
 }
 
 void Mapper408_Init(CartInfo *info) {
 	UNLOneBus_Init(info);
+	info->Power = Mapper408_Power;
 	cpuMangle = cpuMangles[0];
 	ppuMangle = ppuMangles[0];
 	mmc3Mangle = mmc3Mangles[0];
+	securityROM_data = MiscROM && info->miscROMSize >= 256? MiscROM: NULL;
 	
 	CHRRAMSIZE = 8192;
 	CHRRAM = (uint8_t*)FCEU_gmalloc(CHRRAMSIZE);
 	SetupCartCHRMapping(0x10, CHRRAM, CHRRAMSIZE, 1);
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
+	AddExState(&StateRegs_408, ~0, 0, 0);
 	
 	Sync = Sync408;
 }
 
 static void Sync436(void) {
-	int AND =0xFFFF, OR =0;
+	int OR =0;
 	switch(submapper) {
 		case 1:  OR = cpu410x[0x1C] &0x01 && ~cpu410x[0x1C] &0x04? 0x0800: 0x0000;
 	                 PSync(0xF7FF, OR);

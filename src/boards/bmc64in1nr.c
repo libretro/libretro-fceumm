@@ -23,10 +23,12 @@
 #include "mapinc.h"
 
 static uint8_t regs[4];
+static uint8_t pad;
 
 static SFORMAT StateRegs[] =
 {
 	{ regs, 4, "REGS" },
+	{&pad,  1, "DIPS" },
 	{ 0 }
 };
 
@@ -50,6 +52,10 @@ static void Sync(void) {
 	setchr8((regs[2] << 2) | ((regs[0] >> 1) & 3));
 }
 
+static DECLFR(BMC64in1nrReadPad) {
+	return pad;
+}
+
 static DECLFW(BMC64in1nrWriteLo) {
 	regs[A &(VROM_size? 3: 1)] = V;
 	Sync();
@@ -64,7 +70,9 @@ static void BMC64in1nrPower(void) {
 	regs[0] = 0x80;
 	regs[1] = 0x43;
 	regs[2] = regs[3] = 0;
+	pad = 0;
 	Sync();
+	SetReadHandler(0x5000, 0x5FFF, BMC64in1nrReadPad);
 	SetWriteHandler(0x5000, 0x5FFF, BMC64in1nrWriteLo);
 	SetWriteHandler(0x8000, 0xFFFF, BMC64in1nrWriteHi);
 	SetReadHandler(0x8000, 0xFFFF, CartBR);
@@ -75,6 +83,7 @@ static void BMC64in1nrReset(void) {
 	regs[0] = 0x80;
 	regs[1] = 0x43;
 	regs[2] = regs[3] = 0;
+	pad++;
 	Sync();
 }
 

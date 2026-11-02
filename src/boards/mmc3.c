@@ -1062,47 +1062,6 @@ void Mapper194_Init(CartInfo *info) {
 	AddExState(CHRRAM, CHRRAMSIZE, 0, "CHRR");
 }
 
-/* ---------------------------- Mapper 196 ------------------------------- */
-/* MMC3 board with optional command address line connection, allows to
- * make three-four different wirings to IRQ address lines and separately to
- * CMD address line, Mali Boss additionally check if wiring are correct for
- * game
- */
-
-static void M196PW(uint32_t A, uint8_t V) {
-	if (EXPREGS[0])
-		setprg32(0x8000, EXPREGS[1]);
-	else
-		setprg8(A, V);
-}
-
-static DECLFW(Mapper196Write) {
-	A =A &0xF000 | (!!(A &0xE) ^(A &1));
-	if (A >= 0xC000)
-		MMC3_IRQWrite(A, V);
-	else
-		MMC3_CMDWrite(A, V);
-}
-
-static DECLFW(Mapper196WriteLo) {
-	EXPREGS[0] = 1;
-	EXPREGS[1] = (V & 0xf) | (V >> 4);
-	FixMMC3PRG(MMC3_cmd);
-}
-
-static void Mapper196Power(void) {
-	GenMMC3Power();
-	EXPREGS[0] = EXPREGS[1] = 0;
-	SetWriteHandler(0x6000, 0x6FFF, Mapper196WriteLo);
-	SetWriteHandler(0x8000, 0xFFFF, Mapper196Write);
-}
-
-void Mapper196_Init(CartInfo *info) {
-	GenMMC3_Init(info, 128, 128, 0, 0);
-	pwrap = M196PW;
-	info->Power = Mapper196Power;
-}
-
 /* ---------------------------- Mali Splash Bomb---------------------------- */
 /* The same board as for 196 mapper games, but with additional data bit swap
  * Also, it is impossible to work on the combined 196 mapper source with
@@ -1236,67 +1195,6 @@ void Mapper198_Init(CartInfo *info) {
 	GenMMC3_Init(info, 1024, 0, 16, info->battery);
 	pwrap = M198PW;
 	info->Power = M198Power;
-}
-
-/* ---------------------------- Mapper 205,367 ------------------------------ */
-/* UNIF boardname BMC-JC-016-2
-https://wiki.nesdev.com/w/index.php/INES_Mapper_205 */
-
-static void M205_367PW(uint32_t A, uint8_t V) {
-	uint8_t bank = V & ((EXPREGS[0] & 0x02) ? 0x0F : 0x1F);
-	setprg8(A, EXPREGS[0] << 4 | bank);
-}
-
-static void M205_367CW(uint32_t A, uint8_t V) {
-	uint8_t bank = V & ((EXPREGS[0] & 0x02) ? 0x7F : 0xFF);
-	setchr1(A, (EXPREGS[0] << 7) | bank);
-}
-
-static DECLFW(M205Write) {
-	EXPREGS[0] = V;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
-}
-
-static DECLFW(M367Write) {
-	EXPREGS[0] = A &0xFF;
-	FixMMC3PRG(MMC3_cmd);
-	FixMMC3CHR(MMC3_cmd);
-}
-
-static void M205_367Reset(void) {
-	EXPREGS[0] = 0;
-	MMC3RegReset();
-}
-
-static void M205Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7fff, M205Write);
-}
-
-static void M367Power(void) {
-	EXPREGS[0] = 0;
-	GenMMC3Power();
-	SetWriteHandler(0x6000, 0x7fff, M367Write);
-}
-
-void Mapper205_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 128, 8, 0);
-	pwrap = M205_367PW;
-	cwrap = M205_367CW;
-	info->Power = M205Power;
-	info->Reset = M205_367Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
-}
-
-void Mapper367_Init(CartInfo *info) {
-	GenMMC3_Init(info, 256, 128, 8, 0);
-	pwrap = M205_367PW;
-	cwrap = M205_367CW;
-	info->Power = M367Power;
-	info->Reset = M205_367Reset;
-	AddExState(EXPREGS, 1, 0, "EXPR");
 }
 
 /* --------------------------- GN-45 BOARD ------------------------------ */
