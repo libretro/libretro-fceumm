@@ -372,6 +372,7 @@ void Mapper204_Init(CartInfo *info) {
 	Latch_Init(info, M204Sync, NULL, 0xFFFF, 0x8000, 0xFFFF, 0);
 	info->Power = Mapper204_Power;
 	info->Reset = Mapper204_Reset;
+	AddExState(&dipswitch, 1, 0, "DIPSW");
 }
 
 /*------------------ Map 212 ---------------------------*/

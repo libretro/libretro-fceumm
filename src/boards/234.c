@@ -132,5 +132,8 @@ void Mapper234_Init (CartInfo *info) {
 	info->Reset = reset;
 	GameStateRestore = stateRestore;
 	AddExState(reg, 3, 0, "REGS");
+	AddExState(&regIndex, 1, 0, "RIDX");
+	AddExState(&cycleCount, 1, 0, "CYCC");
+	AddExState(&fetchCount, 1, 0, "FETC");
 	if (submapper == 1) MapIRQHook = cpuCycle_submapper1;
 }
