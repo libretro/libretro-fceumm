@@ -1557,8 +1557,10 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
    }
 }
 
-/* Core options 'update display' callback */
-static bool update_option_visibility(void)
+/* Shows or hides the advanced options to match the
+ * fceumm_show_adv_* toggles. Unless 'force' is set, only
+ * a toggle whose value changed is applied. */
+static bool apply_option_visibility(bool force)
 {
    struct retro_variable var = {0};
    bool updated              = false;
@@ -1581,7 +1583,7 @@ static bool update_option_visibility(void)
       if (strcmp(var.value, "disabled") == 0)
          opt_showAdvSystemOptions = false;
 
-      if (opt_showAdvSystemOptions != opt_showAdvSystemOptions_prev)
+      if (force || opt_showAdvSystemOptions != opt_showAdvSystemOptions_prev)
       {
          struct retro_core_option_display option_display;
          unsigned i;
@@ -1618,7 +1620,7 @@ static bool update_option_visibility(void)
       if (strcmp(var.value, "disabled") == 0)
          opt_showAdvSoundOptions = false;
 
-      if (opt_showAdvSoundOptions != opt_showAdvSoundOptions_prev)
+      if (force || opt_showAdvSoundOptions != opt_showAdvSoundOptions_prev)
       {
          struct retro_core_option_display option_display;
          unsigned i;
@@ -1654,6 +1656,39 @@ static bool update_option_visibility(void)
    return updated;
 }
 
+/* Core options 'update display' callback */
+static bool update_option_visibility(void)
+{
+   return apply_option_visibility(false);
+}
+
+/* Sets the display state of the options just registered */
+static void set_option_display(void)
+{
+   /* If frontend supports core option categories,
+    * fceumm_show_adv_system_options and
+    * fceumm_show_adv_sound_options are unused
+    * and should be hidden */
+   if (libretro_supports_option_categories)
+   {
+      struct retro_core_option_display option_display;
+
+      option_display.visible = false;
+      option_display.key     = "fceumm_show_adv_system_options";
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+            &option_display);
+
+      option_display.key     = "fceumm_show_adv_sound_options";
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
+            &option_display);
+   }
+   /* Otherwise the advanced options are shown or
+    * hidden at runtime; registering the options
+    * resets their display state, so apply it fully */
+   else
+      apply_option_visibility(true);
+}
+
 /* Copies the options every game has into the main
  * core option struct, returning how many there are */
 static unsigned copy_common_variables(void)
@@ -1686,36 +1721,7 @@ static void set_variables(void)
    libretro_supports_option_categories = false;
    libretro_set_core_options(environ_cb,
          &libretro_supports_option_categories);
-
-   /* If frontend supports core option categories,
-    * fceumm_show_adv_system_options and
-    * fceumm_show_adv_sound_options are unused
-    * and should be hidden */
-   if (libretro_supports_option_categories)
-   {
-      option_display.key = "fceumm_show_adv_system_options";
-
-      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
-            &option_display);
-
-      option_display.key = "fceumm_show_adv_sound_options";
-
-      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY,
-            &option_display);
-   }
-   /* If frontend does not support core option
-    * categories, core options may be shown/hidden
-    * at runtime. In this case, register 'update
-    * display' callback, so frontend can update
-    * core options menu without calling retro_run() */
-   else
-   {
-      struct retro_core_options_update_display_callback update_display_cb;
-      update_display_cb.callback = update_option_visibility;
-
-      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
-            &update_display_cb);
-   }
+   set_option_display();
 
    /* VS UNISystem games use internal palette regardless
     * of user setting, so hide fceumm_palette option */
@@ -1856,6 +1862,19 @@ void retro_set_environment(retro_environment_t cb)
    libretro_supports_option_categories = false;
    libretro_set_core_options(environ_cb,
          &libretro_supports_option_categories);
+   set_option_display();
+
+   /* Without core option categories, the frontend
+    * needs the 'update display' callback to refresh
+    * the core options menu without calling retro_run() */
+   if (!libretro_supports_option_categories)
+   {
+      struct retro_core_options_update_display_callback update_display_cb;
+      update_display_cb.callback = update_option_visibility;
+
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
+            &update_display_cb);
+   }
 }
 
 void retro_get_system_info(struct retro_system_info *info)
