@@ -27,8 +27,8 @@
 static uint8_t reg;
 
 static void sync () {
-	int prgAND = (reg &0x0E) == 0x04? 0x07F: 0x00F; // 128 KiB PRG-ROM at game slots 0-6, game slot 7 is the second half of the sole 256 KiB game (#2)
-	int chrAND = (reg &0x0E) == 0x00? 0x3FF: 0x07F; // 128 KiB CHR-ROM at game slots 0-6, game slot 7 is the second half of the sole 256 KiB game (#0)
+	int prgAND = (reg &0x0E) == 0x04? 0x07F: 0x00F; /* 128 KiB PRG-ROM at game slots 0-6, game slot 7 is the second half of the sole 256 KiB game (#2) */
+	int chrAND = (reg &0x0E) == 0x00? 0x3FF: 0x07F; /* 128 KiB CHR-ROM at game slots 0-6, game slot 7 is the second half of the sole 256 KiB game (#0) */
 	int prgOR = reg <<3;
 	int chrOR = reg <<6;
 	VRC24_syncWRAM(0);
