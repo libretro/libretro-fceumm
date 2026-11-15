@@ -90,13 +90,6 @@ ifeq ($(HAVE_HDPACK), 1)
 	# avoid colliding with the frontend's own zlib.
 endif
 
-# memory_stream is consumed directly by the core's savestate code
-# (state.c / FCEUSS_Save_Mem / FCEUSS_Load_Mem) and must be linked into
-# the core itself even on statically-linked platforms, where the frontend
-# does not export libretro-common symbols. Keep it outside the
-# STATIC_LINKING guard below.
-SOURCES_C += $(LIBRETRO_COMM_DIR)/streams/memory_stream.c
-
 ifneq ($(STATIC_LINKING), 1)
 	SOURCES_C += \
 		$(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \

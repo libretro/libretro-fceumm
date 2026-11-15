@@ -21,7 +21,6 @@
 #include <string/stdstring.h>
 #include <file/file_path.h>
 #include <streams/file_stream.h>
-#include <streams/memory_stream.h>
 #include <libretro_dipswitch.h>
 #include <libretro_core_options.h>
 
@@ -3491,15 +3490,7 @@ void retro_run(void)
 size_t retro_serialize_size(void)
 {
    if (serialize_size == 0)
-   {
-      /* Something arbitrarily big.*/
-      uint8_t *buffer = (uint8_t*)malloc(1000000);
-      if (!buffer)
-         return 0;
-
-      serialize_size = FCEUSS_Save_Mem(buffer, 1000000);
-      free(buffer);
-   }
+      serialize_size = FCEUSS_Save_Mem(NULL, 0);
 
    return serialize_size;
 }

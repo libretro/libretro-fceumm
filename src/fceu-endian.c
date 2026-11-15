@@ -23,7 +23,6 @@
 
 #include <string.h>
 
-#include <streams/memory_stream.h>
 
 #include "fceu-memory.h"
 #include "fceu-types.h"

@@ -5,3 +5,6 @@
 build.log
 *.dll
 *.dylib
+play_alloc
+play_alloc.exe
+play_alloc_test.nes

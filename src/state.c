@@ -28,7 +28,6 @@
 #endif
 
 #include <compat/strl.h>
-#include <streams/memory_stream.h>
 
 #include "fceu-types.h"
 #include "x6502.h"
@@ -41,6 +40,73 @@
 #include "fceu-memory.h"
 #include "ppu.h"
 #include "video.h"
+
+/* Cursor over the caller's buffer: the frontend's savestate buffer is
+ * read and written in place, and the cursor lives on the caller's
+ * stack. With buf NULL nothing is stored and pos counts the bytes a
+ * save would write. */
+typedef struct
+{
+   uint8_t *buf;
+   size_t size;
+   size_t pos;
+} state_stream_t;
+
+static size_t ss_write(state_stream_t *ss, const void *data, size_t bytes)
+{
+   size_t avail;
+
+   if (!ss->buf)
+   {
+      ss->pos += bytes;
+      return bytes;
+   }
+   avail = ss->size - ss->pos;
+   if (bytes > avail)
+      bytes = avail;
+   memcpy(ss->buf + ss->pos, data, bytes);
+   ss->pos += bytes;
+   return bytes;
+}
+
+static size_t ss_read(state_stream_t *ss, void *data, size_t bytes)
+{
+   size_t avail = ss->size - ss->pos;
+
+   if (bytes > avail)
+      bytes = avail;
+   memcpy(data, ss->buf + ss->pos, bytes);
+   ss->pos += bytes;
+   return bytes;
+}
+
+static int ss_getc(state_stream_t *ss)
+{
+   if (ss->pos >= ss->size)
+      return EOF;
+   return ss->buf[ss->pos++];
+}
+
+static void ss_putc(state_stream_t *ss, int c)
+{
+   if (!ss->buf)
+      ss->pos++;
+   else if (ss->pos < ss->size)
+      ss->buf[ss->pos++] = (uint8_t)c;
+}
+
+/* Moves the cursor 'offset' bytes from the start (SEEK_SET) or from
+ * the cursor (SEEK_CUR). A target past the end leaves the cursor where
+ * it was and returns -1. */
+static int ss_seek(state_stream_t *ss, size_t offset, int whence)
+{
+   size_t base = (whence == SEEK_SET) ? 0 : ss->pos;
+
+   if (offset > ss->size - base)
+      return -1;
+   ss->pos = base + offset;
+   return 0;
+}
 
 static void (*SPreSave)(void);
 static void (*SPostSave)(void);
@@ -85,7 +151,7 @@ static void FCEU_en32lsb(uint8_t *buf, uint32_t morp)
 #endif
 }
 
-static int write32le_mem(uint32_t b, memstream_t *mem)
+static int write32le_mem(uint32_t b, state_stream_t *mem)
 {
    uint8_t s[4];
 #ifndef MSB_FIRST
@@ -99,14 +165,14 @@ static int write32le_mem(uint32_t b, memstream_t *mem)
    s[2]=b>>16;
    s[3]=b>>24;
 #endif
-   return((memstream_write(mem, s, 4)<4)?0:4);
+   return((ss_write(mem, s, 4)<4)?0:4);
 }
 
 
-static int read32le_mem(uint32_t *Bufo, memstream_t *mem)
+static int read32le_mem(uint32_t *Bufo, state_stream_t *mem)
 {
    uint32_t buf;
-   if(memstream_read(mem, &buf, 4)<4)
+   if(ss_read(mem, &buf, 4)<4)
       return 0;
 #ifdef MSB_FIRST
    *Bufo = ((buf&0xFF)<<24)|((buf&0xFF00)<<8)|((buf&0xFF0000)>>8)|((buf&0xFF000000)>>24);
@@ -243,7 +309,7 @@ SFORMAT SFCPUC[] = {
    { 0 }
 };
 
-static int SubWrite(memstream_t *mem, SFORMAT *sf)
+static int SubWrite(state_stream_t *mem, SFORMAT *sf)
 {
    uint32_t acc = 0;
 
@@ -265,18 +331,18 @@ static int SubWrite(memstream_t *mem, SFORMAT *sf)
 
       if(mem) /* Are we writing or calculating the size of this block? */
       {
-         memstream_write(mem, sf->desc, 4);
+         ss_write(mem, sf->desc, 4);
          write32le_mem(sf_size(sf->s), mem);
 
 #ifdef MSB_FIRST
-         if(sf->s & RLSB)
+         if(mem->buf && (sf->s & RLSB))
             sf_flip(sf->v, sf->s);
 #endif
-         memstream_write(mem, (char *)sf->v, sf_size(sf->s));
+         ss_write(mem, (char *)sf->v, sf_size(sf->s));
 
          /* Now restore the original byte order. */
 #ifdef MSB_FIRST
-         if(sf->s & RLSB)
+         if(mem->buf && (sf->s & RLSB))
             sf_flip(sf->v, sf->s);
 #endif
       }
@@ -286,11 +352,11 @@ static int SubWrite(memstream_t *mem, SFORMAT *sf)
    return acc;
 }
 
-static int WriteStateChunk(memstream_t *mem, int type, SFORMAT *sf)
+static int WriteStateChunk(state_stream_t *mem, int type, SFORMAT *sf)
 {
    int bsize;
 
-   memstream_putc(mem, type);
+   ss_putc(mem, type);
 
    bsize = SubWrite(0, sf);
    write32le_mem(bsize, mem);
@@ -323,20 +389,17 @@ static SFORMAT *CheckS(SFORMAT *sf, uint32_t tsize, char *desc)
    return(0);
 }
 
-static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
+static int ReadStateChunk(state_stream_t *mem, SFORMAT *sf, int size)
 {
    SFORMAT *tmp;
-   uint64_t temp = memstream_pos(mem);
+   size_t temp = mem->pos;
 
-   while (memstream_pos(mem) < (temp + size))
+   while (mem->pos < (temp + size))
    {
       uint32_t tsize;
       char toa[4];
-      /* memstream_read returns the number of bytes read, or 0/negative on
-       * error. Treat anything less than the requested four bytes as a
-       * truncation; the previous <= 0 check let a 1- to 3-byte short read
-       * leave toa[] partially uninitialised before strncmp consumed it. */
-      if (memstream_read(mem, toa, 4) != 4u)
+      /* A short read is a truncated state. */
+      if (ss_read(mem, toa, 4) != 4u)
          return 0;
 
       if (!read32le_mem(&tsize, mem))
@@ -349,7 +412,7 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
           * for this state field, so the read is bounded. Still treat a
           * short read here as a parse failure rather than leaving the
           * buffer in a half-updated state. */
-         if (memstream_read(mem, (char *)tmp->v, sf_size(tmp->s)) != (uint64_t)sf_size(tmp->s))
+         if (ss_read(mem, (char *)tmp->v, sf_size(tmp->s)) != (size_t)sf_size(tmp->s))
             return 0;
 
 #ifdef MSB_FIRST
@@ -362,21 +425,16 @@ static int ReadStateChunk(memstream_t *mem, SFORMAT *sf, int size)
       }
       else
       {
-         /* Skip past the unknown chunk's payload. memstream_seek already
-          * bounds-checks against the stream end and returns -1 on
-          * out-of-range, but the caller previously ignored the return,
-          * leaving the read loop spinning at the same offset and re-
-          * parsing whatever bytes happened to follow. Treat a failed
-          * skip as a parse error so we don't silently load a truncated
-          * state. */
-         if (memstream_seek(mem, tsize, SEEK_CUR) < 0)
+         /* Skip an unknown chunk's payload; one running past the end
+          * is a truncated state. */
+         if (ss_seek(mem, tsize, SEEK_CUR) < 0)
             return 0;
       }
    }
    return 1;
 }
 
-static int ReadStateChunks(memstream_t *st, int32_t totalsize)
+static int ReadStateChunks(state_stream_t *st, int32_t totalsize)
 {
    int t;
    uint32_t size;
@@ -384,7 +442,7 @@ static int ReadStateChunks(memstream_t *st, int32_t totalsize)
 
    while (totalsize > 0)
    {
-      t = memstream_getc(st);
+      t = ss_getc(st);
       if (t == EOF)
       {
          ret = 0;
@@ -443,7 +501,7 @@ static int ReadStateChunks(memstream_t *st, int32_t totalsize)
                ret = 0;
             break;
          default:
-            if (memstream_seek(st, size, SEEK_CUR) < 0)
+            if (ss_seek(st, size, SEEK_CUR) < 0)
             {
                ret = 0;
                goto endo;
@@ -457,15 +515,17 @@ endo:
 
 extern int geniestage;
 
+/* With buf NULL, stores nothing and returns the size a save takes. */
 size_t FCEUSS_Save_Mem(void *buf, size_t size)
 {
-   memstream_t *mem = memstream_open((uint8_t*)buf, size, 1);
-
+   state_stream_t ss;
+   state_stream_t *mem = &ss;
    uint32_t totalsize;
    uint8_t header[16] = {0};
 
-   if (!mem)
-      return 0;
+   ss.buf  = (uint8_t*)buf;
+   ss.size = buf ? size : 0;
+   ss.pos  = 0;
 
    header[0] = 'F';
    header[1] = 'C';
@@ -473,7 +533,7 @@ size_t FCEUSS_Save_Mem(void *buf, size_t size)
    header[3] = 0xFF;
 
    FCEU_en32lsb(header + 8, FCEU_VERSION_NUMERIC);
-   memstream_write(mem, header, 16);
+   ss_write(mem, header, 16);
 
    FCEUPPU_SaveState();
    totalsize  = WriteStateChunk(mem, 1, SFCPU);
@@ -490,10 +550,8 @@ size_t FCEUSS_Save_Mem(void *buf, size_t size)
    if (SPostSave)
       SPostSave();
 
-   memstream_seek(mem, 4, SEEK_SET);
-   write32le_mem(totalsize, mem);
-
-   memstream_close(mem);
+   if (ss.buf && !ss_seek(mem, 4, SEEK_SET))
+      write32le_mem(totalsize, mem);
 
    /* 16-byte header + payload. */
    return (size_t)totalsize + 16;
@@ -501,33 +559,32 @@ size_t FCEUSS_Save_Mem(void *buf, size_t size)
 
 int FCEUSS_Load_Mem(const void *buf, size_t size)
 {
-   memstream_t *mem = memstream_open((uint8_t*)buf, size, 0);
-
+   state_stream_t ss;
+   state_stream_t *mem = &ss;
    uint8_t header[16] = {0};
    int stateversion;
    uint32_t totalsize_u;
    int32_t totalsize;
    int x;
 
-   /* memstream_open only returns NULL on allocation failure now that the
-    * buffer is supplied directly by retro_unserialize; treat NULL
-    * defensively rather than dereferencing. */
-   if (!mem)
+   if (!buf)
       return 0;
+   /* Loading only reads through the cursor. */
+   ss.buf  = (uint8_t*)buf;
+   ss.size = size;
+   ss.pos  = 0;
 
    /* If the buffer is shorter than the 16-byte header the read returns
     * fewer bytes; the magic-string memcmp would otherwise compare against
     * a stack-uninitialised tail. Zeroed header[] above plus the read-
     * length check below leave the comparisons well-defined. */
-   if (memstream_read(mem, header, 16) != 16u)
+   if (ss_read(mem, header, 16) != 16u)
    {
-      memstream_close(mem);
       return 0;
    }
 
    if (memcmp(header, "FCS", 3) != 0)
    {
-      memstream_close(mem);
       return 0;
    }
 
@@ -554,7 +611,6 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
    totalsize_u = FCEU_de32lsb(header + 4);
    if (totalsize_u > 0x7FFFFFFFu)
    {
-      memstream_close(mem);
       return 0;
    }
    totalsize = (int32_t)totalsize_u;
@@ -563,7 +619,6 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
 
    if (!x)
    {
-      memstream_close(mem);
       return 0;
    }
 
@@ -576,7 +631,6 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
    FCEUPPU_LoadState(stateversion);
    FCEUSND_LoadState(stateversion);
 
-   memstream_close(mem);
    return 1;
 }
 
