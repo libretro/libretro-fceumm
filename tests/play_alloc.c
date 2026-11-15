@@ -8,14 +8,16 @@
  * frames, loads the state and runs them again: both runs must produce
  * the same pictures and audio.
  *
- * Core options are given as key=value arguments after the core path.
+ * Core options are given as key=value arguments after the core path;
+ * --hdpack also writes a small HD pack for the image and plays with it.
  *
  * Linux:
  *   cc -std=c89 -pedantic -Wall -O1 -rdynamic \
  *      -Isrc/drivers/libretro/libretro-common/include \
  *      tests/play_alloc.c -o play_alloc -ldl
  *   ./play_alloc ./fceumm_libretro.so
- *   ./play_alloc ./fceumm_libretro.so fceumm_sndstereodelay=15ms
+ *   ./play_alloc ./fceumm_libretro.so fceumm_sndstereodelay=15_ms_delay
+ *   ./play_alloc ./fceumm_libretro.so --hdpack
  * MSYS2 MINGW64:
  *   cc -std=c89 -pedantic -Wall -O1 \
  *      -Isrc/drivers/libretro/libretro-common/include \
@@ -37,6 +39,7 @@
 #define LIB_SYM(h, s)  ((void *)GetProcAddress((HMODULE)(h), (s)))
 #else
 #include <dlfcn.h>
+#include <unistd.h>
 #define LIB_OPEN(p)    dlopen((p), RTLD_NOW | RTLD_LOCAL)
 #define LIB_SYM(h, s)  dlsym((h), (s))
 #endif
@@ -173,13 +176,20 @@ static bool env_cb(unsigned cmd, void *data)
 
 /* ---- generated content ---- */
 
-/* NROM-128: rendering on, a square wave on pulse 1, then an idle loop.
- * Everything else in PRG and CHR is zero. */
+/* NROM-128: a square wave on pulse 1, rendering and NMI on, then an
+ * idle loop. Each NMI moves sprite 0 to the next tile and copies OAM
+ * from $0200, so every frame draws a sprite tile it has not drawn
+ * lately. Everything else in PRG and CHR is zero. */
 static int write_rom(const char *path)
 {
-   static const unsigned char code[] = {
+   static const unsigned char reset[] = {
       0x78,                   /* sei            */
       0xD8,                   /* cld            */
+      0xA2, 0xFF,             /* ldx #$FF       */
+      0x9A,                   /* txs            */
+      0xA9, 0x40,             /* lda #$40       */
+      0x8D, 0x00, 0x02,       /* sta $0200 (Y)  */
+      0x8D, 0x03, 0x02,       /* sta $0203 (X)  */
       0xA9, 0x01,             /* lda #$01       */
       0x8D, 0x15, 0x40,       /* sta $4015      */
       0xA9, 0xBF,             /* lda #$BF       */
@@ -190,22 +200,34 @@ static int write_rom(const char *path)
       0x8D, 0x03, 0x40,       /* sta $4003      */
       0xA9, 0x1E,             /* lda #$1E       */
       0x8D, 0x01, 0x20,       /* sta $2001      */
+      0xA9, 0x80,             /* lda #$80       */
+      0x8D, 0x00, 0x20,       /* sta $2000      */
       0x4C, 0x00, 0x00        /* jmp idle (self)*/
    };
+   static const unsigned char nmi[] = {
+      0xEE, 0x01, 0x02,       /* inc $0201      */
+      0xA9, 0x00,             /* lda #$00       */
+      0x8D, 0x03, 0x20,       /* sta $2003      */
+      0xA9, 0x02,             /* lda #$02       */
+      0x8D, 0x14, 0x40,       /* sta $4014      */
+      0x40                    /* rti            */
+   };
    static unsigned char rom[16 + 0x4000 + 0x2000];
-   unsigned idle = 0xC000 + sizeof(code) - 3;
+   unsigned idle    = 0xC000 + sizeof(reset) - 3;
+   unsigned nmi_at  = 0xC000 + sizeof(reset);
    FILE *f;
 
    memset(rom, 0, sizeof(rom));
    memcpy(rom, "NES\x1A", 4);
    rom[4] = 1; /* 16 KiB PRG */
    rom[5] = 1; /* 8 KiB CHR */
-   memcpy(rom + 16, code, sizeof(code));
-   rom[16 + sizeof(code) - 2] = (unsigned char)(idle & 0xFF);
-   rom[16 + sizeof(code) - 1] = (unsigned char)(idle >> 8);
+   memcpy(rom + 16, reset, sizeof(reset));
+   rom[16 + sizeof(reset) - 2] = (unsigned char)(idle & 0xFF);
+   rom[16 + sizeof(reset) - 1] = (unsigned char)(idle >> 8);
+   memcpy(rom + 16 + sizeof(reset), nmi, sizeof(nmi));
    /* NMI, RESET, IRQ vectors */
-   rom[16 + 0x3FFA] = (unsigned char)(idle & 0xFF);
-   rom[16 + 0x3FFB] = (unsigned char)(idle >> 8);
+   rom[16 + 0x3FFA] = (unsigned char)(nmi_at & 0xFF);
+   rom[16 + 0x3FFB] = (unsigned char)(nmi_at >> 8);
    rom[16 + 0x3FFC] = 0x00;
    rom[16 + 0x3FFD] = 0xC0;
    rom[16 + 0x3FFE] = (unsigned char)(idle & 0xFF);
@@ -220,6 +242,49 @@ static int write_rom(const char *path)
       return 0;
    }
    return fclose(f) == 0;
+}
+
+/* An HD pack for the image above, found by the core under the system
+ * directory, with one sprite addition and no images: it runs the HD
+ * renderer and its addition cache over every sprite tile drawn. */
+#define HDPACK_DIR  "HdPacks"
+#define HDPACK_GAME HDPACK_DIR "/play_alloc_test"
+#define HDPACK_FILE HDPACK_GAME "/hires.txt"
+
+static int make_dir(const char *path)
+{
+#ifdef _WIN32
+   return CreateDirectoryA(path, NULL) || GetLastError() == ERROR_ALREADY_EXISTS;
+#else
+   char cmd[256];
+   sprintf(cmd, "mkdir -p %s", path);
+   return system(cmd) == 0;
+#endif
+}
+
+static int write_hdpack(void)
+{
+   FILE *f;
+
+   if (!make_dir(HDPACK_DIR) || !make_dir(HDPACK_GAME))
+      return 0;
+   f = fopen(HDPACK_FILE, "w");
+   if (!f)
+      return 0;
+   fputs("<ver>108\n<scale>1\n<addition>1,00000000,8,0,2,00000000,Y\n", f);
+   return fclose(f) == 0;
+}
+
+static void remove_hdpack(void)
+{
+   remove(HDPACK_FILE);
+#ifdef _WIN32
+   RemoveDirectoryA(HDPACK_GAME);
+   RemoveDirectoryA(HDPACK_DIR);
+#else
+   rmdir(HDPACK_GAME);
+   rmdir(HDPACK_DIR);
+#endif
 }
 
 /* ---- test ---- */
@@ -262,7 +327,7 @@ int main(int argc, char **argv)
    unsigned char *state;
    size_t size;
    unsigned long hash_a, hash_b, calls;
-   int i, fail = 0;
+   int i, fail = 0, hdpack = 0;
 
    if (argc < 2)
    {
@@ -272,6 +337,11 @@ int main(int argc, char **argv)
    for (i = 2; i < argc && num_options < MAX_OPTIONS; i++)
    {
       char *eq = strchr(argv[i], '=');
+      if (!strcmp(argv[i], "--hdpack"))
+      {
+         hdpack = 1;
+         continue;
+      }
       if (!eq)
          continue;
       *eq = '\0';
@@ -302,9 +372,9 @@ int main(int argc, char **argv)
          || !load_sym(lib, "retro_unserialize", &c.unserialize))
       return 1;
 
-   if (!write_rom(ROM_NAME))
+   if (!write_rom(ROM_NAME) || (hdpack && !write_hdpack()))
    {
-      fprintf(stderr, "cannot write %s\n", ROM_NAME);
+      fprintf(stderr, "cannot write the test content\n");
       return 1;
    }
 
@@ -321,6 +391,8 @@ int main(int argc, char **argv)
    {
       fprintf(stderr, "load failed\n");
       remove(ROM_NAME);
+      if (hdpack)
+         remove_hdpack();
       return 1;
    }
 
@@ -388,6 +460,8 @@ int main(int argc, char **argv)
    c.deinit();
    free(state);
    remove(ROM_NAME);
+   if (hdpack)
+      remove_hdpack();
    printf("%s\n", fail ? "FAIL" : "PASS");
    return fail;
 }

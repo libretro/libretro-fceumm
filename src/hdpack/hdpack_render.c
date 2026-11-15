@@ -79,15 +79,67 @@ typedef struct hd_add_entry
 {
    hd_tile_key key;
    int32_t first;                /* -1 = no matches; index into node pool */
-   uint8_t used;
+   uint32_t gen;                 /* live when equal to hd_add_gen */
 } hd_add_entry;
 
+/* The match cache is a memo of hd_add_cache_build, made at its full size
+ * when the pack loads. Lookups use only the first hd_add_map_cap entries,
+ * starting small so a game with few keys keeps a cache-hot table; when
+ * those are half full the window doubles, up to HD_ADD_MAP_CAP. Growing,
+ * or running out of nodes, resets the memo by generation, without
+ * clearing or rehashing. CHR RAM games can make unbounded unique keys. */
+#define HD_ADD_MAP_CAP   8192u
+#define HD_ADD_MAP_MIN    256u
+#define HD_ADD_NODE_MIN 16384u
+
 static hd_add_entry *hd_add_map = NULL;
-static uint32_t hd_add_map_cap = 0;
+static uint32_t hd_add_map_cap = HD_ADD_MAP_MIN;
 static uint32_t hd_add_map_count = 0;
+static uint32_t hd_add_gen = 1;
 static hd_add_node *hd_add_nodes = NULL;
 static uint32_t hd_add_node_count = 0;
-static uint32_t hd_add_node_alloc = 0;
+static uint32_t hd_add_node_cap = 0;
+
+static void hd_add_cache_free(void)
+{
+   free(hd_add_map);
+   hd_add_map = NULL;
+   free(hd_add_nodes);
+   hd_add_nodes = NULL;
+   hd_add_map_count = 0;
+   hd_add_node_count = 0;
+   hd_add_node_cap = 0;
+   hd_add_map_cap = HD_ADD_MAP_MIN;
+   hd_add_gen = 1;
+}
+
+static int hd_add_cache_init(void)
+{
+   hd_add_cache_free();
+   if (!hd.addition_count)
+      return 1;
+   hd_add_node_cap = hd.addition_count > HD_ADD_NODE_MIN ?
+         hd.addition_count : HD_ADD_NODE_MIN;
+   hd_add_map   = (hd_add_entry*)calloc(HD_ADD_MAP_CAP, sizeof(hd_add_entry));
+   hd_add_nodes = (hd_add_node*)malloc(hd_add_node_cap * sizeof(hd_add_node));
+   if (!hd_add_map || !hd_add_nodes)
+   {
+      hd_add_cache_free();
+      return 0;
+   }
+   return 1;
+}
+
+static void hd_add_cache_reset(void)
+{
+   if (!++hd_add_gen)
+   {
+      memset(hd_add_map, 0, HD_ADD_MAP_CAP * sizeof(hd_add_entry));
+      hd_add_gen = 1;
+   }
+   hd_add_map_count = 0;
+   hd_add_node_count = 0;
+}
 
 int hd_render_init(void)
 {
@@ -106,7 +158,7 @@ int hd_render_init(void)
       hd_frame_pixels = pixels;
    }
    memset(hd_frame_buf, 0, pixels * sizeof(uint32_t));
-   return 1;
+   return hd_add_cache_init();
 }
 
 void hd_render_free(void)
@@ -115,16 +167,7 @@ void hd_render_free(void)
       free(hd_frame_buf);
    hd_frame_buf = NULL;
    hd_frame_pixels = 0;
-   if (hd_add_map)
-      free(hd_add_map);
-   hd_add_map = NULL;
-   hd_add_map_cap = 0;
-   hd_add_map_count = 0;
-   if (hd_add_nodes)
-      free(hd_add_nodes);
-   hd_add_nodes = NULL;
-   hd_add_node_count = 0;
-   hd_add_node_alloc = 0;
+   hd_add_cache_free();
 }
 
 void HDNes_SetPaletteColor(unsigned index, uint8_t r, uint8_t g, uint8_t b)
@@ -806,38 +849,13 @@ static hd_pack_tile *hd_get_cached_matching_tile(uint32_t x, uint32_t y,
 
 /* ---- additional sprites ------------------------------------------------------ */
 
-static int hd_add_map_grow(void)
-{
-   uint32_t new_cap = hd_add_map_cap ? hd_add_map_cap * 2 : 256;
-   hd_add_entry *ne = (hd_add_entry*)calloc(new_cap, sizeof(hd_add_entry));
-   uint32_t i;
-   if (!ne)
-      return 0;
-   for (i = 0; i < hd_add_map_cap; i++)
-   {
-      if (hd_add_map[i].used)
-      {
-         uint32_t mask = new_cap - 1;
-         uint32_t idx = hd_tile_key_hash(&hd_add_map[i].key) & mask;
-         while (ne[idx].used)
-            idx = (idx + 1) & mask;
-         ne[idx] = hd_add_map[i];
-      }
-   }
-   if (hd_add_map)
-      free(hd_add_map);
-   hd_add_map = ne;
-   hd_add_map_cap = new_cap;
-   return 1;
-}
-
 static int32_t hd_add_cache_lookup(const hd_ppu_tile_info *tile,
       int *found)
 {
    hd_tile_key key;
    uint32_t mask, idx;
    *found = 0;
-   if (!hd_add_map_cap)
+   if (!hd_add_map)
       return -1;
    memcpy(&key, tile, sizeof(hd_tile_key));
    mask = hd_add_map_cap - 1;
@@ -845,7 +863,7 @@ static int32_t hd_add_cache_lookup(const hd_ppu_tile_info *tile,
    for (;;)
    {
       hd_add_entry *e = &hd_add_map[idx];
-      if (!e->used)
+      if (e->gen != hd_add_gen)
          return -1;
       if (hd_tile_key_equal(&e->key, &key))
       {
@@ -866,10 +884,20 @@ static int32_t hd_add_cache_build(const hd_ppu_tile_info *tile,
    uint32_t i;
    uint32_t mask, idx;
 
+   if (!hd_add_map)
+      return -1;
+   if (hd_add_map_count * 2 >= hd_add_map_cap)
+   {
+      if (hd_add_map_cap < HD_ADD_MAP_CAP)
+         hd_add_map_cap *= 2;
+      hd_add_cache_reset();
+   }
+
    memcpy(&key, tile, sizeof(hd_tile_key));
    def_key = key;
    def_key.palette_colors = 0xFFFFFFFFu;
 
+restart:
    for (i = 0; i < hd.addition_count; i++)
    {
       const hd_addition *a = &hd.additions[i];
@@ -896,15 +924,14 @@ static int32_t hd_add_cache_build(const hd_ppu_tile_info *tile,
       if (match)
       {
          int32_t node;
-         if (hd_add_node_count == hd_add_node_alloc)
+         if (hd_add_node_count == hd_add_node_cap)
          {
-            uint32_t na = hd_add_node_alloc ? hd_add_node_alloc * 2 : 64;
-            hd_add_node *nn = (hd_add_node*)realloc(hd_add_nodes,
-                  na * sizeof(hd_add_node));
-            if (!nn)
-               break;
-            hd_add_nodes = nn;
-            hd_add_node_alloc = na;
+            /* The pool holds any one key's matches, so the rebuild on
+             * an empty cache fits. */
+            hd_add_cache_reset();
+            first = -1;
+            last  = -1;
+            goto restart;
          }
          node = (int32_t)hd_add_node_count++;
          hd_add_nodes[node].addition_idx = (uint16_t)i;
@@ -917,24 +944,11 @@ static int32_t hd_add_cache_build(const hd_ppu_tile_info *tile,
       }
    }
 
-   /* Insert into the cache map (grow / reset when oversized). */
-   if (hd_add_map_count * 2 >= hd_add_map_cap)
-   {
-      if (hd_add_map_cap >= 8192)
-      {
-         /* CHR RAM games can generate unbounded unique keys; reset the
-          * cache instead of growing forever. */
-         memset(hd_add_map, 0, hd_add_map_cap * sizeof(hd_add_entry));
-         hd_add_map_count = 0;
-      }
-      else if (!hd_add_map_grow())
-         return first;
-   }
    mask = hd_add_map_cap - 1;
    idx = hd_tile_key_hash(&key) & mask;
-   while (hd_add_map[idx].used)
+   while (hd_add_map[idx].gen == hd_add_gen)
       idx = (idx + 1) & mask;
-   hd_add_map[idx].used = 1;
+   hd_add_map[idx].gen = hd_add_gen;
    hd_add_map[idx].key = key;
    hd_add_map[idx].first = first;
    hd_add_map_count++;
@@ -1146,7 +1160,6 @@ static void hd_compose_line(uint32_t y, uint32_t *line_out,
    int render_original =
          (hd.option_flags & HD_OPT_NO_ORIGINAL_TILES) == 0;
    uint32_t x;
-   int i;
    int k;
 
    /* Step 1: backdrop fill, per pixel (ppu_bg_color varies per pixel).
@@ -1323,7 +1336,6 @@ const uint32_t *HDNes_ComposeFrame(void)
    uint32_t i;
    int layer;
    int y;
-   uint32_t x;
 
    if (!hdnes_active || !hd_frame_buf || !hd_screen.pixels)
       return NULL;
