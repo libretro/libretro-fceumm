@@ -272,8 +272,16 @@ static DECLFW(B2003) {
 	PPUSPL = V & 0x7;
 }
 
+/* For scanlines 0-255, the sprites whose rows cover each line, as bits
+ * by OAM index (lo: 0-31, hi: 32-63), rebuilt when OAM or the sprite
+ * height has changed since. */
+static uint32_t spr_line_lo[256], spr_line_hi[256];
+static uint8_t spr_lines_h;
+static uint8_t spr_lines_dirty = 1;
+
 static DECLFW(B2004) {
 	PPUGenLatch = V;
+	spr_lines_dirty = 1;
 	if (PPUSPL >= 8) {
 		if (PPU[3] >= 8)
 			SPRAM[PPU[3]] = V;
@@ -763,6 +771,47 @@ void FCEUI_DisableSpriteLimitation(int a) {
 }
 
 static uint8_t numsprites, SpriteBlurp;
+static void BuildSpriteLines(uint8_t H) {
+	int i, t;
+
+	memset(spr_line_lo, 0, sizeof(spr_line_lo));
+	memset(spr_line_hi, 0, sizeof(spr_line_hi));
+	for (i = 0; i < 64; i++) {
+		int y = SPRAM[i << 2];
+		uint32_t bit = (uint32_t)1 << (i & 31);
+		uint32_t *line = (i < 32) ? spr_line_lo : spr_line_hi;
+		for (t = 0; t < H && y + t < 256; t++)
+			line[y + t] |= bit;
+	}
+	spr_lines_h = H;
+	spr_lines_dirty = 0;
+}
+
+/* Index of the lowest set bit of a nonzero word. */
+static const uint8_t spr_debruijn[32] = {
+	0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+	31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+};
+#define SPR_LOWEST_BIT(m) \
+	spr_debruijn[(((m) & (0u - (m))) * 0x077CB531u) >> 27]
+
+/* Next OAM index from the candidate masks, lowest first; -1 when none
+ * are left. */
+static INLINE int NextSprite(uint32_t *lo, uint32_t *hi) {
+	int i;
+	if (*lo) {
+		i = SPR_LOWEST_BIT(*lo);
+		*lo &= *lo - 1;
+		return i;
+	}
+	if (*hi) {
+		i = 32 + SPR_LOWEST_BIT(*hi);
+		*hi &= *hi - 1;
+		return i;
+	}
+	return -1;
+}
+
 static void FetchSpriteData(void) {
 	uint8_t ns, sb;
 	SPR *spr;
@@ -770,8 +819,9 @@ static void FetchSpriteData(void) {
 	int n;
 	int vofs;
 	uint8_t P0 = PPU[0];
+	uint32_t cand_lo, cand_hi;
+	int i;
 
-	spr = (SPR*)SPRAM;
 	H = 8;
 
 	ns = sb = 0;
@@ -779,13 +829,25 @@ static void FetchSpriteData(void) {
 	vofs = (uint32_t)(P0 & 0x8 & (((P0 & 0x20) ^ 0x20) >> 2)) << 9;
 	H += (P0 & 0x20) >> 2;
 
+	/* Past line 255 (the pre-render line) every sprite is a candidate
+	 * and the range test below decides. */
+	if ((uint32_t)scanline < 256) {
+		if (spr_lines_dirty || spr_lines_h != H)
+			BuildSpriteLines(H);
+		cand_lo = spr_line_lo[scanline];
+		cand_hi = spr_line_hi[scanline];
+	} else
+		cand_lo = cand_hi = 0xFFFFFFFFu;
+
 #ifdef HAVE_HDPACK
 	if (hdnes_active)
 		HDNes_SpriteFetchStart();
 #endif
 
 	if (!PPU_hook)
-		for (n = 63; n >= 0; n--, spr++) {
+		while ((i = NextSprite(&cand_lo, &cand_hi)) >= 0) {
+			spr = (SPR*)SPRAM + i;
+			n = 63 - i;
 			if ((uint32_t)(scanline - spr->y) >= H) continue;
 			if (ns < maxsprites) {
 				if (n == 63) sb = 1;
@@ -851,7 +913,9 @@ static void FetchSpriteData(void) {
 			}
 		}
 	else
-		for (n = 63; n >= 0; n--, spr++) {
+		while ((i = NextSprite(&cand_lo, &cand_hi)) >= 0) {
+			spr = (SPR*)SPRAM + i;
+			n = 63 - i;
 			if ((uint32_t)(scanline - spr->y) >= H) continue;
 
 			if (ns < maxsprites) {
@@ -1138,6 +1202,7 @@ void FCEUPPU_Power(void) {
 	memset(PALRAM, 0x00, 0x20);
 	memset(UPALRAM, 0x00, 0x03);
 	memset(SPRAM, 0x00, 0x100);
+	spr_lines_dirty = 1;
 	FCEUPPU_Reset();
 	for (x = 0x2000; x < 0x4000; x += 8) {
 		ARead[x] = A200x;
@@ -1270,6 +1335,7 @@ int FCEUPPU_Loop(int skip) {
 static uint16_t TempAddrT, RefreshAddrT;
 
 void FCEUPPU_LoadState(int version) {
+	spr_lines_dirty = 1;
 	TempAddr = TempAddrT;
 	RefreshAddr = RefreshAddrT;
 }
