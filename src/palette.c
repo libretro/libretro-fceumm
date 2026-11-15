@@ -125,9 +125,9 @@ void SetNESDeemph(uint8_t d, int force) {
 		if (d == lastd)
 			return;
 	} else {	/* Only set this when palette has changed. */
-		r = rtmul[7];
-		g = rtmul[7];
-		b = rtmul[7];
+		r = rtmul[6];
+		g = gtmul[6];
+		b = btmul[6];
 
 		for (x = 0; x < 0x40; x++) {
 			uint32_t m, n, o;
