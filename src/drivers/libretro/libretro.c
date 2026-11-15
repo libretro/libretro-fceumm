@@ -3360,29 +3360,30 @@ static void retro_run_blit(uint8_t *gfx)
           * so emphasis is constant per row - branch once per row, not
           * per pixel. NSF and use_raw_palette flags don't change mid-
           * frame either. */
+#if !defined(PSP) && !defined(PS2)
+         if (GameInfo->type != GIT_NSF)
          {
             const uint8_t *deemp_row = XDBuf + (gfx - XBuf);
-            const bool is_nsf        = (GameInfo->type == GIT_NSF);
-            const uint8_t pixel_mask = use_raw_palette ? 0x3F : 0xFF;
-
             for (y = 0; y < height; y++)
             {
                bpp_t *out_row = target + (size_t)y * target_stride;
-               uint8_t deemp = is_nsf ? 0 : deemp_row[0];
+               for (x = 0; x < width; x++)
+                  out_row[x] = retro_palette[256u + ((unsigned)(deemp_row[x] & 0x07) << 6) + (gfx[x] & 0x3F)];
 
-               if (deemp != 0)
-               {
-                  unsigned base = 256u + ((unsigned)(deemp & 0x07) << 6);
-                  for (x = 0; x < width; x++)
-                     out_row[x] = retro_palette[base + (gfx[x] & 0x3F)];
-               }
-               else
-               {
-                  for (x = 0; x < width; x++)
-                     out_row[x] = retro_palette[gfx[x] & pixel_mask];
-               }
                gfx       += 256;
                deemp_row += 256;
+            }
+         }
+         else
+#endif
+         {
+            for (y = 0; y < height; y++)
+            {
+               bpp_t *out_row = target + (size_t)y * target_stride;
+               for (x = 0; x < width; x++)
+                  out_row[x] = retro_palette[gfx[x]];
+
+               gfx += 256;
             }
          }
 
