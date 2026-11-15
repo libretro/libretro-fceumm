@@ -345,6 +345,11 @@ const char * GetKeyboard(void)
    return "";
 }
 
+/* An 8-bit channel narrowed by 'e' bits, rounded to nearest; e = 0
+ * keeps it as it is. */
+#define PIXEL_CHANNEL(v, e) \
+   ((((unsigned)(v)) * (255u >> (e)) + 127u) / 255u)
+
 #define BUILD_PIXEL_RGB565(R,G,B) (((int) ((R)&0x1f) << RED_SHIFT) | ((int) ((G)&0x3f) << GREEN_SHIFT) | ((int) ((B)&0x1f) << BLUE_SHIFT))
 
 void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
@@ -377,10 +382,15 @@ void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
 #endif
 
 #ifdef FRONTEND_SUPPORTS_RGB565
-   retro_palette[index_to_write] = BUILD_PIXEL_RGB565(r >> RED_EXPAND, g >> GREEN_EXPAND, b >> BLUE_EXPAND);
+   retro_palette[index_to_write] = BUILD_PIXEL_RGB565(
+         PIXEL_CHANNEL(r, RED_EXPAND),
+         PIXEL_CHANNEL(g, GREEN_EXPAND),
+         PIXEL_CHANNEL(b, BLUE_EXPAND));
 #else
    retro_palette[index_to_write] =
-      ((r >> RED_EXPAND) << RED_SHIFT) | ((g >> GREEN_EXPAND) << GREEN_SHIFT) | ((b >> BLUE_EXPAND) << BLUE_SHIFT);
+        (PIXEL_CHANNEL(r, RED_EXPAND)   << RED_SHIFT)
+      | (PIXEL_CHANNEL(g, GREEN_EXPAND) << GREEN_SHIFT)
+      | (PIXEL_CHANNEL(b, BLUE_EXPAND)  << BLUE_SHIFT);
 #endif
 }
 
