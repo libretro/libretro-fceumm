@@ -108,14 +108,16 @@ static int ss_seek(state_stream_t *ss, size_t offset, int whence)
    return 0;
 }
 
-static const fceuss_host_chunk_t *state_host_chunk;
-static int state_host_chunk_seen;
+static const fceuss_host_chunk_t *state_host_chunk[FCEUSS_CHUNKS];
+static uint8_t state_host_chunk_seen[FCEUSS_CHUNKS];
 
+/* Slot n is stored as chunk type STATE_HOST_CHUNK + n. */
 #define STATE_HOST_CHUNK 6
 
-void FCEUSS_SetHostChunk(const fceuss_host_chunk_t *hc)
+void FCEUSS_SetHostChunk(int slot, const fceuss_host_chunk_t *hc)
 {
-   state_host_chunk = hc;
+   if (slot >= 0 && slot < FCEUSS_CHUNKS)
+      state_host_chunk[slot] = hc;
 }
 
 static void (*SPreSave)(void);
@@ -510,20 +512,24 @@ static int ReadStateChunks(state_stream_t *st, int32_t totalsize)
             if (!ReadStateChunk(st, SFMDATA, size))
                ret = 0;
             break;
-         case STATE_HOST_CHUNK:
+         case STATE_HOST_CHUNK + FCEUSS_CHUNK_FRONTEND:
+         case STATE_HOST_CHUNK + FCEUSS_CHUNK_SOUND:
+         {
+            int slot = t - STATE_HOST_CHUNK;
             /* The declared payload is not bounded by the buffer. */
             if (size > st->size - st->pos)
             {
                ret = 0;
                goto endo;
             }
-            if (state_host_chunk)
+            if (state_host_chunk[slot])
             {
-               state_host_chunk->load(st->buf + st->pos, size);
-               state_host_chunk_seen = 1;
+               state_host_chunk[slot]->load(st->buf + st->pos, size);
+               state_host_chunk_seen[slot] = 1;
             }
             st->pos += size;
             break;
+         }
          default:
             if (ss_seek(st, size, SEEK_CUR) < 0)
             {
@@ -546,6 +552,7 @@ size_t FCEUSS_Save_Mem(void *buf, size_t size)
    state_stream_t *mem = &ss;
    uint32_t totalsize;
    uint8_t header[16] = {0};
+   int x;
 
    ss.buf  = (uint8_t*)buf;
    ss.size = buf ? size : 0;
@@ -574,22 +581,24 @@ size_t FCEUSS_Save_Mem(void *buf, size_t size)
    if (SPostSave)
       SPostSave();
 
-   if (state_host_chunk)
+   for (x = 0; x < FCEUSS_CHUNKS; x++)
    {
-      size_t n = state_host_chunk->size();
-      if (n)
+      size_t n;
+      if (!state_host_chunk[x])
+         continue;
+      n = state_host_chunk[x]->size();
+      if (!n)
+         continue;
+      ss_putc(mem, STATE_HOST_CHUNK + x);
+      write32le_mem((uint32_t)n, mem);
+      if (!ss.buf)
+         ss.pos += n;
+      else if (n <= ss.size - ss.pos)
       {
-         ss_putc(mem, STATE_HOST_CHUNK);
-         write32le_mem((uint32_t)n, mem);
-         if (!ss.buf)
-            ss.pos += n;
-         else if (n <= ss.size - ss.pos)
-         {
-            state_host_chunk->save(ss.buf + ss.pos);
-            ss.pos += n;
-         }
-         totalsize += (uint32_t)n + 5;
+         state_host_chunk[x]->save(ss.buf + ss.pos);
+         ss.pos += n;
       }
+      totalsize += (uint32_t)n + 5;
    }
 
    if (ss.buf && !ss_seek(mem, 4, SEEK_SET))
@@ -657,7 +666,7 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
    }
    totalsize = (int32_t)totalsize_u;
 
-   state_host_chunk_seen = 0;
+   memset(state_host_chunk_seen, 0, sizeof(state_host_chunk_seen));
    x = ReadStateChunks(mem, totalsize);
 
    if (!x)
@@ -674,8 +683,9 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
    FCEUPPU_LoadState(stateversion);
    FCEUSND_LoadState(stateversion);
 
-   if (state_host_chunk && !state_host_chunk_seen)
-      state_host_chunk->absent();
+   for (x = 0; x < FCEUSS_CHUNKS; x++)
+      if (state_host_chunk[x] && !state_host_chunk_seen[x])
+         state_host_chunk[x]->absent();
 
    return 1;
 }

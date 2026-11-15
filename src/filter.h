@@ -1,6 +1,8 @@
 #ifndef _FCEU_FILTER_H
 #define _FCEU_FILTER_H
 
+#include "state.h"
+
 int32_t NeoFilterSound(int32_t *in, int32_t *out, uint32_t inlen, int32_t *leftover);
 void MakeFilters(int32_t rate);
 void SexyFilter(int32_t *in, int32_t *out, int32_t count);
@@ -16,5 +18,8 @@ void SexyFilter_Reset(void);
 
 extern int64_t sexyfilter_acc1, sexyfilter_acc2;
 extern int64_t sexyfilter2_acc;
+
+/* The high-quality filter's history, kept in savestates. */
+extern const fceuss_host_chunk_t neofilter_state_chunk;
 
 #endif

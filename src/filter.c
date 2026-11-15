@@ -1,9 +1,12 @@
+#include <string.h>
+
 #include "fceu-types.h"
 
 #include "sound.h"
 #include "x6502.h"
 #include "fceu.h"
 #include "filter.h"
+#include "state.h"
 
 #include "fcoeffs.h"
 
@@ -241,3 +244,79 @@ void MakeFilters(int32_t rate) {
 		for (x = 0; x < (NCOEFFS >> 1); x++)
 			coeffs[x] = coeffs[NCOEFFS - 1 - x] = tmp[x];
 }
+
+/* Savestate chunk for the high-quality path: the resampling phase and
+ * the input history NeoFilterSound carries into the next frame (the
+ * first taps + 1 samples of WaveHi), as little-endian 32-bit values.
+ * Nothing is kept in low-quality mode, whose state is in the SFORMAT
+ * tables. */
+#define NEOFILTER_TAPS ((FSettings.soundq == 2) ? SQ2NCOEFFS : NCOEFFS)
+#define NEOFILTER_CHUNK_HEADER 8
+
+static void neofilter_put32(uint8_t *d, uint32_t v) {
+	d[0] = (uint8_t)v;
+	d[1] = (uint8_t)(v >> 8);
+	d[2] = (uint8_t)(v >> 16);
+	d[3] = (uint8_t)(v >> 24);
+}
+
+static uint32_t neofilter_get32(const uint8_t *s) {
+	return (uint32_t)s[0] | ((uint32_t)s[1] << 8)
+	     | ((uint32_t)s[2] << 16) | ((uint32_t)s[3] << 24);
+}
+
+static size_t neofilter_chunk_size(void) {
+	if (FSettings.soundq < 1)
+		return 0;
+	return NEOFILTER_CHUNK_HEADER + (size_t)(NEOFILTER_TAPS + 1) * 4;
+}
+
+static void neofilter_chunk_save(uint8_t *dst) {
+	uint32_t i, count = NEOFILTER_TAPS + 1;
+
+	neofilter_put32(dst, mrindex);
+	neofilter_put32(dst + 4, count);
+	dst += NEOFILTER_CHUNK_HEADER;
+	for (i = 0; i < count; i++)
+		neofilter_put32(dst + i * 4, (uint32_t)WaveHi[i]);
+}
+
+/* A state without the history starts the filter from silence. */
+static void neofilter_chunk_absent(void) {
+	uint32_t taps;
+
+	if (FSettings.soundq < 1)
+		return;
+	taps = NEOFILTER_TAPS;
+	memset(WaveHi, 0, (taps + 1) * sizeof(WaveHi[0]));
+	mrindex = (taps + 1) << 16;
+}
+
+static void neofilter_chunk_load(const uint8_t *src, size_t len) {
+	uint32_t i, taps, count, phase;
+
+	if (FSettings.soundq < 1)
+		return;
+	taps  = NEOFILTER_TAPS;
+	count = taps + 1;
+	phase = neofilter_get32(src);
+	/* A history saved at another quality, or a phase that would read
+	 * before the history, restarts the filter instead. */
+	if (len != NEOFILTER_CHUNK_HEADER + (size_t)count * 4
+			|| neofilter_get32(src + 4) != count
+			|| phase < (taps << 16) || phase > ((taps + 64) << 16)) {
+		neofilter_chunk_absent();
+		return;
+	}
+	mrindex = phase;
+	src += NEOFILTER_CHUNK_HEADER;
+	for (i = 0; i < count; i++)
+		WaveHi[i] = (int32_t)neofilter_get32(src + i * 4);
+}
+
+const fceuss_host_chunk_t neofilter_state_chunk = {
+	neofilter_chunk_size,
+	neofilter_chunk_save,
+	neofilter_chunk_load,
+	neofilter_chunk_absent
+};

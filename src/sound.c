@@ -1234,6 +1234,7 @@ void FCEUSND_Reset(void) {
 void FCEUSND_Power(void) {
 	int x;
 
+	FCEUSS_SetHostChunk(FCEUSS_CHUNK_SOUND, &neofilter_state_chunk);
 	SetNESSoundMap();
 	memset(PSG, 0x00, sizeof(PSG));
 	FCEUSND_Reset();

@@ -1981,7 +1981,7 @@ void retro_init(void)
 
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
 
-   FCEUSS_SetHostChunk(&stereo_host_chunk);
+   FCEUSS_SetHostChunk(FCEUSS_CHUNK_FRONTEND, &stereo_host_chunk);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
       libretro_supports_bitmasks = true;
@@ -2630,7 +2630,11 @@ static void check_variables(bool startup)
       else if (!strcmp(var.value, "Very High"))
          sndquality = 2;
       if (sndquality != oldval)
+      {
          FCEUI_SetSoundQuality(sndquality);
+         /* The savestate size follows the sound quality. */
+         serialize_size = 0;
+      }
    }
 
    var.key = "fceumm_sndlowpass";
