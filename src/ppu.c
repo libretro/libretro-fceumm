@@ -135,44 +135,6 @@ uint8_t UPALRAM[0x03];/* for 0x4/0x8/0xC addresses in palette, the ones in
 					 * 0x20 are 0 to not break fceu rendering.
 					 */
 
-/* Background pair LUT for pputile.h's per-tile 8-pixel palette gather.
- * Each 8-bit chunk of pixdata indexes two 4-bit pens (low nibble = even
- * pixel, high nibble = odd), so a 256-entry uint16_t table maps each
- * pixdata byte to a pre-packed 2-pen pair, letting the per-tile body
- * emit four pair-lookups and a single 64-bit store instead of eight
- * serial nibble-load-store iterations.
- *
- * Rebuilt INSIDE RefreshLine just before the pputile.h includes, so
- * that:
- *   (a) any PALRAM[0x00..0x0F] change since the previous RefreshLine
- *       is reflected on the next tile span, and
- *   (b) crucially, the 0x40 "background priority" bit that RefreshLine
- *       OR's into Pal[0/4/8/0xC] right before rendering -- and ANDs
- *       off again after -- is captured in the LUT.  Without that the
- *       sprite compositor cannot tell BG-color pixels apart from the
- *       universal background, breaking sprite priority for any game
- *       that hits Pal[0x04/0x08/0x0C] (e.g. Mega Man 3 sprites). */
-static uint16_t fceu_bg_pair_lut[256];
-
-static void FCEU_BuildBgPairLUT(void)
-{
-	int b;
-	for (b = 0; b < 256; b++)
-	{
-#ifdef MSB_FIRST
-		/* Big-endian: the 64-bit tile word in pputile.h is stored
-		 * most-significant byte first, so the even (leftmost) pen of
-		 * each pair must live in the HIGH byte of the LUT entry for
-		 * it to land at the lower memory address. */
-		fceu_bg_pair_lut[b] = ((uint16_t)PALRAM[b & 0x0F] << 8) |
-		                       (uint16_t)PALRAM[b >> 4];
-#else
-		fceu_bg_pair_lut[b] = (uint16_t)PALRAM[b & 0x0F] |
-		                      ((uint16_t)PALRAM[b >> 4] << 8);
-#endif
-	}
-}
-
 #define MMC5SPRVRAMADR(V)   &MMC5SPRVPage[(V) >> 10][(V)]
 #define VRAMADR(V)          &VPage[(V) >> 10][(V)]
 
@@ -523,17 +485,6 @@ static void FASTAPASS(1) RefreshLine(int lastpixel) {
 	Pal[4] |= 64;
 	Pal[8] |= 64;
 	Pal[0xC] |= 64;
-
-	/* Rebuild the bg pair LUT *after* the priority |= 64 modification
-	 * above so that the LUT entries for PALRAM[0/4/8/0xC] carry the
-	 * 0x40 bit while the pputile.h includes below run.  The matching
-	 * Pal[i] &= 63 cleanup at the bottom of this function does NOT
-	 * require a second rebuild: the LUT is only consumed by the
-	 * pputile.h block, which runs between the |= 64 and the &= 63.
-	 * The LUT is also rebuilt at every mid-scanline RefreshLine call
-	 * via FCEUPPU_LineUpdate, picking up any $3F00..$3F0F write the
-	 * CPU made since the previous tile span. */
-	FCEU_BuildBgPairLUT();
 
 	/* This high-level graphics MMC5 emulation code was written for MMC5 carts in "CL" mode.
 	 * It's probably not totally correct for carts in "SL" mode.

@@ -26,11 +26,28 @@ if (X1 >= 2) {
 
 	pixdata |= ppulut3[XOffset | (atlatch << 3)];
 
-	for (int i = 0; i < 8; ++i) {
-		P[i] = PALRAM[pixdata & 0xF];
-		pixdata >>= 4;
+	{
+		/* All eight pens are fetched before any store: P may alias
+		 * PALRAM (both uint8_t), so interleaving would serialise each
+		 * load behind the previous store. */
+		uint8_t p0 = PALRAM[ pixdata        & 0xF];
+		uint8_t p1 = PALRAM[(pixdata >>  4) & 0xF];
+		uint8_t p2 = PALRAM[(pixdata >>  8) & 0xF];
+		uint8_t p3 = PALRAM[(pixdata >> 12) & 0xF];
+		uint8_t p4 = PALRAM[(pixdata >> 16) & 0xF];
+		uint8_t p5 = PALRAM[(pixdata >> 20) & 0xF];
+		uint8_t p6 = PALRAM[(pixdata >> 24) & 0xF];
+		uint8_t p7 = PALRAM[ pixdata >> 28       ];
+		P[0] = p0;
+		P[1] = p1;
+		P[2] = p2;
+		P[3] = p3;
+		P[4] = p4;
+		P[5] = p5;
+		P[6] = p6;
+		P[7] = p7;
 	}
-    P += 8;
+	P += 8;
 }
 
 #ifdef PPUT_MMC5SP
