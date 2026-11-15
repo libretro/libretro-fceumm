@@ -58,7 +58,7 @@ static pal *default_palette[8] =
 static void ApplyDeemphasisClassic(int entry, uint8_t *r, uint8_t *g, uint8_t *b) {
 	static const float rtmul[] = { 1.239f, 0.794f, 1.019f, 0.905f, 1.023f, 0.741f, 0.75f };
 	static const float gtmul[] = { 0.915f, 1.086f, 0.98f,  1.026f, 0.908f, 0.987f, 0.75f };
-	static const float btmul[] = { 0.743f, 0.882f, 0.653f, 1.277f, 0.979f, 0.101f, 0.75f };
+	static const float btmul[] = { 0.743f, 0.882f, 0.653f, 1.277f, 0.979f, 0.701f, 0.75f };
 
 	int nr, ng, nb, d;
 	int deemph_bits = entry >> 6;
@@ -115,7 +115,7 @@ static uint8_t lastd = 0;
 void SetNESDeemph(uint8_t d, int force) {
 	static const uint16_t rtmul[7] = { 32768 * 1.239, 32768 * .794, 32768 * 1.019, 32768 * .905, 32768 * 1.023, 32768 * .741, 32768 * .75 };
 	static const uint16_t gtmul[7] = { 32768 * .915, 32768 * 1.086, 32768 * .98, 32768 * 1.026, 32768 * .908, 32768 * .987, 32768 * .75 };
-	static const uint16_t btmul[7] = { 32768 * .743, 32768 * .882, 32768 * .653, 32768 * 1.277, 32768 * .979, 32768 * .101, 32768 * .75 };
+	static const uint16_t btmul[7] = { 32768 * .743, 32768 * .882, 32768 * .653, 32768 * 1.277, 32768 * .979, 32768 * .701, 32768 * .75 };
 	uint32_t r, g, b;
 	int x;
 
@@ -126,8 +126,8 @@ void SetNESDeemph(uint8_t d, int force) {
 			return;
 	} else {	/* Only set this when palette has changed. */
 		r = rtmul[6];
-		g = rtmul[6];
-		b = rtmul[6];
+		g = gtmul[6];
+		b = btmul[6];
 
 		for (x = 0; x < 0x40; x++) {
 			uint32_t m, n, o;
