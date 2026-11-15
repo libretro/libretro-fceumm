@@ -602,6 +602,19 @@ static void RDoPCM(void) {
 }
 
 /* This has the correct phase.  Don't mess with it. */
+/* Adds 'value' to each of the n high-quality mix slots from D. */
+static void WaveHiAddRun(int32_t *D, int32_t n, int32_t value) {
+	int32_t i;
+	for (i = 0; i < n; i++)
+		D[i] += value;
+}
+
+/* Steps of a span that ends at the step a wave length counter reaches
+ * zero, capped at 'left'; a counter at or below zero only counts down
+ * and never reaches it. */
+#define HQ_SPAN(count, left) \
+	(((count) > 0 && (count) < (left)) ? (count) : (left))
+
 static INLINE void RDoSQ(int x) {
 	int32_t V;
 	int32_t amp;
@@ -647,16 +660,20 @@ static INLINE void RDoSQ(int x) {
 		currdc = RectDutyCount[x];
 		D = &WaveHi[ChannelBC[x]];
 
+		/* The output only changes when the duty step advances: each
+		 * span up to that step goes into the mix at once, and adds
+		 * nothing while the step is past the duty threshold. */
 		while (V > 0) {
+			int32_t n = HQ_SPAN(rc, V);
 			if (currdc < rthresh)
-				*D += amp;
-			rc--;
+				WaveHiAddRun(D, n, amp);
+			D  += n;
+			V  -= n;
+			rc -= n;
 			if (!rc) {
 				rc = cf;
 				currdc = (currdc + 1) & 7;
 			}
-			V--;
-			D++;
 		}
 
 		RectDutyCount[x] = currdc;
@@ -841,9 +858,13 @@ static void RDoTriangle(void) {
 			WaveHi[V] += cout; */
 
 	} else {
-		for (V = ChannelBC[2]; V < SOUNDTS; V++) {
-			WaveHi[V] += (tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF);  /* TODO OPTIMIZE ME! */
-			wlcount[2]--;
+		/* Spans between steps of the wave go into the mix at once. */
+		for (V = ChannelBC[2]; V < SOUNDTS; ) {
+			int32_t n = HQ_SPAN(wlcount[2], (int32_t)(SOUNDTS - V));
+			WaveHiAddRun(&WaveHi[V], n,
+					(tcout / 256 * FSettings.TriangleVolume) & (~0xFFFF));
+			V += n;
+			wlcount[2] -= n;
 			if (!wlcount[2]) {
 				wlcount[2] = (PSG[0xa] | ((PSG[0xb] & 7) << 8)) + 1;
 				tristep++;
@@ -852,7 +873,7 @@ static void RDoTriangle(void) {
 				tcout = (tcout * 3) << 16;
 			}
 		}
-    }
+	}
 
 	ChannelBC[2] = SOUNDTS;
 }
@@ -978,6 +999,7 @@ static void RDoNoise(void) {
 	uint32_t V;
 	int32_t outo;
 	uint32_t amptab[2];
+	int fbit;
 
 	if (EnvUnits[2].Mode & 0x1)
 		amptab[0] = EnvUnits[2].Speed;
@@ -1003,37 +1025,24 @@ static void RDoNoise(void) {
 		outo = amptab[0] = 0;
 	}
 
-	if (PSG[0xE] & 0x80) {/* "short" noise */
-		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
-			WaveHi[V] += outo;
-			wlcount[3]--;
-			if (!wlcount[3]) {
-				uint8_t feedback;
-				if (PAL)
-					wlcount[3] = PALNoiseFreqTable[PSG[0xE] & 0xF];
-				else
-					wlcount[3] = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
-				feedback = ((nreg >> 8) & 1) ^ ((nreg >> 14) & 1);
-				nreg = (nreg << 1) + feedback;
-				nreg &= 0x7fff;
-				outo = amptab[(nreg >> 0xe) & 1];
-			}
-		}
-	} else {
-		for (V = ChannelBC[3]; V < SOUNDTS; V++) {
-			WaveHi[V] += outo;
-			wlcount[3]--;
-			if (!wlcount[3]) {
-				uint8_t feedback;
-				if (PAL)
-					wlcount[3] = PALNoiseFreqTable[PSG[0xE] & 0xF];
-				else
-					wlcount[3] = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
-				feedback = ((nreg >> 13) & 1) ^ ((nreg >> 14) & 1);
-				nreg = (nreg << 1) + feedback;
-				nreg &= 0x7fff;
-				outo = amptab[(nreg >> 0xe) & 1];
-			}
+	/* Feedback from bit 8 for "short" noise, bit 13 otherwise. Spans
+	 * between shifts of the register go into the mix at once. */
+	fbit = (PSG[0xE] & 0x80) ? 8 : 13;
+	for (V = ChannelBC[3]; V < SOUNDTS; ) {
+		int32_t n = HQ_SPAN(wlcount[3], (int32_t)(SOUNDTS - V));
+		WaveHiAddRun(&WaveHi[V], n, outo);
+		V += n;
+		wlcount[3] -= n;
+		if (!wlcount[3]) {
+			uint8_t feedback;
+			if (PAL)
+				wlcount[3] = PALNoiseFreqTable[PSG[0xE] & 0xF];
+			else
+				wlcount[3] = NTSCNoiseFreqTable[PSG[0xE] & 0xF];
+			feedback = ((nreg >> fbit) & 1) ^ ((nreg >> 14) & 1);
+			nreg = (nreg << 1) + feedback;
+			nreg &= 0x7fff;
+			outo = amptab[(nreg >> 0xe) & 1];
 		}
 	}
 	ChannelBC[3] = SOUNDTS;
