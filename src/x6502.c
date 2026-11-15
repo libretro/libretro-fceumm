@@ -27,8 +27,6 @@
 #include "sound.h"
 
 X6502 X;
-uint8_t encryptOpcodes = 0;
-uint8_t encryptOpcodesConfig = 0;
 
 uint32_t timestamp;
 uint32_t sound_timestamp;
@@ -47,12 +45,36 @@ void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 #define _IRQlow    X.IRQlow
 #define _jammed    X.jammed
 
-#define ADDCYC(x) {									\
+#define ADDCYC_OC(x, oc) {							\
 	int __x = x;									\
 	_tcount += __x;									\
 	_count -= __x * 48;								\
 	timestamp += __x;  \
-	if (!overclocked) sound_timestamp +=  __x; \
+	if (!(oc)) sound_timestamp +=  __x; \
+}
+#define ADDCYC(x) ADDCYC_OC(x, overclocked)
+
+uint8_t encryptOpcodes = 0;
+uint8_t encryptOpcodesConfig = 0;
+
+/* OneBus opcode scrambling (submappers 10-14). */
+static uint8_t DecryptOpcode(uint8_t b1) {
+	switch (encryptOpcodes) {
+	case 10:
+		return (b1 & ~0x36) | ((b1 >> 1) & 0x12) | ((b1 << 1) & 0x24);
+	case 11:
+		if (encryptOpcodesConfig & 0x02)
+			b1 = (b1 & ~0x30) | ((b1 >> 1) & 0x10) | ((b1 << 1) & 0x20);
+		if (encryptOpcodesConfig & 0x40)
+			b1 = (b1 & ~0xC6) | ((b1 >> 1) & 0x42) | ((b1 << 1) & 0x84);
+		return b1;
+	case 12:
+		return (b1 & ~0xC6) | ((b1 >> 1) & 0x42) | ((b1 << 1) & 0x84);
+	case 14:
+		return (b1 & ~0xC0) | ((b1 >> 1) & 0x40) | ((b1 << 1) & 0x80);
+	default:
+		return b1;
+	}
 }
 
 static INLINE uint8_t RdMemNorm(uint32_t A) {
@@ -386,6 +408,12 @@ void X6502_Run(int32_t cycles)
 	#else
 	uint16_t pbackus;
 	#endif
+	/* overclocked only changes between runs; a local stays in a register
+	 * across the handler calls the global has to be reloaded after. */
+	const unsigned run_overclocked = overclocked;
+
+	#undef ADDCYC
+	#define ADDCYC(x) ADDCYC_OC(x, run_overclocked)
 
 	pbackus = _PC;
 
@@ -453,7 +481,7 @@ void X6502_Run(int32_t cycles)
 		temp = _tcount;
 		_tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
-		if (!overclocked) {
+		if (!run_overclocked) {
 			FCEU_SoundCycles += temp;
 			if (FCEU_SoundCycles >= FCEU_SoundNext) {
 				temp = FCEU_SoundCycles;
@@ -463,13 +491,8 @@ void X6502_Run(int32_t cycles)
 		}
 		X.PC = pbackus;
 		_PC++;
-		if (encryptOpcodes == 10) b1 = b1 &~0x36 | b1 >>1 &0x12 | b1 <<1 &0x24;
-		if (encryptOpcodes == 11) {
-			if (encryptOpcodesConfig &0x02) b1 = b1 &~0x30 | b1 >>1 &0x10 | b1 <<1 &0x20;
-			if (encryptOpcodesConfig &0x40) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
-		}
-		if (encryptOpcodes == 12) b1 = b1 &~0xC6 | b1 >>1 &0x42 | b1 <<1 &0x84;
-		if (encryptOpcodes == 14) b1 = b1 &~0xC0 | b1 >>1 &0x40 | b1 <<1 &0x80;
+		if (encryptOpcodes)
+			b1 = DecryptOpcode(b1);
 		switch (b1) {
 			#include "ops.h"
 		}
@@ -480,4 +503,6 @@ void X6502_Run(int32_t cycles)
 	_PC = pbackus;
 	#undef RdRAM
 	#undef WrRAM
+	#undef ADDCYC
+	#define ADDCYC(x) ADDCYC_OC(x, overclocked)
 }
