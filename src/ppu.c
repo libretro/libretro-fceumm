@@ -148,10 +148,22 @@ static uint8_t * MMC5BGVRAMADR(uint32_t V) {
 	} else return &MMC5BGVPage[(V) >> 10][(V)];
 }
 
+/* Sprite 0 on the current line, until its hit is found (0x100: none). */
+static int32_t sphitx;
+static uint8_t sphitdata;
+
+/* A status or open-bus read changes nothing rendering depends on, so the
+ * line is brought up to date only when the read can see the sprite-0 hit
+ * land, or when a mapper or input hook watches the rendering as it goes.
+ * Otherwise the next register access or the end of the line renders it. */
+#define PPU_READ_NEEDS_LINE \
+	(sphitx != 0x100 || PPU_hook || MMC5Hack || InputScanlineHook)
+
 static DECLFR(A2002) {
 	uint8_t ret;
 
-	FCEUPPU_LineUpdate();
+	if (PPU_READ_NEEDS_LINE)
+		FCEUPPU_LineUpdate();
 	ret = PPU_status;
 	ret |= PPUGenLatch & 0x1F;
 
@@ -165,7 +177,8 @@ static DECLFR(A2002) {
 }
 
 static DECLFR(A200x) {	/* Not correct for $2004 reads. */
-	FCEUPPU_LineUpdate();
+	if (PPU_READ_NEEDS_LINE)
+		FCEUPPU_LineUpdate();
 	return PPUGenLatch;
 }
 
@@ -394,9 +407,6 @@ static void EndRL(void) {
 	CheckSpriteHit(272);
 	Pline = 0;
 }
-
-static int32_t sphitx;
-static uint8_t sphitdata;
 
 static void CheckSpriteHit(int p) {
 	int l = p - 16;
