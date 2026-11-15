@@ -3202,7 +3202,6 @@ static void FCEUD_Update(uint8_t *XBuf, int32_t *Buffer, int Count)
 
 static void retro_run_blit(uint8_t *gfx)
 {
-   unsigned x, y;
 #ifdef PSP
    static unsigned int __attribute__((aligned(16))) d_list[32];
    void* texture_vram_p = NULL;
@@ -3354,33 +3353,100 @@ static void retro_run_blit(uint8_t *gfx)
             pitch         = fb.pitch;
          }
 
-         /* Hoist loop-invariant decisions out of the hot per-pixel
-          * loop. The PPU writes a uniform colour_emphasis byte to
-          * every entry of XDBuf for a given scanline (ppu.c:683-685),
-          * so emphasis is constant per row - branch once per row, not
-          * per pixel. NSF and use_raw_palette flags don't change mid-
-          * frame either. */
+         /* The PPU writes one colour_emphasis value across each
+          * scanline of XDBuf (ppu.c DoLine), so the palette is picked
+          * once per row. Rows without emphasis (and NSF frames) index
+          * the frontend palette with the raw XBuf byte; emphasis rows
+          * and the raw palette use their 64-entry bank of the
+          * 512-entry table at 256..767.
+          *
+          * Eight entries are fetched before any is stored: an output
+          * store may alias the uint8_t source, and grouping keeps the
+          * compiler from reloading gfx after each store. The first
+          * index of each block is read one block ahead; carrying it
+          * across iterations keeps the loop scalar, so an emulated
+          * gather vectoriser cannot take it over. After a row's last
+          * block that read is one byte at most into the next XBuf row
+          * (the buffer carries 8 spare lines) and is never used. */
          {
             const uint8_t *deemp_row = XDBuf + (gfx - XBuf);
             const bool is_nsf        = (GameInfo->type == GIT_NSF);
-            const uint8_t pixel_mask = use_raw_palette ? 0x3F : 0xFF;
+            unsigned y;
 
             for (y = 0; y < height; y++)
             {
-               bpp_t *out_row = target + (size_t)y * target_stride;
-               uint8_t deemp = is_nsf ? 0 : deemp_row[0];
+               const uint8_t *src = gfx;
+               bpp_t *out         = target + (size_t)y * target_stride;
+               unsigned blocks    = width >> 3;
+               unsigned tail      = width & 7;
+               uint8_t deemp      = is_nsf ? 0 : deemp_row[0];
 
-               if (deemp != 0)
+               if (!deemp && !use_raw_palette)
                {
-                  unsigned base = 256u + ((unsigned)(deemp & 0x07) << 6);
-                  for (x = 0; x < width; x++)
-                     out_row[x] = retro_palette[base + (gfx[x] & 0x3F)];
+                  const uint32_t *pr = retro_palette;
+                  if (blocks)
+                  {
+                     unsigned i0 = src[0];
+                     do
+                     {
+                        uint32_t c0 = pr[i0];
+                        uint32_t c1 = pr[src[1]];
+                        uint32_t c2 = pr[src[2]];
+                        uint32_t c3 = pr[src[3]];
+                        uint32_t c4 = pr[src[4]];
+                        uint32_t c5 = pr[src[5]];
+                        uint32_t c6 = pr[src[6]];
+                        uint32_t c7 = pr[src[7]];
+                        src += 8;
+                        i0 = src[0];
+                        out[0] = (bpp_t)c0;
+                        out[1] = (bpp_t)c1;
+                        out[2] = (bpp_t)c2;
+                        out[3] = (bpp_t)c3;
+                        out[4] = (bpp_t)c4;
+                        out[5] = (bpp_t)c5;
+                        out[6] = (bpp_t)c6;
+                        out[7] = (bpp_t)c7;
+                        out += 8;
+                     } while (--blocks);
+                  }
+                  while (tail--)
+                     *out++ = (bpp_t)pr[*src++];
                }
                else
                {
-                  for (x = 0; x < width; x++)
-                     out_row[x] = retro_palette[gfx[x] & pixel_mask];
+                  const uint32_t *pr = retro_palette + 256u
+                     + ((unsigned)(deemp & 0x07) << 6);
+                  if (blocks)
+                  {
+                     unsigned i0 = src[0] & 0x3F;
+                     do
+                     {
+                        uint32_t c0 = pr[i0];
+                        uint32_t c1 = pr[src[1] & 0x3F];
+                        uint32_t c2 = pr[src[2] & 0x3F];
+                        uint32_t c3 = pr[src[3] & 0x3F];
+                        uint32_t c4 = pr[src[4] & 0x3F];
+                        uint32_t c5 = pr[src[5] & 0x3F];
+                        uint32_t c6 = pr[src[6] & 0x3F];
+                        uint32_t c7 = pr[src[7] & 0x3F];
+                        src += 8;
+                        i0 = src[0] & 0x3F;
+                        out[0] = (bpp_t)c0;
+                        out[1] = (bpp_t)c1;
+                        out[2] = (bpp_t)c2;
+                        out[3] = (bpp_t)c3;
+                        out[4] = (bpp_t)c4;
+                        out[5] = (bpp_t)c5;
+                        out[6] = (bpp_t)c6;
+                        out[7] = (bpp_t)c7;
+                        out += 8;
+                     } while (--blocks);
+                  }
+                  while (tail--)
+                     *out++ = (bpp_t)pr[*src++ & 0x3F];
                }
+
                gfx       += 256;
                deemp_row += 256;
             }
