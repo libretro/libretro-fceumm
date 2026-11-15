@@ -172,6 +172,40 @@ static uint8_t DMCShift = 0;
 static uint8_t SIRQStat = 0;
 
 static char DMCHaveDMA = 0;
+
+/* The CPU adds each instruction's cycles to FCEU_SoundCycles and runs
+ * FCEU_SoundCPUHook only when they reach FCEU_SoundNext: the next frame
+ * sequencer step, DMC timer tick or pending DMC DMA. Those land on the
+ * same instruction boundary as a hook run every instruction; in between
+ * the hook would only count cycles. */
+int32_t FCEU_SoundCycles = 0;
+int32_t FCEU_SoundNext = 0;
+
+static void SoundSchedule(void)
+{
+	int32_t next;
+
+	if (DMCSize && !DMCHaveDMA) {
+		FCEU_SoundNext = 0;
+		return;
+	}
+	/* Cycles until fhcnt, counted 48 per cycle, reaches zero. */
+	next = fhcnt > 0 ? (fhcnt + 47) / 48 : 0;
+	if (DMCacc < next)
+		next = DMCacc > 0 ? DMCacc : 0;
+	FCEU_SoundNext = next;
+}
+
+/* Applies the cycles counted since the hook last ran. They stop short
+ * of the next event, so nothing but the counters changes. */
+static void SoundSync(void)
+{
+	if (FCEU_SoundCycles) {
+		int32_t c = FCEU_SoundCycles;
+		FCEU_SoundCycles = 0;
+		FCEU_SoundCPUHook(c);
+	}
+}
 static uint8_t DMCDMABuf = 0;
 static char DMCHaveSample = 0;
 
@@ -354,6 +388,7 @@ static DECLFW(Write_DMCRegs) {
 static DECLFW(StatusWrite) {
 	int x;
 
+	SoundSync();
 	DoSQ1();
 	DoSQ2();
 	DoTriangle();
@@ -372,6 +407,7 @@ static DECLFW(StatusWrite) {
 	SIRQStat &= ~0x80;
 	X6502_IRQEnd(FCEU_IQDPCM);
 	EnabledChannels = V & 0x1F;
+	SoundSchedule();
 }
 
 static DECLFR(StatusRead) {
@@ -552,6 +588,7 @@ void FASTAPASS(1) FCEU_SoundCPUHook(int cycles) {
 		DMCShift >>= 1;
 		tester();
 	}
+	SoundSchedule();
 }
 
 static void RDoPCM(void) {
@@ -1013,6 +1050,7 @@ static void RDoNoise(void) {
 }
 
 static DECLFW(Write_IRQFM) {
+	SoundSync();
 	V = (V & 0xC0) >> 6;
 	fcnt = 0;
 	if (V & 2)
@@ -1024,6 +1062,7 @@ static DECLFW(Write_IRQFM) {
 		SIRQStat &= ~0x40;
 	}
 	IRQFrameMode = V;
+	SoundSchedule();
 }
 
 void SetNESSoundMap(void) {
@@ -1039,6 +1078,9 @@ static int32_t inbuf = 0;
 int FlushEmulateSound(void) {
 	int x;
 	int32_t end, left;
+
+	/* Savestates are taken between frames: leave the counters exact. */
+	SoundSync();
 
 	if (!sound_timestamp) return(0);
 
@@ -1186,6 +1228,8 @@ void FCEUSND_Reset(void) {
 	DMCShift = 0;
 	DMCacc=1;
 	DMCBitCount=0;
+	FCEU_SoundCycles = 0;
+	SoundSchedule();
 }
 
 void FCEUSND_Power(void) {
@@ -1447,6 +1491,7 @@ void FCEUSND_SaveState(void) {
 
 void FCEUSND_LoadState(int version) {
 	int i;
+	FCEU_SoundCycles = 0;
 	LoadDMCPeriod(DMCFormat & 0xF);
 	RawDALatch &= 0x7F;
 	DMCAddress &= 0x7FFF;
@@ -1484,15 +1529,6 @@ void FCEUSND_LoadState(int version) {
 		}
 	}
 
-	/* Comparison is always false because access to array >= 0. */
-	/* if (sound_timestamp < 0)
-	{
-		sound_timestamp = 0;
-	}
-	if (soundtsoffs < 0)
-	{
-		soundtsoffs = 0;
-	} */
 	if (soundtsoffs + sound_timestamp >= soundtsinc)
 	{
 		soundtsoffs = 0;
@@ -1502,4 +1538,5 @@ void FCEUSND_LoadState(int version) {
 	{
 		tristep &= 0x1F;
 	}
+	SoundSchedule();
 }

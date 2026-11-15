@@ -453,8 +453,14 @@ void X6502_Run(int32_t cycles)
 		temp = _tcount;
 		_tcount = 0;
 		if (MapIRQHook) MapIRQHook(temp);
-		if (!overclocked)
-			FCEU_SoundCPUHook(temp);
+		if (!overclocked) {
+			FCEU_SoundCycles += temp;
+			if (FCEU_SoundCycles >= FCEU_SoundNext) {
+				temp = FCEU_SoundCycles;
+				FCEU_SoundCycles = 0;
+				FCEU_SoundCPUHook(temp);
+			}
+		}
 		X.PC = pbackus;
 		_PC++;
 		if (encryptOpcodes == 10) b1 = b1 &~0x36 | b1 >>1 &0x12 | b1 <<1 &0x24;

@@ -89,5 +89,8 @@ void FCEUSND_SaveState(void);
 void FCEUSND_LoadState(int version);
 
 void FASTAPASS(1) FCEU_SoundCPUHook(int);
+/* Cycles since the hook last ran, and the count at which it is next due. */
+extern int32_t FCEU_SoundCycles;
+extern int32_t FCEU_SoundNext;
 
 #endif
