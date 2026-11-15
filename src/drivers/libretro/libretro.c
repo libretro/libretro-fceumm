@@ -1052,183 +1052,201 @@ enum stereo_filter_type
 static enum stereo_filter_type current_stereo_filter = STEREO_FILTER_NULL;
 
 #define STEREO_FILTER_DELAY_MS_DEFAULT 15.0f
+
+/* The right channel plays the mono signal 'len' samples late. The ring
+ * holds the last 'len' samples; 'fill' counts up to 'len' while the
+ * first samples, which have no delayed partner, go out as plain mono.
+ * The ring is sized when the option changes and kept in savestates,
+ * so a loaded state (and run-ahead) delays the same samples. */
 typedef struct
 {
-   int32_t *samples;
-   size_t samples_size;
-   size_t samples_pos;
-   size_t delay_count;
+   uint16_t *ring;
+   uint32_t len;
+   uint32_t pos;
+   uint32_t fill;
 } stereo_filter_delay_t;
 static stereo_filter_delay_t stereo_filter_delay;
 static float stereo_filter_delay_ms = STEREO_FILTER_DELAY_MS_DEFAULT;
 
+/* Each element of the sound buffer is a 16-bit mono sample in a 32-bit
+ * value, turned in place into an interleaved 16-bit stereo pair for
+ * audio_batch_cb. The delayed sample takes the first (left) slot in
+ * memory and the current one the second on every host, so the halves
+ * swap on big-endian. Built unsigned: no shift of a negative value. */
+#define STEREO_PACK_MONO(s) \
+   ((int32_t)(((uint32_t)(s) << 16) | ((uint32_t)(s) & 0xFFFFu)))
+#ifdef MSB_FIRST
+#define STEREO_PACK_PAIR(cur, dly) \
+   ((int32_t)(((uint32_t)(dly) << 16) | ((uint32_t)(cur) & 0xFFFFu)))
+#else
+#define STEREO_PACK_PAIR(cur, dly) \
+   ((int32_t)(((uint32_t)(cur) << 16) | ((uint32_t)(dly) & 0xFFFFu)))
+#endif
+
 static void stereo_filter_apply_null(int32_t *sound_buffer, size_t size)
 {
    size_t i;
-   /* Each element of sound_buffer is a 16 bit mono sample
-    * stored in a 32 bit value. We convert this to stereo
-    * by copying the mono sample to both the high and low
-    * 16 bit regions of the value and casting sound_buffer
-    * to int16_t when uploading to the frontend */
    for (i = 0; i < size; i++)
-      sound_buffer[i] = (sound_buffer[i] << 16) |
-            (sound_buffer[i] & 0xFFFF);
-}
-
-/* Pack a (current, delayed) stereo sample pair into one int32_t such
- * that the in-memory int16_t order seen by audio_batch_cb is the same
- * on every host: delayed sample in the first (left) slot, current
- * sample in the second (right) slot. On little-endian the low half of
- * the word is stored first; on big-endian the high half is, so the
- * two halves must be swapped to keep the interleaved channel order
- * host-independent. (stereo_filter_apply_null needs no such handling
- * because it duplicates the same mono sample into both halves.) */
-static INLINE int32_t stereo_filter_pack_pair(int32_t current, int32_t delayed)
-{
-#ifdef MSB_FIRST
-   return (delayed << 16) | (current & 0xFFFF);
-#else
-   return (current << 16) | (delayed & 0xFFFF);
-#endif
+      sound_buffer[i] = STEREO_PACK_MONO(sound_buffer[i]);
 }
 
 static void stereo_filter_apply_delay(int32_t *sound_buffer, size_t size)
 {
-   size_t delay_capacity = stereo_filter_delay.samples_size -
-         stereo_filter_delay.samples_pos;
-   size_t i;
+   uint16_t *ring = stereo_filter_delay.ring;
+   uint32_t len   = stereo_filter_delay.len;
+   uint32_t pos   = stereo_filter_delay.pos;
+   uint32_t fill  = stereo_filter_delay.fill;
+   size_t i       = 0;
 
-   /* Copy current samples into the delay buffer
-    * (resizing if required) */
-   if (delay_capacity < size)
+   for (; fill < len && i < size; i++)
    {
-      int32_t *tmp_buffer = NULL;
-      size_t tmp_buffer_size;
+      ring[pos] = (uint16_t)sound_buffer[i];
+      sound_buffer[i] = STEREO_PACK_MONO(sound_buffer[i]);
+      if (++pos == len)
+         pos = 0;
+      fill++;
+   }
 
-      tmp_buffer_size = stereo_filter_delay.samples_size + (size - delay_capacity);
-      tmp_buffer_size = (tmp_buffer_size << 1) - (tmp_buffer_size >> 1);
-      tmp_buffer      = (int32_t *)malloc(tmp_buffer_size * sizeof(int32_t));
+   /* Runs up to the ring's end, so the inner loop has no wrap test. */
+   while (i < size)
+   {
+      size_t run = len - pos;
+      size_t k;
 
-      if (!tmp_buffer)
+      if (run > size - i)
+         run = size - i;
+      for (k = 0; k < run; k++)
       {
-         /* On allocation failure, drop this batch rather than dereferencing
-          * a NULL buffer in the memcpy below. The next batch will retry. */
-         return;
+         int32_t cur        = sound_buffer[i + k];
+         uint16_t dly       = ring[pos + k];
+         ring[pos + k]      = (uint16_t)cur;
+         sound_buffer[i + k] = STEREO_PACK_PAIR(cur, dly);
       }
-
-      memcpy(tmp_buffer, stereo_filter_delay.samples,
-            stereo_filter_delay.samples_pos * sizeof(int32_t));
-
-      free(stereo_filter_delay.samples);
-
-      stereo_filter_delay.samples      = tmp_buffer;
-      stereo_filter_delay.samples_size = tmp_buffer_size;
+      i   += run;
+      pos += (uint32_t)run;
+      if (pos == len)
+         pos = 0;
    }
 
-   /* Copy current samples into the delay buffer's tail. The previous
-    * implementation walked the array element-by-element; memcpy is
-    * trivially equivalent for non-overlapping int32_t blocks and
-    * lets the compiler/libc dispatch SIMD where available. */
-   memcpy(stereo_filter_delay.samples + stereo_filter_delay.samples_pos,
-         sound_buffer, size * sizeof(int32_t));
-
-   stereo_filter_delay.samples_pos += size;
-
-   /* If we have enough samples in the delay
-    * buffer, mix them into the output */
-   if (stereo_filter_delay.samples_pos >
-         stereo_filter_delay.delay_count)
-   {
-      size_t delay_index    = 0;
-      size_t samples_to_mix = stereo_filter_delay.samples_pos -
-            stereo_filter_delay.delay_count;
-      samples_to_mix        = (samples_to_mix > size) ?
-            size : samples_to_mix;
-
-      /* Perform 'null' filtering for any samples for
-       * which a delay buffer entry is unavailable */
-      if (size > samples_to_mix)
-         for (i = 0; i < size - samples_to_mix; i++)
-            sound_buffer[i] = (sound_buffer[i] << 16) |
-                  (sound_buffer[i] & 0xFFFF);
-
-      /* Each element of sound_buffer is a 16 bit mono sample
-       * stored in a 32 bit value. We convert this to stereo
-       * by mixing the current sample with the delayed sample
-       * as an interleaved pair, casting sound_buffer to
-       * int16_t when uploading to the frontend. The packing
-       * helper keeps the delayed/current channel order the
-       * same on little- and big-endian hosts. */
-      for (i = size - samples_to_mix; i < size; i++)
-         sound_buffer[i] = stereo_filter_pack_pair(sound_buffer[i],
-               stereo_filter_delay.samples[delay_index++]);
-
-      /* Remove the mixed samples from the delay buffer */
-      memmove(stereo_filter_delay.samples,
-            stereo_filter_delay.samples + samples_to_mix,
-            (stereo_filter_delay.samples_pos - samples_to_mix) *
-                  sizeof(int32_t));
-      stereo_filter_delay.samples_pos -= samples_to_mix;
-   }
-   /* Otherwise apply the regular 'null' filter */
-   else
-      for (i = 0; i < size; i++)
-            sound_buffer[i] = (sound_buffer[i] << 16) |
-                  (sound_buffer[i] & 0xFFFF);
+   stereo_filter_delay.pos  = pos;
+   stereo_filter_delay.fill = fill;
 }
 
 static void (*stereo_filter_apply)(int32_t *sound_buffer, size_t size) = stereo_filter_apply_null;
 
+/* Savestate chunk: pos, fill and len as little-endian 32-bit values,
+ * then len little-endian 16-bit samples. Nothing is kept while the
+ * filter is off. */
+#define STEREO_CHUNK_HEADER 12
+
+static void stereo_put32(uint8_t *d, uint32_t v)
+{
+   d[0] = (uint8_t)v;
+   d[1] = (uint8_t)(v >> 8);
+   d[2] = (uint8_t)(v >> 16);
+   d[3] = (uint8_t)(v >> 24);
+}
+
+static uint32_t stereo_get32(const uint8_t *s)
+{
+   return (uint32_t)s[0] | ((uint32_t)s[1] << 8)
+        | ((uint32_t)s[2] << 16) | ((uint32_t)s[3] << 24);
+}
+
+static size_t stereo_chunk_size(void)
+{
+   if (!stereo_filter_delay.ring)
+      return 0;
+   return STEREO_CHUNK_HEADER + (size_t)stereo_filter_delay.len * 2;
+}
+
+static void stereo_chunk_save(uint8_t *dst)
+{
+   uint32_t i;
+
+   stereo_put32(dst,     stereo_filter_delay.pos);
+   stereo_put32(dst + 4, stereo_filter_delay.fill);
+   stereo_put32(dst + 8, stereo_filter_delay.len);
+   dst += STEREO_CHUNK_HEADER;
+   for (i = 0; i < stereo_filter_delay.len; i++)
+   {
+      dst[i * 2]     = (uint8_t)stereo_filter_delay.ring[i];
+      dst[i * 2 + 1] = (uint8_t)(stereo_filter_delay.ring[i] >> 8);
+   }
+}
+
+static void stereo_chunk_absent(void)
+{
+   stereo_filter_delay.pos  = 0;
+   stereo_filter_delay.fill = 0;
+}
+
+/* A chunk saved with another delay or sample rate restarts the delay. */
+static void stereo_chunk_load(const uint8_t *src, size_t len)
+{
+   uint32_t pos, fill, i;
+
+   if (!stereo_filter_delay.ring)
+      return;
+   if (len != stereo_chunk_size()
+         || stereo_get32(src + 8) != stereo_filter_delay.len)
+   {
+      stereo_chunk_absent();
+      return;
+   }
+   pos  = stereo_get32(src);
+   fill = stereo_get32(src + 4);
+   if (pos >= stereo_filter_delay.len || fill > stereo_filter_delay.len)
+   {
+      stereo_chunk_absent();
+      return;
+   }
+   src += STEREO_CHUNK_HEADER;
+   for (i = 0; i < stereo_filter_delay.len; i++)
+      stereo_filter_delay.ring[i] =
+            (uint16_t)(src[i * 2] | (src[i * 2 + 1] << 8));
+   stereo_filter_delay.pos  = pos;
+   stereo_filter_delay.fill = fill;
+}
+
+static const fceuss_host_chunk_t stereo_host_chunk = {
+   stereo_chunk_size,
+   stereo_chunk_save,
+   stereo_chunk_load,
+   stereo_chunk_absent
+};
+
 static void stereo_filter_deinit_delay(void)
 {
-   if (stereo_filter_delay.samples)
-      free(stereo_filter_delay.samples);
-
-   stereo_filter_delay.samples      = NULL;
-   stereo_filter_delay.samples_size = 0;
-   stereo_filter_delay.samples_pos  = 0;
-   stereo_filter_delay.delay_count  = 0;
+   free(stereo_filter_delay.ring);
+   stereo_filter_delay.ring = NULL;
+   stereo_filter_delay.len  = 0;
+   stereo_filter_delay.pos  = 0;
+   stereo_filter_delay.fill = 0;
 }
 
 static void stereo_filter_init_delay(void)
 {
-   size_t initial_samples_size;
+   uint32_t len = (uint32_t)((stereo_filter_delay_ms / 1000.0f)
+         * (float)sndsamplerate);
 
-   /* Convert delay (ms) to number of samples */
-   stereo_filter_delay.delay_count = (size_t)(
-         (stereo_filter_delay_ms / 1000.0f) *
-               (float)sndsamplerate);
-
-   /* Preallocate delay_count + worst case expected
-    * samples per frame to minimise reallocation of
-    * the samples buffer during runtime */
-   initial_samples_size = stereo_filter_delay.delay_count +
-         (size_t)((float)sndsamplerate / NES_PAL_FPS) + 1;
-
-   stereo_filter_delay.samples      = (int32_t *)malloc(
-         initial_samples_size * sizeof(int32_t));
-   if (!stereo_filter_delay.samples)
-   {
-      /* Fall back to the null filter on allocation failure rather than
-       * leaving a NULL samples buffer that the apply path would deref. */
-      stereo_filter_delay.samples_size = 0;
-      stereo_filter_delay.samples_pos  = 0;
-      stereo_filter_apply              = stereo_filter_apply_null;
+   if (!len)
       return;
-   }
-   stereo_filter_delay.samples_size = initial_samples_size;
-   stereo_filter_delay.samples_pos  = 0;
-
-   /* Assign function pointer */
-   stereo_filter_apply = stereo_filter_apply_delay;
+   stereo_filter_delay.ring = (uint16_t *)malloc(len * sizeof(uint16_t));
+   if (!stereo_filter_delay.ring)
+      return;
+   stereo_filter_delay.len  = len;
+   stereo_filter_delay.pos  = 0;
+   stereo_filter_delay.fill = 0;
+   stereo_filter_apply      = stereo_filter_apply_delay;
 }
 
 static void stereo_filter_deinit(void)
 {
-   /* Clean up */
    stereo_filter_deinit_delay();
-   /* Assign default function pointer */
    stereo_filter_apply = stereo_filter_apply_null;
+   /* The savestate size follows the delay. */
+   serialize_size = 0;
 }
 
 static void stereo_filter_init(void)
@@ -1952,6 +1970,8 @@ void retro_init(void)
    environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log_cb);
 
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS, &achievements);
+
+   FCEUSS_SetHostChunk(&stereo_host_chunk);
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
       libretro_supports_bitmasks = true;

@@ -34,6 +34,21 @@ typedef struct {
 	char desc[5];
 } SFORMAT;
 
+/* A chunk the frontend driver keeps in the state for its own filters.
+ * size() is 0 when there is nothing to keep, and nothing is written.
+ * save() writes size() bytes, little-endian, straight into the state
+ * buffer; load() reads the chunk where it lies in the loaded buffer and
+ * checks len itself; absent() runs when a loaded state has no chunk. */
+typedef struct
+{
+	size_t (*size)(void);
+	void (*save)(uint8_t *dst);
+	void (*load)(const uint8_t *src, size_t len);
+	void (*absent)(void);
+} fceuss_host_chunk_t;
+
+void FCEUSS_SetHostChunk(const fceuss_host_chunk_t *hc);
+
 void ResetExState(void (*PreSave)(void), void (*PostSave)(void));
 void AddExState(void *v, uint32_t s, int type, char *desc);
 

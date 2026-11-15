@@ -108,6 +108,16 @@ static int ss_seek(state_stream_t *ss, size_t offset, int whence)
    return 0;
 }
 
+static const fceuss_host_chunk_t *state_host_chunk;
+static int state_host_chunk_seen;
+
+#define STATE_HOST_CHUNK 6
+
+void FCEUSS_SetHostChunk(const fceuss_host_chunk_t *hc)
+{
+   state_host_chunk = hc;
+}
+
 static void (*SPreSave)(void);
 static void (*SPostSave)(void);
 
@@ -500,6 +510,20 @@ static int ReadStateChunks(state_stream_t *st, int32_t totalsize)
             if (!ReadStateChunk(st, SFMDATA, size))
                ret = 0;
             break;
+         case STATE_HOST_CHUNK:
+            /* The declared payload is not bounded by the buffer. */
+            if (size > st->size - st->pos)
+            {
+               ret = 0;
+               goto endo;
+            }
+            if (state_host_chunk)
+            {
+               state_host_chunk->load(st->buf + st->pos, size);
+               state_host_chunk_seen = 1;
+            }
+            st->pos += size;
+            break;
          default:
             if (ss_seek(st, size, SEEK_CUR) < 0)
             {
@@ -549,6 +573,24 @@ size_t FCEUSS_Save_Mem(void *buf, size_t size)
 
    if (SPostSave)
       SPostSave();
+
+   if (state_host_chunk)
+   {
+      size_t n = state_host_chunk->size();
+      if (n)
+      {
+         ss_putc(mem, STATE_HOST_CHUNK);
+         write32le_mem((uint32_t)n, mem);
+         if (!ss.buf)
+            ss.pos += n;
+         else if (n <= ss.size - ss.pos)
+         {
+            state_host_chunk->save(ss.buf + ss.pos);
+            ss.pos += n;
+         }
+         totalsize += (uint32_t)n + 5;
+      }
+   }
 
    if (ss.buf && !ss_seek(mem, 4, SEEK_SET))
       write32le_mem(totalsize, mem);
@@ -615,6 +657,7 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
    }
    totalsize = (int32_t)totalsize_u;
 
+   state_host_chunk_seen = 0;
    x = ReadStateChunks(mem, totalsize);
 
    if (!x)
@@ -630,6 +673,9 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
 
    FCEUPPU_LoadState(stateversion);
    FCEUSND_LoadState(stateversion);
+
+   if (state_host_chunk && !state_host_chunk_seen)
+      state_host_chunk->absent();
 
    return 1;
 }
