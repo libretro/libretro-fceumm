@@ -385,6 +385,8 @@ static void ResetRL(uint8_t *target) {
 }
 
 static uint8_t sprlinebuf[256 + 8];
+/* Columns [spr_xmin, spr_xmax) of sprlinebuf that sprites drew into. */
+static int spr_xmin, spr_xmax;
 
 void FCEUPPU_LineUpdate(void) {
 	if (Pline) {
@@ -655,7 +657,7 @@ static void Fixit1(void) {
 void MMC5_hb(int);		/* Ugh ugh ugh. */
 static void DoLine(void)
 {
-	int x, colour_emphasis;
+	int x;
 	uint8_t *target = NULL;
 	uint8_t *dtarget = NULL;
 
@@ -701,26 +703,33 @@ static void DoLine(void)
 	if (SpriteON)
 		CopySprites(target);
 
-	if (ScreenON || SpriteON) {	/* Yes, very el-cheapo. */
-		if (PPU[1] & 0x01) {
-			for (x = 63; x >= 0; x--)
-				*(uint32_t*)&target[x << 2] = (*(uint32_t*)&target[x << 2]) & 0x30303030;
+	/* One pass over the line: greyscale (while rendering), then the
+	 * palette bank bits the line's emphasis selects. */
+	{
+		uint32_t and_mask = 0xFFFFFFFFu;
+		uint32_t or_mask;
+
+		if ((ScreenON || SpriteON) && (PPU[1] & 0x01))
+			and_mask = 0x30303030u;
+		if ((PPU[1] >> 5) == 0x7) {
+			and_mask &= 0x3f3f3f3fu;
+			or_mask   = 0xc0c0c0c0u;
+		} else if (PPU[1] & 0xE0)
+			or_mask   = 0x40404040u;
+		else {
+			and_mask &= 0x3f3f3f3fu;
+			or_mask   = 0x80808080u;
+		}
+		for (x = 0; x < 256; x += 4) {
+			uint32_t w;
+			memcpy(&w, target + x, 4);
+			w = (w & and_mask) | or_mask;
+			memcpy(target + x, &w, 4);
 		}
 	}
-	if ((PPU[1] >> 5) == 0x7) {
-		for (x = 63; x >= 0; x--)
-			*(uint32_t*)&target[x << 2] = ((*(uint32_t*)&target[x << 2]) & 0x3f3f3f3f) | 0xc0c0c0c0;
-	} else if (PPU[1] & 0xE0)
-		for (x = 63; x >= 0; x--)
-			*(uint32_t*)&target[x << 2] = (*(uint32_t*)&target[x << 2]) | 0x40404040;
-	else
-		for (x = 63; x >= 0; x--)
-			*(uint32_t*)&target[x << 2] = ((*(uint32_t*)&target[x << 2]) & 0x3f3f3f3f) | 0x80808080;
 
-	/* write the actual colour emphasis */
-	colour_emphasis = ((PPU[1] >> 5) << 24) | ((PPU[1] >> 5) << 16) | ((PPU[1] >> 5) << 8) | ((PPU[1] >> 5) << 0);
-	for (x = 63; x >= 0; x--)
-		*(uint32_t*)&dtarget[x << 2] = colour_emphasis;
+	/* The line's colour emphasis, one byte per pixel. */
+	memset(dtarget, PPU[1] >> 5, 256);
 
     sphitx = 0x100;
 
@@ -1002,6 +1011,8 @@ static void RefreshSprites(void) {
 	FCEU_dwmemset(sprlinebuf, 0x80808080, 256);
 	numsprites--;
 	spr = (SPRB*)SPRBUF + numsprites;
+	spr_xmin = 256;
+	spr_xmax = 0;
 
 	for (n = numsprites; n >= 0; n--, spr--) {
 		register uint32_t pixdata;
@@ -1016,6 +1027,10 @@ static void RefreshSprites(void) {
 		atr = spr->atr;
 
 		if (J) {
+			if (x < spr_xmin)
+				spr_xmin = x;
+			if (x + 8 > spr_xmax)
+				spr_xmax = x + 8;
 			if (n == 0 && SpriteBlurp && !(PPU_status & 0x40)) {
 				sphitx = x;
 				sphitdata = J;
@@ -1109,7 +1124,8 @@ static void RefreshSprites(void) {
 }
 
 static void CopySprites(uint8_t *target) {
-	uint8_t n = ((PPU[1] & 4) ^ 4) << 1;
+	int n = ((PPU[1] & 4) ^ 4) << 1;
+	int end;
 	uint8_t *P = target;
 
 	if (!spork) return;
@@ -1117,9 +1133,17 @@ static void CopySprites(uint8_t *target) {
 
 	if (rendis & 1) return;	/* User asked to not display sprites. */
 
-   do
+	/* Only the 4-byte groups sprites drew into. */
+	if (n < (spr_xmin & ~3))
+		n = spr_xmin & ~3;
+	end = (spr_xmax + 3) & ~3;
+	if (end > 256)
+		end = 256;
+
+	for (; n < end; n += 4)
 	{
-		uint32_t t = *(uint32_t*)(sprlinebuf + n);
+		uint32_t t;
+		memcpy(&t, sprlinebuf + n, 4);
 
 		if (t != 0x80808080) {
 			#ifdef MSB_FIRST
@@ -1165,8 +1189,7 @@ static void CopySprites(uint8_t *target) {
 			}
 			#endif
 		}
-      n += 4;
-	} while(n);
+	}
 }
 
 void FCEUPPU_SetVideoSystem(int w) {
