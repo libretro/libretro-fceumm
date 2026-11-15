@@ -293,13 +293,13 @@ static DECLFW(Mapper5_write) {
 		}
 		case 0x5106:
 			if (V != NTFill)
-				FCEU_dwmemset(MMC5fill, (V | (V << 8) | (V << 16) | (V << 24)), 0x3c0);
+				memset(MMC5fill, V, 0x3c0);
 			NTFill = V;
 			break;
 		case 0x5107:
 			if (V != ATFill) {
 				unsigned char moop = V | (V << 2) | (V << 4) | (V << 6);
-				FCEU_dwmemset(MMC5fill + 0x3c0, moop | (moop << 8) | (moop << 16) | (moop << 24), 0x40);
+				memset(MMC5fill + 0x3c0, moop, 0x40);
 			}
 			ATFill = V;
 			break;
@@ -408,10 +408,10 @@ static void MMC5Synco(void) {
 	}
 
 	/* in case the fill register changed, we need to overwrite the fill buffer */
-	FCEU_dwmemset(MMC5fill, NTFill | (NTFill << 8) | (NTFill << 16) | (NTFill << 24), 0x3c0);
+	memset(MMC5fill, NTFill, 0x3c0);
 	{
 		unsigned char moop = ATFill | (ATFill << 2) | (ATFill << 4) | (ATFill << 6);
-		FCEU_dwmemset(MMC5fill + 0x3c0, moop | (moop << 8) | (moop << 16) | (moop << 24), 0x40);
+		memset(MMC5fill + 0x3c0, moop, 0x40);
 	}
 
 	MMC5HackCHRMode = CHRMode & 3;

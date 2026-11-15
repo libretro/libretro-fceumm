@@ -86,7 +86,7 @@ static void makeppulut(void) {
 				int shiftr;
 				shiftr = (pixel + xo) / 8;
 				shiftr *= 2;
-				ppulut3[xo | (cc << 3)] |= ((cc >> shiftr) & 3) << (2 + pixel * 4);
+				ppulut3[xo | (cc << 3)] |= (uint32_t)((cc >> shiftr) & 3) << (2 + pixel * 4);
 			}
 		}
 	}
