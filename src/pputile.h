@@ -26,50 +26,11 @@ if (X1 >= 2) {
 
 	pixdata |= ppulut3[XOffset | (atlatch << 3)];
 
-	/* Per-tile palette gather: 8 nibbles of pixdata index PALRAM[0..15].
-	 * Equivalent scalar form is
-	 *   for (k = 0; k < 8; k++) { P[k] = PALRAM[pixdata & 0xF]; pixdata >>= 4; }
-	 * which gcc unrolls into 8 byte loads + a shift-OR-accumulate chain
-	 * + one 64-bit store.  The pair-LUT replacement at ppu.c file scope
-	 * (fceu_bg_pair_lut[256], rebuilt at the start of RefreshLine)
-	 * halves the load count: each 8-bit slice of pixdata fetches a
-	 * pre-packed 2-pen pair, so we read four 16-bit values, OR-merge
-	 * into a 64-bit tile word, and emit a single store.  may_alias
-	 * + aligned(1) lets gcc emit a direct movq without going through
-	 * a stack scratch (which the obvious __builtin_memcpy / packed-
-	 * struct form would force, costing the optimisation entirely). */
-	{
-#ifdef MSB_FIRST
-		/* Big-endian: bytes are stored most-significant first, so the
-		 * first pixel pair (pens 0-1) must occupy the TOP 16 bits of
-		 * the tile word to land at P[0]/P[1].  The LUT entries are
-		 * built with the even pen in the high byte (see
-		 * FCEU_BuildBgPairLUT), completing the mirror of the
-		 * little-endian layout below. */
-		uint64_t packed =
-			((uint64_t)fceu_bg_pair_lut[ pixdata        & 0xFF] << 48) |
-			((uint64_t)fceu_bg_pair_lut[(pixdata >>  8) & 0xFF] << 32) |
-			((uint64_t)fceu_bg_pair_lut[(pixdata >> 16) & 0xFF] << 16) |
-			 (uint64_t)fceu_bg_pair_lut[(pixdata >> 24) & 0xFF];
-#else
-		uint64_t packed =
-			(uint64_t)fceu_bg_pair_lut[ pixdata        & 0xFF]        |
-			((uint64_t)fceu_bg_pair_lut[(pixdata >>  8) & 0xFF] << 16) |
-			((uint64_t)fceu_bg_pair_lut[(pixdata >> 16) & 0xFF] << 32) |
-			((uint64_t)fceu_bg_pair_lut[(pixdata >> 24) & 0xFF] << 48);
-#endif
-#if defined(__GNUC__) || defined(__clang__)
-		/* may_alias + aligned(1) lets gcc emit a direct movq without
-		 * routing through a stack scratch. */
-		typedef uint64_t fceu_u64_unaligned __attribute__((may_alias, aligned(1)));
-		*(fceu_u64_unaligned *)P = packed;
-#else
-		/* MSVC has no may_alias; memcpy is strict-aliasing-safe and is
-		 * lowered to the same unaligned 64-bit store. */
-		memcpy(P, &packed, sizeof(packed));
-#endif
+	for (int i = 0; i < 8; ++i) {
+		P[i] = PALRAM[pixdata & 0xF];
+		pixdata >>= 4;
 	}
-	P += 8;
+    P += 8;
 }
 
 #ifdef PPUT_MMC5SP
