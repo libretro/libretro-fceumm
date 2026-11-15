@@ -674,6 +674,25 @@ static void RDoSQ2(void) {
 	RDoSQ(1);
 }
 
+/* Adds 'value' to the low-quality mix for steps [v, v + n): sixteen
+ * steps per Wave slot, so a run of steps adds value times its count to
+ * each slot it covers. */
+static void WaveAddRun(int32_t v, int32_t n, int32_t value) {
+	while (n > 0) {
+		int32_t cnt = 16 - (v & 15);
+		if (cnt > n)
+			cnt = n;
+		Wave[v >> 4] += value * cnt;
+		v += cnt;
+		n -= cnt;
+	}
+}
+
+/* Steps until an accumulator that loses 'inie' per step reaches zero
+ * (counting the step that reaches it); -1 when it never does. */
+#define LQ_STEPS_TO_EVENT(acc, inie) \
+	(!(inie) ? -1 : ((acc) <= 0 ? 1 : ((acc) - 1) / (inie) + 1))
+
 static void RDoSQLQ(void) {
 	int32_t start, end;
 	int32_t V;
@@ -752,20 +771,24 @@ static void RDoSQLQ(void) {
 		 * to Wave[V>>4] - genuinely no-op for ~30000 NES cycles
 		 * per frame. Skip the loop entirely. */
 	} else {
-		for (V = start; V < end; V++) {
-			/* int tmpamp=0;
-			if(RectDutyCount[0]<rthresh[0])
-			 tmpamp=amp[0];
-			if(RectDutyCount[1]<rthresh[1])
-			 tmpamp+=amp[1];
-			tmpamp=wlookup1[tmpamp];
-			tmpamp = wlookup1[ ttable[0][RectDutyCount[0]] + ttable[1][RectDutyCount[1]] ];
-			*/
+		/* The output only changes when a channel's accumulator runs
+		 * out, so each span up to the next such step goes into the mix
+		 * at once. */
+		for (V = start; V < end; ) {
+			int32_t n = end - V;
+			int32_t k;
 
-			Wave[V >> 4] += totalout;	/* tmpamp; */
+			k = LQ_STEPS_TO_EVENT(sqacc[0], inie[0]);
+			if (k >= 0 && k < n)
+				n = k;
+			k = LQ_STEPS_TO_EVENT(sqacc[1], inie[1]);
+			if (k >= 0 && k < n)
+				n = k;
 
-			sqacc[0] -= inie[0];
-			sqacc[1] -= inie[1];
+			WaveAddRun(V, n, totalout);
+			V += n;
+			sqacc[0] -= n * inie[0];
+			sqacc[1] -= n * inie[1];
 
 			if (sqacc[0] <= 0) {
  rea:
@@ -901,86 +924,53 @@ static void RDoTriangleNoisePCMLQ(void) {
 
 	totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
 
-	if (inie[0] && inie[1]) {
-		for (V = start; V < end; V++) {
-			Wave[V >> 4] += totalout;
+	/* As in RDoSQLQ: spans between accumulator events go into the mix
+	 * at once. A channel with no increment never has one. */
+	for (V = start; V < end; ) {
+		int32_t n = end - V;
+		int32_t k;
 
-			lq_triacc -= inie[0];
-			lq_noiseacc -= inie[1];
+		k = LQ_STEPS_TO_EVENT(lq_triacc, inie[0]);
+		if (k >= 0 && k < n)
+			n = k;
+		k = LQ_STEPS_TO_EVENT(lq_noiseacc, inie[1]);
+		if (k >= 0 && k < n)
+			n = k;
 
-			if (lq_triacc <= 0) {
+		WaveAddRun(V, n, totalout);
+		V += n;
+		lq_triacc   -= n * inie[0];
+		lq_noiseacc -= n * inie[1];
+
+		if (inie[0] && lq_triacc <= 0) {
  rea:
-				lq_triacc += freq[0];	/* t; */
-				tristep = (tristep + 1) & 0x1F;
-				if (lq_triacc <= 0) goto rea;
-				lq_tcout = (tristep & 0xF);
-				if (!(tristep & 0x10)) lq_tcout ^= 0xF;
-				lq_tcout = lq_tcout * 3;
-				scaled_tcout = (tri_vol != 256)
-				             ? ((lq_tcout * tri_vol) / 256)
-				             : lq_tcout;
-				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
-			}
+			lq_triacc += freq[0];	/* t; */
+			tristep = (tristep + 1) & 0x1F;
+			if (lq_triacc <= 0) goto rea;
+			lq_tcout = (tristep & 0xF);
+			if (!(tristep & 0x10)) lq_tcout ^= 0xF;
+			lq_tcout = lq_tcout * 3;
+			scaled_tcout = (tri_vol != 256)
+			             ? ((lq_tcout * tri_vol) / 256)
+			             : lq_tcout;
+			totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
+		}
 
-			if (lq_noiseacc <= 0) {
+		if (inie[1] && lq_noiseacc <= 0) {
  rea2:
-				/* used to added <<(16+2) when the noise table
-				 * values were half.
-				 */
-				if (PAL)
-					lq_noiseacc += PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
-				else
-					lq_noiseacc += NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
-				nreg = (nreg << 1) + (((nreg >> nshift) ^ (nreg >> 14)) & 1);
-				nreg &= 0x7fff;
-				noiseout = amptab[(nreg >> 0xe) & 1];
-				if (lq_noiseacc <= 0) goto rea2;
-				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
-			}	/* noiseacc<=0 */
-		}	/* for(V=... */
-	} else if (inie[0]) {
-		for (V = start; V < end; V++) {
-			Wave[V >> 4] += totalout;
-
-			lq_triacc -= inie[0];
-
-			if (lq_triacc <= 0) {
- area:
-				lq_triacc += freq[0];	/* t; */
-				tristep = (tristep + 1) & 0x1F;
-				if (lq_triacc <= 0) goto area;
-				lq_tcout = (tristep & 0xF);
-				if (!(tristep & 0x10)) lq_tcout ^= 0xF;
-				lq_tcout = lq_tcout * 3;
-				scaled_tcout = (tri_vol != 256)
-				             ? ((lq_tcout * tri_vol) / 256)
-				             : lq_tcout;
-				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
-			}
+			/* used to added <<(16+2) when the noise table
+			 * values were half.
+			 */
+			if (PAL)
+				lq_noiseacc += PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
+			else
+				lq_noiseacc += NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
+			nreg = (nreg << 1) + (((nreg >> nshift) ^ (nreg >> 14)) & 1);
+			nreg &= 0x7fff;
+			noiseout = amptab[(nreg >> 0xe) & 1];
+			if (lq_noiseacc <= 0) goto rea2;
+			totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
 		}
-	} else if (inie[1]) {
-		for (V = start; V < end; V++) {
-			Wave[V >> 4] += totalout;
-			lq_noiseacc -= inie[1];
-			if (lq_noiseacc <= 0) {
- area2:
-				/* used to be added <<(16+2) when the noise table
-				 * values were half.
-				 */
-				if (PAL)
-					lq_noiseacc += PALNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
-				else
-					lq_noiseacc += NTSCNoiseFreqTable[PSG[0xE] & 0xF] << (16 + 1);
-				nreg = (nreg << 1) + (((nreg >> nshift) ^ (nreg >> 14)) & 1);
-				nreg &= 0x7fff;
-				noiseout = amptab[(nreg >> 0xe) & 1];
-				if (lq_noiseacc <= 0) goto area2;
-				totalout = wl2(scaled_tcout + noiseout + scaled_dmc);
-			}	/* noiseacc<=0 */
-		}
-	} else {
-		for (V = start; V < end; V++)
-			Wave[V >> 4] += totalout;
 	}
 }
 
