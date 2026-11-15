@@ -1,5 +1,7 @@
 /* nes_ntsc 0.2.2. http://www.slack.net/~ant/ */
 
+#include <string.h>
+
 #include "nes_ntsc.h"
 
 /* Copyright (C) 2006-2007 Shay Green. This module is free software; you
@@ -73,6 +75,55 @@ static void correct_errors( nes_ntsc_rgb_t color, nes_ntsc_rgb_t* out )
 		out += alignment_count * rgb_kernel_size;
 	}
 }
+
+#ifdef NES_NTSC_SIMD
+/* Entry of a kernel's slot that output lane x (0-6) of the pixel's own
+ * chunk reads (kernel0/1/2 in NES_NTSC_RGB_OUT_14_), and the entry the
+ * same lane of the next chunk reads (kernelx0/1/2). */
+static int lane_kernel_index( int slot, int x )
+{
+	return slot == 0 ? x : slot == 1 ? (x + 12) % 7 + 14 : (x + 10) % 7 + 28;
+}
+
+static int lane_kernelx_index( int slot, int x )
+{
+	return slot == 0 ? (x + 7) % 14 : slot == 1 ? (x + 5) % 7 + 21 : (x + 3) % 7 + 35;
+}
+
+/* A pixel in chunk slot s starts adding at lane 2s of its chunk. As
+ * kernelN it covers the rest of that chunk and, until the next pixel in
+ * its slot arrives, the first 2s lanes of the next; as kernelxN the
+ * rest of the next chunk and the first 2s lanes of the one after. */
+static void build_lanes( nes_ntsc_t* ntsc )
+{
+	int burst, color, slot, t;
+
+	for ( burst = 0; burst < nes_ntsc_burst_count; burst++ )
+	for ( color = 0; color < nes_ntsc_palette_size; color++ )
+	for ( slot = 0; slot < 3; slot++ )
+	{
+		nes_ntsc_rgb_t const* kernel = &ntsc->table [color] [burst * nes_ntsc_burst_size];
+		nes_ntsc_lane_t* lane = ntsc->lanes [burst] [color] [slot];
+		int start = slot * 2;
+
+		memset( lane, 0, sizeof (ntsc->lanes [0] [0] [0]) );
+		for ( t = 0; t < 14; t++ )
+		{
+			int at = start + t;
+			int idx;
+			if ( at < 7 )
+				idx = lane_kernel_index( slot, at );
+			else if ( at < 7 + start )
+				idx = lane_kernel_index( slot, at - 7 );
+			else if ( at < 14 )
+				idx = lane_kernelx_index( slot, at - 7 );
+			else
+				idx = lane_kernelx_index( slot, at - 14 );
+			lane [nes_ntsc_lane_lead + t] = (nes_ntsc_lane_t) kernel [idx];
+		}
+	}
+}
+#endif
 
 void nes_ntsc_init( nes_ntsc_t* ntsc, nes_ntsc_setup_t const* setup )
 {
@@ -229,11 +280,21 @@ void nes_ntsc_init( nes_ntsc_t* ntsc, nes_ntsc_setup_t const* setup )
 			}
 		}
 	}
+#ifdef NES_NTSC_SIMD
+	if ( ntsc )
+		build_lanes( ntsc );
+#endif
 }
 
 #ifndef NES_NTSC_NO_BLITTERS
 
-void nes_ntsc_blit( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* input, NES_NTSC_IN_T const* inputD, long in_row_width,
+/* The reference blitter: the only one on targets without a vector arm,
+ * and what tests/ntsc_simd.c holds the vector arm to. */
+#if !defined(NES_NTSC_SIMD) || defined(NES_NTSC_TEST)
+#ifndef NES_NTSC_TEST
+static
+#endif
+void nes_ntsc_blit_scalar( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* input, NES_NTSC_IN_T const* inputD, long in_row_width,
 		int burst_phase, int in_width, int in_height, void* rgb_out, long out_pitch )
 {
 	int chunk_count = (in_width - 1) / nes_ntsc_in_chunk;
@@ -287,6 +348,163 @@ void nes_ntsc_blit( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* input, NES_NTSC
 		inputD += in_row_width;
 		rgb_out = (char*) rgb_out + out_pitch;
 	}
+}
+#endif
+
+#ifdef NES_NTSC_SIMD
+
+#if defined(NES_NTSC_SIMD_SSE2)
+#include <emmintrin.h>
+typedef __m128i nes_ntsc_v4;
+#define V4_LOAD( p )      _mm_loadu_si128( (__m128i const*) (p) )
+#define V4_STORE( p, v )  _mm_storeu_si128( (__m128i*) (p), (v) )
+#define V4_ADD            _mm_add_epi32
+#define V4_SUB            _mm_sub_epi32
+#define V4_AND            _mm_and_si128
+#define V4_OR             _mm_or_si128
+#define V4_SRL( v, n )    _mm_srli_epi32( (v), (n) )
+#define V4_SET1( x )      _mm_set1_epi32( (int) (x) )
+#else
+#include <arm_neon.h>
+typedef uint32x4_t nes_ntsc_v4;
+#define V4_LOAD( p )      vld1q_u32( (uint32_t const*) (p) )
+#define V4_STORE( p, v )  vst1q_u32( (uint32_t*) (p), (v) )
+#define V4_ADD            vaddq_u32
+#define V4_SUB            vsubq_u32
+#define V4_AND            vandq_u32
+#define V4_OR             vorrq_u32
+#define V4_SRL( v, n )    vshrq_n_u32( (v), (n) )
+#define V4_SET1( x )      vdupq_n_u32( (uint32_t) (x) )
+#endif
+
+/* Four output lanes h..h+3 of a chunk: the six kernel slices summed,
+ * clamped and packed as NES_NTSC_RGB_OUT_14_ does. N, P and PP are the
+ * lane rows of the chunk's pixels and of the two chunks before. */
+#define NES_NTSC_V4_LANES( h, out ) {\
+	nes_ntsc_v4 v_ = V4_ADD(\
+		V4_ADD( V4_ADD( V4_LOAD( &N0 [nes_ntsc_lane_lead     + (h)] ),\
+		                V4_LOAD( &P0 [nes_ntsc_lane_lead + 7 + (h)] ) ),\
+		        V4_ADD( V4_LOAD( &N1 [nes_ntsc_lane_lead - 2 + (h)] ),\
+		                V4_LOAD( &P1 [nes_ntsc_lane_lead + 5 + (h)] ) ) ),\
+		V4_ADD( V4_ADD( V4_LOAD( &PP1 [nes_ntsc_lane_lead + 12 + (h)] ),\
+		                V4_LOAD( &N2  [nes_ntsc_lane_lead - 4  + (h)] ) ),\
+		        V4_ADD( V4_LOAD( &P2  [nes_ntsc_lane_lead + 3  + (h)] ),\
+		                V4_LOAD( &PP2 [nes_ntsc_lane_lead + 10 + (h)] ) ) ) );\
+	nes_ntsc_v4 sub_   = V4_AND( V4_SRL( v_, 9 ), clamp_mask );\
+	nes_ntsc_v4 clamp_ = V4_SUB( clamp_add, sub_ );\
+	v_     = V4_OR( v_, clamp_ );\
+	clamp_ = V4_SUB( clamp_, sub_ );\
+	v_     = V4_AND( v_, clamp_ );\
+	if ( NES_NTSC_OUT_DEPTH == 16 )\
+		out = V4_OR( V4_OR( V4_AND( V4_SRL( v_, 13 ), V4_SET1( 0xF800 ) ),\
+		                    V4_AND( V4_SRL( v_, 8 ),  V4_SET1( 0x07E0 ) ) ),\
+		             V4_AND( V4_SRL( v_, 4 ), V4_SET1( 0x001F ) ) );\
+	else\
+		out = V4_OR( V4_OR( V4_AND( V4_SRL( v_, 5 ), V4_SET1( 0xFF0000 ) ),\
+		                    V4_AND( V4_SRL( v_, 3 ), V4_SET1( 0x00FF00 ) ) ),\
+		             V4_AND( V4_SRL( v_, 1 ), V4_SET1( 0x0000FF ) ) );\
+}
+
+static void nes_ntsc_blit_simd( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* input, NES_NTSC_IN_T const* inputD, long in_row_width,
+		int burst_phase, int in_width, int in_height, void* rgb_out, long out_pitch )
+{
+	int const chunk_count = (in_width - 1) / nes_ntsc_in_chunk;
+	nes_ntsc_v4 const clamp_mask = V4_SET1( nes_ntsc_clamp_mask );
+	nes_ntsc_v4 const clamp_add  = V4_SET1( nes_ntsc_clamp_add );
+
+	for ( ; in_height; --in_height )
+	{
+		nes_ntsc_lane_t const (*lanes) [3] [nes_ntsc_lane_size] = ntsc->lanes [burst_phase];
+		NES_NTSC_IN_T const* line_in  = input + 1;
+		NES_NTSC_IN_T const* line_inD = inputD;
+		nes_ntsc_out_t* line_out = (nes_ntsc_out_t*) rgb_out;
+		/* As NES_NTSC_BEGIN_ROW: the chunk before the first holds black,
+		 * black and the first pixel, and the one before that black. */
+		nes_ntsc_lane_t const* P0  = lanes [nes_ntsc_black] [0];
+		nes_ntsc_lane_t const* P1  = lanes [nes_ntsc_black] [1];
+		nes_ntsc_lane_t const* P2  = lanes [NES_NTSC_ADJ_IN( input [0], inputD [0] )] [2];
+		nes_ntsc_lane_t const* PP1 = lanes [nes_ntsc_black] [1];
+		nes_ntsc_lane_t const* PP2 = lanes [nes_ntsc_black] [2];
+		int c;
+
+		for ( c = 0; c <= chunk_count; c++ )
+		{
+			nes_ntsc_lane_t const *N0, *N1, *N2;
+			nes_ntsc_v4 lo, hi;
+
+			/* The chunk after the last pixels is black. */
+			if ( c < chunk_count )
+			{
+				N0 = lanes [NES_NTSC_ADJ_IN( line_in [0], line_inD [0] )] [0];
+				N1 = lanes [NES_NTSC_ADJ_IN( line_in [1], line_inD [1] )] [1];
+				N2 = lanes [NES_NTSC_ADJ_IN( line_in [2], line_inD [2] )] [2];
+				line_in  += 3;
+				line_inD += 3;
+			}
+			else
+			{
+				N0 = lanes [nes_ntsc_black] [0];
+				N1 = lanes [nes_ntsc_black] [1];
+				N2 = lanes [nes_ntsc_black] [2];
+			}
+
+			NES_NTSC_V4_LANES( 0, lo );
+			NES_NTSC_V4_LANES( 4, hi );
+
+			/* Lane 7 is not an output; the next chunk overwrites it, and
+			 * the last chunk of a row writes only its seven. */
+#if NES_NTSC_OUT_DEPTH == 16
+			{
+				unsigned short px [8];
+#if defined(NES_NTSC_SIMD_SSE2)
+				lo = _mm_srai_epi32( _mm_slli_epi32( lo, 16 ), 16 );
+				hi = _mm_srai_epi32( _mm_slli_epi32( hi, 16 ), 16 );
+				_mm_storeu_si128( (__m128i*) px, _mm_packs_epi32( lo, hi ) );
+#else
+				vst1q_u16( (uint16_t*) px, vcombine_u16( vmovn_u32( lo ), vmovn_u32( hi ) ) );
+#endif
+				if ( c < chunk_count )
+					memcpy( line_out, px, 8 * sizeof (unsigned short) );
+				else
+					memcpy( line_out, px, 7 * sizeof (unsigned short) );
+			}
+#else
+			V4_STORE( line_out, lo );
+			if ( c < chunk_count )
+				V4_STORE( line_out + 4, hi );
+			else
+			{
+				nes_ntsc_lane_t px [4];
+				V4_STORE( px, hi );
+				memcpy( line_out + 4, px, 3 * sizeof (nes_ntsc_lane_t) );
+			}
+#endif
+			PP1 = P1;
+			PP2 = P2;
+			P0  = N0;
+			P1  = N1;
+			P2  = N2;
+			line_out += 7;
+		}
+
+		burst_phase = (burst_phase + 1) % nes_ntsc_burst_count;
+		input  += in_row_width;
+		inputD += in_row_width;
+		rgb_out = (char*) rgb_out + out_pitch;
+	}
+}
+#endif
+
+void nes_ntsc_blit( nes_ntsc_t const* ntsc, NES_NTSC_IN_T const* input, NES_NTSC_IN_T const* inputD, long in_row_width,
+		int burst_phase, int in_width, int in_height, void* rgb_out, long out_pitch )
+{
+#ifdef NES_NTSC_SIMD
+	nes_ntsc_blit_simd( ntsc, input, inputD, in_row_width, burst_phase,
+			in_width, in_height, rgb_out, out_pitch );
+#else
+	nes_ntsc_blit_scalar( ntsc, input, inputD, in_row_width, burst_phase,
+			in_width, in_height, rgb_out, out_pitch );
+#endif
 }
 
 #endif

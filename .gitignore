@@ -11,3 +11,5 @@ play_alloc_test.nes
 palette_round
 palette_round.exe
 palette_round_test.nes
+ntsc_simd
+ntsc_simd.exe

@@ -108,8 +108,34 @@ statement in a block (unless you're using C++). */
 /* private */
 enum { nes_ntsc_entry_size = 128 };
 typedef unsigned long nes_ntsc_rgb_t;
+
+/* Vector arm of the blitter: SSE2 on x86, NEON on ARM. The blit only
+ * depends on the low 32 bits of each table entry, so the vector arm is
+ * bit-exact with the scalar one, which every other target uses. */
+#if !defined(NES_NTSC_NO_SIMD)
+#if defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64) \
+		|| (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#define NES_NTSC_SIMD_SSE2 1
+#elif defined(__ARM_NEON) || defined(__ARM_NEON__) || defined(__aarch64__) \
+		|| defined(_M_ARM64)
+#define NES_NTSC_SIMD_NEON 1
+#endif
+#endif
+#if defined(NES_NTSC_SIMD_SSE2) || defined(NES_NTSC_SIMD_NEON)
+#define NES_NTSC_SIMD 1
+/* Each input pixel's kernel adds 14 values to 14 consecutive output
+ * pixels. lanes [burst] [color] [slot] holds them in output order from
+ * index 8, with zeros around, so a chunk's outputs are lane-wise sums
+ * of unaligned loads. Slot is the pixel's position in its chunk. */
+enum { nes_ntsc_lane_size = 32, nes_ntsc_lane_lead = 8 };
+typedef unsigned int nes_ntsc_lane_t;
+#endif
+
 struct nes_ntsc_t {
 	nes_ntsc_rgb_t table [nes_ntsc_palette_size] [nes_ntsc_entry_size];
+#ifdef NES_NTSC_SIMD
+	nes_ntsc_lane_t lanes [nes_ntsc_burst_count] [nes_ntsc_palette_size] [3] [nes_ntsc_lane_size];
+#endif
 };
 enum { nes_ntsc_burst_size = nes_ntsc_entry_size / nes_ntsc_burst_count };
 
