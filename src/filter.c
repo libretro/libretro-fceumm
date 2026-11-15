@@ -138,15 +138,19 @@ int32_t NeoFilterSound(int32_t *in, int32_t *out, uint32_t inlen, int32_t *lefto
 	 * per-tap >> 6 (which is int32/SIMD-friendly and overflow-bounded)
 	 * are deliberately left unchanged: a full int64 accumulation removes
 	 * the remaining ~0.1 LSB but regresses this hot loop >20%. */
+	/* The coefficient tables are symmetric (MakeFilters mirrors each
+	 * half), so the taps run forward over contiguous input: the same
+	 * products as the time-reversed convolution, summed in another
+	 * order, which integer addition does not change. */
 	if (FSettings.soundq == 2) {
 		for (x = mrindex; x < max; x += mrratio) {
 			int32_t acc = 0, acc2 = 0;
 			uint32_t c;
-			int32_t *S, *D;
+			const int32_t *S = &in[(x >> 16) - SQ2NCOEFFS + 1];
 
-			for (c = SQ2NCOEFFS, S = &in[(x >> 16) - SQ2NCOEFFS], D = sq2coeffs; c; c--, D++) {
-				acc += (S[c] * *D) >> 6;
-				acc2 += (S[1 + c] * *D) >> 6;
+			for (c = 0; c < SQ2NCOEFFS; c++) {
+				acc  += (S[c]     * sq2coeffs[c]) >> 6;
+				acc2 += (S[c + 1] * sq2coeffs[c]) >> 6;
 			}
 
 			acc = ((int64_t)acc * (65536 - (x & 65535)) + (int64_t)acc2 * (x & 65535)
@@ -159,11 +163,11 @@ int32_t NeoFilterSound(int32_t *in, int32_t *out, uint32_t inlen, int32_t *lefto
 		for (x = mrindex; x < max; x += mrratio) {
 			int32_t acc = 0, acc2 = 0;
 			uint32_t c;
-			int32_t *S, *D;
+			const int32_t *S = &in[(x >> 16) - NCOEFFS + 1];
 
-			for (c = NCOEFFS, S = &in[(x >> 16) - NCOEFFS], D = coeffs; c; c--, D++) {
-				acc += (S[c] * *D) >> 6;
-				acc2 += (S[1 + c] * *D) >> 6;
+			for (c = 0; c < NCOEFFS; c++) {
+				acc  += (S[c]     * coeffs[c]) >> 6;
+				acc2 += (S[c + 1] * coeffs[c]) >> 6;
 			}
 
 			acc = ((int64_t)acc * (65536 - (x & 65535)) + (int64_t)acc2 * (x & 65535)
