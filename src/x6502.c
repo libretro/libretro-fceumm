@@ -29,7 +29,15 @@
 X6502 X;
 
 uint32_t timestamp;
-uint32_t sound_timestamp;
+/* X.count == x6502_count_base - timestamp * 48 and
+ * X.tcount == timestamp - x6502_hook_ts hold at all times, and
+ * sound_timestamp is timestamp less the cycles run overclocked, so a
+ * cycle only advances timestamp. X.count and X.tcount are filled in for
+ * savestates only. */
+uint32_t x6502_sound_lag;
+uint32_t x6502_sound_ts_state;
+int32_t x6502_count_base;
+static uint32_t x6502_hook_ts;
 void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 
 #define _PC        X.PC
@@ -40,17 +48,13 @@ void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 #define _P         X.P
 #define _PI        X.mooPI
 #define _DB        X.DB
-#define _count     X.count
-#define _tcount    X.tcount
 #define _IRQlow    X.IRQlow
 #define _jammed    X.jammed
 
 #define ADDCYC_OC(x, oc) {							\
 	int __x = x;									\
-	_tcount += __x;									\
-	_count -= __x * 48;								\
-	timestamp += __x;  \
-	if (!(oc)) sound_timestamp +=  __x; \
+	timestamp += __x;								\
+	if (oc) x6502_sound_lag += __x;					\
 }
 #define ADDCYC(x) ADDCYC_OC(x, overclocked)
 
@@ -389,10 +393,32 @@ void X6502_Init(void) {
 }
 
 void X6502_Power(void) {
-	_count = _tcount = _IRQlow = _PC = _A = _X = _Y = _P = _PI = _DB = _jammed = 0;
+	X.count = X.tcount = _IRQlow = _PC = _A = _X = _Y = _P = _PI = _DB = _jammed = 0;
 	_S = 0xFD;
-	timestamp = sound_timestamp = 0;
+	timestamp = 0;
+	x6502_sound_lag = 0;
+	x6502_count_base = 0;
+	x6502_hook_ts = 0;
 	X6502_Reset();
+}
+
+void X6502_Rebase(void) {
+	x6502_count_base = (int32_t)((uint32_t)x6502_count_base - timestamp * 48);
+	x6502_hook_ts -= timestamp;
+	timestamp = 0;
+	x6502_sound_lag = 0;
+}
+
+void X6502_SaveState(void) {
+	X.count = (int32_t)((uint32_t)x6502_count_base - timestamp * 48);
+	X.tcount = (int32_t)(timestamp - x6502_hook_ts);
+	x6502_sound_ts_state = sound_timestamp;
+}
+
+void X6502_LoadState(void) {
+	x6502_count_base = (int32_t)(timestamp * 48 + (uint32_t)X.count);
+	x6502_hook_ts = timestamp - (uint32_t)X.tcount;
+	x6502_sound_lag = timestamp - x6502_sound_ts_state;
 }
 
 void X6502_Run(int32_t cycles)
@@ -411,6 +437,10 @@ void X6502_Run(int32_t cycles)
 	/* overclocked only changes between runs; a local stays in a register
 	 * across the handler calls the global has to be reloaded after. */
 	const unsigned run_overclocked = overclocked;
+	/* timestamp at the last opcode fetch, and where the run ends:
+	 * X.count > 0 while timestamp < end_ts. */
+	uint32_t hook_ts = x6502_hook_ts;
+	int32_t end_ts;
 
 	#undef ADDCYC
 	#define ADDCYC(x) ADDCYC_OC(x, run_overclocked)
@@ -425,9 +455,10 @@ void X6502_Run(int32_t cycles)
 	else
 		cycles *= 16;	/* 16*4=64 */
 
-	_count += cycles;
+	x6502_count_base = (int32_t)((uint32_t)x6502_count_base + (uint32_t)cycles);
+	end_ts = x6502_count_base > 0 ? (x6502_count_base - 1) / 48 + 1 : 0;
 
-	while (_count > 0) {
+	while ((int32_t)timestamp < end_ts) {
 		int32_t temp;
 		uint8_t b1;
 
@@ -464,9 +495,10 @@ void X6502_Run(int32_t cycles)
 				}
 			}
 			_IRQlow &= ~(FCEU_IQTEMP);
-			if (_count <= 0) {
+			if ((int32_t)timestamp >= end_ts) {
 				_PI = _P;
 				X.PC = pbackus;
+				x6502_hook_ts = hook_ts;
 				return;
 			}	/* Should increase accuracy without a
 				 * major speed hit.
@@ -478,8 +510,8 @@ void X6502_Run(int32_t cycles)
 
 		ADDCYC(CycTable[b1]);
 
-		temp = _tcount;
-		_tcount = 0;
+		temp = (int32_t)(timestamp - hook_ts);
+		hook_ts = timestamp;
 		if (MapIRQHook) MapIRQHook(temp);
 		if (!run_overclocked) {
 			FCEU_SoundCycles += temp;
@@ -489,7 +521,6 @@ void X6502_Run(int32_t cycles)
 				FCEU_SoundCPUHook(temp);
 			}
 		}
-		X.PC = pbackus;
 		_PC++;
 		if (encryptOpcodes)
 			b1 = DecryptOpcode(b1);
@@ -501,6 +532,7 @@ void X6502_Run(int32_t cycles)
 	#undef _PC
 	#define _PC X.PC
 	_PC = pbackus;
+	x6502_hook_ts = hook_ts;
 	#undef RdRAM
 	#undef WrRAM
 	#undef ADDCYC

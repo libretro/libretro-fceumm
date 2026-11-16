@@ -567,6 +567,7 @@ size_t FCEUSS_Save_Mem(void *buf, size_t size)
    ss_write(mem, header, 16);
 
    FCEUPPU_SaveState();
+   X6502_SaveState();
    totalsize  = WriteStateChunk(mem, 1, SFCPU);
    totalsize += WriteStateChunk(mem, 2, SFCPUC);
    totalsize += WriteStateChunk(mem, 3, FCEUPPU_STATEINFO);
@@ -676,6 +677,7 @@ int FCEUSS_Load_Mem(const void *buf, size_t size)
 
    if (stateversion < 9500)
       X.IRQlow = 0;
+   X6502_LoadState();
 
    if (GameStateRestore)
       GameStateRestore(stateversion);

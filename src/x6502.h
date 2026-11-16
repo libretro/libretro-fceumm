@@ -26,7 +26,12 @@
 void X6502_Run(int32_t cycles);
 
 extern uint32_t timestamp;
-extern uint32_t sound_timestamp;
+extern uint32_t x6502_sound_lag;
+/* The APU's clock: CPU cycles not run overclocked. */
+#define sound_timestamp ((uint32_t)(timestamp - x6502_sound_lag))
+extern uint32_t x6502_sound_ts_state;
+/* timestamp * 48 + X.count; constant while the CPU runs. */
+extern int32_t x6502_count_base;
 extern X6502 X;
 extern uint8_t encryptOpcodes;
 extern uint8_t encryptOpcodesConfig;
@@ -58,6 +63,13 @@ extern void FP_FASTAPASS(1) (*MapIRQHook)(int a);
 void X6502_Init(void);
 void X6502_Reset(void);
 void X6502_Power(void);
+/* Moves the frame's cycles out of timestamp and sound_timestamp,
+ * keeping the CPU's counters. */
+void X6502_Rebase(void);
+/* Fill in and take back X.count, X.tcount and x6502_sound_ts_state, the
+ * counters as savestates store them. */
+void X6502_SaveState(void);
+void X6502_LoadState(void);
 
 void TriggerNMI(void);
 void TriggerNMI2(void);

@@ -1462,7 +1462,7 @@ SFORMAT FCEUSND_STATEINFO[] = {
 	{ &ChannelBC[2], sizeof(ChannelBC[2]) | FCEUSTATE_RLSB, "CBC3" },
 	{ &ChannelBC[3], sizeof(ChannelBC[3]) | FCEUSTATE_RLSB, "CBC4" },
 	{ &ChannelBC[4], sizeof(ChannelBC[4]) | FCEUSTATE_RLSB, "CBC5" },
-	{ &sound_timestamp, sizeof(sound_timestamp) | FCEUSTATE_RLSB, "SNTS" },
+	{ &x6502_sound_ts_state, sizeof(x6502_sound_ts_state) | FCEUSTATE_RLSB, "SNTS" },
 	{ &soundtsoffs, sizeof(soundtsoffs) | FCEUSTATE_RLSB, "TSOF"},
 	{ &wlcount[0], sizeof(wlcount[0]) | FCEUSTATE_RLSB, "WLC1" },
 	{ &wlcount[1], sizeof(wlcount[1]) | FCEUSTATE_RLSB, "WLC2" },
@@ -1532,7 +1532,7 @@ void FCEUSND_LoadState(int version) {
 	if (soundtsoffs + sound_timestamp >= soundtsinc)
 	{
 		soundtsoffs = 0;
-		sound_timestamp = 0;
+		x6502_sound_lag = timestamp;
 	}
 	if (tristep > 32)
 	{
