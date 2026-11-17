@@ -3404,6 +3404,7 @@ static void retro_run_blit(uint8_t *gfx)
          {
             const uint8_t *deemp_row = XDBuf + (gfx - XBuf);
             const bool is_nsf        = (GameInfo->type == GIT_NSF);
+            const bool check_tint    = (!is_nsf && ppu_frame_has_tint);
             unsigned y;
 
             for (y = 0; y < height; y++)
@@ -3413,8 +3414,9 @@ static void retro_run_blit(uint8_t *gfx)
                unsigned blocks    = width >> 3;
                unsigned tail      = width & 7;
                uint8_t deemp      = is_nsf ? 0 : deemp_row[0];
+               bool line_has_tint = check_tint && ppu_frame_tint_lines[y + crop_overscan_v_top];
 
-               if (!deemp && !use_raw_palette)
+               if (!deemp && !use_raw_palette && !line_has_tint)
                {
                   const uint32_t *pr = retro_palette;
                   if (blocks)
@@ -3446,7 +3448,7 @@ static void retro_run_blit(uint8_t *gfx)
                   while (tail--)
                      *out++ = (bpp_t)pr[*src++];
                }
-               else
+               else if (!line_has_tint)
                {
                   const uint32_t *pr = retro_palette + 256u
                      + ((unsigned)(deemp & 0x07) << 6);
@@ -3478,6 +3480,41 @@ static void retro_run_blit(uint8_t *gfx)
                   }
                   while (tail--)
                      *out++ = (bpp_t)pr[*src++ & 0x3F];
+               }
+               else
+               {
+                  const uint32_t *pr  = retro_palette + 256u;
+                  const uint8_t *dsrc = deemp_row;
+
+                  if (blocks)
+                  {
+                     unsigned i0 = ((unsigned)(dsrc[0] & 0x07) << 6) | (src[0] & 0x3F);
+                     do
+                     {
+                        uint32_t c0 = pr[i0];
+                        uint32_t c1 = pr[((unsigned)(dsrc[1] & 0x07) << 6) | (src[1] & 0x3F)];
+                        uint32_t c2 = pr[((unsigned)(dsrc[2] & 0x07) << 6) | (src[2] & 0x3F)];
+                        uint32_t c3 = pr[((unsigned)(dsrc[3] & 0x07) << 6) | (src[3] & 0x3F)];
+                        uint32_t c4 = pr[((unsigned)(dsrc[4] & 0x07) << 6) | (src[4] & 0x3F)];
+                        uint32_t c5 = pr[((unsigned)(dsrc[5] & 0x07) << 6) | (src[5] & 0x3F)];
+                        uint32_t c6 = pr[((unsigned)(dsrc[6] & 0x07) << 6) | (src[6] & 0x3F)];
+                        uint32_t c7 = pr[((unsigned)(dsrc[7] & 0x07) << 6) | (src[7] & 0x3F)];
+                        src  += 8;
+                        dsrc += 8;
+                        i0 = ((unsigned)(dsrc[0] & 0x07) << 6) | (src[0] & 0x3F);
+                        out[0] = (bpp_t)c0;
+                        out[1] = (bpp_t)c1;
+                        out[2] = (bpp_t)c2;
+                        out[3] = (bpp_t)c3;
+                        out[4] = (bpp_t)c4;
+                        out[5] = (bpp_t)c5;
+                        out[6] = (bpp_t)c6;
+                        out[7] = (bpp_t)c7;
+                        out += 8;
+                     } while (--blocks);
+                  }
+                  while (tail--)
+                     *out++ = (bpp_t)pr[((unsigned)(*dsrc++ & 0x07) << 6) | (*src++ & 0x3F)];
                }
 
                gfx       += 256;

@@ -148,6 +148,29 @@ static uint8_t * MMC5BGVRAMADR(uint32_t V) {
 	} else return &MMC5BGVPage[(V) >> 10][(V)];
 }
 
+#define PAL(c)  ((c) + cc)
+
+#define GETLASTPIXEL    (PAL ? ((timestamp * 48 - linestartts) / 15) : ((timestamp * 48 - linestartts) >> 4))
+
+static uint8_t *Pline, *Plinef;
+static int firsttile;
+static int linestartts;
+static int tofix = 0;
+
+typedef struct {
+	uint16_t dot;
+	uint8_t ppu1;
+	uint8_t pad;
+} PPU1TintEvent;
+
+/* At most ~29 4-cycle CPU writes fit in a 114-cycle scanline. */
+#define MAX_TINT_EVENTS 32
+static PPU1TintEvent tint_queue[MAX_TINT_EVENTS];
+static int tint_count = 0;
+static uint8_t tint_line_start_ppu1 = 0;
+uint8_t ppu_frame_tint_lines[240];
+uint8_t ppu_frame_has_tint = 0;
+
 /* Sprite 0 on the current line, until its hit is found (0x100: none). */
 static int32_t sphitx;
 static uint8_t sphitdata;
@@ -255,7 +278,28 @@ static DECLFW(B2000) {
 }
 
 static DECLFW(B2001) {
-	FCEUPPU_LineUpdate();
+	uint8_t changed = PPU[1] ^ V;
+
+	if (changed & 0x1E)
+		FCEUPPU_LineUpdate();
+
+	if (changed & 0xE1) {
+		int dot = GETLASTPIXEL;
+		if (dot < 0)
+			dot = 0;
+		else if (dot > 256)
+			dot = 256;
+
+		if (tint_count > 0 && tint_queue[tint_count - 1].dot == (uint16_t)dot)
+			tint_queue[tint_count - 1].ppu1 = V;
+        else if (tint_count < MAX_TINT_EVENTS)
+        {
+			tint_queue[tint_count].dot = (uint16_t)dot;
+			tint_queue[tint_count].ppu1 = V;
+			tint_count++;
+		}
+	}
+
 	PPUGenLatch = V;
 	PPU[1] = V;
 	if (V & 0xE0)
@@ -362,15 +406,6 @@ static DECLFW(B4014) {
 		X6502_DMW(0x2004, X6502_DMR(t + x));
 }
 
-#define PAL(c)  ((c) + cc)
-
-#define GETLASTPIXEL    (PAL ? ((timestamp * 48 - linestartts) / 15) : ((timestamp * 48 - linestartts) >> 4))
-
-static uint8_t *Pline, *Plinef;
-static int firsttile;
-static int linestartts;
-static int tofix = 0;
-
 static void ResetRL(uint8_t *target) {
 	memset(target, 0xFF, 256);
 	if (InputScanlineHook)
@@ -379,6 +414,8 @@ static void ResetRL(uint8_t *target) {
 	Pline = target;
 	firsttile = 0;
 	linestartts = x6502_count_base;
+	tint_line_start_ppu1 = PPU[1];
+	tint_count = 0;
 	tofix = 0;
 	FCEUPPU_LineUpdate();
 	tofix = 1;
@@ -654,6 +691,55 @@ static void Fixit1(void) {
 	}
 }
 
+static void ApplyTintSpan(uint8_t *target, uint8_t *dtarget, int x0, int x1, uint8_t ppu1)
+{
+	uint32_t and_mask = 0xFFFFFFFFu;
+	uint32_t or_mask;
+	uint8_t b_and;
+	uint8_t b_or;
+	uint8_t emph = ppu1 >> 5;
+	int x = x0;
+	int aligned_start;
+	int aligned_end;
+
+	if ((ScreenON || SpriteON) && (ppu1 & 0x01))
+		and_mask = 0x30303030u;
+
+	if (emph == 0x7) {
+		and_mask &= 0x3f3f3f3fu;
+		or_mask   = 0xc0c0c0c0u;
+	} else if (ppu1 & 0xE0) {
+		or_mask   = 0x40404040u;
+	} else {
+		and_mask &= 0x3f3f3f3fu;
+		or_mask   = 0x80808080u;
+	}
+
+	b_and = (uint8_t)and_mask;
+	b_or  = (uint8_t)or_mask;
+
+	aligned_start = (x0 + 3) & ~3;
+	aligned_end   = x1 & ~3;
+
+	if (aligned_start >= aligned_end) {
+		for (; x < x1; x++)
+			target[x] = (target[x] & b_and) | b_or;
+	} else {
+		for (; x < aligned_start; x++)
+			target[x] = (target[x] & b_and) | b_or;
+		for (; x < aligned_end; x += 4) {
+			uint32_t w;
+			memcpy(&w, target + x, 4);
+			w = (w & and_mask) | or_mask;
+			memcpy(target + x, &w, 4);
+		}
+		for (; x < x1; x++)
+			target[x] = (target[x] & b_and) | b_or;
+	}
+
+	memset(dtarget + x0, emph, x1 - x0);
+}
+
 void MMC5_hb(int);		/* Ugh ugh ugh. */
 static void DoLine(void)
 {
@@ -703,8 +789,16 @@ static void DoLine(void)
 	if (SpriteON)
 		CopySprites(target);
 
+	if (scanline < 240)
+	{
+		ppu_frame_tint_lines[scanline] = (uint8_t)(tint_count > 0);
+		if (tint_count > 0)
+			ppu_frame_has_tint = 1;
+	}
+	
 	/* One pass over the line: greyscale (while rendering), then the
 	 * palette bank bits the line's emphasis selects. */
+	if (!tint_count)
 	{
 		uint32_t and_mask = 0xFFFFFFFFu;
 		uint32_t or_mask;
@@ -726,10 +820,28 @@ static void DoLine(void)
 			w = (w & and_mask) | or_mask;
 			memcpy(target + x, &w, 4);
 		}
+		
+		/* The line's colour emphasis, one byte per pixel. */
+		memset(dtarget, PPU[1] >> 5, 256);
 	}
+    else
+    {
+		int cur_x = 0;
+		uint8_t cur_ppu1 = tint_line_start_ppu1;
+		int i;
 
-	/* The line's colour emphasis, one byte per pixel. */
-	memset(dtarget, PPU[1] >> 5, 256);
+		for (i = 0; i <= tint_count; i++)
+        {
+			int next_x = (i < tint_count) ? tint_queue[i].dot : 256;
+			if (next_x > cur_x)
+            {
+				ApplyTintSpan(target, dtarget, cur_x, next_x, cur_ppu1);
+				cur_x = next_x;
+			}
+			if (i < tint_count)
+				cur_ppu1 = tint_queue[i].ppu1;
+		}
+	}
 
     sphitx = 0x100;
 
@@ -1216,6 +1328,8 @@ void FCEUPPU_Reset(void) {
 	vtoggle = 0;
 	ppudead = 2;
 	kook = 0;
+	ppu_frame_has_tint = 0;
+	memset(ppu_frame_tint_lines, 0, sizeof(ppu_frame_tint_lines));
 }
 
 void FCEUPPU_Power(void) {
@@ -1317,6 +1431,7 @@ int FCEUPPU_Loop(int skip) {
 			int x, max, maxref;
 
 			deemp = PPU[1] >> 5;
+			ppu_frame_has_tint = 0;
 
          /* manual samples can't play correctly with overclocking */
 			if (DMC_7bit && skip_7bit_overclocking)
